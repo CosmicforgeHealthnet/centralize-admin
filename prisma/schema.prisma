@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AdminTier {
+  SUPER
+  EXECUTIVE
+  ADMIN
+  EMPLOYEE
+}
+
+enum AdminStatus {
+  ACTIVE
+  INACTIVE
+  LOCKED
+  PENDING
+}
+
+enum Department {
+  FINANCE
+  DEVELOPMENT
+  CUSTOMER_CARE
+  MARKETING
+  SOCIAL_MEDIA
+  EXECUTIVE
+  MANAGEMENT
+}
+
+enum AuditAction {
+  LOGIN
+  LOGOUT
+  LOGIN_FAILED
+  ACCOUNT_LOCKED
+  PASSWORD_CHANGED
+  PASSWORD_RESET_REQUESTED
+  PASSWORD_RESET_COMPLETED
+  USER_CREATED
+  USER_UPDATED
+  USER_DEACTIVATED
+  USER_ACTIVATED
+  USER_DELETED
+  TICKET_RESOLVED
+  TICKET_ASSIGNED
+  TICKET_UPDATED
+  PAYMENT_VIEWED
+  APPOINTMENT_VIEWED
+  TOKEN_REFRESHED
+}
+
+model AdminUser {
+  id                   String      @id @default(uuid())
+  email                String      @unique
+  password             String
+  name                 String
+  position             String?
+  department           Department?
+  tier                 AdminTier   @default(EMPLOYEE)
+  status               AdminStatus @default(PENDING)
+  isTeamLead           Boolean     @default(false)
+  failedLoginAttempts  Int         @default(0)
+  lockedUntil          DateTime?
+  lastLoginAt          DateTime?
+  lastLoginIp          String?
+  mustChangePassword   Boolean     @default(true)
+  passwordResetToken   String?     @unique
+  passwordResetExpires DateTime?
+  refreshTokens        RefreshToken[]
+  auditLogs            AuditLog[]
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  createdBy            String?
+
+  @@map("admin_users")
+}
+
+model RefreshToken {
+  id          String    @id @default(uuid())
+  token       String    @unique
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  isRevoked   Boolean   @default(false)
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime  @default(now())
+
+  @@map("admin_refresh_tokens")
+}
+
+model AuditLog {
+  id          String      @id @default(uuid())
+  adminUserId String?
+  adminUser   AdminUser?  @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
+  action      AuditAction
+  targetId    String?
+  targetType  String?
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime    @default(now())
+
+  @@map("admin_audit_logs")
+}
