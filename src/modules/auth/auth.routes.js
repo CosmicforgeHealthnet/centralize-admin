@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const controller = require("./auth.controller");
 const { authenticate } = require("../../shared/middlewares/auth.middleware");
+const passport = require("../../shared/config/google.strategy");
 const {
   authLimiter,
   passwordResetLimiter,
@@ -20,6 +21,17 @@ router.post(
   authLimiter,
   validate(refreshTokenSchema),
   controller.refreshToken,
+);
+// Google OAuth routes
+router.get(
+  "/google",
+  passport.authenticate("google", { session: false, scope: ["profile", "email"] })
+);
+
+router.get(
+  "/google/callback",
+  passport.authenticate("google", { session: false, failWithError: true }),
+  controller.googleCallback
 );
 
 // Protected routes

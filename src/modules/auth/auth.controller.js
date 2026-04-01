@@ -39,6 +39,30 @@ const login = asyncHandler(async (req, res) => {
   });
 });
 
+const googleCallback = asyncHandler(async (req, res) => {
+  const user = req.user; // set by Passport after strategy runs
+
+  const result = await authService.googleLogin({
+    user,
+    ipAddress: req.ip,
+    userAgent: req.headers["user-agent"],
+  });
+
+  res.cookie(
+    REFRESH_TOKEN_COOKIE,
+    result.refreshToken,
+    refreshTokenCookieOptions,
+  );
+  res.cookie("isLoggedIn", "true", isLoggedInCookieOptions);
+
+  // Redirect to frontend with accessToken in query param
+  // Frontend reads it once, stores in memory, then discards from URL
+  const frontendURL = process.env.CORS_ORIGINS.split(",")[0].trim();
+  return res.redirect(
+    `${frontendURL}/auth/google/callback?token=${result.accessToken}`,
+  );
+});
+
 const refreshToken = asyncHandler(async (req, res) => {
   const token = req.cookies?.[REFRESH_TOKEN_COOKIE];
 
@@ -109,4 +133,11 @@ const getMe = asyncHandler(async (req, res) => {
   return ApiResponse.success(res, 200, "User profile", req.adminUser);
 });
 
-module.exports = { login, refreshToken, logout, changePassword, getMe };
+module.exports = {
+  login,
+  googleCallback,
+  refreshToken,
+  logout,
+  changePassword,
+  getMe,
+};

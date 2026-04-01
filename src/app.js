@@ -6,6 +6,7 @@ const hpp = require("hpp");
 const compression = require("compression");
 const cookieParser = require("cookie-parser"); // FIX #5: needed to read HttpOnly cookies
 const xss = require("xss");
+const passport = require("./shared/config/google.strategy");
 
 const {
   globalLimiter,
@@ -62,6 +63,7 @@ app.options("/{*splat}", cors());
 app.use(express.json({ limit: "10kb" })); // Hard limit on body size
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(cookieParser()); // FIX #5: parse cookies before routes
+app.use(passport.initialize());
 app.use(hpp()); // Prevent HTTP parameter pollution
 app.use(compression());
 

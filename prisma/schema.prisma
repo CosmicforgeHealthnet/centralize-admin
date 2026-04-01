@@ -62,6 +62,7 @@ model AdminUser {
   status               AdminStatus @default(PENDING)
   isTeamLead           Boolean     @default(false)
   failedLoginAttempts  Int         @default(0)
+  googleId     String?  @unique  
   lockedUntil          DateTime?
   lastLoginAt          DateTime?
   lastLoginIp          String?

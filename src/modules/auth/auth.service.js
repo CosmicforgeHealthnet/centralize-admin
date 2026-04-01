@@ -282,6 +282,60 @@ class AuthService {
       req,
     });
   }
+  async googleLogin({ user, ipAddress, userAgent }) {
+    // Reset failed attempts and update last login
+    await prisma.adminUser.update({
+      where: { id: user.id },
+      data: {
+        failedLoginAttempts: 0,
+        lastLoginAt: new Date(),
+        lastLoginIp: ipAddress,
+        lockedUntil: null,
+      },
+    });
+
+    // Generate tokens
+    const accessToken = generateAccessToken({
+      sub: user.id,
+      email: user.email,
+      tier: user.tier,
+      name: user.name,
+      isTeamLead: user.isTeamLead,
+    });
+
+    const refreshToken = generateRefreshToken();
+
+    await prisma.refreshToken.create({
+      data: {
+        token: hashToken(refreshToken),
+        adminUserId: user.id,
+        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+        ipAddress,
+        userAgent,
+      },
+    });
+
+    await createAuditLog({
+      adminUserId: user.id,
+      action: "LOGIN",
+      metadata: { ipAddress, method: "GOOGLE" },
+      req: { ip: ipAddress, headers: { "user-agent": userAgent } },
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+      mustChangePassword: false, // Google login skips mustChangePassword
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        tier: user.tier,
+        department: user.department,
+        isTeamLead: user.isTeamLead,
+      },
+    };
+  }
 }
 
 module.exports = new AuthService();
