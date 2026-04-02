@@ -1,14 +1,11 @@
-name: Staging – Build & Push
-
+name: Staging – Build & Push & Deploy
 on:
   push:
     branches:
       - staging
-
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ghcr.io/cosmicforgehealthnet/admin-backend
-
 jobs:
   build-and-push:
     name: Build & Push to GHCR (Staging)
@@ -16,18 +13,15 @@ jobs:
     permissions:
       contents: read
       packages: write
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -36,3 +30,13 @@ jobs:
           tags: |
             ${{ env.IMAGE_NAME }}:staging
             ${{ env.IMAGE_NAME }}:staging-${{ github.sha }}
+      - name: Deploy to staging server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          password: ${{ secrets.STAGING_PASSWORD }}
+          script: |
+            cd /var/www/admin-server-staging
+            docker-compose pull
+            docker-compose up -d
