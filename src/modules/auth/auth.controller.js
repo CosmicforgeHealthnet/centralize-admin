@@ -7,15 +7,14 @@ const REFRESH_TOKEN_COOKIE = "refreshToken";
 const refreshTokenCookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "strict",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
-// Non-HttpOnly — only used by middleware for route guarding
 const isLoggedInCookieOptions = {
   httpOnly: false,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "strict",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
@@ -29,7 +28,11 @@ const login = asyncHandler(async (req, res) => {
     userAgent: req.headers["user-agent"],
   });
 
-  res.cookie(REFRESH_TOKEN_COOKIE, result.refreshToken, refreshTokenCookieOptions);
+  res.cookie(
+    REFRESH_TOKEN_COOKIE,
+    result.refreshToken,
+    refreshTokenCookieOptions,
+  );
   res.cookie("isLoggedIn", "true", isLoggedInCookieOptions);
 
   return ApiResponse.success(res, 200, "Login successful", {
@@ -40,7 +43,7 @@ const login = asyncHandler(async (req, res) => {
 });
 
 const googleCallback = asyncHandler(async (req, res) => {
-  const user = req.user; // set by Passport after strategy runs
+  const user = req.user;
 
   const result = await authService.googleLogin({
     user,
@@ -55,8 +58,6 @@ const googleCallback = asyncHandler(async (req, res) => {
   );
   res.cookie("isLoggedIn", "true", isLoggedInCookieOptions);
 
-  // Redirect to frontend with accessToken in query param
-  // Frontend reads it once, stores in memory, then discards from URL
   const frontendURL = process.env.CORS_ORIGINS.split(",")[0].trim();
   return res.redirect(
     `${frontendURL}/auth/google/callback?token=${result.accessToken}`,
@@ -76,7 +77,11 @@ const refreshToken = asyncHandler(async (req, res) => {
     userAgent: req.headers["user-agent"],
   });
 
-  res.cookie(REFRESH_TOKEN_COOKIE, result.refreshToken, refreshTokenCookieOptions);
+  res.cookie(
+    REFRESH_TOKEN_COOKIE,
+    result.refreshToken,
+    refreshTokenCookieOptions,
+  );
   res.cookie("isLoggedIn", "true", isLoggedInCookieOptions);
 
   return ApiResponse.success(res, 200, "Token refreshed", {
@@ -84,7 +89,6 @@ const refreshToken = asyncHandler(async (req, res) => {
   });
 });
 
-// auth.controller.js
 const logout = asyncHandler(async (req, res) => {
   const token = req.cookies?.[REFRESH_TOKEN_COOKIE];
 
@@ -98,12 +102,12 @@ const logout = asyncHandler(async (req, res) => {
   res.clearCookie(REFRESH_TOKEN_COOKIE, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
   });
   res.clearCookie("isLoggedIn", {
     httpOnly: false,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
   });
 
   return ApiResponse.success(res, 200, "Logged out successfully");
@@ -119,8 +123,16 @@ const changePassword = asyncHandler(async (req, res) => {
     req,
   });
 
-  res.clearCookie(REFRESH_TOKEN_COOKIE, refreshTokenCookieOptions);
-  res.clearCookie("isLoggedIn", isLoggedInCookieOptions);
+  res.clearCookie(REFRESH_TOKEN_COOKIE, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+  });
+  res.clearCookie("isLoggedIn", {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+  });
 
   return ApiResponse.success(
     res,

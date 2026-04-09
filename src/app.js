@@ -23,6 +23,7 @@ const adminUsersRoutes = require("./modules/admin-users").router;
 const ticketsRoutes = require("./modules/tickets").router;
 const paymentsRoutes = require("./modules/payments").router;
 const appointmentsRoutes = require("./modules/appointments").router;
+const doctorsRoutes = require("./modules/doctors").router; // ← NEW
 
 const app = express();
 
@@ -125,6 +126,7 @@ app.use("/api/admin-users", adminUsersRoutes);
 app.use("/api/tickets", ticketsRoutes);
 app.use("/api/payments", paymentsRoutes);
 app.use("/api/appointments", appointmentsRoutes);
+app.use("/api/doctors", doctorsRoutes); // ← NEW
 
 // ─────────────────────────────────────────
 // ERROR HANDLING  (must be last)
