@@ -20,10 +20,7 @@ const logger = require("./shared/utils/logger");
 // Route modules
 const authRoutes = require("./modules/auth").router;
 const adminUsersRoutes = require("./modules/admin-users").router;
-const ticketsRoutes = require("./modules/tickets").router;
-const paymentsRoutes = require("./modules/payments").router;
-const appointmentsRoutes = require("./modules/appointments").router;
-const doctorsRoutes = require("./modules/doctors").router; // ← NEW
+const dashboardRoutes = require("./modules/dashboard").router;
 
 const app = express();
 
@@ -123,10 +120,7 @@ app.get("/health", (req, res) => {
 // ─────────────────────────────────────────
 app.use("/api/auth", authRoutes);
 app.use("/api/admin-users", adminUsersRoutes);
-app.use("/api/tickets", ticketsRoutes);
-app.use("/api/payments", paymentsRoutes);
-app.use("/api/appointments", appointmentsRoutes);
-app.use("/api/doctors", doctorsRoutes); // ← NEW
+app.use("/api/dashboard", dashboardRoutes);
 
 // ─────────────────────────────────────────
 // ERROR HANDLING  (must be last)

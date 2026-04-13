@@ -1,13 +1,14 @@
 const app = require("./app");
 const { connectDatabase } = require("./shared/config/database");
+const { connectMainDatabase } = require("./shared/config/mainDatabase");
 const logger = require("./shared/utils/logger");
 
 const PORT = process.env.PORT || 4000;
 
 const startServer = async () => {
   try {
-    // Connect to DB first — fail fast if DB is unreachable
     await connectDatabase();
+    await connectMainDatabase();
 
     const server = app.listen(PORT, () => {
       logger.info(
@@ -15,17 +16,17 @@ const startServer = async () => {
       );
     });
 
-    // Graceful shutdown
     const shutdown = async (signal) => {
       logger.info(`${signal} received — shutting down gracefully`);
       server.close(async () => {
         const { prisma } = require("./shared/config/database");
+        const { mainPrisma } = require("./shared/config/mainDatabase");
         await prisma.$disconnect();
-        logger.info("Database disconnected");
+        await mainPrisma.$disconnect();
+        logger.info("Databases disconnected");
         process.exit(0);
       });
 
-      // Force shutdown if graceful takes too long
       setTimeout(() => {
         logger.error("Forced shutdown after timeout");
         process.exit(1);
@@ -35,7 +36,6 @@ const startServer = async () => {
     process.on("SIGTERM", () => shutdown("SIGTERM"));
     process.on("SIGINT", () => shutdown("SIGINT"));
 
-    // Catch unhandled promise rejections
     process.on("unhandledRejection", (reason) => {
       logger.error("Unhandled Rejection:", reason);
     });
