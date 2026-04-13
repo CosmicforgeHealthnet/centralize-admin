@@ -1,0 +1,81 @@
+﻿├── .github
+│   └── workflows
+│       ├── production.yml
+│       └── staging.yml
+├── prisma
+│   ├── migrations
+│   │   ├── 20260328111338_init
+│   │   │   └── migration.sql
+│   │   ├── 20260401124432_add_google_id
+│   │   │   └── migration.sql
+│   │   ├── 20260405081841_add_password_changed_at
+│   │   │   └── migration.sql
+│   │   └── migration_lock.toml
+│   ├── seeds
+│   │   └── admin.seed.js
+│   └── schema.prisma
+├── scripts
+│   └── testMainBackend.js
+├── src
+│   ├── modules
+│   │   ├── admin-users
+│   │   │   ├── admin-users.controller.js
+│   │   │   ├── admin-users.routes.js
+│   │   │   ├── admin-users.service.js
+│   │   │   ├── admin-users.validator.js
+│   │   │   └── index.js
+│   │   ├── appointments
+│   │   │   ├── appointments.controller.js
+│   │   │   ├── appointments.routes.js
+│   │   │   ├── appointments.service.js
+│   │   │   └── index.js
+│   │   ├── auth
+│   │   │   ├── auth.controller.js
+│   │   │   ├── auth.routes.js
+│   │   │   ├── auth.service.js
+│   │   │   ├── auth.validator.js
+│   │   │   └── index.js
+│   │   ├── doctors
+│   │   │   ├── doctors.controller.js
+│   │   │   ├── doctors.routes.js
+│   │   │   ├── doctors.service.js
+│   │   │   └── index.js
+│   │   ├── payments
+│   │   │   ├── index.js
+│   │   │   ├── payments.controller.js
+│   │   │   ├── payments.routes.js
+│   │   │   └── payments.service.js
+│   │   └── tickets
+│   │       ├── index.js
+│   │       ├── tickets.controller.js
+│   │       ├── tickets.routes.js
+│   │       └── tickets.service.js
+│   ├── shared
+│   │   ├── config
+│   │   │   ├── database.js
+│   │   │   ├── google.strategy.js
+│   │   │   └── mainApi.js
+│   │   ├── middlewares
+│   │   │   ├── audit.middleware.js
+│   │   │   ├── auth.middleware.js
+│   │   │   ├── error.middleware.js
+│   │   │   ├── index.js
+│   │   │   ├── rateLimiter.middleware.js
+│   │   │   └── rbac.middleware.js
+│   │   └── utils
+│   │       ├── ApiError.js
+│   │       ├── ApiResponse.js
+│   │       ├── asyncHandler.js
+│   │       ├── index.js
+│   │       ├── jwt.util.js
+│   │       ├── logger.js
+│   │       └── password.util.js
+│   ├── app.js
+│   └── server.js
+├── .gitignore
+├── Dockerfile
+├── folder-structure.txt
+├── nodemon.json
+├── package.json
+├── prisma.config.ts
+└── README.md

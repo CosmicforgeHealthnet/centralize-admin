@@ -1,0 +1,3283 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/main-client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model account_support {
+  id              Int                            @id(map: "PK_2c5a9c77e31f4d1bb497c792945") @default(autoincrement())
+  userId          String                         @db.Uuid
+  issueType       account_support_issuetype_enum
+  description     String?
+  screenshotUrl   String?                        @db.VarChar(500)
+  status          account_support_status_enum    @default(pending)
+  priority        account_support_priority_enum  @default(medium)
+  assignedTo      String?                        @db.VarChar(255)
+  resolutionNotes String?
+  resolvedAt      DateTime?                      @db.Timestamp(6)
+  createdAt       DateTime                       @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime                       @default(now()) @db.Timestamp(6)
+  users           users                          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_b8606254e7a5a276857d69652aa")
+}
+
+model allergies {
+  id               String            @id(map: "PK_f72e0cf363a832b8fa8cf657118") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  type             String?           @db.VarChar
+  allergen         String?           @db.VarChar
+  description      String?
+  createdAt        DateTime          @default(now()) @db.Timestamp(6)
+  patientProfileId String?           @db.Uuid
+  patient_profiles patient_profiles? @relation(fields: [patientProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_8da909f8b383c2d33266827d44f")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model appointment_chats {
+  id                                       String                        @id(map: "PK_186e6cc9cb90ea0f5cc5a2bb917") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  status                                   appointment_chats_status_enum @default(scheduled)
+  scheduledStartTime                       DateTime                      @db.Timestamp(6)
+  scheduledEndTime                         DateTime                      @db.Timestamp(6)
+  actualStartTime                          DateTime?                     @db.Timestamp(6)
+  actualEndTime                            DateTime?                     @db.Timestamp(6)
+  autoCloseEnabled                         Boolean                       @default(true)
+  preJoinAllowed                           Boolean                       @default(false)
+  postChatDuration                         Int                           @default(300)
+  settings                                 Json?
+  createdAt                                DateTime                      @default(now()) @db.Timestamp(6)
+  updatedAt                                DateTime                      @default(now()) @db.Timestamp(6)
+  roomId                                   String                        @unique(map: "REL_4f8b73222e5e8d3b253ffa692c") @db.Uuid
+  appointmentId                            String?                       @unique(map: "REL_40c421148d13869ec9116be072") @db.Uuid
+  doctorId                                 String                        @db.Uuid
+  patientId                                String                        @db.Uuid
+  users_appointment_chats_doctorIdTousers  users                         @relation("appointment_chats_doctorIdTousers", fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_02d983b4bb67181eefe5d09f2e7")
+  appointments                             appointments?                 @relation(fields: [appointmentId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_40c421148d13869ec9116be072d")
+  chat_rooms                               chat_rooms                    @relation(fields: [roomId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_4f8b73222e5e8d3b253ffa692cb")
+  users_appointment_chats_patientIdTousers users                         @relation("appointment_chats_patientIdTousers", fields: [patientId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_c3771bc47d4567bfbc37c008af2")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model appointments {
+  id                                  String                             @id(map: "PK_4a437a9a27e948726b8bb3e36ad") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  patientId                           String                             @db.Uuid
+  doctorId                            String                             @db.Uuid
+  appointmentDate                     DateTime                           @db.Date
+  appointmentTime                     DateTime                           @db.Time(6)
+  duration                            Int                                @default(30)
+  endTime                             DateTime?                          @db.Time(6)
+  status                              appointments_status_enum           @default(pending)
+  type                                appointments_type_enum             @default(consultation)
+  priority                            appointments_priority_enum         @default(routine)
+  reason                              String
+  notes                               String?
+  symptoms                            Json?
+  meetingProvider                     appointments_meetingprovider_enum?
+  meetingLink                         String?                            @db.VarChar(500)
+  meetingId                           String?                            @db.VarChar(255)
+  meetingPassword                     String?                            @db.VarChar(255)
+  googleMeetCode                      String?                            @db.VarChar(255)
+  zoomMeetingId                       String?                            @db.VarChar(255)
+  hostKey                             String?                            @db.VarChar(255)
+  consultationFee                     Decimal                            @db.Decimal(10, 2)
+  consultationFeeCurrency             String                             @default("NGN") @db.VarChar(3)
+  paymentStatus                       appointments_paymentstatus_enum    @default(pending)
+  paymentId                           String?                            @db.VarChar(255)
+  paymentMethod                       String?                            @db.VarChar(100)
+  insuranceCovered                    Boolean                            @default(false)
+  copay                               Decimal?                           @db.Decimal(10, 2)
+  reminderSent                        Boolean                            @default(false)
+  reminderSentAt                      DateTime?                          @db.Timestamp(6)
+  notificationPreferences             Json?
+  isFirstVisit                        Boolean                            @default(true)
+  followUpRequired                    Boolean                            @default(false)
+  followUpDate                        DateTime?                          @db.Date
+  prescriptions                       Json?
+  labOrdersRequired                   Json?
+  createdAt                           DateTime                           @default(now()) @db.Timestamp(6)
+  updatedAt                           DateTime                           @default(now()) @db.Timestamp(6)
+  createdBy                           String?                            @db.VarChar(255)
+  lastModifiedBy                      String?                            @db.VarChar(255)
+  completedAt                         DateTime?                          @db.Timestamp(6)
+  cancelledAt                         DateTime?                          @db.Timestamp(6)
+  cancellationReason                  String?
+  cancelledBy                         String?                            @db.VarChar(255)
+  rescheduledAt                       DateTime?                          @db.Timestamp(6)
+  rescheduledBy                       String?                            @db.VarChar(255)
+  rescheduleReason                    String?
+  isDoctorApproved                    Boolean                            @default(false)
+  isCancelled                         Boolean                            @default(false)
+  appointmentTimeUTC                  DateTime?                          @db.Timestamp(6)
+  doctorTimezone                      String?                            @db.VarChar(100)
+  patientTimezone                     String?                            @db.VarChar(100)
+  doctorLocalTime                     DateTime?                          @db.Time(6)
+  patientLocalTime                    DateTime?                          @db.Time(6)
+  endTimeUTC                          DateTime?                          @db.Timestamp(6)
+  appointment_chats                   appointment_chats?
+  users_appointments_doctorIdTousers  users                              @relation("appointments_doctorIdTousers", fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_0c1af27b469cb8dca420c160d65")
+  users_appointments_patientIdTousers users                              @relation("appointments_patientIdTousers", fields: [patientId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_13c2e57cb81b44f062ba24df57d")
+
+  @@index([appointmentDate], map: "IDX_APPOINTMENT_DATE")
+  @@index([appointmentDate, appointmentTime], map: "IDX_APPOINTMENT_DATE_TIME")
+  @@index([doctorId], map: "IDX_APPOINTMENT_DOCTOR")
+  @@index([doctorId, appointmentDate], map: "IDX_APPOINTMENT_DOCTOR_DATE")
+  @@index([patientId], map: "IDX_APPOINTMENT_PATIENT")
+  @@index([paymentStatus], map: "IDX_APPOINTMENT_PAYMENT_STATUS")
+  @@index([status], map: "IDX_APPOINTMENT_STATUS")
+}
+
+model audit_logs {
+  id             String          @id(map: "PK_1bb179d048bbc581caa3b013439") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  resourceType   String          @db.VarChar(100)
+  resourceId     String          @db.Uuid
+  action         String          @db.VarChar(100)
+  actorUserId    String?         @db.Uuid
+  actorRole      String?         @db.VarChar(100)
+  facilityId     String?         @db.Uuid
+  metadata       Json?
+  createdAt      DateTime        @default(now()) @db.Timestamp(6)
+  lab_facilities lab_facilities? @relation(fields: [facilityId], references: [id], onUpdate: NoAction, map: "FK_1538401074f916be34e62d00490")
+  users          users?          @relation(fields: [actorUserId], references: [id], onUpdate: NoAction, map: "FK_e36d23e1e7cf81ea77758bef795")
+
+  @@index([facilityId], map: "IDX_1538401074f916be34e62d0049")
+  @@index([resourceId], map: "IDX_b41c13e0a4212c95088d102981")
+  @@index([createdAt], map: "IDX_c69efb19bf127c97e6740ad530")
+  @@index([action], map: "IDX_cee5459245f652b75eb2759b4c")
+  @@index([actorUserId], map: "IDX_e36d23e1e7cf81ea77758bef79")
+  @@index([resourceType], map: "IDX_fb731b6c9ec3271068b48a0786")
+}
+
+model auth_events {
+  id        String   @id(map: "PK_ab929cc6084ffb3fd795bd983c0") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  eventType String   @db.VarChar
+  ip        String   @db.VarChar
+  userAgent String
+  timestamp DateTime @default(now()) @db.Timestamp(6)
+  userId    String?  @db.Uuid
+  users     users?   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_49d341e64257626b7078d8a9c4d")
+}
+
+model chat_messages {
+  id                  String                  @id(map: "PK_40c55ee0e571e268b0d3cd37d10") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  content             String
+  type                chat_messages_type_enum @default(text)
+  metadata            Json?
+  edited              Boolean                 @default(false)
+  editHistory         Json?
+  deleted             Boolean                 @default(false)
+  deletedAt           DateTime?               @db.Timestamp(6)
+  readBy              Json?
+  createdAt           DateTime                @default(now()) @db.Timestamp(6)
+  updatedAt           DateTime                @default(now()) @db.Timestamp(6)
+  senderId            String                  @db.Uuid
+  roomId              String                  @db.Uuid
+  replyToId           String?                 @db.Uuid
+  chat_messages       chat_messages?          @relation("chat_messagesTochat_messages", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_17a42899ce72cd55dc25fb33139")
+  other_chat_messages chat_messages[]         @relation("chat_messagesTochat_messages")
+  chat_rooms          chat_rooms              @relation(fields: [roomId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_9fa0373c1451ad384fc6a74aa8c")
+  users               users                   @relation(fields: [senderId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_fc6b58e41e9a871dacbe9077def")
+}
+
+model chat_participants {
+  id                                       String                      @id(map: "PK_ebf68c52a2b4dceb777672b782d") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  role                                     chat_participants_role_enum @default(member)
+  permissions                              Json?
+  isActive                                 Boolean                     @default(true)
+  lastReadAt                               DateTime?                   @db.Timestamp(6)
+  joinedAt                                 DateTime                    @default(now()) @db.Timestamp(6)
+  leftAt                                   DateTime?                   @db.Timestamp(6)
+  metadata                                 Json?
+  userId                                   String                      @db.Uuid
+  roomId                                   String                      @db.Uuid
+  addedById                                String?                     @db.Uuid
+  users_chat_participants_addedByIdTousers users?                      @relation("chat_participants_addedByIdTousers", fields: [addedById], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_57236f407b3d7b90e1df1b1b056")
+  chat_rooms                               chat_rooms                  @relation(fields: [roomId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_6be6922a86211449f6f74f5078e")
+  users_chat_participants_userIdTousers    users                       @relation("chat_participants_userIdTousers", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_fb6add83b1a7acc94433d385692")
+
+  @@unique([userId, roomId], map: "UQ_CHAT_PARTICIPANT_USER_ROOM_LAB")
+}
+
+model chat_rooms {
+  id                String               @id(map: "PK_c69082bd83bffeb71b0f455bd59") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name              String               @db.VarChar(255)
+  description       String?
+  type              chat_rooms_type_enum @default(direct)
+  isPrivate         Boolean              @default(false)
+  maxParticipants   Int                  @default(50)
+  settings          Json?
+  metadata          Json?
+  createdAt         DateTime             @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime             @default(now()) @db.Timestamp(6)
+  deletedAt         DateTime?            @db.Timestamp(6)
+  createdById       String?              @db.Uuid
+  isActive          Boolean              @default(true)
+  isArchived        Boolean              @default(false)
+  archivedAt        DateTime?            @db.Timestamp(6)
+  appointment_chats appointment_chats?
+  chat_messages     chat_messages[]
+  chat_participants chat_participants[]
+  users             users?               @relation(fields: [createdById], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_8e4fbc0dfa5e3ef7b7c4e65ea5d")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model chatbot_messages {
+  id               String                            @id(map: "PK_fa71cffb10870b351cfad908cfc") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  content          String
+  messageType      chatbot_messages_messagetype_enum
+  role             String                            @db.VarChar(50)
+  metadata         Json?
+  sessionId        String                            @db.Uuid
+  userId           String                            @db.Uuid
+  processingTime   Int?
+  tokenCount       Int?
+  createdAt        DateTime                          @default(now()) @db.Timestamp(6)
+  chatbot_sessions chatbot_sessions                  @relation(fields: [sessionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_e10358f7e9dd169a5e4e177af98")
+  users            users                             @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_f2c83d9cee2aab35489be92163f")
+
+  @@index([sessionId, createdAt], map: "IDX_CHATBOT_MESSAGE_SESSION")
+  @@index([messageType], map: "IDX_CHATBOT_MESSAGE_TYPE")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model chatbot_sessions {
+  id               String                            @id(map: "PK_cceaa5ac7326e15858987f9dde9") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  title            String?                           @db.VarChar(255)
+  sessionType      chatbot_sessions_sessiontype_enum
+  userId           String                            @db.Uuid
+  userType         chatbot_sessions_usertype_enum
+  isActive         Boolean                           @default(true)
+  metadata         Json?
+  messageCount     Int                               @default(0)
+  lastActivityAt   DateTime                          @default(now()) @db.Timestamp(6)
+  createdAt        DateTime                          @default(now()) @db.Timestamp(6)
+  updatedAt        DateTime                          @default(now()) @db.Timestamp(6)
+  chatbot_messages chatbot_messages[]
+  users            users                             @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_1d1ad76c8158319069fbbab5475")
+
+  @@index([isActive, lastActivityAt], map: "IDX_CHATBOT_SESSION_ACTIVE")
+  @@index([userId, sessionType], map: "IDX_CHATBOT_SESSION_USER_TYPE")
+}
+
+model clinical_practices {
+  id                String           @id(map: "PK_9cb2b4b10983a0e5705942661eb") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  clinicName        String?          @db.VarChar
+  location          String?          @db.VarChar
+  daysAvailableFrom String?          @db.VarChar
+  daysAvailableTo   String?          @db.VarChar
+  timeAvailableFrom DateTime?        @db.Time(6)
+  timeAvailableTo   DateTime?        @db.Time(6)
+  consultationFee   Float?
+  createdAt         DateTime         @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime         @default(now()) @db.Timestamp(6)
+  doctorProfileId   String?          @unique(map: "REL_bcc9209b56cebedcaca40b3d30") @db.Uuid
+  doctor_profiles   doctor_profiles? @relation(fields: [doctorProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_bcc9209b56cebedcaca40b3d303")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model comprehensive_audit_logs {
+  id                      String                                   @id(map: "PK_81cdf2d42d9d32a3d9f0d0bcdbd") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  event_type              comprehensive_audit_logs_event_type_enum
+  severity                comprehensive_audit_logs_severity_enum   @default(medium)
+  compliance_frameworks   Json                                     @default("[]")
+  user_id                 String?                                  @db.Uuid
+  user_role               String?                                  @db.VarChar
+  session_id              String?                                  @db.VarChar
+  patient_identifier      String?                                  @db.VarChar
+  resource_id             String?                                  @db.Uuid
+  resource_type           String?                                  @db.VarChar
+  fhir_resource_type      String?                                  @db.VarChar
+  event_description       String
+  purpose_of_use          String?                                  @db.VarChar
+  access_method           String?                                  @db.VarChar
+  ip_address              String?                                  @db.VarChar
+  user_agent              String?
+  request_headers         Json?
+  outcome                 String                                   @db.VarChar
+  outcome_reason          String?
+  authentication_method   String?                                  @db.VarChar
+  encryption_used         Boolean                                  @default(false)
+  encryption_key_id       String?                                  @db.Uuid
+  is_emergency_access     Boolean                                  @default(false)
+  emergency_justification String?
+  data_exported           Boolean                                  @default(false)
+  export_destination      String?                                  @db.VarChar
+  data_size               BigInt?
+  retention_period        Int?
+  minimum_disclosure      Boolean                                  @default(true)
+  consent_checked         Boolean                                  @default(false)
+  consent_id              String?                                  @db.Uuid
+  risk_score              Int?
+  risk_factors            Json?
+  metadata                Json?
+  digital_signature       String?
+  checksum_hash           String?                                  @db.VarChar
+  event_timestamp         DateTime                                 @db.Timestamp(6)
+  logged_at               DateTime                                 @default(now()) @db.Timestamp(6)
+  users                   users?                                   @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_7e9d5926ad3c730a68e8270f315")
+  encryption_keys         encryption_keys?                         @relation(fields: [encryption_key_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_9b7fceaa2538f3ac5bacf419700")
+  patient_consents        patient_consents?                        @relation(fields: [consent_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_c4caf2c0b97c8a1205b9c1610d8")
+  document_files          document_files?                          @relation(fields: [resource_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_c4f87a79a111c1062adf5d29f22")
+
+  @@index([compliance_frameworks], map: "IDX_AUDIT_COMPLIANCE")
+  @@index([is_emergency_access], map: "IDX_AUDIT_EMERGENCY")
+  @@index([event_type], map: "IDX_AUDIT_EVENT_TYPE")
+  @@index([outcome], map: "IDX_AUDIT_OUTCOME")
+  @@index([patient_identifier], map: "IDX_AUDIT_PATIENT")
+  @@index([risk_score], map: "IDX_AUDIT_RISK")
+  @@index([severity], map: "IDX_AUDIT_SEVERITY")
+  @@index([checksum_hash], map: "IDX_AUDIT_TAMPER")
+  @@index([event_timestamp], map: "IDX_AUDIT_TIMESTAMP")
+  @@index([user_id], map: "IDX_AUDIT_USER")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model conditions {
+  id              String                       @id(map: "PK_3938bdf2933c08ac7af7e0e15e7") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name            String                       @db.VarChar
+  description     String?
+  content_type    conditions_content_type_enum
+  image_file_id   String?                      @unique(map: "REL_5e8dc92cd9007244d1daded3fc") @db.Uuid
+  severity        conditions_severity_enum     @default(medium)
+  is_active       Boolean                      @default(true)
+  sort_order      Int                          @default(0)
+  metadata        Json?
+  created_at      DateTime                     @default(now()) @db.Timestamp(6)
+  updated_at      DateTime                     @default(now()) @db.Timestamp(6)
+  document_files  document_files?              @relation(fields: [image_file_id], references: [id], onUpdate: NoAction, map: "FK_5e8dc92cd9007244d1daded3fc7")
+  emergency_steps emergency_steps[]
+
+  @@index([is_active], map: "IDX_CONDITION_ACTIVE")
+  @@index([content_type], map: "IDX_CONDITION_CONTENT_TYPE")
+  @@index([image_file_id], map: "IDX_CONDITION_IMAGE")
+  @@index([severity], map: "IDX_CONDITION_SEVERITY")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model consent_access_logs {
+  id                      String           @id(map: "PK_999ae1768658cc45700822ee19a") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  consent_id              String           @db.Uuid
+  accessed_by             String           @db.Uuid
+  access_type             String           @db.VarChar
+  purpose_of_use          String           @db.VarChar
+  ip_address              String?          @db.VarChar
+  user_agent              String?
+  access_granted          Boolean
+  deny_reason             String?
+  is_emergency_access     Boolean          @default(false)
+  emergency_justification String?
+  metadata                Json?
+  accessed_at             DateTime         @default(now()) @db.Timestamp(6)
+  patient_consents        patient_consents @relation(fields: [consent_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_a2dcae50386383523440eaa65e1")
+  users                   users            @relation(fields: [accessed_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_c4ff741f8a996566167f3d0627f")
+
+  @@index([consent_id], map: "IDX_CONSENT_ACCESS_CONSENT")
+  @@index([accessed_at], map: "IDX_CONSENT_ACCESS_DATE")
+  @@index([accessed_by], map: "IDX_CONSENT_ACCESS_USER")
+  @@index([is_emergency_access], map: "IDX_EMERGENCY_ACCESS")
+}
+
+model consents {
+  id                         String            @id(map: "PK_9efc68eb6aba7d638fb6ea034dd") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  telemedicine               Boolean           @default(false)
+  dataCollection             Boolean           @default(false)
+  recordSharing              Boolean           @default(false)
+  emergencyContact           Boolean           @default(false)
+  preferredCommunication     String?           @db.VarChar
+  languagePreference         String?           @db.VarChar
+  healthTips                 Boolean           @default(false)
+  familyAccess               Boolean           @default(false)
+  notificationsAppointments  Boolean           @default(false)
+  notificationsPrescriptions Boolean           @default(false)
+  notificationsTestResults   Boolean           @default(false)
+  notificationsPromotions    Boolean           @default(false)
+  signature                  String?           @db.VarChar
+  createdAt                  DateTime          @default(now()) @db.Timestamp(6)
+  patientProfileId           String?           @unique(map: "REL_1ad83e812579efb9b5fe44f7dc") @db.Uuid
+  patient_profiles           patient_profiles? @relation(fields: [patientProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_1ad83e812579efb9b5fe44f7dc8")
+}
+
+model country_verification_configs {
+  id                   String                                   @id(map: "PK_aecc21f0b988bc120c6944e24cd") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  countryCode          String                                   @unique(map: "UQ_aa203f99b962c59d6557f58183a") @db.VarChar(2)
+  countryName          String                                   @db.VarChar
+  regulatoryBody       String                                   @db.VarChar
+  tier                 country_verification_configs_tier_enum
+  method               country_verification_configs_method_enum
+  hasApi               Boolean                                  @default(false)
+  apiProvider          String?                                  @db.VarChar
+  apiEndpoint          String?                                  @db.VarChar
+  apiKeyRequired       Boolean                                  @default(false)
+  apiRateLimit         Int?
+  avgProcessingTime    Int?
+  maxProcessingTime    Int?
+  requiresManualReview Boolean                                  @default(true)
+  requiredDocuments    Json?
+  optionalDocuments    Json?
+  isActive             Boolean                                  @default(true)
+  notes                String?
+  createdAt            DateTime                                 @default(now()) @db.Timestamp(6)
+  updatedAt            DateTime                                 @default(now()) @db.Timestamp(6)
+  createdBy            String?                                  @db.Uuid
+  updatedBy            String?                                  @db.Uuid
+
+  @@index([isActive], map: "idx_country_config_active")
+  @@index([countryCode], map: "idx_country_config_code")
+  @@index([tier], map: "idx_country_config_tier")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model data_governance_policies {
+  id                                                 String                                      @id(map: "PK_a9a26d3577ab5d11bd4461ceb72") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  policy_name                                        String                                      @db.VarChar
+  policy_type                                        data_governance_policies_policy_type_enum
+  policy_version                                     String                                      @default("1.0") @db.VarChar
+  policy_status                                      data_governance_policies_policy_status_enum @default(active)
+  policy_description                                 String
+  policy_rules                                       Json
+  applicable_data_types                              Json?
+  applicable_jurisdictions                           Json                                        @default("[\"global\"]")
+  sensitivity_levels                                 Json?
+  is_automated                                       Boolean                                     @default(false)
+  automation_schedule                                Json?
+  regulatory_basis                                   Json?
+  compliance_frameworks                              Json                                        @default("[]")
+  effective_date                                     DateTime                                    @db.Timestamp(6)
+  expiration_date                                    DateTime?                                   @db.Timestamp(6)
+  review_date                                        DateTime?                                   @db.Timestamp(6)
+  policy_owner                                       String                                      @db.Uuid
+  approved_by                                        String?                                     @db.Uuid
+  approval_date                                      DateTime?                                   @db.Timestamp(6)
+  enforcement_count                                  BigInt                                      @default(0)
+  violation_count                                    BigInt                                      @default(0)
+  last_enforced_at                                   DateTime?                                   @db.Timestamp(6)
+  created_at                                         DateTime                                    @default(now()) @db.Timestamp(6)
+  updated_at                                         DateTime                                    @default(now()) @db.Timestamp(6)
+  users_data_governance_policies_approved_byTousers  users?                                      @relation("data_governance_policies_approved_byTousers", fields: [approved_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_565e48405816d4d11259c549b9d")
+  users_data_governance_policies_policy_ownerTousers users                                       @relation("data_governance_policies_policy_ownerTousers", fields: [policy_owner], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_d2d80df1c03f4ba929875800719")
+
+  @@index([is_automated], map: "IDX_POLICY_AUTOMATED")
+  @@index([effective_date, expiration_date], map: "IDX_POLICY_EFFECTIVE")
+  @@index([applicable_jurisdictions], map: "IDX_POLICY_JURISDICTION")
+  @@index([review_date], map: "IDX_POLICY_REVIEW")
+  @@index([policy_type, policy_status], map: "IDX_POLICY_TYPE_STATUS")
+}
+
+model digital_health_tools {
+  id                  String           @id(map: "PK_4dc6b75ef4bbf6a4cb21351ca86") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  consentToUseAITools Boolean?
+  usageDescription    String?
+  useARVR             Boolean?
+  createdAt           DateTime         @default(now()) @db.Timestamp(6)
+  updatedAt           DateTime         @default(now()) @db.Timestamp(6)
+  doctorProfileId     String?          @unique(map: "REL_3622072ea13faf9a7443f36a48") @db.Uuid
+  doctor_profiles     doctor_profiles? @relation(fields: [doctorProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_3622072ea13faf9a7443f36a488")
+}
+
+model disabilities {
+  id               String            @id(map: "PK_58884be04270424ac64bf98d4a8") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  hasDisability    Boolean           @default(false)
+  type             String?           @db.VarChar
+  dateDiagnosed    DateTime?         @db.Date
+  assistiveDevice  String?           @db.VarChar
+  description      String?
+  createdAt        DateTime          @default(now()) @db.Timestamp(6)
+  patientProfileId String?           @unique(map: "REL_695a814ee3f5c4c5216c8ab849") @db.Uuid
+  patient_profiles patient_profiles? @relation(fields: [patientProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_695a814ee3f5c4c5216c8ab849d")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model disputes {
+  id                              String               @id(map: "PK_3c97580d01c1a4b0b345c42a107") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  transactionId                   String               @db.Uuid
+  patientId                       String               @db.Uuid
+  doctorId                        String               @db.Uuid
+  type                            disputes_type_enum   @default(refund_request)
+  status                          disputes_status_enum @default(pending)
+  reason                          String
+  patientDescription              String?
+  doctorResponse                  String?
+  adminNotes                      String?
+  refundAmount                    Decimal?             @db.Decimal(10, 2)
+  refundCurrency                  String?              @db.VarChar(3)
+  attachments                     Json?
+  createdAt                       DateTime             @default(now()) @db.Timestamp(6)
+  respondedAt                     DateTime?            @db.Timestamp(6)
+  resolvedAt                      DateTime?            @db.Timestamp(6)
+  escalatedAt                     DateTime?            @db.Timestamp(6)
+  users_disputes_doctorIdTousers  users                @relation("disputes_doctorIdTousers", fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_1ca485b53d9b1d27df67771cfdc")
+  transactions                    transactions         @relation(fields: [transactionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_9661150a3f25a5c44c891af56fe")
+  users_disputes_patientIdTousers users                @relation("disputes_patientIdTousers", fields: [patientId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_ceeb1b0a31daf4b221a8168226f")
+
+  @@index([status], map: "IDX_0ea46f4f2225f38d127063c367")
+  @@index([type], map: "IDX_3c58ed268aafa4d1148077b855")
+  @@index([transactionId], map: "IDX_9661150a3f25a5c44c891af56f")
+  @@index([createdAt], map: "IDX_af1b242c5899aad926113d1fbd")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model doctor_availability {
+  id              String                             @id(map: "PK_3d2b4ffe9085f8c7f9f269aed89") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  doctorId        String                             @db.Uuid
+  dayOfWeek       doctor_availability_dayofweek_enum
+  startTime       DateTime                           @db.Time(6)
+  endTime         DateTime                           @db.Time(6)
+  isAvailable     Boolean                            @default(true)
+  maxAppointments Int?
+  slotDuration    Int                                @default(30)
+  breakTime       Int                                @default(0)
+  timezone        String                             @default("UTC") @db.VarChar(100)
+  createdAt       DateTime                           @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime                           @default(now()) @db.Timestamp(6)
+  startTimeUTC    DateTime?                          @db.Time(6)
+  endTimeUTC      DateTime?                          @db.Time(6)
+  users           users                              @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_7ebf8396e8918307342d6bcf82b")
+
+  @@index([isAvailable], map: "IDX_DOCTOR_AVAILABILITY_ACTIVE")
+  @@index([dayOfWeek], map: "IDX_DOCTOR_AVAILABILITY_DAY")
+  @@index([doctorId], map: "IDX_DOCTOR_AVAILABILITY_DOCTOR")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model doctor_pricing {
+  id               String                               @id(map: "PK_6a33b7f5d4e752fe5288e5540cc") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  doctorId         String                               @db.Uuid
+  consultationType doctor_pricing_consultationtype_enum
+  price            Decimal                              @db.Decimal(10, 2)
+  currency         String                               @default("NGN") @db.VarChar(3)
+  duration         Int                                  @default(30)
+  isActive         Boolean                              @default(true)
+  createdAt        DateTime                             @default(now()) @db.Timestamp(6)
+  updatedAt        DateTime                             @default(now()) @db.Timestamp(6)
+  users            users                                @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_3329ae85f25512de95da6b2265f")
+
+  @@index([isActive], map: "IDX_DOCTOR_PRICING_ACTIVE")
+  @@index([doctorId], map: "IDX_DOCTOR_PRICING_DOCTOR")
+  @@index([consultationType], map: "IDX_DOCTOR_PRICING_TYPE")
+}
+
+model doctor_profiles {
+  id                        String                     @id(map: "PK_b07c128005f6a0d0135d6e7353b") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId                    String                     @unique(map: "UQ_a798afca9436b00dac80f911a83") @db.Uuid
+  profilePhoto              String?                    @db.VarChar
+  gender                    String?                    @db.VarChar
+  dateOfBirth               DateTime?                  @db.Date
+  nationality               String?                    @db.VarChar
+  contactNumber             String?                    @db.VarChar
+  residentialAddress        String?
+  createdAt                 DateTime                   @default(now()) @db.Timestamp(6)
+  updatedAt                 DateTime                   @default(now()) @db.Timestamp(6)
+  clinical_practices        clinical_practices?
+  digital_health_tools      digital_health_tools?
+  users                     users                      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_a798afca9436b00dac80f911a83")
+  professional_certificates professional_certificates?
+  professional_licenses     professional_licenses?
+  wallets                   wallets?
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model doctor_unavailability {
+  id        String                          @id(map: "PK_72b9aaa4d14eb5970c59db0df97") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  doctorId  String                          @db.Uuid
+  startDate DateTime                        @db.Date
+  endDate   DateTime                        @db.Date
+  startTime DateTime?                       @db.Time(6)
+  endTime   DateTime?                       @db.Time(6)
+  reason    String?                         @db.VarChar(255)
+  type      doctor_unavailability_type_enum @default(other)
+  isActive  Boolean                         @default(true)
+  createdAt DateTime                        @default(now()) @db.Timestamp(6)
+  updatedAt DateTime                        @default(now()) @db.Timestamp(6)
+  users     users                           @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_f1db8c9bacf881fcc7624eec07b")
+
+  @@index([isActive], map: "IDX_DOCTOR_UNAVAILABILITY_ACTIVE")
+  @@index([startDate, endDate], map: "IDX_DOCTOR_UNAVAILABILITY_DATE_RANGE")
+  @@index([doctorId], map: "IDX_DOCTOR_UNAVAILABILITY_DOCTOR")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model doctor_wallets {
+  id                           String               @id(map: "PK_4c9d64a0dd27e0a946f011fb26f") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  doctorId                     String               @unique(map: "UQ_90572fa4bc9c93545fcdbd8d157") @db.Uuid
+  totalBalanceUsd              Decimal              @default(0) @db.Decimal(12, 2)
+  pendingCreditsUsd            Decimal              @default(0) @db.Decimal(12, 2)
+  availableBalanceUsd          Decimal              @default(0) @db.Decimal(12, 2)
+  walletPassword               String?              @db.VarChar(255)
+  walletPasswordResetToken     String?              @db.VarChar(255)
+  walletPasswordResetExpiresAt DateTime?            @db.Timestamp(6)
+  walletPasswordResetAttempts  Int                  @default(0)
+  preferredDisplayCurrency     String               @default("USD") @db.VarChar(3)
+  minimumWithdrawal            Decimal              @default(10) @db.Decimal(10, 2)
+  bankDetails                  Json?
+  isActive                     Boolean              @default(true)
+  isFrozen                     Boolean              @default(false)
+  frozenReason                 String?              @db.VarChar
+  createdAt                    DateTime             @default(now()) @db.Timestamp(6)
+  updatedAt                    DateTime             @default(now()) @db.Timestamp(6)
+  lastWithdrawalAt             DateTime?            @db.Timestamp(6)
+  users                        users                @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_90572fa4bc9c93545fcdbd8d157")
+  wallet_withdrawals           wallet_withdrawals[]
+
+  @@index([isFrozen], map: "IDX_6b8abe1b7c3f3aa5d349bf7914")
+  @@index([doctorId], map: "IDX_90572fa4bc9c93545fcdbd8d15")
+  @@index([isActive], map: "IDX_dd8bf9ccc12bf22c5830838578")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model document_files {
+  id                       String                                      @id(map: "PK_15e5583cf50fcf0066e2cb57227") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  original_file_name       String                                      @db.VarChar
+  stored_file_name         String                                      @db.VarChar
+  file_path                String                                      @db.VarChar
+  file_size                BigInt
+  mime_type                String                                      @db.VarChar
+  file_hash                String                                      @db.VarChar
+  encryption_key           String?                                     @db.VarChar
+  document_type            String                                      @db.VarChar
+  status                   document_files_status_enum                  @default(uploaded)
+  security_level           document_files_security_level_enum          @default(private)
+  fhir_resource_type       document_files_fhir_resource_type_enum?
+  patient_identifier       String?                                     @db.VarChar
+  fhir_security_labels     Json?
+  consent_directives       Json?
+  fhir_version             String?                                     @db.VarChar
+  fhir_sensitivity_level   document_files_fhir_sensitivity_level_enum? @default(normal)
+  fhir_resource_id         String?                                     @db.VarChar
+  purpose_of_use           Json?
+  folder_id                String                                      @db.Uuid
+  uploader_id              String                                      @db.Uuid
+  download_count           Int                                         @default(0)
+  last_accessed_at         DateTime?                                   @db.Timestamp(6)
+  metadata                 Json?
+  thumbnail_path           String?                                     @db.VarChar
+  is_encrypted             Boolean                                     @default(false)
+  checksum                 String?                                     @db.VarChar
+  version                  Int                                         @default(1)
+  created_at               DateTime                                    @default(now()) @db.Timestamp(6)
+  updated_at               DateTime                                    @default(now()) @db.Timestamp(6)
+  comprehensive_audit_logs comprehensive_audit_logs[]
+  conditions               conditions?
+  users                    users                                       @relation(fields: [uploader_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_a1c1b6510fa137a01b3d84905aa")
+  document_folders         document_folders                            @relation(fields: [folder_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_eacf52f1c3e0203694e0b485acb")
+  emergency_steps          emergency_steps?
+  file_access_logs         file_access_logs[]
+  pharmacy_documents       pharmacy_documents?
+
+  @@index([fhir_resource_type], map: "IDX_FHIR_RESOURCE_TYPE")
+  @@index([fhir_sensitivity_level], map: "IDX_FHIR_SENSITIVITY")
+  @@index([created_at], map: "IDX_FILE_CREATED")
+  @@index([folder_id], map: "IDX_FILE_FOLDER")
+  @@index([file_hash], map: "IDX_FILE_HASH")
+  @@index([document_type, status], map: "IDX_FILE_TYPE_STATUS")
+  @@index([uploader_id], map: "IDX_FILE_UPLOADER")
+  @@index([patient_identifier], map: "IDX_PATIENT_IDENTIFIER")
+  @@index([patient_identifier, fhir_resource_type], map: "IDX_PATIENT_RESOURCE")
+}
+
+model document_folders {
+  id                 String                            @id(map: "PK_0307e252e6c13b4ff3ade731523") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name               String                            @db.VarChar
+  description        String?
+  folder_type        document_folders_folder_type_enum @default(other)
+  status             document_folders_status_enum      @default(active)
+  owner_id           String                            @db.Uuid
+  encryption_key     String?                           @db.VarChar
+  folder_hash        String?                           @db.VarChar
+  metadata           Json?
+  tags               String?
+  is_public          Boolean                           @default(false)
+  expires_at         DateTime?                         @db.Timestamp(6)
+  created_at         DateTime                          @default(now()) @db.Timestamp(6)
+  updated_at         DateTime                          @default(now()) @db.Timestamp(6)
+  document_files     document_files[]
+  users              users                             @relation(fields: [owner_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_bbd7d96367e620e29d0adf195fe")
+  folder_access_logs folder_access_logs[]
+
+  @@index([created_at], map: "IDX_FOLDER_CREATED")
+  @@index([owner_id], map: "IDX_FOLDER_OWNER")
+  @@index([folder_type, status], map: "IDX_FOLDER_TYPE_STATUS")
+}
+
+model email_verifications {
+  id        String    @id(map: "PK_c1ea2921e767f83cd44c0af203f") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  token     String    @unique(map: "UQ_595be4c36e66b21d3fd14c73a24") @db.VarChar
+  expiresAt DateTime  @db.Timestamp(6)
+  usedAt    DateTime? @db.Timestamp(6)
+  createdAt DateTime  @default(now()) @db.Timestamp(6)
+  userId    String?   @db.Uuid
+  users     users?    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_4e63a91e0a684b31496bd50733e")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model emergency_steps {
+  id                String                             @id(map: "PK_373cec15919e7bdee554ee1421c") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  condition_id      String                             @db.Uuid
+  category_type     emergency_steps_category_type_enum @default(general)
+  steps             Json
+  category_image_id String?                            @unique(map: "REL_ee0b9e58b1b64398bc9546aee6") @db.Uuid
+  sort_order        Int                                @default(0)
+  metadata          Json?
+  created_at        DateTime                           @default(now()) @db.Timestamp(6)
+  updated_at        DateTime                           @default(now()) @db.Timestamp(6)
+  conditions        conditions                         @relation(fields: [condition_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_cac417063874fcf06a3f54b2dd5")
+  document_files    document_files?                    @relation(fields: [category_image_id], references: [id], onUpdate: NoAction, map: "FK_ee0b9e58b1b64398bc9546aee6d")
+
+  @@index([category_type], map: "IDX_STEP_CATEGORY_TYPE")
+  @@index([condition_id], map: "IDX_STEP_CONDITION")
+  @@index([condition_id, category_type], map: "IDX_STEP_CONDITION_CATEGORY")
+  @@index([category_image_id], map: "IDX_STEP_IMAGE")
+  @@index([sort_order], map: "IDX_STEP_SORT")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model encryption_keys {
+  id                                                                         String                          @id(map: "PK_9b11c521c72b15e00ea39f32b6c") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  key_identifier                                                             String                          @unique(map: "IDX_KEY_IDENTIFIER") @db.VarChar
+  key_type                                                                   encryption_keys_key_type_enum
+  key_status                                                                 encryption_keys_key_status_enum @default(active)
+  patient_identifier                                                         String?                         @db.VarChar
+  fhir_resource_type                                                         String?                         @db.VarChar
+  sensitivity_level                                                          String?                         @db.VarChar
+  purpose_of_use                                                             String?                         @db.VarChar
+  algorithm                                                                  encryption_keys_algorithm_enum  @default(aes_256_gcm)
+  key_size                                                                   Int                             @default(256)
+  encrypted_key                                                              String
+  key_derivation_salt                                                        String?                         @db.VarChar
+  initialization_vector                                                      String?                         @db.VarChar
+  version                                                                    Int                             @default(1)
+  parent_key_id                                                              String?                         @db.Uuid
+  rotated_from_key_id                                                        String?                         @db.Uuid
+  created_by                                                                 String                          @db.Uuid
+  effective_date                                                             DateTime                        @db.Timestamp(6)
+  expiration_date                                                            DateTime?                       @db.Timestamp(6)
+  rotation_schedule                                                          Json?
+  usage_count                                                                BigInt                          @default(0)
+  last_used_at                                                               DateTime?                       @db.Timestamp(6)
+  max_usage_count                                                            BigInt?
+  key_strength                                                               Int?
+  compliance_flags                                                           Json?
+  created_at                                                                 DateTime                        @default(now()) @db.Timestamp(6)
+  updated_at                                                                 DateTime                        @default(now()) @db.Timestamp(6)
+  comprehensive_audit_logs                                                   comprehensive_audit_logs[]
+  users                                                                      users                           @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_1b5b797cb2b993e65861ad0e06b")
+  encryption_keys_encryption_keys_rotated_from_key_idToencryption_keys       encryption_keys?                @relation("encryption_keys_rotated_from_key_idToencryption_keys", fields: [rotated_from_key_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_414da271d9d58f837b47039efc1")
+  other_encryption_keys_encryption_keys_rotated_from_key_idToencryption_keys encryption_keys[]               @relation("encryption_keys_rotated_from_key_idToencryption_keys")
+  encryption_keys_encryption_keys_parent_key_idToencryption_keys             encryption_keys?                @relation("encryption_keys_parent_key_idToencryption_keys", fields: [parent_key_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5e16846d40ebb0609c42f823490")
+  other_encryption_keys_encryption_keys_parent_key_idToencryption_keys       encryption_keys[]               @relation("encryption_keys_parent_key_idToencryption_keys")
+
+  @@index([expiration_date], map: "IDX_KEY_EXPIRATION")
+  @@index([key_type, key_status], map: "IDX_KEY_TYPE_STATUS")
+  @@index([usage_count, max_usage_count], map: "IDX_KEY_USAGE")
+  @@index([patient_identifier, key_status], map: "IDX_PATIENT_KEY")
+  @@index([fhir_resource_type, key_status], map: "IDX_RESOURCE_KEY")
+}
+
+model family_histories {
+  id               String            @id(map: "PK_cff54db6926b139208d248d9683") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  medicalCondition String?           @db.VarChar
+  affectedRelative String?           @db.VarChar
+  createdAt        DateTime          @default(now()) @db.Timestamp(6)
+  patientProfileId String?           @db.Uuid
+  patient_profiles patient_profiles? @relation(fields: [patientProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_ecc614299031459ee6a789c4031")
+}
+
+model faq_analytics {
+  id             String                       @id(map: "PK_75f3ce5f3c94418e040ea330165") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  eventType      faq_analytics_eventtype_enum
+  userRole       String?                      @db.VarChar(50)
+  searchQuery    String?                      @db.VarChar(500)
+  resultPosition Int?
+  sessionId      String?                      @db.VarChar(100)
+  ipAddress      String?                      @db.VarChar(45)
+  userAgent      String?
+  referrer       String?                      @db.VarChar(500)
+  metadata       Json?
+  createdAt      DateTime                     @default(now()) @db.Timestamp(6)
+  faqId          String?                      @db.Uuid
+  userId         String?                      @db.Uuid
+  users          users?                       @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_1269cca22bd2d7a75b19e441cd8")
+  faqs           faqs?                        @relation(fields: [faqId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_f559db0752d2b299520a959e804")
+
+  @@index([userRole], map: "IDX_176620290175147533a0b66bd4")
+  @@index([searchQuery], map: "IDX_98a967d0ae1b9f493bd6e9736d")
+  @@index([createdAt], map: "IDX_c8dca2130511a536f3b4197b60")
+  @@index([eventType], map: "IDX_e9bc0a8cf1e90b0b41774c0e51")
+  @@index([sessionId], map: "IDX_f1613ba364ce83a0219458c557")
+}
+
+model faq_categories {
+  id          String                         @id(map: "PK_c3a7f838a99baed5cbcbc5372db") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name        String                         @db.VarChar(200)
+  slug        String                         @unique(map: "UQ_115c461144a448df2077e558412") @db.VarChar(250)
+  description String?
+  icon        String?                        @db.VarChar(100)
+  color       String?                        @db.VarChar(50)
+  targetRole  faq_categories_targetrole_enum @default(general)
+  isActive    Boolean                        @default(true)
+  sortOrder   Int                            @default(0)
+  metadata    Json?
+  createdAt   DateTime                       @default(now()) @db.Timestamp(6)
+  updatedAt   DateTime                       @default(now()) @db.Timestamp(6)
+  faqs        faqs[]
+
+  @@index([slug], map: "IDX_115c461144a448df2077e55841")
+  @@index([isActive], map: "IDX_41fb4cb0a41ba49b17555a9aa0")
+  @@index([sortOrder], map: "IDX_60a665bcd23f90bb671289a321")
+  @@index([targetRole], map: "IDX_8c34adac00bcbbe53daf82523e")
+}
+
+model faq_votes {
+  id        String                  @id(map: "PK_a0c99323bba22486be5edf45083") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  faqId     String                  @db.Uuid
+  userId    String?                 @db.Uuid
+  voteType  faq_votes_votetype_enum
+  userRole  String?                 @db.VarChar(50)
+  ipAddress String?                 @db.VarChar(45)
+  userAgent String?
+  feedback  String?
+  createdAt DateTime                @default(now()) @db.Timestamp(6)
+  users     users?                  @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_9883946e89376a3d67e40a9171b")
+  faqs      faqs                    @relation(fields: [faqId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_fd449e14960320e8377e2cf8989")
+
+  @@unique([faqId, userId], map: "IDX_49fbb79f24356992363e288e63")
+  @@index([createdAt], map: "IDX_492d829f85fc7237a28bfa411d")
+  @@index([userRole], map: "IDX_58df1c6b7577b9264d530d6b87")
+  @@index([voteType], map: "IDX_ac8cc750d47a5fea0bcd6e3482")
+}
+
+model faqs {
+  id                          String               @id(map: "PK_2ddf4f2c910f8e8fa2663a67bf0") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  title                       String               @db.VarChar(500)
+  content                     String
+  slug                        String               @unique(map: "UQ_8d36b9ca96f9c1f590431379f12") @db.VarChar(600)
+  targetRole                  faqs_targetrole_enum @default(general)
+  status                      faqs_status_enum     @default(draft)
+  isStatic                    Boolean              @default(false)
+  priority                    Int                  @default(0)
+  viewCount                   Int                  @default(0)
+  helpfulVotes                Int                  @default(0)
+  notHelpfulVotes             Int                  @default(0)
+  searchKeywords              String?
+  relatedLinks                Json?
+  metadata                    Json?
+  createdAt                   DateTime             @default(now()) @db.Timestamp(6)
+  updatedAt                   DateTime             @default(now()) @db.Timestamp(6)
+  publishedAt                 DateTime?            @db.Timestamp(6)
+  createdBy                   String?              @db.Uuid
+  updatedBy                   String?              @db.Uuid
+  categoryId                  String?              @db.Uuid
+  faq_analytics               faq_analytics[]
+  faq_votes                   faq_votes[]
+  users_faqs_createdByTousers users?               @relation("faqs_createdByTousers", fields: [createdBy], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_3f804d4844a34062b14e4666fd9")
+  users_faqs_updatedByTousers users?               @relation("faqs_updatedByTousers", fields: [updatedBy], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_ec8d81aaf61b21ed1816f3a68fd")
+  faq_categories              faq_categories?      @relation(fields: [categoryId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_fe8c81969cde9cf981451478b0e")
+
+  @@index([publishedAt], map: "IDX_32f9825c80ee38dc4beb5d9b81")
+  @@index([isStatic], map: "IDX_7809bacb3493f6d80bcf26f412")
+  @@index([targetRole], map: "IDX_827f313802faea681bd15c7817")
+  @@index([slug], map: "IDX_8d36b9ca96f9c1f590431379f1")
+  @@index([priority], map: "IDX_ae693878c4fc0f78238f11d7ea")
+  @@index([createdAt], map: "IDX_c2f253ed34996b12cf17d261a0")
+  @@index([status], map: "IDX_ec69ef8e48f54e2b8899131c86")
+}
+
+model fhir_search_logs {
+  id              String   @id(map: "PK_be6901e2b226ed7fed8a0d66928") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id         String   @db.Uuid
+  search_criteria Json
+  result_count    Int
+  ip_address      String?  @db.VarChar
+  user_agent      String?
+  searched_at     DateTime @default(now()) @db.Timestamp(6)
+  metadata        Json?
+  users           users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_26e8f0a5b49747a4bb12c6cc173")
+
+  @@index([result_count], map: "IDX_FHIR_SEARCH_RESULTS")
+  @@index([searched_at], map: "IDX_FHIR_SEARCH_TIME")
+  @@index([user_id], map: "IDX_FHIR_SEARCH_USER")
+}
+
+model file_access_logs {
+  id                String                            @id(map: "PK_be1d3092396a30ffa25b0e9c7e8") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  access_type       file_access_logs_access_type_enum
+  file_id           String                            @db.Uuid
+  user_id           String                            @db.Uuid
+  ip_address        String?                           @db.VarChar
+  user_agent        String?
+  download_duration Int?
+  accessed_at       DateTime                          @default(now()) @db.Timestamp(6)
+  metadata          Json?
+  document_files    document_files                    @relation(fields: [file_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_f1101a0737439a005eb075a8f2d")
+  users             users                             @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_fe32f075b4210b25158b5be1e3e")
+
+  @@index([file_id], map: "IDX_FILE_ACCESS_FILE")
+  @@index([accessed_at], map: "IDX_FILE_ACCESS_TIME")
+  @@index([user_id], map: "IDX_FILE_ACCESS_USER")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model files {
+  id          String   @id(map: "PK_6c16b9093a142e0e7613b04a3d9") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  upload_by   String   @db.Uuid
+  file_url    String   @db.VarChar(1024)
+  file_name   String   @db.VarChar(255)
+  folder_name String   @db.VarChar(255)
+  file_id     String   @db.VarChar(255)
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  users       users    @relation(fields: [upload_by], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_33faa730104a595796f42120a2a")
+}
+
+model folder_access_logs {
+  id               String                              @id(map: "PK_af9238baf523ad0c0a3ddad881c") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  access_type      folder_access_logs_access_type_enum
+  folder_id        String                              @db.Uuid
+  user_id          String                              @db.Uuid
+  ip_address       String?                             @db.VarChar
+  user_agent       String?
+  accessed_at      DateTime                            @default(now()) @db.Timestamp(6)
+  metadata         Json?
+  document_folders document_folders                    @relation(fields: [folder_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_123597b8b39d3311fb919e04004")
+  users            users                               @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_f6106de9a12e5a5c548317825cc")
+
+  @@index([folder_id], map: "IDX_FOLDER_ACCESS_FOLDER")
+  @@index([accessed_at], map: "IDX_FOLDER_ACCESS_TIME")
+  @@index([user_id], map: "IDX_FOLDER_ACCESS_USER")
+}
+
+model health_insurances {
+  id               String            @id(map: "PK_ea672bb1dc10675ffc7790c4ff4") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  providerName     String?           @db.VarChar
+  validityDate     DateTime?         @db.Date
+  policyNo         String?           @db.VarChar
+  healthCardUrl    String?           @db.VarChar
+  createdAt        DateTime          @default(now()) @db.Timestamp(6)
+  patientProfileId String?           @unique(map: "REL_01ef71cffa49dc066d65cba7a6") @db.Uuid
+  patient_profiles patient_profiles? @relation(fields: [patientProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_01ef71cffa49dc066d65cba7a61")
+}
+
+model immunizations {
+  id               String            @id(map: "PK_d6ef20ce9b42402adbbd1e260fe") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  vaccine          String?           @db.VarChar
+  certificateUrl   String?           @db.VarChar
+  date             DateTime?         @db.Date
+  dose             String?           @db.VarChar
+  createdAt        DateTime          @default(now()) @db.Timestamp(6)
+  patientProfileId String?           @db.Uuid
+  patient_profiles patient_profiles? @relation(fields: [patientProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_e344a1dee71671e7a6c39b7095b")
+}
+
+model lab_facilities {
+  id                                       String                            @id(map: "PK_5c77fb661b6aff36729862b5db0") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  facilityName                             String?                           @db.VarChar(255)
+  facilityType                             lab_facilities_facilitytype_enum?
+  registrationNumber                       String?                           @unique(map: "UQ_2570320761162aaaee45fb0908d") @db.VarChar(100)
+  licenseNumber                            String?                           @unique(map: "UQ_427be3b9adc7a32684194854918") @db.VarChar(100)
+  email                                    String?                           @unique(map: "UQ_479351502d1e1605bfbc07b27b7") @db.VarChar(255)
+  phone                                    String?                           @db.VarChar(20)
+  website                                  String?                           @db.VarChar(255)
+  address                                  String?
+  city                                     String?                           @db.VarChar(100)
+  state                                    String?                           @db.VarChar(100)
+  country                                  String?                           @db.VarChar(100)
+  postalCode                               String?                           @db.VarChar(20)
+  latitude                                 Float?
+  longitude                                Float?
+  adminFullName                            String                            @db.VarChar(255)
+  adminEmail                               String                            @db.VarChar(255)
+  adminPhone                               String?                           @db.VarChar(20)
+  operatingHours                           Json?                             @db.Json
+  servicesOffered                          Json?                             @db.Json
+  equipmentList                            Json?                             @db.Json
+  status                                   lab_facilities_status_enum        @default(pending_approval)
+  licenseDocument                          String?                           @db.VarChar(500)
+  registrationDocument                     String?                           @db.VarChar(500)
+  accreditationDocument                    String?                           @db.VarChar(500)
+  approvedAt                               DateTime?                         @db.Timestamp(6)
+  rejectedAt                               DateTime?                         @db.Timestamp(6)
+  rejectionReason                          String?
+  adminUserCreated                         Boolean                           @default(false)
+  adminInvitationSent                      Boolean                           @default(false)
+  registrationStep                         Int                               @default(1)
+  registrationCompleted                    Boolean                           @default(false)
+  registrationTokenHash                    String?                           @db.VarChar(255)
+  registrationTokenExpiresAt               DateTime?                         @db.Timestamp(6)
+  createdAt                                DateTime                          @default(now()) @db.Timestamp(6)
+  updatedAt                                DateTime                          @default(now()) @db.Timestamp(6)
+  adminUserId                              String?                           @db.Uuid
+  approvedById                             String?                           @db.Uuid
+  staffCount                               Int?
+  audit_logs                               audit_logs[]
+  users_lab_facilities_adminUserIdTousers  users?                            @relation("lab_facilities_adminUserIdTousers", fields: [adminUserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_118fda455386c78438f3b5af3dd")
+  users_lab_facilities_approvedByIdTousers users?                            @relation("lab_facilities_approvedByIdTousers", fields: [approvedById], references: [id], onUpdate: NoAction, map: "FK_9028f0f5162de9355de37e5d211")
+  lab_orders                               lab_orders[]
+  lab_personnel                            lab_personnel[]
+  lab_test_requests                        lab_test_requests[]
+  lab_wallet_transactions                  lab_wallet_transactions[]
+  lab_wallets                              lab_wallets[]
+
+  @@index([facilityName], map: "IDX_046c8761c3ba50f2ecfc2acce9")
+  @@index([createdAt], map: "IDX_2a6bfdf651a28e15ffdd534cba")
+  @@index([adminEmail], map: "IDX_380e280185387a02be98afea5b")
+  @@index([state], map: "IDX_841cd491b210683eff8464c46c")
+  @@index([status], map: "IDX_845f3d1cb90399169249c7e888")
+  @@index([facilityType], map: "IDX_c2126a03081b2f6dc181de6665")
+  @@index([city], map: "IDX_f7c594a22bfe0ed4392d53fc67")
+}
+
+model lab_order_items {
+  id                      String     @id(map: "PK_3447771b48b27a3882eb689b41d") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  orderId                 String     @db.Uuid
+  testName                String     @db.VarChar(255)
+  testCode                String?    @db.VarChar(50)
+  testCategory            String?    @db.VarChar(100)
+  description             String?
+  unitPrice               Decimal    @db.Decimal(10, 2)
+  quantity                Int        @default(1)
+  totalPrice              Decimal    @db.Decimal(10, 2)
+  sampleType              String?    @db.VarChar(100)
+  preparationInstructions String?
+  estimatedDuration       String?    @db.VarChar(50)
+  result                  String?
+  normalRange             String?    @db.VarChar(255)
+  unit                    String?    @db.VarChar(50)
+  isAbnormal              Boolean    @default(false)
+  createdAt               DateTime   @default(now()) @db.Timestamp(6)
+  updatedAt               DateTime   @default(now()) @db.Timestamp(6)
+  lab_orders              lab_orders @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_337ae120fdb06600788888373ac")
+
+  @@index([orderId], map: "IDX_337ae120fdb06600788888373a")
+  @@index([testCode], map: "IDX_c54d731d2a888fdceb37668ab8")
+  @@index([testCategory], map: "IDX_c778be5e128e4271677d1ad495")
+}
+
+model lab_orders {
+  id                                                          String                        @id(map: "PK_a488d533e758e6ba02958198f1c") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  orderNumber                                                 String                        @unique(map: "IDX_3bed40012bc1f5da8608ad8b87") @db.VarChar(20)
+  patientId                                                   String                        @db.Uuid
+  doctorId                                                    String?                       @db.Uuid
+  facilityId                                                  String                        @db.Uuid
+  assignedPersonnelId                                         String?                       @db.Uuid
+  reviewerId                                                  String?                       @db.Uuid
+  orderType                                                   lab_orders_ordertype_enum
+  serviceType                                                 lab_orders_servicetype_enum   @default(lab_visit)
+  status                                                      lab_orders_status_enum        @default(created)
+  testNames                                                   Json                          @db.Json
+  testDetails                                                 Json?                         @db.Json
+  urgentProcessing                                            Boolean                       @default(false)
+  patientInstructions                                         String?
+  doctorReferral                                              String?                       @db.VarChar(500)
+  medicalHistory                                              String?
+  preferredDate                                               DateTime?                     @db.Date
+  preferredTime                                               String?                       @db.VarChar(20)
+  scheduledDateTime                                           DateTime?                     @db.Timestamp(6)
+  collectionAddress                                           String?
+  paymentStatus                                               lab_orders_paymentstatus_enum @default(pending)
+  totalAmount                                                 Decimal?                      @db.Decimal(10, 2)
+  baseAmount                                                  Decimal?                      @db.Decimal(10, 2)
+  homeVisitFee                                                Decimal?                      @db.Decimal(10, 2)
+  urgentFee                                                   Decimal?                      @db.Decimal(10, 2)
+  currency                                                    String                        @default("USD") @db.VarChar(3)
+  invoiceSentAt                                               DateTime?                     @db.Timestamp(6)
+  paidAt                                                      DateTime?                     @db.Timestamp(6)
+  resultsFileUrl                                              String?                       @db.VarChar(500)
+  resultsData                                                 Json?                         @db.Json
+  reviewerNotes                                               String?
+  resultsDeliveredAt                                          DateTime?                     @db.Timestamp(6)
+  assignedAt                                                  DateTime?                     @db.Timestamp(6)
+  collectionCompletedAt                                       DateTime?                     @db.Timestamp(6)
+  processingStartedAt                                         DateTime?                     @db.Timestamp(6)
+  processingCompletedAt                                       DateTime?                     @db.Timestamp(6)
+  reviewStartedAt                                             DateTime?                     @db.Timestamp(6)
+  reviewCompletedAt                                           DateTime?                     @db.Timestamp(6)
+  notes                                                       String?
+  cancellationReason                                          String?
+  createdAt                                                   DateTime                      @default(now()) @db.Timestamp(6)
+  updatedAt                                                   DateTime                      @default(now()) @db.Timestamp(6)
+  chatRoomId                                                  String?                       @db.Uuid
+  lab_order_items                                             lab_order_items[]
+  lab_facilities                                              lab_facilities                @relation(fields: [facilityId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_55e5b778ad455620929ce865a1e")
+  lab_personnel_lab_orders_assignedPersonnelIdTolab_personnel lab_personnel?                @relation("lab_orders_assignedPersonnelIdTolab_personnel", fields: [assignedPersonnelId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_9277d293787643735d61211ea80")
+  users_lab_orders_patientIdTousers                           users                         @relation("lab_orders_patientIdTousers", fields: [patientId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_d52719e08cd859eb66ccbd4177e")
+  lab_personnel_lab_orders_reviewerIdTolab_personnel          lab_personnel?                @relation("lab_orders_reviewerIdTolab_personnel", fields: [reviewerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_e523f5b7d9d44b32092a8b39580")
+  users_lab_orders_doctorIdTousers                            users?                        @relation("lab_orders_doctorIdTousers", fields: [doctorId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_f30075932ce2d5e567733f5d469")
+  lab_test_requests                                           lab_test_requests[]
+  lab_wallet_transactions                                     lab_wallet_transactions[]
+
+  @@index([serviceType], map: "IDX_2094440c39f929ff96e95d39fb")
+  @@index([orderType], map: "IDX_5415889f90c292885e0a0c61e1")
+  @@index([facilityId], map: "IDX_55e5b778ad455620929ce865a1")
+  @@index([scheduledDateTime], map: "IDX_8a7bb0a419bdbedef08f5fab06")
+  @@index([assignedPersonnelId], map: "IDX_9277d293787643735d61211ea8")
+  @@index([createdAt], map: "IDX_b114ba3ab494385cec53832250")
+  @@index([paymentStatus], map: "IDX_bf166cb7b45e1a80ec1a9a761c")
+  @@index([patientId], map: "IDX_d52719e08cd859eb66ccbd4177")
+  @@index([reviewerId], map: "IDX_e523f5b7d9d44b32092a8b3958")
+  @@index([status], map: "IDX_f2638c9adbe84c9c5c8f0474e1")
+  @@index([doctorId], map: "IDX_f30075932ce2d5e567733f5d46")
+}
+
+model lab_personnel {
+  id                                                       String                    @id(map: "PK_fc4a7064c0cb39be288eb656f7d") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  facilityId                                               String                    @db.Uuid
+  userId                                                   String?                   @db.Uuid
+  invitedById                                              String                    @db.Uuid
+  role                                                     lab_personnel_role_enum
+  status                                                   lab_personnel_status_enum @default(pending_registration)
+  fullName                                                 String                    @db.VarChar(255)
+  email                                                    String                    @db.VarChar(255)
+  phone                                                    String?                   @db.VarChar(20)
+  licenseNumber                                            String?                   @db.VarChar(100)
+  specialization                                           String?                   @db.VarChar(255)
+  yearsOfExperience                                        Int?
+  qualifications                                           Json?                     @db.Json
+  permissions                                              Json?                     @db.Json
+  departments                                              Json?                     @db.Json
+  registrationToken                                        String?                   @unique(map: "IDX_2af0f3e3b47f9eaa3495812777") @db.VarChar(255)
+  tempPassword                                             String?                   @db.VarChar(255)
+  invitationSentAt                                         DateTime?                 @db.Timestamp(6)
+  tokenExpiresAt                                           DateTime?                 @db.Timestamp(6)
+  registeredAt                                             DateTime?                 @db.Timestamp(6)
+  userAccountCreated                                       Boolean                   @default(false)
+  active                                                   Boolean                   @default(true)
+  terminatedAt                                             DateTime?                 @db.Timestamp(6)
+  firstLoginCompleted                                      Boolean                   @default(false)
+  createdAt                                                DateTime                  @default(now()) @db.Timestamp(6)
+  updatedAt                                                DateTime                  @default(now()) @db.Timestamp(6)
+  lab_orders_lab_orders_assignedPersonnelIdTolab_personnel lab_orders[]              @relation("lab_orders_assignedPersonnelIdTolab_personnel")
+  lab_orders_lab_orders_reviewerIdTolab_personnel          lab_orders[]              @relation("lab_orders_reviewerIdTolab_personnel")
+  users_lab_personnel_invitedByIdTousers                   users                     @relation("lab_personnel_invitedByIdTousers", fields: [invitedById], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_06fc411c8d3e1d49768d32048ef")
+  lab_facilities                                           lab_facilities            @relation(fields: [facilityId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_34d238c80cf0a883232073708cf")
+  users_lab_personnel_userIdTousers                        users?                    @relation("lab_personnel_userIdTousers", fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_e8f29ec635697433d80a26804c4")
+
+  @@index([email], map: "IDX_069392e9e3d74c641d8af7876a")
+  @@index([invitedById], map: "IDX_06fc411c8d3e1d49768d32048e")
+  @@index([facilityId], map: "IDX_34d238c80cf0a883232073708c")
+  @@index([status], map: "IDX_b0ea234dccfbfbf049862e6a74")
+  @@index([role], map: "IDX_cf58da86b4b3524a20aa028de6")
+  @@index([userAccountCreated], map: "IDX_dd23561cc2e7b3b48671acd459")
+  @@index([userId], map: "IDX_e8f29ec635697433d80a26804c")
+}
+
+model lab_pharm_waitlist {
+  id                       String                         @id(map: "PK_f24b489fe99156ab2445a90cbe1") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  fullName                 String                         @db.VarChar(255)
+  email                    String                         @unique(map: "UQ_efccf3b5ab4c6e08fcfe2cefb32") @db.VarChar(255)
+  facilityName             String                         @db.VarChar(255)
+  role                     lab_pharm_waitlist_role_enum
+  phone                    String?                        @db.VarChar(20)
+  facilityType             String?                        @db.VarChar(100)
+  city                     String?                        @db.VarChar(100)
+  state                    String?                        @db.VarChar(100)
+  status                   lab_pharm_waitlist_status_enum @default(pending)
+  emailSent                Boolean                        @default(false)
+  emailSentAt              DateTime?                      @db.Timestamp(6)
+  adminNotes               String?
+  launchNotificationSent   Boolean                        @default(false)
+  launchNotificationSentAt DateTime?                      @db.Timestamp(6)
+  createdAt                DateTime                       @default(now()) @db.Timestamp(6)
+  updatedAt                DateTime                       @default(now()) @db.Timestamp(6)
+
+  @@index([facilityName], map: "IDX_65b1a2e3e4069f829915454a7e")
+  @@index([city, state], map: "IDX_8904d35ceff5b9d9d28928d979")
+  @@index([createdAt], map: "IDX_cdebacf581a96878b1548c2982")
+  @@index([status], map: "IDX_d71ac1ccc9a9aaa2cd14e722b6")
+  @@index([email], map: "IDX_efccf3b5ab4c6e08fcfe2cefb3")
+}
+
+model lab_test_requests {
+  id                                       String          @id(map: "PK_0caea47aa500b40469036df9181") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  requestNumber                            String          @unique(map: "IDX_36e1034de83e767648653bcb53") @db.VarChar(20)
+  doctorId                                 String          @db.Uuid
+  patientId                                String          @db.Uuid
+  tests                                    Json
+  notes                                    String?
+  priority                                 String          @default("normal") @db.VarChar(50)
+  status                                   String          @default("pending_lab_selection") @db.VarChar(50)
+  selectedFacilityId                       String?         @db.Uuid
+  linkedOrderId                            String?         @db.Uuid
+  expiresAt                                DateTime?       @db.Timestamp(6)
+  createdAt                                DateTime        @default(now()) @db.Timestamp(6)
+  updatedAt                                DateTime        @default(now()) @db.Timestamp(6)
+  lab_orders                               lab_orders?     @relation(fields: [linkedOrderId], references: [id], onUpdate: NoAction, map: "FK_36db2a72042fac3ed7fed0c6cf4")
+  lab_facilities                           lab_facilities? @relation(fields: [selectedFacilityId], references: [id], onUpdate: NoAction, map: "FK_ab4e04c6dc1b354f35d691447fb")
+  users_lab_test_requests_patientIdTousers users           @relation("lab_test_requests_patientIdTousers", fields: [patientId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_c199d1686f2e40e572675336a5a")
+  users_lab_test_requests_doctorIdTousers  users           @relation("lab_test_requests_doctorIdTousers", fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_d6db651cb93a58bf076f1a78eae")
+
+  @@index([linkedOrderId], map: "IDX_36db2a72042fac3ed7fed0c6cf")
+  @@index([status], map: "IDX_770519b5d9cb865e92e77d5c08")
+  @@index([createdAt], map: "IDX_85a6848df694f6b0d4a8cbb7ab")
+  @@index([selectedFacilityId], map: "IDX_ab4e04c6dc1b354f35d691447f")
+  @@index([patientId], map: "IDX_c199d1686f2e40e572675336a5")
+  @@index([doctorId], map: "IDX_d6db651cb93a58bf076f1a78ea")
+}
+
+model lab_wallet_topups {
+  id                      String                               @id(map: "PK_89f1884865a36ecb9269e4f97e4") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  topupNumber             String                               @unique(map: "IDX_c64b4dedb0ed1054459c6d8a3b") @db.VarChar(20)
+  userId                  String                               @db.Uuid
+  walletId                String                               @db.Uuid
+  amount                  Decimal                              @db.Decimal(10, 2)
+  currency                String                               @default("USD") @db.VarChar(3)
+  status                  lab_wallet_topups_status_enum        @default(pending)
+  paymentMethod           lab_wallet_topups_paymentmethod_enum
+  paymentIntentId         String?                              @db.VarChar(100)
+  paymentReference        String?                              @db.VarChar(100)
+  initiatedAt             DateTime                             @default(now()) @db.Timestamp(6)
+  completedAt             DateTime?                            @db.Timestamp(6)
+  failedAt                DateTime?                            @db.Timestamp(6)
+  failureReason           String?
+  metadata                Json?                                @db.Json
+  notes                   String?
+  createdAt               DateTime                             @default(now()) @db.Timestamp(6)
+  updatedAt               DateTime                             @default(now()) @db.Timestamp(6)
+  transactionId           String?                              @unique(map: "REL_a4725ca26bd826b886cb5949b3") @db.Uuid
+  users                   users                                @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_3f5a051060b1e0133e4a250ce50")
+  lab_wallets             lab_wallets                          @relation(fields: [walletId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_984fa92a523fdb9a3399c41ca43")
+  lab_wallet_transactions lab_wallet_transactions?             @relation(fields: [transactionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_a4725ca26bd826b886cb5949b3c")
+
+  @@index([paymentIntentId], map: "IDX_055242d7570eba0a0311f59c23")
+  @@index([userId], map: "IDX_3f5a051060b1e0133e4a250ce5")
+  @@index([walletId], map: "IDX_984fa92a523fdb9a3399c41ca4")
+  @@index([createdAt], map: "IDX_ac7e80477fb5370a3db2c72a80")
+  @@index([status], map: "IDX_b99be4b917c99a134e3be9a4dd")
+}
+
+model lab_wallet_transactions {
+  id                    String                                      @id(map: "PK_6c7f32bf681d0a1341b609edbf5") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  transactionNumber     String                                      @unique(map: "IDX_656cea0a03b2b9905f47206a4b") @db.VarChar(20)
+  walletId              String                                      @db.Uuid
+  userId                String                                      @db.Uuid
+  type                  lab_wallet_transactions_type_enum
+  status                lab_wallet_transactions_status_enum         @default(pending)
+  amount                Decimal                                     @db.Decimal(12, 2)
+  fee                   Decimal                                     @default(0) @db.Decimal(10, 2)
+  netAmount             Decimal                                     @db.Decimal(12, 2)
+  currency              String                                      @default("USD") @db.VarChar(3)
+  balanceBefore         Decimal                                     @db.Decimal(12, 2)
+  balanceAfter          Decimal                                     @db.Decimal(12, 2)
+  paymentMethod         lab_wallet_transactions_paymentmethod_enum?
+  externalTransactionId String?                                     @db.VarChar(100)
+  externalReference     String?                                     @db.VarChar(100)
+  orderId               String?                                     @db.Uuid
+  facilityId            String?                                     @db.Uuid
+  description           String
+  metadata              Json?                                       @db.Json
+  notes                 String?
+  processedAt           DateTime?                                   @db.Timestamp(6)
+  failureReason         String?
+  retryCount            Int                                         @default(0)
+  createdAt             DateTime                                    @default(now()) @db.Timestamp(6)
+  updatedAt             DateTime                                    @default(now()) @db.Timestamp(6)
+  lab_wallet_topups     lab_wallet_topups?
+  lab_facilities        lab_facilities?                             @relation(fields: [facilityId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_68a2ceafebf896d52b96cb9f504")
+  lab_orders            lab_orders?                                 @relation(fields: [orderId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_9d7ef540c0dcbc79c7ce55ddee5")
+  users                 users                                       @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_9ff1dcc3ec932ac67e4b698ee05")
+  lab_wallets           lab_wallets                                 @relation(fields: [walletId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_bf686ecac8970376b5a0c36bae2")
+
+  @@index([status], map: "IDX_04552b0f7ed358017348cef018")
+  @@index([externalTransactionId], map: "IDX_51837c49e2c54a10379b558516")
+  @@index([facilityId], map: "IDX_68a2ceafebf896d52b96cb9f50")
+  @@index([createdAt], map: "IDX_6e30e4fdc1b8f85bd4a794f39c")
+  @@index([type], map: "IDX_8fcc741a71d6211eebf6bdf98b")
+  @@index([orderId], map: "IDX_9d7ef540c0dcbc79c7ce55ddee")
+  @@index([userId], map: "IDX_9ff1dcc3ec932ac67e4b698ee0")
+  @@index([walletId], map: "IDX_bf686ecac8970376b5a0c36bae")
+}
+
+model lab_wallets {
+  id                      String                      @id(map: "PK_fc844baced265bc2e6b16a236da") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId                  String                      @db.Uuid
+  facilityId              String?                     @db.Uuid
+  walletType              lab_wallets_wallettype_enum
+  status                  lab_wallets_status_enum     @default(active)
+  balance                 Decimal                     @default(0) @db.Decimal(12, 2)
+  pendingBalance          Decimal                     @default(0) @db.Decimal(12, 2)
+  frozenBalance           Decimal                     @default(0) @db.Decimal(12, 2)
+  currency                String                      @default("USD") @db.VarChar(3)
+  dailySpendLimit         Decimal?                    @db.Decimal(10, 2)
+  monthlySpendLimit       Decimal?                    @db.Decimal(10, 2)
+  minimumBalance          Decimal                     @default(0) @db.Decimal(10, 2)
+  pin                     String?                     @db.VarChar(255)
+  pinAttempts             Int                         @default(0)
+  lockedUntil             DateTime?                   @db.Timestamp(6)
+  lastTransactionAt       DateTime?                   @db.Timestamp(6)
+  createdAt               DateTime                    @default(now()) @db.Timestamp(6)
+  updatedAt               DateTime                    @default(now()) @db.Timestamp(6)
+  lab_wallet_topups       lab_wallet_topups[]
+  lab_wallet_transactions lab_wallet_transactions[]
+  lab_facilities          lab_facilities?             @relation(fields: [facilityId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_56eec0992ef2d9d6c8dcb06d4bb")
+  users                   users                       @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_8f1ad972a9d549d368d7cab4993")
+
+  @@index([walletType], map: "IDX_0663d30999785de331ee0b8702")
+  @@index([facilityId], map: "IDX_56eec0992ef2d9d6c8dcb06d4b")
+  @@index([status], map: "IDX_61ef118d0d05f9b4122d589385")
+  @@index([userId], map: "IDX_8f1ad972a9d549d368d7cab499")
+}
+
+model magic_link_tokens {
+  id        String    @id(map: "PK_e97101929b9f3c7afc0920b0f17") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  token     String    @unique(map: "UQ_e0868c5a6f57914768a6413d31b") @db.VarChar
+  ip        String    @db.VarChar
+  userAgent String
+  expiresAt DateTime  @db.Timestamp(6)
+  usedAt    DateTime? @db.Timestamp(6)
+  createdAt DateTime  @default(now()) @db.Timestamp(6)
+  userId    String?   @db.Uuid
+  users     users?    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_005e0432e3523ffafb9a5e35b04")
+}
+
+model marketing_spin_rewards {
+  id                          Int                           @id(map: "PK_47eeb9181105e858eca76615e34") @default(autoincrement())
+  type                        String                        @default("discount") @db.VarChar
+  description                 String                        @db.VarChar
+  weight                      Int                           @default(1)
+  validityDays                Int                           @default(30)
+  isActive                    Boolean                       @default(true)
+  createdAt                   DateTime                      @default(now()) @db.Timestamp(6)
+  updatedAt                   DateTime                      @default(now()) @db.Timestamp(6)
+  marketing_user_spin_history marketing_user_spin_history[]
+}
+
+model marketing_user_spin_history {
+  id                     Int                    @id(map: "PK_97328a0c98af36efdd4f4c11454") @default(autoincrement())
+  email                  String                 @db.VarChar
+  userId                 String?                @db.Uuid
+  rewardId               Int
+  rewardCode             String?                @db.VarChar
+  emailVerificationToken String?                @db.VarChar
+  expiresAt              DateTime?              @db.Timestamp(6)
+  status                 String                 @default("active") @db.VarChar
+  emailVerified          Boolean                @default(false)
+  usedAt                 DateTime?              @db.Timestamp(6)
+  createdAt              DateTime               @default(now()) @db.Timestamp(6)
+  updatedAt              DateTime               @default(now()) @db.Timestamp(6)
+  users                  users?                 @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_4836c945d64f6acb5be45330b90")
+  marketing_spin_rewards marketing_spin_rewards @relation(fields: [rewardId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5ab92de9c611eb2b08f18729281")
+}
+
+model medical_conditions {
+  id               String            @id(map: "PK_6940b21f19990e9c3cf850cbee4") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name             String?           @db.VarChar
+  year             Int?
+  status           String?           @db.VarChar
+  createdAt        DateTime          @default(now()) @db.Timestamp(6)
+  patientProfileId String?           @db.Uuid
+  patient_profiles patient_profiles? @relation(fields: [patientProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_83f48cdf680563709457a168898")
+}
+
+model medications {
+  id               String            @id(map: "PK_cdee49fe7cd79db13340150d356") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name             String            @db.VarChar
+  dose             String?           @db.VarChar
+  frequency        String?           @db.VarChar
+  createdAt        DateTime          @default(now()) @db.Timestamp(6)
+  patientProfileId String?           @db.Uuid
+  patient_profiles patient_profiles? @relation(fields: [patientProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_c4fa63fcafb5ca312086ecf6442")
+}
+
+model migrations {
+  id        Int    @id(map: "PK_8c82d7f526340ab734260ea46be") @default(autoincrement())
+  timestamp BigInt
+  name      String @db.VarChar
+}
+
+model notification {
+  id        String    @id(map: "PK_705b6c7cdf9b2c2ff7ac7872cb7") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  type      String    @db.VarChar(50)
+  message   String
+  isRead    Boolean   @default(false)
+  metadata  Json?     @db.Json
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  readAt    DateTime? @db.Timestamptz(6)
+  userId    String    @db.Uuid
+  isDeleted Boolean   @default(false)
+  users     users     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_1ced25315eb974b73391fb1c81b")
+}
+
+model notifications {
+  id        String    @id(map: "PK_6a72c3c0f683f6462415e653c3a") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId    String    @db.Uuid
+  type      String    @db.VarChar(100)
+  title     String    @db.VarChar(255)
+  message   String
+  actionUrl String?   @db.VarChar(500)
+  metadata  Json?
+  readAt    DateTime? @db.Timestamp(6)
+  isRead    Boolean   @default(false)
+  createdAt DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt DateTime  @default(now()) @db.Timestamp(6)
+  users     users     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_692a909ee0fa9383e7859f9b406")
+
+  @@index([userId], map: "IDX_692a909ee0fa9383e7859f9b40")
+  @@index([createdAt], map: "IDX_831a5a06f879fb0bebf8965871")
+  @@index([readAt], map: "IDX_9d8adc796dff8c73acd1eba656")
+  @@index([type], map: "IDX_aef1c7aef3725068e5540f8f00")
+}
+
+model password_reset_tokens {
+  id        String    @id(map: "PK_d16bebd73e844c48bca50ff8d3d") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  token     String    @unique(map: "UQ_ab673f0e63eac966762155508ee") @db.VarChar
+  expiresAt DateTime  @db.Timestamp(6)
+  usedAt    DateTime? @db.Timestamp(6)
+  createdAt DateTime  @default(now()) @db.Timestamp(6)
+  userId    String?   @db.Uuid
+  users     users?    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_d6a19d4b4f6c62dcd29daa497e2")
+}
+
+model patient_access_logs {
+  id                 String                               @id(map: "PK_23ea28ad8f4740f8a1619c5dd89") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  patient_identifier String                               @db.VarChar
+  user_id            String                               @db.Uuid
+  access_type        patient_access_logs_access_type_enum
+  ip_address         String?                              @db.VarChar
+  user_agent         String?
+  accessed_at        DateTime                             @default(now()) @db.Timestamp(6)
+  metadata           Json?
+  users              users                                @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_98886c37cc4ffebd7dd267e3e6c")
+
+  @@index([patient_identifier], map: "IDX_PATIENT_ACCESS_PATIENT")
+  @@index([accessed_at], map: "IDX_PATIENT_ACCESS_TIME")
+  @@index([user_id], map: "IDX_PATIENT_ACCESS_USER")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model patient_consents {
+  id                                         String                               @id(map: "PK_7c40a6cda6f0a1c71e7fc7e6766") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  patient_identifier                         String                               @db.VarChar
+  consent_status                             patient_consents_consent_status_enum @default(active)
+  consent_scope                              patient_consents_consent_scope_enum  @default(limited_access)
+  allowed_purposes                           Json                                 @default("[]")
+  allowed_users                              Json?
+  allowed_resource_types                     Json?
+  restricted_resource_types                  Json?
+  effective_date                             DateTime                             @db.Timestamp(6)
+  expiration_date                            DateTime?                            @db.Timestamp(6)
+  allow_emergency_access                     Boolean                              @default(true)
+  emergency_contact_info                     Json?
+  consent_document                           String?
+  consent_method                             String                               @db.VarChar
+  consent_language                           String                               @default("en") @db.VarChar
+  grantor                                    String                               @db.Uuid
+  grantor_role                               String                               @db.VarChar
+  witness                                    String?                              @db.Uuid
+  version                                    Int                                  @default(1)
+  previous_consent_id                        String?                              @db.Uuid
+  withdrawn_at                               DateTime?                            @db.Timestamp(6)
+  withdrawal_reason                          String?
+  withdrawn_by                               String?                              @db.Uuid
+  created_at                                 DateTime                             @default(now()) @db.Timestamp(6)
+  updated_at                                 DateTime                             @default(now()) @db.Timestamp(6)
+  comprehensive_audit_logs                   comprehensive_audit_logs[]
+  consent_access_logs                        consent_access_logs[]
+  users_patient_consents_witnessTousers      users?                               @relation("patient_consents_witnessTousers", fields: [witness], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_10407d3c4398b7b65466b9fa072")
+  users_patient_consents_grantorTousers      users                                @relation("patient_consents_grantorTousers", fields: [grantor], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_587a53049652bd0088f6d8300a0")
+  users_patient_consents_withdrawn_byTousers users?                               @relation("patient_consents_withdrawn_byTousers", fields: [withdrawn_by], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_bc933396033838dbd6274674e31")
+
+  @@index([effective_date, expiration_date], map: "IDX_CONSENT_EFFECTIVE")
+  @@index([consent_scope], map: "IDX_CONSENT_SCOPE")
+  @@index([consent_status], map: "IDX_CONSENT_STATUS")
+  @@index([patient_identifier, consent_status], map: "IDX_PATIENT_CONSENT")
+}
+
+model patient_profiles {
+  id                           String               @id(map: "PK_7297a6976f065cc75e798674aa8") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId                       String               @unique(map: "UQ_fc4788002ae2de0a68f6ccf24e5") @db.Uuid
+  profilePhoto                 String?              @db.VarChar
+  gender                       String?              @db.VarChar
+  dateOfBirth                  DateTime?            @db.Date
+  genotype                     String?              @db.VarChar
+  bloodGroup                   String?              @db.VarChar
+  nationality                  String?              @db.VarChar
+  language                     String?              @db.VarChar
+  mobileNumber                 String?              @db.VarChar
+  address                      String?
+  emergencyContactFullName     String?              @db.VarChar
+  emergencyContactMobile       String?              @db.VarChar
+  emergencyContactRelationship String?              @db.VarChar
+  height                       Float?
+  weight                       Float?
+  bmi                          Float?
+  bloodPressure                String?              @db.VarChar
+  heartRate                    Int?
+  respiratoryRate              Int?
+  temperature                  Float?
+  spO2                         Int?
+  bloodGlucose                 Float?
+  smokes                       Boolean              @default(false)
+  drinksAlcohol                Boolean              @default(false)
+  physicalActivityLevel        String?              @db.VarChar
+  dietType                     String?              @db.VarChar
+  sleepDuration                Float?
+  profileType                  String               @default("individual") @db.VarChar
+  createdAt                    DateTime             @default(now()) @db.Timestamp(6)
+  updatedAt                    DateTime             @default(now()) @db.Timestamp(6)
+  allergies                    allergies[]
+  consents                     consents?
+  disabilities                 disabilities?
+  family_histories             family_histories[]
+  health_insurances            health_insurances?
+  immunizations                immunizations[]
+  medical_conditions           medical_conditions[]
+  medications                  medications[]
+  users                        users                @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_fc4788002ae2de0a68f6ccf24e5")
+  surgeries                    surgeries[]
+}
+
+model pharmacy_branches {
+  id                String            @id(map: "PK_acc9c83b43816eb139d3d011a87") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  pharmacyId        String            @db.Uuid
+  managerId         String?           @db.Uuid
+  branchName        String            @db.VarChar
+  address           String
+  phone             String            @db.VarChar
+  email             String?           @db.VarChar
+  licenseNumber     String            @unique(map: "UQ_3ba642a223d1952432df41c0ea6") @db.VarChar
+  operatingHours    Json?             @db.Json
+  servicesOffered   Json?             @db.Json
+  isMainBranch      Boolean           @default(false)
+  isActive          Boolean           @default(true)
+  createdAt         DateTime          @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime          @default(now()) @db.Timestamp(6)
+  pharmacy_profiles pharmacy_profiles @relation(fields: [pharmacyId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_3738c73a395ffaf718fee45b138")
+  users             users?            @relation(fields: [managerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_4e2aa3af5f7e491c03b31ab1867")
+
+  @@index([pharmacyId], map: "IDX_3738c73a395ffaf718fee45b13")
+  @@index([licenseNumber], map: "IDX_3ba642a223d1952432df41c0ea")
+  @@index([managerId], map: "IDX_4e2aa3af5f7e491c03b31ab186")
+  @@index([isMainBranch], map: "IDX_bf948fdc0ecc09940fc89be0a6")
+}
+
+model pharmacy_documents {
+  id                String                                   @id(map: "PK_32b8697f76a503c9381a02f51d8") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  pharmacyId        String                                   @db.Uuid
+  documentFileId    String                                   @unique(map: "REL_8dda76dc9a0316a6965c223d39") @db.Uuid
+  documentType      pharmacy_documents_documenttype_enum
+  documentName      String                                   @db.VarChar
+  isVerified        Boolean                                  @default(false)
+  verificationNotes String?
+  verifiedBy        String?                                  @db.Uuid
+  verifiedAt        DateTime?                                @db.Timestamp(6)
+  submissionStatus  pharmacy_documents_submissionstatus_enum @default(pending)
+  createdAt         DateTime                                 @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime                                 @default(now()) @db.Timestamp(6)
+  pharmacy_profiles pharmacy_profiles                        @relation(fields: [pharmacyId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_85ceaa483fd75f8a03ee4f12697")
+  document_files    document_files                           @relation(fields: [documentFileId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_8dda76dc9a0316a6965c223d397")
+  users             users?                                   @relation(fields: [verifiedBy], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_afc09ddc6fc572d2ca7bcf3b80f")
+
+  @@index([submissionStatus], map: "IDX_7c7275fcb5fe7e1c9b6a4a47ab")
+  @@index([isVerified], map: "IDX_804f06b6aa61b5ba950cf061c3")
+  @@index([pharmacyId], map: "IDX_85ceaa483fd75f8a03ee4f1269")
+  @@index([documentFileId], map: "IDX_8dda76dc9a0316a6965c223d39")
+  @@index([documentType], map: "IDX_9ecf527fb3d4152853e50d4e46")
+}
+
+model pharmacy_pricing {
+  id                String                        @id(map: "PK_pharmacy_pricing") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  pharmacyId        String                        @db.Uuid
+  price             Decimal                       @db.Decimal(10, 2)
+  currency          String                        @default("NGN") @db.VarChar(3)
+  isActive          Boolean                       @default(true)
+  createdAt         DateTime                      @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime                      @default(now()) @db.Timestamp(6)
+  feeType           pharmacy_pricing_feetype_enum @default(delivery)
+  pharmacy_profiles pharmacy_profiles             @relation(fields: [pharmacyId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_2ed124258f9a8873dd9b60225fb")
+
+  @@index([isActive], map: "IDX_192cf9b571ab7217cf5ae5d5e8")
+  @@index([pharmacyId], map: "IDX_2ed124258f9a8873dd9b60225f")
+  @@index([feeType], map: "IDX_37af22e5750454d0e9e9740c26")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model pharmacy_profiles {
+  id                             String                                    @id(map: "PK_3bfce14692974ee666e892be571") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId                         String                                    @unique(map: "REL_6cf3d98dceb662745bd7ddc73b") @db.Uuid
+  pharmacyName                   String                                    @db.VarChar
+  registrationNumber             String                                    @unique(map: "UQ_56caee8b8167a413204835040d8") @db.VarChar
+  address                        String
+  phone                          String                                    @db.VarChar
+  primaryContactPerson           String                                    @db.VarChar
+  email                          String                                    @db.VarChar
+  preferredUsername              String                                    @unique(map: "UQ_4b330a91e3a15276be4826a2554") @db.VarChar
+  licenseNumber                  String?                                   @unique(map: "UQ_58d50f309785686c2ac3815f01c") @db.VarChar
+  licenseExpiryDate              DateTime?                                 @db.Date
+  operatingHours                 Json?                                     @db.Json
+  description                    String?
+  website                        String?                                   @db.VarChar
+  verificationStatus             pharmacy_profiles_verificationstatus_enum @default(pending)
+  isActive                       Boolean                                   @default(false)
+  documentsSubmitted             Boolean                                   @default(false)
+  createdAt                      DateTime                                  @default(now()) @db.Timestamp(6)
+  updatedAt                      DateTime                                  @default(now()) @db.Timestamp(6)
+  defaultCurrency                String                                    @default("NGN") @db.VarChar(3)
+  serviceRadius                  Decimal                                   @default(0) @db.Decimal(10, 2)
+  notificationPreferences        Json?                                     @db.Json
+  pharmacy_branches              pharmacy_branches[]
+  pharmacy_documents             pharmacy_documents[]
+  pharmacy_pricing               pharmacy_pricing[]
+  users                          users                                     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_6cf3d98dceb662745bd7ddc73ba")
+  pharmacy_verification_requests pharmacy_verification_requests[]
+  prescriptions                  prescriptions[]
+
+  @@index([preferredUsername], map: "IDX_4b330a91e3a15276be4826a255")
+  @@index([registrationNumber], map: "IDX_56caee8b8167a413204835040d")
+  @@index([userId], map: "IDX_6cf3d98dceb662745bd7ddc73b")
+  @@index([verificationStatus], map: "IDX_7175c827868d123c3e07394499")
+}
+
+model pharmacy_verification_requests {
+  id                                                     String                                          @id(map: "PK_5330092e6f71f252de6906e2fa9") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  pharmacyId                                             String                                          @db.Uuid
+  requestType                                            pharmacy_verification_requests_requesttype_enum
+  status                                                 pharmacy_verification_requests_status_enum      @default(pending)
+  priority                                               pharmacy_verification_requests_priority_enum    @default(medium)
+  requestNotes                                           String?
+  rejectionReason                                        String?
+  assignedTo                                             String?                                         @db.Uuid
+  reviewedBy                                             String?                                         @db.Uuid
+  reviewNotes                                            String?
+  submittedAt                                            DateTime                                        @default(now()) @db.Timestamp(6)
+  assignedAt                                             DateTime?                                       @db.Timestamp(6)
+  reviewedAt                                             DateTime?                                       @db.Timestamp(6)
+  completedAt                                            DateTime?                                       @db.Timestamp(6)
+  createdAt                                              DateTime                                        @default(now()) @db.Timestamp(6)
+  updatedAt                                              DateTime                                        @default(now()) @db.Timestamp(6)
+  users_pharmacy_verification_requests_reviewedByTousers users?                                          @relation("pharmacy_verification_requests_reviewedByTousers", fields: [reviewedBy], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_31a9b496de4391bc5bdfa150d98")
+  users_pharmacy_verification_requests_assignedToTousers users?                                          @relation("pharmacy_verification_requests_assignedToTousers", fields: [assignedTo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_3979e5c69350d8f5c2a6d994f8a")
+  pharmacy_profiles                                      pharmacy_profiles                               @relation(fields: [pharmacyId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_b79277a009fba6dbd705e679f30")
+
+  @@index([priority], map: "IDX_11eaf3edec78febbf0cdb30e1d")
+  @@index([assignedTo], map: "IDX_3979e5c69350d8f5c2a6d994f8")
+  @@index([status], map: "IDX_7c9570f571f67a81099330ccc6")
+  @@index([pharmacyId], map: "IDX_b79277a009fba6dbd705e679f3")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model prescriptions {
+  id                                              String                                @id(map: "PK_097b2cc2f2b7e56825468188503") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  reference                                       String                                @unique(map: "UQ_5f680454c70e6b2134c5ddc6d13") @db.VarChar
+  doctorId                                        String                                @db.Uuid
+  patientId                                       String                                @db.Uuid
+  pharmacyId                                      String?                               @db.Uuid
+  consultationId                                  String?                               @db.Uuid
+  medications                                     Json                                  @db.Json
+  status                                          prescriptions_status_enum             @default(pending)
+  assignedPharmacistId                            String?                               @db.Uuid
+  fulfillmentHistory                              Json?                                 @db.Json
+  invoiceItems                                    Json?                                 @db.Json
+  deliveryFee                                     Decimal?                              @default(0) @db.Decimal(10, 2)
+  totalDue                                        Decimal?                              @db.Decimal(10, 2)
+  paymentMethod                                   prescriptions_paymentmethod_enum?
+  paymentStatus                                   prescriptions_paymentstatus_enum      @default(unpaid)
+  chatMessages                                    Json?                                 @db.Json
+  doctorNotes                                     String?
+  pharmacyNotes                                   String?
+  patientNotes                                    String?
+  createdAt                                       DateTime                              @default(now()) @db.Timestamp(6)
+  updatedAt                                       DateTime                              @default(now()) @db.Timestamp(6)
+  deliveryAddress                                 String?
+  deliveryInstructions                            String?
+  expectedDeliveryDate                            DateTime?                             @db.Timestamp(6)
+  actualDeliveryDate                              DateTime?                             @db.Timestamp(6)
+  diagnosis                                       String?
+  doctorSignature                                 String?
+  internalNotes                                   Json?                                 @default("[]") @db.Json
+  currency                                        String?                               @db.VarChar(3)
+  availabilityStatus                              prescriptions_availabilitystatus_enum @default(pending)
+  users_prescriptions_assignedPharmacistIdTousers users?                                @relation("prescriptions_assignedPharmacistIdTousers", fields: [assignedPharmacistId], references: [id], onUpdate: NoAction, map: "FK_2345a2f6eb9dee50970bfcb4bbd")
+  users_prescriptions_doctorIdTousers             users                                 @relation("prescriptions_doctorIdTousers", fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_42c70415fad4505386e6d7e9dc4")
+  users_prescriptions_patientIdTousers            users                                 @relation("prescriptions_patientIdTousers", fields: [patientId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_51f48335657278b20348dde416c")
+  pharmacy_profiles                               pharmacy_profiles?                    @relation(fields: [pharmacyId], references: [id], onUpdate: NoAction, map: "FK_5be0de38aef377b8ba2bc94606e")
+
+  @@index([consultationId], map: "IDX_29fe8d9d7fd15107817912ff60")
+  @@index([createdAt], map: "IDX_34c9597360c36e1993831cce65")
+  @@index([status], map: "IDX_414e0cee0efdee5a65a2bad9cd")
+  @@index([doctorId], map: "IDX_42c70415fad4505386e6d7e9dc")
+  @@index([patientId], map: "IDX_51f48335657278b20348dde416")
+  @@index([pharmacyId], map: "IDX_5be0de38aef377b8ba2bc94606")
+  @@index([reference], map: "IDX_5f680454c70e6b2134c5ddc6d1")
+  @@index([paymentStatus], map: "IDX_807c3cba73fd06d0f2a680821a")
+}
+
+model professional_certificates {
+  id                  String           @id(map: "PK_34107f16cdea4699a31538582ad") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  institution         String?          @db.VarChar
+  degree              String?          @db.VarChar
+  fieldOfStudy        String?          @db.VarChar
+  startYear           Int?
+  endYear             Int?
+  certificateName     String?          @db.VarChar
+  issuingBody         String?          @db.VarChar
+  issueDate           DateTime?        @db.Date
+  expiryDate          DateTime?        @db.Date
+  certificateDocument String?          @db.VarChar
+  verificationLink    String?          @db.VarChar
+  createdAt           DateTime         @default(now()) @db.Timestamp(6)
+  updatedAt           DateTime         @default(now()) @db.Timestamp(6)
+  doctorProfileId     String?          @unique(map: "REL_cfc673ec557f22a5cadcf39044") @db.Uuid
+  doctor_profiles     doctor_profiles? @relation(fields: [doctorProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_cfc673ec557f22a5cadcf390449")
+}
+
+model professional_licenses {
+  id                    String           @id(map: "PK_1e81e4042a70f409dab625f5b26") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  medicalLicenseNumber  String?          @db.VarChar
+  countryOfLicense      String?          @db.VarChar
+  licenseAuthority      String?          @db.VarChar
+  licenseExpiryDate     DateTime?        @db.Date
+  licenseDocument       String?          @db.VarChar
+  yearsOfExperience     Int?
+  areasOfSpecialization String[]         @db.VarChar
+  subspecialty          String?          @db.VarChar
+  medicalInstitution    String?          @db.VarChar
+  createdAt             DateTime         @default(now()) @db.Timestamp(6)
+  updatedAt             DateTime         @default(now()) @db.Timestamp(6)
+  doctorProfileId       String?          @unique(map: "REL_8fe68608c1ad416607fd8fd57e") @db.Uuid
+  doctor_profiles       doctor_profiles? @relation(fields: [doctorProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_8fe68608c1ad416607fd8fd57e2")
+}
+
+model profile_options {
+  id          String   @id(map: "PK_4af464d99f2d3b0060651cbf5b0") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  profileType String?  @db.VarChar
+  field       String?  @db.VarChar
+  value       String?  @db.VarChar
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+  updatedAt   DateTime @default(now()) @db.Timestamp(6)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model referral_draw_stats {
+  id             String         @id(map: "PK_3619ab24686d5f110b51ce20a8d") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  drawId         String         @db.Uuid
+  userId         String         @db.Uuid
+  referralCount  Int            @default(0)
+  position       Int?
+  isWinner       Boolean        @default(false)
+  createdAt      DateTime       @default(now()) @db.Timestamp(6)
+  updatedAt      DateTime       @default(now()) @db.Timestamp(6)
+  users          users          @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_d5bc25247c364fdf689a85ad59f")
+  referral_draws referral_draws @relation(fields: [drawId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_f6099237a32c95173f00cf8561d")
+
+  @@index([referralCount], map: "IDX_REFERRAL_DRAW_STATS_COUNT")
+  @@index([drawId], map: "IDX_REFERRAL_DRAW_STATS_DRAW")
+  @@index([position], map: "IDX_REFERRAL_DRAW_STATS_POSITION")
+  @@index([userId], map: "IDX_REFERRAL_DRAW_STATS_USER")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model referral_draws {
+  id                  String                     @id(map: "PK_9f9abd9510193082f17b9926aea") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  title               String                     @db.VarChar(255)
+  description         String?
+  startDate           DateTime                   @db.Timestamp(6)
+  endDate             DateTime                   @db.Timestamp(6)
+  status              referral_draws_status_enum @default(pending)
+  maxWinners          Int                        @default(10)
+  isActive            Boolean                    @default(true)
+  createdBy           String                     @db.Uuid
+  createdAt           DateTime                   @default(now()) @db.Timestamp(6)
+  updatedAt           DateTime                   @default(now()) @db.Timestamp(6)
+  referral_draw_stats referral_draw_stats[]
+  users               users                      @relation(fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_4c5ee9ad78211c9e942b7c90b1c")
+  user_referrals      user_referrals[]
+
+  @@index([isActive], map: "IDX_REFERRAL_DRAW_ACTIVE")
+  @@index([startDate, endDate], map: "IDX_REFERRAL_DRAW_DATES")
+  @@index([status], map: "IDX_REFERRAL_DRAW_STATUS")
+}
+
+model refresh_tokens {
+  id                String    @id(map: "PK_7d8bee0204106019488c4c50ffa") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tokenHash         String    @unique(map: "UQ_c25bc63d248ca90e8dcc1d92d06") @db.VarChar
+  deviceFingerprint String    @db.VarChar
+  userAgent         String
+  expiresAt         DateTime  @db.Timestamp(6)
+  revokedAt         DateTime? @db.Timestamp(6)
+  createdAt         DateTime  @default(now()) @db.Timestamp(6)
+  userId            String?   @db.Uuid
+  users             users?    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_610102b60fea1455310ccd299de")
+}
+
+model resource_access_logs {
+  id            String                                @id(map: "PK_0e93e87ae741c29a75c15a5bf00") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  resource_type String                                @db.VarChar
+  user_id       String                                @db.Uuid
+  access_type   resource_access_logs_access_type_enum
+  ip_address    String?                               @db.VarChar
+  user_agent    String?
+  accessed_at   DateTime                              @default(now()) @db.Timestamp(6)
+  metadata      Json?
+  users         users                                 @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_d2989be0e9dea03e7bbf993a9cf")
+
+  @@index([accessed_at], map: "IDX_RESOURCE_ACCESS_TIME")
+  @@index([resource_type], map: "IDX_RESOURCE_ACCESS_TYPE")
+  @@index([user_id], map: "IDX_RESOURCE_ACCESS_USER")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model service_availability {
+  id                     String                           @id(map: "PK_133de312c99ab93064574a6c905") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  serviceKey             String                           @unique(map: "IDX_cf74b0c88273f0f8e8e1b29c0d") @db.VarChar(100)
+  name                   String                           @db.VarChar(255)
+  description            String?
+  status                 service_availability_status_enum @default(active)
+  countdownEnd           DateTime?                        @db.Timestamptz(6)
+  downtimeReason         String?
+  downtimeMessage        String?
+  showCountdown          Boolean                          @default(true)
+  lastUpdatedBy          String?                          @db.Uuid
+  iconUrl                String?                          @db.VarChar(500)
+  category               String?                          @db.VarChar(100)
+  displayOrder           Int                              @default(0)
+  isEnabled              Boolean                          @default(true)
+  isDeleted              Boolean                          @default(false)
+  createdAt              DateTime                         @default(now()) @db.Timestamptz(6)
+  updatedAt              DateTime                         @default(now()) @db.Timestamptz(6)
+  users                  users?                           @relation(fields: [lastUpdatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_2e3b8d7298b7f44ff382ec80171")
+  service_status_history service_status_history[]
+
+  @@index([isEnabled], map: "IDX_09f55e87c7ee6ed5da3e13f5da")
+  @@index([countdownEnd], map: "IDX_1af3d7ae9f4545fce18e434bb2")
+  @@index([isDeleted], map: "IDX_2457d83ece8d1a8c142e23a721")
+  @@index([status], map: "IDX_6a6b75117e7df5f0a7e1999d5e")
+  @@index([category], map: "IDX_73e347bf571a8b31e2ced8d3ed")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model service_status_history {
+  id                      String                             @id(map: "PK_6fe35562fadbca7924e567ca161") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  serviceId               String                             @db.Uuid
+  previousStatus          String?                            @db.VarChar(50)
+  newStatus               String                             @db.VarChar(50)
+  action                  service_status_history_action_enum
+  previousCountdownEnd    DateTime?                          @db.Timestamptz(6)
+  newCountdownEnd         DateTime?                          @db.Timestamptz(6)
+  reason                  String?
+  changedBy               String?                            @db.Uuid
+  notificationsSent       Boolean                            @default(false)
+  notificationCount       Int                                @default(0)
+  downtimeDurationMinutes Int?
+  ipAddress               String?                            @db.VarChar(45)
+  userAgent               String?
+  metadata                Json?                              @db.Json
+  createdAt               DateTime                           @default(now()) @db.Timestamptz(6)
+  users                   users?                             @relation(fields: [changedBy], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_1db1f99fac51361fafc84e8f7b1")
+  service_availability    service_availability               @relation(fields: [serviceId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_b78a8042a5379fc265b50ef0153")
+
+  @@index([changedBy], map: "IDX_1db1f99fac51361fafc84e8f7b")
+  @@index([action], map: "IDX_2a928917118f2f20bf1a06c59d")
+  @@index([createdAt], map: "IDX_62888c4e982aac6f53c36677c3")
+  @@index([serviceId], map: "IDX_b78a8042a5379fc265b50ef015")
+  @@index([newStatus], map: "IDX_ffc4505cf531ee4fa476c65a21")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model subscriptions {
+  id                       String                          @id(map: "PK_a87248d73155605cf782be9ee5e") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId                   String                          @db.Uuid
+  tier                     subscriptions_tier_enum
+  status                   subscriptions_status_enum       @default(active)
+  startDate                DateTime                        @db.Timestamp(6)
+  endDate                  DateTime                        @db.Timestamp(6)
+  nextBillingDate          DateTime?                       @db.Timestamp(6)
+  autoRenew                Boolean                         @default(false)
+  price                    Float
+  currency                 String                          @default("USD") @db.VarChar(3)
+  createdAt                DateTime                        @default(now()) @db.Timestamp(6)
+  planType                 subscriptions_plantype_enum?    @default(patient)
+  commissionRate           Decimal?                        @db.Decimal(5, 2)
+  autoBillingEnabled       Boolean                         @default(false)
+  preferredPaymentMethodId String?                         @db.Uuid
+  autoBillingFailureCount  Int                             @default(0)
+  lastAutoBillingAttempt   DateTime?                       @db.Timestamp(6)
+  autoBillingGracePeriod   Int                             @default(7)
+  features                 Json?                           @default("[]")
+  monthlyLimits            Json?                           @default("{}")
+  currentUsage             Json?                           @default("{}")
+  familyMembers            Int                             @default(1)
+  originalTier             String?                         @db.VarChar
+  billingCycle             subscriptions_billingcycle_enum @default(monthly)
+  metadata                 Json?                           @default("{}")
+  updatedAt                DateTime                        @default(now()) @db.Timestamp(6)
+  canceledAt               DateTime?                       @db.Timestamp(6)
+  pausedAt                 DateTime?                       @db.Timestamp(6)
+  users                    users                           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_fbdba4e2ac694cf8c9cecf4dc84")
+
+  @@index([planType], map: "IDX_3183ab99e5b4174c8314a0d848")
+  @@index([status], map: "IDX_6ccf973355b70645eff37774de")
+  @@index([nextBillingDate], map: "IDX_97892dded66dbd86b221384f41")
+  @@index([tier], map: "IDX_ca1806bbc03217f7cc6a55acab")
+  @@index([createdAt], map: "IDX_f26703c871017650988fb20c9e")
+  @@index([userId], map: "IDX_fbdba4e2ac694cf8c9cecf4dc8")
+}
+
+model support_disputes {
+  id            String                            @id(map: "PK_edc32c612d8d73eaf102ce4f0a2") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId        String                            @db.Uuid
+  transactionId String?                           @db.Uuid
+  disputeType   support_disputes_disputetype_enum
+  description   String?
+  screenshotUrl String?                           @db.VarChar(500)
+  status        support_disputes_status_enum      @default(pending)
+  createdAt     DateTime                          @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime                          @default(now()) @db.Timestamp(6)
+  users         users                             @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_ccd457e35d6dc40cb93f9fee34f")
+}
+
+model support_insurance {
+  id                    String                                  @id(map: "PK_6bd27d81450b808fc7348a9b670") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId                String                                  @db.Uuid
+  issueType             support_insurance_issuetype_enum
+  insuranceProviderName String?                                 @db.VarChar(255)
+  policyNumber          String?                                 @db.VarChar(100)
+  serviceAffected       support_insurance_serviceaffected_enum?
+  description           String?
+  screenshotUrl         String?                                 @db.VarChar(500)
+  status                support_insurance_status_enum           @default(pending)
+  createdAt             DateTime                                @default(now()) @db.Timestamp(6)
+  updatedAt             DateTime                                @default(now()) @db.Timestamp(6)
+  users                 users                                   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_89ec7de4e81733e9c302693548b")
+}
+
+model support_report {
+  id            String                           @id(map: "PK_b93452083b8860bb918c22b41b0") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId        String                           @db.Uuid
+  providerId    String                           @db.Uuid
+  providerType  support_report_providertype_enum
+  issueType     support_report_issuetype_enum
+  description   String?
+  screenshotUrl String?                          @db.VarChar(500)
+  status        support_report_status_enum       @default(pending)
+  createdAt     DateTime                         @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime                         @default(now()) @db.Timestamp(6)
+  users         users                            @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_393eae831f997c264e397dbdae5")
+}
+
+model surgeries {
+  id               String            @id(map: "PK_9b308d8aa20274bbbbc3f33489d") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name             String?           @db.VarChar
+  date             DateTime?         @db.Date
+  location         String?           @db.VarChar
+  createdAt        DateTime          @default(now()) @db.Timestamp(6)
+  patientProfileId String?           @db.Uuid
+  patient_profiles patient_profiles? @relation(fields: [patientProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_b3bbc75cdb4489e41f8401a896e")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model transaction_splits {
+  id               String                                @id(map: "PK_ff450f3d91d3c2764e27a3dfc15") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  transactionId    String                                @db.Uuid
+  type             transaction_splits_type_enum
+  originalAmount   Decimal                               @db.Decimal(10, 2)
+  originalCurrency String                                @db.VarChar(3)
+  usdAmount        Decimal                               @db.Decimal(10, 2)
+  recipientType    transaction_splits_recipienttype_enum
+  recipientId      String?                               @db.Uuid
+  status           transaction_splits_status_enum        @default(pending)
+  createdAt        DateTime                              @default(now()) @db.Timestamp(6)
+  releasedAt       DateTime?                             @db.Timestamp(6)
+  refundedAt       DateTime?                             @db.Timestamp(6)
+  transactions     transactions                          @relation(fields: [transactionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_e26abb9a10ed9c148afe8c6e427")
+
+  @@index([status], map: "IDX_7448510c7bc2093388492bdab8")
+  @@index([type], map: "IDX_a9e4ceab38f8b8e03b0a5da508")
+  @@index([transactionId], map: "IDX_e26abb9a10ed9c148afe8c6e42")
+  @@index([recipientType], map: "IDX_fa1c529ac27b6cad1d38252717")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model transactions {
+  id                                  String                            @id(map: "PK_a219afd8dd77ed80f5a862f1db9") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  patientId                           String                            @db.Uuid
+  doctorId                            String?                           @db.Uuid
+  appointmentId                       String?                           @db.Uuid
+  paymentMethodId                     String?                           @db.Uuid
+  serviceType                         transactions_servicetype_enum
+  serviceId                           String?                           @db.Uuid
+  planType                            transactions_plantype_enum?
+  billingCycle                        transactions_billingcycle_enum    @default(one_time)
+  servicePeriodStart                  DateTime?                         @db.Timestamp(6)
+  servicePeriodEnd                    DateTime?                         @db.Timestamp(6)
+  originalAmount                      Decimal                           @db.Decimal(10, 2)
+  originalCurrency                    String                            @db.VarChar(3)
+  usdAmount                           Decimal                           @db.Decimal(10, 2)
+  exchangeRateUsed                    Decimal                           @db.Decimal(10, 6)
+  paymentProvider                     transactions_paymentprovider_enum
+  providerTransactionId               String?                           @db.VarChar
+  providerReference                   String?                           @db.VarChar
+  providerFee                         Decimal?                          @db.Decimal(10, 2)
+  description                         String?                           @db.VarChar
+  status                              transactions_status_enum          @default(pending)
+  appointmentDate                     DateTime?                         @db.Timestamp(6)
+  disputeWindowStartsAt               DateTime?                         @db.Timestamp(6)
+  disputeWindowEndsAt                 DateTime?                         @db.Timestamp(6)
+  fundsStatus                         transactions_fundsstatus_enum     @default(pending_appointment)
+  isCancelled                         Boolean                           @default(false)
+  cancelledAt                         DateTime?                         @db.Timestamp(6)
+  refundStatus                        transactions_refundstatus_enum    @default(none)
+  refundAmount                        Decimal?                          @db.Decimal(10, 2)
+  refundProcessedAt                   DateTime?                         @db.Timestamp(6)
+  isAutoBilling                       Boolean                           @default(false)
+  metadata                            Json?
+  createdAt                           DateTime                          @default(now()) @db.Timestamp(6)
+  updatedAt                           DateTime                          @default(now()) @db.Timestamp(6)
+  completedAt                         DateTime?                         @db.Timestamp(6)
+  failedAt                            DateTime?                         @db.Timestamp(6)
+  disputes                            disputes[]
+  transaction_splits                  transaction_splits[]
+  users_transactions_doctorIdTousers  users?                            @relation("transactions_doctorIdTousers", fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_0616e035d18de9188812a5de386")
+  user_payment_methods                user_payment_methods?             @relation(fields: [paymentMethodId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_50db78fa73cb72af407852b6db9")
+  users_transactions_patientIdTousers users                             @relation("transactions_patientIdTousers", fields: [patientId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_83d7b5bff889a7117576041154f")
+
+  @@index([doctorId], map: "IDX_0616e035d18de9188812a5de38")
+  @@index([planType], map: "IDX_0b3d73b95be17139f98c9d8091")
+  @@index([paymentProvider], map: "IDX_44451197b235962f0e5658660b")
+  @@index([patientId], map: "IDX_83d7b5bff889a7117576041154")
+  @@index([providerTransactionId], map: "IDX_91e31a934485712dd3e06c135b")
+  @@index([status], map: "IDX_da87c55b3bbbe96c6ed88ea7ee")
+  @@index([createdAt], map: "IDX_e744417ceb0b530285c08f3865")
+  @@index([serviceType], map: "IDX_eb87291e3c049754429850add9")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model user_payment_methods {
+  id                      String                                            @id(map: "PK_3baaffbd29bfd03e2c9e9a1fd24") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId                  String                                            @db.Uuid
+  cardLast4               String                                            @db.VarChar(4)
+  cardType                String?                                           @db.VarChar
+  cardBrand               String?                                           @db.VarChar
+  bankName                String?                                           @db.VarChar
+  flutterwaveToken        String?                                           @db.VarChar
+  paystackToken           String?                                           @db.VarChar
+  flutterwaveSuccessCount Int                                               @default(0)
+  flutterwaveAttemptCount Int                                               @default(0)
+  paystackSuccessCount    Int                                               @default(0)
+  paystackAttemptCount    Int                                               @default(0)
+  canAutoCharge           Boolean                                           @default(true)
+  tokenExpiryDate         DateTime?                                         @db.Timestamp(6)
+  lastAutoBillingUse      DateTime?                                         @db.Timestamp(6)
+  autoBillingSuccessCount Int                                               @default(0)
+  autoBillingFailureCount Int                                               @default(0)
+  lastSuccessfulProvider  user_payment_methods_lastsuccessfulprovider_enum?
+  isDefault               Boolean                                           @default(false)
+  isActive                Boolean                                           @default(true)
+  createdAt               DateTime                                          @default(now()) @db.Timestamp(6)
+  lastUsedAt              DateTime?                                         @db.Timestamp(6)
+  updatedAt               DateTime                                          @default(now()) @db.Timestamp(6)
+  transactions            transactions[]
+  users                   users                                             @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_de52ee40aabfbe3eef30992bf65")
+
+  @@index([lastSuccessfulProvider], map: "IDX_36fc681071ff45f468667d7eef")
+  @@index([isDefault], map: "IDX_3fc9018c9d01465607154c7145")
+  @@index([cardLast4], map: "IDX_c77950cb2790919afb7fefac02")
+  @@index([userId], map: "IDX_de52ee40aabfbe3eef30992bf6")
+}
+
+model user_ratings {
+  id        String   @id(map: "PK_9de3e405c7a1a3a8ce4c0715993") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  rating    Decimal  @db.Decimal(2, 1)
+  message   String?
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  userId    String?  @db.Uuid
+  users     users?   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_93e09460114f90dcff1371ebb0d")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model user_referrals {
+  id                                         String                     @id(map: "PK_6aa5154ef7ddb379082279aa87b") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  referrerId                                 String                     @db.Uuid
+  referredUserId                             String?                    @db.Uuid
+  referralCode                               String                     @db.VarChar(50)
+  drawId                                     String?                    @db.Uuid
+  status                                     user_referrals_status_enum @default(pending)
+  verifiedAt                                 DateTime?                  @db.Timestamp(6)
+  createdAt                                  DateTime                   @default(now()) @db.Timestamp(6)
+  updatedAt                                  DateTime                   @default(now()) @db.Timestamp(6)
+  users_user_referrals_referredUserIdTousers users?                     @relation("user_referrals_referredUserIdTousers", fields: [referredUserId], references: [id], onUpdate: NoAction, map: "FK_a79f79518b182fed84283c7e92a")
+  users_user_referrals_referrerIdTousers     users                      @relation("user_referrals_referrerIdTousers", fields: [referrerId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_cad464ac75f4a107e39036a267d")
+  referral_draws                             referral_draws?            @relation(fields: [drawId], references: [id], onUpdate: NoAction, map: "FK_f14e36f37661d97fd9fe95c75ab")
+
+  @@index([referralCode], map: "IDX_USER_REFERRAL_CODE")
+  @@index([drawId], map: "IDX_USER_REFERRAL_DRAW")
+  @@index([referredUserId], map: "IDX_USER_REFERRAL_REFERRED")
+  @@index([referrerId], map: "IDX_USER_REFERRAL_REFERRER")
+  @@index([status], map: "IDX_USER_REFERRAL_STATUS")
+}
+
+model users {
+  id                                                                              String                           @id(map: "PK_a3ffb1c0c8416b9fc6f907b7433") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  fullName                                                                        String                           @db.VarChar
+  email                                                                           String                           @unique(map: "IDX_97672ac88f789774dd47f7c8be") @db.VarChar
+  passwordHash                                                                    String?                          @db.VarChar
+  phoneNumber                                                                     String?                          @db.VarChar
+  profileImageUrl                                                                 String?                          @db.VarChar
+  createdAt                                                                       DateTime                         @default(now()) @db.Timestamp(6)
+  updatedAt                                                                       DateTime                         @default(now()) @db.Timestamp(6)
+  refreshTokenHash                                                                String?                          @db.VarChar
+  mustChangePassword                                                              Boolean                          @default(false)
+  lastLoginAt                                                                     DateTime?                        @db.Timestamp(6)
+  passwordChangedAt                                                               DateTime?                        @db.Timestamp(6)
+  role                                                                            String                           @default("patient") @db.VarChar
+  status                                                                          String                           @default("active") @db.VarChar
+  tier                                                                            String                           @default("free") @db.VarChar
+  account_support                                                                 account_support[]
+  appointment_chats_appointment_chats_doctorIdTousers                             appointment_chats[]              @relation("appointment_chats_doctorIdTousers")
+  appointment_chats_appointment_chats_patientIdTousers                            appointment_chats[]              @relation("appointment_chats_patientIdTousers")
+  appointments_appointments_doctorIdTousers                                       appointments[]                   @relation("appointments_doctorIdTousers")
+  appointments_appointments_patientIdTousers                                      appointments[]                   @relation("appointments_patientIdTousers")
+  audit_logs                                                                      audit_logs[]
+  auth_events                                                                     auth_events[]
+  chat_messages                                                                   chat_messages[]
+  chat_participants_chat_participants_addedByIdTousers                            chat_participants[]              @relation("chat_participants_addedByIdTousers")
+  chat_participants_chat_participants_userIdTousers                               chat_participants[]              @relation("chat_participants_userIdTousers")
+  chat_rooms                                                                      chat_rooms[]
+  chatbot_messages                                                                chatbot_messages[]
+  chatbot_sessions                                                                chatbot_sessions[]
+  comprehensive_audit_logs                                                        comprehensive_audit_logs[]
+  consent_access_logs                                                             consent_access_logs[]
+  data_governance_policies_data_governance_policies_approved_byTousers            data_governance_policies[]       @relation("data_governance_policies_approved_byTousers")
+  data_governance_policies_data_governance_policies_policy_ownerTousers           data_governance_policies[]       @relation("data_governance_policies_policy_ownerTousers")
+  disputes_disputes_doctorIdTousers                                               disputes[]                       @relation("disputes_doctorIdTousers")
+  disputes_disputes_patientIdTousers                                              disputes[]                       @relation("disputes_patientIdTousers")
+  doctor_availability                                                             doctor_availability[]
+  doctor_pricing                                                                  doctor_pricing[]
+  doctor_profiles                                                                 doctor_profiles?
+  doctor_unavailability                                                           doctor_unavailability[]
+  doctor_wallets                                                                  doctor_wallets?
+  document_files                                                                  document_files[]
+  document_folders                                                                document_folders[]
+  email_verifications                                                             email_verifications[]
+  encryption_keys                                                                 encryption_keys[]
+  faq_analytics                                                                   faq_analytics[]
+  faq_votes                                                                       faq_votes[]
+  faqs_faqs_createdByTousers                                                      faqs[]                           @relation("faqs_createdByTousers")
+  faqs_faqs_updatedByTousers                                                      faqs[]                           @relation("faqs_updatedByTousers")
+  fhir_search_logs                                                                fhir_search_logs[]
+  file_access_logs                                                                file_access_logs[]
+  files                                                                           files[]
+  folder_access_logs                                                              folder_access_logs[]
+  lab_facilities_lab_facilities_adminUserIdTousers                                lab_facilities[]                 @relation("lab_facilities_adminUserIdTousers")
+  lab_facilities_lab_facilities_approvedByIdTousers                               lab_facilities[]                 @relation("lab_facilities_approvedByIdTousers")
+  lab_orders_lab_orders_patientIdTousers                                          lab_orders[]                     @relation("lab_orders_patientIdTousers")
+  lab_orders_lab_orders_doctorIdTousers                                           lab_orders[]                     @relation("lab_orders_doctorIdTousers")
+  lab_personnel_lab_personnel_invitedByIdTousers                                  lab_personnel[]                  @relation("lab_personnel_invitedByIdTousers")
+  lab_personnel_lab_personnel_userIdTousers                                       lab_personnel[]                  @relation("lab_personnel_userIdTousers")
+  lab_test_requests_lab_test_requests_patientIdTousers                            lab_test_requests[]              @relation("lab_test_requests_patientIdTousers")
+  lab_test_requests_lab_test_requests_doctorIdTousers                             lab_test_requests[]              @relation("lab_test_requests_doctorIdTousers")
+  lab_wallet_topups                                                               lab_wallet_topups[]
+  lab_wallet_transactions                                                         lab_wallet_transactions[]
+  lab_wallets                                                                     lab_wallets[]
+  magic_link_tokens                                                               magic_link_tokens[]
+  marketing_user_spin_history                                                     marketing_user_spin_history[]
+  notification                                                                    notification[]
+  notifications                                                                   notifications[]
+  password_reset_tokens                                                           password_reset_tokens[]
+  patient_access_logs                                                             patient_access_logs[]
+  patient_consents_patient_consents_witnessTousers                                patient_consents[]               @relation("patient_consents_witnessTousers")
+  patient_consents_patient_consents_grantorTousers                                patient_consents[]               @relation("patient_consents_grantorTousers")
+  patient_consents_patient_consents_withdrawn_byTousers                           patient_consents[]               @relation("patient_consents_withdrawn_byTousers")
+  patient_profiles                                                                patient_profiles?
+  pharmacy_branches                                                               pharmacy_branches[]
+  pharmacy_documents                                                              pharmacy_documents[]
+  pharmacy_profiles                                                               pharmacy_profiles?
+  pharmacy_verification_requests_pharmacy_verification_requests_reviewedByTousers pharmacy_verification_requests[] @relation("pharmacy_verification_requests_reviewedByTousers")
+  pharmacy_verification_requests_pharmacy_verification_requests_assignedToTousers pharmacy_verification_requests[] @relation("pharmacy_verification_requests_assignedToTousers")
+  prescriptions_prescriptions_assignedPharmacistIdTousers                         prescriptions[]                  @relation("prescriptions_assignedPharmacistIdTousers")
+  prescriptions_prescriptions_doctorIdTousers                                     prescriptions[]                  @relation("prescriptions_doctorIdTousers")
+  prescriptions_prescriptions_patientIdTousers                                    prescriptions[]                  @relation("prescriptions_patientIdTousers")
+  referral_draw_stats                                                             referral_draw_stats[]
+  referral_draws                                                                  referral_draws[]
+  refresh_tokens                                                                  refresh_tokens[]
+  resource_access_logs                                                            resource_access_logs[]
+  service_availability                                                            service_availability[]
+  service_status_history                                                          service_status_history[]
+  subscriptions                                                                   subscriptions[]
+  support_disputes                                                                support_disputes[]
+  support_insurance                                                               support_insurance[]
+  support_report                                                                  support_report[]
+  transactions_transactions_doctorIdTousers                                       transactions[]                   @relation("transactions_doctorIdTousers")
+  transactions_transactions_patientIdTousers                                      transactions[]                   @relation("transactions_patientIdTousers")
+  user_payment_methods                                                            user_payment_methods[]
+  user_ratings                                                                    user_ratings[]
+  user_referrals_user_referrals_referredUserIdTousers                             user_referrals[]                 @relation("user_referrals_referredUserIdTousers")
+  user_referrals_user_referrals_referrerIdTousers                                 user_referrals[]                 @relation("user_referrals_referrerIdTousers")
+  verification_documents                                                          verification_documents[]
+  verification_requests_verification_requests_assignedReviewerIdTousers           verification_requests[]          @relation("verification_requests_assignedReviewerIdTousers")
+  verification_requests_verification_requests_doctorIdTousers                     verification_requests[]          @relation("verification_requests_doctorIdTousers")
+  verification_review_queue_verification_review_queue_escalatedToTousers          verification_review_queue[]      @relation("verification_review_queue_escalatedToTousers")
+  verification_review_queue_verification_review_queue_assignedToTousers           verification_review_queue[]      @relation("verification_review_queue_assignedToTousers")
+  verification_status_history                                                     verification_status_history[]
+  wallet_withdrawals                                                              wallet_withdrawals[]
+
+  @@index([status], map: "IDX_3676155292d72c67cd4e090514")
+  @@index([tier], map: "IDX_8e35ffc30e351cf20ec62ce7c4")
+}
+
+model verification_api_logs {
+  id                    String                              @id(map: "PK_e715c7fb8eb84bfadcbec665358") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  verificationRequestId String                              @db.Uuid
+  provider              verification_api_logs_provider_enum
+  endpoint              String                              @db.VarChar
+  method                String                              @default("POST") @db.VarChar
+  requestPayload        Json?
+  responsePayload       Json?
+  responseCode          Int?
+  responseTime          Int?
+  success               Boolean                             @default(false)
+  errorMessage          String?
+  rateLimitRemaining    Int?
+  rateLimitReset        DateTime?                           @db.Timestamp(6)
+  calledAt              DateTime                            @default(now()) @db.Timestamp(6)
+  calledBy              String?                             @db.Uuid
+  verification_requests verification_requests               @relation(fields: [verificationRequestId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_de6c468c37ac3acdc3019603cd3")
+
+  @@index([calledAt], map: "idx_api_log_called")
+  @@index([provider], map: "idx_api_log_provider")
+  @@index([success], map: "idx_api_log_success")
+  @@index([verificationRequestId], map: "idx_api_log_verification")
+}
+
+model verification_documents {
+  id                    String                                   @id(map: "PK_b4dc59d87f87ce5a1bb1d3fe0bf") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  verificationRequestId String                                   @db.Uuid
+  documentType          verification_documents_documenttype_enum
+  originalFileName      String                                   @db.VarChar
+  storedFileName        String                                   @db.VarChar
+  filePath              String                                   @db.VarChar
+  fileSize              Int
+  mimeType              String                                   @db.VarChar
+  fileHash              String                                   @db.VarChar
+  encryptionKey         String?                                  @db.VarChar
+  digitalSignature      String?
+  status                verification_documents_status_enum       @default(uploaded)
+  ocrText               String?
+  extractedData         Json?
+  aiAnalysisResult      Json?
+  ocrConfidence         Float?
+  verifiedBy            String?                                  @db.VarChar
+  verifiedAt            DateTime?                                @db.Timestamp(6)
+  rejectionReason       String?
+  uploadedAt            DateTime                                 @default(now()) @db.Timestamp(6)
+  uploadedBy            String                                   @db.Uuid
+  lastAccessedAt        DateTime?                                @db.Timestamp(6)
+  accessCount           Int                                      @default(0)
+  createdAt             DateTime                                 @default(now()) @db.Timestamp(6)
+  updatedAt             DateTime                                 @default(now()) @db.Timestamp(6)
+  verification_requests verification_requests                    @relation(fields: [verificationRequestId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_9015d4092e960a1d446fef46f99")
+  users                 users                                    @relation(fields: [uploadedBy], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_c8151e02245f8235220cc0956cd")
+
+  @@index([fileHash], map: "idx_document_hash")
+  @@index([status], map: "idx_document_status")
+  @@index([uploadedAt], map: "idx_document_uploaded")
+  @@index([verificationRequestId, documentType], map: "idx_document_verification_type")
+}
+
+model verification_requests {
+  id                                                    String                             @id(map: "PK_c5d405ea25e8abd5b0b096a4f6f") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  doctorId                                              String                             @db.Uuid
+  licenseNumber                                         String                             @db.VarChar
+  countryCode                                           String                             @db.VarChar(2)
+  issuingAuthority                                      String                             @db.VarChar
+  licenseType                                           String?                            @db.VarChar
+  issueDate                                             DateTime?                          @db.Date
+  expiryDate                                            DateTime?                          @db.Date
+  status                                                verification_requests_status_enum  @default(pending)
+  method                                                verification_requests_method_enum?
+  tier                                                  verification_requests_tier_enum?
+  confidenceScore                                       Int                                @default(0)
+  apiVerificationData                                   Json?
+  apiVerifiedAt                                         DateTime?                          @db.Timestamp(6)
+  apiErrors                                             String?
+  assignedReviewerId                                    String?                            @db.Uuid
+  reviewStartedAt                                       DateTime?                          @db.Timestamp(6)
+  reviewCompletedAt                                     DateTime?                          @db.Timestamp(6)
+  reviewNotes                                           String?
+  rejectionReason                                       String?
+  submittedAt                                           DateTime                           @default(now()) @db.Timestamp(6)
+  approvedAt                                            DateTime?                          @db.Timestamp(6)
+  rejectedAt                                            DateTime?                          @db.Timestamp(6)
+  expiresAt                                             DateTime?                          @db.Timestamp(6)
+  createdAt                                             DateTime                           @default(now()) @db.Timestamp(6)
+  updatedAt                                             DateTime                           @default(now()) @db.Timestamp(6)
+  createdBy                                             String?                            @db.Uuid
+  updatedBy                                             String?                            @db.Uuid
+  verification_api_logs                                 verification_api_logs[]
+  verification_documents                                verification_documents[]
+  users_verification_requests_assignedReviewerIdTousers users?                             @relation("verification_requests_assignedReviewerIdTousers", fields: [assignedReviewerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_0a9afbc975b680f23f5ae8e03dc")
+  users_verification_requests_doctorIdTousers           users                              @relation("verification_requests_doctorIdTousers", fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_34402df7434d02ccfdd5e297812")
+  verification_review_queue                             verification_review_queue?
+  verification_status_history                           verification_status_history[]
+
+  @@index([countryCode, status], map: "idx_verification_country_status")
+  @@index([createdAt], map: "idx_verification_created")
+  @@index([doctorId, status], map: "idx_verification_doctor_status")
+  @@index([assignedReviewerId], map: "idx_verification_reviewer")
+}
+
+model verification_review_queue {
+  id                                                 String                                  @id(map: "PK_658be367eb955ab9ab1526eca1a") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  verificationRequestId                              String                                  @unique(map: "UQ_062790df7e7504ca392d94ca4f6") @db.Uuid
+  priority                                           verification_review_queue_priority_enum @default(normal)
+  assignedTo                                         String?                                 @db.Uuid
+  addedToQueueAt                                     DateTime                                @default(now()) @db.Timestamp(6)
+  assignedAt                                         DateTime?                               @db.Timestamp(6)
+  reviewStartedAt                                    DateTime?                               @db.Timestamp(6)
+  completedAt                                        DateTime?                               @db.Timestamp(6)
+  slaTarget                                          DateTime?                               @db.Timestamp(6)
+  slaBreached                                        Boolean                                 @default(false)
+  escalated                                          Boolean                                 @default(false)
+  escalatedAt                                        DateTime?                               @db.Timestamp(6)
+  escalatedTo                                        String?                                 @db.Uuid
+  escalationReason                                   String?
+  queueNotes                                         String?
+  complexity                                         String?                                 @db.VarChar
+  createdAt                                          DateTime                                @default(now()) @db.Timestamp(6)
+  updatedAt                                          DateTime                                @default(now()) @db.Timestamp(6)
+  verification_requests                              verification_requests                   @relation(fields: [verificationRequestId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_062790df7e7504ca392d94ca4f6")
+  users_verification_review_queue_escalatedToTousers users?                                  @relation("verification_review_queue_escalatedToTousers", fields: [escalatedTo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_6aadc5f7b41ebd780c00dd8fcdb")
+  users_verification_review_queue_assignedToTousers  users?                                  @relation("verification_review_queue_assignedToTousers", fields: [assignedTo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_df9b20576de1c20de1e31bf3c7b")
+
+  @@index([addedToQueueAt], map: "idx_queue_added")
+  @@index([assignedTo], map: "idx_queue_assigned")
+  @@index([priority], map: "idx_queue_priority")
+  @@index([slaTarget], map: "idx_queue_sla")
+}
+
+model verification_status_history {
+  id                    String                @id(map: "PK_f46a2ebf1b77443a0f3bd928ba0") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  verificationRequestId String                @db.Uuid
+  fromStatus            String?               @db.VarChar
+  toStatus              String                @db.VarChar
+  changedBy             String                @db.Uuid
+  changeReason          String?
+  metadata              Json?
+  automatedChange       Boolean               @default(false)
+  changedAt             DateTime              @default(now()) @db.Timestamp(6)
+  verification_requests verification_requests @relation(fields: [verificationRequestId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_5b2648346151573b7410c0f0152")
+  users                 users                 @relation(fields: [changedBy], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_7f3d0e1e990affda263a1d81f35")
+
+  @@index([changedAt], map: "idx_status_history_changed")
+  @@index([changedBy], map: "idx_status_history_user")
+  @@index([verificationRequestId], map: "idx_status_history_verification")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model wallet_withdrawals {
+  id                 String                         @id(map: "PK_8683ec82b0640730c9453d6b859") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  walletId           String                         @db.Uuid
+  doctorId           String                         @db.Uuid
+  amountUsd          Decimal                        @db.Decimal(10, 2)
+  requestedCurrency  String                         @db.VarChar(3)
+  requestedAmount    Decimal                        @db.Decimal(10, 2)
+  exchangeRateUsed   Decimal?                       @db.Decimal(10, 6)
+  bankDetails        Json
+  processor          String                         @default("flutterwave") @db.VarChar(20)
+  otpCode            String?                        @db.VarChar(6)
+  otpExpiresAt       DateTime?                      @db.Timestamp(6)
+  otpAttempts        Int                            @default(0)
+  maxOtpAttempts     Int                            @default(3)
+  isOtpVerified      Boolean                        @default(false)
+  parentWithdrawalId String?                        @db.Uuid
+  status             wallet_withdrawals_status_enum @default(pending)
+  providerReference  String?                        @db.VarChar
+  failureReason      String?
+  createdAt          DateTime                       @default(now()) @db.Timestamp(6)
+  processedAt        DateTime?                      @db.Timestamp(6)
+  completedAt        DateTime?                      @db.Timestamp(6)
+  users              users                          @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_681130ff2c4853d604c2e081207")
+  doctor_wallets     doctor_wallets                 @relation(fields: [walletId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ad29fd88b669636c93be6274019")
+
+  @@index([doctorId], map: "IDX_681130ff2c4853d604c2e08120")
+  @@index([createdAt], map: "IDX_8830c122a4c67a23e49b66a2dd")
+  @@index([walletId], map: "IDX_ad29fd88b669636c93be627401")
+  @@index([status], map: "IDX_dac744fc4dd94d79755e42a561")
+}
+
+model wallets {
+  id              String           @id(map: "PK_8402e5df5a30a229380e83e4f7e") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  paymentMethod   String           @db.VarChar
+  bankName        String           @db.VarChar
+  accountNumber   String           @db.VarChar
+  accountName     String           @db.VarChar
+  swiftCode       String?          @db.VarChar
+  sortCode        String?          @db.VarChar
+  frequencyPayout String           @db.VarChar
+  createdAt       DateTime         @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime         @default(now()) @db.Timestamp(6)
+  doctorProfileId String?          @unique(map: "REL_3bdf0793392a5a7ee035e8a5ba") @db.Uuid
+  doctor_profiles doctor_profiles? @relation(fields: [doctorProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_3bdf0793392a5a7ee035e8a5bad")
+}
+
+enum account_support_issuetype_enum {
+  account_information_error
+  dependent_account_issue
+  unable_to_update_profile
+  deactivation_request
+  double_accounts_conflict
+}
+
+enum account_support_priority_enum {
+  low
+  medium
+  high
+  urgent
+}
+
+enum account_support_status_enum {
+  pending
+  in_progress
+  resolved
+  closed
+}
+
+enum appointment_chats_status_enum {
+  scheduled
+  active
+  completed
+  cancelled
+}
+
+enum appointments_meetingprovider_enum {
+  google
+  zoom
+  jitsi
+}
+
+enum appointments_paymentstatus_enum {
+  pending
+  completed
+  failed
+  refunded
+}
+
+enum appointments_priority_enum {
+  routine
+  urgent
+  high
+}
+
+enum appointments_status_enum {
+  pending
+  scheduled
+  completed
+  cancelled
+  rescheduled
+}
+
+enum appointments_type_enum {
+  consultation
+  follow_up       @map("follow-up")
+  routine_checkup @map("routine-checkup")
+  urgent
+}
+
+enum chat_messages_type_enum {
+  text
+  image
+  file
+  system
+  typing
+}
+
+enum chat_participants_role_enum {
+  admin
+  moderator
+  member
+}
+
+enum chat_rooms_type_enum {
+  direct
+  group
+  appointment
+  support
+  order_chat
+}
+
+enum chatbot_messages_messagetype_enum {
+  user
+  bot
+}
+
+enum chatbot_sessions_sessiontype_enum {
+  general
+  doctor
+}
+
+enum chatbot_sessions_usertype_enum {
+  patient
+  doctor
+}
+
+enum comprehensive_audit_logs_event_type_enum {
+  file_upload
+  file_download
+  file_view
+  file_delete
+  file_modify
+  fhir_resource_access
+  patient_data_access
+  fhir_search
+  consent_granted
+  consent_withdrawn
+  consent_modified
+  consent_checked
+  login_success
+  login_failure
+  logout
+  permission_denied
+  emergency_access
+  key_rotation
+  key_generation
+  encryption_event
+  decryption_event
+  compliance_report
+  data_export
+  data_retention
+  anonymization
+  consent_history_access
+  emergency_access_review
+}
+
+enum comprehensive_audit_logs_severity_enum {
+  low
+  medium
+  high
+  critical
+}
+
+enum conditions_content_type_enum {
+  emergency
+  non_emergency
+}
+
+enum conditions_severity_enum {
+  low
+  medium
+  high
+  critical
+}
+
+enum country_verification_configs_method_enum {
+  automated
+  manual
+  hybrid
+}
+
+enum country_verification_configs_tier_enum {
+  tier_1
+  tier_2
+  tier_3
+}
+
+enum data_governance_policies_policy_status_enum {
+  active
+  inactive
+  pending
+  deprecated
+}
+
+enum data_governance_policies_policy_type_enum {
+  retention
+  anonymization
+  access_control
+  data_classification
+  cross_border
+  privacy_preservation
+}
+
+enum disputes_status_enum {
+  pending
+  approved
+  rejected
+  escalated
+  resolved
+}
+
+enum disputes_type_enum {
+  refund_request
+  chargeback
+  quality_complaint
+}
+
+enum doctor_availability_dayofweek_enum {
+  monday
+  tuesday
+  wednesday
+  thursday
+  friday
+  saturday
+  sunday
+}
+
+enum doctor_pricing_consultationtype_enum {
+  consultation
+  follow_up       @map("follow-up")
+  routine_checkup @map("routine-checkup")
+  urgent
+}
+
+enum doctor_unavailability_type_enum {
+  vacation
+  sick
+  meeting
+  personal
+  other
+}
+
+enum document_files_fhir_resource_type_enum {
+  Patient
+  Practitioner
+  Organization
+  Observation
+  DiagnosticReport
+  Condition
+  Procedure
+  MedicationRequest
+  MedicationStatement
+  AllergyIntolerance
+  Immunization
+  CarePlan
+  Encounter
+  DocumentReference
+  Consent
+  Other
+}
+
+enum document_files_fhir_sensitivity_level_enum {
+  normal
+  high
+  very_high
+}
+
+enum document_files_security_level_enum {
+  public
+  private
+  confidential
+  restricted
+}
+
+enum document_files_status_enum {
+  uploaded
+  processing
+  ready
+  corrupted
+  deleted
+}
+
+enum document_folders_folder_type_enum {
+  verification
+  medical_records
+  prescription
+  lab_results
+  profile
+  images
+  pharmacy
+  pharmacy_verification
+  other
+}
+
+enum document_folders_status_enum {
+  active
+  archived
+  deleted
+}
+
+enum emergency_steps_category_type_enum {
+  general
+  adults
+  children
+  infants
+}
+
+enum encryption_keys_algorithm_enum {
+  aes_256_gcm       @map("aes-256-gcm")
+  aes_256_cbc       @map("aes-256-cbc")
+  chacha20_poly1305 @map("chacha20-poly1305")
+}
+
+enum encryption_keys_key_status_enum {
+  active
+  rotated
+  revoked
+  expired
+}
+
+enum encryption_keys_key_type_enum {
+  master
+  patient
+  resource
+  sensitivity
+  purpose
+}
+
+enum faq_analytics_eventtype_enum {
+  view
+  search
+  vote
+  share
+}
+
+enum faq_categories_targetrole_enum {
+  patient
+  doctor
+  general
+  all
+}
+
+enum faq_votes_votetype_enum {
+  helpful
+  not_helpful
+}
+
+enum faqs_status_enum {
+  draft
+  published
+  archived
+}
+
+enum faqs_targetrole_enum {
+  patient
+  doctor
+  general
+  all
+}
+
+enum file_access_logs_access_type_enum {
+  view
+  download
+  upload
+  delete
+  share
+  modify
+}
+
+enum folder_access_logs_access_type_enum {
+  view
+  download
+  upload
+  delete
+  share
+  modify
+}
+
+enum lab_facilities_facilitytype_enum {
+  diagnostic_lab
+  pathology_lab
+  radiology_center
+  medical_center
+  hospital_lab
+}
+
+enum lab_facilities_status_enum {
+  draft
+  pending_approval
+  approved
+  active
+  inactive
+  rejected
+  suspended
+}
+
+enum lab_orders_ordertype_enum {
+  lab_visit
+  home_collection
+}
+
+enum lab_orders_paymentstatus_enum {
+  pending
+  paid
+  failed
+  refunded
+}
+
+enum lab_orders_servicetype_enum {
+  lab_visit
+  home_collection
+}
+
+enum lab_orders_status_enum {
+  created
+  pending_payment
+  payment_confirmed
+  assigned
+  scheduled
+  in_progress
+  sample_collected
+  processing
+  results_ready
+  under_review
+  results_approved
+  revision_required
+  completed
+  cancelled
+}
+
+enum lab_personnel_role_enum {
+  lab_manager
+  sample_collector
+  lab_technician
+  radiologist
+  result_reviewer
+}
+
+enum lab_personnel_status_enum {
+  pending_registration
+  invitation_sent
+  registered
+  active
+  suspended
+  terminated
+}
+
+enum lab_pharm_waitlist_role_enum {
+  lab
+  pharmacy
+}
+
+enum lab_pharm_waitlist_status_enum {
+  pending
+  contacted
+  registered
+  declined
+}
+
+enum lab_wallet_topups_paymentmethod_enum {
+  wallet_balance
+  card
+  bank_transfer
+  mobile_money
+  cash
+}
+
+enum lab_wallet_topups_status_enum {
+  pending
+  processing
+  completed
+  failed
+  cancelled
+}
+
+enum lab_wallet_transactions_paymentmethod_enum {
+  wallet_balance
+  card
+  bank_transfer
+  mobile_money
+  cash
+}
+
+enum lab_wallet_transactions_status_enum {
+  pending
+  completed
+  failed
+  cancelled
+  reversed
+}
+
+enum lab_wallet_transactions_type_enum {
+  credit
+  debit
+  payment
+  refund
+  transfer
+  withdrawal
+}
+
+enum lab_wallets_status_enum {
+  active
+  frozen
+  locked
+  inactive
+}
+
+enum lab_wallets_wallettype_enum {
+  patient
+  facility
+  system
+}
+
+enum patient_access_logs_access_type_enum {
+  view
+  download
+  search
+  create
+  update
+  delete
+  view_patient_summary
+  view_patient_files
+  emergency_access
+}
+
+enum patient_consents_consent_scope_enum {
+  full_access
+  limited_access
+  treatment_only
+  emergency_only
+  no_access
+}
+
+enum patient_consents_consent_status_enum {
+  active
+  inactive
+  withdrawn
+  expired
+}
+
+enum pharmacy_documents_documenttype_enum {
+  pharmacy_license
+  government_id
+  business_registration
+  tax_certificate
+  other
+}
+
+enum pharmacy_documents_submissionstatus_enum {
+  pending
+  submitted
+  under_review
+  approved
+  rejected
+  resubmission_required
+}
+
+enum pharmacy_pricing_feetype_enum {
+  delivery
+  consultation
+  handling
+  processing
+}
+
+enum pharmacy_profiles_verificationstatus_enum {
+  pending
+  documents_required
+  under_review
+  approved
+  rejected
+  suspended
+}
+
+enum pharmacy_verification_requests_priority_enum {
+  low
+  medium
+  high
+  urgent
+}
+
+enum pharmacy_verification_requests_requesttype_enum {
+  initial_verification
+  re_verification
+  document_update
+}
+
+enum pharmacy_verification_requests_status_enum {
+  pending
+  in_progress
+  approved
+  rejected
+  requires_changes
+}
+
+enum prescriptions_availabilitystatus_enum {
+  pending
+  confirmed
+  unavailable
+  alternatives_proposed
+}
+
+enum prescriptions_paymentmethod_enum {
+  online
+  payOnPickup
+}
+
+enum prescriptions_paymentstatus_enum {
+  unpaid
+  paid
+  cancelled
+}
+
+enum prescriptions_status_enum {
+  pending
+  patient_uploaded
+  pharmacy_assigned
+  pharmacy_processing
+  ready_for_pickup
+  ready_for_delivery
+  completed
+  cancelled
+}
+
+enum referral_draws_status_enum {
+  pending
+  active
+  ended
+  cancelled
+}
+
+enum resource_access_logs_access_type_enum {
+  view
+  search
+  create
+  update
+  delete
+  download
+}
+
+enum service_availability_status_enum {
+  active
+  down
+}
+
+enum service_status_history_action_enum {
+  manual_down
+  manual_active
+  auto_reactivated
+  countdown_extended
+  countdown_shortened
+  override_active
+  created
+}
+
+enum subscriptions_billingcycle_enum {
+  monthly
+  quarterly
+  yearly
+}
+
+enum subscriptions_plantype_enum {
+  doctor
+  patient
+}
+
+enum subscriptions_status_enum {
+  active
+  pending
+  expired
+  canceled
+  paused
+}
+
+enum subscriptions_tier_enum {
+  basic
+  pro
+  enterprise
+  free
+  standard
+  medium
+  premium
+  gold_elite
+  professional
+}
+
+enum support_disputes_disputetype_enum {
+  incorrect_billing
+  doctor_no_show
+  poor_service_quality
+  refund_request
+  transaction_issues
+}
+
+enum support_disputes_status_enum {
+  pending
+  under_review
+  resolved
+  closed
+}
+
+enum support_insurance_issuetype_enum {
+  insurance_not_recognized
+  policy_details_incorrect
+  claim_status_delay
+  coverage_rejected
+  upload_document_error
+  wrong_billing
+}
+
+enum support_insurance_serviceaffected_enum {
+  consultation
+  lab
+  pharmacy
+}
+
+enum support_insurance_status_enum {
+  pending
+  in_progress
+  resolved
+  closed
+}
+
+enum support_report_issuetype_enum {
+  unprofessional_behavior
+  harassment_verbal_abuse
+  medical_negligence
+  fraud_fake_profile
+  wrong_diagnosis
+  appointment_issues
+  prescription_error
+  privacy_violation
+  wrong_lab_result
+  lab_misconduct
+  pharmacy_misconduct
+}
+
+enum support_report_providertype_enum {
+  healthcare_provider
+  lab
+  pharmacy
+}
+
+enum support_report_status_enum {
+  pending
+  under_review
+  resolved
+  closed
+}
+
+enum transaction_splits_recipienttype_enum {
+  doctor_wallet
+  company_wallet
+}
+
+enum transaction_splits_status_enum {
+  pending
+  released
+  refunded
+  held
+}
+
+enum transaction_splits_type_enum {
+  appointment_fee
+  service_fee
+  vat
+}
+
+enum transactions_billingcycle_enum {
+  one_time
+  monthly
+  quarterly
+  yearly
+}
+
+enum transactions_fundsstatus_enum {
+  pending_appointment
+  pending_dispute
+  releasable
+  released
+}
+
+enum transactions_paymentprovider_enum {
+  flutterwave
+  paystack
+}
+
+enum transactions_plantype_enum {
+  free
+  basic
+  medium
+  premium
+  one_time
+}
+
+enum transactions_refundstatus_enum {
+  none
+  pending
+  partial
+  full
+  failed
+}
+
+enum transactions_servicetype_enum {
+  appointment
+  subscription
+  lab_test
+  pharmacy
+  document_access
+  verification_fee
+  chat_premium
+  other
+}
+
+enum transactions_status_enum {
+  pending
+  processing
+  completed
+  failed
+  disputed
+  refunded
+  cancelled
+}
+
+enum user_payment_methods_lastsuccessfulprovider_enum {
+  flutterwave
+  paystack
+}
+
+enum user_referrals_status_enum {
+  pending
+  verified
+  invalid
+}
+
+enum verification_api_logs_provider_enum {
+  mdcn_nigeria
+  hpcsa_south_africa
+  kmpdc_kenya
+  mdc_ghana
+  ecfmg
+  surepass
+  idfy
+  custom
+}
+
+enum verification_documents_documenttype_enum {
+  medical_license
+  medical_degree
+  board_certification
+  postgraduate_certificate
+  government_id
+  proof_of_practice
+  good_standing_certificate
+  other
+}
+
+enum verification_documents_status_enum {
+  uploaded
+  processing
+  verified
+  rejected
+  expired
+}
+
+enum verification_requests_method_enum {
+  automated
+  manual
+  hybrid
+}
+
+enum verification_requests_status_enum {
+  pending
+  in_progress
+  pending_documents
+  api_verification
+  manual_review
+  approved
+  rejected
+  expired
+}
+
+enum verification_requests_tier_enum {
+  tier_1
+  tier_2
+  tier_3
+}
+
+enum verification_review_queue_priority_enum {
+  low
+  normal
+  high
+  urgent
+}
+
+enum wallet_withdrawals_status_enum {
+  pending
+  processing
+  completed
+  failed
+  cancelled
+  pending_otp
+}
