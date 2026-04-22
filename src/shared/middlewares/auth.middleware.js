@@ -38,6 +38,7 @@ const authenticate = asyncHandler(async (req, res, next) => {
       department: true,
       mustChangePassword: true,
       passwordChangedAt: true, // FIX #2: needed for post-password-change token check
+      mainAppUserId: true, //
     },
   });
 

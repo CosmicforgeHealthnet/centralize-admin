@@ -10,13 +10,52 @@
 │   │   │   └── migration.sql
 │   │   ├── 20260405081841_add_password_changed_at
 │   │   │   └── migration.sql
+│   │   ├── 20260417064318_add_main_app_user_id
+│   │   │   └── migration.sql
+│   │   ├── 20260422064812_add_profile_models
+│   │   │   └── migration.sql
+│   │   ├── 20260422102033_add_cloudinary_id
+│   │   │   └── migration.sql
+│   │   ├── 20260422110331_simplify_reports_and_documents
+│   │   │   └── migration.sql
+│   │   ├── 20260422111257_add_avatar_fields
+│   │   │   └── migration.sql
+│   │   ├── 20260422135412_add_employment_fields_and_report_note
+│   │   │   └── migration.sql
+│   │   ├── 20260422150751_add_work_section_models
+│   │   │   └── migration.sql
 │   │   └── migration_lock.toml
 │   ├── seeds
 │   │   └── admin.seed.js
+│   ├── main.schema.prisma
 │   └── schema.prisma
 ├── scripts
 │   └── testMainBackend.js
 ├── src
+│   ├── generated
+│   │   └── main-client
+│   │       ├── runtime
+│   │       │   ├── client.d.ts
+│   │       │   ├── client.js
+│   │       │   ├── index-browser.d.ts
+│   │       │   ├── index-browser.js
+│   │       │   └── wasm-compiler-edge.js
+│   │       ├── client.d.ts
+│   │       ├── client.js
+│   │       ├── default.d.ts
+│   │       ├── default.js
+│   │       ├── edge.d.ts
+│   │       ├── edge.js
+│   │       ├── index.d.ts
+│   │       ├── index.js
+│   │       ├── index-browser.js
+│   │       ├── package.json
+│   │       ├── query_compiler_fast_bg.js
+│   │       ├── query_compiler_fast_bg.wasm
+│   │       ├── query_compiler_fast_bg.wasm-base64.js
+│   │       ├── schema.prisma
+│   │       ├── wasm-edge-light-loader.mjs
+│   │       └── wasm-worker-loader.mjs
 │   ├── modules
 │   │   ├── admin-users
 │   │   │   ├── admin-users.controller.js
@@ -35,26 +74,28 @@
 │   │   │   ├── auth.service.js
 │   │   │   ├── auth.validator.js
 │   │   │   └── index.js
-│   │   ├── doctors
-│   │   │   ├── doctors.controller.js
-│   │   │   ├── doctors.routes.js
-│   │   │   ├── doctors.service.js
+│   │   ├── dashboard
+│   │   │   ├── dashboard.controller.js
+│   │   │   ├── dashboard.routes.js
+│   │   │   ├── dashboard.service.js
 │   │   │   └── index.js
-│   │   ├── payments
+│   │   ├── profile
 │   │   │   ├── index.js
-│   │   │   ├── payments.controller.js
-│   │   │   ├── payments.routes.js
-│   │   │   └── payments.service.js
-│   │   └── tickets
+│   │   │   ├── profile.controller.js
+│   │   │   ├── profile.routes.js
+│   │   │   ├── profile.service.js
+│   │   │   └── profile.validator.js
+│   │   └── support
 │   │       ├── index.js
-│   │       ├── tickets.controller.js
-│   │       ├── tickets.routes.js
-│   │       └── tickets.service.js
+│   │       ├── support.controller.js
+│   │       ├── support.routes.js
+│   │       └── support.service.js
 │   ├── shared
 │   │   ├── config
+│   │   │   ├── cloudinary.js
 │   │   │   ├── database.js
 │   │   │   ├── google.strategy.js
-│   │   │   └── mainApi.js
+│   │   │   └── mainDatabase.js
 │   │   ├── middlewares
 │   │   │   ├── audit.middleware.js
 │   │   │   ├── auth.middleware.js
@@ -70,6 +111,9 @@
 │   │       ├── jwt.util.js
 │   │       ├── logger.js
 │   │       └── password.util.js
+│   ├── websocket
+│   │   ├── index.js
+│   │   └── supportChat.socket.js
 │   ├── app.js
 │   └── server.js
 ├── .gitignore
@@ -78,4 +122,5 @@
 ├── nodemon.json
 ├── package.json
 ├── prisma.config.ts
+├── prisma.main.config.ts
 └── README.md

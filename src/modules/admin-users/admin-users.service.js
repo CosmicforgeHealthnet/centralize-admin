@@ -1,4 +1,5 @@
 const { prisma } = require("../../shared/config/database");
+const { mainPrisma } = require("../../shared/config/mainDatabase");
 const { hashPassword } = require("../../shared/utils/password.util");
 const { createAuditLog } = require("../../shared/middlewares/audit.middleware");
 const ApiError = require("../../shared/utils/ApiError");
@@ -19,6 +20,7 @@ const SAFE_USER_SELECT = {
   createdAt: true,
   updatedAt: true,
   createdBy: true,
+  mainAppUserId: true,
 };
 
 class AdminUsersService {
@@ -59,7 +61,7 @@ class AdminUsersService {
   }
 
   async createUser({ data, createdBy, req }) {
-    // Check email not already taken
+    // Check email not already taken in admin DB
     const existing = await prisma.adminUser.findUnique({
       where: { email: data.email },
     });
@@ -81,13 +83,40 @@ class AdminUsersService {
 
     const hashed = await hashPassword(data.password);
 
+    // 👇 If CUSTOMER_CARE, create a matching user in the main app DB
+    let mainAppUserId = null;
+    if (data.department === "CUSTOMER_CARE") {
+      // Check if email already exists in main app DB
+      const existingMainUser = await mainPrisma.users.findUnique({
+        where: { email: data.email },
+      });
+
+      if (existingMainUser) {
+        // Reuse existing main app user
+        mainAppUserId = existingMainUser.id;
+      } else {
+        // Create new user in main app DB
+        const mainAppUser = await mainPrisma.users.create({
+          data: {
+            fullName: data.name,
+            email: data.email,
+            role: "admin",
+            status: "active",
+          },
+        });
+        mainAppUserId = mainAppUser.id;
+      }
+    }
+
+    // Create admin user in your own DB
     const user = await prisma.adminUser.create({
       data: {
         ...data,
         password: hashed,
-        mustChangePassword: true, // Force password change on first login
+        mustChangePassword: true,
         status: "PENDING",
         createdBy,
+        mainAppUserId, // 👈 save the link
       },
       select: SAFE_USER_SELECT,
     });
@@ -97,7 +126,11 @@ class AdminUsersService {
       action: "USER_CREATED",
       targetId: user.id,
       targetType: "admin_user",
-      metadata: { email: user.email, tier: user.tier },
+      metadata: {
+        email: user.email,
+        tier: user.tier,
+        department: user.department,
+      },
       req,
     });
 

@@ -21,6 +21,9 @@ const logger = require("./shared/utils/logger");
 const authRoutes = require("./modules/auth").router;
 const adminUsersRoutes = require("./modules/admin-users").router;
 const dashboardRoutes = require("./modules/dashboard").router;
+const supportRoutes = require("./modules/support").router;
+const profileRouter  = require("./modules/profile").router;
+
 
 const app = express();
 
@@ -121,6 +124,8 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/admin-users", adminUsersRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/support", supportRoutes);
+app.use("/api/profile", profileRouter);
 
 // ─────────────────────────────────────────
 // ERROR HANDLING  (must be last)

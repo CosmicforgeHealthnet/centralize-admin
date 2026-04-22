@@ -3,26 +3,45 @@ const { mainPrisma } = require("../../shared/config/mainDatabase");
 class DashboardService {
   async getOverview() {
     const now = new Date();
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - 7);
+
+    const startOfThisWeek = new Date(now);
+    startOfThisWeek.setDate(now.getDate() - 7);
+
+    const startOfLastWeek = new Date(startOfThisWeek);
+    startOfLastWeek.setDate(startOfThisWeek.getDate() - 7);
+
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfLastWeek = new Date(startOfWeek);
-    startOfLastWeek.setDate(startOfWeek.getDate() - 7);
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
     const [
+      // ── Total users ───────────────────────────────────
       totalUsers,
-      activeUsersThisWeek,
-      activeDoctors,
-      activePatients,
-      totalUsersLastWeek,
-      activeUsersLastWeek,
-      activeDoctorsLastWeek,
-      activePatientsLastWeek,
+      newUsersThisWeek, // signed up in the last 7 days
+      newUsersLastWeek, // signed up the 7 days before that
+
+      // ── Active users ──────────────────────────────────
+      activeUsersThisWeek, // logged in last 7 days
+      activeUsersLastWeek, // logged in the 7 days before that
+
+      // ── Doctors ───────────────────────────────────────
+      activeDoctors, // all currently active doctors (display value)
+      newDoctorsThisWeek, // doctors who joined this week (for change %)
+      newDoctorsLastWeek, // doctors who joined last week (for change %)
+
+      // ── Patients ─────────────────────────────────────
+      activePatients, // all currently active patients (display value)
+      newPatientsThisWeek, // patients who joined this week (for change %)
+      newPatientsLastWeek, // patients who joined last week (for change %)
+
+      // ── Revenue ───────────────────────────────────────
       totalRevenue,
       lastMonthRevenue,
+
+      // ── Memberships ───────────────────────────────────
       doctorMemberships,
       patientMemberships,
+
+      // ── User activity ─────────────────────────────────
       newDoctorsThisMonth,
       newPatientsThisMonth,
       appointmentsThisMonth,
@@ -30,50 +49,86 @@ class DashboardService {
       newPatientsLastMonth,
       appointmentsLastMonth,
     ] = await Promise.all([
+      // Total users (all time)
       mainPrisma.users.count(),
+
+      // New users this week
       mainPrisma.users.count({
-        where: { lastLoginAt: { gte: startOfWeek } },
+        where: { createdAt: { gte: startOfThisWeek } },
+      }),
+      // New users last week
+      mainPrisma.users.count({
+        where: { createdAt: { gte: startOfLastWeek, lt: startOfThisWeek } },
       }),
 
+      // Active users this week (logged in)
+      mainPrisma.users.count({
+        where: { lastLoginAt: { gte: startOfThisWeek } },
+      }),
+      // Active users last week (logged in)
+      mainPrisma.users.count({
+        where: { lastLoginAt: { gte: startOfLastWeek, lt: startOfThisWeek } },
+      }),
+
+      // All currently active doctors (display value)
       mainPrisma.users.count({
         where: { role: "doctor", status: "doctor_active" },
       }),
-      mainPrisma.users.count({ where: { role: "patient", status: "active" } }),
-      mainPrisma.users.count({ where: { createdAt: { lt: startOfWeek } } }),
+      // New doctors who joined this week (for change %)
       mainPrisma.users.count({
-        where: { lastLoginAt: { gte: startOfLastWeek, lt: startOfWeek } },
+        where: { role: "doctor", createdAt: { gte: startOfThisWeek } },
       }),
+      // New doctors who joined last week (for change %)
       mainPrisma.users.count({
         where: {
           role: "doctor",
-          status: "doctor_active",
-          updatedAt: { gte: startOfLastWeek, lt: startOfWeek },
+          createdAt: { gte: startOfLastWeek, lt: startOfThisWeek },
         },
       }),
+
+      // All currently active patients (display value)
+      mainPrisma.users.count({
+        where: { role: "patient", status: "active" },
+      }),
+      // New patients who joined this week (for change %)
+      mainPrisma.users.count({
+        where: { role: "patient", createdAt: { gte: startOfThisWeek } },
+      }),
+      // New patients who joined last week (for change %)
       mainPrisma.users.count({
         where: {
           role: "patient",
-          status: "active",
-          updatedAt: { gte: startOfLastWeek, lt: startOfWeek },
+          createdAt: { gte: startOfLastWeek, lt: startOfThisWeek },
+        },
+      }),
+
+      // Revenue this month
+      mainPrisma.transactions.aggregate({
+        _sum: { originalAmount: true },
+        where: {
+          status: "completed",
+          createdAt: { gte: startOfMonth },
+          originalCurrency: "NGN",
         },
       }),
       mainPrisma.transactions.aggregate({
-        _sum: { usdAmount: true },
-        where: { status: "completed", createdAt: { gte: startOfMonth } },
-      }),
-      mainPrisma.transactions.aggregate({
-        _sum: { usdAmount: true },
+        _sum: { originalAmount: true },
         where: {
           status: "completed",
           createdAt: { gte: startOfLastMonth, lt: startOfMonth },
+          originalCurrency: "NGN",
         },
       }),
+
+      // Memberships
       mainPrisma.subscriptions.count({
         where: { planType: "doctor", status: "active" },
       }),
       mainPrisma.subscriptions.count({
         where: { planType: "patient", status: "active" },
       }),
+
+      // User activity — this month vs last month
       mainPrisma.users.count({
         where: { role: "doctor", createdAt: { gte: startOfMonth } },
       }),
@@ -106,15 +161,16 @@ class DashboardService {
       return { change: Math.abs(diff).toFixed(1), positive: diff >= 0 };
     };
 
-    const currentRevenue = Number(totalRevenue._sum.usdAmount || 0);
-    const previousRevenue = Number(lastMonthRevenue._sum.usdAmount || 0);
+    const currentRevenue = Number(totalRevenue._sum.originalAmount || 0);
+    const previousRevenue = Number(lastMonthRevenue._sum.originalAmount || 0);
     const totalMemberships = doctorMemberships + patientMemberships;
 
     return {
       statCards: {
         totalUsers: {
           value: totalUsers,
-          ...calcChange(totalUsers, totalUsersLastWeek),
+          // change = total users now vs total users last week
+          ...calcChange(totalUsers, totalUsers - newUsersThisWeek),
           period: "from last week",
         },
         activeUsersThisWeek: {
@@ -129,12 +185,14 @@ class DashboardService {
         },
         activeDoctors: {
           value: activeDoctors,
-          ...calcChange(activeDoctors, activeDoctorsLastWeek),
+          // change = total active doctors now vs total active doctors last week
+          ...calcChange(activeDoctors, activeDoctors - newDoctorsThisWeek),
           period: "from last week",
         },
         activePatients: {
           value: activePatients,
-          ...calcChange(activePatients, activePatientsLastWeek),
+          // change = total active patients now vs total active patients last week
+          ...calcChange(activePatients, activePatients - newPatientsThisWeek),
           period: "from last week",
         },
       },
@@ -181,11 +239,11 @@ class DashboardService {
         status: "completed",
         createdAt: { gte: twelveMonthsAgo },
         serviceType: { in: ["appointment", "subscription"] },
+        originalCurrency: "NGN", // ✅ NGN only
       },
-      select: { serviceType: true, usdAmount: true, createdAt: true },
+      select: { serviceType: true, originalAmount: true, createdAt: true }, // ✅ originalAmount
     });
 
-    // Build month map
     const monthMap = {};
     for (let i = 11; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -197,15 +255,14 @@ class DashboardService {
       };
     }
 
-    // Aggregate in memory — much faster than 24 DB round trips
     for (const tx of transactions) {
       const d = new Date(tx.createdAt);
       const key = `${d.getFullYear()}-${d.getMonth()}`;
       if (!monthMap[key]) continue;
       if (tx.serviceType === "appointment") {
-        monthMap[key].Appointments += Number(tx.usdAmount || 0);
+        monthMap[key].Appointments += Number(tx.originalAmount || 0); // ✅
       } else if (tx.serviceType === "subscription") {
-        monthMap[key].Membership += Number(tx.usdAmount || 0);
+        monthMap[key].Membership += Number(tx.originalAmount || 0); // ✅
       }
     }
 
@@ -220,7 +277,6 @@ class DashboardService {
     const now = new Date();
     const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
 
-    // 4 queries instead of 48
     const [appointments, labOrders, prescriptions, aiSessions] =
       await Promise.all([
         mainPrisma.appointments.findMany({
@@ -241,7 +297,6 @@ class DashboardService {
         }),
       ]);
 
-    // Build month map
     const monthMap = {};
     for (let i = 11; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -255,7 +310,6 @@ class DashboardService {
       };
     }
 
-    // Aggregate in memory
     const bucket = (records, field) => {
       for (const r of records) {
         const d = new Date(r.createdAt);

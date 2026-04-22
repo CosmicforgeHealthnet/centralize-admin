@@ -1,6 +1,8 @@
+const http = require("http"); // ← ADD
 const app = require("./app");
 const { connectDatabase } = require("./shared/config/database");
 const { connectMainDatabase } = require("./shared/config/mainDatabase");
+const { initializeWebSocket } = require("./websocket"); // ← ADD
 const logger = require("./shared/utils/logger");
 
 const PORT = process.env.PORT || 4000;
@@ -10,12 +12,16 @@ const startServer = async () => {
     await connectDatabase();
     await connectMainDatabase();
 
-    const server = app.listen(PORT, () => {
+    const server = http.createServer(app); // ← CHANGE (was app.listen)
+    initializeWebSocket(server); // ← ADD
+
+    server.listen(PORT, () => {
       logger.info(
         `Admin server running on port ${PORT} [${process.env.NODE_ENV}]`,
       );
     });
 
+    // everything below stays exactly the same...
     const shutdown = async (signal) => {
       logger.info(`${signal} received — shutting down gracefully`);
       server.close(async () => {

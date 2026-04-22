@@ -6,6 +6,10 @@ datasource db {
   provider = "postgresql"
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────────────────────────
+
 enum AdminTier {
   SUPER
   EXECUTIVE
@@ -49,7 +53,27 @@ enum AuditAction {
   PAYMENT_VIEWED
   APPOINTMENT_VIEWED
   TOKEN_REFRESHED
+  PROFILE_UPDATED
+  DOCUMENT_UPLOADED
+  DOCUMENT_DELETED
+  AVATAR_UPDATED
 }
+
+enum ProjectStatus {
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+}
+
+enum TaskStatus {
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ADMIN USER
+// ─────────────────────────────────────────────────────────────────────────────
 
 model AdminUser {
   id                   String      @id @default(uuid())
@@ -62,22 +86,77 @@ model AdminUser {
   status               AdminStatus @default(PENDING)
   isTeamLead           Boolean     @default(false)
   failedLoginAttempts  Int         @default(0)
-  googleId     String?  @unique  
+  googleId             String?     @unique
+  mainAppUserId        String?     @unique
   lockedUntil          DateTime?
   lastLoginAt          DateTime?
   lastLoginIp          String?
   mustChangePassword   Boolean     @default(true)
   passwordResetToken   String?     @unique
   passwordResetExpires DateTime?
-  refreshTokens        RefreshToken[]
-  auditLogs            AuditLog[]
+  passwordChangedAt    DateTime?
   createdAt            DateTime    @default(now())
   updatedAt            DateTime    @updatedAt
   createdBy            String?
-  passwordChangedAt    DateTime?
+
+  // ── Avatar ─────────────────────────────────────────────────────
+  avatarUrl            String?
+  avatarCloudinaryId   String?
+
+  // ── Personal Info (self-editable) ──────────────────────────────
+  preferredName        String?
+  birthday             DateTime?
+  nationality          String?
+  gender               String?
+  maritalStatus        String?
+
+  // ── Contact Info (self-editable) ───────────────────────────────
+  workPhone            String?
+  homePhone            String?
+  personalPhone        String?
+  fax                  String?
+  address              String?
+  state                String?
+  country              String?
+
+  // ── Emergency Contact (self-editable) ──────────────────────────
+  emergencyName        String?
+  emergencyPhone       String?
+  emergencyEmail       String?
+  emergencyRelation    String?
+
+  // ── Employment Details — set by SUPER/EXECUTIVE ────────────────
+  employmentType       String?
+  employmentCategory   String?
+  location             String?
+
+  // ── Sensitive — only SUPER/EXECUTIVE can write these ───────────
+  salary               Decimal?  @db.Decimal(15, 2)
+  bonus                Decimal?  @db.Decimal(15, 2)
+  equity               Decimal?  @db.Decimal(15, 2)
+
+  // ── Relations ──────────────────────────────────────────────────
+  refreshTokens        RefreshToken[]
+  auditLogs            AuditLog[]
+  socialLinks          AdminSocialLink[]
+  educations           AdminEducation[]
+  documents            AdminDocument[]
+  performanceNotes     AdminPerformanceNote[]
+  reports              AdminReport[]
+
+  // ── Work Section Relations ──────────────────────────────────────
+  teamMemberships      TeamMember[]
+  projectMemberships   ProjectMember[]
+  assignedTasks        Task[]           @relation("TaskAssignee")
+  createdTasks         Task[]           @relation("TaskAssigner")
+  notifications        Notification[]
 
   @@map("admin_users")
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AUTH
+// ─────────────────────────────────────────────────────────────────────────────
 
 model RefreshToken {
   id          String    @id @default(uuid())
@@ -93,6 +172,10 @@ model RefreshToken {
   @@map("admin_refresh_tokens")
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// AUDIT
+// ─────────────────────────────────────────────────────────────────────────────
+
 model AuditLog {
   id          String      @id @default(uuid())
   adminUserId String?
@@ -106,4 +189,186 @@ model AuditLog {
   createdAt   DateTime    @default(now())
 
   @@map("admin_audit_logs")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PROFILE — Social Links, Education, Documents, Performance Notes, Reports
+// ─────────────────────────────────────────────────────────────────────────────
+
+model AdminSocialLink {
+  id          String    @id @default(uuid())
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  platform    String
+  username    String
+  createdAt   DateTime  @default(now())
+
+  @@map("admin_social_links")
+}
+
+model AdminEducation {
+  id          String    @id @default(uuid())
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  degreeTitle String
+  institution String
+  from        String?
+  to          String?
+  createdAt   DateTime  @default(now())
+
+  @@map("admin_educations")
+}
+
+// Uploaded by SUPER/EXECUTIVE on behalf of the employee. Employee is read-only.
+model AdminDocument {
+  id           String    @id @default(uuid())
+  adminUserId  String
+  adminUser    AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  name         String
+  type         String    // "pdf", "docx", "jpg" etc.
+  url          String    // Cloudinary secure URL
+  cloudinaryId String?   // Cloudinary public_id — needed to delete the file
+  uploadedBy   String    // id of the SUPER/EXECUTIVE who uploaded it
+  uploadedAt   DateTime  @default(now())
+
+  @@map("admin_documents")
+}
+
+// Written BY a SUPER/EXECUTIVE ABOUT an employee. Employee is read-only.
+model AdminPerformanceNote {
+  id           String    @id @default(uuid())
+  adminUserId  String
+  adminUser    AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  title        String
+  type         String    @default("docx")
+  url          String    // Cloudinary secure URL
+  cloudinaryId String?
+  createdBy    String    // id of the SUPER/EXECUTIVE who wrote it
+  date         DateTime  @default(now())
+
+  @@map("admin_performance_notes")
+}
+
+// Written BY the employee themselves (leave resumption, milestone, etc.)
+// Text-based — no file upload.
+model AdminReport {
+  id          String    @id @default(uuid())
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  title       String
+  type        String    @default("docx")
+  body        String?
+  note        String?
+  createdBy   String    // id of the employee (same as adminUserId)
+  date        DateTime  @default(now())
+
+  @@map("admin_reports")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WORK SECTION — Teams
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Team {
+  id          String       @id @default(uuid())
+  title       String
+  department  Department?
+  createdBy   String       // id of the SUPER/EXECUTIVE who created the team
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  members     TeamMember[]
+  projects    Project[]
+
+  @@map("teams")
+}
+
+// Join table: AdminUser ↔ Team
+model TeamMember {
+  id          String    @id @default(uuid())
+  teamId      String
+  team        Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  isTeamLead  Boolean   @default(false)
+  joinedAt    DateTime  @default(now())
+
+  @@unique([teamId, adminUserId])
+  @@map("team_members")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WORK SECTION — Projects
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Project {
+  id           String        @id @default(uuid())
+  title        String
+  description  String?
+  assignedDate DateTime      @default(now())
+  dueDate      DateTime
+  teamId       String
+  team         Team          @relation(fields: [teamId], references: [id])
+  status       ProjectStatus @default(IN_PROGRESS)
+  createdBy    String        // id of the admin who created the project
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  assignees    ProjectMember[]
+  tasks        Task[]
+
+  @@map("projects")
+}
+
+// Join table: AdminUser ↔ Project (individual assignees beyond the whole team)
+model ProjectMember {
+  id          String    @id @default(uuid())
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  assignedAt  DateTime  @default(now())
+
+  @@unique([projectId, adminUserId])
+  @@map("project_members")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WORK SECTION — Tasks
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Task {
+  id           String     @id @default(uuid())
+  title        String
+  description  String?
+  assignedDate DateTime   @default(now())
+  dueDate      DateTime
+  projectId    String?    // optional — tasks can exist outside a project
+  project      Project?   @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  assignerId   String
+  assigner     AdminUser  @relation("TaskAssigner", fields: [assignerId], references: [id])
+  assigneeId   String
+  assignee     AdminUser  @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  status       TaskStatus @default(IN_PROGRESS)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@map("tasks")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Notification {
+  id          String    @id @default(uuid())
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  icon        String    // "alert" | "xcircle" | "settings" | "check" | "bell"
+  title       String
+  subtitle    String?
+  isRead      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  @@map("notifications")
 }
