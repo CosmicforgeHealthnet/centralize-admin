@@ -1,14 +1,11 @@
 const { prisma } = require("../../shared/config/database");
 const { createAuditLog } = require("../../shared/middlewares/audit.middleware");
 const ApiError = require("../../shared/utils/ApiError");
+const notificationService = require("../notifications/notifications.service");
 
-// Tiers that can see their own sensitive fields (salary, bonus, equity)
 const SENSITIVE_TIERS = ["SUPER", "EXECUTIVE"];
 
 class ProfileService {
-  // ─────────────────────────────────────────────────────────────────────────
-  // GET /profile/me
-  // ─────────────────────────────────────────────────────────────────────────
   async getMyProfile(adminUserId) {
     const user = await prisma.adminUser.findUnique({
       where: { id: adminUserId },
@@ -25,15 +22,11 @@ class ProfileService {
         createdAt: true,
         mainAppUserId: true,
         avatarUrl: true,
-
-        // Personal Info
         preferredName: true,
         birthday: true,
         nationality: true,
         gender: true,
         maritalStatus: true,
-
-        // Contact Info
         workPhone: true,
         homePhone: true,
         personalPhone: true,
@@ -41,24 +34,16 @@ class ProfileService {
         address: true,
         state: true,
         country: true,
-
-        // Emergency Contact
         emergencyName: true,
         emergencyPhone: true,
         emergencyEmail: true,
         emergencyRelation: true,
-
-        // Employment Details
         employmentType: true,
         employmentCategory: true,
         location: true,
-
-        // Sensitive
         salary: true,
         bonus: true,
         equity: true,
-
-        // Relations
         socialLinks: {
           select: { id: true, platform: true, username: true },
         },
@@ -72,17 +57,14 @@ class ProfileService {
           },
           orderBy: { createdAt: "asc" },
         },
-        // Documents are read-only for employees — uploaded by SUPER/EXECUTIVE
         documents: {
           select: { id: true, name: true, type: true, uploadedAt: true },
           orderBy: { uploadedAt: "desc" },
         },
-        // Performance notes are read-only — written by SUPER/EXECUTIVE
         performanceNotes: {
-          select: { id: true, title: true, type: true, date: true, url: true }, // 👈 add url
+          select: { id: true, title: true, type: true, date: true, url: true },
           orderBy: { date: "desc" },
         },
-        // Reports are created by the employee themselves
         reports: {
           select: {
             id: true,
@@ -91,6 +73,7 @@ class ProfileService {
             date: true,
             body: true,
             note: true,
+            url: true,
           },
           orderBy: { date: "desc" },
         },
@@ -99,19 +82,9 @@ class ProfileService {
 
     if (!user) throw new ApiError(404, "User not found");
 
-    // Hide salary/bonus/equity from non-privileged users
-    // if (!SENSITIVE_TIERS.includes(user.tier)) {
-    //   delete user.salary;
-    //   delete user.bonus;
-    //   delete user.equity;
-    // }
-
     return user;
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // PATCH /profile/me/personal
-  // ─────────────────────────────────────────────────────────────────────────
   async updatePersonalInfo({ adminUserId, data, req }) {
     const allowed = [
       "preferredName",
@@ -122,7 +95,6 @@ class ProfileService {
     ];
     const update = this._pick(data, allowed);
 
-    // ✅ Convert "1999-04-17" → "1999-04-17T00:00:00.000Z"
     if (update.birthday) {
       update.birthday = new Date(update.birthday).toISOString();
     }
@@ -148,12 +120,16 @@ class ProfileService {
       req,
     });
 
+    await notificationService.createNotification({
+      adminUserId,
+      icon: "check",
+      title: "Profile Updated",
+      subtitle: "Your personal information has been updated successfully.",
+    });
+
     return updated;
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // PATCH /profile/me/contact
-  // ─────────────────────────────────────────────────────────────────────────
   async updateContactInfo({ adminUserId, data, req }) {
     const allowed = [
       "workPhone",
@@ -189,12 +165,16 @@ class ProfileService {
       req,
     });
 
+    await notificationService.createNotification({
+      adminUserId,
+      icon: "check",
+      title: "Contact Info Updated",
+      subtitle: "Your contact information has been updated successfully.",
+    });
+
     return updated;
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // PATCH /profile/me/emergency
-  // ─────────────────────────────────────────────────────────────────────────
   async updateEmergencyContact({ adminUserId, data, req }) {
     const allowed = [
       "emergencyName",
@@ -224,12 +204,16 @@ class ProfileService {
       req,
     });
 
+    await notificationService.createNotification({
+      adminUserId,
+      icon: "check",
+      title: "Emergency Contact Updated",
+      subtitle: "Your emergency contact information has been updated.",
+    });
+
     return updated;
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // PUT /profile/me/social
-  // ─────────────────────────────────────────────────────────────────────────
   async updateSocialLinks({ adminUserId, links, req }) {
     await prisma.adminSocialLink.deleteMany({ where: { adminUserId } });
 
@@ -252,15 +236,19 @@ class ProfileService {
       req,
     });
 
+    await notificationService.createNotification({
+      adminUserId,
+      icon: "check",
+      title: "Social Links Updated",
+      subtitle: "Your social media links have been updated.",
+    });
+
     return prisma.adminSocialLink.findMany({
       where: { adminUserId },
       select: { id: true, platform: true, username: true },
     });
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // PUT /profile/me/education
-  // ─────────────────────────────────────────────────────────────────────────
   async updateEducation({ adminUserId, entries, req }) {
     await prisma.adminEducation.deleteMany({ where: { adminUserId } });
 
@@ -285,6 +273,13 @@ class ProfileService {
       req,
     });
 
+    await notificationService.createNotification({
+      adminUserId,
+      icon: "check",
+      title: "Education Updated",
+      subtitle: "Your education history has been updated.",
+    });
+
     return prisma.adminEducation.findMany({
       where: { adminUserId },
       select: {
@@ -298,18 +293,59 @@ class ProfileService {
     });
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // POST /profile/me/reports
-  // Employee writes a text-based report (leave resumption, milestone, etc.)
-  // No file upload — body is plain text written in the app
-  // ─────────────────────────────────────────────────────────────────────────
-  async addReport({ adminUserId, title, body, note, req }) {
+  async addReport({ adminUserId, file, title, body, note, req }) {
+    let url = null;
+    let cloudinaryId = null;
+    let typeLabel = "text";
+
+    if (file && file.size > 0 && file.buffer) {
+      const cloudinary = require("../../shared/config/cloudinary");
+      const { Readable } = require("stream");
+
+      const allowedMimeTypes = [
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ];
+      if (!allowedMimeTypes.includes(file.mimetype)) {
+        throw new ApiError(400, "Only PDF and DOCX files are allowed");
+      }
+
+      typeLabel = file.mimetype === "application/pdf" ? "pdf" : "docx";
+
+      const cloudinaryResult = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: "admin-reports",
+            public_id: `report-${adminUserId}-${Date.now()}`,
+            resource_type: "raw",
+            use_filename: true,
+          },
+          (error, result) => {
+            if (error) return reject(new ApiError(500, "File upload failed"));
+            resolve(result);
+          },
+        );
+        const readable = new Readable();
+        readable.push(file.buffer);
+        readable.push(null);
+        readable.pipe(uploadStream);
+      });
+
+      url = cloudinaryResult.secure_url;
+      cloudinaryId = cloudinaryResult.public_id;
+    }
+
     const report = await prisma.adminReport.create({
       data: {
-        adminUserId,
+        adminUser: {
+          connect: { id: adminUserId },
+        },
         title,
         body: body || null,
         note: note || null,
+        type: typeLabel,
+        url,
+        cloudinaryId,
         createdBy: adminUserId,
       },
       select: {
@@ -319,6 +355,7 @@ class ProfileService {
         date: true,
         body: true,
         note: true,
+        url: true,
       },
     });
 
@@ -327,37 +364,42 @@ class ProfileService {
       action: "PROFILE_UPDATED",
       targetId: report.id,
       targetType: "admin_report",
-      metadata: { section: "reports", title },
+      metadata: {
+        section: "reports",
+        title,
+        hasFile: !!(file && file.size > 0),
+      },
       req,
+    });
+
+    await notificationService.createNotification({
+      adminUserId,
+      icon: "check",
+      title: "Report Added",
+      subtitle: `Your report "${title}" has been added successfully.`,
     });
 
     return report;
   }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // GET /profile/me/documents/:id/download
-  // Documents are uploaded by SUPER/EXECUTIVE — employee can only download
-  // ─────────────────────────────────────────────────────────────────────────
-  async getDocumentDownloadUrl({ adminUserId, documentId }) {
-    const doc = await prisma.adminDocument.findUnique({
-      where: { id: documentId },
+  async getReportDownloadUrl({ adminUserId, reportId }) {
+    const report = await prisma.adminReport.findUnique({
+      where: { id: reportId },
     });
 
-    if (!doc) throw new ApiError(404, "Document not found");
-    if (doc.adminUserId !== adminUserId) {
+    if (!report) throw new ApiError(404, "Report not found");
+    if (report.adminUserId !== adminUserId) {
       throw new ApiError(
         403,
-        "You do not have permission to access this document",
+        "You do not have permission to access this report",
       );
     }
+    if (!report.url) {
+      throw new ApiError(404, "No file attached to this report");
+    }
 
-    return { url: doc.url, name: doc.name, type: doc.type };
+    return { url: report.url, name: report.title, type: report.type };
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // GET /profile/me/reports/:id
-  // Returns a single report with full body
-  // ─────────────────────────────────────────────────────────────────────────
   async getReport({ adminUserId, reportId }) {
     const report = await prisma.adminReport.findUnique({
       where: { id: reportId },
@@ -374,26 +416,165 @@ class ProfileService {
     return report;
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // PATCH /profile/me/avatar
-  // Uploads new avatar to Cloudinary, deletes old one, saves URL to DB
-  // ─────────────────────────────────────────────────────────────────────────
+  async updateReport({ adminUserId, reportId, file, title, body, note, req }) {
+    const cloudinary = require("../../shared/config/cloudinary");
+    const { Readable } = require("stream");
+
+    const existing = await prisma.adminReport.findUnique({
+      where: { id: reportId },
+    });
+    if (!existing) throw new ApiError(404, "Report not found");
+    if (existing.adminUserId !== adminUserId)
+      throw new ApiError(403, "Forbidden");
+
+    let url = existing.url;
+    let cloudinaryId = existing.cloudinaryId;
+    let typeLabel = existing.type;
+
+    // Handle file upload only if a new file is provided
+    if (file && file.size > 0 && file.buffer) {
+      const allowedMimeTypes = [
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ];
+      if (!allowedMimeTypes.includes(file.mimetype)) {
+        throw new ApiError(400, "Only PDF and DOCX files are allowed");
+      }
+
+      // Delete old file from Cloudinary if it exists
+      if (existing.cloudinaryId) {
+        await cloudinary.uploader.destroy(existing.cloudinaryId, {
+          resource_type: "raw",
+        });
+      }
+
+      const cloudinaryResult = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: "admin-reports",
+            public_id: `report-${adminUserId}-${Date.now()}`,
+            resource_type: "raw",
+            use_filename: true,
+          },
+          (error, result) => {
+            if (error) return reject(new ApiError(500, "File upload failed"));
+            resolve(result);
+          },
+        );
+        const readable = new Readable();
+        readable.push(file.buffer);
+        readable.push(null);
+        readable.pipe(uploadStream);
+      });
+
+      url = cloudinaryResult.secure_url;
+      cloudinaryId = cloudinaryResult.public_id;
+      typeLabel = file.mimetype === "application/pdf" ? "pdf" : "docx";
+    }
+
+    const updated = await prisma.adminReport.update({
+      where: { id: reportId },
+      data: {
+        title: title ?? existing.title,
+        body: body !== undefined ? body : existing.body,
+        note: note !== undefined ? note : existing.note,
+        type: typeLabel,
+        url,
+        cloudinaryId,
+      },
+      select: {
+        id: true,
+        title: true,
+        type: true,
+        date: true,
+        body: true,
+        note: true,
+        url: true,
+      },
+    });
+
+    await createAuditLog({
+      adminUserId,
+      action: "PROFILE_UPDATED",
+      targetId: reportId,
+      targetType: "admin_report",
+      metadata: {
+        section: "reports",
+        action: "update",
+        hasFile: !!(file && file.size > 0),
+      },
+      req,
+    });
+
+    await notificationService.createNotification({
+      adminUserId,
+      icon: "check",
+      title: "Report Updated",
+      subtitle: `Your report "${updated.title}" has been updated.`,
+    });
+
+    return updated;
+  }
+
+  async deleteReport({ adminUserId, reportId, req }) {
+    const cloudinary = require("../../shared/config/cloudinary");
+
+    const existing = await prisma.adminReport.findUnique({
+      where: { id: reportId },
+    });
+    if (!existing) throw new ApiError(404, "Report not found");
+    if (existing.adminUserId !== adminUserId)
+      throw new ApiError(403, "Forbidden");
+
+    if (existing.cloudinaryId) {
+      await cloudinary.uploader.destroy(existing.cloudinaryId, {
+        resource_type: "raw",
+      });
+    }
+
+    await prisma.adminReport.delete({ where: { id: reportId } });
+
+    await createAuditLog({
+      adminUserId,
+      action: "PROFILE_UPDATED",
+      targetId: reportId,
+      targetType: "admin_report",
+      metadata: { section: "reports", action: "delete" },
+      req,
+    });
+
+    await notificationService.createNotification({
+      adminUserId,
+      icon: "alert",
+      title: "Report Deleted",
+      subtitle: `Your report "${existing.title}" has been deleted.`,
+    });
+  }
+
   async updateAvatar({ adminUserId, file, req }) {
     const cloudinary = require("../../shared/config/cloudinary");
     const { Readable } = require("stream");
 
-    // Get existing avatar so we can delete it from Cloudinary after upload
+    const MAX_FILE_SIZE = 1 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      throw new ApiError(400, `Avatar file size cannot exceed 1MB`);
+    }
+
+    const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      throw new ApiError(400, "Only JPEG, PNG, and WEBP images are allowed");
+    }
+
     const existing = await prisma.adminUser.findUnique({
       where: { id: adminUserId },
       select: { avatarCloudinaryId: true },
     });
 
-    // Upload new image to Cloudinary
     const cloudinaryResult = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder: `admin-avatars`,
-          public_id: `avatar-${adminUserId}`, // fixed ID so it auto-overwrites
+          public_id: `avatar-${adminUserId}`,
           overwrite: true,
           resource_type: "image",
           transformation: [
@@ -411,7 +592,6 @@ class ProfileService {
       readable.pipe(uploadStream);
     });
 
-    // Save new URL and cloudinaryId to DB
     const updated = await prisma.adminUser.update({
       where: { id: adminUserId },
       data: {
@@ -428,6 +608,13 @@ class ProfileService {
       targetType: "admin_user",
       metadata: { cloudinaryId: cloudinaryResult.public_id },
       req,
+    });
+
+    await notificationService.createNotification({
+      adminUserId,
+      icon: "check",
+      title: "Profile Picture Updated",
+      subtitle: "Your profile picture has been changed successfully.",
     });
 
     return updated;
@@ -464,17 +651,12 @@ class ProfileService {
       dueDate: project.dueDate,
       status: project.status,
       team: project.team.title,
-      teamLead: project.team.members[0]?.adminUser.name ?? "—",
+      teamLead: project.team.members[0]?.adminUser.name ?? "",
       members: project.assignees.length,
     }));
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // GET /profile/me/projects/:id
-  // Full project detail — description, members with avatars, team lead avatar
-  // ─────────────────────────────────────────────────────────────────────────
   async getMyProjectDetail({ adminUserId, projectId }) {
-    // Verify the user is actually a member of this project
     const membership = await prisma.projectMember.findUnique({
       where: {
         projectId_adminUserId: {
@@ -539,10 +721,6 @@ class ProfileService {
     };
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // GET /profile/me/tasks
-  // All tasks where the logged-in user is the assignee
-  // ─────────────────────────────────────────────────────────────────────────
   async getMyTasks(adminUserId) {
     const tasks = await prisma.task.findMany({
       where: { assigneeId: adminUserId },
@@ -569,10 +747,6 @@ class ProfileService {
     }));
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // GET /profile/me/tasks/:id
-  // Single task detail — includes description and assigner avatar
-  // ─────────────────────────────────────────────────────────────────────────
   async getMyTaskDetail({ adminUserId, taskId }) {
     const task = await prisma.task.findUnique({
       where: { id: taskId },
@@ -602,10 +776,7 @@ class ProfileService {
       },
     };
   }
-  // ─────────────────────────────────────────────────────────────────────────
-  // GET /profile/me/teams
-  // All teams the logged-in user is a member of, with member avatars
-  // ─────────────────────────────────────────────────────────────────────────
+
   async getMyTeams(adminUserId) {
     const memberships = await prisma.teamMember.findMany({
       where: { adminUserId },
@@ -634,9 +805,7 @@ class ProfileService {
       })),
     }));
   }
-  // ─────────────────────────────────────────────────────────────────────────
-  // Private — pick only allowed keys from object
-  // ─────────────────────────────────────────────────────────────────────────
+
   _pick(obj, allowedKeys) {
     return Object.fromEntries(
       Object.entries(obj).filter(([key]) => allowedKeys.includes(key)),

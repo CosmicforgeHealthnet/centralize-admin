@@ -22,8 +22,10 @@ const authRoutes = require("./modules/auth").router;
 const adminUsersRoutes = require("./modules/admin-users").router;
 const dashboardRoutes = require("./modules/dashboard").router;
 const supportRoutes = require("./modules/support").router;
-const profileRouter  = require("./modules/profile").router;
-
+const profileRouter = require("./modules/profile").router;
+const notificationRoutes = require("./modules/notifications").router;
+const auditRoutes = require("./modules/audit").router;
+const verificationRoutes = require("./modules/verification").router;
 
 const app = express();
 
@@ -126,6 +128,9 @@ app.use("/api/admin-users", adminUsersRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/support", supportRoutes);
 app.use("/api/profile", profileRouter);
+app.use("/api/notifications", notificationRoutes); 
+app.use("/api/audit", auditRoutes);
+app.use("/api/verification", verificationRoutes);
 
 // ─────────────────────────────────────────
 // ERROR HANDLING  (must be last)

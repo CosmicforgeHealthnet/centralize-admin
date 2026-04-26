@@ -24,9 +24,14 @@
 │   │   │   └── migration.sql
 │   │   ├── 20260422150751_add_work_section_models
 │   │   │   └── migration.sql
+│   │   ├── 20260424142703_add_report_file_fields
+│   │   │   └── migration.sql
+│   │   ├── 20260425091112_make_report_type_optional
+│   │   │   └── migration.sql
 │   │   └── migration_lock.toml
 │   ├── seeds
-│   │   └── admin.seed.js
+│   │   ├── admin.seed.js
+│   │   └── prod.seed.js
 │   ├── main.schema.prisma
 │   └── schema.prisma
 ├── scripts
@@ -68,6 +73,11 @@
 │   │   │   ├── appointments.routes.js
 │   │   │   ├── appointments.service.js
 │   │   │   └── index.js
+│   │   ├── audit
+│   │   │   ├── audit.controller.js
+│   │   │   ├── audit.routes.js
+│   │   │   ├── audit.service.js
+│   │   │   └── index.js
 │   │   ├── auth
 │   │   │   ├── auth.controller.js
 │   │   │   ├── auth.routes.js
@@ -79,6 +89,12 @@
 │   │   │   ├── dashboard.routes.js
 │   │   │   ├── dashboard.service.js
 │   │   │   └── index.js
+│   │   ├── notifications
+│   │   │   ├── index.js
+│   │   │   ├── notifications.controller.js
+│   │   │   ├── notifications.routes.js
+│   │   │   ├── notifications.service.js
+│   │   │   └── notifications.validator.js
 │   │   ├── profile
 │   │   │   ├── index.js
 │   │   │   ├── profile.controller.js

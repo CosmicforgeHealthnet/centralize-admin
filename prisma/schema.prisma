@@ -252,15 +252,17 @@ model AdminPerformanceNote {
 // Written BY the employee themselves (leave resumption, milestone, etc.)
 // Text-based — no file upload.
 model AdminReport {
-  id          String    @id @default(uuid())
-  adminUserId String
-  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
-  title       String
-  type        String    @default("docx")
-  body        String?
-  note        String?
-  createdBy   String    // id of the employee (same as adminUserId)
-  date        DateTime  @default(now())
+  id           String    @id @default(uuid())
+  adminUserId  String
+  adminUser    AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  title        String
+  type         String?   @default("text")
+  body         String?
+  note         String?
+  url          String?
+  cloudinaryId String?
+  createdBy    String
+  date         DateTime  @default(now())
 
   @@map("admin_reports")
 }

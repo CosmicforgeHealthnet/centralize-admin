@@ -10,16 +10,13 @@ const {
 const { createAuditLog } = require("../../shared/middlewares/audit.middleware");
 const ApiError = require("../../shared/utils/ApiError");
 const crypto = require("crypto");
+const notificationService = require("../notifications/notifications.service");
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_DURATION_MINUTES = 30;
 
-// FIX #6: Single source of truth for refresh token TTL
 const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-// FIX #3: Hash the refresh token before storing in DB.
-// The plaintext token is returned to the client; only the hash lives in DB.
-// A breach can't replay tokens without the originals.
 const hashToken = (token) =>
   crypto.createHash("sha256").update(token).digest("hex");
 
@@ -28,11 +25,9 @@ class AuthService {
     const user = await prisma.adminUser.findUnique({ where: { email } });
 
     if (!user) {
-      // Don't reveal whether email exists
       throw new ApiError(401, "Invalid email or password");
     }
 
-    // Check if account is locked
     if (user.status === "LOCKED") {
       if (user.lockedUntil && user.lockedUntil > new Date()) {
         const minutesLeft = Math.ceil((user.lockedUntil - new Date()) / 60000);
@@ -42,14 +37,11 @@ class AuthService {
         );
       }
 
-      // Lock expired — unlock account
       await prisma.adminUser.update({
         where: { id: user.id },
         data: { status: "ACTIVE", failedLoginAttempts: 0, lockedUntil: null },
       });
 
-      // FIX #2 (partial): Re-fetch user so all subsequent checks use fresh status,
-      // not the stale in-memory object that still has status: "LOCKED"
       const freshUser = await prisma.adminUser.findUnique({
         where: { id: user.id },
       });
@@ -72,7 +64,6 @@ class AuthService {
       );
     }
 
-    // Verify password
     const isPasswordValid = await comparePassword(password, user.password);
 
     if (!isPasswordValid) {
@@ -84,6 +75,13 @@ class AuthService {
         updateData.lockedUntil = new Date(
           Date.now() + LOCK_DURATION_MINUTES * 60 * 1000,
         );
+
+        await notificationService.createNotification({
+          adminUserId: user.id,
+          icon: "alert",
+          title: "Account Locked",
+          subtitle: `Your account has been locked due to ${MAX_LOGIN_ATTEMPTS} failed login attempts. Please try again in ${LOCK_DURATION_MINUTES} minutes.`,
+        });
       }
 
       await prisma.adminUser.update({
@@ -112,7 +110,6 @@ class AuthService {
       );
     }
 
-    // Reset failed attempts on successful login
     await prisma.adminUser.update({
       where: { id: user.id },
       data: {
@@ -123,7 +120,6 @@ class AuthService {
       },
     });
 
-    // Generate tokens
     const accessToken = generateAccessToken({
       sub: user.id,
       email: user.email,
@@ -134,12 +130,11 @@ class AuthService {
 
     const refreshToken = generateRefreshToken();
 
-    // FIX #3: Store hash, not the raw token
     await prisma.refreshToken.create({
       data: {
         token: hashToken(refreshToken),
         adminUserId: user.id,
-        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS), // FIX #6
+        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
         ipAddress,
         userAgent,
       },
@@ -152,9 +147,16 @@ class AuthService {
       req: { ip: ipAddress, headers: { "user-agent": userAgent } },
     });
 
+    await notificationService.createNotification({
+      adminUserId: user.id,
+      icon: "bell",
+      title: "New Login Detected",
+      subtitle: `You logged in from IP: ${ipAddress || "Unknown location"}`,
+    });
+
     return {
       accessToken,
-      refreshToken, // plaintext — controller puts this in HttpOnly cookie
+      refreshToken,
       mustChangePassword: user.mustChangePassword,
       user: {
         id: user.id,
@@ -168,7 +170,6 @@ class AuthService {
   }
 
   async refreshToken({ token, ipAddress, userAgent }) {
-    // FIX #3: Look up by hash
     const stored = await prisma.refreshToken.findUnique({
       where: { token: hashToken(token) },
       include: { adminUser: true },
@@ -182,7 +183,6 @@ class AuthService {
       throw new ApiError(403, "Account is not active");
     }
 
-    // Rotate — revoke old token
     await prisma.refreshToken.update({
       where: { id: stored.id },
       data: { isRevoked: true },
@@ -198,12 +198,11 @@ class AuthService {
 
     const newRefreshToken = generateRefreshToken();
 
-    // FIX #3: Store hash of new token too
     await prisma.refreshToken.create({
       data: {
         token: hashToken(newRefreshToken),
         adminUserId: stored.adminUser.id,
-        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS), // FIX #6
+        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
         ipAddress,
         userAgent,
       },
@@ -218,7 +217,6 @@ class AuthService {
     return { accessToken: newAccessToken, refreshToken: newRefreshToken };
   }
 
-  // auth.service.js
   async logout({ refreshToken, req }) {
     if (refreshToken) {
       const stored = await prisma.refreshToken.findUnique({
@@ -239,6 +237,7 @@ class AuthService {
       }
     }
   }
+
   async changePassword({ adminUserId, currentPassword, newPassword, req }) {
     const user = await prisma.adminUser.findUnique({
       where: { id: adminUserId },
@@ -257,8 +256,6 @@ class AuthService {
 
     const hashed = await hashPassword(newPassword);
 
-    // FIX #2: Store passwordChangedAt so auth middleware can invalidate
-    // access tokens that were issued before this moment
     await prisma.adminUser.update({
       where: { id: adminUserId },
       data: {
@@ -268,22 +265,28 @@ class AuthService {
       },
     });
 
-    // Revoke all refresh tokens on password change
     await prisma.refreshToken.updateMany({
       where: { adminUserId },
       data: { isRevoked: true },
     });
 
-    // FIX #9: Pass explicit ipAddress for consistent audit log IP capture
     await createAuditLog({
       adminUserId,
       action: "PASSWORD_CHANGED",
       metadata: { ipAddress: req.ip },
       req,
     });
+
+    await notificationService.createNotification({
+      adminUserId,
+      icon: "check",
+      title: "Password Changed",
+      subtitle:
+        "Your password was successfully changed. If this wasn't you, contact support immediately.",
+    });
   }
+
   async googleLogin({ user, ipAddress, userAgent }) {
-    // Reset failed attempts and update last login
     await prisma.adminUser.update({
       where: { id: user.id },
       data: {
@@ -294,7 +297,6 @@ class AuthService {
       },
     });
 
-    // Generate tokens
     const accessToken = generateAccessToken({
       sub: user.id,
       email: user.email,
@@ -322,10 +324,17 @@ class AuthService {
       req: { ip: ipAddress, headers: { "user-agent": userAgent } },
     });
 
+    await notificationService.createNotification({
+      adminUserId: user.id,
+      icon: "bell",
+      title: "Google Login",
+      subtitle: `You logged in using Google from IP: ${ipAddress || "Unknown location"}`,
+    });
+
     return {
       accessToken,
       refreshToken,
-      mustChangePassword: false, // Google login skips mustChangePassword
+      mustChangePassword: false,
       user: {
         id: user.id,
         name: user.name,

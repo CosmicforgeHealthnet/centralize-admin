@@ -13,8 +13,8 @@ const {
   addReportRules,
   documentIdParam,
   reportIdParam,
-  projectIdParam, // NEW
-  taskIdParam, // NEW
+  projectIdParam,
+  taskIdParam,
 } = require("./profile.validator");
 
 // Multer for avatar — images only, 5 MB max
@@ -27,6 +27,23 @@ const avatarUpload = multer({
       cb(null, true);
     } else {
       cb(new Error("Only JPG, PNG, and WEBP images are allowed for avatars"));
+    }
+  },
+});
+
+// Multer for reports — PDF and DOCX only, 10 MB max
+const reportUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = [
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only PDF and DOCX files are allowed for reports"));
     }
   },
 });
@@ -57,7 +74,7 @@ router.patch(
 router.put("/me/social", socialLinksRules, controller.updateSocialLinks);
 router.put("/me/education", educationRules, controller.updateEducation);
 
-// ── Documents (read-only for employees) ────────────────────────────────────
+// ── Documents ──────────────────────────────────────────────────────────────
 router.get(
   "/me/documents/:id/download",
   documentIdParam,
@@ -65,18 +82,35 @@ router.get(
 );
 
 // ── Reports ────────────────────────────────────────────────────────────────
-router.post("/me/reports", addReportRules, controller.addReport);
+router.post(
+  "/me/reports",
+  reportUpload.single("file"),
+  addReportRules,
+  controller.addReport,
+);
 router.get("/me/reports/:id", reportIdParam, controller.getReport);
+router.get(
+  "/me/reports/:id/download",
+  reportIdParam,
+  controller.getReportDownloadUrl,
+);
+router.patch(
+  "/me/reports/:id",
+  reportIdParam,
+  reportUpload.single("file"),
+  controller.updateReport,
+);
+router.delete("/me/reports/:id", reportIdParam, controller.deleteReport);
 
 // ── Projects ───────────────────────────────────────────────────────────────
 router.get("/me/projects", controller.getMyProjects);
-router.get("/me/projects/:id", projectIdParam, controller.getMyProjectDetail); // NEW
+router.get("/me/projects/:id", projectIdParam, controller.getMyProjectDetail);
 
 // ── Tasks ──────────────────────────────────────────────────────────────────
-router.get("/me/tasks", controller.getMyTasks); // NEW
-router.get("/me/tasks/:id", taskIdParam, controller.getMyTaskDetail); // NEW
+router.get("/me/tasks", controller.getMyTasks);
+router.get("/me/tasks/:id", taskIdParam, controller.getMyTaskDetail);
 
 // ── Teams ───────────────────────────────────────────────────────────────────
-router.get("/me/teams", controller.getMyTeams); // NEW
+router.get("/me/teams", controller.getMyTeams);
 
 module.exports = router;

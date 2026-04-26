@@ -107,6 +107,7 @@ const addReport = asyncHandler(async (req, res) => {
 
   const report = await profileService.addReport({
     adminUserId: req.adminUser.id,
+    file: req.file || null,
     title,
     body,
     note,
@@ -114,6 +115,40 @@ const addReport = asyncHandler(async (req, res) => {
   });
 
   return ApiResponse.success(res, 201, "Report created successfully", report);
+});
+
+// GET /profile/me/reports/:id/download
+const getReportDownloadUrl = asyncHandler(async (req, res) => {
+  const result = await profileService.getReportDownloadUrl({
+    adminUserId: req.adminUser.id,
+    reportId: req.params.id,
+  });
+  return ApiResponse.success(res, 200, "Download URL retrieved", result);
+});
+// PATCH /profile/me/reports/:id
+const updateReport = asyncHandler(async (req, res) => {
+  validate(req);
+  const { title, body, note } = req.body;
+  const updated = await profileService.updateReport({
+    adminUserId: req.adminUser.id,
+    reportId: req.params.id,
+    file: req.file || null,
+    title,
+    body,
+    note,
+    req,
+  });
+  return ApiResponse.success(res, 200, "Report updated successfully", updated);
+});
+
+// DELETE /profile/me/reports/:id
+const deleteReport = asyncHandler(async (req, res) => {
+  await profileService.deleteReport({
+    adminUserId: req.adminUser.id,
+    reportId: req.params.id,
+    req,
+  });
+  return ApiResponse.success(res, 200, "Report deleted successfully", null);
 });
 
 // GET /profile/me/reports/:id
@@ -175,6 +210,9 @@ module.exports = {
   getDocumentDownloadUrl,
   addReport,
   getReport,
+  getReportDownloadUrl,
+  updateReport,
+  deleteReport,
   getMyProjects,
   getMyProjectDetail,
   getMyTasks,
