@@ -58,7 +58,13 @@ class ProfileService {
           orderBy: { createdAt: "asc" },
         },
         documents: {
-          select: { id: true, name: true, type: true, uploadedAt: true },
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            uploadedAt: true,
+            url: true,
+          },
           orderBy: { uploadedAt: "desc" },
         },
         performanceNotes: {
@@ -293,94 +299,192 @@ class ProfileService {
     });
   }
 
-  async addReport({ adminUserId, file, title, body, note, req }) {
-    let url = null;
-    let cloudinaryId = null;
-    let typeLabel = "text";
+async addReport({ adminUserId, file, title, body, note, req }) {
+  let url = null;
+  let cloudinaryId = null;
+  let typeLabel = "text";
 
-    if (file && file.size > 0 && file.buffer) {
-      const cloudinary = require("../../shared/config/cloudinary");
-      const { Readable } = require("stream");
+  if (file && file.size > 0 && file.buffer) {
+    const cloudinary = require("../../shared/config/cloudinary");
+    const { Readable } = require("stream");
 
-      const allowedMimeTypes = [
-        "application/pdf",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      ];
-      if (!allowedMimeTypes.includes(file.mimetype)) {
-        throw new ApiError(400, "Only PDF and DOCX files are allowed");
-      }
-
-      typeLabel = file.mimetype === "application/pdf" ? "pdf" : "docx";
-
-      const cloudinaryResult = await new Promise((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          {
-            folder: "admin-reports",
-            public_id: `report-${adminUserId}-${Date.now()}`,
-            resource_type: "raw",
-            use_filename: true,
-          },
-          (error, result) => {
-            if (error) return reject(new ApiError(500, "File upload failed"));
-            resolve(result);
-          },
-        );
-        const readable = new Readable();
-        readable.push(file.buffer);
-        readable.push(null);
-        readable.pipe(uploadStream);
-      });
-
-      url = cloudinaryResult.secure_url;
-      cloudinaryId = cloudinaryResult.public_id;
+    const allowedMimeTypes = [
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      throw new ApiError(400, "Only PDF and DOCX files are allowed");
     }
 
-    const report = await prisma.adminReport.create({
-      data: {
-        adminUser: {
-          connect: { id: adminUserId },
+    typeLabel = file.mimetype === "application/pdf" ? "pdf" : "docx";
+
+    const cloudinaryResult = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: "admin-reports",
+          public_id: `report-${adminUserId}-${Date.now()}`,
+          resource_type: "auto",
+          use_filename: true,
         },
-        title,
-        body: body || null,
-        note: note || null,
-        type: typeLabel,
-        url,
-        cloudinaryId,
-        createdBy: adminUserId,
-      },
-      select: {
-        id: true,
-        title: true,
-        type: true,
-        date: true,
-        body: true,
-        note: true,
-        url: true,
-      },
+        (error, result) => {
+          if (error) return reject(new ApiError(500, "File upload failed"));
+          resolve(result);
+        },
+      );
+      const readable = new Readable();
+      readable.push(file.buffer);
+      readable.push(null);
+      readable.pipe(uploadStream);
     });
 
-    await createAuditLog({
-      adminUserId,
-      action: "PROFILE_UPDATED",
-      targetId: report.id,
-      targetType: "admin_report",
-      metadata: {
-        section: "reports",
-        title,
-        hasFile: !!(file && file.size > 0),
-      },
-      req,
-    });
-
-    await notificationService.createNotification({
-      adminUserId,
-      icon: "check",
-      title: "Report Added",
-      subtitle: `Your report "${title}" has been added successfully.`,
-    });
-
-    return report;
+    url = cloudinaryResult.secure_url;
+    cloudinaryId = cloudinaryResult.public_id;
   }
+
+  const report = await prisma.adminReport.create({
+    data: {
+      adminUser: {
+        connect: { id: adminUserId },
+      },
+      title,
+      body: body || null,
+      note: note || null,
+      type: typeLabel,
+      url,
+      cloudinaryId,
+      createdBy: adminUserId,
+    },
+    select: {
+      id: true,
+      title: true,
+      type: true,
+      date: true,
+      body: true,
+      note: true,
+      url: true,
+    },
+  });
+
+  await createAuditLog({
+    adminUserId,
+    action: "PROFILE_UPDATED",
+    targetId: report.id,
+    targetType: "admin_report",
+    metadata: {
+      section: "reports",
+      title,
+      hasFile: !!(file && file.size > 0),
+    },
+    req,
+  });
+
+  await notificationService.createNotification({
+    adminUserId,
+    icon: "check",
+    title: "Report Added",
+    subtitle: `Your report "${title}" has been added successfully.`,
+  });
+
+  return report;
+}
+
+async updateReport({ adminUserId, reportId, file, title, body, note, req }) {
+  const cloudinary = require("../../shared/config/cloudinary");
+  const { Readable } = require("stream");
+
+  const existing = await prisma.adminReport.findUnique({
+    where: { id: reportId },
+  });
+  if (!existing) throw new ApiError(404, "Report not found");
+  if (existing.adminUserId !== adminUserId)
+    throw new ApiError(403, "Forbidden");
+
+  let url = existing.url;
+  let cloudinaryId = existing.cloudinaryId;
+  let typeLabel = existing.type;
+
+  if (file && file.size > 0 && file.buffer) {
+    const allowedMimeTypes = [
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      throw new ApiError(400, "Only PDF and DOCX files are allowed");
+    }
+
+    if (existing.cloudinaryId) {
+      await cloudinary.uploader.destroy(existing.cloudinaryId, {
+        resource_type: "auto",
+      });
+    }
+
+    const cloudinaryResult = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: "admin-reports",
+          public_id: `report-${adminUserId}-${Date.now()}`,
+          resource_type: "auto",
+          use_filename: true,
+        },
+        (error, result) => {
+          if (error) return reject(new ApiError(500, "File upload failed"));
+          resolve(result);
+        },
+      );
+      const readable = new Readable();
+      readable.push(file.buffer);
+      readable.push(null);
+      readable.pipe(uploadStream);
+    });
+
+    url = cloudinaryResult.secure_url;
+    cloudinaryId = cloudinaryResult.public_id;
+    typeLabel = file.mimetype === "application/pdf" ? "pdf" : "docx";
+  }
+
+  const updated = await prisma.adminReport.update({
+    where: { id: reportId },
+    data: {
+      title: title ?? existing.title,
+      body: body !== undefined ? body : existing.body,
+      note: note !== undefined ? note : existing.note,
+      type: typeLabel,
+      url,
+      cloudinaryId,
+    },
+    select: {
+      id: true,
+      title: true,
+      type: true,
+      date: true,
+      body: true,
+      note: true,
+      url: true,
+    },
+  });
+
+  await createAuditLog({
+    adminUserId,
+    action: "PROFILE_UPDATED",
+    targetId: reportId,
+    targetType: "admin_report",
+    metadata: {
+      section: "reports",
+      action: "update",
+      hasFile: !!(file && file.size > 0),
+    },
+    req,
+  });
+
+  await notificationService.createNotification({
+    adminUserId,
+    icon: "check",
+    title: "Report Updated",
+    subtitle: `Your report "${updated.title}" has been updated.`,
+  });
+
+  return updated;
+}
   async getReportDownloadUrl({ adminUserId, reportId }) {
     const report = await prisma.adminReport.findUnique({
       where: { id: reportId },
@@ -416,105 +520,6 @@ class ProfileService {
     return report;
   }
 
-  async updateReport({ adminUserId, reportId, file, title, body, note, req }) {
-    const cloudinary = require("../../shared/config/cloudinary");
-    const { Readable } = require("stream");
-
-    const existing = await prisma.adminReport.findUnique({
-      where: { id: reportId },
-    });
-    if (!existing) throw new ApiError(404, "Report not found");
-    if (existing.adminUserId !== adminUserId)
-      throw new ApiError(403, "Forbidden");
-
-    let url = existing.url;
-    let cloudinaryId = existing.cloudinaryId;
-    let typeLabel = existing.type;
-
-    // Handle file upload only if a new file is provided
-    if (file && file.size > 0 && file.buffer) {
-      const allowedMimeTypes = [
-        "application/pdf",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      ];
-      if (!allowedMimeTypes.includes(file.mimetype)) {
-        throw new ApiError(400, "Only PDF and DOCX files are allowed");
-      }
-
-      // Delete old file from Cloudinary if it exists
-      if (existing.cloudinaryId) {
-        await cloudinary.uploader.destroy(existing.cloudinaryId, {
-          resource_type: "raw",
-        });
-      }
-
-      const cloudinaryResult = await new Promise((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          {
-            folder: "admin-reports",
-            public_id: `report-${adminUserId}-${Date.now()}`,
-            resource_type: "raw",
-            use_filename: true,
-          },
-          (error, result) => {
-            if (error) return reject(new ApiError(500, "File upload failed"));
-            resolve(result);
-          },
-        );
-        const readable = new Readable();
-        readable.push(file.buffer);
-        readable.push(null);
-        readable.pipe(uploadStream);
-      });
-
-      url = cloudinaryResult.secure_url;
-      cloudinaryId = cloudinaryResult.public_id;
-      typeLabel = file.mimetype === "application/pdf" ? "pdf" : "docx";
-    }
-
-    const updated = await prisma.adminReport.update({
-      where: { id: reportId },
-      data: {
-        title: title ?? existing.title,
-        body: body !== undefined ? body : existing.body,
-        note: note !== undefined ? note : existing.note,
-        type: typeLabel,
-        url,
-        cloudinaryId,
-      },
-      select: {
-        id: true,
-        title: true,
-        type: true,
-        date: true,
-        body: true,
-        note: true,
-        url: true,
-      },
-    });
-
-    await createAuditLog({
-      adminUserId,
-      action: "PROFILE_UPDATED",
-      targetId: reportId,
-      targetType: "admin_report",
-      metadata: {
-        section: "reports",
-        action: "update",
-        hasFile: !!(file && file.size > 0),
-      },
-      req,
-    });
-
-    await notificationService.createNotification({
-      adminUserId,
-      icon: "check",
-      title: "Report Updated",
-      subtitle: `Your report "${updated.title}" has been updated.`,
-    });
-
-    return updated;
-  }
 
   async deleteReport({ adminUserId, reportId, req }) {
     const cloudinary = require("../../shared/config/cloudinary");

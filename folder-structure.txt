@@ -101,11 +101,16 @@
 │   │   │   ├── profile.routes.js
 │   │   │   ├── profile.service.js
 │   │   │   └── profile.validator.js
-│   │   └── support
+│   │   ├── support
+│   │   │   ├── index.js
+│   │   │   ├── support.controller.js
+│   │   │   ├── support.routes.js
+│   │   │   └── support.service.js
+│   │   └── verification
 │   │       ├── index.js
-│   │       ├── support.controller.js
-│   │       ├── support.routes.js
-│   │       └── support.service.js
+│   │       ├── verification.controller.js
+│   │       ├── verification.routes.js
+│   │       └── verification.service.js
 │   ├── shared
 │   │   ├── config
 │   │   │   ├── cloudinary.js
