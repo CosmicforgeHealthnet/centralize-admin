@@ -17,7 +17,6 @@ const {
 } = require("./shared/middlewares/error.middleware");
 const logger = require("./shared/utils/logger");
 
-// Route modules
 const authRoutes = require("./modules/auth").router;
 const adminUsersRoutes = require("./modules/admin-users").router;
 const dashboardRoutes = require("./modules/dashboard").router;
@@ -29,15 +28,10 @@ const verificationRoutes = require("./modules/verification").router;
 
 const app = express();
 
-// ─────────────────────────────────────────
-// SECURITY HEADERS
-// ─────────────────────────────────────────
 app.use(helmet());
 app.set("trust proxy", 1); // Trust first proxy (needed for correct IP behind load balancers)
 
-// ─────────────────────────────────────────
-// CORS
-// ─────────────────────────────────────────
+
 const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(",").map((o) => o.trim())
   : ["http://localhost:3000"];
@@ -60,9 +54,6 @@ app.use(
 
 app.options("/{*splat}", cors());
 
-// ─────────────────────────────────────────
-// BODY PARSING & SANITIZATION
-// ─────────────────────────────────────────
 app.use(express.json({ limit: "10kb" })); // Hard limit on body size
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(cookieParser()); // FIX #5: parse cookies before routes
@@ -70,9 +61,6 @@ app.use(passport.initialize());
 app.use(hpp()); // Prevent HTTP parameter pollution
 app.use(compression());
 
-// FIX #12: XSS sanitize all incoming string values in body,
-// but skip password fields — xss() encodes < > " which corrupts
-// passwords containing those characters (bcrypt then hashes a mangled value).
 const SKIP_XSS_FIELDS = new Set([
   "password",
   "currentPassword",
@@ -94,21 +82,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// ─────────────────────────────────────────
-// LOGGING
-// ─────────────────────────────────────────
 if (process.env.NODE_ENV !== "test") {
   app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 }
 
-// ─────────────────────────────────────────
-// RATE LIMITING
-// ─────────────────────────────────────────
 app.use(globalLimiter);
 
-// ─────────────────────────────────────────
-// HEALTH CHECK  (no auth needed)
-// ─────────────────────────────────────────
 app.get("/health", (req, res) => {
   res.json({
     success: true,
@@ -120,9 +99,6 @@ app.get("/health", (req, res) => {
   });
 });
 
-// ─────────────────────────────────────────
-// ROUTES
-// ─────────────────────────────────────────
 app.use("/api/auth", authRoutes);
 app.use("/api/admin-users", adminUsersRoutes);
 app.use("/api/dashboard", dashboardRoutes);
@@ -132,9 +108,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/audit", auditRoutes);
 app.use("/api/verification", verificationRoutes);
 
-// ─────────────────────────────────────────
-// ERROR HANDLING  (must be last)
-// ─────────────────────────────────────────
+
 app.use("/{*splat}", notFound);
 app.use(errorHandler);
 
