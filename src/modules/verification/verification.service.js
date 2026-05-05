@@ -1310,9 +1310,6 @@ class VerificationService {
   }) {
     const p = Number(page);
     const l = Number(limit);
-
-    // We need more rows than one page per source because after merging we slice.
-    // Fetching (page * limit) rows per source guarantees enough candidates.
     const fetchLimit = p * l;
 
     const buildDateFilter = (field) => {
@@ -1327,8 +1324,7 @@ class VerificationService {
       return { [field]: filter };
     };
 
-    // ── Build WHERE clauses ────────────────────────────────────────────────────
-
+    // WHERE clauses (keep exactly as you have them)
     const doctorWhere = {};
     if (status && status !== "All") {
       if (status === "Approved") doctorWhere.status = "approved";
@@ -1392,16 +1388,12 @@ class VerificationService {
       ];
     }
 
-    // ── Run all queries in parallel ────────────────────────────────────────────
-
+    // ── Doctors + Pharmacies + Stats run in parallel (stable tables) ──
     const [
       doctorTotal,
       doctorRows,
       pharmacyTotal,
       pharmacyRows,
-      labTotal,
-      labRows,
-      // Stats (unfiltered counts for the stat cards — always consistent)
       statsTotal,
       statsApproved,
       statsPending,
@@ -1434,24 +1426,6 @@ class VerificationService {
         take: fetchLimit,
       }),
 
-      mainPrisma.lab_facilities.count({ where: labWhere }),
-      mainPrisma.lab_facilities.findMany({
-        where: labWhere,
-        select: {
-          id: true,
-          facilityName: true,
-          licenseNumber: true,
-          registrationNumber: true,
-          status: true,
-          facilityType: true,
-          createdAt: true,
-          adminFullName: true,
-        },
-        orderBy: { createdAt: "desc" },
-        take: fetchLimit,
-      }),
-
-      // Stat card counts — unfiltered
       mainPrisma.verification_requests.count(),
       mainPrisma.verification_requests.count({ where: { status: "approved" } }),
       mainPrisma.verification_requests.count({
@@ -1469,8 +1443,34 @@ class VerificationService {
       }),
     ]);
 
-    // ── Shape each source ──────────────────────────────────────────────────────
+    // ── Labs: graceful fallback if table doesn't exist yet ──
+    let labTotal = 0;
+    let labRows = [];
+    try {
+      [labTotal, labRows] = await Promise.all([
+        mainPrisma.lab_facilities.count({ where: labWhere }),
+        mainPrisma.lab_facilities.findMany({
+          where: labWhere,
+          select: {
+            id: true,
+            facilityName: true,
+            licenseNumber: true,
+            registrationNumber: true,
+            status: true,
+            facilityType: true,
+            createdAt: true,
+            adminFullName: true,
+          },
+          orderBy: { createdAt: "desc" },
+          take: fetchLimit,
+        }),
+      ]);
+    } catch (err) {
+      // Table not migrated yet — return empty, don't crash the whole endpoint
+      console.warn("lab_facilities table not available:", err.message);
+    }
 
+    // ── Shape each source ──
     const shapedDoctors = doctorRows.map((vr) => ({
       id: vr.id,
       user:
@@ -1537,13 +1537,11 @@ class VerificationService {
       };
     });
 
-    // ── Merge-sort by date desc, then paginate ─────────────────────────────────
-
+    // ── Merge-sort + paginate ──
     const merged = [...shapedDoctors, ...shapedPharmacies, ...shapedLabs].sort(
       (a, b) => b._sortDate - a._sortDate,
     );
 
-    // Remove internal sort key before sending to client
     const skip = (p - 1) * l;
     const paginated = merged
       .slice(skip, skip + l)

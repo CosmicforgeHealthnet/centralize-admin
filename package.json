@@ -3,11 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "dev": "nodemon src/server.js",
-    "start": "node src/server.js",
-    "db:seed": "node prisma/seeds/admin.seed.js"
-  },
+"scripts": {
+  "dev": "nodemon src/server.js",
+  "start": "node src/server.js",
+  "db:seed": "node prisma/seeds/admin.seed.js",
+  "studio": "prisma studio --config prisma.config.ts",
+  "studio:main:dev": "cross-env MAIN_DB_ENV=dev prisma studio --config prisma.main.config.ts",
+  "studio:main:prod": "cross-env MAIN_DB_ENV=prod prisma studio --config prisma.main.config.ts"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -42,6 +45,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
+    "cross-env": "^10.1.0",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.2"

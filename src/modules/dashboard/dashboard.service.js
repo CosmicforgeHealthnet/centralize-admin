@@ -277,25 +277,32 @@ class DashboardService {
     const now = new Date();
     const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
 
-    const [appointments, labOrders, prescriptions, aiSessions] =
-      await Promise.all([
-        mainPrisma.appointments.findMany({
-          where: { createdAt: { gte: twelveMonthsAgo } },
-          select: { createdAt: true },
-        }),
-        mainPrisma.lab_orders.findMany({
-          where: { createdAt: { gte: twelveMonthsAgo } },
-          select: { createdAt: true },
-        }),
-        mainPrisma.prescriptions.findMany({
-          where: { createdAt: { gte: twelveMonthsAgo } },
-          select: { createdAt: true },
-        }),
-        mainPrisma.chatbot_sessions.findMany({
-          where: { createdAt: { gte: twelveMonthsAgo } },
-          select: { createdAt: true },
-        }),
-      ]);
+    // Stable tables — run together
+    const [appointments, prescriptions, aiSessions] = await Promise.all([
+      mainPrisma.appointments.findMany({
+        where: { createdAt: { gte: twelveMonthsAgo } },
+        select: { createdAt: true },
+      }),
+      mainPrisma.prescriptions.findMany({
+        where: { createdAt: { gte: twelveMonthsAgo } },
+        select: { createdAt: true },
+      }),
+      mainPrisma.chatbot_sessions.findMany({
+        where: { createdAt: { gte: twelveMonthsAgo } },
+        select: { createdAt: true },
+      }),
+    ]);
+
+    // lab_orders — graceful fallback if table not migrated yet
+    let labOrders = [];
+    try {
+      labOrders = await mainPrisma.lab_orders.findMany({
+        where: { createdAt: { gte: twelveMonthsAgo } },
+        select: { createdAt: true },
+      });
+    } catch (err) {
+      console.warn("lab_orders table not available:", err.message);
+    }
 
     const monthMap = {};
     for (let i = 11; i >= 0; i--) {
@@ -319,7 +326,7 @@ class DashboardService {
     };
 
     bucket(appointments, "Consultation");
-    bucket(labOrders, "Lab");
+    bucket(labOrders, "Lab"); // empty array if table missing — no crash
     bucket(prescriptions, "Pharmacy");
     bucket(aiSessions, "AI");
 
