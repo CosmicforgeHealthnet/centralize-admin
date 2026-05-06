@@ -25,12 +25,19 @@ const profileRouter = require("./modules/profile").router;
 const notificationRoutes = require("./modules/notifications").router;
 const auditRoutes = require("./modules/audit").router;
 const verificationRoutes = require("./modules/verification").router;
+const telemedicineRoutes = require("./modules/telemedicine").router;
+const rtcRoutes = require("./modules/rtc").router;
+const logisticsRoutes = require("./modules/logistics").router;
+const paymentsRoutes = require("./modules/payments").router;
+const notificationsServiceRoutes =
+  require("./modules/notifications-service").router;
+const auditServiceRoutes = require("./modules/audit-service").router;
+const usersRoutes = require("./modules/users").router;
 
 const app = express();
 
 app.use(helmet());
 app.set("trust proxy", 1); // Trust first proxy (needed for correct IP behind load balancers)
-
 
 const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(",").map((o) => o.trim())
@@ -104,10 +111,16 @@ app.use("/api/admin-users", adminUsersRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/support", supportRoutes);
 app.use("/api/profile", profileRouter);
-app.use("/api/notifications", notificationRoutes); 
+app.use("/api/notifications", notificationRoutes);
 app.use("/api/audit", auditRoutes);
 app.use("/api/verification", verificationRoutes);
-
+app.use("/api/telemedicine", telemedicineRoutes);
+app.use("/api/rtc", rtcRoutes);
+app.use("/api/logistics", logisticsRoutes);
+app.use("/api/payments", paymentsRoutes);
+app.use("/api/notifications-service", notificationsServiceRoutes);
+app.use("/api/audit-service", auditServiceRoutes);
+app.use("/api/users", usersRoutes);
 
 app.use("/{*splat}", notFound);
 app.use(errorHandler);

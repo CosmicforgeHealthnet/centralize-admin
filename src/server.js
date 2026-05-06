@@ -2,7 +2,8 @@ const http = require("http"); // ← ADD
 const app = require("./app");
 const { connectDatabase } = require("./shared/config/database");
 const { connectMainDatabase } = require("./shared/config/mainDatabase");
-const { initializeWebSocket } = require("./websocket"); // ← ADD
+const { initializeWebSocket } = require("./websocket"); 
+const bootstrap = require("./shared/events/bootstrap");
 const logger = require("./shared/utils/logger");
 
 const PORT = process.env.PORT || 4000;
@@ -11,6 +12,7 @@ const startServer = async () => {
   try {
     await connectDatabase();
     await connectMainDatabase();
+    bootstrap();
 
     const server = http.createServer(app); // ← CHANGE (was app.listen)
     initializeWebSocket(server); // ← ADD

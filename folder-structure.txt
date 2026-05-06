@@ -143,5 +143,7 @@
 ├── nodemon.json
 ├── package.json
 ├── prisma.config.ts
+├── prisma.dev.config.ts
 ├── prisma.main.config.ts
+├── prisma.prod.config.ts
 └── README.md

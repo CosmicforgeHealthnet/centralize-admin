@@ -1,0 +1,52 @@
+const ApiError = require("../utils/ApiError");
+
+const PRESCRIPTION_STATES = {
+  PENDING: "pending",
+  PATIENT_UPLOADED: "patient_uploaded",
+  PHARMACY_ASSIGNED: "pharmacy_assigned",
+  PHARMACY_PROCESSING: "pharmacy_processing",
+  READY_FOR_PICKUP: "ready_for_pickup",
+  READY_FOR_DELIVERY: "ready_for_delivery",
+  COMPLETED: "completed",
+  CANCELLED: "cancelled",
+};
+
+const VALID_TRANSITIONS = {
+  [PRESCRIPTION_STATES.PENDING]: [
+    PRESCRIPTION_STATES.PATIENT_UPLOADED,
+    PRESCRIPTION_STATES.CANCELLED,
+  ],
+  [PRESCRIPTION_STATES.PATIENT_UPLOADED]: [
+    PRESCRIPTION_STATES.PHARMACY_ASSIGNED,
+    PRESCRIPTION_STATES.CANCELLED,
+  ],
+  [PRESCRIPTION_STATES.PHARMACY_ASSIGNED]: [
+    PRESCRIPTION_STATES.PHARMACY_PROCESSING,
+    PRESCRIPTION_STATES.CANCELLED,
+  ],
+  [PRESCRIPTION_STATES.PHARMACY_PROCESSING]: [
+    PRESCRIPTION_STATES.READY_FOR_PICKUP,
+    PRESCRIPTION_STATES.READY_FOR_DELIVERY,
+    PRESCRIPTION_STATES.CANCELLED,
+  ],
+  [PRESCRIPTION_STATES.READY_FOR_PICKUP]: [
+    PRESCRIPTION_STATES.COMPLETED,
+    PRESCRIPTION_STATES.CANCELLED,
+  ],
+  [PRESCRIPTION_STATES.READY_FOR_DELIVERY]: [
+    PRESCRIPTION_STATES.COMPLETED,
+    PRESCRIPTION_STATES.CANCELLED,
+  ],
+  [PRESCRIPTION_STATES.COMPLETED]: [],
+  [PRESCRIPTION_STATES.CANCELLED]: [],
+};
+
+const validatePrescriptionTransition = (from, to) => {
+  const allowed = VALID_TRANSITIONS[from];
+  if (!allowed) throw new ApiError(400, `Unknown prescription state: ${from}`);
+  if (!allowed.includes(to)) {
+    throw new ApiError(400, `Invalid prescription transition: ${from} → ${to}`);
+  }
+};
+
+module.exports = { PRESCRIPTION_STATES, validatePrescriptionTransition };
