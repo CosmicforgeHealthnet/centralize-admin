@@ -1,7 +1,10 @@
 const http = require("http"); // ← ADD
 const app = require("./app");
 const { connectDatabase } = require("./shared/config/database");
-const { connectMainDatabase } = require("./shared/config/mainDatabase");
+const {
+  connectMainDatabase,
+  mainPrisma,
+} = require("./shared/config/mainDatabase");
 const { initializeWebSocket } = require("./websocket"); 
 const bootstrap = require("./shared/events/bootstrap");
 const logger = require("./shared/utils/logger");
@@ -22,6 +25,7 @@ const startServer = async () => {
         `Admin server running on port ${PORT} [${process.env.NODE_ENV}]`,
       );
     });
+
 
     // everything below stays exactly the same...
     const shutdown = async (signal) => {

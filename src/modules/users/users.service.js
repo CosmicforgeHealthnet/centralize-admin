@@ -1,7 +1,45 @@
 const { mainPrisma } = require("../../shared/config/mainDatabase");
 const logger = require("../../shared/utils/logger");
 
+// Valid prod status values
+const VALID_STATUSES = [
+  "active",
+  "doctor_active",
+  "pharmacy_active",
+  "locked",
+  "pending_email_verification",
+  "pending_doctor_verification",
+  "pending_pharmacy_verification",
+];
+
+const ACTIVE_STATUSES = ["active", "doctor_active", "pharmacy_active"];
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+const calcGrowthRate = (current, previous) => {
+  if (current === 0 && previous === 0) return 0;
+  if (previous === 0) return 100;
+  return Number(((current - previous) / previous) * 100).toFixed(1);
+};
+
+// Safely run a query that may reference lastLoginAt
+const withLastLoginAt = async (queryFn, fallbackFn) => {
+  try {
+    return await queryFn();
+  } catch (err) {
+    if (err.message.includes("lastLoginAt")) {
+      logger.warn("lastLoginAt column not available, using fallback");
+      return await fallbackFn();
+    }
+    throw err;
+  }
+};
+
+// ── Service ───────────────────────────────────────────────────────────────────
+
 class UsersService {
+  // ── Stats ──────────────────────────────────────────────────────────────────
+
   async getStats() {
     const now = new Date();
     const startOfToday = new Date(
@@ -20,6 +58,9 @@ class UsersService {
       totalPatients,
       totalPharmacies,
       totalLabs,
+      activeUsers,
+      lockedUsers,
+      pendingVerification,
       newToday,
       newThisWeek,
       newThisMonth,
@@ -30,6 +71,19 @@ class UsersService {
       mainPrisma.users.count({ where: { role: "patient" } }),
       mainPrisma.users.count({ where: { role: "pharmacy" } }),
       mainPrisma.users.count({ where: { role: "lab_admin" } }),
+      mainPrisma.users.count({ where: { status: { in: ACTIVE_STATUSES } } }),
+      mainPrisma.users.count({ where: { status: "locked" } }),
+      mainPrisma.users.count({
+        where: {
+          status: {
+            in: [
+              "pending_email_verification",
+              "pending_doctor_verification",
+              "pending_pharmacy_verification",
+            ],
+          },
+        },
+      }),
       mainPrisma.users.count({ where: { createdAt: { gte: startOfToday } } }),
       mainPrisma.users.count({ where: { createdAt: { gte: startOfWeek } } }),
       mainPrisma.users.count({ where: { createdAt: { gte: startOfMonth } } }),
@@ -38,38 +92,6 @@ class UsersService {
       }),
     ]);
 
-    // Graceful fallback for status-based counts — enum values may differ per environment
-    let activeUsers = 0;
-    try {
-      activeUsers = await mainPrisma.users.count({
-        where: { status: "active" },
-      });
-    } catch (err) {
-      logger.warn(
-        "Could not count active users (enum mismatch?):",
-        err.message,
-      );
-    }
-
-    let inactiveUsers = 0;
-    try {
-      inactiveUsers = await mainPrisma.users.count({
-        where: { status: "inactive" },
-      });
-    } catch (err) {
-      logger.warn(
-        "Could not count inactive users (enum mismatch?):",
-        err.message,
-      );
-    }
-
-const growthRate =
-  newLastMonth === 0 && newThisMonth === 0
-    ? 0 // no activity at all → 0%
-    : newLastMonth === 0
-      ? 100 // new activity where there was none → 100%
-      : (((newThisMonth - newLastMonth) / newLastMonth) * 100).toFixed(1);
-
     return {
       total,
       totalDoctors,
@@ -77,13 +99,17 @@ const growthRate =
       totalPharmacies,
       totalLabs,
       activeUsers,
-      inactiveUsers,
+      inactiveUsers: total - activeUsers,
+      lockedUsers,
+      pendingVerification,
       newToday,
       newThisWeek,
       newThisMonth,
-      growthRate: Number(growthRate),
+      growthRate: Number(calcGrowthRate(newThisMonth, newLastMonth)),
     };
   }
+
+  // ── Charts ─────────────────────────────────────────────────────────────────
 
   async getGrowthChart() {
     const now = new Date();
@@ -155,77 +181,342 @@ const growthRate =
     return Object.values(monthMap);
   }
 
-  async listUsers({ role, status, search, page = 1, limit = 20 }) {
+  // ── List users ─────────────────────────────────────────────────────────────
+
+  async listUsers({
+    role,
+    status,
+    search,
+    tier,
+    dateFrom,
+    dateTo,
+    sortBy = "createdAt",
+    sortOrder = "desc",
+    page = 1,
+    limit = 20,
+  }) {
     const where = {};
+
     if (role) where.role = role;
     if (status) where.status = status;
+    if (tier) where.tier = tier;
+
+    if (dateFrom || dateTo) {
+      where.createdAt = {};
+      if (dateFrom) where.createdAt.gte = new Date(dateFrom);
+      if (dateTo) where.createdAt.lte = new Date(dateTo);
+    }
+
     if (search) {
       where.OR = [
         { fullName: { contains: search, mode: "insensitive" } },
         { email: { contains: search, mode: "insensitive" } },
+        { phoneNumber: { contains: search, mode: "insensitive" } },
       ];
     }
+
+    const validSortFields = [
+      "createdAt",
+      "fullName",
+      "email",
+      "role",
+      "status",
+    ];
+    const orderBy = validSortFields.includes(sortBy)
+      ? { [sortBy]: sortOrder === "asc" ? "asc" : "desc" }
+      : { createdAt: "desc" };
+
+    const skip = (page - 1) * limit;
+
+    const baseSelect = {
+      id: true,
+      fullName: true,
+      email: true,
+      role: true,
+      status: true,
+      tier: true,
+      phoneNumber: true,
+      createdAt: true,
+    };
+
+    const [data, total] = await withLastLoginAt(
+      async () =>
+        Promise.all([
+          mainPrisma.users.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy,
+            select: { ...baseSelect, lastLoginAt: true },
+          }),
+          mainPrisma.users.count({ where }),
+        ]),
+      async () => {
+        const [rows, count] = await Promise.all([
+          mainPrisma.users.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy,
+            select: baseSelect,
+          }),
+          mainPrisma.users.count({ where }),
+        ]);
+        return [rows.map((u) => ({ ...u, lastLoginAt: null })), count];
+      },
+    );
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  // ── Single user ────────────────────────────────────────────────────────────
+
+  async getUser(id) {
+    const baseSelect = {
+      id: true,
+      fullName: true,
+      email: true,
+      role: true,
+      status: true,
+      tier: true,
+      phoneNumber: true,
+      profileImageUrl: true,
+      createdAt: true,
+      updatedAt: true,
+      subscriptions: {
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          tier: true,
+          planType: true,
+          status: true,
+          startDate: true,
+          endDate: true,
+          price: true,
+          currency: true,
+          billingCycle: true,
+          createdAt: true,
+        },
+      },
+      doctor_profiles: {
+        select: {
+          gender: true,
+          dateOfBirth: true,
+          nationality: true,
+          contactNumber: true,
+          professional_licenses: {
+            select: {
+              medicalLicenseNumber: true,
+              countryOfLicense: true,
+              licenseAuthority: true,
+              licenseExpiryDate: true,
+              yearsOfExperience: true,
+              areasOfSpecialization: true,
+            },
+          },
+        },
+      },
+      patient_profiles: {
+        select: {
+          gender: true,
+          dateOfBirth: true,
+          bloodGroup: true,
+          genotype: true,
+          nationality: true,
+        },
+      },
+      pharmacy_profiles: {
+        select: {
+          pharmacyName: true,
+          registrationNumber: true,
+          address: true,
+          phone: true,
+          verificationStatus: true,
+          isActive: true,
+        },
+      },
+    };
+
+    const user = await withLastLoginAt(
+      () =>
+        mainPrisma.users.findUnique({
+          where: { id },
+          select: { ...baseSelect, lastLoginAt: true },
+        }),
+      async () => {
+        const row = await mainPrisma.users.findUnique({
+          where: { id },
+          select: baseSelect,
+        });
+        return row ? { ...row, lastLoginAt: null } : null;
+      },
+    );
+
+    if (!user) throw new Error("User not found");
+    return user;
+  }
+
+  // ── Get user activity ──────────────────────────────────────────────────────
+
+  async getUserActivity(id) {
+    const user = await mainPrisma.users.findUnique({
+      where: { id },
+      select: { id: true, role: true },
+    });
+    if (!user) throw new Error("User not found");
+
+    const [appointments, transactions, prescriptions] = await Promise.all([
+      mainPrisma.appointments.count({
+        where: {
+          OR: [{ patientId: id }, { doctorId: id }],
+        },
+      }),
+      mainPrisma.transactions.count({
+        where: {
+          OR: [{ patientId: id }, { doctorId: id }],
+        },
+      }),
+      mainPrisma.prescriptions.count({
+        where: {
+          OR: [{ patientId: id }, { doctorId: id }],
+        },
+      }),
+    ]);
+
+    // lab_orders — graceful fallback if table not migrated yet
+    let labOrders = 0;
+    try {
+      labOrders = await mainPrisma.lab_orders.count({
+        where: { patientId: id },
+      });
+    } catch (err) {
+      logger.warn("lab_orders table not available:", err.message);
+    }
+
+    return { appointments, transactions, prescriptions, labOrders };
+  }
+
+  // ── Get user transactions ──────────────────────────────────────────────────
+
+  async getUserTransactions(id, { page = 1, limit = 20 } = {}) {
+    const user = await mainPrisma.users.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!user) throw new Error("User not found");
+
+    const where = {
+      OR: [{ patientId: id }, { doctorId: id }],
+    };
 
     const skip = (page - 1) * limit;
 
     const [data, total] = await Promise.all([
-      mainPrisma.users.findMany({
+      mainPrisma.transactions.findMany({
         where,
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
         select: {
           id: true,
-          fullName: true,
-          email: true,
-          role: true,
+          serviceType: true,
+          originalAmount: true,
+          originalCurrency: true,
           status: true,
-          tier: true,
-          phoneNumber: true,
-          lastLoginAt: true,
+          paymentProvider: true,
+          createdAt: true,
+          completedAt: true,
+        },
+      }),
+      mainPrisma.transactions.count({ where }),
+    ]);
+
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  // ── Get user appointments ──────────────────────────────────────────────────
+
+  async getUserAppointments(id, { page = 1, limit = 20 } = {}) {
+    const user = await mainPrisma.users.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!user) throw new Error("User not found");
+
+    const where = {
+      OR: [{ patientId: id }, { doctorId: id }],
+    };
+
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      mainPrisma.appointments.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          appointmentDate: true,
+          appointmentTime: true,
+          status: true,
+          type: true,
+          reason: true,
+          consultationFee: true,
+          paymentStatus: true,
           createdAt: true,
         },
       }),
-      mainPrisma.users.count({ where }),
+      mainPrisma.appointments.count({ where }),
     ]);
 
-    return { data, total, page, limit };
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  async getUser(id) {
+  // ── Get user subscriptions ─────────────────────────────────────────────────
+
+  async getUserSubscriptions(id) {
     const user = await mainPrisma.users.findUnique({
       where: { id },
+      select: { id: true },
+    });
+    if (!user) throw new Error("User not found");
+
+    return mainPrisma.subscriptions.findMany({
+      where: { userId: id },
+      orderBy: { createdAt: "desc" },
       select: {
         id: true,
-        fullName: true,
-        email: true,
-        role: true,
-        status: true,
         tier: true,
-        phoneNumber: true,
-        profileImageUrl: true,
-        lastLoginAt: true,
+        planType: true,
+        status: true,
+        startDate: true,
+        endDate: true,
+        price: true,
+        currency: true,
+        billingCycle: true,
+        autoRenew: true,
+        canceledAt: true,
         createdAt: true,
-        updatedAt: true,
-        subscriptions: {
-          where: { status: "active" },
-          select: {
-            tier: true,
-            planType: true,
-            status: true,
-            startDate: true,
-            endDate: true,
-          },
-          take: 1,
-        },
       },
     });
-
-    if (!user) throw new Error("User not found");
-    return user;
   }
 
+  // ── Update status ──────────────────────────────────────────────────────────
+
   async updateUserStatus(id, status, adminUser) {
+    if (!VALID_STATUSES.includes(status)) {
+      throw new Error(
+        `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}`,
+      );
+    }
+
     const user = await mainPrisma.users.findUnique({
       where: { id },
       select: { id: true },
@@ -241,6 +532,74 @@ const growthRate =
       `[Users] User ${id} status → ${status} by admin ${adminUser.id}`,
     );
     return updated;
+  }
+
+  // ── Bulk update status ─────────────────────────────────────────────────────
+
+  async bulkUpdateStatus(ids, status, adminUser) {
+    if (!VALID_STATUSES.includes(status)) {
+      throw new Error(
+        `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}`,
+      );
+    }
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new Error("ids must be a non-empty array");
+    }
+
+    if (ids.length > 100) {
+      throw new Error("Cannot bulk update more than 100 users at once");
+    }
+
+    const result = await mainPrisma.users.updateMany({
+      where: { id: { in: ids } },
+      data: { status },
+    });
+
+    logger.info(
+      `[Users] Bulk status update → ${status} for ${result.count} users by admin ${adminUser.id}`,
+    );
+
+    return { updated: result.count };
+  }
+
+  // ── Delete user ────────────────────────────────────────────────────────────
+
+  async deleteUser(id, adminUser) {
+    const user = await mainPrisma.users.findUnique({
+      where: { id },
+      select: { id: true, email: true, role: true },
+    });
+    if (!user) throw new Error("User not found");
+
+    await mainPrisma.users.delete({ where: { id } });
+
+    logger.info(
+      `[Users] User ${id} (${user.email}) deleted by admin ${adminUser.id}`,
+    );
+
+    return { deleted: true };
+  }
+
+  // ── Force password reset ───────────────────────────────────────────────────
+
+  async forcePasswordReset(id, adminUser) {
+    const user = await mainPrisma.users.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!user) throw new Error("User not found");
+
+    await mainPrisma.users.update({
+      where: { id },
+      data: { mustChangePassword: true },
+    });
+
+    logger.info(
+      `[Users] Force password reset set for user ${id} by admin ${adminUser.id}`,
+    );
+
+    return { success: true };
   }
 }
 

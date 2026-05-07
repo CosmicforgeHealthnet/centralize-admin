@@ -13,25 +13,40 @@ class DashboardService {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
+    // ── Graceful fallback for missing lastLoginAt column ──────────────────
+    let activeUsersThisWeek = 0;
+    let activeUsersLastWeek = 0;
+    try {
+      [activeUsersThisWeek, activeUsersLastWeek] = await Promise.all([
+        mainPrisma.users.count({
+          where: { lastLoginAt: { gte: startOfThisWeek } },
+        }),
+        mainPrisma.users.count({
+          where: { lastLoginAt: { gte: startOfLastWeek, lt: startOfThisWeek } },
+        }),
+      ]);
+    } catch (err) {
+      console.warn(
+        "lastLoginAt column not available, defaulting to 0:",
+        err.message,
+      );
+    }
+
     const [
       // ── Total users ───────────────────────────────────
       totalUsers,
-      newUsersThisWeek, // signed up in the last 7 days
-      newUsersLastWeek, // signed up the 7 days before that
-
-      // ── Active users ──────────────────────────────────
-      activeUsersThisWeek, // logged in last 7 days
-      activeUsersLastWeek, // logged in the 7 days before that
+      newUsersThisWeek,
+      newUsersLastWeek,
 
       // ── Doctors ───────────────────────────────────────
-      activeDoctors, // all currently active doctors (display value)
-      newDoctorsThisWeek, // doctors who joined this week (for change %)
-      newDoctorsLastWeek, // doctors who joined last week (for change %)
+      activeDoctors,
+      newDoctorsThisWeek,
+      newDoctorsLastWeek,
 
       // ── Patients ─────────────────────────────────────
-      activePatients, // all currently active patients (display value)
-      newPatientsThisWeek, // patients who joined this week (for change %)
-      newPatientsLastWeek, // patients who joined last week (for change %)
+      activePatients,
+      newPatientsThisWeek,
+      newPatientsLastWeek,
 
       // ── Revenue ───────────────────────────────────────
       totalRevenue,
@@ -59,15 +74,6 @@ class DashboardService {
       // New users last week
       mainPrisma.users.count({
         where: { createdAt: { gte: startOfLastWeek, lt: startOfThisWeek } },
-      }),
-
-      // Active users this week (logged in)
-      mainPrisma.users.count({
-        where: { lastLoginAt: { gte: startOfThisWeek } },
-      }),
-      // Active users last week (logged in)
-      mainPrisma.users.count({
-        where: { lastLoginAt: { gte: startOfLastWeek, lt: startOfThisWeek } },
       }),
 
       // All currently active doctors (display value)
@@ -111,6 +117,7 @@ class DashboardService {
           originalCurrency: "NGN",
         },
       }),
+      // Revenue last month
       mainPrisma.transactions.aggregate({
         _sum: { originalAmount: true },
         where: {
@@ -169,7 +176,6 @@ class DashboardService {
       statCards: {
         totalUsers: {
           value: totalUsers,
-          // change = total users now vs total users last week
           ...calcChange(totalUsers, totalUsers - newUsersThisWeek),
           period: "from last week",
         },
@@ -185,13 +191,11 @@ class DashboardService {
         },
         activeDoctors: {
           value: activeDoctors,
-          // change = total active doctors now vs total active doctors last week
           ...calcChange(activeDoctors, activeDoctors - newDoctorsThisWeek),
           period: "from last week",
         },
         activePatients: {
           value: activePatients,
-          // change = total active patients now vs total active patients last week
           ...calcChange(activePatients, activePatients - newPatientsThisWeek),
           period: "from last week",
         },
@@ -239,9 +243,9 @@ class DashboardService {
         status: "completed",
         createdAt: { gte: twelveMonthsAgo },
         serviceType: { in: ["appointment", "subscription"] },
-        originalCurrency: "NGN", // ✅ NGN only
+        originalCurrency: "NGN",
       },
-      select: { serviceType: true, originalAmount: true, createdAt: true }, // ✅ originalAmount
+      select: { serviceType: true, originalAmount: true, createdAt: true },
     });
 
     const monthMap = {};
@@ -260,9 +264,9 @@ class DashboardService {
       const key = `${d.getFullYear()}-${d.getMonth()}`;
       if (!monthMap[key]) continue;
       if (tx.serviceType === "appointment") {
-        monthMap[key].Appointments += Number(tx.originalAmount || 0); // ✅
+        monthMap[key].Appointments += Number(tx.originalAmount || 0);
       } else if (tx.serviceType === "subscription") {
-        monthMap[key].Membership += Number(tx.originalAmount || 0); // ✅
+        monthMap[key].Membership += Number(tx.originalAmount || 0);
       }
     }
 

@@ -122,6 +122,8 @@ app.use("/api/notifications-service", notificationsServiceRoutes);
 app.use("/api/audit-service", auditServiceRoutes);
 app.use("/api/users", usersRoutes);
 
+
+
 app.use("/{*splat}", notFound);
 app.use(errorHandler);
 

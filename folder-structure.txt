@@ -78,6 +78,11 @@
 │   │   │   ├── audit.routes.js
 │   │   │   ├── audit.service.js
 │   │   │   └── index.js
+│   │   ├── audit-service
+│   │   │   ├── audit-service.controller.js
+│   │   │   ├── audit-service.routes.js
+│   │   │   ├── audit-service.service.js
+│   │   │   └── index.js
 │   │   ├── auth
 │   │   │   ├── auth.controller.js
 │   │   │   ├── auth.routes.js
@@ -89,23 +94,53 @@
 │   │   │   ├── dashboard.routes.js
 │   │   │   ├── dashboard.service.js
 │   │   │   └── index.js
+│   │   ├── logistics
+│   │   │   ├── index.js
+│   │   │   ├── logistics.controller.js
+│   │   │   ├── logistics.routes.js
+│   │   │   └── logistics.service.js
 │   │   ├── notifications
 │   │   │   ├── index.js
 │   │   │   ├── notifications.controller.js
 │   │   │   ├── notifications.routes.js
 │   │   │   ├── notifications.service.js
 │   │   │   └── notifications.validator.js
+│   │   ├── notifications-service
+│   │   │   ├── index.js
+│   │   │   ├── notifications-service.controller.js
+│   │   │   ├── notifications-service.routes.js
+│   │   │   └── notifications-service.service.js
+│   │   ├── payments
+│   │   │   ├── index.js
+│   │   │   ├── payments.controller.js
+│   │   │   ├── payments.routes.js
+│   │   │   └── payments.service.js
 │   │   ├── profile
 │   │   │   ├── index.js
 │   │   │   ├── profile.controller.js
 │   │   │   ├── profile.routes.js
 │   │   │   ├── profile.service.js
 │   │   │   └── profile.validator.js
+│   │   ├── rtc
+│   │   │   ├── index.js
+│   │   │   ├── rtc.controller.js
+│   │   │   ├── rtc.routes.js
+│   │   │   └── rtc.service.js
 │   │   ├── support
 │   │   │   ├── index.js
 │   │   │   ├── support.controller.js
 │   │   │   ├── support.routes.js
 │   │   │   └── support.service.js
+│   │   ├── telemedicine
+│   │   │   ├── index.js
+│   │   │   ├── telemedicine.controller.js
+│   │   │   ├── telemedicine.routes.js
+│   │   │   └── telemedicine.service.js
+│   │   ├── users
+│   │   │   ├── index.js
+│   │   │   ├── users.controller.js
+│   │   │   ├── users.routes.js
+│   │   │   └── users.service.js
 │   │   └── verification
 │   │       ├── index.js
 │   │       ├── verification.controller.js
@@ -117,6 +152,10 @@
 │   │   │   ├── database.js
 │   │   │   ├── google.strategy.js
 │   │   │   └── mainDatabase.js
+│   │   ├── events
+│   │   │   ├── bootstrap.js
+│   │   │   ├── eventBus.js
+│   │   │   └── events.js
 │   │   ├── middlewares
 │   │   │   ├── audit.middleware.js
 │   │   │   ├── auth.middleware.js
@@ -124,6 +163,11 @@
 │   │   │   ├── index.js
 │   │   │   ├── rateLimiter.middleware.js
 │   │   │   └── rbac.middleware.js
+│   │   ├── states
+│   │   │   ├── consultation.states.js
+│   │   │   ├── payment.states.js
+│   │   │   ├── prescription.states.js
+│   │   │   └── rtc.states.js
 │   │   └── utils
 │   │       ├── ApiError.js
 │   │       ├── ApiResponse.js
