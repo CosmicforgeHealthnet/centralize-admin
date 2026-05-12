@@ -1,3 +1,4 @@
+const { mainPrisma } = require("../../shared/config/mainDatabase");
 const paymentsService = require("./payments.service");
 const ApiResponse = require("../../shared/utils/ApiResponse");
 const asyncHandler = require("../../shared/utils/asyncHandler");
@@ -42,10 +43,32 @@ const flagTransaction = asyncHandler(async (req, res) => {
   return ApiResponse.success(res, 200, "Transaction flagged", data);
 });
 
+const healthCheck = asyncHandler(async (req, res) => {
+  try {
+    await mainPrisma.$queryRaw`SELECT 1`;
+    return ApiResponse.success(res, 200, "Payments service healthy", {
+      status: "up",
+      timestamp: new Date().toISOString(),
+      service: "payments",
+      database: "connected",
+      version: "1.0.0",
+    });
+  } catch (error) {
+    return res.status(503).json({
+      status: "down",
+      service: "payments",
+      database: "disconnected",
+      error: error.message,
+      timestamp: new Date().toISOString(),
+    });
+  }
+});
+
 module.exports = {
   getTransaction,
   listTransactions,
   transitionPayment,
   getPaymentStats,
   flagTransaction,
+  healthCheck,
 };

@@ -46,25 +46,33 @@ function mapStatus(status) {
 function shapeListItem(vr) {
   const user = vr.users_verification_requests_doctorIdTousers;
 
+  // Get specialty from doctor's professional_licenses
+  let specialty = null;
+  if (user?.doctor_profiles?.professional_licenses?.areasOfSpecialization) {
+    const specialties =
+      user.doctor_profiles.professional_licenses.areasOfSpecialization;
+    specialty = specialties.length > 0 ? specialties[0] : null;
+  }
+
   return {
     id: vr.id,
-    // Display name — fall back gracefully if profile not loaded yet
     user: user?.fullName ?? "Unknown",
-    role: "Doctors", // verification_requests are doctor-only in the main schema
+    role: "Doctors",
     verificationType: "License",
     licenseId: vr.licenseNumber,
     status: mapStatus(vr.status),
-    rawStatus: vr.status, // keep for filtering on the service layer
+    rawStatus: vr.status,
     submittedDate: vr.submittedAt
-      ? new Date(vr.submittedAt).toLocaleDateString("en-GB") // dd/mm/yyyy
+      ? new Date(vr.submittedAt).toLocaleDateString("en-GB")
       : null,
     riskIndicator: deriveRiskIndicator(vr),
     confidenceScore: vr.confidenceScore,
     countryCode: vr.countryCode,
     assignedReviewerId: vr.assignedReviewerId,
+    profileImageUrl: user?.profileImageUrl ?? null,
+    specialty: specialty,
   };
 }
-
 // ─── Service ──────────────────────────────────────────────────────────────────
 
 class VerificationService {
@@ -143,27 +151,36 @@ class VerificationService {
 
     const skip = (Number(page) - 1) * Number(limit);
 
-    const [total, rows] = await Promise.all([
-      mainPrisma.verification_requests.count({ where }),
-      mainPrisma.verification_requests.findMany({
-        where,
-        include: {
-          users_verification_requests_doctorIdTousers: {
-            select: {
-              id: true,
-              fullName: true,
-              email: true,
-              phoneNumber: true,
-              profileImageUrl: true,
-              createdAt: true,
-            },
-          },
-        },
-        orderBy: { submittedAt: "desc" },
-        skip,
-        take: Number(limit),
-      }),
-    ]);
+   const [total, rows] = await Promise.all([
+     mainPrisma.verification_requests.count({ where }),
+     mainPrisma.verification_requests.findMany({
+       where,
+       include: {
+         users_verification_requests_doctorIdTousers: {
+           select: {
+             id: true,
+             fullName: true,
+             email: true,
+             phoneNumber: true,
+             profileImageUrl: true,
+             createdAt: true,
+             doctor_profiles: {
+               select: {
+                 professional_licenses: {
+                   select: {
+                     areasOfSpecialization: true,
+                   },
+                 },
+               },
+             },
+           },
+         },
+       },
+       orderBy: { submittedAt: "desc" },
+       skip,
+       take: Number(limit),
+     }),
+   ]);
 
     // Stats block (always computed on the full, unfiltered dataset)
     const [totalAll, totalApproved, totalPending] = await Promise.all([
@@ -1403,7 +1420,20 @@ class VerificationService {
         where: doctorWhere,
         include: {
           users_verification_requests_doctorIdTousers: {
-            select: { id: true, fullName: true, profileImageUrl: true },
+            select: {
+              id: true,
+              fullName: true,
+              profileImageUrl: true,
+              doctor_profiles: {
+                select: {
+                  professional_licenses: {
+                    select: {
+                      areasOfSpecialization: true,
+                    },
+                  },
+                },
+              },
+            },
           },
         },
         orderBy: { submittedAt: "desc" },
@@ -1471,20 +1501,33 @@ class VerificationService {
     }
 
     // ── Shape each source ──
-    const shapedDoctors = doctorRows.map((vr) => ({
-      id: vr.id,
-      user:
-        vr.users_verification_requests_doctorIdTousers?.fullName ?? "Unknown",
-      role: "Doctors",
-      verificationType: "License",
-      licenseId: vr.licenseNumber,
-      status: mapStatus(vr.status),
-      submittedDate: vr.submittedAt
-        ? new Date(vr.submittedAt).toLocaleDateString("en-GB")
-        : null,
-      _sortDate: vr.submittedAt ? new Date(vr.submittedAt).getTime() : 0,
-      riskIndicator: deriveRiskIndicator(vr),
-    }));
+ const shapedDoctors = doctorRows.map((vr) => {
+   const user = vr.users_verification_requests_doctorIdTousers;
+
+   // Get specialty
+   let specialty = null;
+   if (user?.doctor_profiles?.professional_licenses?.areasOfSpecialization) {
+     const specialties =
+       user.doctor_profiles.professional_licenses.areasOfSpecialization;
+     specialty = specialties.length > 0 ? specialties[0] : null;
+   }
+
+   return {
+     id: vr.id,
+     user: user?.fullName ?? "Unknown",
+     role: "Doctors",
+     verificationType: "License",
+     licenseId: vr.licenseNumber,
+     status: mapStatus(vr.status),
+     submittedDate: vr.submittedAt
+       ? new Date(vr.submittedAt).toLocaleDateString("en-GB")
+       : null,
+     _sortDate: vr.submittedAt ? new Date(vr.submittedAt).getTime() : 0,
+     riskIndicator: deriveRiskIndicator(vr),
+     profileImageUrl: user?.profileImageUrl ?? null,
+     specialty: specialty,
+   };
+ });
 
     const shapedPharmacies = pharmacyRows.map((pvr) => {
       const pharmacy = pvr.pharmacy_profiles;

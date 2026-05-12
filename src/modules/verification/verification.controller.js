@@ -1,3 +1,5 @@
+const { mainPrisma } = require("../../shared/config/mainDatabase");
+const ApiError = require("../../shared/utils/ApiError");
 const verificationService = require("./verification.service");
 const ApiResponse = require("../../shared/utils/ApiResponse");
 const asyncHandler = require("../../shared/utils/asyncHandler");
@@ -191,6 +193,28 @@ const getAllCombined = asyncHandler(async (req, res) => {
     data,
   );
 });
+// Add this to verification.controller.js
+const healthCheck = asyncHandler(async (req, res) => {
+  try {
+    // Test database connection
+    await mainPrisma.$queryRaw`SELECT 1`;
+
+    return ApiResponse.success(res, 200, "Service healthy", {
+      status: "up",
+      timestamp: new Date().toISOString(),
+      service: "verification",
+      database: "connected",
+      version: "1.0.0",
+    });
+  } catch (error) {
+    return res.status(503).json({
+      status: "down",
+      service: "verification",
+      database: "disconnected",
+      error: error.message,
+    });
+  }
+});
 
 module.exports = {
   // Doctors
@@ -211,4 +235,5 @@ module.exports = {
   rejectLab,
   // Combined
   getAllCombined,
+  healthCheck,
 };

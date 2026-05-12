@@ -7,6 +7,7 @@ const {
   listConsultations,
   transitionConsultation,
   getConsultationStats,
+  healthCheck, 
 } = require("./telemedicine.controller");
 
 const limiter = rateLimit({
@@ -17,6 +18,8 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
+
+router.get("/health", healthCheck);
 router.use(authenticate);
 router.use(requireTier("ADMIN"));
 router.use(limiter);

@@ -62,6 +62,11 @@
 │   │       ├── wasm-edge-light-loader.mjs
 │   │       └── wasm-worker-loader.mjs
 │   ├── modules
+│   │   ├── admin-ops
+│   │   │   ├── admin-ops.controller.js
+│   │   │   ├── admin-ops.routes.js
+│   │   │   ├── admin-ops.service.js
+│   │   │   └── index.js
 │   │   ├── admin-users
 │   │   │   ├── admin-users.controller.js
 │   │   │   ├── admin-users.routes.js

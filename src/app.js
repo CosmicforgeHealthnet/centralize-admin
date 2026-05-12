@@ -33,6 +33,7 @@ const notificationsServiceRoutes =
   require("./modules/notifications-service").router;
 const auditServiceRoutes = require("./modules/audit-service").router;
 const usersRoutes = require("./modules/users").router;
+const adminOpsRoutes = require("./modules/admin-ops").router;
 
 const app = express();
 
@@ -121,6 +122,7 @@ app.use("/api/payments", paymentsRoutes);
 app.use("/api/notifications-service", notificationsServiceRoutes);
 app.use("/api/audit-service", auditServiceRoutes);
 app.use("/api/users", usersRoutes);
+app.use("/api/admin/ops", adminOpsRoutes);
 
 
 

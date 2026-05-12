@@ -648,7 +648,8 @@ exports.Prisma.Email_verificationsScalarFieldEnum = {
   expiresAt: 'expiresAt',
   usedAt: 'usedAt',
   createdAt: 'createdAt',
-  userId: 'userId'
+  userId: 'userId',
+  otp: 'otp'
 };
 
 exports.Prisma.Emergency_stepsScalarFieldEnum = {
@@ -870,7 +871,9 @@ exports.Prisma.Lab_facilitiesScalarFieldEnum = {
   updatedAt: 'updatedAt',
   adminUserId: 'adminUserId',
   approvedById: 'approvedById',
-  staffCount: 'staffCount'
+  staffCount: 'staffCount',
+  businessRegistrationUrl: 'businessRegistrationUrl',
+  govIdUrl: 'govIdUrl'
 };
 
 exports.Prisma.Lab_order_itemsScalarFieldEnum = {
@@ -937,7 +940,9 @@ exports.Prisma.Lab_ordersScalarFieldEnum = {
   cancellationReason: 'cancellationReason',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  chatRoomId: 'chatRoomId'
+  chatRoomId: 'chatRoomId',
+  collectorId: 'collectorId',
+  technicianId: 'technicianId'
 };
 
 exports.Prisma.Lab_personnelScalarFieldEnum = {
@@ -957,7 +962,6 @@ exports.Prisma.Lab_personnelScalarFieldEnum = {
   permissions: 'permissions',
   departments: 'departments',
   registrationToken: 'registrationToken',
-  tempPassword: 'tempPassword',
   invitationSentAt: 'invitationSentAt',
   tokenExpiresAt: 'tokenExpiresAt',
   registeredAt: 'registeredAt',
@@ -1052,7 +1056,8 @@ exports.Prisma.Lab_wallet_transactionsScalarFieldEnum = {
   failureReason: 'failureReason',
   retryCount: 'retryCount',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  failedAt: 'failedAt'
 };
 
 exports.Prisma.Lab_walletsScalarFieldEnum = {
@@ -1169,7 +1174,8 @@ exports.Prisma.Password_reset_tokensScalarFieldEnum = {
   expiresAt: 'expiresAt',
   usedAt: 'usedAt',
   createdAt: 'createdAt',
-  userId: 'userId'
+  userId: 'userId',
+  otp: 'otp'
 };
 
 exports.Prisma.Patient_access_logsScalarFieldEnum = {
@@ -1310,7 +1316,8 @@ exports.Prisma.Pharmacy_profilesScalarFieldEnum = {
   updatedAt: 'updatedAt',
   defaultCurrency: 'defaultCurrency',
   serviceRadius: 'serviceRadius',
-  notificationPreferences: 'notificationPreferences'
+  notificationPreferences: 'notificationPreferences',
+  logoUrl: 'logoUrl'
 };
 
 exports.Prisma.Pharmacy_verification_requestsScalarFieldEnum = {
@@ -1362,7 +1369,8 @@ exports.Prisma.PrescriptionsScalarFieldEnum = {
   doctorSignature: 'doctorSignature',
   internalNotes: 'internalNotes',
   currency: 'currency',
-  availabilityStatus: 'availabilityStatus'
+  availabilityStatus: 'availabilityStatus',
+  dispatchedAt: 'dispatchedAt'
 };
 
 exports.Prisma.Professional_certificatesScalarFieldEnum = {
@@ -1686,9 +1694,29 @@ exports.Prisma.UsersScalarFieldEnum = {
   mustChangePassword: 'mustChangePassword',
   lastLoginAt: 'lastLoginAt',
   passwordChangedAt: 'passwordChangedAt',
+  resetPasswordOTP: 'resetPasswordOTP',
+  resetPasswordOTPExpires: 'resetPasswordOTPExpires',
   role: 'role',
   status: 'status',
-  tier: 'tier'
+  tier: 'tier',
+  totalRatings: 'totalRatings',
+  averageRating: 'averageRating',
+  timezoneUpdatedAt: 'timezoneUpdatedAt',
+  lastDetectedTimezone: 'lastDetectedTimezone',
+  timezone: 'timezone',
+  referredBy: 'referredBy',
+  totalReferrals: 'totalReferrals',
+  referralCode: 'referralCode',
+  isOnline: 'isOnline',
+  mfaSecret: 'mfaSecret',
+  mfaEnabled: 'mfaEnabled',
+  providerId: 'providerId',
+  provider: 'provider',
+  departmentSpecialty: 'departmentSpecialty',
+  pharmacyId: 'pharmacyId',
+  country: 'country',
+  bannerUrl: 'bannerUrl',
+  username: 'username'
 };
 
 exports.Prisma.Verification_api_logsScalarFieldEnum = {
@@ -1837,6 +1865,413 @@ exports.Prisma.WalletsScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   doctorProfileId: 'doctorProfileId'
+};
+
+exports.Prisma.Admin_ops_dead_letter_jobsScalarFieldEnum = {
+  id: 'id',
+  jobExecutionId: 'jobExecutionId',
+  jobName: 'jobName',
+  payload: 'payload',
+  errorMessage: 'errorMessage',
+  failedAt: 'failedAt',
+  retryCount: 'retryCount',
+  maxRetries: 'maxRetries',
+  status: 'status',
+  resolvedAt: 'resolvedAt',
+  resolvedBy: 'resolvedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Admin_ops_environment_configsScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  value: 'value',
+  description: 'description',
+  isPublic: 'isPublic',
+  environment: 'environment',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Admin_ops_feature_flagsScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  name: 'name',
+  description: 'description',
+  isEnabled: 'isEnabled',
+  enabledFor: 'enabledFor',
+  rolloutPercentage: 'rolloutPercentage',
+  environment: 'environment',
+  metadata: 'metadata',
+  createdBy: 'createdBy',
+  updatedBy: 'updatedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Admin_ops_health_check_historyScalarFieldEnum = {
+  id: 'id',
+  status: 'status',
+  version: 'version',
+  environment: 'environment',
+  uptime: 'uptime',
+  details: 'details',
+  responseTimeMs: 'responseTimeMs',
+  checkedAt: 'checkedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.Admin_ops_incidentsScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description',
+  severity: 'severity',
+  status: 'status',
+  affectedServices: 'affectedServices',
+  resolvedAt: 'resolvedAt',
+  resolvedBy: 'resolvedBy',
+  createdBy: 'createdBy',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Admin_ops_job_executionsScalarFieldEnum = {
+  id: 'id',
+  jobName: 'jobName',
+  jobType: 'jobType',
+  status: 'status',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  durationMs: 'durationMs',
+  input: 'input',
+  output: 'output',
+  error: 'error',
+  attempts: 'attempts',
+  scheduledAt: 'scheduledAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.Admin_ops_service_registryScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  displayName: 'displayName',
+  baseUrl: 'baseUrl',
+  healthEndpoint: 'healthEndpoint',
+  status: 'status',
+  version: 'version',
+  tags: 'tags',
+  metadata: 'metadata',
+  lastCheckedAt: 'lastCheckedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Admin_ops_system_alertsScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  severity: 'severity',
+  message: 'message',
+  details: 'details',
+  source: 'source',
+  isRead: 'isRead',
+  isResolved: 'isResolved',
+  resolvedAt: 'resolvedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.Admin_ops_webhook_delivery_logsScalarFieldEnum = {
+  id: 'id',
+  webhookEndpointId: 'webhookEndpointId',
+  event: 'event',
+  payload: 'payload',
+  statusCode: 'statusCode',
+  responseBody: 'responseBody',
+  attempt: 'attempt',
+  status: 'status',
+  deliveredAt: 'deliveredAt',
+  error: 'error',
+  provider: 'provider',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.Admin_ops_webhook_endpointsScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  url: 'url',
+  secret: 'secret',
+  events: 'events',
+  isActive: 'isActive',
+  provider: 'provider',
+  headers: 'headers',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Chat_file_attachmentsScalarFieldEnum = {
+  id: 'id',
+  filename: 'filename',
+  originalName: 'originalName',
+  mimeType: 'mimeType',
+  fileSize: 'fileSize',
+  filePath: 'filePath',
+  fileUrl: 'fileUrl',
+  thumbnailPath: 'thumbnailPath',
+  messageId: 'messageId',
+  uploadedById: 'uploadedById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Chat_message_reactionsScalarFieldEnum = {
+  id: 'id',
+  emoji: 'emoji',
+  messageId: 'messageId',
+  userId: 'userId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.Data_lineageScalarFieldEnum = {
+  id: 'id',
+  source_id: 'source_id',
+  source_type: 'source_type',
+  source_location: 'source_location',
+  destination_id: 'destination_id',
+  destination_type: 'destination_type',
+  destination_location: 'destination_location',
+  transformation_type: 'transformation_type',
+  transformation_rules: 'transformation_rules',
+  algorithm_used: 'algorithm_used',
+  data_quality_score: 'data_quality_score',
+  quality_metrics: 'quality_metrics',
+  privacy_level: 'privacy_level',
+  anonymization_level: 'anonymization_level',
+  privacy_budget_used: 'privacy_budget_used',
+  transformed_by: 'transformed_by',
+  transformed_at: 'transformed_at',
+  purpose_of_transformation: 'purpose_of_transformation',
+  compliance_checks: 'compliance_checks',
+  retention_policy: 'retention_policy',
+  metadata: 'metadata'
+};
+
+exports.Prisma.Emergency_contactsScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  phone: 'phone',
+  relation: 'relation',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.HospitalsScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  address: 'address',
+  phone: 'phone',
+  email: 'email',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.Invoice_line_itemsScalarFieldEnum = {
+  id: 'id',
+  invoiceId: 'invoiceId',
+  medicationName: 'medicationName',
+  dosage: 'dosage',
+  quantity: 'quantity',
+  unitPriceUsd: 'unitPriceUsd',
+  subtotalUsd: 'subtotalUsd',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.InvoicesScalarFieldEnum = {
+  id: 'id',
+  reference: 'reference',
+  prescriptionId: 'prescriptionId',
+  pharmacyId: 'pharmacyId',
+  patientId: 'patientId',
+  subtotalUsd: 'subtotalUsd',
+  deliveryFeeUsd: 'deliveryFeeUsd',
+  totalAmountUsd: 'totalAmountUsd',
+  displayCurrency: 'displayCurrency',
+  exchangeRateToUsd: 'exchangeRateToUsd',
+  paymentMethod: 'paymentMethod',
+  status: 'status',
+  paidAt: 'paidAt',
+  dueAt: 'dueAt',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Patient_risk_assessmentsScalarFieldEnum = {
+  id: 'id',
+  assessmentType: 'assessmentType',
+  riskScore: 'riskScore',
+  riskLevel: 'riskLevel',
+  contributingFactors: 'contributingFactors',
+  aiModelVersion: 'aiModelVersion',
+  patient_id: 'patient_id',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.Patient_wallet_transactionsScalarFieldEnum = {
+  id: 'id',
+  walletId: 'walletId',
+  type: 'type',
+  status: 'status',
+  category: 'category',
+  amountUsd: 'amountUsd',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  patientId: 'patientId',
+  balanceAfterUsd: 'balanceAfterUsd',
+  invoiceId: 'invoiceId',
+  description: 'description',
+  reference: 'reference',
+  authorizationUrl: 'authorizationUrl',
+  provider: 'provider'
+};
+
+exports.Prisma.Patient_walletsScalarFieldEnum = {
+  id: 'id',
+  patientId: 'patientId',
+  balanceUsd: 'balanceUsd',
+  totalSpentUsd: 'totalSpentUsd',
+  totalTopUpsUsd: 'totalTopUpsUsd',
+  preferredDisplayCurrency: 'preferredDisplayCurrency',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Pharmacy_bank_accountsScalarFieldEnum = {
+  id: 'id',
+  pharmacyId: 'pharmacyId',
+  walletId: 'walletId',
+  bankName: 'bankName',
+  accountNumber: 'accountNumber',
+  accountName: 'accountName',
+  bankCode: 'bankCode',
+  recipientCode: 'recipientCode',
+  isDefault: 'isDefault',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Pharmacy_disputesScalarFieldEnum = {
+  id: 'id',
+  invoiceId: 'invoiceId',
+  pharmacyId: 'pharmacyId',
+  patientId: 'patientId',
+  amountUsd: 'amountUsd',
+  status: 'status',
+  resolution: 'resolution',
+  reason: 'reason',
+  description: 'description',
+  raisedBy: 'raisedBy',
+  pharmacyResponse: 'pharmacyResponse',
+  pharmacyResponseAt: 'pharmacyResponseAt',
+  resolvedAt: 'resolvedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Pharmacy_paymentsScalarFieldEnum = {
+  id: 'id',
+  invoiceId: 'invoiceId',
+  patientId: 'patientId',
+  pharmacyId: 'pharmacyId',
+  reference: 'reference',
+  amountLocal: 'amountLocal',
+  currency: 'currency',
+  exchangeRate: 'exchangeRate',
+  amountUsd: 'amountUsd',
+  status: 'status',
+  provider: 'provider',
+  authorizationUrl: 'authorizationUrl',
+  providerReference: 'providerReference',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Pharmacy_payout_requestsScalarFieldEnum = {
+  id: 'id',
+  pharmacyId: 'pharmacyId',
+  walletId: 'walletId',
+  bankAccountId: 'bankAccountId',
+  amountUsd: 'amountUsd',
+  status: 'status',
+  reference: 'reference',
+  transferCode: 'transferCode',
+  note: 'note',
+  failureReason: 'failureReason',
+  requestedAt: 'requestedAt',
+  processedAt: 'processedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Pharmacy_wallet_transactionsScalarFieldEnum = {
+  id: 'id',
+  walletId: 'walletId',
+  pharmacyId: 'pharmacyId',
+  type: 'type',
+  status: 'status',
+  category: 'category',
+  amountUsd: 'amountUsd',
+  balanceAfterUsd: 'balanceAfterUsd',
+  description: 'description',
+  reference: 'reference',
+  invoiceId: 'invoiceId',
+  invoiceRef: 'invoiceRef',
+  patientId: 'patientId',
+  prescriptionId: 'prescriptionId',
+  payoutRequestId: 'payoutRequestId',
+  settledAt: 'settledAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Pharmacy_walletsScalarFieldEnum = {
+  id: 'id',
+  pharmacyId: 'pharmacyId',
+  availableBalanceUsd: 'availableBalanceUsd',
+  pendingClearanceUsd: 'pendingClearanceUsd',
+  totalEarningsUsd: 'totalEarningsUsd',
+  preferredDisplayCurrency: 'preferredDisplayCurrency',
+  isActive: 'isActive',
+  isFrozen: 'isFrozen',
+  frozenReason: 'frozenReason',
+  lastPayoutAt: 'lastPayoutAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Search_logsScalarFieldEnum = {
+  id: 'id',
+  query: 'query',
+  userRole: 'userRole',
+  resultsCount: 'resultsCount',
+  searchTime: 'searchTime',
+  timestamp: 'timestamp',
+  sessionFingerprint: 'sessionFingerprint'
+};
+
+exports.Prisma.Sos_eventsScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  location: 'location',
+  status: 'status',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
 };
 
 exports.Prisma.SortOrder = {
@@ -2238,16 +2673,6 @@ exports.lab_facilities_status_enum = exports.$Enums.lab_facilities_status_enum =
   suspended: 'suspended'
 };
 
-exports.lab_orders_ordertype_enum = exports.$Enums.lab_orders_ordertype_enum = {
-  lab_visit: 'lab_visit',
-  home_collection: 'home_collection'
-};
-
-exports.lab_orders_servicetype_enum = exports.$Enums.lab_orders_servicetype_enum = {
-  lab_visit: 'lab_visit',
-  home_collection: 'home_collection'
-};
-
 exports.lab_orders_status_enum = exports.$Enums.lab_orders_status_enum = {
   created: 'created',
   pending_payment: 'pending_payment',
@@ -2399,13 +2824,6 @@ exports.pharmacy_documents_submissionstatus_enum = exports.$Enums.pharmacy_docum
   resubmission_required: 'resubmission_required'
 };
 
-exports.pharmacy_pricing_feetype_enum = exports.$Enums.pharmacy_pricing_feetype_enum = {
-  delivery: 'delivery',
-  consultation: 'consultation',
-  handling: 'handling',
-  processing: 'processing'
-};
-
 exports.pharmacy_profiles_verificationstatus_enum = exports.$Enums.pharmacy_profiles_verificationstatus_enum = {
   pending: 'pending',
   documents_required: 'documents_required',
@@ -2441,8 +2859,11 @@ exports.prescriptions_status_enum = exports.$Enums.prescriptions_status_enum = {
   patient_uploaded: 'patient_uploaded',
   pharmacy_assigned: 'pharmacy_assigned',
   pharmacy_processing: 'pharmacy_processing',
+  under_review: 'under_review',
+  awaiting_payment: 'awaiting_payment',
+  in_progress: 'in_progress',
   ready_for_pickup: 'ready_for_pickup',
-  ready_for_delivery: 'ready_for_delivery',
+  out_for_delivery: 'out_for_delivery',
   completed: 'completed',
   cancelled: 'cancelled'
 };
@@ -2684,7 +3105,8 @@ exports.verification_api_logs_provider_enum = exports.$Enums.verification_api_lo
   ecfmg: 'ecfmg',
   surepass: 'surepass',
   idfy: 'idfy',
-  custom: 'custom'
+  custom: 'custom',
+  system: 'system'
 };
 
 exports.verification_documents_documenttype_enum = exports.$Enums.verification_documents_documenttype_enum = {
@@ -2743,6 +3165,172 @@ exports.wallet_withdrawals_status_enum = exports.$Enums.wallet_withdrawals_statu
   failed: 'failed',
   cancelled: 'cancelled',
   pending_otp: 'pending_otp'
+};
+
+exports.admin_ops_dead_letter_status_enum = exports.$Enums.admin_ops_dead_letter_status_enum = {
+  pending_retry: 'pending_retry',
+  exhausted: 'exhausted',
+  manually_resolved: 'manually_resolved'
+};
+
+exports.admin_ops_incident_severity_enum = exports.$Enums.admin_ops_incident_severity_enum = {
+  critical: 'critical',
+  high: 'high',
+  medium: 'medium',
+  low: 'low'
+};
+
+exports.admin_ops_incident_status_enum = exports.$Enums.admin_ops_incident_status_enum = {
+  open: 'open',
+  investigating: 'investigating',
+  identified: 'identified',
+  monitoring: 'monitoring',
+  resolved: 'resolved',
+  closed: 'closed'
+};
+
+exports.admin_ops_job_type_enum = exports.$Enums.admin_ops_job_type_enum = {
+  cron: 'cron',
+  background: 'background',
+  scheduled: 'scheduled',
+  manual: 'manual'
+};
+
+exports.admin_ops_job_status_enum = exports.$Enums.admin_ops_job_status_enum = {
+  pending: 'pending',
+  running: 'running',
+  completed: 'completed',
+  failed: 'failed',
+  dead_letter: 'dead_letter'
+};
+
+exports.admin_ops_service_status_enum = exports.$Enums.admin_ops_service_status_enum = {
+  up: 'up',
+  down: 'down',
+  degraded: 'degraded',
+  unknown: 'unknown'
+};
+
+exports.admin_ops_alert_type_enum = exports.$Enums.admin_ops_alert_type_enum = {
+  job_failure: 'job_failure',
+  health_degraded: 'health_degraded',
+  dead_letter: 'dead_letter',
+  webhook_failure: 'webhook_failure',
+  custom: 'custom'
+};
+
+exports.admin_ops_alert_severity_enum = exports.$Enums.admin_ops_alert_severity_enum = {
+  critical: 'critical',
+  warning: 'warning',
+  info: 'info'
+};
+
+exports.admin_ops_webhook_delivery_status_enum = exports.$Enums.admin_ops_webhook_delivery_status_enum = {
+  success: 'success',
+  failed: 'failed',
+  pending: 'pending'
+};
+
+exports.invoices_paymentmethod_enum = exports.$Enums.invoices_paymentmethod_enum = {
+  online: 'online',
+  pay_on_pickup: 'pay_on_pickup'
+};
+
+exports.invoices_status_enum = exports.$Enums.invoices_status_enum = {
+  draft: 'draft',
+  sent: 'sent',
+  viewed: 'viewed',
+  awaiting_payment: 'awaiting_payment',
+  paid: 'paid',
+  overdue: 'overdue',
+  cancelled: 'cancelled'
+};
+
+exports.patient_wallet_transactions_type_enum = exports.$Enums.patient_wallet_transactions_type_enum = {
+  credit: 'credit',
+  debit: 'debit'
+};
+
+exports.patient_wallet_transactions_status_enum = exports.$Enums.patient_wallet_transactions_status_enum = {
+  pending: 'pending',
+  completed: 'completed',
+  failed: 'failed'
+};
+
+exports.patient_wallet_transactions_category_enum = exports.$Enums.patient_wallet_transactions_category_enum = {
+  payment: 'payment',
+  top_up: 'top_up',
+  refund: 'refund',
+  adjustment: 'adjustment'
+};
+
+exports.pharmacy_disputes_status_enum = exports.$Enums.pharmacy_disputes_status_enum = {
+  open: 'open',
+  under_review: 'under_review',
+  resolved: 'resolved',
+  escalated: 'escalated',
+  closed: 'closed'
+};
+
+exports.pharmacy_disputes_resolution_enum = exports.$Enums.pharmacy_disputes_resolution_enum = {
+  pharmacy_favour: 'pharmacy_favour',
+  patient_favour: 'patient_favour',
+  split: 'split',
+  pending: 'pending'
+};
+
+exports.pharmacy_disputes_raisedby_enum = exports.$Enums.pharmacy_disputes_raisedby_enum = {
+  patient: 'patient',
+  pharmacy: 'pharmacy'
+};
+
+exports.pharmacy_payments_status_enum = exports.$Enums.pharmacy_payments_status_enum = {
+  pending: 'pending',
+  success: 'success',
+  failed: 'failed'
+};
+
+exports.pharmacy_payments_provider_enum = exports.$Enums.pharmacy_payments_provider_enum = {
+  paystack: 'paystack',
+  flutterwave: 'flutterwave'
+};
+
+exports.pharmacy_payout_requests_status_enum = exports.$Enums.pharmacy_payout_requests_status_enum = {
+  pending: 'pending',
+  processing: 'processing',
+  completed: 'completed',
+  failed: 'failed',
+  cancelled: 'cancelled'
+};
+
+exports.pharmacy_wallet_transactions_type_enum = exports.$Enums.pharmacy_wallet_transactions_type_enum = {
+  credit: 'credit',
+  debit: 'debit'
+};
+
+exports.pharmacy_wallet_transactions_status_enum = exports.$Enums.pharmacy_wallet_transactions_status_enum = {
+  completed: 'completed',
+  pending: 'pending',
+  processing: 'processing',
+  failed: 'failed',
+  reversed: 'reversed'
+};
+
+exports.pharmacy_wallet_transactions_category_enum = exports.$Enums.pharmacy_wallet_transactions_category_enum = {
+  invoice_payment: 'invoice_payment',
+  payout: 'payout',
+  refund: 'refund',
+  dispute_reversal: 'dispute_reversal',
+  adjustment: 'adjustment'
+};
+
+exports.search_logs_userrole_enum = exports.$Enums.search_logs_userrole_enum = {
+  patient: 'patient',
+  doctor: 'doctor',
+  pharmacy: 'pharmacy',
+  lab: 'lab',
+  admin: 'admin',
+  super_admin: 'super_admin'
 };
 
 exports.Prisma.ModelName = {
@@ -2841,7 +3429,35 @@ exports.Prisma.ModelName = {
   verification_review_queue: 'verification_review_queue',
   verification_status_history: 'verification_status_history',
   wallet_withdrawals: 'wallet_withdrawals',
-  wallets: 'wallets'
+  wallets: 'wallets',
+  admin_ops_dead_letter_jobs: 'admin_ops_dead_letter_jobs',
+  admin_ops_environment_configs: 'admin_ops_environment_configs',
+  admin_ops_feature_flags: 'admin_ops_feature_flags',
+  admin_ops_health_check_history: 'admin_ops_health_check_history',
+  admin_ops_incidents: 'admin_ops_incidents',
+  admin_ops_job_executions: 'admin_ops_job_executions',
+  admin_ops_service_registry: 'admin_ops_service_registry',
+  admin_ops_system_alerts: 'admin_ops_system_alerts',
+  admin_ops_webhook_delivery_logs: 'admin_ops_webhook_delivery_logs',
+  admin_ops_webhook_endpoints: 'admin_ops_webhook_endpoints',
+  chat_file_attachments: 'chat_file_attachments',
+  chat_message_reactions: 'chat_message_reactions',
+  data_lineage: 'data_lineage',
+  emergency_contacts: 'emergency_contacts',
+  hospitals: 'hospitals',
+  invoice_line_items: 'invoice_line_items',
+  invoices: 'invoices',
+  patient_risk_assessments: 'patient_risk_assessments',
+  patient_wallet_transactions: 'patient_wallet_transactions',
+  patient_wallets: 'patient_wallets',
+  pharmacy_bank_accounts: 'pharmacy_bank_accounts',
+  pharmacy_disputes: 'pharmacy_disputes',
+  pharmacy_payments: 'pharmacy_payments',
+  pharmacy_payout_requests: 'pharmacy_payout_requests',
+  pharmacy_wallet_transactions: 'pharmacy_wallet_transactions',
+  pharmacy_wallets: 'pharmacy_wallets',
+  search_logs: 'search_logs',
+  sos_events: 'sos_events'
 };
 
 /**

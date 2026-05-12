@@ -8,6 +8,7 @@ const {
   transitionPayment,
   getPaymentStats,
   flagTransaction,
+  healthCheck, 
 } = require("./payments.controller");
 
 const limiter = rateLimit({
@@ -18,6 +19,10 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
+
+router.get("/health", healthCheck);
+
+// These routes require authentication
 router.use(authenticate);
 router.use(requireTier("ADMIN"));
 router.use(limiter);

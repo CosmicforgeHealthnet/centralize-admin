@@ -4,6 +4,10 @@ const { authenticate } = require("../../shared/middlewares/auth.middleware");
 const { requireTier } = require("../../shared/middlewares/rbac.middleware");
 const controller = require("./verification.controller");
 
+
+// GET /api/verification/health
+router.get("/health", controller.healthCheck);
+
 // All verification routes require authentication
 router.use(authenticate);
 
