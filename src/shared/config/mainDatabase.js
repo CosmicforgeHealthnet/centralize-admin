@@ -16,7 +16,7 @@ const getConnectionString = () => {
 
 const adapter = new PrismaPg({
   connectionString: getConnectionString(),
-  max: 10,
+  max: 2,
   idleTimeoutMillis: 300000,
   connectionTimeoutMillis: 30000,
 });
