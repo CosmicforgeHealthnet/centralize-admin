@@ -25,22 +25,28 @@ const changePasswordSchema = z
     path: ["confirmPassword"],
   });
 
-// FIX #10: Removed .uuid() constraint. The client sends the plaintext token
-// (which may not be UUID format depending on generateRefreshToken's implementation).
-// The service hashes it before any DB lookup, so format validation here
-// would reject valid tokens if the generator ever changes format.
-// We only require it to be a non-empty string.
 const refreshTokenSchema = z.object({
   refreshToken: z.string().min(1, "Refresh token is required"),
+});
+
+const requestPasswordResetSchema = z.object({
+  name: z.string().min(1, "Full name is required"),
+  email: z.string().email("Invalid email address"),
+  position: z.string().optional(),
+});
+
+const approveRejectPasswordResetSchema = z.object({
+  targetUserId: z.string().min(1, "Target user ID is required"),
+  reason: z.string().optional(),
 });
 
 const validate = (schema) => (req, res, next) => {
   const result = schema.safeParse(req.body);
   if (!result.success) {
-    const errors = result.error.errors.map((e) => ({
-      field: e.path.join("."),
-      message: e.message,
-    }));
+  const errors = result.error.issues.map((e) => ({
+    field: e.path.join("."),
+    message: e.message,
+  }));
     return res
       .status(400)
       .json({ success: false, message: "Validation failed", errors });
@@ -53,5 +59,7 @@ module.exports = {
   loginSchema,
   changePasswordSchema,
   refreshTokenSchema,
+  requestPasswordResetSchema,
+  approveRejectPasswordResetSchema,
   validate,
 };

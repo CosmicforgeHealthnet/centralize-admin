@@ -10,11 +10,11 @@ const {
 const {
   loginSchema,
   changePasswordSchema,
+  requestPasswordResetSchema,
+  approveRejectPasswordResetSchema,
   validate,
 } = require("./auth.validator");
 
-// Reads refreshToken from HttpOnly cookie instead of request body
-// Reads refreshToken from HttpOnly cookie instead of request body
 const extractRefreshTokenFromCookie = (req, res, next) => {
   const token = req.cookies?.refreshToken;
   if (!token) {
@@ -23,21 +23,27 @@ const extractRefreshTokenFromCookie = (req, res, next) => {
       message: "Refresh token missing",
     });
   }
-  req.body = req.body || {}; // ← add this line
+  req.body = req.body || {};
   req.body.refreshToken = token;
   next();
 };
 
-// Public routes
+// ── Public routes ────────────────────────────────────────────────
 router.post("/login", authLimiter, validate(loginSchema), controller.login);
 router.post(
   "/refresh-token",
   authLimiter,
-  extractRefreshTokenFromCookie, // ← replaced validate(refreshTokenSchema)
+  extractRefreshTokenFromCookie,
   controller.refreshToken,
 );
+router.post(
+  "/request-password-reset",
+  passwordResetLimiter,
+  validate(requestPasswordResetSchema),
+  controller.requestPasswordReset,
+);
 
-// Google OAuth routes
+// ── Google OAuth routes ──────────────────────────────────────────
 router.get(
   "/google",
   passport.authenticate("google", {
@@ -45,14 +51,13 @@ router.get(
     scope: ["profile", "email"],
   }),
 );
-
 router.get(
   "/google/callback",
   passport.authenticate("google", { session: false, failWithError: true }),
   controller.googleCallback,
 );
 
-// Protected routes
+// ── Protected routes ─────────────────────────────────────────────
 router.post("/logout", controller.logout);
 router.post(
   "/change-password",
@@ -61,5 +66,24 @@ router.post(
   controller.changePassword,
 );
 router.get("/me", authenticate, controller.getMe);
+
+// ── HR Admin — password reset management ────────────────────────
+router.get(
+  "/pending-reset-requests",
+  authenticate,
+  controller.getPendingResetRequests,
+);
+router.post(
+  "/approve-password-reset",
+  authenticate,
+  validate(approveRejectPasswordResetSchema),
+  controller.approvePasswordReset,
+);
+router.post(
+  "/reject-password-reset",
+  authenticate,
+  validate(approveRejectPasswordResetSchema),
+  controller.rejectPasswordReset,
+);
 
 module.exports = router;

@@ -31,7 +31,8 @@
 │   │   └── migration_lock.toml
 │   ├── seeds
 │   │   ├── admin.seed.js
-│   │   └── prod.seed.js
+│   │   ├── prod.seed.js
+│   │   └── staging.seed.js
 │   ├── main.schema.prisma
 │   └── schema.prisma
 ├── scripts

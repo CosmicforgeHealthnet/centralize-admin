@@ -887,7 +887,7 @@ class VerificationService {
               id: doc.document_files.id,
               name: doc.document_files.original_file_name,
               path: doc.document_files.file_path,
-              size: doc.document_files.file_size,
+              size: Number(doc.document_files.file_size),
               mimeType: doc.document_files.mime_type,
             }
           : null,

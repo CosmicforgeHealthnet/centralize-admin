@@ -28,11 +28,7 @@ const login = asyncHandler(async (req, res) => {
     userAgent: req.headers["user-agent"],
   });
 
-  res.cookie(
-    REFRESH_TOKEN_COOKIE,
-    result.refreshToken,
-    refreshTokenCookieOptions,
-  );
+  res.cookie(REFRESH_TOKEN_COOKIE, result.refreshToken, refreshTokenCookieOptions);
   res.cookie("isLoggedIn", "true", isLoggedInCookieOptions);
 
   return ApiResponse.success(res, 200, "Login successful", {
@@ -51,11 +47,7 @@ const googleCallback = asyncHandler(async (req, res) => {
     userAgent: req.headers["user-agent"],
   });
 
-  res.cookie(
-    REFRESH_TOKEN_COOKIE,
-    result.refreshToken,
-    refreshTokenCookieOptions,
-  );
+  res.cookie(REFRESH_TOKEN_COOKIE, result.refreshToken, refreshTokenCookieOptions);
   res.cookie("isLoggedIn", "true", isLoggedInCookieOptions);
 
   const frontendURL = process.env.CORS_ORIGINS.split(",")[0].trim();
@@ -77,11 +69,7 @@ const refreshToken = asyncHandler(async (req, res) => {
     userAgent: req.headers["user-agent"],
   });
 
-  res.cookie(
-    REFRESH_TOKEN_COOKIE,
-    result.refreshToken,
-    refreshTokenCookieOptions,
-  );
+  res.cookie(REFRESH_TOKEN_COOKIE, result.refreshToken, refreshTokenCookieOptions);
   res.cookie("isLoggedIn", "true", isLoggedInCookieOptions);
 
   return ApiResponse.success(res, 200, "Token refreshed", {
@@ -93,10 +81,7 @@ const logout = asyncHandler(async (req, res) => {
   const token = req.cookies?.[REFRESH_TOKEN_COOKIE];
 
   if (token) {
-    await authService.logout({
-      refreshToken: token,
-      req,
-    });
+    await authService.logout({ refreshToken: token, req });
   }
 
   res.clearCookie(REFRESH_TOKEN_COOKIE, {
@@ -145,6 +130,63 @@ const getMe = asyncHandler(async (req, res) => {
   return ApiResponse.success(res, 200, "User profile", req.adminUser);
 });
 
+// ─────────────────────────────────────────────────────────────
+// PASSWORD RESET
+// ─────────────────────────────────────────────────────────────
+
+const requestPasswordReset = asyncHandler(async (req, res) => {
+  const { name, email, position } = req.body;
+
+  await authService.requestPasswordReset({ name, email, position, req });
+
+  // Always return success — don't reveal if email exists
+  return ApiResponse.success(
+    res,
+    200,
+    "If your details match our records, your request has been sent to HR for approval. You will receive an email once approved.",
+  );
+});
+
+const approvePasswordReset = asyncHandler(async (req, res) => {
+  const { targetUserId } = req.body;
+
+  await authService.approvePasswordReset({
+    targetUserId,
+    approvedBy: req.adminUser.id,
+    req,
+  });
+
+  return ApiResponse.success(
+    res,
+    200,
+    "Password reset approved. Temporary password sent to user's email.",
+  );
+});
+
+const rejectPasswordReset = asyncHandler(async (req, res) => {
+  const { targetUserId, reason } = req.body;
+
+  await authService.rejectPasswordReset({
+    targetUserId,
+    approvedBy: req.adminUser.id,
+    reason,
+    req,
+  });
+
+  return ApiResponse.success(res, 200, "Password reset request rejected.");
+});
+
+const getPendingResetRequests = asyncHandler(async (req, res) => {
+  const requests = await authService.getPendingResetRequests();
+
+  return ApiResponse.success(
+    res,
+    200,
+    "Pending password reset requests",
+    requests,
+  );
+});
+
 module.exports = {
   login,
   googleCallback,
@@ -152,4 +194,8 @@ module.exports = {
   logout,
   changePassword,
   getMe,
+  requestPasswordReset,
+  approvePasswordReset,
+  rejectPasswordReset,
+  getPendingResetRequests,
 };
