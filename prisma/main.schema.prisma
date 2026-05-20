@@ -36,7 +36,7 @@ model admin_ops_dead_letter_jobs {
   retryCount     Int                               @default(0)
   maxRetries     Int                               @default(3)
   status         admin_ops_dead_letter_status_enum @default(pending_retry)
-  resolvedAt     DateTime? idx_analytics_events_created                        @db.Timestamp(6)
+  resolvedAt     DateTime?                        @db.Timestamp(6)
   resolvedBy     String?                           @db.Uuid
   createdAt      DateTime                          @default(now()) @db.Timestamp(6)
   updatedAt      DateTime                          @default(now()) @db.Timestamp(6)
@@ -1426,6 +1426,8 @@ model lab_facilities {
   updatedAt                  DateTime                          @default(now()) @db.Timestamp(6)
   adminUserId                String?                           @db.Uuid
   approvedById               String?                           @db.Uuid
+  users_lab_facilities_adminUserIdTousers   users?  @relation("lab_facilities_adminUserIdTousers", fields: [adminUserId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+users_lab_facilities_approvedByIdTousers  users?  @relation("lab_facilities_approvedByIdTousers", fields: [approvedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
   registrationStep           Int                               @default(1)
   registrationCompleted      Boolean                           @default(false)
   registrationTokenHash      String?                           @db.VarChar(255)
@@ -2904,6 +2906,8 @@ model users {
   lab_wallet_topups                                                               lab_wallet_topups[]
   lab_wallet_transactions                                                         lab_wallet_transactions[]
   lab_wallets                                                                     lab_wallets[]
+  lab_facilities_lab_facilities_adminUserIdTousers   lab_facilities[]  @relation("lab_facilities_adminUserIdTousers")
+lab_facilities_lab_facilities_approvedByIdTousers  lab_facilities[]  @relation("lab_facilities_approvedByIdTousers")
   magic_link_tokens                                                               magic_link_tokens[]
   notification                                                                    notification[]
   password_reset_tokens                                                           password_reset_tokens[]

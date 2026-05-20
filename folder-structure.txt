@@ -74,6 +74,11 @@
 │   │   │   ├── admin-users.service.js
 │   │   │   ├── admin-users.validator.js
 │   │   │   └── index.js
+│   │   ├── analytics
+│   │   │   ├── analytics.controller.js
+│   │   │   ├── analytics.routes.js
+│   │   │   ├── analytics.service.js
+│   │   │   └── index.js
 │   │   ├── appointments
 │   │   │   ├── appointments.controller.js
 │   │   │   ├── appointments.routes.js
@@ -157,6 +162,7 @@
 │   │   │   ├── cloudinary.js
 │   │   │   ├── database.js
 │   │   │   ├── google.strategy.js
+│   │   │   ├── mailer.js
 │   │   │   └── mainDatabase.js
 │   │   ├── events
 │   │   │   ├── bootstrap.js
@@ -178,6 +184,7 @@
 │   │       ├── ApiError.js
 │   │       ├── ApiResponse.js
 │   │       ├── asyncHandler.js
+│   │       ├── email.util.js
 │   │       ├── index.js
 │   │       ├── jwt.util.js
 │   │       ├── logger.js

@@ -1394,51 +1394,53 @@ model invoices {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model lab_facilities {
-  id                         String                            @id(map: "PK_5c77fb661b6aff36729862b5db0") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  facilityName               String?                           @db.VarChar(255)
-  facilityType               lab_facilities_facilitytype_enum?
-  registrationNumber         String?                           @unique(map: "UQ_2570320761162aaaee45fb0908d") @db.VarChar(100)
-  licenseNumber              String?                           @unique(map: "UQ_427be3b9adc7a32684194854918") @db.VarChar(100)
-  email                      String?                           @unique(map: "UQ_479351502d1e1605bfbc07b27b7") @db.VarChar(255)
-  phone                      String?                           @db.VarChar(20)
-  website                    String?                           @db.VarChar(255)
-  address                    String?
-  city                       String?                           @db.VarChar(100)
-  state                      String?                           @db.VarChar(100)
-  country                    String?                           @db.VarChar(100)
-  postalCode                 String?                           @db.VarChar(20)
-  adminFullName              String                            @db.VarChar(255)
-  adminEmail                 String                            @db.VarChar(255)
-  adminPhone                 String?                           @db.VarChar(20)
-  operatingHours             Json?                             @db.Json
-  servicesOffered            Json?                             @db.Json
-  equipmentList              Json?                             @db.Json
-  status                     lab_facilities_status_enum        @default(pending_approval)
-  licenseDocument            String?                           @db.VarChar(500)
-  registrationDocument       String?                           @db.VarChar(500)
-  accreditationDocument      String?                           @db.VarChar(500)
-  approvedAt                 DateTime?                         @db.Timestamp(6)
-  rejectedAt                 DateTime?                         @db.Timestamp(6)
-  rejectionReason            String?
-  adminUserCreated           Boolean                           @default(false)
-  adminInvitationSent        Boolean                           @default(false)
-  createdAt                  DateTime                          @default(now()) @db.Timestamp(6)
-  updatedAt                  DateTime                          @default(now()) @db.Timestamp(6)
-  adminUserId                String?                           @db.Uuid
-  approvedById               String?                           @db.Uuid
-  registrationStep           Int                               @default(1)
-  registrationCompleted      Boolean                           @default(false)
-  registrationTokenHash      String?                           @db.VarChar(255)
-  registrationTokenExpiresAt DateTime?                         @db.Timestamp(6)
-  latitude                   Float?
-  longitude                  Float?
-  businessRegistrationUrl    String?                           @db.VarChar(500)
-  govIdUrl                   String?                           @db.VarChar(500)
-  audit_logs                 audit_logs[]
-  lab_personnel              lab_personnel[]
-  lab_test_catalog           lab_test_catalog[]
-  lab_test_requests          lab_test_requests[]
-  lab_wallets                lab_wallets?
+  id                                       String                            @id(map: "PK_5c77fb661b6aff36729862b5db0") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  facilityName                             String?                           @db.VarChar(255)
+  facilityType                             lab_facilities_facilitytype_enum?
+  registrationNumber                       String?                           @unique(map: "UQ_2570320761162aaaee45fb0908d") @db.VarChar(100)
+  licenseNumber                            String?                           @unique(map: "UQ_427be3b9adc7a32684194854918") @db.VarChar(100)
+  email                                    String?                           @unique(map: "UQ_479351502d1e1605bfbc07b27b7") @db.VarChar(255)
+  phone                                    String?                           @db.VarChar(20)
+  website                                  String?                           @db.VarChar(255)
+  address                                  String?
+  city                                     String?                           @db.VarChar(100)
+  state                                    String?                           @db.VarChar(100)
+  country                                  String?                           @db.VarChar(100)
+  postalCode                               String?                           @db.VarChar(20)
+  adminFullName                            String                            @db.VarChar(255)
+  adminEmail                               String                            @db.VarChar(255)
+  adminPhone                               String?                           @db.VarChar(20)
+  operatingHours                           Json?                             @db.Json
+  servicesOffered                          Json?                             @db.Json
+  equipmentList                            Json?                             @db.Json
+  status                                   lab_facilities_status_enum        @default(pending_approval)
+  licenseDocument                          String?                           @db.VarChar(500)
+  registrationDocument                     String?                           @db.VarChar(500)
+  accreditationDocument                    String?                           @db.VarChar(500)
+  approvedAt                               DateTime?                         @db.Timestamp(6)
+  rejectedAt                               DateTime?                         @db.Timestamp(6)
+  rejectionReason                          String?
+  adminUserCreated                         Boolean                           @default(false)
+  adminInvitationSent                      Boolean                           @default(false)
+  createdAt                                DateTime                          @default(now()) @db.Timestamp(6)
+  updatedAt                                DateTime                          @default(now()) @db.Timestamp(6)
+  adminUserId                              String?                           @db.Uuid
+  approvedById                             String?                           @db.Uuid
+  users_lab_facilities_adminUserIdTousers  users?                            @relation("lab_facilities_adminUserIdTousers", fields: [adminUserId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_lab_facilities_approvedByIdTousers users?                            @relation("lab_facilities_approvedByIdTousers", fields: [approvedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  registrationStep                         Int                               @default(1)
+  registrationCompleted                    Boolean                           @default(false)
+  registrationTokenHash                    String?                           @db.VarChar(255)
+  registrationTokenExpiresAt               DateTime?                         @db.Timestamp(6)
+  latitude                                 Float?
+  longitude                                Float?
+  businessRegistrationUrl                  String?                           @db.VarChar(500)
+  govIdUrl                                 String?                           @db.VarChar(500)
+  audit_logs                               audit_logs[]
+  lab_personnel                            lab_personnel[]
+  lab_test_catalog                         lab_test_catalog[]
+  lab_test_requests                        lab_test_requests[]
+  lab_wallets                              lab_wallets?
 
   @@index([facilityName], map: "IDX_046c8761c3ba50f2ecfc2acce9")
   @@index([createdAt], map: "IDX_2a6bfdf651a28e15ffdd534cba")
@@ -2904,6 +2906,8 @@ model users {
   lab_wallet_topups                                                               lab_wallet_topups[]
   lab_wallet_transactions                                                         lab_wallet_transactions[]
   lab_wallets                                                                     lab_wallets[]
+  lab_facilities_lab_facilities_adminUserIdTousers                                lab_facilities[]                 @relation("lab_facilities_adminUserIdTousers")
+  lab_facilities_lab_facilities_approvedByIdTousers                               lab_facilities[]                 @relation("lab_facilities_approvedByIdTousers")
   magic_link_tokens                                                               magic_link_tokens[]
   notification                                                                    notification[]
   password_reset_tokens                                                           password_reset_tokens[]

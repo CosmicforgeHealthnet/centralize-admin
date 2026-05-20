@@ -16233,6 +16233,8 @@ export namespace Prisma {
     lab_wallet_topups: number
     lab_wallet_transactions: number
     lab_wallets: number
+    lab_facilities_lab_facilities_adminUserIdTousers: number
+    lab_facilities_lab_facilities_approvedByIdTousers: number
     magic_link_tokens: number
     notification: number
     password_reset_tokens: number
@@ -16322,6 +16324,8 @@ export namespace Prisma {
     lab_wallet_topups?: boolean | UsersCountOutputTypeCountLab_wallet_topupsArgs
     lab_wallet_transactions?: boolean | UsersCountOutputTypeCountLab_wallet_transactionsArgs
     lab_wallets?: boolean | UsersCountOutputTypeCountLab_walletsArgs
+    lab_facilities_lab_facilities_adminUserIdTousers?: boolean | UsersCountOutputTypeCountLab_facilities_lab_facilities_adminUserIdTousersArgs
+    lab_facilities_lab_facilities_approvedByIdTousers?: boolean | UsersCountOutputTypeCountLab_facilities_lab_facilities_approvedByIdTousersArgs
     magic_link_tokens?: boolean | UsersCountOutputTypeCountMagic_link_tokensArgs
     notification?: boolean | UsersCountOutputTypeCountNotificationArgs
     password_reset_tokens?: boolean | UsersCountOutputTypeCountPassword_reset_tokensArgs
@@ -16695,6 +16699,20 @@ export namespace Prisma {
    */
   export type UsersCountOutputTypeCountLab_walletsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: lab_walletsWhereInput
+  }
+
+  /**
+   * UsersCountOutputType without action
+   */
+  export type UsersCountOutputTypeCountLab_facilities_lab_facilities_adminUserIdTousersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: lab_facilitiesWhereInput
+  }
+
+  /**
+   * UsersCountOutputType without action
+   */
+  export type UsersCountOutputTypeCountLab_facilities_lab_facilities_approvedByIdTousersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: lab_facilitiesWhereInput
   }
 
   /**
@@ -95336,6 +95354,8 @@ export namespace Prisma {
     longitude?: boolean
     businessRegistrationUrl?: boolean
     govIdUrl?: boolean
+    users_lab_facilities_adminUserIdTousers?: boolean | lab_facilities$users_lab_facilities_adminUserIdTousersArgs<ExtArgs>
+    users_lab_facilities_approvedByIdTousers?: boolean | lab_facilities$users_lab_facilities_approvedByIdTousersArgs<ExtArgs>
     audit_logs?: boolean | lab_facilities$audit_logsArgs<ExtArgs>
     lab_personnel?: boolean | lab_facilities$lab_personnelArgs<ExtArgs>
     lab_test_catalog?: boolean | lab_facilities$lab_test_catalogArgs<ExtArgs>
@@ -95385,6 +95405,8 @@ export namespace Prisma {
     longitude?: boolean
     businessRegistrationUrl?: boolean
     govIdUrl?: boolean
+    users_lab_facilities_adminUserIdTousers?: boolean | lab_facilities$users_lab_facilities_adminUserIdTousersArgs<ExtArgs>
+    users_lab_facilities_approvedByIdTousers?: boolean | lab_facilities$users_lab_facilities_approvedByIdTousersArgs<ExtArgs>
   }, ExtArgs["result"]["lab_facilities"]>
 
   export type lab_facilitiesSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -95428,6 +95450,8 @@ export namespace Prisma {
     longitude?: boolean
     businessRegistrationUrl?: boolean
     govIdUrl?: boolean
+    users_lab_facilities_adminUserIdTousers?: boolean | lab_facilities$users_lab_facilities_adminUserIdTousersArgs<ExtArgs>
+    users_lab_facilities_approvedByIdTousers?: boolean | lab_facilities$users_lab_facilities_approvedByIdTousersArgs<ExtArgs>
   }, ExtArgs["result"]["lab_facilities"]>
 
   export type lab_facilitiesSelectScalar = {
@@ -95475,6 +95499,8 @@ export namespace Prisma {
 
   export type lab_facilitiesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "facilityName" | "facilityType" | "registrationNumber" | "licenseNumber" | "email" | "phone" | "website" | "address" | "city" | "state" | "country" | "postalCode" | "adminFullName" | "adminEmail" | "adminPhone" | "operatingHours" | "servicesOffered" | "equipmentList" | "status" | "licenseDocument" | "registrationDocument" | "accreditationDocument" | "approvedAt" | "rejectedAt" | "rejectionReason" | "adminUserCreated" | "adminInvitationSent" | "createdAt" | "updatedAt" | "adminUserId" | "approvedById" | "registrationStep" | "registrationCompleted" | "registrationTokenHash" | "registrationTokenExpiresAt" | "latitude" | "longitude" | "businessRegistrationUrl" | "govIdUrl", ExtArgs["result"]["lab_facilities"]>
   export type lab_facilitiesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    users_lab_facilities_adminUserIdTousers?: boolean | lab_facilities$users_lab_facilities_adminUserIdTousersArgs<ExtArgs>
+    users_lab_facilities_approvedByIdTousers?: boolean | lab_facilities$users_lab_facilities_approvedByIdTousersArgs<ExtArgs>
     audit_logs?: boolean | lab_facilities$audit_logsArgs<ExtArgs>
     lab_personnel?: boolean | lab_facilities$lab_personnelArgs<ExtArgs>
     lab_test_catalog?: boolean | lab_facilities$lab_test_catalogArgs<ExtArgs>
@@ -95482,12 +95508,20 @@ export namespace Prisma {
     lab_wallets?: boolean | lab_facilities$lab_walletsArgs<ExtArgs>
     _count?: boolean | Lab_facilitiesCountOutputTypeDefaultArgs<ExtArgs>
   }
-  export type lab_facilitiesIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
-  export type lab_facilitiesIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type lab_facilitiesIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    users_lab_facilities_adminUserIdTousers?: boolean | lab_facilities$users_lab_facilities_adminUserIdTousersArgs<ExtArgs>
+    users_lab_facilities_approvedByIdTousers?: boolean | lab_facilities$users_lab_facilities_approvedByIdTousersArgs<ExtArgs>
+  }
+  export type lab_facilitiesIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    users_lab_facilities_adminUserIdTousers?: boolean | lab_facilities$users_lab_facilities_adminUserIdTousersArgs<ExtArgs>
+    users_lab_facilities_approvedByIdTousers?: boolean | lab_facilities$users_lab_facilities_approvedByIdTousersArgs<ExtArgs>
+  }
 
   export type $lab_facilitiesPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "lab_facilities"
     objects: {
+      users_lab_facilities_adminUserIdTousers: Prisma.$usersPayload<ExtArgs> | null
+      users_lab_facilities_approvedByIdTousers: Prisma.$usersPayload<ExtArgs> | null
       audit_logs: Prisma.$audit_logsPayload<ExtArgs>[]
       lab_personnel: Prisma.$lab_personnelPayload<ExtArgs>[]
       lab_test_catalog: Prisma.$lab_test_catalogPayload<ExtArgs>[]
@@ -95929,6 +95963,8 @@ export namespace Prisma {
    */
   export interface Prisma__lab_facilitiesClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    users_lab_facilities_adminUserIdTousers<T extends lab_facilities$users_lab_facilities_adminUserIdTousersArgs<ExtArgs> = {}>(args?: Subset<T, lab_facilities$users_lab_facilities_adminUserIdTousersArgs<ExtArgs>>): Prisma__usersClient<$Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    users_lab_facilities_approvedByIdTousers<T extends lab_facilities$users_lab_facilities_approvedByIdTousersArgs<ExtArgs> = {}>(args?: Subset<T, lab_facilities$users_lab_facilities_approvedByIdTousersArgs<ExtArgs>>): Prisma__usersClient<$Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     audit_logs<T extends lab_facilities$audit_logsArgs<ExtArgs> = {}>(args?: Subset<T, lab_facilities$audit_logsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$audit_logsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     lab_personnel<T extends lab_facilities$lab_personnelArgs<ExtArgs> = {}>(args?: Subset<T, lab_facilities$lab_personnelArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$lab_personnelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     lab_test_catalog<T extends lab_facilities$lab_test_catalogArgs<ExtArgs> = {}>(args?: Subset<T, lab_facilities$lab_test_catalogArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$lab_test_catalogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -96257,6 +96293,10 @@ export namespace Prisma {
      */
     data: lab_facilitiesCreateManyInput | lab_facilitiesCreateManyInput[]
     skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: lab_facilitiesIncludeCreateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -96327,6 +96367,10 @@ export namespace Prisma {
      * Limit how many lab_facilities to update.
      */
     limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: lab_facilitiesIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -96393,6 +96437,44 @@ export namespace Prisma {
      * Limit how many lab_facilities to delete.
      */
     limit?: number
+  }
+
+  /**
+   * lab_facilities.users_lab_facilities_adminUserIdTousers
+   */
+  export type lab_facilities$users_lab_facilities_adminUserIdTousersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the users
+     */
+    select?: usersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the users
+     */
+    omit?: usersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: usersInclude<ExtArgs> | null
+    where?: usersWhereInput
+  }
+
+  /**
+   * lab_facilities.users_lab_facilities_approvedByIdTousers
+   */
+  export type lab_facilities$users_lab_facilities_approvedByIdTousersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the users
+     */
+    select?: usersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the users
+     */
+    omit?: usersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: usersInclude<ExtArgs> | null
+    where?: usersWhereInput
   }
 
   /**
@@ -170571,6 +170653,8 @@ export namespace Prisma {
     lab_wallet_topups?: boolean | users$lab_wallet_topupsArgs<ExtArgs>
     lab_wallet_transactions?: boolean | users$lab_wallet_transactionsArgs<ExtArgs>
     lab_wallets?: boolean | users$lab_walletsArgs<ExtArgs>
+    lab_facilities_lab_facilities_adminUserIdTousers?: boolean | users$lab_facilities_lab_facilities_adminUserIdTousersArgs<ExtArgs>
+    lab_facilities_lab_facilities_approvedByIdTousers?: boolean | users$lab_facilities_lab_facilities_approvedByIdTousersArgs<ExtArgs>
     magic_link_tokens?: boolean | users$magic_link_tokensArgs<ExtArgs>
     notification?: boolean | users$notificationArgs<ExtArgs>
     password_reset_tokens?: boolean | users$password_reset_tokensArgs<ExtArgs>
@@ -170781,6 +170865,8 @@ export namespace Prisma {
     lab_wallet_topups?: boolean | users$lab_wallet_topupsArgs<ExtArgs>
     lab_wallet_transactions?: boolean | users$lab_wallet_transactionsArgs<ExtArgs>
     lab_wallets?: boolean | users$lab_walletsArgs<ExtArgs>
+    lab_facilities_lab_facilities_adminUserIdTousers?: boolean | users$lab_facilities_lab_facilities_adminUserIdTousersArgs<ExtArgs>
+    lab_facilities_lab_facilities_approvedByIdTousers?: boolean | users$lab_facilities_lab_facilities_approvedByIdTousersArgs<ExtArgs>
     magic_link_tokens?: boolean | users$magic_link_tokensArgs<ExtArgs>
     notification?: boolean | users$notificationArgs<ExtArgs>
     password_reset_tokens?: boolean | users$password_reset_tokensArgs<ExtArgs>
@@ -170880,6 +170966,8 @@ export namespace Prisma {
       lab_wallet_topups: Prisma.$lab_wallet_topupsPayload<ExtArgs>[]
       lab_wallet_transactions: Prisma.$lab_wallet_transactionsPayload<ExtArgs>[]
       lab_wallets: Prisma.$lab_walletsPayload<ExtArgs>[]
+      lab_facilities_lab_facilities_adminUserIdTousers: Prisma.$lab_facilitiesPayload<ExtArgs>[]
+      lab_facilities_lab_facilities_approvedByIdTousers: Prisma.$lab_facilitiesPayload<ExtArgs>[]
       magic_link_tokens: Prisma.$magic_link_tokensPayload<ExtArgs>[]
       notification: Prisma.$notificationPayload<ExtArgs>[]
       password_reset_tokens: Prisma.$password_reset_tokensPayload<ExtArgs>[]
@@ -171402,6 +171490,8 @@ export namespace Prisma {
     lab_wallet_topups<T extends users$lab_wallet_topupsArgs<ExtArgs> = {}>(args?: Subset<T, users$lab_wallet_topupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$lab_wallet_topupsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     lab_wallet_transactions<T extends users$lab_wallet_transactionsArgs<ExtArgs> = {}>(args?: Subset<T, users$lab_wallet_transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$lab_wallet_transactionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     lab_wallets<T extends users$lab_walletsArgs<ExtArgs> = {}>(args?: Subset<T, users$lab_walletsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$lab_walletsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    lab_facilities_lab_facilities_adminUserIdTousers<T extends users$lab_facilities_lab_facilities_adminUserIdTousersArgs<ExtArgs> = {}>(args?: Subset<T, users$lab_facilities_lab_facilities_adminUserIdTousersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$lab_facilitiesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    lab_facilities_lab_facilities_approvedByIdTousers<T extends users$lab_facilities_lab_facilities_approvedByIdTousersArgs<ExtArgs> = {}>(args?: Subset<T, users$lab_facilities_lab_facilities_approvedByIdTousersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$lab_facilitiesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     magic_link_tokens<T extends users$magic_link_tokensArgs<ExtArgs> = {}>(args?: Subset<T, users$magic_link_tokensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$magic_link_tokensPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     notification<T extends users$notificationArgs<ExtArgs> = {}>(args?: Subset<T, users$notificationArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$notificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     password_reset_tokens<T extends users$password_reset_tokensArgs<ExtArgs> = {}>(args?: Subset<T, users$password_reset_tokensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$password_reset_tokensPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -173041,6 +173131,54 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: Lab_walletsScalarFieldEnum | Lab_walletsScalarFieldEnum[]
+  }
+
+  /**
+   * users.lab_facilities_lab_facilities_adminUserIdTousers
+   */
+  export type users$lab_facilities_lab_facilities_adminUserIdTousersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the lab_facilities
+     */
+    select?: lab_facilitiesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the lab_facilities
+     */
+    omit?: lab_facilitiesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: lab_facilitiesInclude<ExtArgs> | null
+    where?: lab_facilitiesWhereInput
+    orderBy?: lab_facilitiesOrderByWithRelationInput | lab_facilitiesOrderByWithRelationInput[]
+    cursor?: lab_facilitiesWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Lab_facilitiesScalarFieldEnum | Lab_facilitiesScalarFieldEnum[]
+  }
+
+  /**
+   * users.lab_facilities_lab_facilities_approvedByIdTousers
+   */
+  export type users$lab_facilities_lab_facilities_approvedByIdTousersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the lab_facilities
+     */
+    select?: lab_facilitiesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the lab_facilities
+     */
+    omit?: lab_facilitiesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: lab_facilitiesInclude<ExtArgs> | null
+    where?: lab_facilitiesWhereInput
+    orderBy?: lab_facilitiesOrderByWithRelationInput | lab_facilitiesOrderByWithRelationInput[]
+    cursor?: lab_facilitiesWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Lab_facilitiesScalarFieldEnum | Lab_facilitiesScalarFieldEnum[]
   }
 
   /**
@@ -194508,6 +194646,8 @@ export namespace Prisma {
     longitude?: FloatNullableFilter<"lab_facilities"> | number | null
     businessRegistrationUrl?: StringNullableFilter<"lab_facilities"> | string | null
     govIdUrl?: StringNullableFilter<"lab_facilities"> | string | null
+    users_lab_facilities_adminUserIdTousers?: XOR<UsersNullableScalarRelationFilter, usersWhereInput> | null
+    users_lab_facilities_approvedByIdTousers?: XOR<UsersNullableScalarRelationFilter, usersWhereInput> | null
     audit_logs?: Audit_logsListRelationFilter
     lab_personnel?: Lab_personnelListRelationFilter
     lab_test_catalog?: Lab_test_catalogListRelationFilter
@@ -194556,6 +194696,8 @@ export namespace Prisma {
     longitude?: SortOrderInput | SortOrder
     businessRegistrationUrl?: SortOrderInput | SortOrder
     govIdUrl?: SortOrderInput | SortOrder
+    users_lab_facilities_adminUserIdTousers?: usersOrderByWithRelationInput
+    users_lab_facilities_approvedByIdTousers?: usersOrderByWithRelationInput
     audit_logs?: audit_logsOrderByRelationAggregateInput
     lab_personnel?: lab_personnelOrderByRelationAggregateInput
     lab_test_catalog?: lab_test_catalogOrderByRelationAggregateInput
@@ -194607,6 +194749,8 @@ export namespace Prisma {
     longitude?: FloatNullableFilter<"lab_facilities"> | number | null
     businessRegistrationUrl?: StringNullableFilter<"lab_facilities"> | string | null
     govIdUrl?: StringNullableFilter<"lab_facilities"> | string | null
+    users_lab_facilities_adminUserIdTousers?: XOR<UsersNullableScalarRelationFilter, usersWhereInput> | null
+    users_lab_facilities_approvedByIdTousers?: XOR<UsersNullableScalarRelationFilter, usersWhereInput> | null
     audit_logs?: Audit_logsListRelationFilter
     lab_personnel?: Lab_personnelListRelationFilter
     lab_test_catalog?: Lab_test_catalogListRelationFilter
@@ -201081,6 +201225,8 @@ export namespace Prisma {
     lab_wallet_topups?: Lab_wallet_topupsListRelationFilter
     lab_wallet_transactions?: Lab_wallet_transactionsListRelationFilter
     lab_wallets?: Lab_walletsListRelationFilter
+    lab_facilities_lab_facilities_adminUserIdTousers?: Lab_facilitiesListRelationFilter
+    lab_facilities_lab_facilities_approvedByIdTousers?: Lab_facilitiesListRelationFilter
     magic_link_tokens?: Magic_link_tokensListRelationFilter
     notification?: NotificationListRelationFilter
     password_reset_tokens?: Password_reset_tokensListRelationFilter
@@ -201210,6 +201356,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsOrderByRelationAggregateInput
     lab_wallet_transactions?: lab_wallet_transactionsOrderByRelationAggregateInput
     lab_wallets?: lab_walletsOrderByRelationAggregateInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesOrderByRelationAggregateInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesOrderByRelationAggregateInput
     magic_link_tokens?: magic_link_tokensOrderByRelationAggregateInput
     notification?: notificationOrderByRelationAggregateInput
     password_reset_tokens?: password_reset_tokensOrderByRelationAggregateInput
@@ -201342,6 +201490,8 @@ export namespace Prisma {
     lab_wallet_topups?: Lab_wallet_topupsListRelationFilter
     lab_wallet_transactions?: Lab_wallet_transactionsListRelationFilter
     lab_wallets?: Lab_walletsListRelationFilter
+    lab_facilities_lab_facilities_adminUserIdTousers?: Lab_facilitiesListRelationFilter
+    lab_facilities_lab_facilities_approvedByIdTousers?: Lab_facilitiesListRelationFilter
     magic_link_tokens?: Magic_link_tokensListRelationFilter
     notification?: NotificationListRelationFilter
     password_reset_tokens?: Password_reset_tokensListRelationFilter
@@ -209836,8 +209986,6 @@ export namespace Prisma {
     adminInvitationSent?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    adminUserId?: string | null
-    approvedById?: string | null
     registrationStep?: number
     registrationCompleted?: boolean
     registrationTokenHash?: string | null
@@ -209846,6 +209994,8 @@ export namespace Prisma {
     longitude?: number | null
     businessRegistrationUrl?: string | null
     govIdUrl?: string | null
+    users_lab_facilities_adminUserIdTousers?: usersCreateNestedOneWithoutLab_facilities_lab_facilities_adminUserIdTousersInput
+    users_lab_facilities_approvedByIdTousers?: usersCreateNestedOneWithoutLab_facilities_lab_facilities_approvedByIdTousersInput
     audit_logs?: audit_logsCreateNestedManyWithoutLab_facilitiesInput
     lab_personnel?: lab_personnelCreateNestedManyWithoutLab_facilitiesInput
     lab_test_catalog?: lab_test_catalogCreateNestedManyWithoutLab_facilitiesInput
@@ -209932,8 +210082,6 @@ export namespace Prisma {
     adminInvitationSent?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    adminUserId?: NullableStringFieldUpdateOperationsInput | string | null
-    approvedById?: NullableStringFieldUpdateOperationsInput | string | null
     registrationStep?: IntFieldUpdateOperationsInput | number
     registrationCompleted?: BoolFieldUpdateOperationsInput | boolean
     registrationTokenHash?: NullableStringFieldUpdateOperationsInput | string | null
@@ -209942,6 +210090,8 @@ export namespace Prisma {
     longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     businessRegistrationUrl?: NullableStringFieldUpdateOperationsInput | string | null
     govIdUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    users_lab_facilities_adminUserIdTousers?: usersUpdateOneWithoutLab_facilities_lab_facilities_adminUserIdTousersNestedInput
+    users_lab_facilities_approvedByIdTousers?: usersUpdateOneWithoutLab_facilities_lab_facilities_approvedByIdTousersNestedInput
     audit_logs?: audit_logsUpdateManyWithoutLab_facilitiesNestedInput
     lab_personnel?: lab_personnelUpdateManyWithoutLab_facilitiesNestedInput
     lab_test_catalog?: lab_test_catalogUpdateManyWithoutLab_facilitiesNestedInput
@@ -210071,8 +210221,6 @@ export namespace Prisma {
     adminInvitationSent?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    adminUserId?: NullableStringFieldUpdateOperationsInput | string | null
-    approvedById?: NullableStringFieldUpdateOperationsInput | string | null
     registrationStep?: IntFieldUpdateOperationsInput | number
     registrationCompleted?: BoolFieldUpdateOperationsInput | boolean
     registrationTokenHash?: NullableStringFieldUpdateOperationsInput | string | null
@@ -217466,6 +217614,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -217595,6 +217745,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -217724,6 +217876,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -217853,6 +218007,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -229697,6 +229853,12 @@ export namespace Prisma {
     none?: lab_walletsWhereInput
   }
 
+  export type Lab_facilitiesListRelationFilter = {
+    every?: lab_facilitiesWhereInput
+    some?: lab_facilitiesWhereInput
+    none?: lab_facilitiesWhereInput
+  }
+
   export type Magic_link_tokensListRelationFilter = {
     every?: magic_link_tokensWhereInput
     some?: magic_link_tokensWhereInput
@@ -229903,6 +230065,10 @@ export namespace Prisma {
   }
 
   export type lab_walletsOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type lab_facilitiesOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -233475,6 +233641,18 @@ export namespace Prisma {
     deleteMany?: pharmacy_paymentsScalarWhereInput | pharmacy_paymentsScalarWhereInput[]
   }
 
+  export type usersCreateNestedOneWithoutLab_facilities_lab_facilities_adminUserIdTousersInput = {
+    create?: XOR<usersCreateWithoutLab_facilities_lab_facilities_adminUserIdTousersInput, usersUncheckedCreateWithoutLab_facilities_lab_facilities_adminUserIdTousersInput>
+    connectOrCreate?: usersCreateOrConnectWithoutLab_facilities_lab_facilities_adminUserIdTousersInput
+    connect?: usersWhereUniqueInput
+  }
+
+  export type usersCreateNestedOneWithoutLab_facilities_lab_facilities_approvedByIdTousersInput = {
+    create?: XOR<usersCreateWithoutLab_facilities_lab_facilities_approvedByIdTousersInput, usersUncheckedCreateWithoutLab_facilities_lab_facilities_approvedByIdTousersInput>
+    connectOrCreate?: usersCreateOrConnectWithoutLab_facilities_lab_facilities_approvedByIdTousersInput
+    connect?: usersWhereUniqueInput
+  }
+
   export type audit_logsCreateNestedManyWithoutLab_facilitiesInput = {
     create?: XOR<audit_logsCreateWithoutLab_facilitiesInput, audit_logsUncheckedCreateWithoutLab_facilitiesInput> | audit_logsCreateWithoutLab_facilitiesInput[] | audit_logsUncheckedCreateWithoutLab_facilitiesInput[]
     connectOrCreate?: audit_logsCreateOrConnectWithoutLab_facilitiesInput | audit_logsCreateOrConnectWithoutLab_facilitiesInput[]
@@ -233549,6 +233727,26 @@ export namespace Prisma {
 
   export type Enumlab_facilities_status_enumFieldUpdateOperationsInput = {
     set?: $Enums.lab_facilities_status_enum
+  }
+
+  export type usersUpdateOneWithoutLab_facilities_lab_facilities_adminUserIdTousersNestedInput = {
+    create?: XOR<usersCreateWithoutLab_facilities_lab_facilities_adminUserIdTousersInput, usersUncheckedCreateWithoutLab_facilities_lab_facilities_adminUserIdTousersInput>
+    connectOrCreate?: usersCreateOrConnectWithoutLab_facilities_lab_facilities_adminUserIdTousersInput
+    upsert?: usersUpsertWithoutLab_facilities_lab_facilities_adminUserIdTousersInput
+    disconnect?: usersWhereInput | boolean
+    delete?: usersWhereInput | boolean
+    connect?: usersWhereUniqueInput
+    update?: XOR<XOR<usersUpdateToOneWithWhereWithoutLab_facilities_lab_facilities_adminUserIdTousersInput, usersUpdateWithoutLab_facilities_lab_facilities_adminUserIdTousersInput>, usersUncheckedUpdateWithoutLab_facilities_lab_facilities_adminUserIdTousersInput>
+  }
+
+  export type usersUpdateOneWithoutLab_facilities_lab_facilities_approvedByIdTousersNestedInput = {
+    create?: XOR<usersCreateWithoutLab_facilities_lab_facilities_approvedByIdTousersInput, usersUncheckedCreateWithoutLab_facilities_lab_facilities_approvedByIdTousersInput>
+    connectOrCreate?: usersCreateOrConnectWithoutLab_facilities_lab_facilities_approvedByIdTousersInput
+    upsert?: usersUpsertWithoutLab_facilities_lab_facilities_approvedByIdTousersInput
+    disconnect?: usersWhereInput | boolean
+    delete?: usersWhereInput | boolean
+    connect?: usersWhereUniqueInput
+    update?: XOR<XOR<usersUpdateToOneWithWhereWithoutLab_facilities_lab_facilities_approvedByIdTousersInput, usersUpdateWithoutLab_facilities_lab_facilities_approvedByIdTousersInput>, usersUncheckedUpdateWithoutLab_facilities_lab_facilities_approvedByIdTousersInput>
   }
 
   export type audit_logsUpdateManyWithoutLab_facilitiesNestedInput = {
@@ -236798,6 +236996,20 @@ export namespace Prisma {
     connect?: lab_walletsWhereUniqueInput | lab_walletsWhereUniqueInput[]
   }
 
+  export type lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput = {
+    create?: XOR<lab_facilitiesCreateWithoutUsers_lab_facilities_adminUserIdTousersInput, lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_adminUserIdTousersInput> | lab_facilitiesCreateWithoutUsers_lab_facilities_adminUserIdTousersInput[] | lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_adminUserIdTousersInput[]
+    connectOrCreate?: lab_facilitiesCreateOrConnectWithoutUsers_lab_facilities_adminUserIdTousersInput | lab_facilitiesCreateOrConnectWithoutUsers_lab_facilities_adminUserIdTousersInput[]
+    createMany?: lab_facilitiesCreateManyUsers_lab_facilities_adminUserIdTousersInputEnvelope
+    connect?: lab_facilitiesWhereUniqueInput | lab_facilitiesWhereUniqueInput[]
+  }
+
+  export type lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput = {
+    create?: XOR<lab_facilitiesCreateWithoutUsers_lab_facilities_approvedByIdTousersInput, lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_approvedByIdTousersInput> | lab_facilitiesCreateWithoutUsers_lab_facilities_approvedByIdTousersInput[] | lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_approvedByIdTousersInput[]
+    connectOrCreate?: lab_facilitiesCreateOrConnectWithoutUsers_lab_facilities_approvedByIdTousersInput | lab_facilitiesCreateOrConnectWithoutUsers_lab_facilities_approvedByIdTousersInput[]
+    createMany?: lab_facilitiesCreateManyUsers_lab_facilities_approvedByIdTousersInputEnvelope
+    connect?: lab_facilitiesWhereUniqueInput | lab_facilitiesWhereUniqueInput[]
+  }
+
   export type magic_link_tokensCreateNestedManyWithoutUsersInput = {
     create?: XOR<magic_link_tokensCreateWithoutUsersInput, magic_link_tokensUncheckedCreateWithoutUsersInput> | magic_link_tokensCreateWithoutUsersInput[] | magic_link_tokensUncheckedCreateWithoutUsersInput[]
     connectOrCreate?: magic_link_tokensCreateOrConnectWithoutUsersInput | magic_link_tokensCreateOrConnectWithoutUsersInput[]
@@ -237428,6 +237640,20 @@ export namespace Prisma {
     connectOrCreate?: lab_walletsCreateOrConnectWithoutUsersInput | lab_walletsCreateOrConnectWithoutUsersInput[]
     createMany?: lab_walletsCreateManyUsersInputEnvelope
     connect?: lab_walletsWhereUniqueInput | lab_walletsWhereUniqueInput[]
+  }
+
+  export type lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput = {
+    create?: XOR<lab_facilitiesCreateWithoutUsers_lab_facilities_adminUserIdTousersInput, lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_adminUserIdTousersInput> | lab_facilitiesCreateWithoutUsers_lab_facilities_adminUserIdTousersInput[] | lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_adminUserIdTousersInput[]
+    connectOrCreate?: lab_facilitiesCreateOrConnectWithoutUsers_lab_facilities_adminUserIdTousersInput | lab_facilitiesCreateOrConnectWithoutUsers_lab_facilities_adminUserIdTousersInput[]
+    createMany?: lab_facilitiesCreateManyUsers_lab_facilities_adminUserIdTousersInputEnvelope
+    connect?: lab_facilitiesWhereUniqueInput | lab_facilitiesWhereUniqueInput[]
+  }
+
+  export type lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput = {
+    create?: XOR<lab_facilitiesCreateWithoutUsers_lab_facilities_approvedByIdTousersInput, lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_approvedByIdTousersInput> | lab_facilitiesCreateWithoutUsers_lab_facilities_approvedByIdTousersInput[] | lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_approvedByIdTousersInput[]
+    connectOrCreate?: lab_facilitiesCreateOrConnectWithoutUsers_lab_facilities_approvedByIdTousersInput | lab_facilitiesCreateOrConnectWithoutUsers_lab_facilities_approvedByIdTousersInput[]
+    createMany?: lab_facilitiesCreateManyUsers_lab_facilities_approvedByIdTousersInputEnvelope
+    connect?: lab_facilitiesWhereUniqueInput | lab_facilitiesWhereUniqueInput[]
   }
 
   export type magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput = {
@@ -238406,6 +238632,34 @@ export namespace Prisma {
     update?: lab_walletsUpdateWithWhereUniqueWithoutUsersInput | lab_walletsUpdateWithWhereUniqueWithoutUsersInput[]
     updateMany?: lab_walletsUpdateManyWithWhereWithoutUsersInput | lab_walletsUpdateManyWithWhereWithoutUsersInput[]
     deleteMany?: lab_walletsScalarWhereInput | lab_walletsScalarWhereInput[]
+  }
+
+  export type lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput = {
+    create?: XOR<lab_facilitiesCreateWithoutUsers_lab_facilities_adminUserIdTousersInput, lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_adminUserIdTousersInput> | lab_facilitiesCreateWithoutUsers_lab_facilities_adminUserIdTousersInput[] | lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_adminUserIdTousersInput[]
+    connectOrCreate?: lab_facilitiesCreateOrConnectWithoutUsers_lab_facilities_adminUserIdTousersInput | lab_facilitiesCreateOrConnectWithoutUsers_lab_facilities_adminUserIdTousersInput[]
+    upsert?: lab_facilitiesUpsertWithWhereUniqueWithoutUsers_lab_facilities_adminUserIdTousersInput | lab_facilitiesUpsertWithWhereUniqueWithoutUsers_lab_facilities_adminUserIdTousersInput[]
+    createMany?: lab_facilitiesCreateManyUsers_lab_facilities_adminUserIdTousersInputEnvelope
+    set?: lab_facilitiesWhereUniqueInput | lab_facilitiesWhereUniqueInput[]
+    disconnect?: lab_facilitiesWhereUniqueInput | lab_facilitiesWhereUniqueInput[]
+    delete?: lab_facilitiesWhereUniqueInput | lab_facilitiesWhereUniqueInput[]
+    connect?: lab_facilitiesWhereUniqueInput | lab_facilitiesWhereUniqueInput[]
+    update?: lab_facilitiesUpdateWithWhereUniqueWithoutUsers_lab_facilities_adminUserIdTousersInput | lab_facilitiesUpdateWithWhereUniqueWithoutUsers_lab_facilities_adminUserIdTousersInput[]
+    updateMany?: lab_facilitiesUpdateManyWithWhereWithoutUsers_lab_facilities_adminUserIdTousersInput | lab_facilitiesUpdateManyWithWhereWithoutUsers_lab_facilities_adminUserIdTousersInput[]
+    deleteMany?: lab_facilitiesScalarWhereInput | lab_facilitiesScalarWhereInput[]
+  }
+
+  export type lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput = {
+    create?: XOR<lab_facilitiesCreateWithoutUsers_lab_facilities_approvedByIdTousersInput, lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_approvedByIdTousersInput> | lab_facilitiesCreateWithoutUsers_lab_facilities_approvedByIdTousersInput[] | lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_approvedByIdTousersInput[]
+    connectOrCreate?: lab_facilitiesCreateOrConnectWithoutUsers_lab_facilities_approvedByIdTousersInput | lab_facilitiesCreateOrConnectWithoutUsers_lab_facilities_approvedByIdTousersInput[]
+    upsert?: lab_facilitiesUpsertWithWhereUniqueWithoutUsers_lab_facilities_approvedByIdTousersInput | lab_facilitiesUpsertWithWhereUniqueWithoutUsers_lab_facilities_approvedByIdTousersInput[]
+    createMany?: lab_facilitiesCreateManyUsers_lab_facilities_approvedByIdTousersInputEnvelope
+    set?: lab_facilitiesWhereUniqueInput | lab_facilitiesWhereUniqueInput[]
+    disconnect?: lab_facilitiesWhereUniqueInput | lab_facilitiesWhereUniqueInput[]
+    delete?: lab_facilitiesWhereUniqueInput | lab_facilitiesWhereUniqueInput[]
+    connect?: lab_facilitiesWhereUniqueInput | lab_facilitiesWhereUniqueInput[]
+    update?: lab_facilitiesUpdateWithWhereUniqueWithoutUsers_lab_facilities_approvedByIdTousersInput | lab_facilitiesUpdateWithWhereUniqueWithoutUsers_lab_facilities_approvedByIdTousersInput[]
+    updateMany?: lab_facilitiesUpdateManyWithWhereWithoutUsers_lab_facilities_approvedByIdTousersInput | lab_facilitiesUpdateManyWithWhereWithoutUsers_lab_facilities_approvedByIdTousersInput[]
+    deleteMany?: lab_facilitiesScalarWhereInput | lab_facilitiesScalarWhereInput[]
   }
 
   export type magic_link_tokensUpdateManyWithoutUsersNestedInput = {
@@ -239660,6 +239914,34 @@ export namespace Prisma {
     update?: lab_walletsUpdateWithWhereUniqueWithoutUsersInput | lab_walletsUpdateWithWhereUniqueWithoutUsersInput[]
     updateMany?: lab_walletsUpdateManyWithWhereWithoutUsersInput | lab_walletsUpdateManyWithWhereWithoutUsersInput[]
     deleteMany?: lab_walletsScalarWhereInput | lab_walletsScalarWhereInput[]
+  }
+
+  export type lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput = {
+    create?: XOR<lab_facilitiesCreateWithoutUsers_lab_facilities_adminUserIdTousersInput, lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_adminUserIdTousersInput> | lab_facilitiesCreateWithoutUsers_lab_facilities_adminUserIdTousersInput[] | lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_adminUserIdTousersInput[]
+    connectOrCreate?: lab_facilitiesCreateOrConnectWithoutUsers_lab_facilities_adminUserIdTousersInput | lab_facilitiesCreateOrConnectWithoutUsers_lab_facilities_adminUserIdTousersInput[]
+    upsert?: lab_facilitiesUpsertWithWhereUniqueWithoutUsers_lab_facilities_adminUserIdTousersInput | lab_facilitiesUpsertWithWhereUniqueWithoutUsers_lab_facilities_adminUserIdTousersInput[]
+    createMany?: lab_facilitiesCreateManyUsers_lab_facilities_adminUserIdTousersInputEnvelope
+    set?: lab_facilitiesWhereUniqueInput | lab_facilitiesWhereUniqueInput[]
+    disconnect?: lab_facilitiesWhereUniqueInput | lab_facilitiesWhereUniqueInput[]
+    delete?: lab_facilitiesWhereUniqueInput | lab_facilitiesWhereUniqueInput[]
+    connect?: lab_facilitiesWhereUniqueInput | lab_facilitiesWhereUniqueInput[]
+    update?: lab_facilitiesUpdateWithWhereUniqueWithoutUsers_lab_facilities_adminUserIdTousersInput | lab_facilitiesUpdateWithWhereUniqueWithoutUsers_lab_facilities_adminUserIdTousersInput[]
+    updateMany?: lab_facilitiesUpdateManyWithWhereWithoutUsers_lab_facilities_adminUserIdTousersInput | lab_facilitiesUpdateManyWithWhereWithoutUsers_lab_facilities_adminUserIdTousersInput[]
+    deleteMany?: lab_facilitiesScalarWhereInput | lab_facilitiesScalarWhereInput[]
+  }
+
+  export type lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput = {
+    create?: XOR<lab_facilitiesCreateWithoutUsers_lab_facilities_approvedByIdTousersInput, lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_approvedByIdTousersInput> | lab_facilitiesCreateWithoutUsers_lab_facilities_approvedByIdTousersInput[] | lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_approvedByIdTousersInput[]
+    connectOrCreate?: lab_facilitiesCreateOrConnectWithoutUsers_lab_facilities_approvedByIdTousersInput | lab_facilitiesCreateOrConnectWithoutUsers_lab_facilities_approvedByIdTousersInput[]
+    upsert?: lab_facilitiesUpsertWithWhereUniqueWithoutUsers_lab_facilities_approvedByIdTousersInput | lab_facilitiesUpsertWithWhereUniqueWithoutUsers_lab_facilities_approvedByIdTousersInput[]
+    createMany?: lab_facilitiesCreateManyUsers_lab_facilities_approvedByIdTousersInputEnvelope
+    set?: lab_facilitiesWhereUniqueInput | lab_facilitiesWhereUniqueInput[]
+    disconnect?: lab_facilitiesWhereUniqueInput | lab_facilitiesWhereUniqueInput[]
+    delete?: lab_facilitiesWhereUniqueInput | lab_facilitiesWhereUniqueInput[]
+    connect?: lab_facilitiesWhereUniqueInput | lab_facilitiesWhereUniqueInput[]
+    update?: lab_facilitiesUpdateWithWhereUniqueWithoutUsers_lab_facilities_approvedByIdTousersInput | lab_facilitiesUpdateWithWhereUniqueWithoutUsers_lab_facilities_approvedByIdTousersInput[]
+    updateMany?: lab_facilitiesUpdateManyWithWhereWithoutUsers_lab_facilities_approvedByIdTousersInput | lab_facilitiesUpdateManyWithWhereWithoutUsers_lab_facilities_approvedByIdTousersInput[]
+    deleteMany?: lab_facilitiesScalarWhereInput | lab_facilitiesScalarWhereInput[]
   }
 
   export type magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput = {
@@ -243583,6 +243865,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -243711,6 +243995,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -243855,6 +244141,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -243983,6 +244271,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -244299,6 +244589,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -244427,6 +244719,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -244726,6 +245020,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -244854,6 +245150,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -244998,6 +245296,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -245126,6 +245426,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -245443,6 +245745,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -245571,6 +245875,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -245740,6 +246046,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -245868,6 +246176,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -246001,6 +246311,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -246129,6 +246441,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -246320,6 +246634,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -246448,6 +246764,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -246587,6 +246905,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -246715,6 +247035,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -246843,6 +247165,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -246971,6 +247295,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -247052,8 +247378,6 @@ export namespace Prisma {
     adminInvitationSent?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    adminUserId?: string | null
-    approvedById?: string | null
     registrationStep?: number
     registrationCompleted?: boolean
     registrationTokenHash?: string | null
@@ -247062,6 +247386,8 @@ export namespace Prisma {
     longitude?: number | null
     businessRegistrationUrl?: string | null
     govIdUrl?: string | null
+    users_lab_facilities_adminUserIdTousers?: usersCreateNestedOneWithoutLab_facilities_lab_facilities_adminUserIdTousersInput
+    users_lab_facilities_approvedByIdTousers?: usersCreateNestedOneWithoutLab_facilities_lab_facilities_approvedByIdTousersInput
     lab_personnel?: lab_personnelCreateNestedManyWithoutLab_facilitiesInput
     lab_test_catalog?: lab_test_catalogCreateNestedManyWithoutLab_facilitiesInput
     lab_test_requests?: lab_test_requestsCreateNestedManyWithoutLab_facilitiesInput
@@ -247214,6 +247540,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -247342,6 +247670,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -247429,8 +247759,6 @@ export namespace Prisma {
     adminInvitationSent?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    adminUserId?: NullableStringFieldUpdateOperationsInput | string | null
-    approvedById?: NullableStringFieldUpdateOperationsInput | string | null
     registrationStep?: IntFieldUpdateOperationsInput | number
     registrationCompleted?: BoolFieldUpdateOperationsInput | boolean
     registrationTokenHash?: NullableStringFieldUpdateOperationsInput | string | null
@@ -247439,6 +247767,8 @@ export namespace Prisma {
     longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     businessRegistrationUrl?: NullableStringFieldUpdateOperationsInput | string | null
     govIdUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    users_lab_facilities_adminUserIdTousers?: usersUpdateOneWithoutLab_facilities_lab_facilities_adminUserIdTousersNestedInput
+    users_lab_facilities_approvedByIdTousers?: usersUpdateOneWithoutLab_facilities_lab_facilities_approvedByIdTousersNestedInput
     lab_personnel?: lab_personnelUpdateManyWithoutLab_facilitiesNestedInput
     lab_test_catalog?: lab_test_catalogUpdateManyWithoutLab_facilitiesNestedInput
     lab_test_requests?: lab_test_requestsUpdateManyWithoutLab_facilitiesNestedInput
@@ -247575,6 +247905,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -247703,6 +248035,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -247847,6 +248181,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -247975,6 +248311,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -248103,6 +248441,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -248231,6 +248571,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -248375,6 +248717,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -248503,6 +248847,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -248672,6 +249018,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -248800,6 +249148,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -248991,6 +249341,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -249119,6 +249471,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -249405,6 +249759,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -249533,6 +249889,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -249840,6 +250198,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -249968,6 +250328,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -250096,6 +250458,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -250224,6 +250588,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -250404,6 +250770,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -250532,6 +250900,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -250676,6 +251046,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -250804,6 +251176,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -250996,6 +251370,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -251124,6 +251500,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -251375,6 +251753,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -251503,6 +251883,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -251857,6 +252239,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -251985,6 +252369,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -252217,6 +252603,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -252345,6 +252733,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -252528,6 +252918,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -252656,6 +253048,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -252818,6 +253212,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -252946,6 +253342,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -253122,6 +253520,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -253250,6 +253650,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -253462,6 +253864,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -253590,6 +253994,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -253945,6 +254351,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -254073,6 +254481,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -254720,6 +255130,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -254848,6 +255260,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -255061,6 +255475,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -255189,6 +255605,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -255505,6 +255923,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -255633,6 +256053,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -255766,6 +256188,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -255894,6 +256318,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -256038,6 +256464,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -256166,6 +256594,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -256305,6 +256735,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -256433,6 +256865,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -256561,6 +256995,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -256689,6 +257125,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -256833,6 +257271,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -256961,6 +257401,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -257361,6 +257803,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -257489,6 +257933,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -257709,6 +258155,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -257837,6 +258285,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -257981,6 +258431,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -258109,6 +258561,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -258341,6 +258795,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -258469,6 +258925,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -258684,6 +259142,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -258812,6 +259272,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -259049,6 +259511,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -259177,6 +259641,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -259305,6 +259771,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -259433,6 +259901,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -259577,6 +260047,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -259705,6 +260177,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -259833,6 +260307,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -259961,6 +260437,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -260105,6 +260583,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -260233,6 +260713,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -260415,6 +260897,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -260543,6 +261027,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -260858,6 +261344,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -260986,6 +261474,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -261237,6 +261727,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -261365,6 +261857,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -261509,6 +262003,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -261637,6 +262133,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -261765,6 +262263,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -261893,6 +262393,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -262093,6 +262595,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -262221,6 +262725,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -262515,6 +263021,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -262643,6 +263151,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -263019,6 +263529,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -263147,6 +263659,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -263509,6 +264023,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -263637,6 +264153,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -263863,6 +264381,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -263991,6 +264511,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -264149,6 +264671,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -264277,6 +264801,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -264421,6 +264947,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -264549,6 +265077,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -265003,6 +265533,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -265131,6 +265663,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -265577,6 +266111,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -265705,6 +266241,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -266236,6 +266774,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -266364,6 +266904,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -266561,6 +267103,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -266689,6 +267233,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -266976,6 +267522,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -267104,6 +267652,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -267301,6 +267851,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -267429,6 +267981,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -267688,6 +268242,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -267816,6 +268372,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -267949,6 +268507,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -268077,6 +268637,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -268322,6 +268884,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -268450,6 +269014,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -268589,6 +269155,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -268717,6 +269285,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -268886,6 +269456,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -269014,6 +269586,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -269158,6 +269732,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -269286,6 +269862,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -269493,6 +270071,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -269621,6 +270201,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -269850,6 +270432,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -269978,6 +270562,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -270106,6 +270692,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -270234,6 +270822,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -270378,6 +270968,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -270506,6 +271098,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -270675,6 +271269,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -270803,6 +271399,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -270994,6 +271592,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -271122,6 +271722,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -271626,6 +272228,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -271754,6 +272358,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -271898,6 +272504,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -272026,6 +272634,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -272288,6 +272898,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -272416,6 +273028,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -272753,6 +273367,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -272881,6 +273497,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -273078,6 +273696,536 @@ export namespace Prisma {
     metadata?: JsonNullableFilter<"pharmacy_payments">
     createdAt?: DateTimeFilter<"pharmacy_payments"> | Date | string
     updatedAt?: DateTimeFilter<"pharmacy_payments"> | Date | string
+  }
+
+  export type usersCreateWithoutLab_facilities_lab_facilities_adminUserIdTousersInput = {
+    id?: string
+    email: string
+    passwordHash?: string | null
+    role?: $Enums.users_role_enum
+    status?: $Enums.users_status_enum
+    provider?: $Enums.users_provider_enum
+    providerId?: string | null
+    profileImageUrl?: string | null
+    mfaEnabled?: boolean
+    mfaSecret?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    fullName: string
+    tier?: $Enums.users_tier_enum
+    isOnline?: boolean
+    referralCode?: string | null
+    totalReferrals?: number
+    referredBy?: string | null
+    username?: string | null
+    bannerUrl?: string | null
+    timezone?: string | null
+    lastDetectedTimezone?: string | null
+    timezoneUpdatedAt?: Date | string | null
+    phoneNumber?: string | null
+    departmentSpecialty?: string | null
+    averageRating?: Decimal | DecimalJsLike | number | string
+    totalRatings?: number
+    country?: string | null
+    pharmacyId?: string | null
+    refreshTokenHash?: string | null
+    resetPasswordOTP?: string | null
+    resetPasswordOTPExpires?: Date | string | null
+    mustChangePassword?: boolean
+    passwordChangedAt?: Date | string | null
+    lastLoginAt?: Date | string | null
+    account_support?: account_supportCreateNestedManyWithoutUsersInput
+    appointment_chats_appointment_chats_doctorIdTousers?: appointment_chatsCreateNestedManyWithoutUsers_appointment_chats_doctorIdTousersInput
+    appointment_chats_appointment_chats_patientIdTousers?: appointment_chatsCreateNestedManyWithoutUsers_appointment_chats_patientIdTousersInput
+    appointments_appointments_doctorIdTousers?: appointmentsCreateNestedManyWithoutUsers_appointments_doctorIdTousersInput
+    appointments_appointments_patientIdTousers?: appointmentsCreateNestedManyWithoutUsers_appointments_patientIdTousersInput
+    audit_logs?: audit_logsCreateNestedManyWithoutUsersInput
+    auth_events?: auth_eventsCreateNestedManyWithoutUsersInput
+    chat_file_attachments?: chat_file_attachmentsCreateNestedManyWithoutUsersInput
+    chat_message_reactions?: chat_message_reactionsCreateNestedManyWithoutUsersInput
+    chat_messages?: chat_messagesCreateNestedManyWithoutUsersInput
+    chat_participants_chat_participants_addedByIdTousers?: chat_participantsCreateNestedManyWithoutUsers_chat_participants_addedByIdTousersInput
+    chat_participants_chat_participants_userIdTousers?: chat_participantsCreateNestedManyWithoutUsers_chat_participants_userIdTousersInput
+    chat_rooms?: chat_roomsCreateNestedManyWithoutUsersInput
+    chatbot_messages?: chatbot_messagesCreateNestedManyWithoutUsersInput
+    chatbot_sessions?: chatbot_sessionsCreateNestedManyWithoutUsersInput
+    comprehensive_audit_logs?: comprehensive_audit_logsCreateNestedManyWithoutUsersInput
+    consent_access_logs?: consent_access_logsCreateNestedManyWithoutUsersInput
+    data_governance_policies_data_governance_policies_approved_byTousers?: data_governance_policiesCreateNestedManyWithoutUsers_data_governance_policies_approved_byTousersInput
+    data_governance_policies_data_governance_policies_policy_ownerTousers?: data_governance_policiesCreateNestedManyWithoutUsers_data_governance_policies_policy_ownerTousersInput
+    data_lineage?: data_lineageCreateNestedManyWithoutUsersInput
+    disputes_disputes_doctorIdTousers?: disputesCreateNestedManyWithoutUsers_disputes_doctorIdTousersInput
+    disputes_disputes_patientIdTousers?: disputesCreateNestedManyWithoutUsers_disputes_patientIdTousersInput
+    disputes_support?: disputes_supportCreateNestedManyWithoutUsersInput
+    doctor_availability?: doctor_availabilityCreateNestedManyWithoutUsersInput
+    doctor_pricing?: doctor_pricingCreateNestedManyWithoutUsersInput
+    doctor_profiles?: doctor_profilesCreateNestedOneWithoutUsersInput
+    doctor_unavailability?: doctor_unavailabilityCreateNestedManyWithoutUsersInput
+    doctor_wallets?: doctor_walletsCreateNestedOneWithoutUsersInput
+    document_files?: document_filesCreateNestedManyWithoutUsersInput
+    document_folders?: document_foldersCreateNestedManyWithoutUsersInput
+    email_verifications?: email_verificationsCreateNestedManyWithoutUsersInput
+    encryption_keys?: encryption_keysCreateNestedManyWithoutUsersInput
+    faq_analytics?: faq_analyticsCreateNestedManyWithoutUsersInput
+    faq_votes?: faq_votesCreateNestedManyWithoutUsersInput
+    faqs_faqs_createdByTousers?: faqsCreateNestedManyWithoutUsers_faqs_createdByTousersInput
+    faqs_faqs_updatedByTousers?: faqsCreateNestedManyWithoutUsers_faqs_updatedByTousersInput
+    fhir_search_logs?: fhir_search_logsCreateNestedManyWithoutUsersInput
+    file_access_logs?: file_access_logsCreateNestedManyWithoutUsersInput
+    files?: filesCreateNestedManyWithoutUsersInput
+    folder_access_logs?: folder_access_logsCreateNestedManyWithoutUsersInput
+    insurance_support?: insurance_supportCreateNestedManyWithoutUsersInput
+    invoices?: invoicesCreateNestedManyWithoutUsersInput
+    lab_orders?: lab_ordersCreateNestedManyWithoutUsersInput
+    lab_test_requests_lab_test_requests_doctorIdTousers?: lab_test_requestsCreateNestedManyWithoutUsers_lab_test_requests_doctorIdTousersInput
+    lab_test_requests_lab_test_requests_patientIdTousers?: lab_test_requestsCreateNestedManyWithoutUsers_lab_test_requests_patientIdTousersInput
+    lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
+    lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
+    lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
+    magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
+    notification?: notificationCreateNestedManyWithoutUsersInput
+    password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
+    patient_access_logs?: patient_access_logsCreateNestedManyWithoutUsersInput
+    patient_consents_patient_consents_witnessTousers?: patient_consentsCreateNestedManyWithoutUsers_patient_consents_witnessTousersInput
+    patient_consents_patient_consents_grantorTousers?: patient_consentsCreateNestedManyWithoutUsers_patient_consents_grantorTousersInput
+    patient_consents_patient_consents_withdrawn_byTousers?: patient_consentsCreateNestedManyWithoutUsers_patient_consents_withdrawn_byTousersInput
+    patient_profiles?: patient_profilesCreateNestedOneWithoutUsersInput
+    patient_wallets?: patient_walletsCreateNestedOneWithoutUsersInput
+    pharmacy_branches?: pharmacy_branchesCreateNestedManyWithoutUsersInput
+    pharmacy_documents?: pharmacy_documentsCreateNestedManyWithoutUsersInput
+    pharmacy_profiles?: pharmacy_profilesCreateNestedOneWithoutUsersInput
+    pharmacy_verification_requests_pharmacy_verification_requests_reviewedByTousers?: pharmacy_verification_requestsCreateNestedManyWithoutUsers_pharmacy_verification_requests_reviewedByTousersInput
+    pharmacy_verification_requests_pharmacy_verification_requests_assignedToTousers?: pharmacy_verification_requestsCreateNestedManyWithoutUsers_pharmacy_verification_requests_assignedToTousersInput
+    prescriptions_prescriptions_assignedPharmacistIdTousers?: prescriptionsCreateNestedManyWithoutUsers_prescriptions_assignedPharmacistIdTousersInput
+    prescriptions_prescriptions_doctorIdTousers?: prescriptionsCreateNestedManyWithoutUsers_prescriptions_doctorIdTousersInput
+    prescriptions_prescriptions_patientIdTousers?: prescriptionsCreateNestedManyWithoutUsers_prescriptions_patientIdTousersInput
+    referral_draw_stats?: referral_draw_statsCreateNestedManyWithoutUsersInput
+    referral_draws?: referral_drawsCreateNestedManyWithoutUsersInput
+    refresh_tokens?: refresh_tokensCreateNestedManyWithoutUsersInput
+    report_support?: report_supportCreateNestedManyWithoutUsersInput
+    reports?: reportsCreateNestedManyWithoutUsersInput
+    resource_access_logs?: resource_access_logsCreateNestedManyWithoutUsersInput
+    service_availability?: service_availabilityCreateNestedManyWithoutUsersInput
+    service_status_history?: service_status_historyCreateNestedManyWithoutUsersInput
+    sos_events?: sos_eventsCreateNestedManyWithoutUsersInput
+    subscriptions?: subscriptionsCreateNestedManyWithoutUsersInput
+    support_disputes?: support_disputesCreateNestedManyWithoutUsersInput
+    support_insurance?: support_insuranceCreateNestedManyWithoutUsersInput
+    support_report?: support_reportCreateNestedManyWithoutUsersInput
+    transactions_transactions_doctorIdTousers?: transactionsCreateNestedManyWithoutUsers_transactions_doctorIdTousersInput
+    transactions_transactions_patientIdTousers?: transactionsCreateNestedManyWithoutUsers_transactions_patientIdTousersInput
+    user_payment_methods?: user_payment_methodsCreateNestedManyWithoutUsersInput
+    user_ratings?: user_ratingsCreateNestedManyWithoutUsersInput
+    user_referrals_user_referrals_referredUserIdTousers?: user_referralsCreateNestedManyWithoutUsers_user_referrals_referredUserIdTousersInput
+    user_referrals_user_referrals_referrerIdTousers?: user_referralsCreateNestedManyWithoutUsers_user_referrals_referrerIdTousersInput
+    verification_documents?: verification_documentsCreateNestedManyWithoutUsersInput
+    verification_requests_verification_requests_assignedReviewerIdTousers?: verification_requestsCreateNestedManyWithoutUsers_verification_requests_assignedReviewerIdTousersInput
+    verification_requests_verification_requests_doctorIdTousers?: verification_requestsCreateNestedManyWithoutUsers_verification_requests_doctorIdTousersInput
+    verification_review_queue_verification_review_queue_escalatedToTousers?: verification_review_queueCreateNestedManyWithoutUsers_verification_review_queue_escalatedToTousersInput
+    verification_review_queue_verification_review_queue_assignedToTousers?: verification_review_queueCreateNestedManyWithoutUsers_verification_review_queue_assignedToTousersInput
+    verification_status_history?: verification_status_historyCreateNestedManyWithoutUsersInput
+    wallet_withdrawals?: wallet_withdrawalsCreateNestedManyWithoutUsersInput
+  }
+
+  export type usersUncheckedCreateWithoutLab_facilities_lab_facilities_adminUserIdTousersInput = {
+    id?: string
+    email: string
+    passwordHash?: string | null
+    role?: $Enums.users_role_enum
+    status?: $Enums.users_status_enum
+    provider?: $Enums.users_provider_enum
+    providerId?: string | null
+    profileImageUrl?: string | null
+    mfaEnabled?: boolean
+    mfaSecret?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    fullName: string
+    tier?: $Enums.users_tier_enum
+    isOnline?: boolean
+    referralCode?: string | null
+    totalReferrals?: number
+    referredBy?: string | null
+    username?: string | null
+    bannerUrl?: string | null
+    timezone?: string | null
+    lastDetectedTimezone?: string | null
+    timezoneUpdatedAt?: Date | string | null
+    phoneNumber?: string | null
+    departmentSpecialty?: string | null
+    averageRating?: Decimal | DecimalJsLike | number | string
+    totalRatings?: number
+    country?: string | null
+    pharmacyId?: string | null
+    refreshTokenHash?: string | null
+    resetPasswordOTP?: string | null
+    resetPasswordOTPExpires?: Date | string | null
+    mustChangePassword?: boolean
+    passwordChangedAt?: Date | string | null
+    lastLoginAt?: Date | string | null
+    account_support?: account_supportUncheckedCreateNestedManyWithoutUsersInput
+    appointment_chats_appointment_chats_doctorIdTousers?: appointment_chatsUncheckedCreateNestedManyWithoutUsers_appointment_chats_doctorIdTousersInput
+    appointment_chats_appointment_chats_patientIdTousers?: appointment_chatsUncheckedCreateNestedManyWithoutUsers_appointment_chats_patientIdTousersInput
+    appointments_appointments_doctorIdTousers?: appointmentsUncheckedCreateNestedManyWithoutUsers_appointments_doctorIdTousersInput
+    appointments_appointments_patientIdTousers?: appointmentsUncheckedCreateNestedManyWithoutUsers_appointments_patientIdTousersInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutUsersInput
+    auth_events?: auth_eventsUncheckedCreateNestedManyWithoutUsersInput
+    chat_file_attachments?: chat_file_attachmentsUncheckedCreateNestedManyWithoutUsersInput
+    chat_message_reactions?: chat_message_reactionsUncheckedCreateNestedManyWithoutUsersInput
+    chat_messages?: chat_messagesUncheckedCreateNestedManyWithoutUsersInput
+    chat_participants_chat_participants_addedByIdTousers?: chat_participantsUncheckedCreateNestedManyWithoutUsers_chat_participants_addedByIdTousersInput
+    chat_participants_chat_participants_userIdTousers?: chat_participantsUncheckedCreateNestedManyWithoutUsers_chat_participants_userIdTousersInput
+    chat_rooms?: chat_roomsUncheckedCreateNestedManyWithoutUsersInput
+    chatbot_messages?: chatbot_messagesUncheckedCreateNestedManyWithoutUsersInput
+    chatbot_sessions?: chatbot_sessionsUncheckedCreateNestedManyWithoutUsersInput
+    comprehensive_audit_logs?: comprehensive_audit_logsUncheckedCreateNestedManyWithoutUsersInput
+    consent_access_logs?: consent_access_logsUncheckedCreateNestedManyWithoutUsersInput
+    data_governance_policies_data_governance_policies_approved_byTousers?: data_governance_policiesUncheckedCreateNestedManyWithoutUsers_data_governance_policies_approved_byTousersInput
+    data_governance_policies_data_governance_policies_policy_ownerTousers?: data_governance_policiesUncheckedCreateNestedManyWithoutUsers_data_governance_policies_policy_ownerTousersInput
+    data_lineage?: data_lineageUncheckedCreateNestedManyWithoutUsersInput
+    disputes_disputes_doctorIdTousers?: disputesUncheckedCreateNestedManyWithoutUsers_disputes_doctorIdTousersInput
+    disputes_disputes_patientIdTousers?: disputesUncheckedCreateNestedManyWithoutUsers_disputes_patientIdTousersInput
+    disputes_support?: disputes_supportUncheckedCreateNestedManyWithoutUsersInput
+    doctor_availability?: doctor_availabilityUncheckedCreateNestedManyWithoutUsersInput
+    doctor_pricing?: doctor_pricingUncheckedCreateNestedManyWithoutUsersInput
+    doctor_profiles?: doctor_profilesUncheckedCreateNestedOneWithoutUsersInput
+    doctor_unavailability?: doctor_unavailabilityUncheckedCreateNestedManyWithoutUsersInput
+    doctor_wallets?: doctor_walletsUncheckedCreateNestedOneWithoutUsersInput
+    document_files?: document_filesUncheckedCreateNestedManyWithoutUsersInput
+    document_folders?: document_foldersUncheckedCreateNestedManyWithoutUsersInput
+    email_verifications?: email_verificationsUncheckedCreateNestedManyWithoutUsersInput
+    encryption_keys?: encryption_keysUncheckedCreateNestedManyWithoutUsersInput
+    faq_analytics?: faq_analyticsUncheckedCreateNestedManyWithoutUsersInput
+    faq_votes?: faq_votesUncheckedCreateNestedManyWithoutUsersInput
+    faqs_faqs_createdByTousers?: faqsUncheckedCreateNestedManyWithoutUsers_faqs_createdByTousersInput
+    faqs_faqs_updatedByTousers?: faqsUncheckedCreateNestedManyWithoutUsers_faqs_updatedByTousersInput
+    fhir_search_logs?: fhir_search_logsUncheckedCreateNestedManyWithoutUsersInput
+    file_access_logs?: file_access_logsUncheckedCreateNestedManyWithoutUsersInput
+    files?: filesUncheckedCreateNestedManyWithoutUsersInput
+    folder_access_logs?: folder_access_logsUncheckedCreateNestedManyWithoutUsersInput
+    insurance_support?: insurance_supportUncheckedCreateNestedManyWithoutUsersInput
+    invoices?: invoicesUncheckedCreateNestedManyWithoutUsersInput
+    lab_orders?: lab_ordersUncheckedCreateNestedManyWithoutUsersInput
+    lab_test_requests_lab_test_requests_doctorIdTousers?: lab_test_requestsUncheckedCreateNestedManyWithoutUsers_lab_test_requests_doctorIdTousersInput
+    lab_test_requests_lab_test_requests_patientIdTousers?: lab_test_requestsUncheckedCreateNestedManyWithoutUsers_lab_test_requests_patientIdTousersInput
+    lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
+    lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
+    lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
+    magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
+    notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
+    password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
+    patient_access_logs?: patient_access_logsUncheckedCreateNestedManyWithoutUsersInput
+    patient_consents_patient_consents_witnessTousers?: patient_consentsUncheckedCreateNestedManyWithoutUsers_patient_consents_witnessTousersInput
+    patient_consents_patient_consents_grantorTousers?: patient_consentsUncheckedCreateNestedManyWithoutUsers_patient_consents_grantorTousersInput
+    patient_consents_patient_consents_withdrawn_byTousers?: patient_consentsUncheckedCreateNestedManyWithoutUsers_patient_consents_withdrawn_byTousersInput
+    patient_profiles?: patient_profilesUncheckedCreateNestedOneWithoutUsersInput
+    patient_wallets?: patient_walletsUncheckedCreateNestedOneWithoutUsersInput
+    pharmacy_branches?: pharmacy_branchesUncheckedCreateNestedManyWithoutUsersInput
+    pharmacy_documents?: pharmacy_documentsUncheckedCreateNestedManyWithoutUsersInput
+    pharmacy_profiles?: pharmacy_profilesUncheckedCreateNestedOneWithoutUsersInput
+    pharmacy_verification_requests_pharmacy_verification_requests_reviewedByTousers?: pharmacy_verification_requestsUncheckedCreateNestedManyWithoutUsers_pharmacy_verification_requests_reviewedByTousersInput
+    pharmacy_verification_requests_pharmacy_verification_requests_assignedToTousers?: pharmacy_verification_requestsUncheckedCreateNestedManyWithoutUsers_pharmacy_verification_requests_assignedToTousersInput
+    prescriptions_prescriptions_assignedPharmacistIdTousers?: prescriptionsUncheckedCreateNestedManyWithoutUsers_prescriptions_assignedPharmacistIdTousersInput
+    prescriptions_prescriptions_doctorIdTousers?: prescriptionsUncheckedCreateNestedManyWithoutUsers_prescriptions_doctorIdTousersInput
+    prescriptions_prescriptions_patientIdTousers?: prescriptionsUncheckedCreateNestedManyWithoutUsers_prescriptions_patientIdTousersInput
+    referral_draw_stats?: referral_draw_statsUncheckedCreateNestedManyWithoutUsersInput
+    referral_draws?: referral_drawsUncheckedCreateNestedManyWithoutUsersInput
+    refresh_tokens?: refresh_tokensUncheckedCreateNestedManyWithoutUsersInput
+    report_support?: report_supportUncheckedCreateNestedManyWithoutUsersInput
+    reports?: reportsUncheckedCreateNestedManyWithoutUsersInput
+    resource_access_logs?: resource_access_logsUncheckedCreateNestedManyWithoutUsersInput
+    service_availability?: service_availabilityUncheckedCreateNestedManyWithoutUsersInput
+    service_status_history?: service_status_historyUncheckedCreateNestedManyWithoutUsersInput
+    sos_events?: sos_eventsUncheckedCreateNestedManyWithoutUsersInput
+    subscriptions?: subscriptionsUncheckedCreateNestedManyWithoutUsersInput
+    support_disputes?: support_disputesUncheckedCreateNestedManyWithoutUsersInput
+    support_insurance?: support_insuranceUncheckedCreateNestedManyWithoutUsersInput
+    support_report?: support_reportUncheckedCreateNestedManyWithoutUsersInput
+    transactions_transactions_doctorIdTousers?: transactionsUncheckedCreateNestedManyWithoutUsers_transactions_doctorIdTousersInput
+    transactions_transactions_patientIdTousers?: transactionsUncheckedCreateNestedManyWithoutUsers_transactions_patientIdTousersInput
+    user_payment_methods?: user_payment_methodsUncheckedCreateNestedManyWithoutUsersInput
+    user_ratings?: user_ratingsUncheckedCreateNestedManyWithoutUsersInput
+    user_referrals_user_referrals_referredUserIdTousers?: user_referralsUncheckedCreateNestedManyWithoutUsers_user_referrals_referredUserIdTousersInput
+    user_referrals_user_referrals_referrerIdTousers?: user_referralsUncheckedCreateNestedManyWithoutUsers_user_referrals_referrerIdTousersInput
+    verification_documents?: verification_documentsUncheckedCreateNestedManyWithoutUsersInput
+    verification_requests_verification_requests_assignedReviewerIdTousers?: verification_requestsUncheckedCreateNestedManyWithoutUsers_verification_requests_assignedReviewerIdTousersInput
+    verification_requests_verification_requests_doctorIdTousers?: verification_requestsUncheckedCreateNestedManyWithoutUsers_verification_requests_doctorIdTousersInput
+    verification_review_queue_verification_review_queue_escalatedToTousers?: verification_review_queueUncheckedCreateNestedManyWithoutUsers_verification_review_queue_escalatedToTousersInput
+    verification_review_queue_verification_review_queue_assignedToTousers?: verification_review_queueUncheckedCreateNestedManyWithoutUsers_verification_review_queue_assignedToTousersInput
+    verification_status_history?: verification_status_historyUncheckedCreateNestedManyWithoutUsersInput
+    wallet_withdrawals?: wallet_withdrawalsUncheckedCreateNestedManyWithoutUsersInput
+  }
+
+  export type usersCreateOrConnectWithoutLab_facilities_lab_facilities_adminUserIdTousersInput = {
+    where: usersWhereUniqueInput
+    create: XOR<usersCreateWithoutLab_facilities_lab_facilities_adminUserIdTousersInput, usersUncheckedCreateWithoutLab_facilities_lab_facilities_adminUserIdTousersInput>
+  }
+
+  export type usersCreateWithoutLab_facilities_lab_facilities_approvedByIdTousersInput = {
+    id?: string
+    email: string
+    passwordHash?: string | null
+    role?: $Enums.users_role_enum
+    status?: $Enums.users_status_enum
+    provider?: $Enums.users_provider_enum
+    providerId?: string | null
+    profileImageUrl?: string | null
+    mfaEnabled?: boolean
+    mfaSecret?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    fullName: string
+    tier?: $Enums.users_tier_enum
+    isOnline?: boolean
+    referralCode?: string | null
+    totalReferrals?: number
+    referredBy?: string | null
+    username?: string | null
+    bannerUrl?: string | null
+    timezone?: string | null
+    lastDetectedTimezone?: string | null
+    timezoneUpdatedAt?: Date | string | null
+    phoneNumber?: string | null
+    departmentSpecialty?: string | null
+    averageRating?: Decimal | DecimalJsLike | number | string
+    totalRatings?: number
+    country?: string | null
+    pharmacyId?: string | null
+    refreshTokenHash?: string | null
+    resetPasswordOTP?: string | null
+    resetPasswordOTPExpires?: Date | string | null
+    mustChangePassword?: boolean
+    passwordChangedAt?: Date | string | null
+    lastLoginAt?: Date | string | null
+    account_support?: account_supportCreateNestedManyWithoutUsersInput
+    appointment_chats_appointment_chats_doctorIdTousers?: appointment_chatsCreateNestedManyWithoutUsers_appointment_chats_doctorIdTousersInput
+    appointment_chats_appointment_chats_patientIdTousers?: appointment_chatsCreateNestedManyWithoutUsers_appointment_chats_patientIdTousersInput
+    appointments_appointments_doctorIdTousers?: appointmentsCreateNestedManyWithoutUsers_appointments_doctorIdTousersInput
+    appointments_appointments_patientIdTousers?: appointmentsCreateNestedManyWithoutUsers_appointments_patientIdTousersInput
+    audit_logs?: audit_logsCreateNestedManyWithoutUsersInput
+    auth_events?: auth_eventsCreateNestedManyWithoutUsersInput
+    chat_file_attachments?: chat_file_attachmentsCreateNestedManyWithoutUsersInput
+    chat_message_reactions?: chat_message_reactionsCreateNestedManyWithoutUsersInput
+    chat_messages?: chat_messagesCreateNestedManyWithoutUsersInput
+    chat_participants_chat_participants_addedByIdTousers?: chat_participantsCreateNestedManyWithoutUsers_chat_participants_addedByIdTousersInput
+    chat_participants_chat_participants_userIdTousers?: chat_participantsCreateNestedManyWithoutUsers_chat_participants_userIdTousersInput
+    chat_rooms?: chat_roomsCreateNestedManyWithoutUsersInput
+    chatbot_messages?: chatbot_messagesCreateNestedManyWithoutUsersInput
+    chatbot_sessions?: chatbot_sessionsCreateNestedManyWithoutUsersInput
+    comprehensive_audit_logs?: comprehensive_audit_logsCreateNestedManyWithoutUsersInput
+    consent_access_logs?: consent_access_logsCreateNestedManyWithoutUsersInput
+    data_governance_policies_data_governance_policies_approved_byTousers?: data_governance_policiesCreateNestedManyWithoutUsers_data_governance_policies_approved_byTousersInput
+    data_governance_policies_data_governance_policies_policy_ownerTousers?: data_governance_policiesCreateNestedManyWithoutUsers_data_governance_policies_policy_ownerTousersInput
+    data_lineage?: data_lineageCreateNestedManyWithoutUsersInput
+    disputes_disputes_doctorIdTousers?: disputesCreateNestedManyWithoutUsers_disputes_doctorIdTousersInput
+    disputes_disputes_patientIdTousers?: disputesCreateNestedManyWithoutUsers_disputes_patientIdTousersInput
+    disputes_support?: disputes_supportCreateNestedManyWithoutUsersInput
+    doctor_availability?: doctor_availabilityCreateNestedManyWithoutUsersInput
+    doctor_pricing?: doctor_pricingCreateNestedManyWithoutUsersInput
+    doctor_profiles?: doctor_profilesCreateNestedOneWithoutUsersInput
+    doctor_unavailability?: doctor_unavailabilityCreateNestedManyWithoutUsersInput
+    doctor_wallets?: doctor_walletsCreateNestedOneWithoutUsersInput
+    document_files?: document_filesCreateNestedManyWithoutUsersInput
+    document_folders?: document_foldersCreateNestedManyWithoutUsersInput
+    email_verifications?: email_verificationsCreateNestedManyWithoutUsersInput
+    encryption_keys?: encryption_keysCreateNestedManyWithoutUsersInput
+    faq_analytics?: faq_analyticsCreateNestedManyWithoutUsersInput
+    faq_votes?: faq_votesCreateNestedManyWithoutUsersInput
+    faqs_faqs_createdByTousers?: faqsCreateNestedManyWithoutUsers_faqs_createdByTousersInput
+    faqs_faqs_updatedByTousers?: faqsCreateNestedManyWithoutUsers_faqs_updatedByTousersInput
+    fhir_search_logs?: fhir_search_logsCreateNestedManyWithoutUsersInput
+    file_access_logs?: file_access_logsCreateNestedManyWithoutUsersInput
+    files?: filesCreateNestedManyWithoutUsersInput
+    folder_access_logs?: folder_access_logsCreateNestedManyWithoutUsersInput
+    insurance_support?: insurance_supportCreateNestedManyWithoutUsersInput
+    invoices?: invoicesCreateNestedManyWithoutUsersInput
+    lab_orders?: lab_ordersCreateNestedManyWithoutUsersInput
+    lab_test_requests_lab_test_requests_doctorIdTousers?: lab_test_requestsCreateNestedManyWithoutUsers_lab_test_requests_doctorIdTousersInput
+    lab_test_requests_lab_test_requests_patientIdTousers?: lab_test_requestsCreateNestedManyWithoutUsers_lab_test_requests_patientIdTousersInput
+    lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
+    lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
+    lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
+    notification?: notificationCreateNestedManyWithoutUsersInput
+    password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
+    patient_access_logs?: patient_access_logsCreateNestedManyWithoutUsersInput
+    patient_consents_patient_consents_witnessTousers?: patient_consentsCreateNestedManyWithoutUsers_patient_consents_witnessTousersInput
+    patient_consents_patient_consents_grantorTousers?: patient_consentsCreateNestedManyWithoutUsers_patient_consents_grantorTousersInput
+    patient_consents_patient_consents_withdrawn_byTousers?: patient_consentsCreateNestedManyWithoutUsers_patient_consents_withdrawn_byTousersInput
+    patient_profiles?: patient_profilesCreateNestedOneWithoutUsersInput
+    patient_wallets?: patient_walletsCreateNestedOneWithoutUsersInput
+    pharmacy_branches?: pharmacy_branchesCreateNestedManyWithoutUsersInput
+    pharmacy_documents?: pharmacy_documentsCreateNestedManyWithoutUsersInput
+    pharmacy_profiles?: pharmacy_profilesCreateNestedOneWithoutUsersInput
+    pharmacy_verification_requests_pharmacy_verification_requests_reviewedByTousers?: pharmacy_verification_requestsCreateNestedManyWithoutUsers_pharmacy_verification_requests_reviewedByTousersInput
+    pharmacy_verification_requests_pharmacy_verification_requests_assignedToTousers?: pharmacy_verification_requestsCreateNestedManyWithoutUsers_pharmacy_verification_requests_assignedToTousersInput
+    prescriptions_prescriptions_assignedPharmacistIdTousers?: prescriptionsCreateNestedManyWithoutUsers_prescriptions_assignedPharmacistIdTousersInput
+    prescriptions_prescriptions_doctorIdTousers?: prescriptionsCreateNestedManyWithoutUsers_prescriptions_doctorIdTousersInput
+    prescriptions_prescriptions_patientIdTousers?: prescriptionsCreateNestedManyWithoutUsers_prescriptions_patientIdTousersInput
+    referral_draw_stats?: referral_draw_statsCreateNestedManyWithoutUsersInput
+    referral_draws?: referral_drawsCreateNestedManyWithoutUsersInput
+    refresh_tokens?: refresh_tokensCreateNestedManyWithoutUsersInput
+    report_support?: report_supportCreateNestedManyWithoutUsersInput
+    reports?: reportsCreateNestedManyWithoutUsersInput
+    resource_access_logs?: resource_access_logsCreateNestedManyWithoutUsersInput
+    service_availability?: service_availabilityCreateNestedManyWithoutUsersInput
+    service_status_history?: service_status_historyCreateNestedManyWithoutUsersInput
+    sos_events?: sos_eventsCreateNestedManyWithoutUsersInput
+    subscriptions?: subscriptionsCreateNestedManyWithoutUsersInput
+    support_disputes?: support_disputesCreateNestedManyWithoutUsersInput
+    support_insurance?: support_insuranceCreateNestedManyWithoutUsersInput
+    support_report?: support_reportCreateNestedManyWithoutUsersInput
+    transactions_transactions_doctorIdTousers?: transactionsCreateNestedManyWithoutUsers_transactions_doctorIdTousersInput
+    transactions_transactions_patientIdTousers?: transactionsCreateNestedManyWithoutUsers_transactions_patientIdTousersInput
+    user_payment_methods?: user_payment_methodsCreateNestedManyWithoutUsersInput
+    user_ratings?: user_ratingsCreateNestedManyWithoutUsersInput
+    user_referrals_user_referrals_referredUserIdTousers?: user_referralsCreateNestedManyWithoutUsers_user_referrals_referredUserIdTousersInput
+    user_referrals_user_referrals_referrerIdTousers?: user_referralsCreateNestedManyWithoutUsers_user_referrals_referrerIdTousersInput
+    verification_documents?: verification_documentsCreateNestedManyWithoutUsersInput
+    verification_requests_verification_requests_assignedReviewerIdTousers?: verification_requestsCreateNestedManyWithoutUsers_verification_requests_assignedReviewerIdTousersInput
+    verification_requests_verification_requests_doctorIdTousers?: verification_requestsCreateNestedManyWithoutUsers_verification_requests_doctorIdTousersInput
+    verification_review_queue_verification_review_queue_escalatedToTousers?: verification_review_queueCreateNestedManyWithoutUsers_verification_review_queue_escalatedToTousersInput
+    verification_review_queue_verification_review_queue_assignedToTousers?: verification_review_queueCreateNestedManyWithoutUsers_verification_review_queue_assignedToTousersInput
+    verification_status_history?: verification_status_historyCreateNestedManyWithoutUsersInput
+    wallet_withdrawals?: wallet_withdrawalsCreateNestedManyWithoutUsersInput
+  }
+
+  export type usersUncheckedCreateWithoutLab_facilities_lab_facilities_approvedByIdTousersInput = {
+    id?: string
+    email: string
+    passwordHash?: string | null
+    role?: $Enums.users_role_enum
+    status?: $Enums.users_status_enum
+    provider?: $Enums.users_provider_enum
+    providerId?: string | null
+    profileImageUrl?: string | null
+    mfaEnabled?: boolean
+    mfaSecret?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    fullName: string
+    tier?: $Enums.users_tier_enum
+    isOnline?: boolean
+    referralCode?: string | null
+    totalReferrals?: number
+    referredBy?: string | null
+    username?: string | null
+    bannerUrl?: string | null
+    timezone?: string | null
+    lastDetectedTimezone?: string | null
+    timezoneUpdatedAt?: Date | string | null
+    phoneNumber?: string | null
+    departmentSpecialty?: string | null
+    averageRating?: Decimal | DecimalJsLike | number | string
+    totalRatings?: number
+    country?: string | null
+    pharmacyId?: string | null
+    refreshTokenHash?: string | null
+    resetPasswordOTP?: string | null
+    resetPasswordOTPExpires?: Date | string | null
+    mustChangePassword?: boolean
+    passwordChangedAt?: Date | string | null
+    lastLoginAt?: Date | string | null
+    account_support?: account_supportUncheckedCreateNestedManyWithoutUsersInput
+    appointment_chats_appointment_chats_doctorIdTousers?: appointment_chatsUncheckedCreateNestedManyWithoutUsers_appointment_chats_doctorIdTousersInput
+    appointment_chats_appointment_chats_patientIdTousers?: appointment_chatsUncheckedCreateNestedManyWithoutUsers_appointment_chats_patientIdTousersInput
+    appointments_appointments_doctorIdTousers?: appointmentsUncheckedCreateNestedManyWithoutUsers_appointments_doctorIdTousersInput
+    appointments_appointments_patientIdTousers?: appointmentsUncheckedCreateNestedManyWithoutUsers_appointments_patientIdTousersInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutUsersInput
+    auth_events?: auth_eventsUncheckedCreateNestedManyWithoutUsersInput
+    chat_file_attachments?: chat_file_attachmentsUncheckedCreateNestedManyWithoutUsersInput
+    chat_message_reactions?: chat_message_reactionsUncheckedCreateNestedManyWithoutUsersInput
+    chat_messages?: chat_messagesUncheckedCreateNestedManyWithoutUsersInput
+    chat_participants_chat_participants_addedByIdTousers?: chat_participantsUncheckedCreateNestedManyWithoutUsers_chat_participants_addedByIdTousersInput
+    chat_participants_chat_participants_userIdTousers?: chat_participantsUncheckedCreateNestedManyWithoutUsers_chat_participants_userIdTousersInput
+    chat_rooms?: chat_roomsUncheckedCreateNestedManyWithoutUsersInput
+    chatbot_messages?: chatbot_messagesUncheckedCreateNestedManyWithoutUsersInput
+    chatbot_sessions?: chatbot_sessionsUncheckedCreateNestedManyWithoutUsersInput
+    comprehensive_audit_logs?: comprehensive_audit_logsUncheckedCreateNestedManyWithoutUsersInput
+    consent_access_logs?: consent_access_logsUncheckedCreateNestedManyWithoutUsersInput
+    data_governance_policies_data_governance_policies_approved_byTousers?: data_governance_policiesUncheckedCreateNestedManyWithoutUsers_data_governance_policies_approved_byTousersInput
+    data_governance_policies_data_governance_policies_policy_ownerTousers?: data_governance_policiesUncheckedCreateNestedManyWithoutUsers_data_governance_policies_policy_ownerTousersInput
+    data_lineage?: data_lineageUncheckedCreateNestedManyWithoutUsersInput
+    disputes_disputes_doctorIdTousers?: disputesUncheckedCreateNestedManyWithoutUsers_disputes_doctorIdTousersInput
+    disputes_disputes_patientIdTousers?: disputesUncheckedCreateNestedManyWithoutUsers_disputes_patientIdTousersInput
+    disputes_support?: disputes_supportUncheckedCreateNestedManyWithoutUsersInput
+    doctor_availability?: doctor_availabilityUncheckedCreateNestedManyWithoutUsersInput
+    doctor_pricing?: doctor_pricingUncheckedCreateNestedManyWithoutUsersInput
+    doctor_profiles?: doctor_profilesUncheckedCreateNestedOneWithoutUsersInput
+    doctor_unavailability?: doctor_unavailabilityUncheckedCreateNestedManyWithoutUsersInput
+    doctor_wallets?: doctor_walletsUncheckedCreateNestedOneWithoutUsersInput
+    document_files?: document_filesUncheckedCreateNestedManyWithoutUsersInput
+    document_folders?: document_foldersUncheckedCreateNestedManyWithoutUsersInput
+    email_verifications?: email_verificationsUncheckedCreateNestedManyWithoutUsersInput
+    encryption_keys?: encryption_keysUncheckedCreateNestedManyWithoutUsersInput
+    faq_analytics?: faq_analyticsUncheckedCreateNestedManyWithoutUsersInput
+    faq_votes?: faq_votesUncheckedCreateNestedManyWithoutUsersInput
+    faqs_faqs_createdByTousers?: faqsUncheckedCreateNestedManyWithoutUsers_faqs_createdByTousersInput
+    faqs_faqs_updatedByTousers?: faqsUncheckedCreateNestedManyWithoutUsers_faqs_updatedByTousersInput
+    fhir_search_logs?: fhir_search_logsUncheckedCreateNestedManyWithoutUsersInput
+    file_access_logs?: file_access_logsUncheckedCreateNestedManyWithoutUsersInput
+    files?: filesUncheckedCreateNestedManyWithoutUsersInput
+    folder_access_logs?: folder_access_logsUncheckedCreateNestedManyWithoutUsersInput
+    insurance_support?: insurance_supportUncheckedCreateNestedManyWithoutUsersInput
+    invoices?: invoicesUncheckedCreateNestedManyWithoutUsersInput
+    lab_orders?: lab_ordersUncheckedCreateNestedManyWithoutUsersInput
+    lab_test_requests_lab_test_requests_doctorIdTousers?: lab_test_requestsUncheckedCreateNestedManyWithoutUsers_lab_test_requests_doctorIdTousersInput
+    lab_test_requests_lab_test_requests_patientIdTousers?: lab_test_requestsUncheckedCreateNestedManyWithoutUsers_lab_test_requests_patientIdTousersInput
+    lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
+    lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
+    lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
+    notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
+    password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
+    patient_access_logs?: patient_access_logsUncheckedCreateNestedManyWithoutUsersInput
+    patient_consents_patient_consents_witnessTousers?: patient_consentsUncheckedCreateNestedManyWithoutUsers_patient_consents_witnessTousersInput
+    patient_consents_patient_consents_grantorTousers?: patient_consentsUncheckedCreateNestedManyWithoutUsers_patient_consents_grantorTousersInput
+    patient_consents_patient_consents_withdrawn_byTousers?: patient_consentsUncheckedCreateNestedManyWithoutUsers_patient_consents_withdrawn_byTousersInput
+    patient_profiles?: patient_profilesUncheckedCreateNestedOneWithoutUsersInput
+    patient_wallets?: patient_walletsUncheckedCreateNestedOneWithoutUsersInput
+    pharmacy_branches?: pharmacy_branchesUncheckedCreateNestedManyWithoutUsersInput
+    pharmacy_documents?: pharmacy_documentsUncheckedCreateNestedManyWithoutUsersInput
+    pharmacy_profiles?: pharmacy_profilesUncheckedCreateNestedOneWithoutUsersInput
+    pharmacy_verification_requests_pharmacy_verification_requests_reviewedByTousers?: pharmacy_verification_requestsUncheckedCreateNestedManyWithoutUsers_pharmacy_verification_requests_reviewedByTousersInput
+    pharmacy_verification_requests_pharmacy_verification_requests_assignedToTousers?: pharmacy_verification_requestsUncheckedCreateNestedManyWithoutUsers_pharmacy_verification_requests_assignedToTousersInput
+    prescriptions_prescriptions_assignedPharmacistIdTousers?: prescriptionsUncheckedCreateNestedManyWithoutUsers_prescriptions_assignedPharmacistIdTousersInput
+    prescriptions_prescriptions_doctorIdTousers?: prescriptionsUncheckedCreateNestedManyWithoutUsers_prescriptions_doctorIdTousersInput
+    prescriptions_prescriptions_patientIdTousers?: prescriptionsUncheckedCreateNestedManyWithoutUsers_prescriptions_patientIdTousersInput
+    referral_draw_stats?: referral_draw_statsUncheckedCreateNestedManyWithoutUsersInput
+    referral_draws?: referral_drawsUncheckedCreateNestedManyWithoutUsersInput
+    refresh_tokens?: refresh_tokensUncheckedCreateNestedManyWithoutUsersInput
+    report_support?: report_supportUncheckedCreateNestedManyWithoutUsersInput
+    reports?: reportsUncheckedCreateNestedManyWithoutUsersInput
+    resource_access_logs?: resource_access_logsUncheckedCreateNestedManyWithoutUsersInput
+    service_availability?: service_availabilityUncheckedCreateNestedManyWithoutUsersInput
+    service_status_history?: service_status_historyUncheckedCreateNestedManyWithoutUsersInput
+    sos_events?: sos_eventsUncheckedCreateNestedManyWithoutUsersInput
+    subscriptions?: subscriptionsUncheckedCreateNestedManyWithoutUsersInput
+    support_disputes?: support_disputesUncheckedCreateNestedManyWithoutUsersInput
+    support_insurance?: support_insuranceUncheckedCreateNestedManyWithoutUsersInput
+    support_report?: support_reportUncheckedCreateNestedManyWithoutUsersInput
+    transactions_transactions_doctorIdTousers?: transactionsUncheckedCreateNestedManyWithoutUsers_transactions_doctorIdTousersInput
+    transactions_transactions_patientIdTousers?: transactionsUncheckedCreateNestedManyWithoutUsers_transactions_patientIdTousersInput
+    user_payment_methods?: user_payment_methodsUncheckedCreateNestedManyWithoutUsersInput
+    user_ratings?: user_ratingsUncheckedCreateNestedManyWithoutUsersInput
+    user_referrals_user_referrals_referredUserIdTousers?: user_referralsUncheckedCreateNestedManyWithoutUsers_user_referrals_referredUserIdTousersInput
+    user_referrals_user_referrals_referrerIdTousers?: user_referralsUncheckedCreateNestedManyWithoutUsers_user_referrals_referrerIdTousersInput
+    verification_documents?: verification_documentsUncheckedCreateNestedManyWithoutUsersInput
+    verification_requests_verification_requests_assignedReviewerIdTousers?: verification_requestsUncheckedCreateNestedManyWithoutUsers_verification_requests_assignedReviewerIdTousersInput
+    verification_requests_verification_requests_doctorIdTousers?: verification_requestsUncheckedCreateNestedManyWithoutUsers_verification_requests_doctorIdTousersInput
+    verification_review_queue_verification_review_queue_escalatedToTousers?: verification_review_queueUncheckedCreateNestedManyWithoutUsers_verification_review_queue_escalatedToTousersInput
+    verification_review_queue_verification_review_queue_assignedToTousers?: verification_review_queueUncheckedCreateNestedManyWithoutUsers_verification_review_queue_assignedToTousersInput
+    verification_status_history?: verification_status_historyUncheckedCreateNestedManyWithoutUsersInput
+    wallet_withdrawals?: wallet_withdrawalsUncheckedCreateNestedManyWithoutUsersInput
+  }
+
+  export type usersCreateOrConnectWithoutLab_facilities_lab_facilities_approvedByIdTousersInput = {
+    where: usersWhereUniqueInput
+    create: XOR<usersCreateWithoutLab_facilities_lab_facilities_approvedByIdTousersInput, usersUncheckedCreateWithoutLab_facilities_lab_facilities_approvedByIdTousersInput>
   }
 
   export type audit_logsCreateWithoutLab_facilitiesInput = {
@@ -273311,6 +274459,548 @@ export namespace Prisma {
   export type lab_walletsCreateOrConnectWithoutLab_facilitiesInput = {
     where: lab_walletsWhereUniqueInput
     create: XOR<lab_walletsCreateWithoutLab_facilitiesInput, lab_walletsUncheckedCreateWithoutLab_facilitiesInput>
+  }
+
+  export type usersUpsertWithoutLab_facilities_lab_facilities_adminUserIdTousersInput = {
+    update: XOR<usersUpdateWithoutLab_facilities_lab_facilities_adminUserIdTousersInput, usersUncheckedUpdateWithoutLab_facilities_lab_facilities_adminUserIdTousersInput>
+    create: XOR<usersCreateWithoutLab_facilities_lab_facilities_adminUserIdTousersInput, usersUncheckedCreateWithoutLab_facilities_lab_facilities_adminUserIdTousersInput>
+    where?: usersWhereInput
+  }
+
+  export type usersUpdateToOneWithWhereWithoutLab_facilities_lab_facilities_adminUserIdTousersInput = {
+    where?: usersWhereInput
+    data: XOR<usersUpdateWithoutLab_facilities_lab_facilities_adminUserIdTousersInput, usersUncheckedUpdateWithoutLab_facilities_lab_facilities_adminUserIdTousersInput>
+  }
+
+  export type usersUpdateWithoutLab_facilities_lab_facilities_adminUserIdTousersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: Enumusers_role_enumFieldUpdateOperationsInput | $Enums.users_role_enum
+    status?: Enumusers_status_enumFieldUpdateOperationsInput | $Enums.users_status_enum
+    provider?: Enumusers_provider_enumFieldUpdateOperationsInput | $Enums.users_provider_enum
+    providerId?: NullableStringFieldUpdateOperationsInput | string | null
+    profileImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnabled?: BoolFieldUpdateOperationsInput | boolean
+    mfaSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    fullName?: StringFieldUpdateOperationsInput | string
+    tier?: Enumusers_tier_enumFieldUpdateOperationsInput | $Enums.users_tier_enum
+    isOnline?: BoolFieldUpdateOperationsInput | boolean
+    referralCode?: NullableStringFieldUpdateOperationsInput | string | null
+    totalReferrals?: IntFieldUpdateOperationsInput | number
+    referredBy?: NullableStringFieldUpdateOperationsInput | string | null
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    bannerUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: NullableStringFieldUpdateOperationsInput | string | null
+    lastDetectedTimezone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezoneUpdatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    phoneNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentSpecialty?: NullableStringFieldUpdateOperationsInput | string | null
+    averageRating?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    totalRatings?: IntFieldUpdateOperationsInput | number
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    pharmacyId?: NullableStringFieldUpdateOperationsInput | string | null
+    refreshTokenHash?: NullableStringFieldUpdateOperationsInput | string | null
+    resetPasswordOTP?: NullableStringFieldUpdateOperationsInput | string | null
+    resetPasswordOTPExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    account_support?: account_supportUpdateManyWithoutUsersNestedInput
+    appointment_chats_appointment_chats_doctorIdTousers?: appointment_chatsUpdateManyWithoutUsers_appointment_chats_doctorIdTousersNestedInput
+    appointment_chats_appointment_chats_patientIdTousers?: appointment_chatsUpdateManyWithoutUsers_appointment_chats_patientIdTousersNestedInput
+    appointments_appointments_doctorIdTousers?: appointmentsUpdateManyWithoutUsers_appointments_doctorIdTousersNestedInput
+    appointments_appointments_patientIdTousers?: appointmentsUpdateManyWithoutUsers_appointments_patientIdTousersNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutUsersNestedInput
+    auth_events?: auth_eventsUpdateManyWithoutUsersNestedInput
+    chat_file_attachments?: chat_file_attachmentsUpdateManyWithoutUsersNestedInput
+    chat_message_reactions?: chat_message_reactionsUpdateManyWithoutUsersNestedInput
+    chat_messages?: chat_messagesUpdateManyWithoutUsersNestedInput
+    chat_participants_chat_participants_addedByIdTousers?: chat_participantsUpdateManyWithoutUsers_chat_participants_addedByIdTousersNestedInput
+    chat_participants_chat_participants_userIdTousers?: chat_participantsUpdateManyWithoutUsers_chat_participants_userIdTousersNestedInput
+    chat_rooms?: chat_roomsUpdateManyWithoutUsersNestedInput
+    chatbot_messages?: chatbot_messagesUpdateManyWithoutUsersNestedInput
+    chatbot_sessions?: chatbot_sessionsUpdateManyWithoutUsersNestedInput
+    comprehensive_audit_logs?: comprehensive_audit_logsUpdateManyWithoutUsersNestedInput
+    consent_access_logs?: consent_access_logsUpdateManyWithoutUsersNestedInput
+    data_governance_policies_data_governance_policies_approved_byTousers?: data_governance_policiesUpdateManyWithoutUsers_data_governance_policies_approved_byTousersNestedInput
+    data_governance_policies_data_governance_policies_policy_ownerTousers?: data_governance_policiesUpdateManyWithoutUsers_data_governance_policies_policy_ownerTousersNestedInput
+    data_lineage?: data_lineageUpdateManyWithoutUsersNestedInput
+    disputes_disputes_doctorIdTousers?: disputesUpdateManyWithoutUsers_disputes_doctorIdTousersNestedInput
+    disputes_disputes_patientIdTousers?: disputesUpdateManyWithoutUsers_disputes_patientIdTousersNestedInput
+    disputes_support?: disputes_supportUpdateManyWithoutUsersNestedInput
+    doctor_availability?: doctor_availabilityUpdateManyWithoutUsersNestedInput
+    doctor_pricing?: doctor_pricingUpdateManyWithoutUsersNestedInput
+    doctor_profiles?: doctor_profilesUpdateOneWithoutUsersNestedInput
+    doctor_unavailability?: doctor_unavailabilityUpdateManyWithoutUsersNestedInput
+    doctor_wallets?: doctor_walletsUpdateOneWithoutUsersNestedInput
+    document_files?: document_filesUpdateManyWithoutUsersNestedInput
+    document_folders?: document_foldersUpdateManyWithoutUsersNestedInput
+    email_verifications?: email_verificationsUpdateManyWithoutUsersNestedInput
+    encryption_keys?: encryption_keysUpdateManyWithoutUsersNestedInput
+    faq_analytics?: faq_analyticsUpdateManyWithoutUsersNestedInput
+    faq_votes?: faq_votesUpdateManyWithoutUsersNestedInput
+    faqs_faqs_createdByTousers?: faqsUpdateManyWithoutUsers_faqs_createdByTousersNestedInput
+    faqs_faqs_updatedByTousers?: faqsUpdateManyWithoutUsers_faqs_updatedByTousersNestedInput
+    fhir_search_logs?: fhir_search_logsUpdateManyWithoutUsersNestedInput
+    file_access_logs?: file_access_logsUpdateManyWithoutUsersNestedInput
+    files?: filesUpdateManyWithoutUsersNestedInput
+    folder_access_logs?: folder_access_logsUpdateManyWithoutUsersNestedInput
+    insurance_support?: insurance_supportUpdateManyWithoutUsersNestedInput
+    invoices?: invoicesUpdateManyWithoutUsersNestedInput
+    lab_orders?: lab_ordersUpdateManyWithoutUsersNestedInput
+    lab_test_requests_lab_test_requests_doctorIdTousers?: lab_test_requestsUpdateManyWithoutUsers_lab_test_requests_doctorIdTousersNestedInput
+    lab_test_requests_lab_test_requests_patientIdTousers?: lab_test_requestsUpdateManyWithoutUsers_lab_test_requests_patientIdTousersNestedInput
+    lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
+    lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
+    lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
+    magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
+    notification?: notificationUpdateManyWithoutUsersNestedInput
+    password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
+    patient_access_logs?: patient_access_logsUpdateManyWithoutUsersNestedInput
+    patient_consents_patient_consents_witnessTousers?: patient_consentsUpdateManyWithoutUsers_patient_consents_witnessTousersNestedInput
+    patient_consents_patient_consents_grantorTousers?: patient_consentsUpdateManyWithoutUsers_patient_consents_grantorTousersNestedInput
+    patient_consents_patient_consents_withdrawn_byTousers?: patient_consentsUpdateManyWithoutUsers_patient_consents_withdrawn_byTousersNestedInput
+    patient_profiles?: patient_profilesUpdateOneWithoutUsersNestedInput
+    patient_wallets?: patient_walletsUpdateOneWithoutUsersNestedInput
+    pharmacy_branches?: pharmacy_branchesUpdateManyWithoutUsersNestedInput
+    pharmacy_documents?: pharmacy_documentsUpdateManyWithoutUsersNestedInput
+    pharmacy_profiles?: pharmacy_profilesUpdateOneWithoutUsersNestedInput
+    pharmacy_verification_requests_pharmacy_verification_requests_reviewedByTousers?: pharmacy_verification_requestsUpdateManyWithoutUsers_pharmacy_verification_requests_reviewedByTousersNestedInput
+    pharmacy_verification_requests_pharmacy_verification_requests_assignedToTousers?: pharmacy_verification_requestsUpdateManyWithoutUsers_pharmacy_verification_requests_assignedToTousersNestedInput
+    prescriptions_prescriptions_assignedPharmacistIdTousers?: prescriptionsUpdateManyWithoutUsers_prescriptions_assignedPharmacistIdTousersNestedInput
+    prescriptions_prescriptions_doctorIdTousers?: prescriptionsUpdateManyWithoutUsers_prescriptions_doctorIdTousersNestedInput
+    prescriptions_prescriptions_patientIdTousers?: prescriptionsUpdateManyWithoutUsers_prescriptions_patientIdTousersNestedInput
+    referral_draw_stats?: referral_draw_statsUpdateManyWithoutUsersNestedInput
+    referral_draws?: referral_drawsUpdateManyWithoutUsersNestedInput
+    refresh_tokens?: refresh_tokensUpdateManyWithoutUsersNestedInput
+    report_support?: report_supportUpdateManyWithoutUsersNestedInput
+    reports?: reportsUpdateManyWithoutUsersNestedInput
+    resource_access_logs?: resource_access_logsUpdateManyWithoutUsersNestedInput
+    service_availability?: service_availabilityUpdateManyWithoutUsersNestedInput
+    service_status_history?: service_status_historyUpdateManyWithoutUsersNestedInput
+    sos_events?: sos_eventsUpdateManyWithoutUsersNestedInput
+    subscriptions?: subscriptionsUpdateManyWithoutUsersNestedInput
+    support_disputes?: support_disputesUpdateManyWithoutUsersNestedInput
+    support_insurance?: support_insuranceUpdateManyWithoutUsersNestedInput
+    support_report?: support_reportUpdateManyWithoutUsersNestedInput
+    transactions_transactions_doctorIdTousers?: transactionsUpdateManyWithoutUsers_transactions_doctorIdTousersNestedInput
+    transactions_transactions_patientIdTousers?: transactionsUpdateManyWithoutUsers_transactions_patientIdTousersNestedInput
+    user_payment_methods?: user_payment_methodsUpdateManyWithoutUsersNestedInput
+    user_ratings?: user_ratingsUpdateManyWithoutUsersNestedInput
+    user_referrals_user_referrals_referredUserIdTousers?: user_referralsUpdateManyWithoutUsers_user_referrals_referredUserIdTousersNestedInput
+    user_referrals_user_referrals_referrerIdTousers?: user_referralsUpdateManyWithoutUsers_user_referrals_referrerIdTousersNestedInput
+    verification_documents?: verification_documentsUpdateManyWithoutUsersNestedInput
+    verification_requests_verification_requests_assignedReviewerIdTousers?: verification_requestsUpdateManyWithoutUsers_verification_requests_assignedReviewerIdTousersNestedInput
+    verification_requests_verification_requests_doctorIdTousers?: verification_requestsUpdateManyWithoutUsers_verification_requests_doctorIdTousersNestedInput
+    verification_review_queue_verification_review_queue_escalatedToTousers?: verification_review_queueUpdateManyWithoutUsers_verification_review_queue_escalatedToTousersNestedInput
+    verification_review_queue_verification_review_queue_assignedToTousers?: verification_review_queueUpdateManyWithoutUsers_verification_review_queue_assignedToTousersNestedInput
+    verification_status_history?: verification_status_historyUpdateManyWithoutUsersNestedInput
+    wallet_withdrawals?: wallet_withdrawalsUpdateManyWithoutUsersNestedInput
+  }
+
+  export type usersUncheckedUpdateWithoutLab_facilities_lab_facilities_adminUserIdTousersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: Enumusers_role_enumFieldUpdateOperationsInput | $Enums.users_role_enum
+    status?: Enumusers_status_enumFieldUpdateOperationsInput | $Enums.users_status_enum
+    provider?: Enumusers_provider_enumFieldUpdateOperationsInput | $Enums.users_provider_enum
+    providerId?: NullableStringFieldUpdateOperationsInput | string | null
+    profileImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnabled?: BoolFieldUpdateOperationsInput | boolean
+    mfaSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    fullName?: StringFieldUpdateOperationsInput | string
+    tier?: Enumusers_tier_enumFieldUpdateOperationsInput | $Enums.users_tier_enum
+    isOnline?: BoolFieldUpdateOperationsInput | boolean
+    referralCode?: NullableStringFieldUpdateOperationsInput | string | null
+    totalReferrals?: IntFieldUpdateOperationsInput | number
+    referredBy?: NullableStringFieldUpdateOperationsInput | string | null
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    bannerUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: NullableStringFieldUpdateOperationsInput | string | null
+    lastDetectedTimezone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezoneUpdatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    phoneNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentSpecialty?: NullableStringFieldUpdateOperationsInput | string | null
+    averageRating?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    totalRatings?: IntFieldUpdateOperationsInput | number
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    pharmacyId?: NullableStringFieldUpdateOperationsInput | string | null
+    refreshTokenHash?: NullableStringFieldUpdateOperationsInput | string | null
+    resetPasswordOTP?: NullableStringFieldUpdateOperationsInput | string | null
+    resetPasswordOTPExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    account_support?: account_supportUncheckedUpdateManyWithoutUsersNestedInput
+    appointment_chats_appointment_chats_doctorIdTousers?: appointment_chatsUncheckedUpdateManyWithoutUsers_appointment_chats_doctorIdTousersNestedInput
+    appointment_chats_appointment_chats_patientIdTousers?: appointment_chatsUncheckedUpdateManyWithoutUsers_appointment_chats_patientIdTousersNestedInput
+    appointments_appointments_doctorIdTousers?: appointmentsUncheckedUpdateManyWithoutUsers_appointments_doctorIdTousersNestedInput
+    appointments_appointments_patientIdTousers?: appointmentsUncheckedUpdateManyWithoutUsers_appointments_patientIdTousersNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutUsersNestedInput
+    auth_events?: auth_eventsUncheckedUpdateManyWithoutUsersNestedInput
+    chat_file_attachments?: chat_file_attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+    chat_message_reactions?: chat_message_reactionsUncheckedUpdateManyWithoutUsersNestedInput
+    chat_messages?: chat_messagesUncheckedUpdateManyWithoutUsersNestedInput
+    chat_participants_chat_participants_addedByIdTousers?: chat_participantsUncheckedUpdateManyWithoutUsers_chat_participants_addedByIdTousersNestedInput
+    chat_participants_chat_participants_userIdTousers?: chat_participantsUncheckedUpdateManyWithoutUsers_chat_participants_userIdTousersNestedInput
+    chat_rooms?: chat_roomsUncheckedUpdateManyWithoutUsersNestedInput
+    chatbot_messages?: chatbot_messagesUncheckedUpdateManyWithoutUsersNestedInput
+    chatbot_sessions?: chatbot_sessionsUncheckedUpdateManyWithoutUsersNestedInput
+    comprehensive_audit_logs?: comprehensive_audit_logsUncheckedUpdateManyWithoutUsersNestedInput
+    consent_access_logs?: consent_access_logsUncheckedUpdateManyWithoutUsersNestedInput
+    data_governance_policies_data_governance_policies_approved_byTousers?: data_governance_policiesUncheckedUpdateManyWithoutUsers_data_governance_policies_approved_byTousersNestedInput
+    data_governance_policies_data_governance_policies_policy_ownerTousers?: data_governance_policiesUncheckedUpdateManyWithoutUsers_data_governance_policies_policy_ownerTousersNestedInput
+    data_lineage?: data_lineageUncheckedUpdateManyWithoutUsersNestedInput
+    disputes_disputes_doctorIdTousers?: disputesUncheckedUpdateManyWithoutUsers_disputes_doctorIdTousersNestedInput
+    disputes_disputes_patientIdTousers?: disputesUncheckedUpdateManyWithoutUsers_disputes_patientIdTousersNestedInput
+    disputes_support?: disputes_supportUncheckedUpdateManyWithoutUsersNestedInput
+    doctor_availability?: doctor_availabilityUncheckedUpdateManyWithoutUsersNestedInput
+    doctor_pricing?: doctor_pricingUncheckedUpdateManyWithoutUsersNestedInput
+    doctor_profiles?: doctor_profilesUncheckedUpdateOneWithoutUsersNestedInput
+    doctor_unavailability?: doctor_unavailabilityUncheckedUpdateManyWithoutUsersNestedInput
+    doctor_wallets?: doctor_walletsUncheckedUpdateOneWithoutUsersNestedInput
+    document_files?: document_filesUncheckedUpdateManyWithoutUsersNestedInput
+    document_folders?: document_foldersUncheckedUpdateManyWithoutUsersNestedInput
+    email_verifications?: email_verificationsUncheckedUpdateManyWithoutUsersNestedInput
+    encryption_keys?: encryption_keysUncheckedUpdateManyWithoutUsersNestedInput
+    faq_analytics?: faq_analyticsUncheckedUpdateManyWithoutUsersNestedInput
+    faq_votes?: faq_votesUncheckedUpdateManyWithoutUsersNestedInput
+    faqs_faqs_createdByTousers?: faqsUncheckedUpdateManyWithoutUsers_faqs_createdByTousersNestedInput
+    faqs_faqs_updatedByTousers?: faqsUncheckedUpdateManyWithoutUsers_faqs_updatedByTousersNestedInput
+    fhir_search_logs?: fhir_search_logsUncheckedUpdateManyWithoutUsersNestedInput
+    file_access_logs?: file_access_logsUncheckedUpdateManyWithoutUsersNestedInput
+    files?: filesUncheckedUpdateManyWithoutUsersNestedInput
+    folder_access_logs?: folder_access_logsUncheckedUpdateManyWithoutUsersNestedInput
+    insurance_support?: insurance_supportUncheckedUpdateManyWithoutUsersNestedInput
+    invoices?: invoicesUncheckedUpdateManyWithoutUsersNestedInput
+    lab_orders?: lab_ordersUncheckedUpdateManyWithoutUsersNestedInput
+    lab_test_requests_lab_test_requests_doctorIdTousers?: lab_test_requestsUncheckedUpdateManyWithoutUsers_lab_test_requests_doctorIdTousersNestedInput
+    lab_test_requests_lab_test_requests_patientIdTousers?: lab_test_requestsUncheckedUpdateManyWithoutUsers_lab_test_requests_patientIdTousersNestedInput
+    lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
+    magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
+    notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
+    password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
+    patient_access_logs?: patient_access_logsUncheckedUpdateManyWithoutUsersNestedInput
+    patient_consents_patient_consents_witnessTousers?: patient_consentsUncheckedUpdateManyWithoutUsers_patient_consents_witnessTousersNestedInput
+    patient_consents_patient_consents_grantorTousers?: patient_consentsUncheckedUpdateManyWithoutUsers_patient_consents_grantorTousersNestedInput
+    patient_consents_patient_consents_withdrawn_byTousers?: patient_consentsUncheckedUpdateManyWithoutUsers_patient_consents_withdrawn_byTousersNestedInput
+    patient_profiles?: patient_profilesUncheckedUpdateOneWithoutUsersNestedInput
+    patient_wallets?: patient_walletsUncheckedUpdateOneWithoutUsersNestedInput
+    pharmacy_branches?: pharmacy_branchesUncheckedUpdateManyWithoutUsersNestedInput
+    pharmacy_documents?: pharmacy_documentsUncheckedUpdateManyWithoutUsersNestedInput
+    pharmacy_profiles?: pharmacy_profilesUncheckedUpdateOneWithoutUsersNestedInput
+    pharmacy_verification_requests_pharmacy_verification_requests_reviewedByTousers?: pharmacy_verification_requestsUncheckedUpdateManyWithoutUsers_pharmacy_verification_requests_reviewedByTousersNestedInput
+    pharmacy_verification_requests_pharmacy_verification_requests_assignedToTousers?: pharmacy_verification_requestsUncheckedUpdateManyWithoutUsers_pharmacy_verification_requests_assignedToTousersNestedInput
+    prescriptions_prescriptions_assignedPharmacistIdTousers?: prescriptionsUncheckedUpdateManyWithoutUsers_prescriptions_assignedPharmacistIdTousersNestedInput
+    prescriptions_prescriptions_doctorIdTousers?: prescriptionsUncheckedUpdateManyWithoutUsers_prescriptions_doctorIdTousersNestedInput
+    prescriptions_prescriptions_patientIdTousers?: prescriptionsUncheckedUpdateManyWithoutUsers_prescriptions_patientIdTousersNestedInput
+    referral_draw_stats?: referral_draw_statsUncheckedUpdateManyWithoutUsersNestedInput
+    referral_draws?: referral_drawsUncheckedUpdateManyWithoutUsersNestedInput
+    refresh_tokens?: refresh_tokensUncheckedUpdateManyWithoutUsersNestedInput
+    report_support?: report_supportUncheckedUpdateManyWithoutUsersNestedInput
+    reports?: reportsUncheckedUpdateManyWithoutUsersNestedInput
+    resource_access_logs?: resource_access_logsUncheckedUpdateManyWithoutUsersNestedInput
+    service_availability?: service_availabilityUncheckedUpdateManyWithoutUsersNestedInput
+    service_status_history?: service_status_historyUncheckedUpdateManyWithoutUsersNestedInput
+    sos_events?: sos_eventsUncheckedUpdateManyWithoutUsersNestedInput
+    subscriptions?: subscriptionsUncheckedUpdateManyWithoutUsersNestedInput
+    support_disputes?: support_disputesUncheckedUpdateManyWithoutUsersNestedInput
+    support_insurance?: support_insuranceUncheckedUpdateManyWithoutUsersNestedInput
+    support_report?: support_reportUncheckedUpdateManyWithoutUsersNestedInput
+    transactions_transactions_doctorIdTousers?: transactionsUncheckedUpdateManyWithoutUsers_transactions_doctorIdTousersNestedInput
+    transactions_transactions_patientIdTousers?: transactionsUncheckedUpdateManyWithoutUsers_transactions_patientIdTousersNestedInput
+    user_payment_methods?: user_payment_methodsUncheckedUpdateManyWithoutUsersNestedInput
+    user_ratings?: user_ratingsUncheckedUpdateManyWithoutUsersNestedInput
+    user_referrals_user_referrals_referredUserIdTousers?: user_referralsUncheckedUpdateManyWithoutUsers_user_referrals_referredUserIdTousersNestedInput
+    user_referrals_user_referrals_referrerIdTousers?: user_referralsUncheckedUpdateManyWithoutUsers_user_referrals_referrerIdTousersNestedInput
+    verification_documents?: verification_documentsUncheckedUpdateManyWithoutUsersNestedInput
+    verification_requests_verification_requests_assignedReviewerIdTousers?: verification_requestsUncheckedUpdateManyWithoutUsers_verification_requests_assignedReviewerIdTousersNestedInput
+    verification_requests_verification_requests_doctorIdTousers?: verification_requestsUncheckedUpdateManyWithoutUsers_verification_requests_doctorIdTousersNestedInput
+    verification_review_queue_verification_review_queue_escalatedToTousers?: verification_review_queueUncheckedUpdateManyWithoutUsers_verification_review_queue_escalatedToTousersNestedInput
+    verification_review_queue_verification_review_queue_assignedToTousers?: verification_review_queueUncheckedUpdateManyWithoutUsers_verification_review_queue_assignedToTousersNestedInput
+    verification_status_history?: verification_status_historyUncheckedUpdateManyWithoutUsersNestedInput
+    wallet_withdrawals?: wallet_withdrawalsUncheckedUpdateManyWithoutUsersNestedInput
+  }
+
+  export type usersUpsertWithoutLab_facilities_lab_facilities_approvedByIdTousersInput = {
+    update: XOR<usersUpdateWithoutLab_facilities_lab_facilities_approvedByIdTousersInput, usersUncheckedUpdateWithoutLab_facilities_lab_facilities_approvedByIdTousersInput>
+    create: XOR<usersCreateWithoutLab_facilities_lab_facilities_approvedByIdTousersInput, usersUncheckedCreateWithoutLab_facilities_lab_facilities_approvedByIdTousersInput>
+    where?: usersWhereInput
+  }
+
+  export type usersUpdateToOneWithWhereWithoutLab_facilities_lab_facilities_approvedByIdTousersInput = {
+    where?: usersWhereInput
+    data: XOR<usersUpdateWithoutLab_facilities_lab_facilities_approvedByIdTousersInput, usersUncheckedUpdateWithoutLab_facilities_lab_facilities_approvedByIdTousersInput>
+  }
+
+  export type usersUpdateWithoutLab_facilities_lab_facilities_approvedByIdTousersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: Enumusers_role_enumFieldUpdateOperationsInput | $Enums.users_role_enum
+    status?: Enumusers_status_enumFieldUpdateOperationsInput | $Enums.users_status_enum
+    provider?: Enumusers_provider_enumFieldUpdateOperationsInput | $Enums.users_provider_enum
+    providerId?: NullableStringFieldUpdateOperationsInput | string | null
+    profileImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnabled?: BoolFieldUpdateOperationsInput | boolean
+    mfaSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    fullName?: StringFieldUpdateOperationsInput | string
+    tier?: Enumusers_tier_enumFieldUpdateOperationsInput | $Enums.users_tier_enum
+    isOnline?: BoolFieldUpdateOperationsInput | boolean
+    referralCode?: NullableStringFieldUpdateOperationsInput | string | null
+    totalReferrals?: IntFieldUpdateOperationsInput | number
+    referredBy?: NullableStringFieldUpdateOperationsInput | string | null
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    bannerUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: NullableStringFieldUpdateOperationsInput | string | null
+    lastDetectedTimezone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezoneUpdatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    phoneNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentSpecialty?: NullableStringFieldUpdateOperationsInput | string | null
+    averageRating?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    totalRatings?: IntFieldUpdateOperationsInput | number
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    pharmacyId?: NullableStringFieldUpdateOperationsInput | string | null
+    refreshTokenHash?: NullableStringFieldUpdateOperationsInput | string | null
+    resetPasswordOTP?: NullableStringFieldUpdateOperationsInput | string | null
+    resetPasswordOTPExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    account_support?: account_supportUpdateManyWithoutUsersNestedInput
+    appointment_chats_appointment_chats_doctorIdTousers?: appointment_chatsUpdateManyWithoutUsers_appointment_chats_doctorIdTousersNestedInput
+    appointment_chats_appointment_chats_patientIdTousers?: appointment_chatsUpdateManyWithoutUsers_appointment_chats_patientIdTousersNestedInput
+    appointments_appointments_doctorIdTousers?: appointmentsUpdateManyWithoutUsers_appointments_doctorIdTousersNestedInput
+    appointments_appointments_patientIdTousers?: appointmentsUpdateManyWithoutUsers_appointments_patientIdTousersNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutUsersNestedInput
+    auth_events?: auth_eventsUpdateManyWithoutUsersNestedInput
+    chat_file_attachments?: chat_file_attachmentsUpdateManyWithoutUsersNestedInput
+    chat_message_reactions?: chat_message_reactionsUpdateManyWithoutUsersNestedInput
+    chat_messages?: chat_messagesUpdateManyWithoutUsersNestedInput
+    chat_participants_chat_participants_addedByIdTousers?: chat_participantsUpdateManyWithoutUsers_chat_participants_addedByIdTousersNestedInput
+    chat_participants_chat_participants_userIdTousers?: chat_participantsUpdateManyWithoutUsers_chat_participants_userIdTousersNestedInput
+    chat_rooms?: chat_roomsUpdateManyWithoutUsersNestedInput
+    chatbot_messages?: chatbot_messagesUpdateManyWithoutUsersNestedInput
+    chatbot_sessions?: chatbot_sessionsUpdateManyWithoutUsersNestedInput
+    comprehensive_audit_logs?: comprehensive_audit_logsUpdateManyWithoutUsersNestedInput
+    consent_access_logs?: consent_access_logsUpdateManyWithoutUsersNestedInput
+    data_governance_policies_data_governance_policies_approved_byTousers?: data_governance_policiesUpdateManyWithoutUsers_data_governance_policies_approved_byTousersNestedInput
+    data_governance_policies_data_governance_policies_policy_ownerTousers?: data_governance_policiesUpdateManyWithoutUsers_data_governance_policies_policy_ownerTousersNestedInput
+    data_lineage?: data_lineageUpdateManyWithoutUsersNestedInput
+    disputes_disputes_doctorIdTousers?: disputesUpdateManyWithoutUsers_disputes_doctorIdTousersNestedInput
+    disputes_disputes_patientIdTousers?: disputesUpdateManyWithoutUsers_disputes_patientIdTousersNestedInput
+    disputes_support?: disputes_supportUpdateManyWithoutUsersNestedInput
+    doctor_availability?: doctor_availabilityUpdateManyWithoutUsersNestedInput
+    doctor_pricing?: doctor_pricingUpdateManyWithoutUsersNestedInput
+    doctor_profiles?: doctor_profilesUpdateOneWithoutUsersNestedInput
+    doctor_unavailability?: doctor_unavailabilityUpdateManyWithoutUsersNestedInput
+    doctor_wallets?: doctor_walletsUpdateOneWithoutUsersNestedInput
+    document_files?: document_filesUpdateManyWithoutUsersNestedInput
+    document_folders?: document_foldersUpdateManyWithoutUsersNestedInput
+    email_verifications?: email_verificationsUpdateManyWithoutUsersNestedInput
+    encryption_keys?: encryption_keysUpdateManyWithoutUsersNestedInput
+    faq_analytics?: faq_analyticsUpdateManyWithoutUsersNestedInput
+    faq_votes?: faq_votesUpdateManyWithoutUsersNestedInput
+    faqs_faqs_createdByTousers?: faqsUpdateManyWithoutUsers_faqs_createdByTousersNestedInput
+    faqs_faqs_updatedByTousers?: faqsUpdateManyWithoutUsers_faqs_updatedByTousersNestedInput
+    fhir_search_logs?: fhir_search_logsUpdateManyWithoutUsersNestedInput
+    file_access_logs?: file_access_logsUpdateManyWithoutUsersNestedInput
+    files?: filesUpdateManyWithoutUsersNestedInput
+    folder_access_logs?: folder_access_logsUpdateManyWithoutUsersNestedInput
+    insurance_support?: insurance_supportUpdateManyWithoutUsersNestedInput
+    invoices?: invoicesUpdateManyWithoutUsersNestedInput
+    lab_orders?: lab_ordersUpdateManyWithoutUsersNestedInput
+    lab_test_requests_lab_test_requests_doctorIdTousers?: lab_test_requestsUpdateManyWithoutUsers_lab_test_requests_doctorIdTousersNestedInput
+    lab_test_requests_lab_test_requests_patientIdTousers?: lab_test_requestsUpdateManyWithoutUsers_lab_test_requests_patientIdTousersNestedInput
+    lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
+    lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
+    lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
+    notification?: notificationUpdateManyWithoutUsersNestedInput
+    password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
+    patient_access_logs?: patient_access_logsUpdateManyWithoutUsersNestedInput
+    patient_consents_patient_consents_witnessTousers?: patient_consentsUpdateManyWithoutUsers_patient_consents_witnessTousersNestedInput
+    patient_consents_patient_consents_grantorTousers?: patient_consentsUpdateManyWithoutUsers_patient_consents_grantorTousersNestedInput
+    patient_consents_patient_consents_withdrawn_byTousers?: patient_consentsUpdateManyWithoutUsers_patient_consents_withdrawn_byTousersNestedInput
+    patient_profiles?: patient_profilesUpdateOneWithoutUsersNestedInput
+    patient_wallets?: patient_walletsUpdateOneWithoutUsersNestedInput
+    pharmacy_branches?: pharmacy_branchesUpdateManyWithoutUsersNestedInput
+    pharmacy_documents?: pharmacy_documentsUpdateManyWithoutUsersNestedInput
+    pharmacy_profiles?: pharmacy_profilesUpdateOneWithoutUsersNestedInput
+    pharmacy_verification_requests_pharmacy_verification_requests_reviewedByTousers?: pharmacy_verification_requestsUpdateManyWithoutUsers_pharmacy_verification_requests_reviewedByTousersNestedInput
+    pharmacy_verification_requests_pharmacy_verification_requests_assignedToTousers?: pharmacy_verification_requestsUpdateManyWithoutUsers_pharmacy_verification_requests_assignedToTousersNestedInput
+    prescriptions_prescriptions_assignedPharmacistIdTousers?: prescriptionsUpdateManyWithoutUsers_prescriptions_assignedPharmacistIdTousersNestedInput
+    prescriptions_prescriptions_doctorIdTousers?: prescriptionsUpdateManyWithoutUsers_prescriptions_doctorIdTousersNestedInput
+    prescriptions_prescriptions_patientIdTousers?: prescriptionsUpdateManyWithoutUsers_prescriptions_patientIdTousersNestedInput
+    referral_draw_stats?: referral_draw_statsUpdateManyWithoutUsersNestedInput
+    referral_draws?: referral_drawsUpdateManyWithoutUsersNestedInput
+    refresh_tokens?: refresh_tokensUpdateManyWithoutUsersNestedInput
+    report_support?: report_supportUpdateManyWithoutUsersNestedInput
+    reports?: reportsUpdateManyWithoutUsersNestedInput
+    resource_access_logs?: resource_access_logsUpdateManyWithoutUsersNestedInput
+    service_availability?: service_availabilityUpdateManyWithoutUsersNestedInput
+    service_status_history?: service_status_historyUpdateManyWithoutUsersNestedInput
+    sos_events?: sos_eventsUpdateManyWithoutUsersNestedInput
+    subscriptions?: subscriptionsUpdateManyWithoutUsersNestedInput
+    support_disputes?: support_disputesUpdateManyWithoutUsersNestedInput
+    support_insurance?: support_insuranceUpdateManyWithoutUsersNestedInput
+    support_report?: support_reportUpdateManyWithoutUsersNestedInput
+    transactions_transactions_doctorIdTousers?: transactionsUpdateManyWithoutUsers_transactions_doctorIdTousersNestedInput
+    transactions_transactions_patientIdTousers?: transactionsUpdateManyWithoutUsers_transactions_patientIdTousersNestedInput
+    user_payment_methods?: user_payment_methodsUpdateManyWithoutUsersNestedInput
+    user_ratings?: user_ratingsUpdateManyWithoutUsersNestedInput
+    user_referrals_user_referrals_referredUserIdTousers?: user_referralsUpdateManyWithoutUsers_user_referrals_referredUserIdTousersNestedInput
+    user_referrals_user_referrals_referrerIdTousers?: user_referralsUpdateManyWithoutUsers_user_referrals_referrerIdTousersNestedInput
+    verification_documents?: verification_documentsUpdateManyWithoutUsersNestedInput
+    verification_requests_verification_requests_assignedReviewerIdTousers?: verification_requestsUpdateManyWithoutUsers_verification_requests_assignedReviewerIdTousersNestedInput
+    verification_requests_verification_requests_doctorIdTousers?: verification_requestsUpdateManyWithoutUsers_verification_requests_doctorIdTousersNestedInput
+    verification_review_queue_verification_review_queue_escalatedToTousers?: verification_review_queueUpdateManyWithoutUsers_verification_review_queue_escalatedToTousersNestedInput
+    verification_review_queue_verification_review_queue_assignedToTousers?: verification_review_queueUpdateManyWithoutUsers_verification_review_queue_assignedToTousersNestedInput
+    verification_status_history?: verification_status_historyUpdateManyWithoutUsersNestedInput
+    wallet_withdrawals?: wallet_withdrawalsUpdateManyWithoutUsersNestedInput
+  }
+
+  export type usersUncheckedUpdateWithoutLab_facilities_lab_facilities_approvedByIdTousersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: Enumusers_role_enumFieldUpdateOperationsInput | $Enums.users_role_enum
+    status?: Enumusers_status_enumFieldUpdateOperationsInput | $Enums.users_status_enum
+    provider?: Enumusers_provider_enumFieldUpdateOperationsInput | $Enums.users_provider_enum
+    providerId?: NullableStringFieldUpdateOperationsInput | string | null
+    profileImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnabled?: BoolFieldUpdateOperationsInput | boolean
+    mfaSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    fullName?: StringFieldUpdateOperationsInput | string
+    tier?: Enumusers_tier_enumFieldUpdateOperationsInput | $Enums.users_tier_enum
+    isOnline?: BoolFieldUpdateOperationsInput | boolean
+    referralCode?: NullableStringFieldUpdateOperationsInput | string | null
+    totalReferrals?: IntFieldUpdateOperationsInput | number
+    referredBy?: NullableStringFieldUpdateOperationsInput | string | null
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    bannerUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: NullableStringFieldUpdateOperationsInput | string | null
+    lastDetectedTimezone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezoneUpdatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    phoneNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentSpecialty?: NullableStringFieldUpdateOperationsInput | string | null
+    averageRating?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    totalRatings?: IntFieldUpdateOperationsInput | number
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    pharmacyId?: NullableStringFieldUpdateOperationsInput | string | null
+    refreshTokenHash?: NullableStringFieldUpdateOperationsInput | string | null
+    resetPasswordOTP?: NullableStringFieldUpdateOperationsInput | string | null
+    resetPasswordOTPExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    account_support?: account_supportUncheckedUpdateManyWithoutUsersNestedInput
+    appointment_chats_appointment_chats_doctorIdTousers?: appointment_chatsUncheckedUpdateManyWithoutUsers_appointment_chats_doctorIdTousersNestedInput
+    appointment_chats_appointment_chats_patientIdTousers?: appointment_chatsUncheckedUpdateManyWithoutUsers_appointment_chats_patientIdTousersNestedInput
+    appointments_appointments_doctorIdTousers?: appointmentsUncheckedUpdateManyWithoutUsers_appointments_doctorIdTousersNestedInput
+    appointments_appointments_patientIdTousers?: appointmentsUncheckedUpdateManyWithoutUsers_appointments_patientIdTousersNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutUsersNestedInput
+    auth_events?: auth_eventsUncheckedUpdateManyWithoutUsersNestedInput
+    chat_file_attachments?: chat_file_attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+    chat_message_reactions?: chat_message_reactionsUncheckedUpdateManyWithoutUsersNestedInput
+    chat_messages?: chat_messagesUncheckedUpdateManyWithoutUsersNestedInput
+    chat_participants_chat_participants_addedByIdTousers?: chat_participantsUncheckedUpdateManyWithoutUsers_chat_participants_addedByIdTousersNestedInput
+    chat_participants_chat_participants_userIdTousers?: chat_participantsUncheckedUpdateManyWithoutUsers_chat_participants_userIdTousersNestedInput
+    chat_rooms?: chat_roomsUncheckedUpdateManyWithoutUsersNestedInput
+    chatbot_messages?: chatbot_messagesUncheckedUpdateManyWithoutUsersNestedInput
+    chatbot_sessions?: chatbot_sessionsUncheckedUpdateManyWithoutUsersNestedInput
+    comprehensive_audit_logs?: comprehensive_audit_logsUncheckedUpdateManyWithoutUsersNestedInput
+    consent_access_logs?: consent_access_logsUncheckedUpdateManyWithoutUsersNestedInput
+    data_governance_policies_data_governance_policies_approved_byTousers?: data_governance_policiesUncheckedUpdateManyWithoutUsers_data_governance_policies_approved_byTousersNestedInput
+    data_governance_policies_data_governance_policies_policy_ownerTousers?: data_governance_policiesUncheckedUpdateManyWithoutUsers_data_governance_policies_policy_ownerTousersNestedInput
+    data_lineage?: data_lineageUncheckedUpdateManyWithoutUsersNestedInput
+    disputes_disputes_doctorIdTousers?: disputesUncheckedUpdateManyWithoutUsers_disputes_doctorIdTousersNestedInput
+    disputes_disputes_patientIdTousers?: disputesUncheckedUpdateManyWithoutUsers_disputes_patientIdTousersNestedInput
+    disputes_support?: disputes_supportUncheckedUpdateManyWithoutUsersNestedInput
+    doctor_availability?: doctor_availabilityUncheckedUpdateManyWithoutUsersNestedInput
+    doctor_pricing?: doctor_pricingUncheckedUpdateManyWithoutUsersNestedInput
+    doctor_profiles?: doctor_profilesUncheckedUpdateOneWithoutUsersNestedInput
+    doctor_unavailability?: doctor_unavailabilityUncheckedUpdateManyWithoutUsersNestedInput
+    doctor_wallets?: doctor_walletsUncheckedUpdateOneWithoutUsersNestedInput
+    document_files?: document_filesUncheckedUpdateManyWithoutUsersNestedInput
+    document_folders?: document_foldersUncheckedUpdateManyWithoutUsersNestedInput
+    email_verifications?: email_verificationsUncheckedUpdateManyWithoutUsersNestedInput
+    encryption_keys?: encryption_keysUncheckedUpdateManyWithoutUsersNestedInput
+    faq_analytics?: faq_analyticsUncheckedUpdateManyWithoutUsersNestedInput
+    faq_votes?: faq_votesUncheckedUpdateManyWithoutUsersNestedInput
+    faqs_faqs_createdByTousers?: faqsUncheckedUpdateManyWithoutUsers_faqs_createdByTousersNestedInput
+    faqs_faqs_updatedByTousers?: faqsUncheckedUpdateManyWithoutUsers_faqs_updatedByTousersNestedInput
+    fhir_search_logs?: fhir_search_logsUncheckedUpdateManyWithoutUsersNestedInput
+    file_access_logs?: file_access_logsUncheckedUpdateManyWithoutUsersNestedInput
+    files?: filesUncheckedUpdateManyWithoutUsersNestedInput
+    folder_access_logs?: folder_access_logsUncheckedUpdateManyWithoutUsersNestedInput
+    insurance_support?: insurance_supportUncheckedUpdateManyWithoutUsersNestedInput
+    invoices?: invoicesUncheckedUpdateManyWithoutUsersNestedInput
+    lab_orders?: lab_ordersUncheckedUpdateManyWithoutUsersNestedInput
+    lab_test_requests_lab_test_requests_doctorIdTousers?: lab_test_requestsUncheckedUpdateManyWithoutUsers_lab_test_requests_doctorIdTousersNestedInput
+    lab_test_requests_lab_test_requests_patientIdTousers?: lab_test_requestsUncheckedUpdateManyWithoutUsers_lab_test_requests_patientIdTousersNestedInput
+    lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
+    notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
+    password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
+    patient_access_logs?: patient_access_logsUncheckedUpdateManyWithoutUsersNestedInput
+    patient_consents_patient_consents_witnessTousers?: patient_consentsUncheckedUpdateManyWithoutUsers_patient_consents_witnessTousersNestedInput
+    patient_consents_patient_consents_grantorTousers?: patient_consentsUncheckedUpdateManyWithoutUsers_patient_consents_grantorTousersNestedInput
+    patient_consents_patient_consents_withdrawn_byTousers?: patient_consentsUncheckedUpdateManyWithoutUsers_patient_consents_withdrawn_byTousersNestedInput
+    patient_profiles?: patient_profilesUncheckedUpdateOneWithoutUsersNestedInput
+    patient_wallets?: patient_walletsUncheckedUpdateOneWithoutUsersNestedInput
+    pharmacy_branches?: pharmacy_branchesUncheckedUpdateManyWithoutUsersNestedInput
+    pharmacy_documents?: pharmacy_documentsUncheckedUpdateManyWithoutUsersNestedInput
+    pharmacy_profiles?: pharmacy_profilesUncheckedUpdateOneWithoutUsersNestedInput
+    pharmacy_verification_requests_pharmacy_verification_requests_reviewedByTousers?: pharmacy_verification_requestsUncheckedUpdateManyWithoutUsers_pharmacy_verification_requests_reviewedByTousersNestedInput
+    pharmacy_verification_requests_pharmacy_verification_requests_assignedToTousers?: pharmacy_verification_requestsUncheckedUpdateManyWithoutUsers_pharmacy_verification_requests_assignedToTousersNestedInput
+    prescriptions_prescriptions_assignedPharmacistIdTousers?: prescriptionsUncheckedUpdateManyWithoutUsers_prescriptions_assignedPharmacistIdTousersNestedInput
+    prescriptions_prescriptions_doctorIdTousers?: prescriptionsUncheckedUpdateManyWithoutUsers_prescriptions_doctorIdTousersNestedInput
+    prescriptions_prescriptions_patientIdTousers?: prescriptionsUncheckedUpdateManyWithoutUsers_prescriptions_patientIdTousersNestedInput
+    referral_draw_stats?: referral_draw_statsUncheckedUpdateManyWithoutUsersNestedInput
+    referral_draws?: referral_drawsUncheckedUpdateManyWithoutUsersNestedInput
+    refresh_tokens?: refresh_tokensUncheckedUpdateManyWithoutUsersNestedInput
+    report_support?: report_supportUncheckedUpdateManyWithoutUsersNestedInput
+    reports?: reportsUncheckedUpdateManyWithoutUsersNestedInput
+    resource_access_logs?: resource_access_logsUncheckedUpdateManyWithoutUsersNestedInput
+    service_availability?: service_availabilityUncheckedUpdateManyWithoutUsersNestedInput
+    service_status_history?: service_status_historyUncheckedUpdateManyWithoutUsersNestedInput
+    sos_events?: sos_eventsUncheckedUpdateManyWithoutUsersNestedInput
+    subscriptions?: subscriptionsUncheckedUpdateManyWithoutUsersNestedInput
+    support_disputes?: support_disputesUncheckedUpdateManyWithoutUsersNestedInput
+    support_insurance?: support_insuranceUncheckedUpdateManyWithoutUsersNestedInput
+    support_report?: support_reportUncheckedUpdateManyWithoutUsersNestedInput
+    transactions_transactions_doctorIdTousers?: transactionsUncheckedUpdateManyWithoutUsers_transactions_doctorIdTousersNestedInput
+    transactions_transactions_patientIdTousers?: transactionsUncheckedUpdateManyWithoutUsers_transactions_patientIdTousersNestedInput
+    user_payment_methods?: user_payment_methodsUncheckedUpdateManyWithoutUsersNestedInput
+    user_ratings?: user_ratingsUncheckedUpdateManyWithoutUsersNestedInput
+    user_referrals_user_referrals_referredUserIdTousers?: user_referralsUncheckedUpdateManyWithoutUsers_user_referrals_referredUserIdTousersNestedInput
+    user_referrals_user_referrals_referrerIdTousers?: user_referralsUncheckedUpdateManyWithoutUsers_user_referrals_referrerIdTousersNestedInput
+    verification_documents?: verification_documentsUncheckedUpdateManyWithoutUsersNestedInput
+    verification_requests_verification_requests_assignedReviewerIdTousers?: verification_requestsUncheckedUpdateManyWithoutUsers_verification_requests_assignedReviewerIdTousersNestedInput
+    verification_requests_verification_requests_doctorIdTousers?: verification_requestsUncheckedUpdateManyWithoutUsers_verification_requests_doctorIdTousersNestedInput
+    verification_review_queue_verification_review_queue_escalatedToTousers?: verification_review_queueUncheckedUpdateManyWithoutUsers_verification_review_queue_escalatedToTousersNestedInput
+    verification_review_queue_verification_review_queue_assignedToTousers?: verification_review_queueUncheckedUpdateManyWithoutUsers_verification_review_queue_assignedToTousersNestedInput
+    verification_status_history?: verification_status_historyUncheckedUpdateManyWithoutUsersNestedInput
+    wallet_withdrawals?: wallet_withdrawalsUncheckedUpdateManyWithoutUsersNestedInput
   }
 
   export type audit_logsUpsertWithWhereUniqueWithoutLab_facilitiesInput = {
@@ -273652,6 +275342,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -273780,6 +275472,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -274017,6 +275711,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -274145,6 +275841,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -274237,8 +275935,6 @@ export namespace Prisma {
     adminInvitationSent?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    adminUserId?: string | null
-    approvedById?: string | null
     registrationStep?: number
     registrationCompleted?: boolean
     registrationTokenHash?: string | null
@@ -274247,6 +275943,8 @@ export namespace Prisma {
     longitude?: number | null
     businessRegistrationUrl?: string | null
     govIdUrl?: string | null
+    users_lab_facilities_adminUserIdTousers?: usersCreateNestedOneWithoutLab_facilities_lab_facilities_adminUserIdTousersInput
+    users_lab_facilities_approvedByIdTousers?: usersCreateNestedOneWithoutLab_facilities_lab_facilities_approvedByIdTousersInput
     audit_logs?: audit_logsCreateNestedManyWithoutLab_facilitiesInput
     lab_test_catalog?: lab_test_catalogCreateNestedManyWithoutLab_facilitiesInput
     lab_test_requests?: lab_test_requestsCreateNestedManyWithoutLab_facilitiesInput
@@ -274347,8 +276045,6 @@ export namespace Prisma {
     adminInvitationSent?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    adminUserId?: NullableStringFieldUpdateOperationsInput | string | null
-    approvedById?: NullableStringFieldUpdateOperationsInput | string | null
     registrationStep?: IntFieldUpdateOperationsInput | number
     registrationCompleted?: BoolFieldUpdateOperationsInput | boolean
     registrationTokenHash?: NullableStringFieldUpdateOperationsInput | string | null
@@ -274357,6 +276053,8 @@ export namespace Prisma {
     longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     businessRegistrationUrl?: NullableStringFieldUpdateOperationsInput | string | null
     govIdUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    users_lab_facilities_adminUserIdTousers?: usersUpdateOneWithoutLab_facilities_lab_facilities_adminUserIdTousersNestedInput
+    users_lab_facilities_approvedByIdTousers?: usersUpdateOneWithoutLab_facilities_lab_facilities_approvedByIdTousersNestedInput
     audit_logs?: audit_logsUpdateManyWithoutLab_facilitiesNestedInput
     lab_test_catalog?: lab_test_catalogUpdateManyWithoutLab_facilitiesNestedInput
     lab_test_requests?: lab_test_requestsUpdateManyWithoutLab_facilitiesNestedInput
@@ -274441,8 +276139,6 @@ export namespace Prisma {
     adminInvitationSent?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    adminUserId?: string | null
-    approvedById?: string | null
     registrationStep?: number
     registrationCompleted?: boolean
     registrationTokenHash?: string | null
@@ -274451,6 +276147,8 @@ export namespace Prisma {
     longitude?: number | null
     businessRegistrationUrl?: string | null
     govIdUrl?: string | null
+    users_lab_facilities_adminUserIdTousers?: usersCreateNestedOneWithoutLab_facilities_lab_facilities_adminUserIdTousersInput
+    users_lab_facilities_approvedByIdTousers?: usersCreateNestedOneWithoutLab_facilities_lab_facilities_approvedByIdTousersInput
     audit_logs?: audit_logsCreateNestedManyWithoutLab_facilitiesInput
     lab_personnel?: lab_personnelCreateNestedManyWithoutLab_facilitiesInput
     lab_test_requests?: lab_test_requestsCreateNestedManyWithoutLab_facilitiesInput
@@ -274551,8 +276249,6 @@ export namespace Prisma {
     adminInvitationSent?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    adminUserId?: NullableStringFieldUpdateOperationsInput | string | null
-    approvedById?: NullableStringFieldUpdateOperationsInput | string | null
     registrationStep?: IntFieldUpdateOperationsInput | number
     registrationCompleted?: BoolFieldUpdateOperationsInput | boolean
     registrationTokenHash?: NullableStringFieldUpdateOperationsInput | string | null
@@ -274561,6 +276257,8 @@ export namespace Prisma {
     longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     businessRegistrationUrl?: NullableStringFieldUpdateOperationsInput | string | null
     govIdUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    users_lab_facilities_adminUserIdTousers?: usersUpdateOneWithoutLab_facilities_lab_facilities_adminUserIdTousersNestedInput
+    users_lab_facilities_approvedByIdTousers?: usersUpdateOneWithoutLab_facilities_lab_facilities_approvedByIdTousersNestedInput
     audit_logs?: audit_logsUpdateManyWithoutLab_facilitiesNestedInput
     lab_personnel?: lab_personnelUpdateManyWithoutLab_facilitiesNestedInput
     lab_test_requests?: lab_test_requestsUpdateManyWithoutLab_facilitiesNestedInput
@@ -274697,6 +276395,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -274825,6 +276525,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -275067,6 +276769,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -275195,6 +276899,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -275276,8 +276982,6 @@ export namespace Prisma {
     adminInvitationSent?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    adminUserId?: string | null
-    approvedById?: string | null
     registrationStep?: number
     registrationCompleted?: boolean
     registrationTokenHash?: string | null
@@ -275286,6 +276990,8 @@ export namespace Prisma {
     longitude?: number | null
     businessRegistrationUrl?: string | null
     govIdUrl?: string | null
+    users_lab_facilities_adminUserIdTousers?: usersCreateNestedOneWithoutLab_facilities_lab_facilities_adminUserIdTousersInput
+    users_lab_facilities_approvedByIdTousers?: usersCreateNestedOneWithoutLab_facilities_lab_facilities_approvedByIdTousersInput
     audit_logs?: audit_logsCreateNestedManyWithoutLab_facilitiesInput
     lab_personnel?: lab_personnelCreateNestedManyWithoutLab_facilitiesInput
     lab_test_catalog?: lab_test_catalogCreateNestedManyWithoutLab_facilitiesInput
@@ -275438,6 +277144,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -275566,6 +277274,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -275820,6 +277530,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -275948,6 +277660,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -276035,8 +277749,6 @@ export namespace Prisma {
     adminInvitationSent?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    adminUserId?: NullableStringFieldUpdateOperationsInput | string | null
-    approvedById?: NullableStringFieldUpdateOperationsInput | string | null
     registrationStep?: IntFieldUpdateOperationsInput | number
     registrationCompleted?: BoolFieldUpdateOperationsInput | boolean
     registrationTokenHash?: NullableStringFieldUpdateOperationsInput | string | null
@@ -276045,6 +277757,8 @@ export namespace Prisma {
     longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     businessRegistrationUrl?: NullableStringFieldUpdateOperationsInput | string | null
     govIdUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    users_lab_facilities_adminUserIdTousers?: usersUpdateOneWithoutLab_facilities_lab_facilities_adminUserIdTousersNestedInput
+    users_lab_facilities_approvedByIdTousers?: usersUpdateOneWithoutLab_facilities_lab_facilities_approvedByIdTousersNestedInput
     audit_logs?: audit_logsUpdateManyWithoutLab_facilitiesNestedInput
     lab_personnel?: lab_personnelUpdateManyWithoutLab_facilitiesNestedInput
     lab_test_catalog?: lab_test_catalogUpdateManyWithoutLab_facilitiesNestedInput
@@ -276244,6 +277958,8 @@ export namespace Prisma {
     lab_test_requests_lab_test_requests_patientIdTousers?: lab_test_requestsCreateNestedManyWithoutUsers_lab_test_requests_patientIdTousersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -276372,6 +278088,8 @@ export namespace Prisma {
     lab_test_requests_lab_test_requests_patientIdTousers?: lab_test_requestsUncheckedCreateNestedManyWithoutUsers_lab_test_requests_patientIdTousersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -276638,6 +278356,8 @@ export namespace Prisma {
     lab_test_requests_lab_test_requests_patientIdTousers?: lab_test_requestsUpdateManyWithoutUsers_lab_test_requests_patientIdTousersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -276766,6 +278486,8 @@ export namespace Prisma {
     lab_test_requests_lab_test_requests_patientIdTousers?: lab_test_requestsUncheckedUpdateManyWithoutUsers_lab_test_requests_patientIdTousersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -277005,6 +278727,8 @@ export namespace Prisma {
     lab_test_requests_lab_test_requests_patientIdTousers?: lab_test_requestsCreateNestedManyWithoutUsers_lab_test_requests_patientIdTousersInput
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -277133,6 +278857,8 @@ export namespace Prisma {
     lab_test_requests_lab_test_requests_patientIdTousers?: lab_test_requestsUncheckedCreateNestedManyWithoutUsers_lab_test_requests_patientIdTousersInput
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -277371,6 +279097,8 @@ export namespace Prisma {
     lab_test_requests_lab_test_requests_patientIdTousers?: lab_test_requestsUpdateManyWithoutUsers_lab_test_requests_patientIdTousersNestedInput
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -277499,6 +279227,8 @@ export namespace Prisma {
     lab_test_requests_lab_test_requests_patientIdTousers?: lab_test_requestsUncheckedUpdateManyWithoutUsers_lab_test_requests_patientIdTousersNestedInput
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -277754,8 +279484,6 @@ export namespace Prisma {
     adminInvitationSent?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    adminUserId?: string | null
-    approvedById?: string | null
     registrationStep?: number
     registrationCompleted?: boolean
     registrationTokenHash?: string | null
@@ -277764,6 +279492,8 @@ export namespace Prisma {
     longitude?: number | null
     businessRegistrationUrl?: string | null
     govIdUrl?: string | null
+    users_lab_facilities_adminUserIdTousers?: usersCreateNestedOneWithoutLab_facilities_lab_facilities_adminUserIdTousersInput
+    users_lab_facilities_approvedByIdTousers?: usersCreateNestedOneWithoutLab_facilities_lab_facilities_approvedByIdTousersInput
     audit_logs?: audit_logsCreateNestedManyWithoutLab_facilitiesInput
     lab_personnel?: lab_personnelCreateNestedManyWithoutLab_facilitiesInput
     lab_test_catalog?: lab_test_catalogCreateNestedManyWithoutLab_facilitiesInput
@@ -277905,6 +279635,8 @@ export namespace Prisma {
     lab_test_requests_lab_test_requests_patientIdTousers?: lab_test_requestsCreateNestedManyWithoutUsers_lab_test_requests_patientIdTousersInput
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -278033,6 +279765,8 @@ export namespace Prisma {
     lab_test_requests_lab_test_requests_patientIdTousers?: lab_test_requestsUncheckedCreateNestedManyWithoutUsers_lab_test_requests_patientIdTousersInput
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -278189,8 +279923,6 @@ export namespace Prisma {
     adminInvitationSent?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    adminUserId?: NullableStringFieldUpdateOperationsInput | string | null
-    approvedById?: NullableStringFieldUpdateOperationsInput | string | null
     registrationStep?: IntFieldUpdateOperationsInput | number
     registrationCompleted?: BoolFieldUpdateOperationsInput | boolean
     registrationTokenHash?: NullableStringFieldUpdateOperationsInput | string | null
@@ -278199,6 +279931,8 @@ export namespace Prisma {
     longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     businessRegistrationUrl?: NullableStringFieldUpdateOperationsInput | string | null
     govIdUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    users_lab_facilities_adminUserIdTousers?: usersUpdateOneWithoutLab_facilities_lab_facilities_adminUserIdTousersNestedInput
+    users_lab_facilities_approvedByIdTousers?: usersUpdateOneWithoutLab_facilities_lab_facilities_approvedByIdTousersNestedInput
     audit_logs?: audit_logsUpdateManyWithoutLab_facilitiesNestedInput
     lab_personnel?: lab_personnelUpdateManyWithoutLab_facilitiesNestedInput
     lab_test_catalog?: lab_test_catalogUpdateManyWithoutLab_facilitiesNestedInput
@@ -278346,6 +280080,8 @@ export namespace Prisma {
     lab_test_requests_lab_test_requests_patientIdTousers?: lab_test_requestsUpdateManyWithoutUsers_lab_test_requests_patientIdTousersNestedInput
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -278474,6 +280210,8 @@ export namespace Prisma {
     lab_test_requests_lab_test_requests_patientIdTousers?: lab_test_requestsUncheckedUpdateManyWithoutUsers_lab_test_requests_patientIdTousersNestedInput
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -278603,6 +280341,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
     patient_access_logs?: patient_access_logsCreateNestedManyWithoutUsersInput
@@ -278731,6 +280471,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
     patient_access_logs?: patient_access_logsUncheckedCreateNestedManyWithoutUsersInput
@@ -278875,6 +280617,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
     patient_access_logs?: patient_access_logsUpdateManyWithoutUsersNestedInput
@@ -279003,6 +280747,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
     patient_access_logs?: patient_access_logsUncheckedUpdateManyWithoutUsersNestedInput
@@ -279507,6 +281253,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
     patient_access_logs?: patient_access_logsCreateNestedManyWithoutUsersInput
@@ -279635,6 +281383,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
     patient_access_logs?: patient_access_logsUncheckedCreateNestedManyWithoutUsersInput
@@ -279779,6 +281529,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
     patient_access_logs?: patient_access_logsUpdateManyWithoutUsersNestedInput
@@ -279907,6 +281659,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
     patient_access_logs?: patient_access_logsUncheckedUpdateManyWithoutUsersNestedInput
@@ -280035,6 +281789,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     patient_access_logs?: patient_access_logsCreateNestedManyWithoutUsersInput
@@ -280163,6 +281919,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     patient_access_logs?: patient_access_logsUncheckedCreateNestedManyWithoutUsersInput
@@ -280307,6 +282065,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     patient_access_logs?: patient_access_logsUpdateManyWithoutUsersNestedInput
@@ -280435,6 +282195,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     patient_access_logs?: patient_access_logsUncheckedUpdateManyWithoutUsersNestedInput
@@ -280563,6 +282325,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -280691,6 +282455,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -280835,6 +282601,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -280963,6 +282731,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -281221,6 +282991,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -281349,6 +283121,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -281482,6 +283256,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -281610,6 +283386,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -281743,6 +283521,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -281871,6 +283651,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -282066,6 +283848,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -282194,6 +283978,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -282333,6 +284119,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -282461,6 +284249,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -282600,6 +284390,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -282728,6 +284520,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -283050,6 +284844,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -283178,6 +284974,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -283620,6 +285418,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -283748,6 +285548,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -284232,6 +286034,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -284360,6 +286164,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -284542,6 +286348,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -284670,6 +286478,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -285027,6 +286837,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -285155,6 +286967,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -285372,6 +287186,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -285500,6 +287316,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -285878,6 +287696,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -286006,6 +287826,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -286308,6 +288130,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -286436,6 +288260,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -287078,6 +288904,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -287206,6 +289034,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -287613,6 +289443,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -287741,6 +289573,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -288005,6 +289839,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -288133,6 +289969,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -288266,6 +290104,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -288394,6 +290234,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -288605,6 +290447,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -288733,6 +290577,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -288872,6 +290718,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -289000,6 +290848,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -289701,6 +291551,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -289829,6 +291681,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -289962,6 +291816,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -290090,6 +291946,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -290223,6 +292081,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -290351,6 +292211,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -290601,6 +292463,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -290729,6 +292593,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -290868,6 +292734,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -290996,6 +292864,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -291135,6 +293005,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -291263,6 +293135,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -291632,6 +293506,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -291760,6 +293636,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -291939,6 +293817,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -292067,6 +293947,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -292266,6 +294148,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -292394,6 +294278,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -292600,6 +294486,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -292728,6 +294616,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -292887,6 +294777,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -293015,6 +294907,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -293159,6 +295053,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -293287,6 +295183,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -293415,6 +295313,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -293543,6 +295443,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -293687,6 +295589,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -293815,6 +295719,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -293943,6 +295849,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -294071,6 +295979,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -294215,6 +296125,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -294343,6 +296255,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -294471,6 +296385,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -294599,6 +296515,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -294743,6 +296661,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -294871,6 +296791,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -294999,6 +296921,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -295127,6 +297051,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -295317,6 +297243,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -295445,6 +297373,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -295656,6 +297586,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -295784,6 +297716,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -295979,6 +297913,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -296107,6 +298043,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -296235,6 +298173,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -296363,6 +298303,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -296507,6 +298449,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -296635,6 +298579,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -296763,6 +298709,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -296891,6 +298839,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -297035,6 +298985,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -297163,6 +299115,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -297291,6 +299245,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -297419,6 +299375,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -297563,6 +299521,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -297691,6 +299651,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -297819,6 +299781,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -297947,6 +299911,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -298091,6 +300057,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -298219,6 +300187,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -298347,6 +300317,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -298475,6 +300447,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -298619,6 +300593,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -298747,6 +300723,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -299360,6 +301338,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -299488,6 +301468,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -299678,6 +301660,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -299806,6 +301790,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -300054,6 +302040,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -300182,6 +302170,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -300384,6 +302374,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -300512,6 +302504,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -300732,6 +302726,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -300860,6 +302856,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -301062,6 +303060,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -301190,6 +303190,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -301318,6 +303320,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -301446,6 +303450,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -301590,6 +303596,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -301718,6 +303726,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -301846,6 +303856,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -301974,6 +303986,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -302107,6 +304121,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -302235,6 +304251,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -302414,6 +304432,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -302542,6 +304562,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -302681,6 +304703,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -302809,6 +304833,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -305268,6 +307294,214 @@ export namespace Prisma {
 
   export type lab_walletsCreateManyUsersInputEnvelope = {
     data: lab_walletsCreateManyUsersInput | lab_walletsCreateManyUsersInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type lab_facilitiesCreateWithoutUsers_lab_facilities_adminUserIdTousersInput = {
+    id?: string
+    facilityName?: string | null
+    facilityType?: $Enums.lab_facilities_facilitytype_enum | null
+    registrationNumber?: string | null
+    licenseNumber?: string | null
+    email?: string | null
+    phone?: string | null
+    website?: string | null
+    address?: string | null
+    city?: string | null
+    state?: string | null
+    country?: string | null
+    postalCode?: string | null
+    adminFullName: string
+    adminEmail: string
+    adminPhone?: string | null
+    operatingHours?: NullableJsonNullValueInput | InputJsonValue
+    servicesOffered?: NullableJsonNullValueInput | InputJsonValue
+    equipmentList?: NullableJsonNullValueInput | InputJsonValue
+    status?: $Enums.lab_facilities_status_enum
+    licenseDocument?: string | null
+    registrationDocument?: string | null
+    accreditationDocument?: string | null
+    approvedAt?: Date | string | null
+    rejectedAt?: Date | string | null
+    rejectionReason?: string | null
+    adminUserCreated?: boolean
+    adminInvitationSent?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    registrationStep?: number
+    registrationCompleted?: boolean
+    registrationTokenHash?: string | null
+    registrationTokenExpiresAt?: Date | string | null
+    latitude?: number | null
+    longitude?: number | null
+    businessRegistrationUrl?: string | null
+    govIdUrl?: string | null
+    users_lab_facilities_approvedByIdTousers?: usersCreateNestedOneWithoutLab_facilities_lab_facilities_approvedByIdTousersInput
+    audit_logs?: audit_logsCreateNestedManyWithoutLab_facilitiesInput
+    lab_personnel?: lab_personnelCreateNestedManyWithoutLab_facilitiesInput
+    lab_test_catalog?: lab_test_catalogCreateNestedManyWithoutLab_facilitiesInput
+    lab_test_requests?: lab_test_requestsCreateNestedManyWithoutLab_facilitiesInput
+    lab_wallets?: lab_walletsCreateNestedOneWithoutLab_facilitiesInput
+  }
+
+  export type lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_adminUserIdTousersInput = {
+    id?: string
+    facilityName?: string | null
+    facilityType?: $Enums.lab_facilities_facilitytype_enum | null
+    registrationNumber?: string | null
+    licenseNumber?: string | null
+    email?: string | null
+    phone?: string | null
+    website?: string | null
+    address?: string | null
+    city?: string | null
+    state?: string | null
+    country?: string | null
+    postalCode?: string | null
+    adminFullName: string
+    adminEmail: string
+    adminPhone?: string | null
+    operatingHours?: NullableJsonNullValueInput | InputJsonValue
+    servicesOffered?: NullableJsonNullValueInput | InputJsonValue
+    equipmentList?: NullableJsonNullValueInput | InputJsonValue
+    status?: $Enums.lab_facilities_status_enum
+    licenseDocument?: string | null
+    registrationDocument?: string | null
+    accreditationDocument?: string | null
+    approvedAt?: Date | string | null
+    rejectedAt?: Date | string | null
+    rejectionReason?: string | null
+    adminUserCreated?: boolean
+    adminInvitationSent?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    approvedById?: string | null
+    registrationStep?: number
+    registrationCompleted?: boolean
+    registrationTokenHash?: string | null
+    registrationTokenExpiresAt?: Date | string | null
+    latitude?: number | null
+    longitude?: number | null
+    businessRegistrationUrl?: string | null
+    govIdUrl?: string | null
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutLab_facilitiesInput
+    lab_personnel?: lab_personnelUncheckedCreateNestedManyWithoutLab_facilitiesInput
+    lab_test_catalog?: lab_test_catalogUncheckedCreateNestedManyWithoutLab_facilitiesInput
+    lab_test_requests?: lab_test_requestsUncheckedCreateNestedManyWithoutLab_facilitiesInput
+    lab_wallets?: lab_walletsUncheckedCreateNestedOneWithoutLab_facilitiesInput
+  }
+
+  export type lab_facilitiesCreateOrConnectWithoutUsers_lab_facilities_adminUserIdTousersInput = {
+    where: lab_facilitiesWhereUniqueInput
+    create: XOR<lab_facilitiesCreateWithoutUsers_lab_facilities_adminUserIdTousersInput, lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_adminUserIdTousersInput>
+  }
+
+  export type lab_facilitiesCreateManyUsers_lab_facilities_adminUserIdTousersInputEnvelope = {
+    data: lab_facilitiesCreateManyUsers_lab_facilities_adminUserIdTousersInput | lab_facilitiesCreateManyUsers_lab_facilities_adminUserIdTousersInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type lab_facilitiesCreateWithoutUsers_lab_facilities_approvedByIdTousersInput = {
+    id?: string
+    facilityName?: string | null
+    facilityType?: $Enums.lab_facilities_facilitytype_enum | null
+    registrationNumber?: string | null
+    licenseNumber?: string | null
+    email?: string | null
+    phone?: string | null
+    website?: string | null
+    address?: string | null
+    city?: string | null
+    state?: string | null
+    country?: string | null
+    postalCode?: string | null
+    adminFullName: string
+    adminEmail: string
+    adminPhone?: string | null
+    operatingHours?: NullableJsonNullValueInput | InputJsonValue
+    servicesOffered?: NullableJsonNullValueInput | InputJsonValue
+    equipmentList?: NullableJsonNullValueInput | InputJsonValue
+    status?: $Enums.lab_facilities_status_enum
+    licenseDocument?: string | null
+    registrationDocument?: string | null
+    accreditationDocument?: string | null
+    approvedAt?: Date | string | null
+    rejectedAt?: Date | string | null
+    rejectionReason?: string | null
+    adminUserCreated?: boolean
+    adminInvitationSent?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    registrationStep?: number
+    registrationCompleted?: boolean
+    registrationTokenHash?: string | null
+    registrationTokenExpiresAt?: Date | string | null
+    latitude?: number | null
+    longitude?: number | null
+    businessRegistrationUrl?: string | null
+    govIdUrl?: string | null
+    users_lab_facilities_adminUserIdTousers?: usersCreateNestedOneWithoutLab_facilities_lab_facilities_adminUserIdTousersInput
+    audit_logs?: audit_logsCreateNestedManyWithoutLab_facilitiesInput
+    lab_personnel?: lab_personnelCreateNestedManyWithoutLab_facilitiesInput
+    lab_test_catalog?: lab_test_catalogCreateNestedManyWithoutLab_facilitiesInput
+    lab_test_requests?: lab_test_requestsCreateNestedManyWithoutLab_facilitiesInput
+    lab_wallets?: lab_walletsCreateNestedOneWithoutLab_facilitiesInput
+  }
+
+  export type lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_approvedByIdTousersInput = {
+    id?: string
+    facilityName?: string | null
+    facilityType?: $Enums.lab_facilities_facilitytype_enum | null
+    registrationNumber?: string | null
+    licenseNumber?: string | null
+    email?: string | null
+    phone?: string | null
+    website?: string | null
+    address?: string | null
+    city?: string | null
+    state?: string | null
+    country?: string | null
+    postalCode?: string | null
+    adminFullName: string
+    adminEmail: string
+    adminPhone?: string | null
+    operatingHours?: NullableJsonNullValueInput | InputJsonValue
+    servicesOffered?: NullableJsonNullValueInput | InputJsonValue
+    equipmentList?: NullableJsonNullValueInput | InputJsonValue
+    status?: $Enums.lab_facilities_status_enum
+    licenseDocument?: string | null
+    registrationDocument?: string | null
+    accreditationDocument?: string | null
+    approvedAt?: Date | string | null
+    rejectedAt?: Date | string | null
+    rejectionReason?: string | null
+    adminUserCreated?: boolean
+    adminInvitationSent?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    adminUserId?: string | null
+    registrationStep?: number
+    registrationCompleted?: boolean
+    registrationTokenHash?: string | null
+    registrationTokenExpiresAt?: Date | string | null
+    latitude?: number | null
+    longitude?: number | null
+    businessRegistrationUrl?: string | null
+    govIdUrl?: string | null
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutLab_facilitiesInput
+    lab_personnel?: lab_personnelUncheckedCreateNestedManyWithoutLab_facilitiesInput
+    lab_test_catalog?: lab_test_catalogUncheckedCreateNestedManyWithoutLab_facilitiesInput
+    lab_test_requests?: lab_test_requestsUncheckedCreateNestedManyWithoutLab_facilitiesInput
+    lab_wallets?: lab_walletsUncheckedCreateNestedOneWithoutLab_facilitiesInput
+  }
+
+  export type lab_facilitiesCreateOrConnectWithoutUsers_lab_facilities_approvedByIdTousersInput = {
+    where: lab_facilitiesWhereUniqueInput
+    create: XOR<lab_facilitiesCreateWithoutUsers_lab_facilities_approvedByIdTousersInput, lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_approvedByIdTousersInput>
+  }
+
+  export type lab_facilitiesCreateManyUsers_lab_facilities_approvedByIdTousersInputEnvelope = {
+    data: lab_facilitiesCreateManyUsers_lab_facilities_approvedByIdTousersInput | lab_facilitiesCreateManyUsers_lab_facilities_approvedByIdTousersInput[]
     skipDuplicates?: boolean
   }
 
@@ -308637,6 +310871,84 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"lab_wallets"> | Date | string
   }
 
+  export type lab_facilitiesUpsertWithWhereUniqueWithoutUsers_lab_facilities_adminUserIdTousersInput = {
+    where: lab_facilitiesWhereUniqueInput
+    update: XOR<lab_facilitiesUpdateWithoutUsers_lab_facilities_adminUserIdTousersInput, lab_facilitiesUncheckedUpdateWithoutUsers_lab_facilities_adminUserIdTousersInput>
+    create: XOR<lab_facilitiesCreateWithoutUsers_lab_facilities_adminUserIdTousersInput, lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_adminUserIdTousersInput>
+  }
+
+  export type lab_facilitiesUpdateWithWhereUniqueWithoutUsers_lab_facilities_adminUserIdTousersInput = {
+    where: lab_facilitiesWhereUniqueInput
+    data: XOR<lab_facilitiesUpdateWithoutUsers_lab_facilities_adminUserIdTousersInput, lab_facilitiesUncheckedUpdateWithoutUsers_lab_facilities_adminUserIdTousersInput>
+  }
+
+  export type lab_facilitiesUpdateManyWithWhereWithoutUsers_lab_facilities_adminUserIdTousersInput = {
+    where: lab_facilitiesScalarWhereInput
+    data: XOR<lab_facilitiesUpdateManyMutationInput, lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersInput>
+  }
+
+  export type lab_facilitiesScalarWhereInput = {
+    AND?: lab_facilitiesScalarWhereInput | lab_facilitiesScalarWhereInput[]
+    OR?: lab_facilitiesScalarWhereInput[]
+    NOT?: lab_facilitiesScalarWhereInput | lab_facilitiesScalarWhereInput[]
+    id?: UuidFilter<"lab_facilities"> | string
+    facilityName?: StringNullableFilter<"lab_facilities"> | string | null
+    facilityType?: Enumlab_facilities_facilitytype_enumNullableFilter<"lab_facilities"> | $Enums.lab_facilities_facilitytype_enum | null
+    registrationNumber?: StringNullableFilter<"lab_facilities"> | string | null
+    licenseNumber?: StringNullableFilter<"lab_facilities"> | string | null
+    email?: StringNullableFilter<"lab_facilities"> | string | null
+    phone?: StringNullableFilter<"lab_facilities"> | string | null
+    website?: StringNullableFilter<"lab_facilities"> | string | null
+    address?: StringNullableFilter<"lab_facilities"> | string | null
+    city?: StringNullableFilter<"lab_facilities"> | string | null
+    state?: StringNullableFilter<"lab_facilities"> | string | null
+    country?: StringNullableFilter<"lab_facilities"> | string | null
+    postalCode?: StringNullableFilter<"lab_facilities"> | string | null
+    adminFullName?: StringFilter<"lab_facilities"> | string
+    adminEmail?: StringFilter<"lab_facilities"> | string
+    adminPhone?: StringNullableFilter<"lab_facilities"> | string | null
+    operatingHours?: JsonNullableFilter<"lab_facilities">
+    servicesOffered?: JsonNullableFilter<"lab_facilities">
+    equipmentList?: JsonNullableFilter<"lab_facilities">
+    status?: Enumlab_facilities_status_enumFilter<"lab_facilities"> | $Enums.lab_facilities_status_enum
+    licenseDocument?: StringNullableFilter<"lab_facilities"> | string | null
+    registrationDocument?: StringNullableFilter<"lab_facilities"> | string | null
+    accreditationDocument?: StringNullableFilter<"lab_facilities"> | string | null
+    approvedAt?: DateTimeNullableFilter<"lab_facilities"> | Date | string | null
+    rejectedAt?: DateTimeNullableFilter<"lab_facilities"> | Date | string | null
+    rejectionReason?: StringNullableFilter<"lab_facilities"> | string | null
+    adminUserCreated?: BoolFilter<"lab_facilities"> | boolean
+    adminInvitationSent?: BoolFilter<"lab_facilities"> | boolean
+    createdAt?: DateTimeFilter<"lab_facilities"> | Date | string
+    updatedAt?: DateTimeFilter<"lab_facilities"> | Date | string
+    adminUserId?: UuidNullableFilter<"lab_facilities"> | string | null
+    approvedById?: UuidNullableFilter<"lab_facilities"> | string | null
+    registrationStep?: IntFilter<"lab_facilities"> | number
+    registrationCompleted?: BoolFilter<"lab_facilities"> | boolean
+    registrationTokenHash?: StringNullableFilter<"lab_facilities"> | string | null
+    registrationTokenExpiresAt?: DateTimeNullableFilter<"lab_facilities"> | Date | string | null
+    latitude?: FloatNullableFilter<"lab_facilities"> | number | null
+    longitude?: FloatNullableFilter<"lab_facilities"> | number | null
+    businessRegistrationUrl?: StringNullableFilter<"lab_facilities"> | string | null
+    govIdUrl?: StringNullableFilter<"lab_facilities"> | string | null
+  }
+
+  export type lab_facilitiesUpsertWithWhereUniqueWithoutUsers_lab_facilities_approvedByIdTousersInput = {
+    where: lab_facilitiesWhereUniqueInput
+    update: XOR<lab_facilitiesUpdateWithoutUsers_lab_facilities_approvedByIdTousersInput, lab_facilitiesUncheckedUpdateWithoutUsers_lab_facilities_approvedByIdTousersInput>
+    create: XOR<lab_facilitiesCreateWithoutUsers_lab_facilities_approvedByIdTousersInput, lab_facilitiesUncheckedCreateWithoutUsers_lab_facilities_approvedByIdTousersInput>
+  }
+
+  export type lab_facilitiesUpdateWithWhereUniqueWithoutUsers_lab_facilities_approvedByIdTousersInput = {
+    where: lab_facilitiesWhereUniqueInput
+    data: XOR<lab_facilitiesUpdateWithoutUsers_lab_facilities_approvedByIdTousersInput, lab_facilitiesUncheckedUpdateWithoutUsers_lab_facilities_approvedByIdTousersInput>
+  }
+
+  export type lab_facilitiesUpdateManyWithWhereWithoutUsers_lab_facilities_approvedByIdTousersInput = {
+    where: lab_facilitiesScalarWhereInput
+    data: XOR<lab_facilitiesUpdateManyMutationInput, lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersInput>
+  }
+
   export type magic_link_tokensUpsertWithWhereUniqueWithoutUsersInput = {
     where: magic_link_tokensWhereUniqueInput
     update: XOR<magic_link_tokensUpdateWithoutUsersInput, magic_link_tokensUncheckedUpdateWithoutUsersInput>
@@ -310217,6 +312529,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -310345,6 +312659,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -310568,6 +312884,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -310696,6 +313014,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -310932,6 +313252,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -311060,6 +313382,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -311193,6 +313517,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -311321,6 +313647,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -311595,6 +313923,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -311723,6 +314053,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -311862,6 +314194,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -311990,6 +314324,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -312258,6 +314594,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -312386,6 +314724,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -312519,6 +314859,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -312647,6 +314989,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -312870,6 +315214,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -312998,6 +315344,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -313137,6 +315485,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -313265,6 +315615,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -313466,6 +315818,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -313594,6 +315948,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -313817,6 +316173,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -313945,6 +316303,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -314073,6 +316433,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensCreateNestedManyWithoutUsersInput
     notification?: notificationCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensCreateNestedManyWithoutUsersInput
@@ -314201,6 +316563,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedCreateNestedManyWithoutUsersInput
     lab_wallets?: lab_walletsUncheckedCreateNestedManyWithoutUsersInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_adminUserIdTousersInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedCreateNestedManyWithoutUsers_lab_facilities_approvedByIdTousersInput
     magic_link_tokens?: magic_link_tokensUncheckedCreateNestedManyWithoutUsersInput
     notification?: notificationUncheckedCreateNestedManyWithoutUsersInput
     password_reset_tokens?: password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
@@ -314392,6 +316756,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUpdateManyWithoutUsersNestedInput
     notification?: notificationUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUpdateManyWithoutUsersNestedInput
@@ -314520,6 +316886,8 @@ export namespace Prisma {
     lab_wallet_topups?: lab_wallet_topupsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallet_transactions?: lab_wallet_transactionsUncheckedUpdateManyWithoutUsersNestedInput
     lab_wallets?: lab_walletsUncheckedUpdateManyWithoutUsersNestedInput
+    lab_facilities_lab_facilities_adminUserIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersNestedInput
+    lab_facilities_lab_facilities_approvedByIdTousers?: lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersNestedInput
     magic_link_tokens?: magic_link_tokensUncheckedUpdateManyWithoutUsersNestedInput
     notification?: notificationUncheckedUpdateManyWithoutUsersNestedInput
     password_reset_tokens?: password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
@@ -319545,6 +321913,90 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type lab_facilitiesCreateManyUsers_lab_facilities_adminUserIdTousersInput = {
+    id?: string
+    facilityName?: string | null
+    facilityType?: $Enums.lab_facilities_facilitytype_enum | null
+    registrationNumber?: string | null
+    licenseNumber?: string | null
+    email?: string | null
+    phone?: string | null
+    website?: string | null
+    address?: string | null
+    city?: string | null
+    state?: string | null
+    country?: string | null
+    postalCode?: string | null
+    adminFullName: string
+    adminEmail: string
+    adminPhone?: string | null
+    operatingHours?: NullableJsonNullValueInput | InputJsonValue
+    servicesOffered?: NullableJsonNullValueInput | InputJsonValue
+    equipmentList?: NullableJsonNullValueInput | InputJsonValue
+    status?: $Enums.lab_facilities_status_enum
+    licenseDocument?: string | null
+    registrationDocument?: string | null
+    accreditationDocument?: string | null
+    approvedAt?: Date | string | null
+    rejectedAt?: Date | string | null
+    rejectionReason?: string | null
+    adminUserCreated?: boolean
+    adminInvitationSent?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    approvedById?: string | null
+    registrationStep?: number
+    registrationCompleted?: boolean
+    registrationTokenHash?: string | null
+    registrationTokenExpiresAt?: Date | string | null
+    latitude?: number | null
+    longitude?: number | null
+    businessRegistrationUrl?: string | null
+    govIdUrl?: string | null
+  }
+
+  export type lab_facilitiesCreateManyUsers_lab_facilities_approvedByIdTousersInput = {
+    id?: string
+    facilityName?: string | null
+    facilityType?: $Enums.lab_facilities_facilitytype_enum | null
+    registrationNumber?: string | null
+    licenseNumber?: string | null
+    email?: string | null
+    phone?: string | null
+    website?: string | null
+    address?: string | null
+    city?: string | null
+    state?: string | null
+    country?: string | null
+    postalCode?: string | null
+    adminFullName: string
+    adminEmail: string
+    adminPhone?: string | null
+    operatingHours?: NullableJsonNullValueInput | InputJsonValue
+    servicesOffered?: NullableJsonNullValueInput | InputJsonValue
+    equipmentList?: NullableJsonNullValueInput | InputJsonValue
+    status?: $Enums.lab_facilities_status_enum
+    licenseDocument?: string | null
+    registrationDocument?: string | null
+    accreditationDocument?: string | null
+    approvedAt?: Date | string | null
+    rejectedAt?: Date | string | null
+    rejectionReason?: string | null
+    adminUserCreated?: boolean
+    adminInvitationSent?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    adminUserId?: string | null
+    registrationStep?: number
+    registrationCompleted?: boolean
+    registrationTokenHash?: string | null
+    registrationTokenExpiresAt?: Date | string | null
+    latitude?: number | null
+    longitude?: number | null
+    businessRegistrationUrl?: string | null
+    govIdUrl?: string | null
+  }
+
   export type magic_link_tokensCreateManyUsersInput = {
     id?: string
     token: string
@@ -323017,6 +325469,278 @@ export namespace Prisma {
     lastTransactionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type lab_facilitiesUpdateWithoutUsers_lab_facilities_adminUserIdTousersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    facilityName?: NullableStringFieldUpdateOperationsInput | string | null
+    facilityType?: NullableEnumlab_facilities_facilitytype_enumFieldUpdateOperationsInput | $Enums.lab_facilities_facilitytype_enum | null
+    registrationNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    licenseNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    website?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    postalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    adminFullName?: StringFieldUpdateOperationsInput | string
+    adminEmail?: StringFieldUpdateOperationsInput | string
+    adminPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    operatingHours?: NullableJsonNullValueInput | InputJsonValue
+    servicesOffered?: NullableJsonNullValueInput | InputJsonValue
+    equipmentList?: NullableJsonNullValueInput | InputJsonValue
+    status?: Enumlab_facilities_status_enumFieldUpdateOperationsInput | $Enums.lab_facilities_status_enum
+    licenseDocument?: NullableStringFieldUpdateOperationsInput | string | null
+    registrationDocument?: NullableStringFieldUpdateOperationsInput | string | null
+    accreditationDocument?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    adminUserCreated?: BoolFieldUpdateOperationsInput | boolean
+    adminInvitationSent?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    registrationStep?: IntFieldUpdateOperationsInput | number
+    registrationCompleted?: BoolFieldUpdateOperationsInput | boolean
+    registrationTokenHash?: NullableStringFieldUpdateOperationsInput | string | null
+    registrationTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    businessRegistrationUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    govIdUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    users_lab_facilities_approvedByIdTousers?: usersUpdateOneWithoutLab_facilities_lab_facilities_approvedByIdTousersNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutLab_facilitiesNestedInput
+    lab_personnel?: lab_personnelUpdateManyWithoutLab_facilitiesNestedInput
+    lab_test_catalog?: lab_test_catalogUpdateManyWithoutLab_facilitiesNestedInput
+    lab_test_requests?: lab_test_requestsUpdateManyWithoutLab_facilitiesNestedInput
+    lab_wallets?: lab_walletsUpdateOneWithoutLab_facilitiesNestedInput
+  }
+
+  export type lab_facilitiesUncheckedUpdateWithoutUsers_lab_facilities_adminUserIdTousersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    facilityName?: NullableStringFieldUpdateOperationsInput | string | null
+    facilityType?: NullableEnumlab_facilities_facilitytype_enumFieldUpdateOperationsInput | $Enums.lab_facilities_facilitytype_enum | null
+    registrationNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    licenseNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    website?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    postalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    adminFullName?: StringFieldUpdateOperationsInput | string
+    adminEmail?: StringFieldUpdateOperationsInput | string
+    adminPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    operatingHours?: NullableJsonNullValueInput | InputJsonValue
+    servicesOffered?: NullableJsonNullValueInput | InputJsonValue
+    equipmentList?: NullableJsonNullValueInput | InputJsonValue
+    status?: Enumlab_facilities_status_enumFieldUpdateOperationsInput | $Enums.lab_facilities_status_enum
+    licenseDocument?: NullableStringFieldUpdateOperationsInput | string | null
+    registrationDocument?: NullableStringFieldUpdateOperationsInput | string | null
+    accreditationDocument?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    adminUserCreated?: BoolFieldUpdateOperationsInput | boolean
+    adminInvitationSent?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    approvedById?: NullableStringFieldUpdateOperationsInput | string | null
+    registrationStep?: IntFieldUpdateOperationsInput | number
+    registrationCompleted?: BoolFieldUpdateOperationsInput | boolean
+    registrationTokenHash?: NullableStringFieldUpdateOperationsInput | string | null
+    registrationTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    businessRegistrationUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    govIdUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutLab_facilitiesNestedInput
+    lab_personnel?: lab_personnelUncheckedUpdateManyWithoutLab_facilitiesNestedInput
+    lab_test_catalog?: lab_test_catalogUncheckedUpdateManyWithoutLab_facilitiesNestedInput
+    lab_test_requests?: lab_test_requestsUncheckedUpdateManyWithoutLab_facilitiesNestedInput
+    lab_wallets?: lab_walletsUncheckedUpdateOneWithoutLab_facilitiesNestedInput
+  }
+
+  export type lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_adminUserIdTousersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    facilityName?: NullableStringFieldUpdateOperationsInput | string | null
+    facilityType?: NullableEnumlab_facilities_facilitytype_enumFieldUpdateOperationsInput | $Enums.lab_facilities_facilitytype_enum | null
+    registrationNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    licenseNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    website?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    postalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    adminFullName?: StringFieldUpdateOperationsInput | string
+    adminEmail?: StringFieldUpdateOperationsInput | string
+    adminPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    operatingHours?: NullableJsonNullValueInput | InputJsonValue
+    servicesOffered?: NullableJsonNullValueInput | InputJsonValue
+    equipmentList?: NullableJsonNullValueInput | InputJsonValue
+    status?: Enumlab_facilities_status_enumFieldUpdateOperationsInput | $Enums.lab_facilities_status_enum
+    licenseDocument?: NullableStringFieldUpdateOperationsInput | string | null
+    registrationDocument?: NullableStringFieldUpdateOperationsInput | string | null
+    accreditationDocument?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    adminUserCreated?: BoolFieldUpdateOperationsInput | boolean
+    adminInvitationSent?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    approvedById?: NullableStringFieldUpdateOperationsInput | string | null
+    registrationStep?: IntFieldUpdateOperationsInput | number
+    registrationCompleted?: BoolFieldUpdateOperationsInput | boolean
+    registrationTokenHash?: NullableStringFieldUpdateOperationsInput | string | null
+    registrationTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    businessRegistrationUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    govIdUrl?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type lab_facilitiesUpdateWithoutUsers_lab_facilities_approvedByIdTousersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    facilityName?: NullableStringFieldUpdateOperationsInput | string | null
+    facilityType?: NullableEnumlab_facilities_facilitytype_enumFieldUpdateOperationsInput | $Enums.lab_facilities_facilitytype_enum | null
+    registrationNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    licenseNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    website?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    postalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    adminFullName?: StringFieldUpdateOperationsInput | string
+    adminEmail?: StringFieldUpdateOperationsInput | string
+    adminPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    operatingHours?: NullableJsonNullValueInput | InputJsonValue
+    servicesOffered?: NullableJsonNullValueInput | InputJsonValue
+    equipmentList?: NullableJsonNullValueInput | InputJsonValue
+    status?: Enumlab_facilities_status_enumFieldUpdateOperationsInput | $Enums.lab_facilities_status_enum
+    licenseDocument?: NullableStringFieldUpdateOperationsInput | string | null
+    registrationDocument?: NullableStringFieldUpdateOperationsInput | string | null
+    accreditationDocument?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    adminUserCreated?: BoolFieldUpdateOperationsInput | boolean
+    adminInvitationSent?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    registrationStep?: IntFieldUpdateOperationsInput | number
+    registrationCompleted?: BoolFieldUpdateOperationsInput | boolean
+    registrationTokenHash?: NullableStringFieldUpdateOperationsInput | string | null
+    registrationTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    businessRegistrationUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    govIdUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    users_lab_facilities_adminUserIdTousers?: usersUpdateOneWithoutLab_facilities_lab_facilities_adminUserIdTousersNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutLab_facilitiesNestedInput
+    lab_personnel?: lab_personnelUpdateManyWithoutLab_facilitiesNestedInput
+    lab_test_catalog?: lab_test_catalogUpdateManyWithoutLab_facilitiesNestedInput
+    lab_test_requests?: lab_test_requestsUpdateManyWithoutLab_facilitiesNestedInput
+    lab_wallets?: lab_walletsUpdateOneWithoutLab_facilitiesNestedInput
+  }
+
+  export type lab_facilitiesUncheckedUpdateWithoutUsers_lab_facilities_approvedByIdTousersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    facilityName?: NullableStringFieldUpdateOperationsInput | string | null
+    facilityType?: NullableEnumlab_facilities_facilitytype_enumFieldUpdateOperationsInput | $Enums.lab_facilities_facilitytype_enum | null
+    registrationNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    licenseNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    website?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    postalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    adminFullName?: StringFieldUpdateOperationsInput | string
+    adminEmail?: StringFieldUpdateOperationsInput | string
+    adminPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    operatingHours?: NullableJsonNullValueInput | InputJsonValue
+    servicesOffered?: NullableJsonNullValueInput | InputJsonValue
+    equipmentList?: NullableJsonNullValueInput | InputJsonValue
+    status?: Enumlab_facilities_status_enumFieldUpdateOperationsInput | $Enums.lab_facilities_status_enum
+    licenseDocument?: NullableStringFieldUpdateOperationsInput | string | null
+    registrationDocument?: NullableStringFieldUpdateOperationsInput | string | null
+    accreditationDocument?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    adminUserCreated?: BoolFieldUpdateOperationsInput | boolean
+    adminInvitationSent?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    adminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    registrationStep?: IntFieldUpdateOperationsInput | number
+    registrationCompleted?: BoolFieldUpdateOperationsInput | boolean
+    registrationTokenHash?: NullableStringFieldUpdateOperationsInput | string | null
+    registrationTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    businessRegistrationUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    govIdUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutLab_facilitiesNestedInput
+    lab_personnel?: lab_personnelUncheckedUpdateManyWithoutLab_facilitiesNestedInput
+    lab_test_catalog?: lab_test_catalogUncheckedUpdateManyWithoutLab_facilitiesNestedInput
+    lab_test_requests?: lab_test_requestsUncheckedUpdateManyWithoutLab_facilitiesNestedInput
+    lab_wallets?: lab_walletsUncheckedUpdateOneWithoutLab_facilitiesNestedInput
+  }
+
+  export type lab_facilitiesUncheckedUpdateManyWithoutUsers_lab_facilities_approvedByIdTousersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    facilityName?: NullableStringFieldUpdateOperationsInput | string | null
+    facilityType?: NullableEnumlab_facilities_facilitytype_enumFieldUpdateOperationsInput | $Enums.lab_facilities_facilitytype_enum | null
+    registrationNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    licenseNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    website?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    postalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    adminFullName?: StringFieldUpdateOperationsInput | string
+    adminEmail?: StringFieldUpdateOperationsInput | string
+    adminPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    operatingHours?: NullableJsonNullValueInput | InputJsonValue
+    servicesOffered?: NullableJsonNullValueInput | InputJsonValue
+    equipmentList?: NullableJsonNullValueInput | InputJsonValue
+    status?: Enumlab_facilities_status_enumFieldUpdateOperationsInput | $Enums.lab_facilities_status_enum
+    licenseDocument?: NullableStringFieldUpdateOperationsInput | string | null
+    registrationDocument?: NullableStringFieldUpdateOperationsInput | string | null
+    accreditationDocument?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    adminUserCreated?: BoolFieldUpdateOperationsInput | boolean
+    adminInvitationSent?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    adminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    registrationStep?: IntFieldUpdateOperationsInput | number
+    registrationCompleted?: BoolFieldUpdateOperationsInput | boolean
+    registrationTokenHash?: NullableStringFieldUpdateOperationsInput | string | null
+    registrationTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    businessRegistrationUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    govIdUrl?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type magic_link_tokensUpdateWithoutUsersInput = {
