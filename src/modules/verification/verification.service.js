@@ -2,6 +2,11 @@ const { mainPrisma } = require("../../shared/config/mainDatabase");
 const { prisma } = require("../../shared/config/database");
 const { createAuditLog } = require("../../shared/middlewares/audit.middleware");
 const ApiError = require("../../shared/utils/ApiError");
+const {
+  generateTempPassword,
+  hashPassword,
+} = require("../../shared/utils/password.util");
+const { sendLabApprovalEmail } = require("../../shared/utils/email.util");
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -151,36 +156,36 @@ class VerificationService {
 
     const skip = (Number(page) - 1) * Number(limit);
 
-   const [total, rows] = await Promise.all([
-     mainPrisma.verification_requests.count({ where }),
-     mainPrisma.verification_requests.findMany({
-       where,
-       include: {
-         users_verification_requests_doctorIdTousers: {
-           select: {
-             id: true,
-             fullName: true,
-             email: true,
-             phoneNumber: true,
-             profileImageUrl: true,
-             createdAt: true,
-             doctor_profiles: {
-               select: {
-                 professional_licenses: {
-                   select: {
-                     areasOfSpecialization: true,
-                   },
-                 },
-               },
-             },
-           },
-         },
-       },
-       orderBy: { submittedAt: "desc" },
-       skip,
-       take: Number(limit),
-     }),
-   ]);
+    const [total, rows] = await Promise.all([
+      mainPrisma.verification_requests.count({ where }),
+      mainPrisma.verification_requests.findMany({
+        where,
+        include: {
+          users_verification_requests_doctorIdTousers: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              phoneNumber: true,
+              profileImageUrl: true,
+              createdAt: true,
+              doctor_profiles: {
+                select: {
+                  professional_licenses: {
+                    select: {
+                      areasOfSpecialization: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        orderBy: { submittedAt: "desc" },
+        skip,
+        take: Number(limit),
+      }),
+    ]);
 
     // Stats block (always computed on the full, unfiltered dataset)
     const [totalAll, totalApproved, totalPending] = await Promise.all([
@@ -1228,38 +1233,106 @@ class VerificationService {
    * PATCH /api/verification/labs/:id/approve
    */
   async approveLab({ id, adminUserId, req }) {
+    // 1. Find the lab
     const lab = await mainPrisma.lab_facilities.findUnique({ where: { id } });
     if (!lab) throw new ApiError(404, "Lab facility not found");
     if (["approved", "active"].includes(lab.status)) {
       throw new ApiError(400, "Lab is already approved");
     }
 
+    // 2. Find the admin user
     const adminUser = await prisma.adminUser.findUnique({
       where: { id: adminUserId },
       select: { mainAppUserId: true },
     });
 
-    await mainPrisma.lab_facilities.update({
-      where: { id },
-      data: {
-        status: "approved",
-        approvedAt: new Date(),
-        approvedById: adminUser?.mainAppUserId ?? null,
-      },
+    const now = new Date();
+
+    // 3. Check if user account already exists for this lab
+    const existingUser = await mainPrisma.users.findUnique({
+      where: { email: lab.adminEmail },
     });
 
+    let labUserId = existingUser?.id ?? null;
+    let tempPassword = null;
+
+    // 4. Only create user account if it doesn't exist yet
+    if (!existingUser) {
+      tempPassword = generateTempPassword();
+      const passwordHash = await hashPassword(tempPassword);
+
+      const newUser = await mainPrisma.users.create({
+        data: {
+          email: lab.adminEmail,
+          fullName: lab.adminFullName,
+          passwordHash,
+          role: "lab",
+          status: "active",
+          mustChangePassword: true,
+          phoneNumber: lab.adminPhone ?? null,
+        },
+      });
+
+      labUserId = newUser.id;
+    }
+
+    // 5. Update lab + create audit log in main DB
+    await mainPrisma.$transaction(async (tx) => {
+      await tx.lab_facilities.update({
+        where: { id },
+        data: {
+          status: "approved",
+          approvedAt: now,
+          approvedById: adminUser?.mainAppUserId ?? null,
+          adminUserId: labUserId,
+          adminUserCreated: true,
+          adminInvitationSent: true,
+        },
+      });
+
+      await tx.audit_logs.create({
+        data: {
+          resourceType: "lab_facility",
+          resourceId: id,
+          action: "approved",
+          actorUserId: adminUser?.mainAppUserId ?? null,
+          actorRole: "admin",
+          facilityId: id,
+          metadata: {
+            facilityName: lab.facilityName,
+            adminEmail: lab.adminEmail,
+            adminUserCreated: !existingUser,
+          },
+        },
+      });
+    });
+
+    // 6. Send approval email only if new account was created
+    if (tempPassword) {
+      await sendLabApprovalEmail({
+        to: lab.adminEmail,
+        fullName: lab.adminFullName,
+        tempPassword,
+      });
+    }
+
+    // 7. Audit log in admin DB
     await createAuditLog({
       adminUserId,
       action: "USER_UPDATED",
       targetId: id,
       targetType: "lab_facility",
-      metadata: { action: "approved", facilityName: lab.facilityName },
+      metadata: {
+        action: "approved",
+        facilityName: lab.facilityName,
+        adminUserCreated: !existingUser,
+        labUserId,
+      },
       req,
     });
 
     return { id, status: "Approved" };
   }
-
   /**
    * PATCH /api/verification/labs/:id/reject
    */
@@ -1501,33 +1574,33 @@ class VerificationService {
     }
 
     // ── Shape each source ──
- const shapedDoctors = doctorRows.map((vr) => {
-   const user = vr.users_verification_requests_doctorIdTousers;
+    const shapedDoctors = doctorRows.map((vr) => {
+      const user = vr.users_verification_requests_doctorIdTousers;
 
-   // Get specialty
-   let specialty = null;
-   if (user?.doctor_profiles?.professional_licenses?.areasOfSpecialization) {
-     const specialties =
-       user.doctor_profiles.professional_licenses.areasOfSpecialization;
-     specialty = specialties.length > 0 ? specialties[0] : null;
-   }
+      // Get specialty
+      let specialty = null;
+      if (user?.doctor_profiles?.professional_licenses?.areasOfSpecialization) {
+        const specialties =
+          user.doctor_profiles.professional_licenses.areasOfSpecialization;
+        specialty = specialties.length > 0 ? specialties[0] : null;
+      }
 
-   return {
-     id: vr.id,
-     user: user?.fullName ?? "Unknown",
-     role: "Doctors",
-     verificationType: "License",
-     licenseId: vr.licenseNumber,
-     status: mapStatus(vr.status),
-     submittedDate: vr.submittedAt
-       ? new Date(vr.submittedAt).toLocaleDateString("en-GB")
-       : null,
-     _sortDate: vr.submittedAt ? new Date(vr.submittedAt).getTime() : 0,
-     riskIndicator: deriveRiskIndicator(vr),
-     profileImageUrl: user?.profileImageUrl ?? null,
-     specialty: specialty,
-   };
- });
+      return {
+        id: vr.id,
+        user: user?.fullName ?? "Unknown",
+        role: "Doctors",
+        verificationType: "License",
+        licenseId: vr.licenseNumber,
+        status: mapStatus(vr.status),
+        submittedDate: vr.submittedAt
+          ? new Date(vr.submittedAt).toLocaleDateString("en-GB")
+          : null,
+        _sortDate: vr.submittedAt ? new Date(vr.submittedAt).getTime() : 0,
+        riskIndicator: deriveRiskIndicator(vr),
+        profileImageUrl: user?.profileImageUrl ?? null,
+        specialty: specialty,
+      };
+    });
 
     const shapedPharmacies = pharmacyRows.map((pvr) => {
       const pharmacy = pvr.pharmacy_profiles;
