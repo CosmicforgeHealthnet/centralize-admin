@@ -713,38 +713,51 @@ class VerificationService {
 
     const skip = (Number(page) - 1) * Number(limit);
 
-    const [total, rows] = await Promise.all([
-      mainPrisma.pharmacy_verification_requests.count({ where }),
-      mainPrisma.pharmacy_verification_requests.findMany({
-        where,
-        include: {
-          pharmacy_profiles: {
-            select: {
-              id: true,
-              pharmacyName: true,
-              registrationNumber: true,
-              licenseNumber: true,
-              address: true,
-              phone: true,
-              email: true,
-              verificationStatus: true,
-              users: {
-                select: {
-                  id: true,
-                  fullName: true,
-                  email: true,
-                  profileImageUrl: true,
-                  createdAt: true,
+    let total = 0;
+    let rows = [];
+    try {
+      [total, rows] = await Promise.all([
+        mainPrisma.pharmacy_verification_requests.count({ where }),
+        mainPrisma.pharmacy_verification_requests.findMany({
+          where,
+          include: {
+            pharmacy_profiles: {
+              select: {
+                id: true,
+                pharmacyName: true,
+                registrationNumber: true,
+                licenseNumber: true,
+                address: true,
+                phone: true,
+                email: true,
+                verificationStatus: true,
+                users: {
+                  select: {
+                    id: true,
+                    fullName: true,
+                    email: true,
+                    profileImageUrl: true,
+                    createdAt: true,
+                  },
                 },
               },
             },
           },
-        },
-        orderBy: { submittedAt: "desc" },
-        skip,
-        take: Number(limit),
-      }),
-    ]);
+          orderBy: { submittedAt: "desc" },
+          skip,
+          take: Number(limit),
+        }),
+      ]);
+    } catch (err) {
+      console.warn(
+        "getPharmacyVerifications DB error (possible TOAST corruption):",
+        err.message,
+      );
+      throw new ApiError(
+        503,
+        "Pharmacy verifications temporarily unavailable due to a database issue.",
+      );
+    }
 
     const shaped = rows.map((pvr) => {
       const pharmacy = pvr.pharmacy_profiles;
@@ -766,7 +779,6 @@ class VerificationService {
         submittedDate: pvr.submittedAt
           ? new Date(pvr.submittedAt).toLocaleDateString("en-GB")
           : null,
-        // Pharmacy verifications have no confidenceScore — default Medium
         riskIndicator:
           pvr.status === "rejected"
             ? "High"
@@ -794,39 +806,51 @@ class VerificationService {
    * GET /api/verification/pharmacies/:id
    */
   async getPharmacyVerificationById(id) {
-    const pvr = await mainPrisma.pharmacy_verification_requests.findUnique({
-      where: { id },
-      include: {
-        pharmacy_profiles: {
-          include: {
-            users: {
-              select: {
-                id: true,
-                fullName: true,
-                email: true,
-                phoneNumber: true,
-                profileImageUrl: true,
-                createdAt: true,
+    let pvr;
+    try {
+      pvr = await mainPrisma.pharmacy_verification_requests.findUnique({
+        where: { id },
+        include: {
+          pharmacy_profiles: {
+            include: {
+              users: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  email: true,
+                  phoneNumber: true,
+                  profileImageUrl: true,
+                  createdAt: true,
+                },
               },
-            },
-            pharmacy_documents: {
-              include: {
-                document_files: {
-                  select: {
-                    id: true,
-                    original_file_name: true,
-                    file_path: true,
-                    file_size: true,
-                    mime_type: true,
-                    created_at: true,
+              pharmacy_documents: {
+                include: {
+                  document_files: {
+                    select: {
+                      id: true,
+                      original_file_name: true,
+                      file_path: true,
+                      file_size: true,
+                      mime_type: true,
+                      created_at: true,
+                    },
                   },
                 },
               },
             },
           },
         },
-      },
-    });
+      });
+    } catch (err) {
+      console.warn(
+        "getPharmacyVerificationById DB error (possible TOAST corruption):",
+        err.message,
+      );
+      throw new ApiError(
+        503,
+        "This record is temporarily unavailable due to a database issue.",
+      );
+    }
 
     if (!pvr)
       throw new ApiError(404, "Pharmacy verification request not found");
@@ -1414,7 +1438,6 @@ class VerificationService {
       return { [field]: filter };
     };
 
-    // WHERE clauses (keep exactly as you have them)
     const doctorWhere = {};
     if (status && status !== "All") {
       if (status === "Approved") doctorWhere.status = "approved";
@@ -1478,77 +1501,92 @@ class VerificationService {
       ];
     }
 
-    // ── Doctors + Pharmacies + Stats run in parallel (stable tables) ──
-    const [
-      doctorTotal,
-      doctorRows,
-      pharmacyTotal,
-      pharmacyRows,
-      statsTotal,
-      statsApproved,
-      statsPending,
-    ] = await Promise.all([
-      mainPrisma.verification_requests.count({ where: doctorWhere }),
-      mainPrisma.verification_requests.findMany({
-        where: doctorWhere,
-        include: {
-          users_verification_requests_doctorIdTousers: {
-            select: {
-              id: true,
-              fullName: true,
-              profileImageUrl: true,
-              doctor_profiles: {
+    // ── Doctors + Stats ──
+    let doctorTotal = 0,
+      doctorRows = [];
+    let statsTotal = 0,
+      statsApproved = 0,
+      statsPending = 0;
+    try {
+      [doctorTotal, doctorRows, statsTotal, statsApproved, statsPending] =
+        await Promise.all([
+          mainPrisma.verification_requests.count({ where: doctorWhere }),
+          mainPrisma.verification_requests.findMany({
+            where: doctorWhere,
+            include: {
+              users_verification_requests_doctorIdTousers: {
                 select: {
-                  professional_licenses: {
+                  id: true,
+                  fullName: true,
+                  profileImageUrl: true,
+                  doctor_profiles: {
                     select: {
-                      areasOfSpecialization: true,
+                      professional_licenses: {
+                        select: { areasOfSpecialization: true },
+                      },
                     },
                   },
                 },
               },
             },
-          },
-        },
-        orderBy: { submittedAt: "desc" },
-        take: fetchLimit,
-      }),
+            orderBy: { submittedAt: "desc" },
+            take: fetchLimit,
+          }),
+          mainPrisma.verification_requests.count(),
+          mainPrisma.verification_requests.count({
+            where: { status: "approved" },
+          }),
+          mainPrisma.verification_requests.count({
+            where: {
+              status: {
+                in: [
+                  "pending",
+                  "in_progress",
+                  "pending_documents",
+                  "api_verification",
+                  "manual_review",
+                ],
+              },
+            },
+          }),
+        ]);
+    } catch (err) {
+      console.warn(
+        "verification_requests unavailable (DB corruption):",
+        err.message,
+      );
+    }
 
-      mainPrisma.pharmacy_verification_requests.count({ where: pharmacyWhere }),
-      mainPrisma.pharmacy_verification_requests.findMany({
-        where: pharmacyWhere,
-        include: {
-          pharmacy_profiles: {
-            select: {
-              pharmacyName: true,
-              licenseNumber: true,
-              registrationNumber: true,
+    // ── Pharmacies ──
+    let pharmacyTotal = 0,
+      pharmacyRows = [];
+    try {
+      [pharmacyTotal, pharmacyRows] = await Promise.all([
+        mainPrisma.pharmacy_verification_requests.count({
+          where: pharmacyWhere,
+        }),
+        mainPrisma.pharmacy_verification_requests.findMany({
+          where: pharmacyWhere,
+          include: {
+            pharmacy_profiles: {
+              select: {
+                pharmacyName: true,
+                licenseNumber: true,
+                registrationNumber: true,
+              },
             },
           },
-        },
-        orderBy: { submittedAt: "desc" },
-        take: fetchLimit,
-      }),
+          orderBy: { submittedAt: "desc" },
+          take: fetchLimit,
+        }),
+      ]);
+    } catch (err) {
+      console.warn("pharmacy_verification_requests unavailable:", err.message);
+    }
 
-      mainPrisma.verification_requests.count(),
-      mainPrisma.verification_requests.count({ where: { status: "approved" } }),
-      mainPrisma.verification_requests.count({
-        where: {
-          status: {
-            in: [
-              "pending",
-              "in_progress",
-              "pending_documents",
-              "api_verification",
-              "manual_review",
-            ],
-          },
-        },
-      }),
-    ]);
-
-    // ── Labs: graceful fallback if table doesn't exist yet ──
-    let labTotal = 0;
-    let labRows = [];
+    // ── Labs ──
+    let labTotal = 0,
+      labRows = [];
     try {
       [labTotal, labRows] = await Promise.all([
         mainPrisma.lab_facilities.count({ where: labWhere }),
@@ -1569,22 +1607,18 @@ class VerificationService {
         }),
       ]);
     } catch (err) {
-      // Table not migrated yet — return empty, don't crash the whole endpoint
       console.warn("lab_facilities table not available:", err.message);
     }
 
     // ── Shape each source ──
     const shapedDoctors = doctorRows.map((vr) => {
       const user = vr.users_verification_requests_doctorIdTousers;
-
-      // Get specialty
       let specialty = null;
       if (user?.doctor_profiles?.professional_licenses?.areasOfSpecialization) {
         const specialties =
           user.doctor_profiles.professional_licenses.areasOfSpecialization;
         specialty = specialties.length > 0 ? specialties[0] : null;
       }
-
       return {
         id: vr.id,
         user: user?.fullName ?? "Unknown",
@@ -1598,7 +1632,7 @@ class VerificationService {
         _sortDate: vr.submittedAt ? new Date(vr.submittedAt).getTime() : 0,
         riskIndicator: deriveRiskIndicator(vr),
         profileImageUrl: user?.profileImageUrl ?? null,
-        specialty: specialty,
+        specialty,
       };
     });
 
