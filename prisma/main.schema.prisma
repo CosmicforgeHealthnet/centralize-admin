@@ -179,6 +179,33 @@ model admin_ops_webhook_endpoints {
   createdAt   DateTime @default(now()) @db.Timestamp(6)
   updatedAt   DateTime @default(now()) @db.Timestamp(6)
 }
+model admin_settings {
+  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  category    String   @db.VarChar(100)
+  key         String   @db.VarChar(200)
+  value       Json
+  updatedBy   String?  @db.Uuid
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+  updatedAt   DateTime @default(now()) @db.Timestamp(6)
+
+  @@unique([category, key])
+  @@index([category])
+}
+
+model admin_settings_history {
+  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  settingId   String   @db.Uuid
+  category    String   @db.VarChar(100)
+  key         String   @db.VarChar(200)
+  oldValue    Json?
+  newValue    Json
+  changedBy   String   @db.Uuid
+  changedAt   DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([settingId])
+  @@index([category, key])
+  @@index([changedAt])
+}
 
 model allergies {
   id               String            @id(map: "PK_f72e0cf363a832b8fa8cf657118") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid

@@ -278,6 +278,27 @@ exports.Prisma.Admin_ops_webhook_endpointsScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.Admin_settingsScalarFieldEnum = {
+  id: 'id',
+  category: 'category',
+  key: 'key',
+  value: 'value',
+  updatedBy: 'updatedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Admin_settings_historyScalarFieldEnum = {
+  id: 'id',
+  settingId: 'settingId',
+  category: 'category',
+  key: 'key',
+  oldValue: 'oldValue',
+  newValue: 'newValue',
+  changedBy: 'changedBy',
+  changedAt: 'changedAt'
+};
+
 exports.Prisma.AllergiesScalarFieldEnum = {
   id: 'id',
   type: 'type',
@@ -3604,6 +3625,8 @@ exports.Prisma.ModelName = {
   admin_ops_system_alerts: 'admin_ops_system_alerts',
   admin_ops_webhook_delivery_logs: 'admin_ops_webhook_delivery_logs',
   admin_ops_webhook_endpoints: 'admin_ops_webhook_endpoints',
+  admin_settings: 'admin_settings',
+  admin_settings_history: 'admin_settings_history',
   allergies: 'allergies',
   analytics_events: 'analytics_events',
   analytics_sessions: 'analytics_sessions',

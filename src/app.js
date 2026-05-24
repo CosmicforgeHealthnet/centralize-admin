@@ -34,7 +34,8 @@ const notificationsServiceRoutes =
 const auditServiceRoutes = require("./modules/audit-service").router;
 const usersRoutes = require("./modules/users").router;
 const adminOpsRoutes = require("./modules/admin-ops").router;
-const  analyticsRouter  = require("./modules/analytics").router;
+const analyticsRouter = require("./modules/analytics").router;
+const adminSettingsRoutes = require("./modules/admin-settings").router;
 
 
 const app = express();
@@ -126,6 +127,7 @@ app.use("/api/audit-service", auditServiceRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/admin/ops", adminOpsRoutes);
 app.use("/api/analytics", analyticsRouter);
+app.use("/api/admin-settings", adminSettingsRoutes);
 
 
 
