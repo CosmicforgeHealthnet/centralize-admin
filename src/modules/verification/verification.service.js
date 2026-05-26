@@ -1290,7 +1290,7 @@ class VerificationService {
           email: lab.adminEmail,
           fullName: lab.adminFullName,
           passwordHash,
-          role: "lab",
+          role: "lab_admin",
           status: "active",
           mustChangePassword: true,
           phoneNumber: lab.adminPhone ?? null,
