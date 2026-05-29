@@ -18,6 +18,8 @@ router.use(authenticate);
 router.use(requireTier("ADMIN"));
 router.use(limiter);
 
+router.get("/appointments/search", healthnetController.searchAppointments);
+router.get("/appointments", healthnetController.getAppointments);
 router.get("/dashboard/metrics", healthnetController.getDashboardMetrics);
 router.get("/dashboard/charts/activity", healthnetController.getActivityChart);
 router.get("/dashboard/charts/patients", healthnetController.getPatientsChart);
