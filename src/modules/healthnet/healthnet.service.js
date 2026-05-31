@@ -83,6 +83,14 @@ const DAY_ORDER = [
 ];
 
 const RECORD_TYPES = ["lab", "imaging", "prescription", "referral", "other", "all"];
+const FINANCE_REVENUE_TYPES = ["sales", "subscriptions"];
+const FINANCE_REVENUE_FORMATS = ["json", "csv"];
+const FINANCE_APPOINTMENT_HISTORY_DATE_FILTERS = [
+  "today",
+  "week",
+  "month",
+  "all",
+];
 
 const LAB_STAFF_GROUPS = [
   "Phlebotomists",
@@ -677,6 +685,429 @@ function getMonthRange(month) {
   };
 }
 
+function getFinanceMonthRanges() {
+  const now = new Date();
+  const currentMonthStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
+  );
+  const nextMonthStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
+  );
+  const previousMonthStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1),
+  );
+
+  return {
+    current: {
+      gte: currentMonthStart,
+      lt: nextMonthStart,
+    },
+    previous: {
+      gte: previousMonthStart,
+      lt: currentMonthStart,
+    },
+  };
+}
+
+function getCompletedTransactionDateWhere(dateRange) {
+  if (!dateRange) return {};
+
+  return {
+    OR: [
+      {
+        completedAt: dateRange,
+      },
+      {
+        completedAt: null,
+        createdAt: dateRange,
+      },
+    ],
+  };
+}
+
+function getFinanceYearRange(year) {
+  const yearNumber =
+    year === undefined || year === null || year === ""
+      ? new Date().getUTCFullYear()
+      : Number(year);
+
+  if (
+    !Number.isInteger(yearNumber) ||
+    !/^\d{4}$/.test(String(yearNumber)) ||
+    yearNumber < 1
+  ) {
+    throw new ApiError(400, "Invalid year. Use YYYY format.");
+  }
+
+  return {
+    year: yearNumber,
+    range: {
+      gte: new Date(Date.UTC(yearNumber, 0, 1)),
+      lt: new Date(Date.UTC(yearNumber + 1, 0, 1)),
+    },
+  };
+}
+
+function parseFinanceRevenueTrackingQuery(query = {}) {
+  const { year, range } = getFinanceYearRange(query.year);
+  const type = String(query.type || "sales").toLowerCase();
+  const format = String(query.format || "json").toLowerCase();
+
+  if (!FINANCE_REVENUE_TYPES.includes(type)) {
+    throw new ApiError(400, "Invalid type. Use sales or subscriptions.");
+  }
+
+  if (!FINANCE_REVENUE_FORMATS.includes(format)) {
+    throw new ApiError(400, "Invalid format. Use json or csv.");
+  }
+
+  return {
+    year,
+    range,
+    type,
+    format,
+  };
+}
+
+function getFinanceHistoryDateRange(dateFilter) {
+  const filter = String(dateFilter || "today").toLowerCase();
+
+  if (!FINANCE_APPOINTMENT_HISTORY_DATE_FILTERS.includes(filter)) {
+    throw new ApiError(400, "Invalid date. Use today, week, month, or all.");
+  }
+
+  if (filter === "all") {
+    return { date: filter, range: null };
+  }
+
+  const now = new Date();
+  const todayStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
+  let start = todayStart;
+
+  if (filter === "week") {
+    const day = todayStart.getUTCDay();
+    const mondayOffset = day === 0 ? -6 : 1 - day;
+    start = new Date(todayStart);
+    start.setUTCDate(todayStart.getUTCDate() + mondayOffset);
+  }
+
+  if (filter === "month") {
+    start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  }
+
+  return {
+    date: filter,
+    range: {
+      gte: start,
+      lt: now,
+    },
+  };
+}
+
+function parseFinanceHistoryQuery(query = {}) {
+  const page = parsePositiveInteger(query.page, "page", {
+    defaultValue: 1,
+  });
+  const limit = parsePositiveInteger(query.limit, "limit", {
+    defaultValue: 20,
+    max: 100,
+  });
+  const { range } = getFinanceHistoryDateRange(query.date);
+
+  return {
+    page,
+    limit,
+    skip: (page - 1) * limit,
+    range,
+  };
+}
+
+function getCompletedTransactionDate(transaction) {
+  return transaction.completedAt || transaction.createdAt || null;
+}
+
+function getTransactionAmount(transaction) {
+  return Number(transaction.usdAmount ?? transaction.originalAmount ?? 0);
+}
+
+function formatFinanceDate(value) {
+  if (!value) return null;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const year = date.getUTCFullYear();
+
+  return `${day}/${month}/${year}`;
+}
+
+function toTitleCase(value) {
+  if (!value) return null;
+
+  return String(value)
+    .replace(/[_-]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/\w\S*/g, (word) => (
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ));
+}
+
+function mapTransactionStatus(status) {
+  if (!status) return null;
+
+  const normalizedStatus = String(status).toLowerCase();
+  const statusMap = {
+    completed: "Successful",
+    success: "Successful",
+    successful: "Successful",
+    pending: "Pending",
+    processing: "Pending",
+    failed: "Failed",
+    cancelled: "Cancelled",
+    canceled: "Cancelled",
+    refunded: "Refunded",
+  };
+
+  return statusMap[normalizedStatus] || status;
+}
+
+function getPaymentMode(transaction) {
+  const paymentMethod = transaction.user_payment_methods;
+
+  if (paymentMethod?.cardLast4) return "Card";
+  if (paymentMethod?.cardType) return toTitleCase(paymentMethod.cardType);
+  if (paymentMethod?.lastSuccessfulProvider) {
+    return toTitleCase(paymentMethod.lastSuccessfulProvider);
+  }
+
+  return toTitleCase(transaction.paymentProvider);
+}
+
+function getPaymentBankDisplay(transaction) {
+  const paymentMethod = transaction.user_payment_methods;
+
+  if (paymentMethod?.bankName) return paymentMethod.bankName;
+
+  if (paymentMethod?.cardBrand || paymentMethod?.cardLast4) {
+    return [
+      paymentMethod.cardBrand,
+      paymentMethod.cardLast4 && `**** ${paymentMethod.cardLast4}`,
+    ]
+      .filter(Boolean)
+      .join(" ");
+  }
+
+  return transaction.providerReference || transaction.providerTransactionId || null;
+}
+
+function mapAppointmentFinanceTransaction(transaction) {
+  const payer =
+    transaction.users_transactions_patientIdTousers ||
+    transaction.users_transactions_doctorIdTousers ||
+    null;
+  const date = getCompletedTransactionDate(transaction);
+
+  return {
+    id: transaction.id,
+    payerName: payer?.fullName || null,
+    paymentMode: getPaymentMode(transaction),
+    bank: getPaymentBankDisplay(transaction),
+    amount: Number(transaction.originalAmount ?? transaction.usdAmount ?? 0),
+    currency: transaction.originalCurrency || null,
+    description: transaction.description || "Doctor's Appointment",
+    date: formatFinanceDate(date),
+    status: mapTransactionStatus(transaction.status),
+    avatarUrl: payer?.profileImageUrl || null,
+  };
+}
+
+function getSubscriptionDescription(transaction) {
+  if (transaction.description) return transaction.description;
+
+  const planType = toTitleCase(transaction.planType);
+  const billingCycle = toTitleCase(transaction.billingCycle);
+
+  if (planType && billingCycle) {
+    return `${planType} ${billingCycle} Subscription`;
+  }
+
+  if (billingCycle) {
+    return `${billingCycle} Subscription`;
+  }
+
+  return "Subscription";
+}
+
+function mapSaleTransactionStatus(status) {
+  if (!status) return null;
+
+  const normalizedStatus = String(status).toLowerCase();
+  const statusMap = {
+    completed: "Paid",
+    success: "Paid",
+    successful: "Paid",
+    paid: "Paid",
+    pending: "Pending",
+    processing: "Pending",
+    failed: "Failed",
+    cancelled: "Cancelled",
+    canceled: "Cancelled",
+    refunded: "Refunded",
+  };
+
+  return statusMap[normalizedStatus] || status;
+}
+
+function getSaleOrderId(transaction) {
+  return (
+    transaction.providerReference ||
+    transaction.providerTransactionId ||
+    transaction.serviceId ||
+    null
+  );
+}
+
+function mapSaleTransaction(transaction) {
+  const customer = transaction.users_transactions_patientIdTousers || null;
+  const date = transaction.completedAt || transaction.createdAt || null;
+
+  return {
+    id: transaction.id,
+    orderId: getSaleOrderId(transaction),
+    date: formatFinanceDate(date),
+    status: mapSaleTransactionStatus(transaction.status),
+    price: Number(transaction.originalAmount ?? transaction.usdAmount ?? 0),
+    currency: transaction.originalCurrency || null,
+    customerName: customer?.fullName || null,
+    customerEmail: customer?.email || null,
+    avatarUrl: customer?.profileImageUrl || null,
+  };
+}
+
+function mapSubscriptionFinanceTransaction(transaction, subscriptionsById = {}) {
+  const subscription = transaction.serviceId
+    ? subscriptionsById[transaction.serviceId]
+    : null;
+  const payer =
+    transaction.users_transactions_patientIdTousers ||
+    transaction.users_transactions_doctorIdTousers ||
+    subscription?.users ||
+    null;
+  const date = getCompletedTransactionDate(transaction);
+
+  return {
+    id: transaction.id,
+    payerName: payer?.fullName || null,
+    paymentMode: getPaymentMode(transaction),
+    bank: getPaymentBankDisplay(transaction),
+    amount: Number(transaction.originalAmount ?? transaction.usdAmount ?? 0),
+    currency: transaction.originalCurrency || null,
+    description: getSubscriptionDescription(transaction),
+    date: formatFinanceDate(date),
+    status: mapTransactionStatus(transaction.status),
+    avatarUrl: payer?.profileImageUrl || null,
+  };
+}
+
+function buildMonthlyRevenueRows(transactions, type) {
+  const secondaryKey = type === "subscriptions" ? "subscriptions" : "sales";
+  const months = MONTH_LABELS.map((monthItem) => ({
+    month: monthItem.short,
+    appointments: 0,
+    [secondaryKey]: 0,
+  }));
+
+  transactions.forEach((transaction) => {
+    const date = getCompletedTransactionDate(transaction);
+    if (!date) return;
+
+    const monthIndex = date.getUTCMonth();
+    const amount = getTransactionAmount(transaction);
+
+    if (transaction.serviceType === "appointment") {
+      months[monthIndex].appointments += amount;
+      return;
+    }
+
+    if (
+      (type === "sales" && transaction.serviceType === "pharmacy") ||
+      (type === "subscriptions" && transaction.serviceType === "subscription")
+    ) {
+      months[monthIndex][secondaryKey] += amount;
+    }
+  });
+
+  return months.map((month) => ({
+    ...month,
+    appointments: roundMoney(month.appointments),
+    [secondaryKey]: roundMoney(month[secondaryKey]),
+  }));
+}
+
+function escapeCsvValue(value) {
+  const text = value === null || value === undefined ? "" : String(value);
+
+  if (/[",\r\n]/.test(text)) {
+    return `"${text.replace(/"/g, '""')}"`;
+  }
+
+  return text;
+}
+
+function buildFinanceRevenueCsv(data) {
+  const secondaryKey = data.type === "subscriptions" ? "subscriptions" : "sales";
+  const headers = ["month", "appointments", secondaryKey];
+  const rows = data.months.map((month) =>
+    headers.map((header) => escapeCsvValue(month[header])).join(","),
+  );
+
+  return [headers.join(","), ...rows].join("\n");
+}
+
+function buildAppointmentsOverviewCsv(data) {
+  const headers = ["month", "appointments"];
+  const rows = data.months.map((month) =>
+    headers.map((header) => escapeCsvValue(month[header])).join(","),
+  );
+
+  return [headers.join(","), ...rows].join("\n");
+}
+
+function getChangeCard(value, current, previous) {
+  const currentValue = Number(current || 0);
+  const previousValue = Number(previous || 0);
+  let trend = "neutral";
+  let change = "0%";
+
+  if (previousValue === 0 && currentValue > 0) {
+    trend = "up";
+    change = "+100%";
+  } else if (previousValue > 0) {
+    const changePercent =
+      ((currentValue - previousValue) / previousValue) * 100;
+    const roundedChange = Math.round((changePercent + Number.EPSILON) * 10) / 10;
+
+    if (roundedChange > 0) {
+      trend = "up";
+      change = `+${roundedChange}%`;
+    } else if (roundedChange < 0) {
+      trend = "down";
+      change = `${roundedChange}%`;
+    }
+  }
+
+  return {
+    value,
+    change,
+    trend,
+  };
+}
+
 function getSelectedMonth(month) {
   return getMonthRange(month).monthName;
 }
@@ -1139,6 +1570,30 @@ function getPharmacyDocumentLabel(type) {
   if (type === "license") return "License";
 
   return null;
+}
+
+function formatTimeAgo(date) {
+  if (!date) return null;
+
+  const diffMs = Date.now() - new Date(date).getTime();
+  const diffSeconds = Math.floor(diffMs / 1000);
+
+  if (diffSeconds < 60) return "just now";
+
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  if (diffMinutes < 60) return `${diffMinutes} ${diffMinutes === 1 ? "minute" : "minutes"} ago`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours} ${diffHours === 1 ? "hour" : "hours"} ago`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 30) return `${diffDays} ${diffDays === 1 ? "day" : "days"} ago`;
+
+  const diffMonths = Math.floor(diffDays / 30);
+  if (diffMonths < 12) return `${diffMonths} ${diffMonths === 1 ? "month" : "months"} ago`;
+
+  const diffYears = Math.floor(diffDays / 365);
+  return `${diffYears} ${diffYears === 1 ? "year" : "years"} ago`;
 }
 
 function formatFileSizeMb(value) {
@@ -2606,11 +3061,37 @@ class HealthnetService {
       throw new ApiError(404, "Doctor not found.");
     }
 
+    const where = { userId: doctorId };
+    const skip = (page - 1) * limit;
+
+    const [total, rows] = await Promise.all([
+      mainPrisma.user_ratings.count({ where }),
+      mainPrisma.user_ratings.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          rating: true,
+          message: true,
+          createdAt: true,
+        },
+      }),
+    ]);
+
     return {
-      total: 0,
+      total,
       page,
       limit,
-      ratings: [],
+      ratings: rows.map((row) => ({
+        id: row.id,
+        reviewerName: null,
+        stars: Number(row.rating),
+        comment: row.message || null,
+        timeAgo: formatTimeAgo(row.createdAt),
+        avatar: null,
+      })),
     };
   }
 
@@ -2696,6 +3177,661 @@ class HealthnetService {
         total,
         totalPages: Math.ceil(total / limit),
       },
+    };
+  }
+
+  async getFinanceStats() {
+    const { current, previous } = getFinanceMonthRanges();
+
+    const getCompletedTransactionSum = async ({
+      serviceType,
+      dateRange,
+    } = {}) => {
+      const aggregate = await mainPrisma.transactions.aggregate({
+        where: {
+          status: "completed",
+          ...(serviceType ? { serviceType } : {}),
+          ...getCompletedTransactionDateWhere(dateRange),
+        },
+        _sum: {
+          usdAmount: true,
+        },
+      });
+
+      return Number(aggregate._sum.usdAmount || 0);
+    };
+
+    const getCompletedAppointmentTransactionCount = async (dateRange) =>
+      mainPrisma.transactions.count({
+        where: {
+          status: "completed",
+          serviceType: "appointment",
+          ...getCompletedTransactionDateWhere(dateRange),
+        },
+      });
+
+    const getFinanceExpenseTotal = async (dateRange) => {
+      const [
+        doctorWithdrawalAggregate,
+        pharmacyPayoutAggregate,
+        refundAggregate,
+      ] = await Promise.all([
+        mainPrisma.wallet_withdrawals.aggregate({
+          where: {
+            status: "completed",
+            ...(dateRange ? { completedAt: dateRange } : {}),
+          },
+          _sum: {
+            amountUsd: true,
+          },
+        }),
+        mainPrisma.pharmacy_payout_requests.aggregate({
+          where: {
+            status: "completed",
+            ...(dateRange ? { processedAt: dateRange } : {}),
+          },
+          _sum: {
+            amountUsd: true,
+          },
+        }),
+        mainPrisma.transactions.aggregate({
+          where: {
+            refundStatus: {
+              in: ["partial", "full"],
+            },
+            refundAmount: {
+              not: null,
+            },
+            ...(dateRange ? { refundProcessedAt: dateRange } : {}),
+          },
+          _sum: {
+            refundAmount: true,
+          },
+        }),
+      ]);
+
+      return (
+        Number(doctorWithdrawalAggregate._sum.amountUsd || 0) +
+        Number(pharmacyPayoutAggregate._sum.amountUsd || 0) +
+        Number(refundAggregate._sum.refundAmount || 0)
+      );
+    };
+
+    const getNetBalance = async (dateRange) => {
+      const [income, expenses] = await Promise.all([
+        getCompletedTransactionSum({ dateRange }),
+        getFinanceExpenseTotal(dateRange),
+      ]);
+
+      return roundMoney(income - expenses);
+    };
+
+    const [
+      totalBalance,
+      currentBalance,
+      previousBalance,
+      totalAppointments,
+      currentAppointments,
+      previousAppointments,
+      totalSales,
+      currentSales,
+      previousSales,
+    ] = await Promise.all([
+      getNetBalance(),
+      getNetBalance(current),
+      getNetBalance(previous),
+      getCompletedAppointmentTransactionCount(),
+      getCompletedAppointmentTransactionCount(current),
+      getCompletedAppointmentTransactionCount(previous),
+      getCompletedTransactionSum({ serviceType: "pharmacy" }).then(roundMoney),
+      getCompletedTransactionSum({
+        serviceType: "pharmacy",
+        dateRange: current,
+      }).then(roundMoney),
+      getCompletedTransactionSum({
+        serviceType: "pharmacy",
+        dateRange: previous,
+      }).then(roundMoney),
+    ]);
+
+    return {
+      totalBalance: getChangeCard(totalBalance, currentBalance, previousBalance),
+      totalAppointments: getChangeCard(
+        totalAppointments,
+        currentAppointments,
+        previousAppointments,
+      ),
+      totalSales: getChangeCard(totalSales, currentSales, previousSales),
+    };
+  }
+
+  async getFinanceRevenueTracking(query = {}) {
+    const { year, range, type, format } = parseFinanceRevenueTrackingQuery(query);
+    const secondaryServiceType =
+      type === "subscriptions" ? "subscription" : "pharmacy";
+
+    const transactions = await mainPrisma.transactions.findMany({
+      where: {
+        status: "completed",
+        serviceType: {
+          in: ["appointment", secondaryServiceType],
+        },
+        ...getCompletedTransactionDateWhere(range),
+      },
+      select: {
+        serviceType: true,
+        usdAmount: true,
+        originalAmount: true,
+        completedAt: true,
+        createdAt: true,
+      },
+      orderBy: [
+        {
+          completedAt: "asc",
+        },
+        {
+          createdAt: "asc",
+        },
+      ],
+    });
+
+    const data = {
+      year,
+      type,
+      months: buildMonthlyRevenueRows(transactions, type),
+    };
+
+    if (format === "csv") {
+      return {
+        format,
+        filename: `healthnet-finance-revenue-tracking-${year}-${type}.csv`,
+        csv: buildFinanceRevenueCsv(data),
+        data,
+      };
+    }
+
+    return {
+      format,
+      data,
+    };
+  }
+
+  async getFinanceAppointmentsHistory(query = {}) {
+    const { page, limit, skip, range } = parseFinanceHistoryQuery(query);
+    const where = {
+      status: "completed",
+      serviceType: "appointment",
+      ...getCompletedTransactionDateWhere(range),
+    };
+
+    const [transactions, total] = await Promise.all([
+      mainPrisma.transactions.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: [
+          {
+            completedAt: "desc",
+          },
+          {
+            createdAt: "desc",
+          },
+        ],
+        select: {
+          id: true,
+          patientId: true,
+          doctorId: true,
+          appointmentId: true,
+          paymentMethodId: true,
+          serviceType: true,
+          originalAmount: true,
+          originalCurrency: true,
+          usdAmount: true,
+          paymentProvider: true,
+          providerTransactionId: true,
+          providerReference: true,
+          description: true,
+          status: true,
+          createdAt: true,
+          completedAt: true,
+          users_transactions_patientIdTousers: {
+            select: {
+              id: true,
+              fullName: true,
+              profileImageUrl: true,
+            },
+          },
+          users_transactions_doctorIdTousers: {
+            select: {
+              id: true,
+              fullName: true,
+              profileImageUrl: true,
+            },
+          },
+          user_payment_methods: {
+            select: {
+              cardLast4: true,
+              cardType: true,
+              cardBrand: true,
+              bankName: true,
+              lastSuccessfulProvider: true,
+            },
+          },
+        },
+      }),
+      mainPrisma.transactions.count({ where }),
+    ]);
+
+    return {
+      total,
+      page,
+      limit,
+      transactions: transactions.map(mapAppointmentFinanceTransaction),
+    };
+  }
+
+  async getFinanceSubscriptionsHistory(query = {}) {
+    const { page, limit, skip, range } = parseFinanceHistoryQuery(query);
+    const where = {
+      status: "completed",
+      serviceType: "subscription",
+      ...getCompletedTransactionDateWhere(range),
+    };
+
+    const [transactions, total] = await Promise.all([
+      mainPrisma.transactions.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: [{ completedAt: "desc" }, { createdAt: "desc" }],
+        select: {
+          id: true,
+          patientId: true,
+          doctorId: true,
+          paymentMethodId: true,
+          serviceType: true,
+          serviceId: true,
+          planType: true,
+          billingCycle: true,
+          originalAmount: true,
+          originalCurrency: true,
+          usdAmount: true,
+          paymentProvider: true,
+          providerTransactionId: true,
+          providerReference: true,
+          description: true,
+          status: true,
+          createdAt: true,
+          completedAt: true,
+          users_transactions_patientIdTousers: {
+            select: {
+              id: true,
+              fullName: true,
+              profileImageUrl: true,
+            },
+          },
+          users_transactions_doctorIdTousers: {
+            select: {
+              id: true,
+              fullName: true,
+              profileImageUrl: true,
+            },
+          },
+          user_payment_methods: {
+            select: {
+              cardLast4: true,
+              cardType: true,
+              cardBrand: true,
+              bankName: true,
+              lastSuccessfulProvider: true,
+            },
+          },
+        },
+      }),
+      mainPrisma.transactions.count({ where }),
+    ]);
+
+    const subscriptionIds = [
+      ...new Set(
+        transactions.map((transaction) => transaction.serviceId).filter(Boolean),
+      ),
+    ];
+    const subscriptions = subscriptionIds.length
+      ? await mainPrisma.subscriptions.findMany({
+          where: {
+            id: {
+              in: subscriptionIds,
+            },
+          },
+          select: {
+            id: true,
+            users: {
+              select: {
+                id: true,
+                fullName: true,
+                profileImageUrl: true,
+              },
+            },
+          },
+        })
+      : [];
+    const subscriptionsById = Object.fromEntries(
+      subscriptions.map((subscription) => [subscription.id, subscription]),
+    );
+
+    return {
+      total,
+      page,
+      limit,
+      transactions: transactions.map((transaction) =>
+        mapSubscriptionFinanceTransaction(transaction, subscriptionsById),
+      ),
+    };
+  }
+
+  async getFinanceSalesHistory(query = {}) {
+    const page = parsePositiveInteger(query.page, "page", {
+      defaultValue: 1,
+    });
+    const limit = parsePositiveInteger(query.limit, "limit", {
+      defaultValue: 20,
+      max: 100,
+    });
+    const skip = (page - 1) * limit;
+
+    const where = {
+      serviceType: "pharmacy",
+    };
+
+    const [transactions, total] = await Promise.all([
+      mainPrisma.transactions.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: [{ completedAt: "desc" }, { createdAt: "desc" }],
+        select: {
+          id: true,
+          serviceId: true,
+          providerReference: true,
+          providerTransactionId: true,
+          originalAmount: true,
+          originalCurrency: true,
+          usdAmount: true,
+          status: true,
+          createdAt: true,
+          completedAt: true,
+          users_transactions_patientIdTousers: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              profileImageUrl: true,
+            },
+          },
+        },
+      }),
+      mainPrisma.transactions.count({ where }),
+    ]);
+
+    return {
+      total,
+      page,
+      limit,
+      sales: transactions.map(mapSaleTransaction),
+    };
+  }
+
+  async getAnalyticsRevenueTracking(query = {}) {
+    const { year, range } = getFinanceYearRange(query.year);
+
+    const format = String(query.format || "json").toLowerCase();
+    if (!FINANCE_REVENUE_FORMATS.includes(format)) {
+      throw new ApiError(400, "Invalid format. Use json or csv.");
+    }
+
+    const transactions = await mainPrisma.transactions.findMany({
+      where: {
+        status: "completed",
+        serviceType: { in: ["appointment", "pharmacy"] },
+        ...getCompletedTransactionDateWhere(range),
+      },
+      select: {
+        serviceType: true,
+        usdAmount: true,
+        originalAmount: true,
+        completedAt: true,
+        createdAt: true,
+      },
+      orderBy: [{ completedAt: "asc" }, { createdAt: "asc" }],
+    });
+
+    const data = {
+      year,
+      months: buildMonthlyRevenueRows(transactions, "sales"),
+    };
+
+    if (format === "csv") {
+      return {
+        format,
+        filename: `healthnet-analytics-revenue-tracking-${year}.csv`,
+        csv: buildFinanceRevenueCsv({ ...data, type: "sales" }),
+        data,
+      };
+    }
+
+    return { format, data };
+  }
+
+  async getAnalyticsDeliveryOverview(query = {}) {
+    const { year, range } = getFinanceYearRange(query.year);
+
+    const prescriptions = await mainPrisma.prescriptions.findMany({
+      where: {
+        actualDeliveryDate: range,
+      },
+      select: {
+        actualDeliveryDate: true,
+      },
+    });
+
+    const monthCounts = new Array(12).fill(0);
+    for (const prescription of prescriptions) {
+      monthCounts[prescription.actualDeliveryDate.getUTCMonth()] += 1;
+    }
+
+    const months = MONTH_LABELS.map((monthItem, i) => ({
+      month: monthItem.short,
+      value: monthCounts[i],
+    }));
+
+    return { year, months };
+  }
+
+  async getAnalyticsSalesAnalytics(query = {}) {
+    const { year, range } = getFinanceYearRange(query.year);
+
+    const transactions = await mainPrisma.transactions.findMany({
+      where: {
+        status: "completed",
+        serviceType: "pharmacy",
+        ...getCompletedTransactionDateWhere(range),
+      },
+      select: {
+        serviceType: true,
+        usdAmount: true,
+        originalAmount: true,
+        completedAt: true,
+        createdAt: true,
+      },
+      orderBy: [{ completedAt: "asc" }, { createdAt: "asc" }],
+    });
+
+    const rows = buildMonthlyRevenueRows(transactions, "sales");
+
+    return {
+      year,
+      months: rows.map(({ month, sales }) => ({ month, value: sales })),
+    };
+  }
+
+  async getAnalyticsBillingMemberships(query = {}) {
+    const selectedMonth = getSelectedMonth(query.month);
+    const year = new Date().getUTCFullYear();
+    const range = {
+      gte: new Date(Date.UTC(year, 0, 1)),
+      lt: new Date(Date.UTC(year + 1, 0, 1)),
+    };
+
+    const transactions = await mainPrisma.transactions.findMany({
+      where: {
+        status: "completed",
+        serviceType: "subscription",
+        ...getCompletedTransactionDateWhere(range),
+      },
+      select: {
+        serviceType: true,
+        usdAmount: true,
+        originalAmount: true,
+        completedAt: true,
+        createdAt: true,
+      },
+      orderBy: [{ completedAt: "asc" }, { createdAt: "asc" }],
+    });
+
+    const rows = buildMonthlyRevenueRows(transactions, "subscriptions");
+
+    return {
+      month: selectedMonth,
+      data: rows.map(({ month, subscriptions }) => ({ month, value: subscriptions })),
+    };
+  }
+
+  async getAnalyticsPatientsStatistics(query = {}) {
+    const selectedMonth = getSelectedMonth(query.month);
+    const year = new Date().getUTCFullYear();
+
+    const data = await Promise.all(
+      MONTH_LABELS.map(async (monthItem, monthIndex) => {
+        const monthStart = new Date(Date.UTC(year, monthIndex, 1));
+        const nextMonthStart = new Date(Date.UTC(year, monthIndex + 1, 1));
+
+        const value = await mainPrisma.users.count({
+          where: {
+            role: "patient",
+            createdAt: { gte: monthStart, lt: nextMonthStart },
+          },
+        });
+
+        return { month: monthItem.short, value };
+      }),
+    );
+
+    return { month: selectedMonth, data };
+  }
+
+  async getAnalyticsDoctorsPercentage(query = {}) {
+    const { monthName, monthStart, nextMonthStart } = getMonthRange(query.month);
+    const monthFilter = { gte: monthStart, lt: nextMonthStart };
+
+    const [
+      totalDoctors,
+      newDoctorsCount,
+      doctorsWithAppointments,
+      doctorsWithProductPurchases,
+    ] = await Promise.all([
+      mainPrisma.users.count({ where: { role: "doctor" } }),
+      mainPrisma.users.count({ where: { role: "doctor", createdAt: monthFilter } }),
+      mainPrisma.appointments.groupBy({
+        by: ["doctorId"],
+        where: { appointmentDate: monthFilter },
+      }),
+      mainPrisma.transactions.groupBy({
+        by: ["doctorId"],
+        where: {
+          serviceType: "pharmacy",
+          status: "completed",
+          createdAt: monthFilter,
+          doctorId: { not: null },
+        },
+      }),
+    ]);
+
+    const toPercent = (count) => {
+      if (totalDoctors === 0) return 0;
+      return Math.min(100, Math.round((count / totalDoctors) * 100));
+    };
+
+    return {
+      month: monthName,
+      totalDoctors,
+      newDoctors: toPercent(newDoctorsCount),
+      appointments: toPercent(doctorsWithAppointments.length),
+      productPurchase: toPercent(doctorsWithProductPurchases.length),
+    };
+  }
+
+  async getAnalyticsAppointmentsOverview(query = {}) {
+    const { year, range } = getFinanceYearRange(query.year);
+    const format = String(query.format || "json").toLowerCase();
+
+    if (!FINANCE_REVENUE_FORMATS.includes(format)) {
+      throw new ApiError(400, "Invalid format. Use json or csv.");
+    }
+
+    const appointments = await mainPrisma.appointments.findMany({
+      where: {
+        appointmentDate: range,
+      },
+      select: {
+        appointmentDate: true,
+      },
+    });
+
+    const monthCounts = new Array(12).fill(0);
+    for (const apt of appointments) {
+      monthCounts[apt.appointmentDate.getUTCMonth()] += 1;
+    }
+
+    const months = MONTH_LABELS.map((monthItem, i) => ({
+      month: monthItem.short,
+      appointments: monthCounts[i],
+    }));
+
+    const data = { year, months };
+
+    if (format === "csv") {
+      return {
+        format,
+        filename: `healthnet-analytics-appointments-overview-${year}.csv`,
+        csv: buildAppointmentsOverviewCsv(data),
+        data,
+      };
+    }
+
+    return { format, data };
+  }
+
+  async getAnalyticsStats() {
+    const [
+      appointments,
+      doctors,
+      patients,
+      balanceAggregate,
+    ] = await Promise.all([
+      mainPrisma.appointments.count(),
+      mainPrisma.users.count({ where: { role: "doctor" } }),
+      mainPrisma.users.count({ where: { role: "patient" } }),
+      mainPrisma.transactions.aggregate({
+        where: { status: "completed" },
+        _sum: { usdAmount: true },
+      }),
+    ]);
+
+    return {
+      appointments,
+      doctors,
+      patients,
+      balance: Number(balanceAggregate._sum.usdAmount || 0),
     };
   }
 

@@ -70,6 +70,71 @@ const getPharmacyDocuments = asyncHandler(async (req, res) => {
   );
 });
 
+const getFinanceStats = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getFinanceStats();
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet finance stats retrieved",
+    data,
+  );
+});
+
+const getFinanceRevenueTracking = asyncHandler(async (req, res) => {
+  const result = await healthnetService.getFinanceRevenueTracking(req.query);
+
+  if (result.format === "csv") {
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${result.filename}"`,
+    );
+
+    return res.status(200).send(result.csv);
+  }
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet finance revenue tracking retrieved",
+    result.data,
+  );
+});
+
+const getFinanceAppointmentsHistory = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getFinanceAppointmentsHistory(req.query);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet finance appointments history retrieved",
+    data,
+  );
+});
+
+const getFinanceSubscriptionsHistory = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getFinanceSubscriptionsHistory(req.query);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet finance subscriptions history retrieved",
+    data,
+  );
+});
+
+const getFinanceSalesHistory = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getFinanceSalesHistory(req.query);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet finance sales history retrieved",
+    data,
+  );
+});
+
 const getPatients = asyncHandler(async (req, res) => {
   const data = await healthnetService.getPatients(req.query);
 
@@ -186,6 +251,114 @@ const searchAppointments = asyncHandler(async (req, res) => {
   );
 });
 
+const getAnalyticsRevenueTracking = asyncHandler(async (req, res) => {
+  const result = await healthnetService.getAnalyticsRevenueTracking(req.query);
+
+  if (result.format === "csv") {
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${result.filename}"`,
+    );
+
+    return res.status(200).send(result.csv);
+  }
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet analytics revenue tracking retrieved",
+    result.data,
+  );
+});
+
+const getAnalyticsDeliveryOverview = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getAnalyticsDeliveryOverview(req.query);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet analytics delivery overview retrieved",
+    data,
+  );
+});
+
+const getAnalyticsAppointmentsOverview = asyncHandler(async (req, res) => {
+  const result = await healthnetService.getAnalyticsAppointmentsOverview(req.query);
+
+  if (result.format === "csv") {
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${result.filename}"`,
+    );
+
+    return res.status(200).send(result.csv);
+  }
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet analytics appointments overview retrieved",
+    result.data,
+  );
+});
+
+const getAnalyticsSalesAnalytics = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getAnalyticsSalesAnalytics(req.query);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet analytics sales analytics retrieved",
+    data,
+  );
+});
+
+const getAnalyticsBillingMemberships = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getAnalyticsBillingMemberships(req.query);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet analytics billing memberships retrieved",
+    data,
+  );
+});
+
+const getAnalyticsPatientsStatistics = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getAnalyticsPatientsStatistics(req.query);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet analytics patients statistics retrieved",
+    data,
+  );
+});
+
+const getAnalyticsDoctorsPercentage = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getAnalyticsDoctorsPercentage(req.query);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet analytics doctors percentage retrieved",
+    data,
+  );
+});
+
+const getAnalyticsStats = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getAnalyticsStats();
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet analytics stats retrieved",
+    data,
+  );
+});
+
 const getDashboardMetrics = asyncHandler(async (req, res) => {
   const data = await healthnetService.getDashboardMetrics();
   return ApiResponse.success(
@@ -241,6 +414,19 @@ module.exports = {
   getPharmacyById,
   getPharmacyStaff,
   getPharmacyDocuments,
+  getFinanceStats,
+  getFinanceRevenueTracking,
+  getFinanceAppointmentsHistory,
+  getFinanceSubscriptionsHistory,
+  getFinanceSalesHistory,
+  getAnalyticsRevenueTracking,
+  getAnalyticsDeliveryOverview,
+  getAnalyticsBillingMemberships,
+  getAnalyticsAppointmentsOverview,
+  getAnalyticsSalesAnalytics,
+  getAnalyticsPatientsStatistics,
+  getAnalyticsDoctorsPercentage,
+  getAnalyticsStats,
   getPatients,
   getPatientById,
   getPatientAppointmentsTimeline,

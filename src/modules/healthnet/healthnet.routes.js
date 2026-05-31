@@ -29,6 +29,31 @@ router.get(
   healthnetController.getPharmacyDocuments,
 );
 router.get("/pharmacies/:id", healthnetController.getPharmacyById);
+router.get("/finance/stats", healthnetController.getFinanceStats);
+router.get(
+  "/finance/revenue-tracking",
+  healthnetController.getFinanceRevenueTracking,
+);
+router.get(
+  "/finance/appointments-history",
+  healthnetController.getFinanceAppointmentsHistory,
+);
+router.get(
+  "/finance/subscriptions-history",
+  healthnetController.getFinanceSubscriptionsHistory,
+);
+router.get(
+  "/finance/sales-history",
+  healthnetController.getFinanceSalesHistory,
+);
+router.get("/analytics/stats", healthnetController.getAnalyticsStats);
+router.get("/analytics/doctors-percentage", healthnetController.getAnalyticsDoctorsPercentage);
+router.get("/analytics/patients-statistics", healthnetController.getAnalyticsPatientsStatistics);
+router.get("/analytics/revenue-tracking", healthnetController.getAnalyticsRevenueTracking);
+router.get("/analytics/appointments-overview", healthnetController.getAnalyticsAppointmentsOverview);
+router.get("/analytics/sales-analytics", healthnetController.getAnalyticsSalesAnalytics);
+router.get("/analytics/delivery-overview", healthnetController.getAnalyticsDeliveryOverview);
+router.get("/analytics/billing-memberships", healthnetController.getAnalyticsBillingMemberships);
 router.get("/patients", healthnetController.getPatients);
 router.get(
   "/patients/:id/appointments",
