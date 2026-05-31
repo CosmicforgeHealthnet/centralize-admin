@@ -84,6 +84,14 @@ const DAY_ORDER = [
 
 const RECORD_TYPES = ["lab", "imaging", "prescription", "referral", "other", "all"];
 
+const LAB_STAFF_GROUPS = [
+  "Phlebotomists",
+  "Sample Collector",
+  "Radiologists",
+  "Result Entry",
+  "Result Reviewer",
+];
+
 const AVATAR_COLORS = [
   "#272EA7",
   "#0DA53F",
@@ -198,6 +206,118 @@ const PATIENT_SELECT = {
       profileType: true,
       mobileNumber: true,
       profilePhoto: true,
+    },
+  },
+};
+
+const LAB_SELECT = {
+  id: true,
+  facilityName: true,
+  email: true,
+  phone: true,
+  address: true,
+  city: true,
+  state: true,
+  country: true,
+  createdAt: true,
+  users_lab_facilities_adminUserIdTousers: {
+    select: {
+      profileImageUrl: true,
+    },
+  },
+};
+
+const LAB_DETAIL_SELECT = {
+  id: true,
+  facilityName: true,
+  registrationNumber: true,
+  website: true,
+  address: true,
+  city: true,
+  state: true,
+  country: true,
+  operatingHours: true,
+  status: true,
+  phone: true,
+  email: true,
+  adminFullName: true,
+  adminEmail: true,
+  adminPhone: true,
+  createdAt: true,
+  users_lab_facilities_adminUserIdTousers: {
+    select: {
+      fullName: true,
+      profileImageUrl: true,
+    },
+  },
+};
+
+const LAB_DOCUMENT_SELECT = {
+  id: true,
+  govIdUrl: true,
+  registrationDocument: true,
+  businessRegistrationUrl: true,
+  licenseDocument: true,
+};
+
+const LAB_STAFF_SELECT = {
+  id: true,
+  role: true,
+  fullName: true,
+  phone: true,
+  yearsOfExperience: true,
+};
+
+const PHARMACY_SELECT = {
+  id: true,
+  pharmacyName: true,
+  address: true,
+  email: true,
+  phone: true,
+  logoUrl: true,
+  createdAt: true,
+  users: {
+    select: {
+      email: true,
+      phoneNumber: true,
+      profileImageUrl: true,
+    },
+  },
+};
+
+const PHARMACY_DETAIL_SELECT = {
+  id: true,
+  pharmacyName: true,
+  registrationNumber: true,
+  address: true,
+  website: true,
+  operatingHours: true,
+  serviceRadius: true,
+  primaryContactPerson: true,
+  phone: true,
+  email: true,
+  verificationStatus: true,
+  isActive: true,
+  logoUrl: true,
+  createdAt: true,
+  users: {
+    select: {
+      fullName: true,
+      email: true,
+      phoneNumber: true,
+      profileImageUrl: true,
+    },
+  },
+};
+
+const PHARMACY_DOCUMENT_SELECT = {
+  id: true,
+  documentType: true,
+  document_files: {
+    select: {
+      file_path: true,
+      file_size: true,
+      mime_type: true,
     },
   },
 };
@@ -801,6 +921,71 @@ function buildPatientsWhere(query) {
   return where;
 }
 
+function buildLabsWhere(query) {
+  const searchQuery = String(query.search || "").trim();
+
+  if (!searchQuery) {
+    return {};
+  }
+
+  return {
+    OR: [
+      { facilityName: { contains: searchQuery, mode: "insensitive" } },
+      { email: { contains: searchQuery, mode: "insensitive" } },
+      { phone: { contains: searchQuery, mode: "insensitive" } },
+      { address: { contains: searchQuery, mode: "insensitive" } },
+      { city: { contains: searchQuery, mode: "insensitive" } },
+      { state: { contains: searchQuery, mode: "insensitive" } },
+      { country: { contains: searchQuery, mode: "insensitive" } },
+      { adminFullName: { contains: searchQuery, mode: "insensitive" } },
+      { adminEmail: { contains: searchQuery, mode: "insensitive" } },
+      { adminPhone: { contains: searchQuery, mode: "insensitive" } },
+    ],
+  };
+}
+
+function buildPharmaciesWhere(query) {
+  const searchQuery = String(query.search || "").trim();
+
+  if (!searchQuery) {
+    return {};
+  }
+
+  return {
+    OR: [
+      { pharmacyName: { contains: searchQuery, mode: "insensitive" } },
+      { email: { contains: searchQuery, mode: "insensitive" } },
+      { phone: { contains: searchQuery, mode: "insensitive" } },
+      { address: { contains: searchQuery, mode: "insensitive" } },
+      { primaryContactPerson: { contains: searchQuery, mode: "insensitive" } },
+      { preferredUsername: { contains: searchQuery, mode: "insensitive" } },
+      { registrationNumber: { contains: searchQuery, mode: "insensitive" } },
+      { licenseNumber: { contains: searchQuery, mode: "insensitive" } },
+      {
+        users: {
+          is: {
+            fullName: { contains: searchQuery, mode: "insensitive" },
+          },
+        },
+      },
+      {
+        users: {
+          is: {
+            email: { contains: searchQuery, mode: "insensitive" },
+          },
+        },
+      },
+      {
+        users: {
+          is: {
+            phoneNumber: { contains: searchQuery, mode: "insensitive" },
+          },
+        },
+      },
+    ],
+  };
+}
+
 function buildAppointmentsSearchWhere({ searchQuery, department, category }) {
   const orConditions = [
     { reason: { contains: searchQuery, mode: "insensitive" } },
@@ -888,6 +1073,295 @@ function mapPatientRow(patient) {
     phone: patient.phoneNumber || profile?.mobileNumber || null,
     joiningDate: formatJoiningDate(patient.createdAt),
     avatarUrl: patient.profileImageUrl || profile?.profilePhoto || null,
+  };
+}
+
+function mapPharmacyRow(pharmacy) {
+  return {
+    id: pharmacy.id,
+    name: pharmacy.pharmacyName || null,
+    location: pharmacy.address || null,
+    email: pharmacy.email || pharmacy.users?.email || null,
+    phone: pharmacy.phone || pharmacy.users?.phoneNumber || null,
+    joiningDate: formatJoiningDate(pharmacy.createdAt),
+    avatarUrl: pharmacy.logoUrl || pharmacy.users?.profileImageUrl || null,
+  };
+}
+
+function mapPharmacyStatus(verificationStatus, isActive) {
+  const normalizedStatus = String(verificationStatus || "").toLowerCase();
+
+  if (normalizedStatus === "approved") {
+    return isActive === false ? "suspended" : "active";
+  }
+
+  if (normalizedStatus === "suspended") {
+    return "suspended";
+  }
+
+  return "pending";
+}
+
+function hasPharmacyDeliveryCapacity(serviceRadius) {
+  if (serviceRadius === undefined || serviceRadius === null) return false;
+
+  const radius = Number(serviceRadius);
+  return Number.isFinite(radius) && radius > 0;
+}
+
+function normalizePharmacyDocumentType(documentType) {
+  const normalizedType = String(documentType || "")
+    .trim()
+    .toLowerCase();
+
+  if (["government_id", "gov_id", "id_card"].includes(normalizedType)) {
+    return "government_id";
+  }
+
+  if (
+    ["business_registration", "registration_document", "registration"].includes(
+      normalizedType,
+    )
+  ) {
+    return "registration_document";
+  }
+
+  if (["pharmacy_license", "license"].includes(normalizedType)) {
+    return "license";
+  }
+
+  return null;
+}
+
+function getPharmacyDocumentLabel(type) {
+  if (type === "government_id") return "Government Approved I.D";
+  if (type === "registration_document") return "Registration Document";
+  if (type === "license") return "License";
+
+  return null;
+}
+
+function formatFileSizeMb(value) {
+  if (value === undefined || value === null) return null;
+
+  const bytes = Number(value);
+  if (!Number.isFinite(bytes)) return null;
+
+  return Math.round((bytes / (1024 * 1024) + Number.EPSILON) * 100) / 100;
+}
+
+function getDocumentFileType(file) {
+  return file?.mime_type || inferFileType(file?.file_path);
+}
+
+function mapPharmacyDocument(document) {
+  const type = normalizePharmacyDocumentType(document.documentType);
+  if (!type) return null;
+
+  const file = document.document_files;
+
+  return {
+    id: document.id,
+    type,
+    label: getPharmacyDocumentLabel(type),
+    fileUrl: file?.file_path || null,
+    fileType: getDocumentFileType(file),
+    fileSizeMb: formatFileSizeMb(file?.file_size),
+  };
+}
+
+function mapPharmacyDetail(pharmacy) {
+  const user = pharmacy.users;
+
+  return {
+    id: pharmacy.id,
+    businessName: pharmacy.pharmacyName || null,
+    registrationNumber: pharmacy.registrationNumber || null,
+    businessAddress: pharmacy.address || null,
+    pharmacyWebsite: pharmacy.website || null,
+    hours: formatOperatingHours(pharmacy.operatingHours),
+    deliveryCapacity: hasPharmacyDeliveryCapacity(pharmacy.serviceRadius),
+    staffCount: 0,
+    contactName: pharmacy.primaryContactPerson || user?.fullName || null,
+    phone: pharmacy.phone || user?.phoneNumber || null,
+    email: pharmacy.email || user?.email || null,
+    location: pharmacy.address || null,
+    registrationDate: formatJoiningDate(pharmacy.createdAt),
+    status: mapPharmacyStatus(pharmacy.verificationStatus, pharmacy.isActive),
+    avatarUrl: pharmacy.logoUrl || user?.profileImageUrl || null,
+  };
+}
+
+function formatLabLocation(lab) {
+  const locationParts = [lab.city, lab.state, lab.country].filter(Boolean);
+  if (locationParts.length > 0) {
+    return locationParts.join(", ");
+  }
+
+  return lab.address || null;
+}
+
+function mapLabRow(lab) {
+  return {
+    id: lab.id,
+    name: lab.facilityName || null,
+    location: formatLabLocation(lab),
+    email: lab.email || null,
+    phone: lab.phone || null,
+    joiningDate: formatJoiningDate(lab.createdAt),
+    avatarUrl:
+      lab.users_lab_facilities_adminUserIdTousers?.profileImageUrl || null,
+  };
+}
+
+function formatOperatingHours(operatingHours) {
+  if (operatingHours === undefined || operatingHours === null || operatingHours === "") {
+    return null;
+  }
+
+  if (typeof operatingHours === "string") {
+    return operatingHours.trim() || null;
+  }
+
+  try {
+    return JSON.stringify(operatingHours);
+  } catch {
+    return null;
+  }
+}
+
+function mapLabStatus(status) {
+  const normalizedStatus = String(status || "").toLowerCase();
+
+  if (normalizedStatus === "approved" || normalizedStatus === "active") {
+    return "active";
+  }
+
+  if (normalizedStatus === "suspended") {
+    return "suspended";
+  }
+
+  return "pending";
+}
+
+function getLabStaffGroup(role) {
+  const normalizedRole = String(role || "").toLowerCase();
+
+  if (normalizedRole === "sample_collector") return "Sample Collector";
+  if (normalizedRole === "radiologist") return "Radiologists";
+  if (normalizedRole === "result_reviewer") return "Result Reviewer";
+  if (normalizedRole === "lab_technician") return "Result Entry";
+
+  return "Result Entry";
+}
+
+function formatStaffExperience(value) {
+  if (value === undefined || value === null || value === "") return null;
+  if (typeof value === "number") return `${value} years experience`;
+
+  return String(value).trim() || null;
+}
+
+function mapLabStaffMember(staff) {
+  return {
+    id: staff.id,
+    name: staff.fullName || null,
+    experience: formatStaffExperience(staff.yearsOfExperience),
+    phone: staff.phone || null,
+    avatarUrl: null,
+  };
+}
+
+function inferFileType(fileUrl) {
+  if (!fileUrl) return null;
+
+  const sanitizedUrl = String(fileUrl).split("?")[0].split("#")[0];
+  const match = sanitizedUrl.match(/\.([a-z0-9]+)$/i);
+
+  return match ? match[1].toLowerCase() : null;
+}
+
+function mapLabDocument({ id, type, label, fileUrl }) {
+  return {
+    id,
+    type,
+    label,
+    fileUrl: fileUrl || null,
+    fileType: inferFileType(fileUrl),
+    fileSizeMb: null,
+  };
+}
+
+function mapLabDocuments(lab) {
+  return [
+    mapLabDocument({
+      id: "government_id",
+      type: "government_id",
+      label: "Government Approved I.D",
+      fileUrl: lab.govIdUrl,
+    }),
+    mapLabDocument({
+      id: "registration_document",
+      type: "registration_document",
+      label: "Registration Document",
+      fileUrl: lab.registrationDocument || lab.businessRegistrationUrl,
+    }),
+    mapLabDocument({
+      id: "license",
+      type: "license",
+      label: "License",
+      fileUrl: lab.licenseDocument,
+    }),
+  ];
+}
+
+function groupLabStaff(staffRows) {
+  const groups = LAB_STAFF_GROUPS.map((role) => ({
+    role,
+    members: [],
+  }));
+  const groupMap = new Map(groups.map((group) => [group.role, group]));
+
+  for (const staff of staffRows) {
+    const groupName = getLabStaffGroup(staff.role);
+    groupMap.get(groupName).members.push(mapLabStaffMember(staff));
+  }
+
+  return {
+    staffCount: staffRows.length,
+    groups,
+  };
+}
+
+function getEmptyStaffGroups() {
+  return {
+    staffCount: 0,
+    groups: LAB_STAFF_GROUPS.map((role) => ({
+      role,
+      members: [],
+    })),
+  };
+}
+
+function mapLabDetail(lab, staffCount) {
+  const admin = lab.users_lab_facilities_adminUserIdTousers;
+
+  return {
+    id: lab.id,
+    businessName: lab.facilityName || null,
+    registrationNumber: lab.registrationNumber || null,
+    businessAddress: lab.address || null,
+    labWebsite: lab.website || null,
+    hours: formatOperatingHours(lab.operatingHours),
+    deliveryCapacity: false,
+    staffCount,
+    contactName: lab.adminFullName || admin?.fullName || null,
+    phone: lab.phone || lab.adminPhone || null,
+    email: lab.email || lab.adminEmail || null,
+    location: formatLabLocation(lab),
+    registrationDate: formatJoiningDate(lab.createdAt),
+    status: mapLabStatus(lab.status),
+    avatarUrl: admin?.profileImageUrl || null,
   };
 }
 
@@ -1470,6 +1944,201 @@ function groupAppointments(rows) {
 }
 
 class HealthnetService {
+  async getPharmacies(query = {}) {
+    const page = parsePositiveInteger(query.page, "page", {
+      defaultValue: 1,
+    });
+    const limit = parsePositiveInteger(query.limit, "limit", {
+      defaultValue: 20,
+      max: 100,
+    });
+    const skip = (page - 1) * limit;
+    const where = buildPharmaciesWhere(query);
+
+    const [rows, total] = await Promise.all([
+      mainPrisma.pharmacy_profiles.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: [{ createdAt: "desc" }, { pharmacyName: "asc" }],
+        select: PHARMACY_SELECT,
+      }),
+      mainPrisma.pharmacy_profiles.count({ where }),
+    ]);
+
+    return {
+      total,
+      page,
+      limit,
+      pharmacies: rows.map(mapPharmacyRow),
+    };
+  }
+
+  async getPharmacyById(id) {
+    const pharmacyId = assertValidUuid(id, "pharmacy id");
+
+    const pharmacy = await mainPrisma.pharmacy_profiles.findUnique({
+      where: {
+        id: pharmacyId,
+      },
+      select: PHARMACY_DETAIL_SELECT,
+    });
+
+    if (!pharmacy) {
+      throw new ApiError(404, "Pharmacy not found.");
+    }
+
+    return mapPharmacyDetail(pharmacy);
+  }
+
+  async getPharmacyStaff(id) {
+    const pharmacyId = assertValidUuid(id, "pharmacy id");
+
+    const pharmacy = await mainPrisma.pharmacy_profiles.findUnique({
+      where: {
+        id: pharmacyId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!pharmacy) {
+      throw new ApiError(404, "Pharmacy not found.");
+    }
+
+    return getEmptyStaffGroups();
+  }
+
+  async getPharmacyDocuments(id) {
+    const pharmacyId = assertValidUuid(id, "pharmacy id");
+
+    const pharmacy = await mainPrisma.pharmacy_profiles.findUnique({
+      where: {
+        id: pharmacyId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!pharmacy) {
+      throw new ApiError(404, "Pharmacy not found.");
+    }
+
+    const documents = await mainPrisma.pharmacy_documents.findMany({
+      where: {
+        pharmacyId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: PHARMACY_DOCUMENT_SELECT,
+    });
+
+    return documents.map(mapPharmacyDocument).filter(Boolean);
+  }
+
+  async getLabs(query = {}) {
+    const page = parsePositiveInteger(query.page, "page", {
+      defaultValue: 1,
+    });
+    const limit = parsePositiveInteger(query.limit, "limit", {
+      defaultValue: 20,
+      max: 100,
+    });
+    const skip = (page - 1) * limit;
+    const where = buildLabsWhere(query);
+
+    const [rows, total] = await Promise.all([
+      mainPrisma.lab_facilities.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: [{ createdAt: "desc" }, { facilityName: "asc" }],
+        select: LAB_SELECT,
+      }),
+      mainPrisma.lab_facilities.count({ where }),
+    ]);
+
+    return {
+      total,
+      page,
+      limit,
+      labs: rows.map(mapLabRow),
+    };
+  }
+
+  async getLabById(id) {
+    const labId = assertValidUuid(id, "lab id");
+
+    const lab = await mainPrisma.lab_facilities.findUnique({
+      where: {
+        id: labId,
+      },
+      select: LAB_DETAIL_SELECT,
+    });
+
+    if (!lab) {
+      throw new ApiError(404, "Lab not found.");
+    }
+
+    const staffCount = await mainPrisma.lab_personnel.count({
+      where: {
+        facilityId: labId,
+      },
+    });
+
+    return mapLabDetail(lab, staffCount);
+  }
+
+  async getLabStaff(id) {
+    const labId = assertValidUuid(id, "lab id");
+
+    const lab = await mainPrisma.lab_facilities.findUnique({
+      where: {
+        id: labId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!lab) {
+      throw new ApiError(404, "Lab not found.");
+    }
+
+    const staffRows = await mainPrisma.lab_personnel.findMany({
+      where: {
+        facilityId: labId,
+      },
+      orderBy: [
+        { role: "asc" },
+        { fullName: "asc" },
+      ],
+      select: LAB_STAFF_SELECT,
+    });
+
+    return groupLabStaff(staffRows);
+  }
+
+  async getLabDocuments(id) {
+    const labId = assertValidUuid(id, "lab id");
+
+    const lab = await mainPrisma.lab_facilities.findUnique({
+      where: {
+        id: labId,
+      },
+      select: LAB_DOCUMENT_SELECT,
+    });
+
+    if (!lab) {
+      throw new ApiError(404, "Lab not found.");
+    }
+
+    return mapLabDocuments(lab);
+  }
+
   async getPatients(query = {}) {
     const page = parsePositiveInteger(query.page, "page", {
       defaultValue: 1,

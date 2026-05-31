@@ -2,6 +2,74 @@ const ApiResponse = require("../../shared/utils/ApiResponse");
 const asyncHandler = require("../../shared/utils/asyncHandler");
 const healthnetService = require("./healthnet.service");
 
+const getLabs = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getLabs(req.query);
+
+  return ApiResponse.success(res, 200, "HealthNet labs retrieved", data);
+});
+
+const getLabById = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getLabById(req.params.id);
+
+  return ApiResponse.success(res, 200, "HealthNet lab retrieved", data);
+});
+
+const getLabStaff = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getLabStaff(req.params.id);
+
+  return ApiResponse.success(res, 200, "HealthNet lab staff retrieved", data);
+});
+
+const getLabDocuments = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getLabDocuments(req.params.id);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet lab documents retrieved",
+    data,
+  );
+});
+
+const getPharmacies = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getPharmacies(req.query);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet pharmacies retrieved",
+    data,
+  );
+});
+
+const getPharmacyById = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getPharmacyById(req.params.id);
+
+  return ApiResponse.success(res, 200, "HealthNet pharmacy retrieved", data);
+});
+
+const getPharmacyStaff = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getPharmacyStaff(req.params.id);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet pharmacy staff retrieved",
+    data,
+  );
+});
+
+const getPharmacyDocuments = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getPharmacyDocuments(req.params.id);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet pharmacy documents retrieved",
+    data,
+  );
+});
+
 const getPatients = asyncHandler(async (req, res) => {
   const data = await healthnetService.getPatients(req.query);
 
@@ -165,6 +233,14 @@ const getRevenueChart = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
+  getLabs,
+  getLabById,
+  getLabStaff,
+  getLabDocuments,
+  getPharmacies,
+  getPharmacyById,
+  getPharmacyStaff,
+  getPharmacyDocuments,
   getPatients,
   getPatientById,
   getPatientAppointmentsTimeline,
