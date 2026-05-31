@@ -18,6 +18,28 @@ router.use(authenticate);
 router.use(requireTier("ADMIN"));
 router.use(limiter);
 
+router.get("/patients", healthnetController.getPatients);
+router.get(
+  "/patients/:id/appointments",
+  healthnetController.getPatientAppointmentsTimeline,
+);
+router.get(
+  "/patients/:id/medical-history",
+  healthnetController.getPatientMedicalHistory,
+);
+router.get("/patients/:id/records", healthnetController.getPatientRecords);
+router.get("/patients/:id", healthnetController.getPatientById);
+router.get("/doctors", healthnetController.getDoctors);
+router.get(
+  "/doctors/:id/appointments",
+  healthnetController.getDoctorAppointmentsTimeline,
+);
+router.get(
+  "/doctors/:id/certifications",
+  healthnetController.getDoctorCertifications,
+);
+router.get("/doctors/:id/ratings", healthnetController.getDoctorRatings);
+router.get("/doctors/:id", healthnetController.getDoctorById);
 router.get("/appointments/search", healthnetController.searchAppointments);
 router.get("/appointments", healthnetController.getAppointments);
 router.get("/dashboard/metrics", healthnetController.getDashboardMetrics);

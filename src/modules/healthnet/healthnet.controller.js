@@ -2,6 +2,105 @@ const ApiResponse = require("../../shared/utils/ApiResponse");
 const asyncHandler = require("../../shared/utils/asyncHandler");
 const healthnetService = require("./healthnet.service");
 
+const getPatients = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getPatients(req.query);
+
+  return ApiResponse.success(res, 200, "HealthNet patients retrieved", data);
+});
+
+const getPatientById = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getPatientById(req.params.id);
+
+  return ApiResponse.success(res, 200, "HealthNet patient retrieved", data);
+});
+
+const getPatientAppointmentsTimeline = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getPatientAppointmentsTimeline(
+    req.params.id,
+    req.query,
+  );
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet patient appointments timeline retrieved",
+    data,
+  );
+});
+
+const getPatientMedicalHistory = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getPatientMedicalHistory(
+    req.params.id,
+    req.query,
+  );
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet patient medical history retrieved",
+    data,
+  );
+});
+
+const getPatientRecords = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getPatientRecords(req.params.id, req.query);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet patient records retrieved",
+    data,
+  );
+});
+
+const getDoctors = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getDoctors(req.query);
+
+  return ApiResponse.success(res, 200, "HealthNet doctors retrieved", data);
+});
+
+const getDoctorById = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getDoctorById(req.params.id);
+
+  return ApiResponse.success(res, 200, "HealthNet doctor retrieved", data);
+});
+
+const getDoctorAppointmentsTimeline = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getDoctorAppointmentsTimeline(
+    req.params.id,
+    req.query,
+  );
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet doctor appointments timeline retrieved",
+    data,
+  );
+});
+
+const getDoctorCertifications = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getDoctorCertifications(req.params.id);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet doctor certifications retrieved",
+    data,
+  );
+});
+
+const getDoctorRatings = asyncHandler(async (req, res) => {
+  const data = await healthnetService.getDoctorRatings(req.params.id, req.query);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet doctor ratings retrieved",
+    data,
+  );
+});
+
 const getAppointments = asyncHandler(async (req, res) => {
   const data = await healthnetService.getAppointments(req.query);
 
@@ -66,6 +165,16 @@ const getRevenueChart = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
+  getPatients,
+  getPatientById,
+  getPatientAppointmentsTimeline,
+  getPatientMedicalHistory,
+  getPatientRecords,
+  getDoctors,
+  getDoctorById,
+  getDoctorAppointmentsTimeline,
+  getDoctorCertifications,
+  getDoctorRatings,
   getAppointments,
   searchAppointments,
   getDashboardMetrics,

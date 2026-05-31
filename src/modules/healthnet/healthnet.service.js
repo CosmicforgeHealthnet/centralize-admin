@@ -39,6 +39,51 @@ const APPOINTMENT_STATUSES = [
   "rescheduled",
 ];
 
+const USER_STATUSES = [
+  "pending_email_verification",
+  "active",
+  "pending_doctor_verification",
+  "doctor_active",
+  "pending_pharmacy_verification",
+  "pharmacy_active",
+  "locked",
+];
+
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const DAY_LABELS = {
+  monday: "Monday",
+  tuesday: "Tuesday",
+  wednesday: "Wednesday",
+  thursday: "Thursday",
+  friday: "Friday",
+  saturday: "Saturday",
+  sunday: "Sunday",
+};
+
+const DAY_SHORT_LABELS = {
+  monday: "Mon",
+  tuesday: "Tue",
+  wednesday: "Wed",
+  thursday: "Thu",
+  friday: "Fri",
+  saturday: "Sat",
+  sunday: "Sun",
+};
+
+const DAY_ORDER = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+];
+
+const RECORD_TYPES = ["lab", "imaging", "prescription", "referral", "other", "all"];
+
 const AVATAR_COLORS = [
   "#272EA7",
   "#0DA53F",
@@ -118,6 +163,180 @@ const APPOINTMENT_SELECT = {
   },
 };
 
+const DOCTOR_SELECT = {
+  id: true,
+  fullName: true,
+  departmentSpecialty: true,
+  email: true,
+  phoneNumber: true,
+  averageRating: true,
+  status: true,
+  createdAt: true,
+  profileImageUrl: true,
+  doctor_profiles: {
+    select: {
+      contactNumber: true,
+      profilePhoto: true,
+      professional_licenses: {
+        select: {
+          yearsOfExperience: true,
+        },
+      },
+    },
+  },
+};
+
+const PATIENT_SELECT = {
+  id: true,
+  fullName: true,
+  email: true,
+  phoneNumber: true,
+  createdAt: true,
+  profileImageUrl: true,
+  patient_profiles: {
+    select: {
+      profileType: true,
+      mobileNumber: true,
+      profilePhoto: true,
+    },
+  },
+};
+
+const PATIENT_DETAIL_SELECT = {
+  id: true,
+  fullName: true,
+  email: true,
+  country: true,
+  profileImageUrl: true,
+  patient_profiles: {
+    select: {
+      id: true,
+      gender: true,
+      dateOfBirth: true,
+      genotype: true,
+      bloodGroup: true,
+      nationality: true,
+      address: true,
+      height: true,
+      weight: true,
+      profileType: true,
+      profilePhoto: true,
+      allergies: {
+        select: {
+          type: true,
+          allergen: true,
+          description: true,
+        },
+      },
+    },
+  },
+};
+
+const DOCTOR_DETAIL_SELECT = {
+  id: true,
+  fullName: true,
+  departmentSpecialty: true,
+  email: true,
+  phoneNumber: true,
+  averageRating: true,
+  country: true,
+  profileImageUrl: true,
+  doctor_profiles: {
+    select: {
+      id: true,
+      contactNumber: true,
+      profilePhoto: true,
+      nationality: true,
+      residentialAddress: true,
+      professional_licenses: {
+        select: {
+          medicalInstitution: true,
+          yearsOfExperience: true,
+          areasOfSpecialization: true,
+          subspecialty: true,
+        },
+      },
+    },
+  },
+  doctor_availability: {
+    where: {
+      isAvailable: true,
+    },
+    orderBy: [
+      {
+        dayOfWeek: "asc",
+      },
+      {
+        startTime: "asc",
+      },
+    ],
+    select: {
+      dayOfWeek: true,
+      startTime: true,
+      endTime: true,
+    },
+  },
+};
+
+const DOCTOR_TIMELINE_SELECT = {
+  id: true,
+  departmentSpecialty: true,
+  doctor_profiles: {
+    select: {
+      professional_licenses: {
+        select: {
+          areasOfSpecialization: true,
+          subspecialty: true,
+        },
+      },
+    },
+  },
+};
+
+const DOCTOR_TIMELINE_APPOINTMENT_SELECT = {
+  id: true,
+  appointmentDate: true,
+  appointmentTime: true,
+  appointmentTimeUTC: true,
+  doctorLocalTime: true,
+  status: true,
+  type: true,
+  reason: true,
+  users_appointments_patientIdTousers: {
+    select: {
+      fullName: true,
+    },
+  },
+};
+
+const PATIENT_TIMELINE_APPOINTMENT_SELECT = {
+  id: true,
+  appointmentDate: true,
+  appointmentTime: true,
+  appointmentTimeUTC: true,
+  doctorLocalTime: true,
+  patientLocalTime: true,
+  status: true,
+  type: true,
+  reason: true,
+  users_appointments_doctorIdTousers: {
+    select: {
+      fullName: true,
+      departmentSpecialty: true,
+      doctor_profiles: {
+        select: {
+          professional_licenses: {
+            select: {
+              areasOfSpecialization: true,
+              subspecialty: true,
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 function roundMoney(value) {
   return Math.round((Number(value || 0) + Number.EPSILON) * 100) / 100;
 }
@@ -140,6 +359,15 @@ function formatDateYYYYMMDD(value) {
   return value.toISOString().slice(0, 10);
 }
 
+function formatJoiningDate(value) {
+  if (!value) return null;
+
+  const month = MONTH_LABELS[value.getUTCMonth()]?.short;
+  if (!month) return null;
+
+  return `${month} ${value.getUTCDate()}, ${value.getUTCFullYear()}`;
+}
+
 function parseIsoDate(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value))) {
     throw new ApiError(400, "Invalid date. Use YYYY-MM-DD format.");
@@ -157,6 +385,14 @@ function parseIsoDate(value) {
   }
 
   return parsed;
+}
+
+function parseDateQuery(value) {
+  if (value === undefined || value === null || value === "") {
+    return getStartOfToday();
+  }
+
+  return parseIsoDate(value);
 }
 
 function parseYear(value) {
@@ -180,6 +416,14 @@ function parseNumericMonth(value) {
 function formatTimeHHMM(value) {
   if (!value) return null;
   return value.toISOString().slice(11, 16);
+}
+
+function assertValidUuid(value, fieldName) {
+  if (!value || !UUID_REGEX.test(String(value).trim())) {
+    throw new ApiError(400, `Invalid ${fieldName}.`);
+  }
+
+  return String(value).trim();
 }
 
 function addMinutesToTime(value, minutes = 30) {
@@ -228,6 +472,15 @@ function getSpecialty(doctor) {
     license?.subspecialty ||
     "General Medicine"
   );
+}
+
+function getNullableSpecialty(doctor) {
+  const license = doctor?.doctor_profiles?.professional_licenses;
+  const specialization = Array.isArray(license?.areasOfSpecialization)
+    ? license.areasOfSpecialization.find(Boolean)
+    : null;
+
+  return doctor?.departmentSpecialty || specialization || license?.subspecialty || null;
 }
 
 function getAppointmentColor(type) {
@@ -388,6 +641,166 @@ function buildAppointmentsWhere(query) {
   return where;
 }
 
+function getAppointmentDateTime(appointment) {
+  const date = appointment.appointmentDate;
+  const time =
+    appointment.doctorLocalTime ||
+    appointment.appointmentTime ||
+    appointment.appointmentTimeUTC;
+
+  if (!date || !time) return date || null;
+
+  return new Date(
+    Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      time.getUTCHours(),
+      time.getUTCMinutes(),
+      time.getUTCSeconds(),
+    ),
+  );
+}
+
+function getTimelineCategory(appointment) {
+  const normalizedStatus = String(appointment.status || "").toLowerCase();
+
+  if (normalizedStatus === "cancelled" || normalizedStatus === "canceled") {
+    return "cancelled";
+  }
+
+  if (normalizedStatus === "completed") {
+    return "past";
+  }
+
+  const appointmentDateTime = getAppointmentDateTime(appointment);
+  if (appointmentDateTime && appointmentDateTime < new Date()) {
+    return "past";
+  }
+
+  return "upcoming";
+}
+
+function getTimelineSlotIndex(timeValue) {
+  if (!timeValue) return null;
+
+  const hour = timeValue.getUTCHours();
+  if (hour < 7 || hour > 19) return null;
+
+  return hour - 7;
+}
+
+function buildDoctorsWhere(query) {
+  const where = {
+    role: "doctor",
+  };
+
+  const andConditions = [];
+  const searchQuery = String(query.search || "").trim();
+
+  if (searchQuery) {
+    andConditions.push({
+      OR: [
+        { fullName: { contains: searchQuery, mode: "insensitive" } },
+        { email: { contains: searchQuery, mode: "insensitive" } },
+        { phoneNumber: { contains: searchQuery, mode: "insensitive" } },
+        {
+          departmentSpecialty: {
+            contains: searchQuery,
+            mode: "insensitive",
+          },
+        },
+        {
+          doctor_profiles: {
+            is: {
+              contactNumber: {
+                contains: searchQuery,
+                mode: "insensitive",
+              },
+            },
+          },
+        },
+      ],
+    });
+  }
+
+  const department = String(query.department || "").trim();
+  if (department) {
+    andConditions.push({
+      departmentSpecialty: {
+        contains: department,
+        mode: "insensitive",
+      },
+    });
+  }
+
+  const status = String(query.status || "")
+    .trim()
+    .toLowerCase();
+  if (status) {
+    if (!USER_STATUSES.includes(status)) {
+      throw new ApiError(400, "Invalid status.");
+    }
+
+    where.status = status;
+  }
+
+  if (andConditions.length > 0) {
+    where.AND = andConditions;
+  }
+
+  return where;
+}
+
+function buildPatientsWhere(query) {
+  const where = {
+    role: "patient",
+  };
+
+  const andConditions = [];
+  const searchQuery = String(query.search || "").trim();
+
+  if (searchQuery) {
+    andConditions.push({
+      OR: [
+        { fullName: { contains: searchQuery, mode: "insensitive" } },
+        { email: { contains: searchQuery, mode: "insensitive" } },
+        { phoneNumber: { contains: searchQuery, mode: "insensitive" } },
+        {
+          patient_profiles: {
+            is: {
+              mobileNumber: {
+                contains: searchQuery,
+                mode: "insensitive",
+              },
+            },
+          },
+        },
+      ],
+    });
+  }
+
+  const profileType = String(query.profileType || "").trim();
+  if (profileType) {
+    andConditions.push({
+      patient_profiles: {
+        is: {
+          profileType: {
+            equals: profileType,
+            mode: "insensitive",
+          },
+        },
+      },
+    });
+  }
+
+  if (andConditions.length > 0) {
+    where.AND = andConditions;
+  }
+
+  return where;
+}
+
 function buildAppointmentsSearchWhere({ searchQuery, department, category }) {
   const orConditions = [
     { reason: { contains: searchQuery, mode: "insensitive" } },
@@ -443,6 +856,533 @@ function buildAppointmentsSearchWhere({ searchQuery, department, category }) {
   }
 
   return { AND: andConditions };
+}
+
+function mapDoctorRow(doctor, patientCounts) {
+  const profile = doctor.doctor_profiles;
+  const license = profile?.professional_licenses;
+
+  return {
+    id: doctor.id,
+    name: doctor.fullName,
+    department: doctor.departmentSpecialty || null,
+    email: doctor.email,
+    phone: doctor.phoneNumber || profile?.contactNumber || null,
+    patients: patientCounts.get(doctor.id) || 0,
+    experience: license?.yearsOfExperience || 0,
+    rating: Number(doctor.averageRating || 0),
+    status: doctor.status,
+    joiningDate: formatJoiningDate(doctor.createdAt),
+    avatarUrl: doctor.profileImageUrl || profile?.profilePhoto || null,
+  };
+}
+
+function mapPatientRow(patient) {
+  const profile = patient.patient_profiles;
+
+  return {
+    id: patient.id,
+    name: patient.fullName,
+    profileType: profile?.profileType || null,
+    email: patient.email,
+    phone: patient.phoneNumber || profile?.mobileNumber || null,
+    joiningDate: formatJoiningDate(patient.createdAt),
+    avatarUrl: patient.profileImageUrl || profile?.profilePhoto || null,
+  };
+}
+
+function calculateAge(dateOfBirth) {
+  if (!dateOfBirth || Number.isNaN(dateOfBirth.getTime())) return null;
+
+  const now = new Date();
+  let age = now.getUTCFullYear() - dateOfBirth.getUTCFullYear();
+  const hasBirthdayPassed =
+    now.getUTCMonth() > dateOfBirth.getUTCMonth() ||
+    (now.getUTCMonth() === dateOfBirth.getUTCMonth() &&
+      now.getUTCDate() >= dateOfBirth.getUTCDate());
+
+  if (!hasBirthdayPassed) {
+    age -= 1;
+  }
+
+  return age >= 0 ? age : null;
+}
+
+function formatMeasurement(value, unit) {
+  if (value === undefined || value === null || value === "") return null;
+
+  if (typeof value === "number") {
+    return `${value} ${unit}`;
+  }
+
+  const textValue = String(value).trim();
+  if (!textValue) return null;
+
+  return new RegExp(`\\b${unit}\\b`, "i").test(textValue)
+    ? textValue
+    : `${textValue} ${unit}`;
+}
+
+function mapPatientAllergies(profile) {
+  if (!profile?.allergies) return [];
+
+  const allergies = Array.isArray(profile.allergies)
+    ? profile.allergies
+    : [profile.allergies];
+
+  return allergies
+    .map((allergy) => allergy?.allergen || allergy?.type || allergy?.description)
+    .filter(Boolean);
+}
+
+function mapPatientDetail(patient) {
+  const profile = patient.patient_profiles;
+
+  return {
+    id: patient.id,
+    name: patient.fullName,
+    email: patient.email,
+    location: patient.country || profile?.nationality || null,
+    profileType: profile?.profileType || null,
+    sex: profile?.gender || null,
+    age: calculateAge(profile?.dateOfBirth),
+    bloodGroup: profile?.bloodGroup || null,
+    genotype: profile?.genotype || null,
+    height: formatMeasurement(profile?.height, "cm"),
+    weight: formatMeasurement(profile?.weight, "kg"),
+    allergies: mapPatientAllergies(profile),
+    homeAddress: profile?.address || null,
+    workAddress: null,
+    avatarUrl: patient.profileImageUrl || profile?.profilePhoto || null,
+  };
+}
+
+function getHistorySortTime(item) {
+  return item.sortDate ? item.sortDate.getTime() : 0;
+}
+
+function stringifyNotes(value) {
+  if (value === undefined || value === null || value === "") return null;
+  if (typeof value === "string") return value;
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return null;
+  }
+}
+
+function mapMedicalConditionHistory(condition) {
+  return {
+    id: condition.id,
+    date: formatDateYYYYMMDD(condition.createdAt),
+    type: "Diagnosis",
+    title: condition.name || null,
+    doctor: null,
+    department: null,
+    notes: condition.status || null,
+    attachments: [],
+    sortDate: condition.createdAt,
+  };
+}
+
+function mapSurgeryHistory(surgery) {
+  return {
+    id: surgery.id,
+    date: formatDateYYYYMMDD(surgery.date || surgery.createdAt),
+    type: "Procedure",
+    title: surgery.name || null,
+    doctor: null,
+    department: null,
+    notes: surgery.location || null,
+    attachments: [],
+    sortDate: surgery.date || surgery.createdAt,
+  };
+}
+
+function mapAppointmentVisitHistory(appointment) {
+  const doctor = appointment.users_appointments_doctorIdTousers;
+
+  return {
+    id: appointment.id,
+    date: formatDateYYYYMMDD(appointment.appointmentDate),
+    type: "Visit",
+    title: appointment.reason || appointment.type || "Visit",
+    doctor: doctor?.fullName || null,
+    department: doctor?.departmentSpecialty || null,
+    notes:
+      appointment.notes ||
+      stringifyNotes(appointment.symptoms) ||
+      appointment.cancellationReason ||
+      null,
+    attachments: [],
+    sortDate: appointment.appointmentDate || appointment.createdAt,
+  };
+}
+
+function paginateHistory(rows, page, limit) {
+  const sortedRows = rows.sort(
+    (left, right) => getHistorySortTime(right) - getHistorySortTime(left),
+  );
+  const total = sortedRows.length;
+  const start = (page - 1) * limit;
+
+  return {
+    total,
+    page,
+    limit,
+    history: sortedRows.slice(start, start + limit).map((row) => ({
+      id: row.id,
+      date: row.date,
+      type: row.type,
+      title: row.title,
+      doctor: row.doctor,
+      department: row.department,
+      notes: row.notes,
+      attachments: row.attachments,
+    })),
+  };
+}
+
+function parseRecordType(value) {
+  const type = String(value || "all")
+    .trim()
+    .toLowerCase();
+
+  if (!RECORD_TYPES.includes(type)) {
+    throw new ApiError(400, "Invalid type.");
+  }
+
+  return type;
+}
+
+function normalizeRecordType(documentType) {
+  const value = String(documentType || "").toLowerCase();
+
+  if (/(lab|laboratory|test|result)/.test(value)) return "lab";
+  if (/(imaging|image|radiology|scan|xray|x-ray|mri|ct|ultrasound)/.test(value)) {
+    return "imaging";
+  }
+  if (/(prescription|medication|drug)/.test(value)) return "prescription";
+  if (/referral/.test(value)) return "referral";
+
+  return "other";
+}
+
+function formatFileSizeKb(value) {
+  if (value === undefined || value === null) return null;
+
+  const bytes = Number(value);
+  if (!Number.isFinite(bytes)) return null;
+
+  return Math.round(bytes / 1024);
+}
+
+function mapPatientRecord(file) {
+  return {
+    id: file.id,
+    type: normalizeRecordType(file.document_type),
+    title: file.original_file_name || file.stored_file_name || file.document_type || null,
+    uploadedBy: file.users?.fullName || null,
+    uploadedAt: formatDateYYYYMMDD(file.created_at),
+    fileUrl: file.file_path || null,
+    fileType: file.mime_type || null,
+    fileSizeKb: formatFileSizeKb(file.file_size),
+  };
+}
+
+function paginateRecords(rows, type, page, limit) {
+  const filteredRows =
+    type === "all" ? rows : rows.filter((row) => row.type === type);
+  const total = filteredRows.length;
+  const start = (page - 1) * limit;
+
+  return {
+    total,
+    page,
+    limit,
+    records: filteredRows.slice(start, start + limit),
+  };
+}
+
+function getDoctorDetailSpecialty(doctor) {
+  const license = doctor?.doctor_profiles?.professional_licenses;
+  const specializations = Array.isArray(license?.areasOfSpecialization)
+    ? license.areasOfSpecialization.filter(Boolean)
+    : [];
+
+  if (specializations.length > 0) {
+    return specializations.join(", ");
+  }
+
+  return license?.subspecialty || doctor.departmentSpecialty || null;
+}
+
+function getAvailabilitySummary(availabilityRows = []) {
+  const sortedRows = [...availabilityRows].sort((left, right) => {
+    const leftDay = DAY_ORDER.indexOf(left.dayOfWeek);
+    const rightDay = DAY_ORDER.indexOf(right.dayOfWeek);
+
+    if (leftDay !== rightDay) return leftDay - rightDay;
+    return left.startTime.getTime() - right.startTime.getTime();
+  });
+
+  const workingDays = Array.from(
+    new Set(
+      sortedRows
+        .map((row) => DAY_LABELS[row.dayOfWeek])
+        .filter(Boolean),
+    ),
+  );
+
+  const timeRanges = sortedRows
+    .map((row) => ({
+      day: row.dayOfWeek,
+      start: formatTimeHHMM(row.startTime),
+      end: formatTimeHHMM(row.endTime),
+    }))
+    .filter((row) => row.start && row.end);
+
+  if (timeRanges.length === 0) {
+    return {
+      workingDays,
+      workingHours: null,
+    };
+  }
+
+  const uniqueRanges = new Set(
+    timeRanges.map((row) => `${row.start} - ${row.end}`),
+  );
+
+  if (uniqueRanges.size === 1) {
+    return {
+      workingDays,
+      workingHours: [...uniqueRanges][0],
+    };
+  }
+
+  return {
+    workingDays,
+    workingHours: timeRanges
+      .map(
+        (row) =>
+          `${DAY_SHORT_LABELS[row.day] || row.day} ${row.start}-${row.end}`,
+      )
+      .join(", "),
+  };
+}
+
+function mapDoctorDetail(doctor, patients) {
+  const profile = doctor.doctor_profiles;
+  const license = profile?.professional_licenses;
+  const { workingDays, workingHours } = getAvailabilitySummary(
+    doctor.doctor_availability,
+  );
+
+  return {
+    id: doctor.id,
+    name: doctor.fullName,
+    hospital: license?.medicalInstitution || null,
+    email: doctor.email,
+    phone: doctor.phoneNumber || profile?.contactNumber || null,
+    department: doctor.departmentSpecialty || null,
+    specialty: getDoctorDetailSpecialty(doctor),
+    patients,
+    experience: license?.yearsOfExperience || 0,
+    rating: Number(doctor.averageRating || 0),
+    location: doctor.country || profile?.nationality || null,
+    address: profile?.residentialAddress || null,
+    bio: null,
+    workingDays,
+    workingHours,
+    avatarUrl: doctor.profileImageUrl || profile?.profilePhoto || null,
+  };
+}
+
+function mapTimelineAppointment(appointment, doctor) {
+  const timeValue =
+    appointment.doctorLocalTime ||
+    appointment.appointmentTime ||
+    appointment.appointmentTimeUTC;
+
+  return {
+    id: appointment.id,
+    patientName:
+      appointment.users_appointments_patientIdTousers?.fullName || null,
+    specialty: appointment.type || appointment.reason || getNullableSpecialty(doctor),
+    date: formatDateYYYYMMDD(appointment.appointmentDate),
+    time: formatTimeHHMM(timeValue),
+    slotIndex: getTimelineSlotIndex(timeValue),
+    index: 1,
+    total: 1,
+  };
+}
+
+function mapPatientTimelineAppointment(appointment) {
+  const doctor = appointment.users_appointments_doctorIdTousers;
+  const timeValue =
+    appointment.patientLocalTime ||
+    appointment.appointmentTime ||
+    appointment.doctorLocalTime ||
+    appointment.appointmentTimeUTC;
+
+  return {
+    id: appointment.id,
+    doctorName: doctor?.fullName || null,
+    specialty: getNullableSpecialty(doctor) || appointment.type || appointment.reason || null,
+    date: formatDateYYYYMMDD(appointment.appointmentDate),
+    time: formatTimeHHMM(timeValue),
+    slotIndex: getTimelineSlotIndex(timeValue),
+    index: 1,
+    total: 1,
+  };
+}
+
+function getLicenseTitle(license) {
+  const specializations = Array.isArray(license.areasOfSpecialization)
+    ? license.areasOfSpecialization.filter(Boolean)
+    : [];
+
+  return (
+    specializations.join(", ") ||
+    license.subspecialty ||
+    license.licenseAuthority ||
+    "Professional License"
+  );
+}
+
+function getCertificateTitle(certificate) {
+  return (
+    certificate.certificateName ||
+    certificate.degree ||
+    certificate.fieldOfStudy ||
+    null
+  );
+}
+
+function getCertificationSortTime(item) {
+  if (item.sortDate) {
+    return item.sortDirection === "desc"
+      ? -item.sortDate.getTime()
+      : item.sortDate.getTime();
+  }
+
+  return item.stableIndex;
+}
+
+function mapLicenseCertification(license, stableIndex) {
+  return {
+    id: license.id,
+    title: getLicenseTitle(license),
+    licenseNumber: license.medicalLicenseNumber || null,
+    expiryDate: formatDateYYYYMMDD(license.licenseExpiryDate),
+    imageUrl: license.licenseDocument || null,
+    sortDate: license.createdAt || license.licenseExpiryDate || null,
+    sortDirection: license.createdAt ? "desc" : "asc",
+    stableIndex,
+  };
+}
+
+function mapCertificateCertification(certificate, stableIndex) {
+  return {
+    id: certificate.id,
+    title: getCertificateTitle(certificate),
+    licenseNumber: certificate.verificationLink || null,
+    expiryDate: formatDateYYYYMMDD(certificate.expiryDate),
+    imageUrl: certificate.certificateDocument || null,
+    sortDate: certificate.createdAt || certificate.issueDate || certificate.expiryDate || null,
+    sortDirection: certificate.createdAt || certificate.issueDate ? "desc" : "asc",
+    stableIndex,
+  };
+}
+
+function normalizeCertifications(licenses, certificates) {
+  const rows = [
+    ...licenses.map((license, index) =>
+      mapLicenseCertification(license, index),
+    ),
+    ...certificates.map((certificate, index) =>
+      mapCertificateCertification(certificate, licenses.length + index),
+    ),
+  ];
+
+  return rows
+    .sort((left, right) => {
+      const sortDifference =
+        getCertificationSortTime(left) - getCertificationSortTime(right);
+
+      if (sortDifference !== 0) return sortDifference;
+      return left.stableIndex - right.stableIndex;
+    })
+    .map((row, index) => ({
+      id: row.id,
+      index: index + 1,
+      title: row.title,
+      licenseNumber: row.licenseNumber,
+      expiryDate: row.expiryDate,
+      imageUrl: row.imageUrl,
+    }));
+}
+
+function applyTimelineSlotIndexes(appointments) {
+  const slots = new Map();
+
+  for (const appointment of appointments) {
+    const key =
+      appointment.slotIndex === null ? `outside-${appointment.id}` : appointment.slotIndex;
+
+    if (!slots.has(key)) {
+      slots.set(key, []);
+    }
+
+    slots.get(key).push(appointment);
+  }
+
+  for (const slotAppointments of slots.values()) {
+    const total = slotAppointments.length;
+    slotAppointments.forEach((appointment, index) => {
+      appointment.index = index + 1;
+      appointment.total = total;
+    });
+  }
+}
+
+function groupTimelineAppointments(rows, doctor) {
+  const grouped = {
+    upcoming: [],
+    past: [],
+    cancelled: [],
+  };
+
+  for (const row of rows) {
+    const category = getTimelineCategory(row);
+    grouped[category].push(mapTimelineAppointment(row, doctor));
+  }
+
+  applyTimelineSlotIndexes(grouped.upcoming);
+  applyTimelineSlotIndexes(grouped.past);
+  applyTimelineSlotIndexes(grouped.cancelled);
+
+  return grouped;
+}
+
+function groupPatientTimelineAppointments(rows) {
+  const grouped = {
+    upcoming: [],
+    past: [],
+    cancelled: [],
+  };
+
+  for (const row of rows) {
+    const category = getTimelineCategory(row);
+    grouped[category].push(mapPatientTimelineAppointment(row));
+  }
+
+  applyTimelineSlotIndexes(grouped.upcoming);
+  applyTimelineSlotIndexes(grouped.past);
+  applyTimelineSlotIndexes(grouped.cancelled);
+
+  return grouped;
 }
 
 function groupAppointments(rows) {
@@ -530,6 +1470,481 @@ function groupAppointments(rows) {
 }
 
 class HealthnetService {
+  async getPatients(query = {}) {
+    const page = parsePositiveInteger(query.page, "page", {
+      defaultValue: 1,
+    });
+    const limit = parsePositiveInteger(query.limit, "limit", {
+      defaultValue: 20,
+      max: 100,
+    });
+    const skip = (page - 1) * limit;
+    const where = buildPatientsWhere(query);
+
+    const [rows, total] = await Promise.all([
+      mainPrisma.users.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: [{ createdAt: "desc" }, { fullName: "asc" }],
+        select: PATIENT_SELECT,
+      }),
+      mainPrisma.users.count({ where }),
+    ]);
+
+    return {
+      total,
+      page,
+      limit,
+      patients: rows.map(mapPatientRow),
+    };
+  }
+
+  async getPatientById(id) {
+    const patientId = assertValidUuid(id, "patient id");
+
+    const patient = await mainPrisma.users.findFirst({
+      where: {
+        id: patientId,
+        role: "patient",
+      },
+      select: PATIENT_DETAIL_SELECT,
+    });
+
+    if (!patient) {
+      throw new ApiError(404, "Patient not found.");
+    }
+
+    return mapPatientDetail(patient);
+  }
+
+  async getPatientAppointmentsTimeline(id, query = {}) {
+    const patientId = assertValidUuid(id, "patient id");
+    const selectedDate = parseDateQuery(query.date);
+    const nextDate = new Date(selectedDate);
+    nextDate.setUTCDate(selectedDate.getUTCDate() + 1);
+
+    const patient = await mainPrisma.users.findFirst({
+      where: {
+        id: patientId,
+        role: "patient",
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!patient) {
+      throw new ApiError(404, "Patient not found.");
+    }
+
+    const appointments = await mainPrisma.appointments.findMany({
+      where: {
+        patientId,
+        appointmentDate: {
+          gte: selectedDate,
+          lt: nextDate,
+        },
+      },
+      orderBy: [
+        { appointmentTime: "asc" },
+        { createdAt: "asc" },
+      ],
+      select: PATIENT_TIMELINE_APPOINTMENT_SELECT,
+    });
+
+    return {
+      date: formatDateYYYYMMDD(selectedDate),
+      ...groupPatientTimelineAppointments(appointments),
+    };
+  }
+
+  async getPatientMedicalHistory(id, query = {}) {
+    const patientId = assertValidUuid(id, "patient id");
+    const page = parsePositiveInteger(query.page, "page", {
+      defaultValue: 1,
+    });
+    const limit = parsePositiveInteger(query.limit, "limit", {
+      defaultValue: 20,
+      max: 100,
+    });
+
+    const patient = await mainPrisma.users.findFirst({
+      where: {
+        id: patientId,
+        role: "patient",
+      },
+      select: {
+        id: true,
+        patient_profiles: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (!patient) {
+      throw new ApiError(404, "Patient not found.");
+    }
+
+    const patientProfileId = patient.patient_profiles?.id;
+    if (!patientProfileId) {
+      return {
+        total: 0,
+        page,
+        limit,
+        history: [],
+      };
+    }
+
+    const today = getStartOfToday();
+    const [conditions, surgeries, visits] = await Promise.all([
+      mainPrisma.medical_conditions.findMany({
+        where: {
+          patientProfileId,
+        },
+        select: {
+          id: true,
+          name: true,
+          status: true,
+          createdAt: true,
+        },
+      }),
+      mainPrisma.surgeries.findMany({
+        where: {
+          patientProfileId,
+        },
+        select: {
+          id: true,
+          name: true,
+          date: true,
+          location: true,
+          createdAt: true,
+        },
+      }),
+      mainPrisma.appointments.findMany({
+        where: {
+          patientId,
+          isCancelled: false,
+          status: {
+            not: "cancelled",
+          },
+          OR: [
+            {
+              status: "completed",
+            },
+            {
+              appointmentDate: {
+                lt: today,
+              },
+            },
+          ],
+        },
+        select: {
+          id: true,
+          appointmentDate: true,
+          type: true,
+          reason: true,
+          notes: true,
+          symptoms: true,
+          cancellationReason: true,
+          createdAt: true,
+          users_appointments_doctorIdTousers: {
+            select: {
+              fullName: true,
+              departmentSpecialty: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    return paginateHistory(
+      [
+        ...conditions.map(mapMedicalConditionHistory),
+        ...surgeries.map(mapSurgeryHistory),
+        ...visits.map(mapAppointmentVisitHistory),
+      ],
+      page,
+      limit,
+    );
+  }
+
+  async getPatientRecords(id, query = {}) {
+    const patientId = assertValidUuid(id, "patient id");
+    const type = parseRecordType(query.type);
+    const page = parsePositiveInteger(query.page, "page", {
+      defaultValue: 1,
+    });
+    const limit = parsePositiveInteger(query.limit, "limit", {
+      defaultValue: 20,
+      max: 100,
+    });
+
+    const patient = await mainPrisma.users.findFirst({
+      where: {
+        id: patientId,
+        role: "patient",
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!patient) {
+      throw new ApiError(404, "Patient not found.");
+    }
+
+    const files = await mainPrisma.document_files.findMany({
+      where: {
+        document_folders: {
+          is: {
+            owner_id: patientId,
+          },
+        },
+      },
+      orderBy: {
+        created_at: "desc",
+      },
+      select: {
+        id: true,
+        document_type: true,
+        original_file_name: true,
+        stored_file_name: true,
+        created_at: true,
+        file_path: true,
+        mime_type: true,
+        file_size: true,
+        users: {
+          select: {
+            fullName: true,
+          },
+        },
+      },
+    });
+
+    return paginateRecords(files.map(mapPatientRecord), type, page, limit);
+  }
+
+  async getDoctors(query = {}) {
+    const page = parsePositiveInteger(query.page, "page", {
+      defaultValue: 1,
+    });
+    const limit = parsePositiveInteger(query.limit, "limit", {
+      defaultValue: 20,
+      max: 100,
+    });
+    const skip = (page - 1) * limit;
+    const where = buildDoctorsWhere(query);
+
+    const [rows, total] = await Promise.all([
+      mainPrisma.users.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: [{ createdAt: "desc" }, { fullName: "asc" }],
+        select: DOCTOR_SELECT,
+      }),
+      mainPrisma.users.count({ where }),
+    ]);
+
+    const doctorIds = rows.map((doctor) => doctor.id);
+    const patientCounts = new Map();
+
+    if (doctorIds.length > 0) {
+      const doctorPatientPairs = await mainPrisma.appointments.groupBy({
+        by: ["doctorId", "patientId"],
+        where: {
+          doctorId: {
+            in: doctorIds,
+          },
+        },
+      });
+
+      for (const pair of doctorPatientPairs) {
+        patientCounts.set(
+          pair.doctorId,
+          (patientCounts.get(pair.doctorId) || 0) + 1,
+        );
+      }
+    }
+
+    return {
+      total,
+      page,
+      limit,
+      doctors: rows.map((doctor) => mapDoctorRow(doctor, patientCounts)),
+    };
+  }
+
+  async getDoctorById(id) {
+    const doctorId = assertValidUuid(id, "doctor id");
+
+    const doctor = await mainPrisma.users.findFirst({
+      where: {
+        id: doctorId,
+        role: "doctor",
+      },
+      select: DOCTOR_DETAIL_SELECT,
+    });
+
+    if (!doctor) {
+      throw new ApiError(404, "Doctor not found.");
+    }
+
+    const distinctPatients = await mainPrisma.appointments.groupBy({
+      by: ["patientId"],
+      where: {
+        doctorId,
+      },
+    });
+
+    return mapDoctorDetail(doctor, distinctPatients.length);
+  }
+
+  async getDoctorAppointmentsTimeline(id, query = {}) {
+    const doctorId = assertValidUuid(id, "doctor id");
+    const selectedDate = parseDateQuery(query.date);
+    const nextDate = new Date(selectedDate);
+    nextDate.setUTCDate(selectedDate.getUTCDate() + 1);
+
+    const doctor = await mainPrisma.users.findFirst({
+      where: {
+        id: doctorId,
+        role: "doctor",
+      },
+      select: DOCTOR_TIMELINE_SELECT,
+    });
+
+    if (!doctor) {
+      throw new ApiError(404, "Doctor not found.");
+    }
+
+    const appointments = await mainPrisma.appointments.findMany({
+      where: {
+        doctorId,
+        appointmentDate: {
+          gte: selectedDate,
+          lt: nextDate,
+        },
+      },
+      orderBy: [
+        { appointmentTime: "asc" },
+        { createdAt: "asc" },
+      ],
+      select: DOCTOR_TIMELINE_APPOINTMENT_SELECT,
+    });
+
+    return {
+      date: formatDateYYYYMMDD(selectedDate),
+      ...groupTimelineAppointments(appointments, doctor),
+    };
+  }
+
+  async getDoctorCertifications(id) {
+    const doctorId = assertValidUuid(id, "doctor id");
+
+    const doctor = await mainPrisma.users.findFirst({
+      where: {
+        id: doctorId,
+        role: "doctor",
+      },
+      select: {
+        id: true,
+        doctor_profiles: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (!doctor) {
+      throw new ApiError(404, "Doctor not found.");
+    }
+
+    const doctorProfileId = doctor.doctor_profiles?.id;
+    if (!doctorProfileId) {
+      return [];
+    }
+
+    const [licenses, certificates] = await Promise.all([
+      mainPrisma.professional_licenses.findMany({
+        where: {
+          doctorProfileId,
+        },
+        select: {
+          id: true,
+          medicalLicenseNumber: true,
+          licenseAuthority: true,
+          licenseExpiryDate: true,
+          licenseDocument: true,
+          yearsOfExperience: true,
+          areasOfSpecialization: true,
+          subspecialty: true,
+          createdAt: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+      mainPrisma.professional_certificates.findMany({
+        where: {
+          doctorProfileId,
+        },
+        select: {
+          id: true,
+          degree: true,
+          fieldOfStudy: true,
+          certificateName: true,
+          issueDate: true,
+          expiryDate: true,
+          certificateDocument: true,
+          verificationLink: true,
+          createdAt: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+    ]);
+
+    return normalizeCertifications(licenses, certificates);
+  }
+
+  async getDoctorRatings(id, query = {}) {
+    const doctorId = assertValidUuid(id, "doctor id");
+    const page = parsePositiveInteger(query.page, "page", {
+      defaultValue: 1,
+    });
+    const limit = parsePositiveInteger(query.limit, "limit", {
+      defaultValue: 20,
+      max: 100,
+    });
+
+    const doctor = await mainPrisma.users.findFirst({
+      where: {
+        id: doctorId,
+        role: "doctor",
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!doctor) {
+      throw new ApiError(404, "Doctor not found.");
+    }
+
+    return {
+      total: 0,
+      page,
+      limit,
+      ratings: [],
+    };
+  }
+
   async getAppointments(query = {}) {
     const page = parsePositiveInteger(query.page, "page", {
       defaultValue: 1,
