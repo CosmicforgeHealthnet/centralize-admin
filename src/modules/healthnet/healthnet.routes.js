@@ -18,6 +18,17 @@ router.use(authenticate);
 router.use(requireTier("ADMIN"));
 router.use(limiter);
 
+router.get("/labs", healthnetController.getLabs);
+router.get("/labs/:id/staff", healthnetController.getLabStaff);
+router.get("/labs/:id/documents", healthnetController.getLabDocuments);
+router.get("/labs/:id", healthnetController.getLabById);
+router.get("/pharmacies", healthnetController.getPharmacies);
+router.get("/pharmacies/:id/staff", healthnetController.getPharmacyStaff);
+router.get(
+  "/pharmacies/:id/documents",
+  healthnetController.getPharmacyDocuments,
+);
+router.get("/pharmacies/:id", healthnetController.getPharmacyById);
 router.get("/patients", healthnetController.getPatients);
 router.get(
   "/patients/:id/appointments",
