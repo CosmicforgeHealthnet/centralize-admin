@@ -3201,6 +3201,43 @@ class HealthnetService {
       return Number(aggregate._sum.usdAmount || 0);
     };
 
+    const getCompletedTransactionCurrencyTotals = async ({
+      serviceType,
+      dateRange,
+    } = {}) => {
+      const [usdAggregate, nairaAggregate] = await Promise.all([
+        mainPrisma.transactions.aggregate({
+          where: {
+            status: "completed",
+            ...(serviceType ? { serviceType } : {}),
+            ...getCompletedTransactionDateWhere(dateRange),
+          },
+          _sum: {
+            usdAmount: true,
+          },
+        }),
+        mainPrisma.transactions.aggregate({
+          where: {
+            status: "completed",
+            originalCurrency: "NGN",
+            ...(serviceType ? { serviceType } : {}),
+            ...getCompletedTransactionDateWhere(dateRange),
+          },
+          _sum: {
+            originalAmount: true,
+          },
+        }),
+      ]);
+
+      return {
+        currency: "USD",
+        usdValue: roundMoney(usdAggregate._sum.usdAmount),
+        usdCurrency: "USD",
+        nairaValue: roundMoney(nairaAggregate._sum.originalAmount),
+        nairaCurrency: "NGN",
+      };
+    };
+
     const getCompletedAppointmentTransactionCount = async (dateRange) =>
       mainPrisma.transactions.count({
         where: {
@@ -3276,6 +3313,8 @@ class HealthnetService {
       totalSales,
       currentSales,
       previousSales,
+      totalBalanceCurrencyTotals,
+      totalSalesCurrencyTotals,
     ] = await Promise.all([
       getNetBalance(),
       getNetBalance(current),
@@ -3292,16 +3331,31 @@ class HealthnetService {
         serviceType: "pharmacy",
         dateRange: previous,
       }).then(roundMoney),
+      getCompletedTransactionCurrencyTotals(),
+      getCompletedTransactionCurrencyTotals({ serviceType: "pharmacy" }),
     ]);
 
+    const totalBalanceCard = getChangeCard(
+      totalBalance,
+      currentBalance,
+      previousBalance,
+    );
+    const totalSalesCard = getChangeCard(totalSales, currentSales, previousSales);
+
     return {
-      totalBalance: getChangeCard(totalBalance, currentBalance, previousBalance),
+      totalBalance: {
+        ...totalBalanceCard,
+        ...totalBalanceCurrencyTotals,
+      },
       totalAppointments: getChangeCard(
         totalAppointments,
         currentAppointments,
         previousAppointments,
       ),
-      totalSales: getChangeCard(totalSales, currentSales, previousSales),
+      totalSales: {
+        ...totalSalesCard,
+        ...totalSalesCurrencyTotals,
+      },
     };
   }
 
