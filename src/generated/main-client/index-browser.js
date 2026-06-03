@@ -1240,7 +1240,8 @@ exports.Prisma.Lab_facilitiesScalarFieldEnum = {
   latitude: 'latitude',
   longitude: 'longitude',
   businessRegistrationUrl: 'businessRegistrationUrl',
-  govIdUrl: 'govIdUrl'
+  govIdUrl: 'govIdUrl',
+  staffCount: 'staffCount'
 };
 
 exports.Prisma.Lab_migrationsScalarFieldEnum = {
@@ -1346,7 +1347,9 @@ exports.Prisma.Lab_personnelScalarFieldEnum = {
   userAccountCreated: 'userAccountCreated',
   firstLoginCompleted: 'firstLoginCompleted',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  active: 'active',
+  terminatedAt: 'terminatedAt'
 };
 
 exports.Prisma.Lab_pharm_waitlistScalarFieldEnum = {
@@ -1916,7 +1919,8 @@ exports.Prisma.PrescriptionsScalarFieldEnum = {
   internalNotes: 'internalNotes',
   currency: 'currency',
   availabilityStatus: 'availabilityStatus',
-  dispatchedAt: 'dispatchedAt'
+  dispatchedAt: 'dispatchedAt',
+  driverId: 'driverId'
 };
 
 exports.Prisma.Professional_certificatesScalarFieldEnum = {
@@ -2308,7 +2312,9 @@ exports.Prisma.UsersScalarFieldEnum = {
   resetPasswordOTPExpires: 'resetPasswordOTPExpires',
   mustChangePassword: 'mustChangePassword',
   passwordChangedAt: 'passwordChangedAt',
-  lastLoginAt: 'lastLoginAt'
+  lastLoginAt: 'lastLoginAt',
+  loginAttempts: 'loginAttempts',
+  lockedUntil: 'lockedUntil'
 };
 
 exports.Prisma.Verification_api_logsScalarFieldEnum = {
@@ -2457,6 +2463,154 @@ exports.Prisma.WalletsScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   doctorProfileId: 'doctorProfileId'
+};
+
+exports.Prisma.Campaign_productsScalarFieldEnum = {
+  id: 'id',
+  promotionId: 'promotionId',
+  title: 'title',
+  category: 'category',
+  description: 'description',
+  price: 'price',
+  stockQuantity: 'stockQuantity',
+  mediaUrls: 'mediaUrls',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Cart_itemsScalarFieldEnum = {
+  id: 'id',
+  cartId: 'cartId',
+  productId: 'productId',
+  quantity: 'quantity',
+  priceSnapshot: 'priceSnapshot',
+  productTitle: 'productTitle',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CartsScalarFieldEnum = {
+  id: 'id',
+  patientId: 'patientId',
+  vendorId: 'vendorId',
+  status: 'status',
+  patientNote: 'patientNote',
+  vendorNote: 'vendorNote',
+  confirmedTotal: 'confirmedTotal',
+  submittedAt: 'submittedAt',
+  confirmedAt: 'confirmedAt',
+  cancelledAt: 'cancelledAt',
+  cancelledBy: 'cancelledBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Product_mediaScalarFieldEnum = {
+  id: 'id',
+  productId: 'productId',
+  mediaUrl: 'mediaUrl',
+  mediaType: 'mediaType',
+  isPrimary: 'isPrimary',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ProductsScalarFieldEnum = {
+  id: 'id',
+  vendorId: 'vendorId',
+  title: 'title',
+  description: 'description',
+  price: 'price',
+  stockQuantity: 'stockQuantity',
+  category: 'category',
+  subcategory: 'subcategory',
+  status: 'status',
+  rejectionReason: 'rejectionReason',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Promotion_productsScalarFieldEnum = {
+  id: 'id',
+  promotionId: 'promotionId',
+  productId: 'productId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PromotionsScalarFieldEnum = {
+  id: 'id',
+  vendorId: 'vendorId',
+  type: 'type',
+  subType: 'subType',
+  title: 'title',
+  duration: 'duration',
+  customDays: 'customDays',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  status: 'status',
+  pricePaid: 'pricePaid',
+  paymentStatus: 'paymentStatus',
+  paymentReference: 'paymentReference',
+  paymentAuthUrl: 'paymentAuthUrl',
+  paymentProvider: 'paymentProvider',
+  termsAccepted: 'termsAccepted',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Vendor_documentsScalarFieldEnum = {
+  id: 'id',
+  vendorId: 'vendorId',
+  documentType: 'documentType',
+  documentUrl: 'documentUrl',
+  fileName: 'fileName',
+  mimeType: 'mimeType',
+  verificationStatus: 'verificationStatus',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Vendor_profilesScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  businessName: 'businessName',
+  businessCategory: 'businessCategory',
+  businessEmail: 'businessEmail',
+  businessPhone: 'businessPhone',
+  country: 'country',
+  state: 'state',
+  city: 'city',
+  fullAddress: 'fullAddress',
+  businessWebsite: 'businessWebsite',
+  businessDescription: 'businessDescription',
+  logoUrl: 'logoUrl',
+  verificationStatus: 'verificationStatus',
+  isActive: 'isActive',
+  documentsSubmitted: 'documentsSubmitted',
+  isHybridPharmacy: 'isHybridPharmacy',
+  pharmacyProfileId: 'pharmacyProfileId',
+  notificationPreferences: 'notificationPreferences',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Vendor_verification_requestsScalarFieldEnum = {
+  id: 'id',
+  vendorId: 'vendorId',
+  requestType: 'requestType',
+  status: 'status',
+  priority: 'priority',
+  requestNotes: 'requestNotes',
+  rejectionReason: 'rejectionReason',
+  reviewNotes: 'reviewNotes',
+  assignedTo: 'assignedTo',
+  reviewedBy: 'reviewedBy',
+  submittedAt: 'submittedAt',
+  assignedAt: 'assignedAt',
+  reviewedAt: 'reviewedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -3516,7 +3670,8 @@ exports.users_role_enum = exports.$Enums.users_role_enum = {
   radiologist: 'radiologist',
   result_reviewer: 'result_reviewer',
   assistant: 'assistant',
-  dispatcher: 'dispatcher'
+  dispatcher: 'dispatcher',
+  vendor: 'vendor'
 };
 
 exports.users_status_enum = exports.$Enums.users_status_enum = {
@@ -3526,7 +3681,9 @@ exports.users_status_enum = exports.$Enums.users_status_enum = {
   doctor_active: 'doctor_active',
   pending_pharmacy_verification: 'pending_pharmacy_verification',
   pharmacy_active: 'pharmacy_active',
-  locked: 'locked'
+  locked: 'locked',
+  pending_vendor_verification: 'pending_vendor_verification',
+  vendor_active: 'vendor_active'
 };
 
 exports.users_provider_enum = exports.$Enums.users_provider_enum = {
@@ -3611,6 +3768,153 @@ exports.wallet_withdrawals_status_enum = exports.$Enums.wallet_withdrawals_statu
   failed: 'failed',
   cancelled: 'cancelled',
   pending_otp: 'pending_otp'
+};
+
+exports.campaign_products_category_enum = exports.$Enums.campaign_products_category_enum = {
+  health_wellness: 'health_wellness',
+  medical_supplies: 'medical_supplies',
+  baby_mother_care: 'baby_mother_care',
+  fitness_lifestyle: 'fitness_lifestyle',
+  nutrition_healthy_living: 'nutrition_healthy_living',
+  others: 'others',
+  medications: 'medications'
+};
+
+exports.carts_status_enum = exports.$Enums.carts_status_enum = {
+  draft: 'draft',
+  submitted: 'submitted',
+  confirmed: 'confirmed',
+  cancelled: 'cancelled'
+};
+
+exports.product_media_mediatype_enum = exports.$Enums.product_media_mediatype_enum = {
+  image: 'image',
+  video: 'video'
+};
+
+exports.products_category_enum = exports.$Enums.products_category_enum = {
+  health_wellness: 'health_wellness',
+  medical_supplies: 'medical_supplies',
+  baby_mother_care: 'baby_mother_care',
+  fitness_lifestyle: 'fitness_lifestyle',
+  nutrition_healthy_living: 'nutrition_healthy_living',
+  others: 'others',
+  medications: 'medications'
+};
+
+exports.products_subcategory_enum = exports.$Enums.products_subcategory_enum = {
+  skincare_beauty: 'skincare_beauty',
+  hair_body_care: 'hair_body_care',
+  personal_hygiene: 'personal_hygiene',
+  sexual_wellness: 'sexual_wellness',
+  men_women_care: 'men_women_care',
+  first_aid_kits: 'first_aid_kits',
+  diagnostic_tools: 'diagnostic_tools',
+  mobility_aids: 'mobility_aids',
+  surgical_disposable_supplies: 'surgical_disposable_supplies',
+  baby_food: 'baby_food',
+  diapers_wipes: 'diapers_wipes',
+  baby_clothing_care: 'baby_clothing_care',
+  nursing_maternity_products: 'nursing_maternity_products',
+  home_workout_equipment: 'home_workout_equipment',
+  sports_accessories: 'sports_accessories',
+  smart_watches_trackers: 'smart_watches_trackers',
+  weight_management_nutrition: 'weight_management_nutrition',
+  vitamins_supplements: 'vitamins_supplements',
+  herbal_natural_remedies: 'herbal_natural_remedies',
+  energy_performance_products: 'energy_performance_products',
+  healthy_snacks_drinks: 'healthy_snacks_drinks',
+  health_gadgets_devices: 'health_gadgets_devices',
+  home_care_cleaning_essentials: 'home_care_cleaning_essentials',
+  protective_safety_items: 'protective_safety_items',
+  aromatherapy_essential_oils: 'aromatherapy_essential_oils',
+  prescription_drugs: 'prescription_drugs',
+  over_the_counter: 'over_the_counter',
+  vitamins_otc: 'vitamins_otc',
+  topical_medications: 'topical_medications'
+};
+
+exports.products_status_enum = exports.$Enums.products_status_enum = {
+  pending: 'pending',
+  approved: 'approved',
+  failed: 'failed'
+};
+
+exports.promotions_type_enum = exports.$Enums.promotions_type_enum = {
+  boost_account: 'boost_account',
+  get_sales: 'get_sales',
+  campaign: 'campaign'
+};
+
+exports.promotions_duration_enum = exports.$Enums.promotions_duration_enum = {
+  one_day: 'one_day',
+  one_week: 'one_week',
+  one_month: 'one_month',
+  custom: 'custom'
+};
+
+exports.promotions_status_enum = exports.$Enums.promotions_status_enum = {
+  pending: 'pending',
+  active: 'active',
+  completed: 'completed',
+  cancelled: 'cancelled',
+  failed: 'failed'
+};
+
+exports.promotions_paymentstatus_enum = exports.$Enums.promotions_paymentstatus_enum = {
+  pending: 'pending',
+  paid: 'paid',
+  failed: 'failed'
+};
+
+exports.vendor_documents_documenttype_enum = exports.$Enums.vendor_documents_documenttype_enum = {
+  government_id: 'government_id',
+  business_registration: 'business_registration'
+};
+
+exports.vendor_documents_verificationstatus_enum = exports.$Enums.vendor_documents_verificationstatus_enum = {
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected'
+};
+
+exports.vendor_profiles_businesscategory_enum = exports.$Enums.vendor_profiles_businesscategory_enum = {
+  health_wellness: 'health_wellness',
+  medical_supplies: 'medical_supplies',
+  baby_mother_care: 'baby_mother_care',
+  fitness_lifestyle: 'fitness_lifestyle',
+  nutrition_healthy_living: 'nutrition_healthy_living',
+  others: 'others'
+};
+
+exports.vendor_profiles_verificationstatus_enum = exports.$Enums.vendor_profiles_verificationstatus_enum = {
+  pending: 'pending',
+  documents_required: 'documents_required',
+  under_review: 'under_review',
+  approved: 'approved',
+  rejected: 'rejected',
+  suspended: 'suspended'
+};
+
+exports.vendor_verification_requests_requesttype_enum = exports.$Enums.vendor_verification_requests_requesttype_enum = {
+  initial_verification: 'initial_verification',
+  re_verification: 're_verification',
+  document_update: 'document_update'
+};
+
+exports.vendor_verification_requests_status_enum = exports.$Enums.vendor_verification_requests_status_enum = {
+  pending: 'pending',
+  in_progress: 'in_progress',
+  approved: 'approved',
+  rejected: 'rejected',
+  requires_changes: 'requires_changes'
+};
+
+exports.vendor_verification_requests_priority_enum = exports.$Enums.vendor_verification_requests_priority_enum = {
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+  urgent: 'urgent'
 };
 
 exports.Prisma.ModelName = {
@@ -3749,7 +4053,17 @@ exports.Prisma.ModelName = {
   verification_review_queue: 'verification_review_queue',
   verification_status_history: 'verification_status_history',
   wallet_withdrawals: 'wallet_withdrawals',
-  wallets: 'wallets'
+  wallets: 'wallets',
+  campaign_products: 'campaign_products',
+  cart_items: 'cart_items',
+  carts: 'carts',
+  product_media: 'product_media',
+  products: 'products',
+  promotion_products: 'promotion_products',
+  promotions: 'promotions',
+  vendor_documents: 'vendor_documents',
+  vendor_profiles: 'vendor_profiles',
+  vendor_verification_requests: 'vendor_verification_requests'
 };
 
 /**

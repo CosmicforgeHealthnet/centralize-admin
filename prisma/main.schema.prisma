@@ -36,7 +36,7 @@ model admin_ops_dead_letter_jobs {
   retryCount     Int                               @default(0)
   maxRetries     Int                               @default(3)
   status         admin_ops_dead_letter_status_enum @default(pending_retry)
-  resolvedAt     DateTime?                        @db.Timestamp(6)
+  resolvedAt     DateTime?                         @db.Timestamp(6)
   resolvedBy     String?                           @db.Uuid
   createdAt      DateTime                          @default(now()) @db.Timestamp(6)
   updatedAt      DateTime                          @default(now()) @db.Timestamp(6)
@@ -179,32 +179,39 @@ model admin_ops_webhook_endpoints {
   createdAt   DateTime @default(now()) @db.Timestamp(6)
   updatedAt   DateTime @default(now()) @db.Timestamp(6)
 }
-model admin_settings {
-  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  category    String   @db.VarChar(100)
-  key         String   @db.VarChar(200)
-  value       Json
-  updatedBy   String?  @db.Uuid
-  createdAt   DateTime @default(now()) @db.Timestamp(6)
-  updatedAt   DateTime @default(now()) @db.Timestamp(6)
 
-  @@unique([category, key])
-  @@index([category])
+model admin_settings {
+  id                     String                   @id(map: "PK_admin_settings") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  category               String                   @db.VarChar(100)
+  key                    String                   @db.VarChar(200)
+  value                  Json                     @db.Json
+  updatedBy              String?                  @db.Uuid
+  createdAt              DateTime                 @default(now()) @db.Timestamp(6)
+  updatedAt              DateTime                 @default(now()) @db.Timestamp(6)
+  users                  users?                   @relation(fields: [updatedBy], references: [id], onUpdate: NoAction, map: "FK_admin_settings_updatedBy")
+  admin_settings_history admin_settings_history[]
+
+  @@unique([category, key], map: "UQ_admin_settings_category_key")
+  @@index([category], map: "IDX_admin_settings_category")
+  @@index([updatedBy], map: "IDX_admin_settings_updatedBy")
 }
 
 model admin_settings_history {
-  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  settingId   String   @db.Uuid
-  category    String   @db.VarChar(100)
-  key         String   @db.VarChar(200)
-  oldValue    Json?
-  newValue    Json
-  changedBy   String   @db.Uuid
-  changedAt   DateTime @default(now()) @db.Timestamp(6)
+  id             String         @id(map: "PK_admin_settings_history") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  settingId      String         @db.Uuid
+  category       String         @db.VarChar(100)
+  key            String         @db.VarChar(200)
+  oldValue       Json?          @db.Json
+  newValue       Json           @db.Json
+  changedBy      String         @db.Uuid
+  changedAt      DateTime       @default(now()) @db.Timestamp(6)
+  users          users          @relation(fields: [changedBy], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_admin_settings_history_changedBy")
+  admin_settings admin_settings @relation(fields: [settingId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_admin_settings_history_settingId")
 
-  @@index([settingId])
-  @@index([category, key])
-  @@index([changedAt])
+  @@index([category, key], map: "IDX_admin_settings_history_category_key")
+  @@index([changedAt], map: "IDX_admin_settings_history_changedAt")
+  @@index([changedBy], map: "IDX_admin_settings_history_changedBy")
+  @@index([settingId], map: "IDX_admin_settings_history_settingId")
 }
 
 model allergies {
@@ -1453,8 +1460,8 @@ model lab_facilities {
   updatedAt                  DateTime                          @default(now()) @db.Timestamp(6)
   adminUserId                String?                           @db.Uuid
   approvedById               String?                           @db.Uuid
-  users_lab_facilities_adminUserIdTousers   users?  @relation("lab_facilities_adminUserIdTousers", fields: [adminUserId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-users_lab_facilities_approvedByIdTousers  users?  @relation("lab_facilities_approvedByIdTousers", fields: [approvedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_lab_facilities_adminUserIdTousers   users?  @relation("lab_facilities_adminUserIdTousers", fields: [adminUserId], references: [id])
+  users_lab_facilities_approvedByIdTousers  users?  @relation("lab_facilities_approvedByIdTousers", fields: [approvedById], references: [id])
   registrationStep           Int                               @default(1)
   registrationCompleted      Boolean                           @default(false)
   registrationTokenHash      String?                           @db.VarChar(255)
@@ -1463,6 +1470,7 @@ users_lab_facilities_approvedByIdTousers  users?  @relation("lab_facilities_appr
   longitude                  Float?
   businessRegistrationUrl    String?                           @db.VarChar(500)
   govIdUrl                   String?                           @db.VarChar(500)
+  staffCount                 Int?
   audit_logs                 audit_logs[]
   lab_personnel              lab_personnel[]
   lab_test_catalog           lab_test_catalog[]
@@ -1595,6 +1603,8 @@ model lab_personnel {
   firstLoginCompleted Boolean                   @default(false)
   createdAt           DateTime                  @default(now()) @db.Timestamp(6)
   updatedAt           DateTime                  @default(now()) @db.Timestamp(6)
+  active              Boolean                   @default(true)
+  terminatedAt        DateTime?                 @db.Timestamp(6)
   lab_facilities      lab_facilities            @relation(fields: [facilityId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_34d238c80cf0a883232073708cf")
 
   @@index([email], map: "IDX_069392e9e3d74c641d8af7876a")
@@ -2355,11 +2365,13 @@ model prescriptions {
   currency                                        String?                               @db.VarChar(3)
   availabilityStatus                              prescriptions_availabilitystatus_enum @default(pending)
   dispatchedAt                                    DateTime?                             @db.Timestamp(6)
+  driverId                                        String?                               @db.Uuid
   invoices                                        invoices[]
   users_prescriptions_assignedPharmacistIdTousers users?                                @relation("prescriptions_assignedPharmacistIdTousers", fields: [assignedPharmacistId], references: [id], onUpdate: NoAction, map: "FK_2345a2f6eb9dee50970bfcb4bbd")
   users_prescriptions_doctorIdTousers             users                                 @relation("prescriptions_doctorIdTousers", fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_42c70415fad4505386e6d7e9dc4")
   users_prescriptions_patientIdTousers            users                                 @relation("prescriptions_patientIdTousers", fields: [patientId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_51f48335657278b20348dde416c")
   pharmacy_profiles                               pharmacy_profiles?                    @relation(fields: [pharmacyId], references: [id], onUpdate: NoAction, map: "FK_5be0de38aef377b8ba2bc94606e")
+  users_prescriptions_driverIdTousers             users?                                @relation("prescriptions_driverIdTousers", fields: [driverId], references: [id], onUpdate: NoAction, map: "FK_prescriptions_driverId")
 
   @@index([consultationId], map: "IDX_29fe8d9d7fd15107817912ff60")
   @@index([createdAt], map: "IDX_34c9597360c36e1993831cce65")
@@ -2370,6 +2382,7 @@ model prescriptions {
   @@index([reference], map: "IDX_5f680454c70e6b2134c5ddc6d1")
   @@index([paymentStatus], map: "IDX_807c3cba73fd06d0f2a680821a")
   @@index([reference], map: "IDX_PRESCRIPTION_REFERENCE")
+  @@index([driverId], map: "IDX_prescriptions_driverId")
 }
 
 model professional_certificates {
@@ -2885,7 +2898,11 @@ model users {
   mustChangePassword                                                              Boolean                          @default(false)
   passwordChangedAt                                                               DateTime?                        @db.Timestamp(6)
   lastLoginAt                                                                     DateTime?                        @db.Timestamp(6)
+  loginAttempts                                                                   Int                              @default(0)
+  lockedUntil                                                                     DateTime?                        @db.Timestamp(6)
   account_support                                                                 account_support[]
+  admin_settings                                                                  admin_settings[]
+  admin_settings_history                                                          admin_settings_history[]
   appointment_chats_appointment_chats_doctorIdTousers                             appointment_chats[]              @relation("appointment_chats_doctorIdTousers")
   appointment_chats_appointment_chats_patientIdTousers                            appointment_chats[]              @relation("appointment_chats_patientIdTousers")
   appointments_appointments_doctorIdTousers                                       appointments[]                   @relation("appointments_doctorIdTousers")
@@ -2934,7 +2951,7 @@ model users {
   lab_wallet_transactions                                                         lab_wallet_transactions[]
   lab_wallets                                                                     lab_wallets[]
   lab_facilities_lab_facilities_adminUserIdTousers   lab_facilities[]  @relation("lab_facilities_adminUserIdTousers")
-lab_facilities_lab_facilities_approvedByIdTousers  lab_facilities[]  @relation("lab_facilities_approvedByIdTousers")
+  lab_facilities_lab_facilities_approvedByIdTousers  lab_facilities[]  @relation("lab_facilities_approvedByIdTousers")
   magic_link_tokens                                                               magic_link_tokens[]
   notification                                                                    notification[]
   password_reset_tokens                                                           password_reset_tokens[]
@@ -2952,6 +2969,7 @@ lab_facilities_lab_facilities_approvedByIdTousers  lab_facilities[]  @relation("
   prescriptions_prescriptions_assignedPharmacistIdTousers                         prescriptions[]                  @relation("prescriptions_assignedPharmacistIdTousers")
   prescriptions_prescriptions_doctorIdTousers                                     prescriptions[]                  @relation("prescriptions_doctorIdTousers")
   prescriptions_prescriptions_patientIdTousers                                    prescriptions[]                  @relation("prescriptions_patientIdTousers")
+  prescriptions_prescriptions_driverIdTousers                                     prescriptions[]                  @relation("prescriptions_driverIdTousers")
   referral_draw_stats                                                             referral_draw_stats[]
   referral_draws                                                                  referral_draws[]
   refresh_tokens                                                                  refresh_tokens[]
@@ -2997,6 +3015,8 @@ lab_facilities_lab_facilities_approvedByIdTousers  lab_facilities[]  @relation("
   @@index([role], map: "IDX_users_role")
   @@index([status], map: "IDX_users_status")
   @@index([username], map: "IDX_users_username")
+  @@index([lockedUntil], map: "IDX_users_lockedUntil")
+  
 }
 
 model verification_api_logs {
@@ -3192,6 +3212,198 @@ model wallets {
   updatedAt       DateTime         @default(now()) @db.Timestamp(6)
   doctorProfileId String?          @unique(map: "REL_3bdf0793392a5a7ee035e8a5ba") @db.Uuid
   doctor_profiles doctor_profiles? @relation(fields: [doctorProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_3bdf0793392a5a7ee035e8a5bad")
+}
+
+model campaign_products {
+  id            String                          @id(map: "PK_campaign_products") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  promotionId   String                          @db.Uuid
+  title         String                          @db.VarChar
+  category      campaign_products_category_enum
+  description   String
+  price         Decimal                         @db.Decimal(12, 2)
+  stockQuantity Int                             @default(0)
+  mediaUrls     Json?                           @db.Json
+  createdAt     DateTime                        @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime                        @default(now()) @db.Timestamp(6)
+  promotions    promotions                      @relation(fields: [promotionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_campaign_products_promotion")
+}
+
+model cart_items {
+  id            String   @id(map: "PK_cart_items") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  cartId        String   @db.Uuid
+  productId     String   @db.Uuid
+  quantity      Int      @default(1)
+  priceSnapshot Decimal  @db.Decimal(12, 2)
+  productTitle  String   @db.VarChar
+  createdAt     DateTime @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime @default(now()) @db.Timestamp(6)
+  carts         carts    @relation(fields: [cartId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_cart_items_cart")
+  products      products @relation(fields: [productId], references: [id], onUpdate: NoAction, map: "FK_cart_items_product")
+
+  @@index([cartId], map: "IDX_cart_items_cartId")
+  @@index([productId], map: "IDX_cart_items_productId")
+}
+
+model carts {
+  id             String            @id(map: "PK_carts") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  patientId      String            @db.Uuid
+  vendorId       String            @db.Uuid
+  status         carts_status_enum @default(draft)
+  patientNote    String?
+  vendorNote     String?
+  confirmedTotal Decimal?          @db.Decimal(12, 2)
+  submittedAt    DateTime?         @db.Timestamp(6)
+  confirmedAt    DateTime?         @db.Timestamp(6)
+  cancelledAt    DateTime?         @db.Timestamp(6)
+  cancelledBy    String?           @db.VarChar
+  createdAt      DateTime          @default(now()) @db.Timestamp(6)
+  updatedAt      DateTime          @default(now()) @db.Timestamp(6)
+  cart_items     cart_items[]
+
+  @@index([patientId], map: "IDX_carts_patientId")
+  @@index([patientId, vendorId], map: "IDX_carts_patientId_vendorId")
+  @@index([status], map: "IDX_carts_status")
+  @@index([vendorId], map: "IDX_carts_vendorId")
+}
+
+model product_media {
+  id        String                       @id(map: "PK_product_media") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  productId String                       @db.Uuid
+  mediaUrl  String                       @db.VarChar
+  mediaType product_media_mediatype_enum @default(image)
+  isPrimary Boolean                      @default(false)
+  createdAt DateTime                     @default(now()) @db.Timestamp(6)
+  products  products                     @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_product_media_product")
+
+  @@index([productId], map: "IDX_product_media_productId")
+}
+
+model products {
+  id                 String                    @id(map: "PK_products") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  vendorId           String                    @db.Uuid
+  title              String                    @db.VarChar
+  description        String
+  price              Decimal                   @db.Decimal(12, 2)
+  stockQuantity      Int                       @default(0)
+  category           products_category_enum
+  subcategory        products_subcategory_enum
+  status             products_status_enum      @default(pending)
+  rejectionReason    String?
+  isActive           Boolean                   @default(true)
+  createdAt          DateTime                  @default(now()) @db.Timestamp(6)
+  updatedAt          DateTime                  @default(now()) @db.Timestamp(6)
+  cart_items         cart_items[]
+  product_media      product_media[]
+  vendor_profiles    vendor_profiles           @relation(fields: [vendorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_products_vendor")
+  promotion_products promotion_products[]
+
+  @@index([category], map: "IDX_products_category")
+  @@index([isActive], map: "IDX_products_isActive")
+  @@index([status], map: "IDX_products_status")
+  @@index([vendorId], map: "IDX_products_vendorId")
+}
+
+model promotion_products {
+  id          String     @id(map: "PK_promotion_products") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  promotionId String     @db.Uuid
+  productId   String     @db.Uuid
+  createdAt   DateTime   @default(now()) @db.Timestamp(6)
+  products    products   @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_promotion_products_product")
+  promotions  promotions @relation(fields: [promotionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_promotion_products_promotion")
+}
+
+model promotions {
+  id                 String                        @id(map: "PK_promotions") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  vendorId           String                        @db.Uuid
+  type               promotions_type_enum
+  subType            String?                       @db.VarChar
+  title              String                        @db.VarChar
+  duration           promotions_duration_enum
+  customDays         Int?
+  startDate          DateTime?                     @db.Timestamp(6)
+  endDate            DateTime?                     @db.Timestamp(6)
+  status             promotions_status_enum        @default(pending)
+  pricePaid          Decimal                       @db.Decimal(12, 2)
+  paymentStatus      promotions_paymentstatus_enum @default(pending)
+  paymentReference   String?                       @db.VarChar
+  paymentAuthUrl     String?                       @db.VarChar
+  paymentProvider    String?                       @db.VarChar
+  termsAccepted      Boolean                       @default(false)
+  createdAt          DateTime                      @default(now()) @db.Timestamp(6)
+  updatedAt          DateTime                      @default(now()) @db.Timestamp(6)
+  campaign_products  campaign_products[]
+  promotion_products promotion_products[]
+  vendor_profiles    vendor_profiles               @relation(fields: [vendorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_promotions_vendor")
+
+  @@index([paymentReference], map: "IDX_promotions_paymentReference")
+  @@index([status], map: "IDX_promotions_status")
+  @@index([vendorId], map: "IDX_promotions_vendorId")
+}
+
+model vendor_documents {
+  id                 String                                   @id(map: "PK_vendor_documents") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  vendorId           String                                   @db.Uuid
+  documentType       vendor_documents_documenttype_enum
+  documentUrl        String                                   @db.VarChar
+  fileName           String?                                  @db.VarChar
+  mimeType           String?                                  @db.VarChar
+  verificationStatus vendor_documents_verificationstatus_enum @default(pending)
+  createdAt          DateTime                                 @default(now()) @db.Timestamp(6)
+  updatedAt          DateTime                                 @default(now()) @db.Timestamp(6)
+  vendor_profiles    vendor_profiles                          @relation(fields: [vendorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_vendor_documents_vendor")
+}
+
+model vendor_profiles {
+  id                           String                                  @id(map: "PK_vendor_profiles") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId                       String                                  @unique(map: "UQ_vendor_profiles_userId") @db.Uuid
+  businessName                 String                                  @db.VarChar
+  businessCategory             vendor_profiles_businesscategory_enum
+  businessEmail                String                                  @db.VarChar
+  businessPhone                String                                  @db.VarChar
+  country                      String                                  @db.VarChar(100)
+  state                        String                                  @db.VarChar(100)
+  city                         String                                  @db.VarChar(100)
+  fullAddress                  String
+  businessWebsite              String?                                 @db.VarChar
+  businessDescription          String
+  logoUrl                      String?                                 @db.VarChar
+  verificationStatus           vendor_profiles_verificationstatus_enum @default(pending)
+  isActive                     Boolean                                 @default(false)
+  documentsSubmitted           Boolean                                 @default(false)
+  isHybridPharmacy             Boolean                                 @default(false)
+  pharmacyProfileId            String?                                 @db.Uuid
+  notificationPreferences      Json?                                   @db.Json
+  createdAt                    DateTime                                @default(now()) @db.Timestamp(6)
+  updatedAt                    DateTime                                @default(now()) @db.Timestamp(6)
+  products                     products[]
+  promotions                   promotions[]
+  vendor_documents             vendor_documents[]
+  vendor_verification_requests vendor_verification_requests[]
+
+  @@index([businessCategory], map: "IDX_vendor_profiles_businessCategory")
+  @@index([isHybridPharmacy], map: "IDX_vendor_profiles_isHybridPharmacy")
+  @@index([userId], map: "IDX_vendor_profiles_userId")
+  @@index([verificationStatus], map: "IDX_vendor_profiles_verificationStatus")
+}
+
+model vendor_verification_requests {
+  id              String                                        @id(map: "PK_vendor_verification_requests") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  vendorId        String                                        @db.Uuid
+  requestType     vendor_verification_requests_requesttype_enum @default(initial_verification)
+  status          vendor_verification_requests_status_enum      @default(pending)
+  priority        vendor_verification_requests_priority_enum    @default(medium)
+  requestNotes    String?
+  rejectionReason String?
+  reviewNotes     String?
+  assignedTo      String?                                       @db.Uuid
+  reviewedBy      String?                                       @db.Uuid
+  submittedAt     DateTime?                                     @db.Timestamp(6)
+  assignedAt      DateTime?                                     @db.Timestamp(6)
+  reviewedAt      DateTime?                                     @db.Timestamp(6)
+  completedAt     DateTime?                                     @db.Timestamp(6)
+  createdAt       DateTime                                      @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime                                      @default(now()) @db.Timestamp(6)
+  vendor_profiles vendor_profiles                               @relation(fields: [vendorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_vendor_verification_requests_vendor")
 }
 
 enum account_support_issuetype_enum {
@@ -4235,6 +4447,7 @@ enum users_role_enum {
   result_reviewer
   assistant
   dispatcher
+  vendor
 }
 
 enum users_status_enum {
@@ -4245,6 +4458,8 @@ enum users_status_enum {
   pending_pharmacy_verification
   pharmacy_active
   locked
+  pending_vendor_verification
+  vendor_active
 }
 
 enum users_tier_enum {
@@ -4345,4 +4560,151 @@ enum wallet_withdrawals_status_enum {
   failed
   cancelled
   pending_otp
+}
+
+enum campaign_products_category_enum {
+  health_wellness
+  medical_supplies
+  baby_mother_care
+  fitness_lifestyle
+  nutrition_healthy_living
+  others
+  medications
+}
+
+enum carts_status_enum {
+  draft
+  submitted
+  confirmed
+  cancelled
+}
+
+enum product_media_mediatype_enum {
+  image
+  video
+}
+
+enum products_category_enum {
+  health_wellness
+  medical_supplies
+  baby_mother_care
+  fitness_lifestyle
+  nutrition_healthy_living
+  others
+  medications
+}
+
+enum products_status_enum {
+  pending
+  approved
+  failed
+}
+
+enum products_subcategory_enum {
+  skincare_beauty
+  hair_body_care
+  personal_hygiene
+  sexual_wellness
+  men_women_care
+  first_aid_kits
+  diagnostic_tools
+  mobility_aids
+  surgical_disposable_supplies
+  baby_food
+  diapers_wipes
+  baby_clothing_care
+  nursing_maternity_products
+  home_workout_equipment
+  sports_accessories
+  smart_watches_trackers
+  weight_management_nutrition
+  vitamins_supplements
+  herbal_natural_remedies
+  energy_performance_products
+  healthy_snacks_drinks
+  health_gadgets_devices
+  home_care_cleaning_essentials
+  protective_safety_items
+  aromatherapy_essential_oils
+  prescription_drugs
+  over_the_counter
+  vitamins_otc
+  topical_medications
+}
+
+enum promotions_duration_enum {
+  one_day
+  one_week
+  one_month
+  custom
+}
+
+enum promotions_paymentstatus_enum {
+  pending
+  paid
+  failed
+}
+
+enum promotions_status_enum {
+  pending
+  active
+  completed
+  cancelled
+  failed
+}
+
+enum promotions_type_enum {
+  boost_account
+  get_sales
+  campaign
+}
+
+enum vendor_documents_documenttype_enum {
+  government_id
+  business_registration
+}
+
+enum vendor_documents_verificationstatus_enum {
+  pending
+  approved
+  rejected
+}
+
+enum vendor_profiles_businesscategory_enum {
+  health_wellness
+  medical_supplies
+  baby_mother_care
+  fitness_lifestyle
+  nutrition_healthy_living
+  others
+}
+
+enum vendor_profiles_verificationstatus_enum {
+  pending
+  documents_required
+  under_review
+  approved
+  rejected
+  suspended
+}
+
+enum vendor_verification_requests_priority_enum {
+  low
+  medium
+  high
+  urgent
+}
+
+enum vendor_verification_requests_requesttype_enum {
+  initial_verification
+  re_verification
+  document_update
+}
+
+enum vendor_verification_requests_status_enum {
+  pending
+  in_progress
+  approved
+  rejected
+  requires_changes
 }
