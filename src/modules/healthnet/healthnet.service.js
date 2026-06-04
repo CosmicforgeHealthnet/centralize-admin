@@ -91,6 +91,38 @@ const FINANCE_APPOINTMENT_HISTORY_DATE_FILTERS = [
   "month",
   "all",
 ];
+const VENDOR_LIST_STATUSES = ["active", "pending", "inactive", "all"];
+const VENDOR_ORDER_STATUSES = ["Paid", "Pending", "Failed", "all"];
+
+const VENDOR_MONTH_LABELS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sept",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+const VENDOR_DOCUMENT_SLOTS = [
+  {
+    type: "government_id",
+    label: "Government Approved I.D",
+  },
+  {
+    type: "business_registration",
+    label: "Registration Document",
+  },
+  {
+    type: "license",
+    label: "License",
+  },
+];
 
 const LAB_STAFF_GROUPS = [
   "Phlebotomists",
@@ -328,6 +360,51 @@ const PHARMACY_DOCUMENT_SELECT = {
       mime_type: true,
     },
   },
+};
+
+const VENDOR_SELECT = {
+  id: true,
+  userId: true,
+  businessName: true,
+  businessEmail: true,
+  businessPhone: true,
+  country: true,
+  state: true,
+  city: true,
+  fullAddress: true,
+  logoUrl: true,
+  verificationStatus: true,
+  isActive: true,
+  createdAt: true,
+};
+
+const VENDOR_DETAIL_SELECT = {
+  id: true,
+  userId: true,
+  businessName: true,
+  businessEmail: true,
+  businessPhone: true,
+  country: true,
+  state: true,
+  city: true,
+  fullAddress: true,
+  businessWebsite: true,
+  logoUrl: true,
+  verificationStatus: true,
+  isActive: true,
+  isHybridPharmacy: true,
+  pharmacyProfileId: true,
+  notificationPreferences: true,
+  createdAt: true,
+};
+
+const VENDOR_DOCUMENT_SELECT = {
+  id: true,
+  documentType: true,
+  documentUrl: true,
+  fileName: true,
+  mimeType: true,
+  createdAt: true,
 };
 
 const PATIENT_DETAIL_SELECT = {
@@ -1417,6 +1494,454 @@ function buildPharmaciesWhere(query) {
   };
 }
 
+function parseVendorListStatus(value) {
+  if (value === undefined || value === null || value === "") {
+    return "all";
+  }
+
+  const status = String(value).trim().toLowerCase();
+  if (!VENDOR_LIST_STATUSES.includes(status)) {
+    throw new ApiError(400, "Invalid status.");
+  }
+
+  return status;
+}
+
+function parseVendorOrderStatus(value) {
+  if (value === undefined || value === null || value === "") {
+    return "all";
+  }
+
+  const normalizedStatus = String(value).trim().toLowerCase();
+  const status = VENDOR_ORDER_STATUSES.find(
+    (item) => item.toLowerCase() === normalizedStatus,
+  );
+
+  if (!status) {
+    throw new ApiError(400, "Invalid order status.");
+  }
+
+  return status;
+}
+
+function parseVendorYear(value) {
+  if (value === undefined || value === null || value === "") {
+    return new Date().getUTCFullYear();
+  }
+
+  return parseYear(value);
+}
+
+function getYearRange(year) {
+  return {
+    gte: new Date(Date.UTC(year, 0, 1)),
+    lt: new Date(Date.UTC(year + 1, 0, 1)),
+  };
+}
+
+function buildVendorsWhere(query) {
+  const searchQuery = String(query.search || "").trim();
+  const status = parseVendorListStatus(query.status);
+  const andConditions = [];
+
+  if (searchQuery) {
+    andConditions.push({
+      OR: [
+        { businessName: { contains: searchQuery, mode: "insensitive" } },
+        { businessEmail: { contains: searchQuery, mode: "insensitive" } },
+        { businessPhone: { contains: searchQuery, mode: "insensitive" } },
+        { country: { contains: searchQuery, mode: "insensitive" } },
+        { state: { contains: searchQuery, mode: "insensitive" } },
+        { city: { contains: searchQuery, mode: "insensitive" } },
+        { fullAddress: { contains: searchQuery, mode: "insensitive" } },
+        { businessWebsite: { contains: searchQuery, mode: "insensitive" } },
+      ],
+    });
+  }
+
+  if (status === "active") {
+    andConditions.push({
+      verificationStatus: "approved",
+      isActive: true,
+    });
+  } else if (status === "pending") {
+    andConditions.push({
+      verificationStatus: {
+        in: ["pending", "documents_required", "under_review"],
+      },
+    });
+  } else if (status === "inactive") {
+    andConditions.push({
+      OR: [
+        { verificationStatus: { in: ["rejected", "suspended"] } },
+        { verificationStatus: "approved", isActive: false },
+      ],
+    });
+  }
+
+  return andConditions.length > 0 ? { AND: andConditions } : {};
+}
+
+function mapVendorProfileStatus(verificationStatus, isActive) {
+  const normalizedStatus = String(verificationStatus || "").toLowerCase();
+
+  if (normalizedStatus === "approved") {
+    return isActive ? "active" : "inactive";
+  }
+
+  if (["rejected", "suspended"].includes(normalizedStatus)) {
+    return "inactive";
+  }
+
+  return "pending";
+}
+
+function formatVendorLocation(vendor) {
+  const locationParts = [vendor.city, vendor.state, vendor.country].filter(Boolean);
+
+  if (locationParts.length > 0) {
+    return locationParts.join(", ");
+  }
+
+  return vendor.fullAddress || null;
+}
+
+function getJsonField(source, keys) {
+  if (!source || typeof source !== "object" || Array.isArray(source)) {
+    return undefined;
+  }
+
+  for (const key of keys) {
+    if (Object.prototype.hasOwnProperty.call(source, key)) {
+      return source[key];
+    }
+  }
+
+  return undefined;
+}
+
+function getJsonString(source, keys) {
+  const value = getJsonField(source, keys);
+  if (value === undefined || value === null || value === "") return null;
+
+  return String(value).trim() || null;
+}
+
+function parseJsonBoolean(value) {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value > 0;
+  if (typeof value === "string") {
+    const normalizedValue = value.trim().toLowerCase();
+    if (["true", "yes", "1", "enabled"].includes(normalizedValue)) return true;
+    if (["false", "no", "0", "disabled"].includes(normalizedValue)) return false;
+  }
+
+  return false;
+}
+
+function normalizeHourValue(value) {
+  if (value === undefined || value === null || value === "") {
+    return "";
+  }
+
+  if (typeof value === "string") {
+    return value.trim();
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(normalizeHourValue).filter(Boolean).join(", ");
+  }
+
+  if (typeof value === "object") {
+    const start = value.open || value.start || value.from;
+    const end = value.close || value.end || value.to;
+
+    if (start && end) {
+      return `${start} - ${end}`;
+    }
+
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return "";
+    }
+  }
+
+  return String(value).trim();
+}
+
+function getVendorHours(vendor) {
+  const hours = getJsonField(vendor.notificationPreferences, [
+    "operatingHours",
+    "businessHours",
+    "hours",
+  ]);
+
+  const emptyHours = DAY_ORDER.reduce((result, day) => {
+    result[day] = "";
+    return result;
+  }, {});
+
+  if (!hours || typeof hours !== "object" || Array.isArray(hours)) {
+    return emptyHours;
+  }
+
+  return DAY_ORDER.reduce((result, day) => {
+    result[day] = normalizeHourValue(
+      hours[day] ||
+        hours[DAY_LABELS[day]] ||
+        hours[DAY_SHORT_LABELS[day]] ||
+        "",
+    );
+    return result;
+  }, {});
+}
+
+function getVendorDeliveryCapacity(vendor) {
+  const explicitValue = getJsonField(vendor.notificationPreferences, [
+    "deliveryCapacity",
+    "supportsDelivery",
+    "deliveryAvailable",
+    "deliveryEnabled",
+  ]);
+
+  if (explicitValue !== undefined && explicitValue !== null) {
+    return parseJsonBoolean(explicitValue);
+  }
+
+  return false;
+}
+
+function getVendorStaffCount(vendor) {
+  const value = getJsonField(vendor.notificationPreferences, [
+    "staffCount",
+    "numberOfStaff",
+    "employeeCount",
+  ]);
+  const staffCount = Number(value);
+
+  if (!Number.isInteger(staffCount) || staffCount < 0) {
+    return 0;
+  }
+
+  return staffCount;
+}
+
+function mapVendorRow(vendor, owner) {
+  return {
+    id: vendor.id,
+    businessName: vendor.businessName || null,
+    location: formatVendorLocation(vendor),
+    email: vendor.businessEmail || owner?.email || null,
+    phone: vendor.businessPhone || owner?.phoneNumber || null,
+    joiningDate: formatJoiningDate(vendor.createdAt),
+    status: mapVendorProfileStatus(vendor.verificationStatus, vendor.isActive),
+    avatarUrl: vendor.logoUrl || owner?.profileImageUrl || null,
+  };
+}
+
+function mapVendorDetail(vendor, owner) {
+  return {
+    id: vendor.id,
+    businessName: vendor.businessName || null,
+    registrationNumber: getJsonString(vendor.notificationPreferences, [
+      "registrationNumber",
+      "businessRegistrationNumber",
+      "companyRegistrationNumber",
+      "cacNumber",
+    ]),
+    businessAddress: vendor.fullAddress || null,
+    pharmacyWebsite: vendor.businessWebsite || null,
+    contactName:
+      getJsonString(vendor.notificationPreferences, ["contactName"]) ||
+      owner?.fullName ||
+      null,
+    phone: vendor.businessPhone || owner?.phoneNumber || null,
+    email: vendor.businessEmail || owner?.email || null,
+    location: formatVendorLocation(vendor),
+    registrationDate: formatJoiningDate(vendor.createdAt),
+    status: mapVendorProfileStatus(vendor.verificationStatus, vendor.isActive),
+    avatarUrl: vendor.logoUrl || owner?.profileImageUrl || null,
+    hours: getVendorHours(vendor),
+    deliveryCapacity: getVendorDeliveryCapacity(vendor),
+    staffCount: getVendorStaffCount(vendor),
+  };
+}
+
+function normalizeVendorDocumentType(documentType) {
+  const normalizedType = String(documentType || "").trim().toLowerCase();
+
+  if (["government_id", "gov_id", "id_card"].includes(normalizedType)) {
+    return "government_id";
+  }
+
+  if (
+    [
+      "business_registration",
+      "registration_document",
+      "registration",
+    ].includes(normalizedType)
+  ) {
+    return "business_registration";
+  }
+
+  if (normalizedType === "license") {
+    return "license";
+  }
+
+  return null;
+}
+
+function formatIsoDateTime(value) {
+  if (!value) return null;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return date.toISOString();
+}
+
+function mapVendorDocuments(documents) {
+  const documentsByType = new Map();
+
+  for (const document of documents) {
+    const type = normalizeVendorDocumentType(document.documentType);
+    if (!type || documentsByType.has(type)) continue;
+
+    documentsByType.set(type, document);
+  }
+
+  return VENDOR_DOCUMENT_SLOTS.map((slot) => {
+    const document = documentsByType.get(slot.type);
+
+    return {
+      id: document?.id || null,
+      label: slot.label,
+      fileSize: null,
+      fileType: document?.mimeType || inferFileType(document?.documentUrl) || null,
+      fileUrl: document?.documentUrl || null,
+      uploadedAt: formatIsoDateTime(document?.createdAt),
+    };
+  });
+}
+
+function mapVendorProductStatus(product) {
+  const stock = Number(product.stockQuantity || 0);
+
+  if (!product.isActive || product.status === "failed" || stock <= 0) {
+    return "Out of Stock";
+  }
+
+  if (product.status === "pending" || stock <= 10) {
+    return "Limited";
+  }
+
+  return "Available";
+}
+
+function formatMoneyString(value) {
+  return roundMoney(value).toFixed(2);
+}
+
+function getCartTotal(cart) {
+  if (cart.confirmedTotal !== undefined && cart.confirmedTotal !== null) {
+    return Number(cart.confirmedTotal || 0);
+  }
+
+  return (cart.cart_items || []).reduce((total, item) => (
+    total + Number(item.priceSnapshot || 0) * Number(item.quantity || 0)
+  ), 0);
+}
+
+function getLatestTransactionByServiceId(transactions) {
+  const transactionsByServiceId = new Map();
+
+  for (const transaction of transactions) {
+    if (!transaction.serviceId || transactionsByServiceId.has(transaction.serviceId)) {
+      continue;
+    }
+
+    transactionsByServiceId.set(transaction.serviceId, transaction);
+  }
+
+  return transactionsByServiceId;
+}
+
+function mapVendorOrderStatus(cart, transaction) {
+  const transactionStatus = String(transaction?.status || "").toLowerCase();
+
+  if (transactionStatus === "completed") return "Paid";
+  if (["failed", "cancelled", "disputed", "refunded"].includes(transactionStatus)) {
+    return "Failed";
+  }
+  if (["pending", "processing"].includes(transactionStatus)) return "Pending";
+
+  if (cart.status === "confirmed") return "Paid";
+  if (cart.status === "cancelled") return "Failed";
+
+  return "Pending";
+}
+
+function getVendorOrderAmount(cart, transaction) {
+  if (transaction?.originalAmount !== undefined && transaction?.originalAmount !== null) {
+    return Number(transaction.originalAmount || 0);
+  }
+
+  return getCartTotal(cart);
+}
+
+function mapVendorOrder(cart, transaction, customer, no) {
+  const date =
+    transaction?.completedAt ||
+    transaction?.createdAt ||
+    cart.confirmedAt ||
+    cart.submittedAt ||
+    cart.createdAt;
+
+  return {
+    id: cart.id,
+    no,
+    orderId:
+      transaction?.providerReference ||
+      transaction?.providerTransactionId ||
+      cart.id,
+    date: formatFinanceDate(date),
+    status: mapVendorOrderStatus(cart, transaction),
+    price: formatMoneyString(getVendorOrderAmount(cart, transaction)),
+    currency: "NGN",
+    customerName: customer?.fullName || null,
+    customerEmail: customer?.email || null,
+    customerAvatarUrl: customer?.profileImageUrl || null,
+  };
+}
+
+function mapVendorProduct(product, metrics, no) {
+  const productMetrics = metrics.get(product.id) || {
+    sale: 0,
+    totalRevenue: 0,
+  };
+
+  return {
+    id: product.id,
+    no,
+    name: product.title || null,
+    productId: product.id,
+    status: mapVendorProductStatus(product),
+    totalStock: Number(product.stockQuantity || 0),
+    price: formatMoneyString(product.price),
+    currency: "NGN",
+    sale: productMetrics.sale,
+    totalRevenue: formatMoneyString(productMetrics.totalRevenue),
+  };
+}
+
+function buildVendorMonthlyRows(values, key) {
+  return VENDOR_MONTH_LABELS.map((month, index) => ({
+    month,
+    value: key === "performance" ? values[index] : roundMoney(values[index]),
+  }));
+}
+
 function buildAppointmentsSearchWhere({ searchQuery, department, category }) {
   const orConditions = [
     { reason: { contains: searchQuery, mode: "insensitive" } },
@@ -2399,6 +2924,505 @@ function groupAppointments(rows) {
 }
 
 class HealthnetService {
+  async _getVendorOrThrow(id, select = { id: true }) {
+    const vendorId = assertValidUuid(id, "vendor id");
+    const vendor = await mainPrisma.vendor_profiles.findUnique({
+      where: {
+        id: vendorId,
+      },
+      select,
+    });
+
+    if (!vendor) {
+      throw new ApiError(404, "Vendor not found.");
+    }
+
+    return { vendorId, vendor };
+  }
+
+  async _getUsersById(userIds) {
+    const uniqueUserIds = Array.from(new Set(userIds.filter(Boolean)));
+
+    if (uniqueUserIds.length === 0) {
+      return new Map();
+    }
+
+    const users = await mainPrisma.users.findMany({
+      where: {
+        id: {
+          in: uniqueUserIds,
+        },
+      },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        phoneNumber: true,
+        profileImageUrl: true,
+      },
+    });
+
+    return new Map(users.map((user) => [user.id, user]));
+  }
+
+  async _getVendorMonthlyRevenueValues(vendorId, year) {
+    const range = getYearRange(year);
+
+    const carts = await mainPrisma.carts.findMany({
+      where: {
+        vendorId,
+        status: "confirmed",
+        OR: [
+          {
+            confirmedAt: range,
+          },
+          {
+            AND: [
+              {
+                confirmedAt: null,
+              },
+              {
+                createdAt: range,
+              },
+            ],
+          },
+        ],
+      },
+      select: {
+        id: true,
+        confirmedTotal: true,
+        confirmedAt: true,
+        createdAt: true,
+        cart_items: {
+          select: {
+            quantity: true,
+            priceSnapshot: true,
+          },
+        },
+      },
+    });
+
+    const cartIds = carts.map((cart) => cart.id);
+    const transactions =
+      cartIds.length > 0
+        ? await mainPrisma.transactions.findMany({
+            where: {
+              serviceType: "pharmacy",
+              status: "completed",
+              serviceId: {
+                in: cartIds,
+              },
+              OR: [
+                {
+                  completedAt: range,
+                },
+                {
+                  AND: [
+                    {
+                      completedAt: null,
+                    },
+                    {
+                      createdAt: range,
+                    },
+                  ],
+                },
+              ],
+            },
+            orderBy: [{ completedAt: "desc" }, { createdAt: "desc" }],
+            select: {
+              serviceId: true,
+              originalAmount: true,
+              completedAt: true,
+              createdAt: true,
+            },
+          })
+        : [];
+    const transactionsByServiceId = getLatestTransactionByServiceId(transactions);
+    const monthlyValues = new Array(12).fill(0);
+
+    for (const cart of carts) {
+      const transaction = transactionsByServiceId.get(cart.id);
+      const date = transaction?.completedAt || transaction?.createdAt || cart.confirmedAt || cart.createdAt;
+
+      if (!date) continue;
+
+      monthlyValues[date.getUTCMonth()] += getVendorOrderAmount(cart, transaction);
+    }
+
+    return monthlyValues;
+  }
+
+  async fetchVendors(query = {}) {
+    const page = parsePositiveInteger(query.page, "page", {
+      defaultValue: 1,
+    });
+    const limit = parsePositiveInteger(query.limit, "limit", {
+      defaultValue: 13,
+      max: 100,
+    });
+    const skip = (page - 1) * limit;
+    const where = buildVendorsWhere(query);
+
+    const [rows, total] = await Promise.all([
+      mainPrisma.vendor_profiles.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: [{ createdAt: "desc" }, { businessName: "asc" }],
+        select: VENDOR_SELECT,
+      }),
+      mainPrisma.vendor_profiles.count({ where }),
+    ]);
+    const ownersById = await this._getUsersById(rows.map((vendor) => vendor.userId));
+
+    return {
+      total,
+      page,
+      limit,
+      vendors: rows.map((vendor) => mapVendorRow(vendor, ownersById.get(vendor.userId))),
+    };
+  }
+
+  async fetchVendorById(id) {
+    const { vendor } = await this._getVendorOrThrow(id, VENDOR_DETAIL_SELECT);
+    const ownersById = await this._getUsersById([vendor.userId]);
+
+    return mapVendorDetail(vendor, ownersById.get(vendor.userId));
+  }
+
+  async fetchVendorDocuments(id) {
+    const { vendorId } = await this._getVendorOrThrow(id);
+
+    const documents = await mainPrisma.vendor_documents.findMany({
+      where: {
+        vendorId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: VENDOR_DOCUMENT_SELECT,
+    });
+
+    return mapVendorDocuments(documents);
+  }
+
+  async fetchVendorProducts(id, query = {}) {
+    const page = parsePositiveInteger(query.page, "page", {
+      defaultValue: 1,
+    });
+    const limit = parsePositiveInteger(query.limit, "limit", {
+      defaultValue: 20,
+      max: 100,
+    });
+    const { vendorId } = await this._getVendorOrThrow(id);
+    const skip = (page - 1) * limit;
+
+    const [rows, total] = await Promise.all([
+      mainPrisma.products.findMany({
+        where: {
+          vendorId,
+        },
+        skip,
+        take: limit,
+        orderBy: [{ createdAt: "desc" }, { title: "asc" }],
+        select: {
+          id: true,
+          title: true,
+          price: true,
+          stockQuantity: true,
+          status: true,
+          isActive: true,
+        },
+      }),
+      mainPrisma.products.count({
+        where: {
+          vendorId,
+        },
+      }),
+    ]);
+
+    const productIds = rows.map((product) => product.id);
+    const confirmedCarts =
+      productIds.length > 0
+        ? await mainPrisma.carts.findMany({
+            where: {
+              vendorId,
+              status: "confirmed",
+            },
+            select: {
+              id: true,
+            },
+          })
+        : [];
+    const confirmedCartIds = confirmedCarts.map((cart) => cart.id);
+    const soldItems =
+      productIds.length > 0 && confirmedCartIds.length > 0
+        ? await mainPrisma.cart_items.findMany({
+            where: {
+              productId: {
+                in: productIds,
+              },
+              cartId: {
+                in: confirmedCartIds,
+              },
+            },
+            select: {
+              productId: true,
+              quantity: true,
+              priceSnapshot: true,
+            },
+          })
+        : [];
+    const metrics = new Map();
+
+    for (const item of soldItems) {
+      const current = metrics.get(item.productId) || {
+        sale: 0,
+        totalRevenue: 0,
+      };
+      const quantity = Number(item.quantity || 0);
+
+      current.sale += quantity;
+      current.totalRevenue += Number(item.priceSnapshot || 0) * quantity;
+      metrics.set(item.productId, current);
+    }
+
+    return {
+      total,
+      page,
+      limit,
+      products: rows.map((product, index) => (
+        mapVendorProduct(product, metrics, skip + index + 1)
+      )),
+    };
+  }
+
+  async fetchVendorOrders(id, query = {}) {
+    const status = parseVendorOrderStatus(query.status);
+    const page = parsePositiveInteger(query.page, "page", {
+      defaultValue: 1,
+    });
+    const limit = parsePositiveInteger(query.limit, "limit", {
+      defaultValue: 20,
+      max: 100,
+    });
+    const { vendorId } = await this._getVendorOrThrow(id);
+    const skip = (page - 1) * limit;
+
+    const carts = await mainPrisma.carts.findMany({
+      where: {
+        vendorId,
+      },
+      orderBy: [
+        { confirmedAt: "desc" },
+        { submittedAt: "desc" },
+        { createdAt: "desc" },
+      ],
+      select: {
+        id: true,
+        patientId: true,
+        status: true,
+        confirmedTotal: true,
+        submittedAt: true,
+        confirmedAt: true,
+        createdAt: true,
+        cart_items: {
+          select: {
+            quantity: true,
+            priceSnapshot: true,
+          },
+        },
+      },
+    });
+    const cartIds = carts.map((cart) => cart.id);
+    const [transactions, customersById] = await Promise.all([
+      cartIds.length > 0
+        ? mainPrisma.transactions.findMany({
+            where: {
+              serviceType: "pharmacy",
+              serviceId: {
+                in: cartIds,
+              },
+            },
+            orderBy: [{ completedAt: "desc" }, { createdAt: "desc" }],
+            select: {
+              id: true,
+              serviceId: true,
+              providerReference: true,
+              providerTransactionId: true,
+              originalAmount: true,
+              status: true,
+              completedAt: true,
+              createdAt: true,
+            },
+          })
+        : [],
+      this._getUsersById(carts.map((cart) => cart.patientId)),
+    ]);
+    const transactionsByServiceId = getLatestTransactionByServiceId(transactions);
+    const filteredOrders = carts
+      .map((cart) => {
+        const transaction = transactionsByServiceId.get(cart.id);
+
+        return {
+          cart,
+          transaction,
+          customer: customersById.get(cart.patientId),
+          status: mapVendorOrderStatus(cart, transaction),
+        };
+      })
+      .filter((order) => status === "all" || order.status === status);
+    const pagedOrders = filteredOrders.slice(skip, skip + limit);
+
+    return {
+      total: filteredOrders.length,
+      page,
+      limit,
+      orders: pagedOrders.map((order, index) => (
+        mapVendorOrder(
+          order.cart,
+          order.transaction,
+          order.customer,
+          skip + index + 1,
+        )
+      )),
+    };
+  }
+
+  async fetchVendorAnalytics(id, query = {}) {
+    const year = parseVendorYear(query.year);
+    const { vendorId } = await this._getVendorOrThrow(id);
+    const monthlyValues = await this._getVendorMonthlyRevenueValues(vendorId, year);
+
+    return {
+      year,
+      analytics: buildVendorMonthlyRows(monthlyValues),
+    };
+  }
+
+  async fetchVendorPerformance(id, query = {}) {
+    const year = parseVendorYear(query.year);
+    const { vendorId } = await this._getVendorOrThrow(id);
+    const monthlyValues = await this._getVendorMonthlyRevenueValues(vendorId, year);
+    const bestMonthRevenue = Math.max(...monthlyValues, 0);
+    // No vendor sales-target model exists, so performance is relative to the best month in the selected year.
+    const performanceValues = monthlyValues.map((value) => (
+      bestMonthRevenue > 0
+        ? Math.min(100, Math.round((value / bestMonthRevenue) * 100))
+        : 0
+    ));
+
+    return {
+      year,
+      performance: buildVendorMonthlyRows(performanceValues, "performance"),
+    };
+  }
+
+  async fetchVendorStats(id) {
+    const { vendorId } = await this._getVendorOrThrow(id);
+    const now = new Date();
+    const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    const nextMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+
+    const [
+      productAggregate,
+      soldOut,
+      newStockAggregate,
+      totalOrders,
+      processing,
+      processed,
+      confirmedCarts,
+    ] = await Promise.all([
+      mainPrisma.products.aggregate({
+        where: {
+          vendorId,
+        },
+        _count: {
+          _all: true,
+        },
+        _sum: {
+          stockQuantity: true,
+        },
+      }),
+      mainPrisma.products.count({
+        where: {
+          vendorId,
+          stockQuantity: {
+            lte: 0,
+          },
+        },
+      }),
+      mainPrisma.products.aggregate({
+        where: {
+          vendorId,
+          createdAt: {
+            gte: startOfMonth,
+            lt: nextMonth,
+          },
+        },
+        _sum: {
+          stockQuantity: true,
+        },
+      }),
+      mainPrisma.carts.count({
+        where: {
+          vendorId,
+        },
+      }),
+      mainPrisma.carts.count({
+        where: {
+          vendorId,
+          status: {
+            in: ["draft", "submitted"],
+          },
+        },
+      }),
+      mainPrisma.carts.count({
+        where: {
+          vendorId,
+          status: "confirmed",
+        },
+      }),
+      mainPrisma.carts.findMany({
+        where: {
+          vendorId,
+          status: "confirmed",
+        },
+        select: {
+          id: true,
+        },
+      }),
+    ]);
+    const confirmedCartIds = confirmedCarts.map((cart) => cart.id);
+    const delivered =
+      confirmedCartIds.length > 0
+        ? await mainPrisma.transactions.count({
+            where: {
+              serviceType: "pharmacy",
+              status: "completed",
+              serviceId: {
+                in: confirmedCartIds,
+              },
+            },
+          })
+        : 0;
+
+    return {
+      products: {
+        total: productAggregate._count._all,
+        totalItems: Number(productAggregate._sum.stockQuantity || 0),
+        soldOut,
+        newStock: Number(newStockAggregate._sum.stockQuantity || 0),
+      },
+      orders: {
+        total: totalOrders,
+        processing,
+        processed,
+        delivered,
+      },
+    };
+  }
+
   async getPharmacies(query = {}) {
     const page = parsePositiveInteger(query.page, "page", {
       defaultValue: 1,

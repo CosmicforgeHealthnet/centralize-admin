@@ -29,6 +29,14 @@ router.get(
   healthnetController.getPharmacyDocuments,
 );
 router.get("/pharmacies/:id", healthnetController.getPharmacyById);
+router.get("/vendors", healthnetController.getVendors);
+router.get("/vendors/:id/documents", healthnetController.getVendorDocuments);
+router.get("/vendors/:id/products", healthnetController.getVendorProducts);
+router.get("/vendors/:id/orders", healthnetController.getVendorOrders);
+router.get("/vendors/:id/analytics", healthnetController.getVendorAnalytics);
+router.get("/vendors/:id/performance", healthnetController.getVendorPerformance);
+router.get("/vendors/:id/stats", healthnetController.getVendorStats);
+router.get("/vendors/:id", healthnetController.getVendorById);
 router.get("/finance/stats", healthnetController.getFinanceStats);
 router.get(
   "/finance/revenue-tracking",
