@@ -70,6 +70,84 @@ const getPharmacyDocuments = asyncHandler(async (req, res) => {
   );
 });
 
+const getVendors = asyncHandler(async (req, res) => {
+  const data = await healthnetService.fetchVendors(req.query);
+
+  return ApiResponse.success(res, 200, "HealthNet vendors retrieved", data);
+});
+
+const getVendorById = asyncHandler(async (req, res) => {
+  const data = await healthnetService.fetchVendorById(req.params.id);
+
+  return ApiResponse.success(res, 200, "HealthNet vendor retrieved", data);
+});
+
+const getVendorDocuments = asyncHandler(async (req, res) => {
+  const data = await healthnetService.fetchVendorDocuments(req.params.id);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet vendor documents retrieved",
+    data,
+  );
+});
+
+const getVendorProducts = asyncHandler(async (req, res) => {
+  const data = await healthnetService.fetchVendorProducts(req.params.id, req.query);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet vendor products retrieved",
+    data,
+  );
+});
+
+const getVendorOrders = asyncHandler(async (req, res) => {
+  const data = await healthnetService.fetchVendorOrders(req.params.id, req.query);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet vendor orders retrieved",
+    data,
+  );
+});
+
+const getVendorAnalytics = asyncHandler(async (req, res) => {
+  const data = await healthnetService.fetchVendorAnalytics(req.params.id, req.query);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet vendor analytics retrieved",
+    data,
+  );
+});
+
+const getVendorPerformance = asyncHandler(async (req, res) => {
+  const data = await healthnetService.fetchVendorPerformance(req.params.id, req.query);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet vendor performance retrieved",
+    data,
+  );
+});
+
+const getVendorStats = asyncHandler(async (req, res) => {
+  const data = await healthnetService.fetchVendorStats(req.params.id);
+
+  return ApiResponse.success(
+    res,
+    200,
+    "HealthNet vendor stats retrieved",
+    data,
+  );
+});
+
 const getFinanceStats = asyncHandler(async (req, res) => {
   const data = await healthnetService.getFinanceStats();
 
@@ -414,6 +492,14 @@ module.exports = {
   getPharmacyById,
   getPharmacyStaff,
   getPharmacyDocuments,
+  getVendors,
+  getVendorById,
+  getVendorDocuments,
+  getVendorProducts,
+  getVendorOrders,
+  getVendorAnalytics,
+  getVendorPerformance,
+  getVendorStats,
   getFinanceStats,
   getFinanceRevenueTracking,
   getFinanceAppointmentsHistory,
