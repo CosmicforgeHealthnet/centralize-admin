@@ -1,4 +1,5 @@
 const { prisma } = require("../../../shared/config/database");
+const { createAuditLog } = require("../../../shared/middlewares/audit.middleware");
 const ApiError = require("../../../shared/utils/ApiError");
 const {
   assertUuid,
@@ -12,10 +13,6 @@ const {
 } = require("../hrm.utils");
 
 const LEAVE_STATUSES = ["PENDING", "APPROVED", "DENIED"];
-const LEAVE_REQUEST_MODEL_NAMES = ["leaveRequest", "leave"];
-const LEAVE_BALANCE_MODEL_NAMES = ["leaveBalance"];
-const MISSING_LEAVE_MODELS = ["LeaveRequest"];
-const MISSING_BALANCE_MODELS = ["LeaveBalance", "LeaveRequest"];
 const MONTHS = [
   "January",
   "February",
@@ -45,17 +42,19 @@ const EMPLOYEE_SELECT = {
   createdAt: true,
 };
 
-function getPrismaModel(delegateNames) {
-  const delegateName = delegateNames.find((name) => prisma[name]);
-  if (!delegateName) return null;
-  const modelName = delegateName.charAt(0).toUpperCase() + delegateName.slice(1);
-  return { delegateName, modelName, delegate: prisma[delegateName] };
-}
+const REVIEWER_SELECT = {
+  id: true,
+  name: true,
+  email: true,
+};
+function assertLeavesSchemaSupported() {
+  const missingModels = [];
+  if (!prisma.leaveRequest) missingModels.push("LeaveRequest");
+  if (!prisma.leaveBalance) missingModels.push("LeaveBalance");
 
-function requireLeaveRequestModel(moduleName) {
-  const model = getPrismaModel(LEAVE_REQUEST_MODEL_NAMES);
-  if (!model) unsupportedEndpoint(moduleName, MISSING_LEAVE_MODELS);
-  return model;
+  if (missingModels.length) {
+    unsupportedEndpoint("Leaves", missingModels);
+  }
 }
 
 function normalizeStatus(value) {
@@ -94,7 +93,7 @@ function leaveRequestWhere(query = {}) {
 }
 
 function mapLeaveListItem(record) {
-  const employee = record.adminUser || record.employee || {};
+  const employee = record.adminUser || {};
   return {
     id: record.id,
     adminUserId: record.adminUserId,
@@ -118,15 +117,6 @@ function mapLeaveHistoryItem(record) {
   };
 }
 
-function leaveDays(record) {
-  if (!record.startDate || !record.resumptionDate) return 0;
-  const start = new Date(record.startDate);
-  const end = new Date(record.resumptionDate);
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) return 0;
-  const millisecondsPerDay = 24 * 60 * 60 * 1000;
-  return Math.max(1, Math.ceil((end - start) / millisecondsPerDay));
-}
-
 async function ensureEmployee(employeeId) {
   const id = assertUuid(employeeId, "employee id");
   const employee = await prisma.adminUser.findUnique({
@@ -137,33 +127,30 @@ async function ensureEmployee(employeeId) {
   return employee;
 }
 
-function getRuntimeFields(modelName) {
-  const models = prisma._runtimeDataModel?.models || {};
-  return new Set((models[modelName]?.fields || []).map((field) => field.name));
-}
-
-function reviewFields(modelName, actor) {
-  const fields = getRuntimeFields(modelName);
-  const data = {};
-  if (fields.has("reviewedBy")) data.reviewedBy = actor?.id || null;
-  if (fields.has("reviewedAt")) data.reviewedAt = new Date();
-  return data;
-}
-
-async function updatePendingLeave({ id, actor, status, moduleName }) {
+async function updatePendingLeave({ id, actor, req, status }) {
+  assertLeavesSchemaSupported();
   const leaveId = assertUuid(id, "leave id");
-  const model = requireLeaveRequestModel(moduleName);
-  const existing = await model.delegate.findUnique({ where: { id: leaveId } });
+  const existing = await prisma.leaveRequest.findUnique({ where: { id: leaveId } });
   if (!existing) throw new ApiError(404, "Leave request not found");
   if (existing.status !== "PENDING") throw new ApiError(400, "Only pending leave requests can be updated");
 
-  const updated = await model.delegate.update({
+  const updated = await prisma.leaveRequest.update({
     where: { id: leaveId },
     data: {
       status,
-      ...reviewFields(model.modelName, actor),
+      reviewedById: actor?.id || null,
+      reviewedAt: new Date(),
     },
     select: { status: true },
+  });
+
+  await createAuditLog({
+    adminUserId: actor.id,
+    action: status === "APPROVED" ? "HRM_LEAVE_APPROVED" : "HRM_LEAVE_DENIED",
+    targetId: leaveId,
+    targetType: "leave_request",
+    metadata: { previousStatus: existing.status, status },
+    req,
   });
 
   return { status: updated.status };
@@ -171,7 +158,8 @@ async function updatePendingLeave({ id, actor, status, moduleName }) {
 
 class LeavesService {
   async getStats() {
-    const model = requireLeaveRequestModel("Leave stats");
+    assertLeavesSchemaSupported();
+
     const current = currentMonthRange();
     const previous = currentMonthRange(-1);
 
@@ -185,14 +173,14 @@ class LeavesService {
       previousRejected,
       previousPending,
     ] = await Promise.all([
-      model.delegate.count(),
-      model.delegate.count({ where: { createdAt: { gte: current.start, lt: current.end } } }),
-      model.delegate.count({ where: { status: "DENIED" } }),
-      model.delegate.count({ where: { status: "PENDING" } }),
-      model.delegate.count({ where: { createdAt: { lt: current.start } } }),
-      model.delegate.count({ where: { createdAt: { gte: previous.start, lt: previous.end } } }),
-      model.delegate.count({ where: { status: "DENIED", createdAt: { gte: previous.start, lt: previous.end } } }),
-      model.delegate.count({ where: { status: "PENDING", createdAt: { gte: previous.start, lt: previous.end } } }),
+      prisma.leaveRequest.count(),
+      prisma.leaveRequest.count({ where: { createdAt: { gte: current.start, lt: current.end } } }),
+      prisma.leaveRequest.count({ where: { status: "DENIED" } }),
+      prisma.leaveRequest.count({ where: { status: "PENDING" } }),
+      prisma.leaveRequest.count({ where: { createdAt: { lt: current.start } } }),
+      prisma.leaveRequest.count({ where: { createdAt: { gte: previous.start, lt: previous.end } } }),
+      prisma.leaveRequest.count({ where: { status: "DENIED", createdAt: { gte: previous.start, lt: previous.end } } }),
+      prisma.leaveRequest.count({ where: { status: "PENDING", createdAt: { gte: previous.start, lt: previous.end } } }),
     ]);
 
     return {
@@ -210,9 +198,10 @@ class LeavesService {
   }
 
   async getChart() {
-    const model = requireLeaveRequestModel("Leave chart");
+    assertLeavesSchemaSupported();
+
     const year = new Date().getUTCFullYear();
-    const records = await model.delegate.findMany({
+    const records = await prisma.leaveRequest.findMany({
       where: {
         startDate: {
           gte: new Date(Date.UTC(year, 0, 1)),
@@ -226,7 +215,7 @@ class LeavesService {
     const counts = new Array(12).fill(0);
     for (const record of records) counts[new Date(record.startDate).getUTCMonth()] += 1;
 
-    // Value is this month's share of current-year leave requests.
+    // Value is this month's share of current-year leave requests from real LeaveRequest rows.
     return {
       data: MONTH_LABELS.map((month, index) => ({
         month,
@@ -236,13 +225,14 @@ class LeavesService {
   }
 
   async listLeaves(query = {}) {
+    assertLeavesSchemaSupported();
+
     const { page, limit, skip } = paginate(query, 10, 100);
     const where = leaveRequestWhere(query);
-    const model = requireLeaveRequestModel("Leave list");
 
     const [total, records] = await Promise.all([
-      model.delegate.count({ where }),
-      model.delegate.findMany({
+      prisma.leaveRequest.count({ where }),
+      prisma.leaveRequest.findMany({
         where,
         include: { adminUser: { select: EMPLOYEE_SELECT } },
         orderBy: { createdAt: "desc" },
@@ -258,15 +248,16 @@ class LeavesService {
   }
 
   async getLeave(id) {
+    assertLeavesSchemaSupported();
+
     const leaveId = assertUuid(id, "leave id");
-    const model = requireLeaveRequestModel("Leave detail");
-    const record = await model.delegate.findUnique({
+    const record = await prisma.leaveRequest.findUnique({
       where: { id: leaveId },
       include: { adminUser: { select: EMPLOYEE_SELECT } },
     });
     if (!record) throw new ApiError(404, "Leave request not found");
 
-    const employee = record.adminUser || record.employee || {};
+    const employee = record.adminUser || {};
     return {
       id: record.id,
       leaveType: record.leaveType,
@@ -292,10 +283,11 @@ class LeavesService {
   }
 
   async getEmployeeLeaves(employeeId) {
-    const employee = await ensureEmployee(employeeId);
-    const model = requireLeaveRequestModel("Employee leave history");
+    assertLeavesSchemaSupported();
 
-    const records = await model.delegate.findMany({
+    const employee = await ensureEmployee(employeeId);
+
+    const records = await prisma.leaveRequest.findMany({
       where: { adminUserId: employee.id },
       select: {
         id: true,
@@ -312,77 +304,66 @@ class LeavesService {
   }
 
   async getEmployeeBalance(employeeId) {
+    assertLeavesSchemaSupported();
+
     const employee = await ensureEmployee(employeeId);
-    const balanceModel = getPrismaModel(LEAVE_BALANCE_MODEL_NAMES);
-    if (balanceModel) {
-      const rows = await balanceModel.delegate.findMany({
-        where: { adminUserId: employee.id, year: new Date().getUTCFullYear() },
-        orderBy: { leaveType: "asc" },
-      });
-
-      return {
-        data: rows.map((row) => ({
-          leaveType: row.leaveType,
-          availableDays: row.availableDays ?? 0,
-          usedDays: row.usedDays ?? 0,
-        })),
-      };
-    }
-
-    const requestModel = getPrismaModel(LEAVE_REQUEST_MODEL_NAMES);
-    if (!requestModel) unsupportedEndpoint("Employee leave balance", MISSING_BALANCE_MODELS);
-
-    const year = new Date().getUTCFullYear();
-    const approved = await requestModel.delegate.findMany({
-      where: {
-        adminUserId: employee.id,
-        status: "APPROVED",
-        startDate: {
-          gte: new Date(Date.UTC(year, 0, 1)),
-          lt: new Date(Date.UTC(year + 1, 0, 1)),
-        },
-      },
-      select: { leaveType: true, startDate: true, resumptionDate: true },
+    const rows = await prisma.leaveBalance.findMany({
+      where: { adminUserId: employee.id, year: new Date().getUTCFullYear() },
+      orderBy: { leaveType: "asc" },
     });
 
-    const balances = new Map();
-    for (const record of approved) {
-      const current = balances.get(record.leaveType) || { leaveType: record.leaveType, availableDays: 0, usedDays: 0 };
-      current.usedDays += leaveDays(record);
-      balances.set(record.leaveType, current);
-    }
-
-    return { data: [...balances.values()] };
+    return {
+      data: rows.map((row) => ({
+        leaveType: row.leaveType,
+        availableDays: row.availableDays,
+        usedDays: row.usedDays,
+      })),
+    };
   }
 
   async approveLeave({ id, actor, req }) {
-    void req;
-    return updatePendingLeave({ id, actor, status: "APPROVED", moduleName: "Leave approval" });
+    return updatePendingLeave({ id, actor, req, status: "APPROVED" });
   }
 
   async denyLeave({ id, actor, req }) {
-    void req;
-    return updatePendingLeave({ id, actor, status: "DENIED", moduleName: "Leave denial" });
+    return updatePendingLeave({ id, actor, req, status: "DENIED" });
   }
 
   async approveAll({ actor, req }) {
-    void req;
-    const model = requireLeaveRequestModel("Leave approve all");
-    const data = {
-      status: "APPROVED",
-      ...reviewFields(model.modelName, actor),
-    };
-    const result = await model.delegate.updateMany({ where: { status: "PENDING" }, data });
+    assertLeavesSchemaSupported();
+
+    const result = await prisma.leaveRequest.updateMany({
+      where: { status: "PENDING" },
+      data: {
+        status: "APPROVED",
+        reviewedById: actor?.id || null,
+        reviewedAt: new Date(),
+      },
+    });
+
+    await createAuditLog({
+      adminUserId: actor.id,
+      action: "HRM_LEAVE_APPROVE_ALL",
+      targetId: actor.id,
+      targetType: "leave_request",
+      metadata: { count: result.count },
+      req,
+    });
+
     return { count: result.count };
   }
 
   async downloadReport(query = {}) {
-    const where = leaveRequestWhere(query);
-    const model = requireLeaveRequestModel("Leave report download");
+    assertLeavesSchemaSupported();
 
-    const records = await model.delegate.findMany({
+    const where = leaveRequestWhere(query);
+
+    const records = await prisma.leaveRequest.findMany({
       where,
-      include: { adminUser: { select: EMPLOYEE_SELECT } },
+      include: {
+        adminUser: { select: EMPLOYEE_SELECT },
+        reviewedBy: { select: REVIEWER_SELECT },
+      },
       orderBy: { createdAt: "desc" },
     });
 
@@ -401,7 +382,7 @@ class LeavesService {
       records.map((record) => ({
         ...mapLeaveListItem(record),
         employeeCode: null,
-        reviewedBy: record.reviewedBy || "",
+        reviewedBy: record.reviewedBy?.name || record.reviewedById || "",
         reviewedAt: formatDateOnly(record.reviewedAt),
       })),
     );

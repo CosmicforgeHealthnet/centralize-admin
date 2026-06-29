@@ -251,6 +251,24 @@ function validateBody(schema) {
   };
 }
 
+function validateQuery(schema) {
+  return (req, res, next) => {
+    const result = schema.safeParse(req.query);
+    if (!result.success) {
+      const issues = result.error.issues || result.error.errors || [];
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: issues.map((issue) => ({
+          field: issue.path.join("."),
+          message: issue.message,
+        })),
+      });
+    }
+
+    return next();
+  };
+}
 function validateMultipartBody(schema) {
   return (req, res, next) => {
     const result = schema.safeParse(req.body);
@@ -367,6 +385,7 @@ module.exports = {
   unsupportedEndpoint,
   uploadBufferToCloudinary,
   validateBody,
+  validateQuery,
   validateMultipartBody,
 };
 

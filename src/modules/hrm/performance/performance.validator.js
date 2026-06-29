@@ -5,8 +5,8 @@ const eventCreateSchema = z
   .object({
     title: z.string().trim().min(1),
     description: z.string().trim().optional().nullable(),
-    startsAt: z.string().trim().min(1),
-    endsAt: z.string().trim().optional().nullable(),
+    date: z.string().trim().min(1),
+    time: z.string().trim().min(1),
     location: z.string().trim().optional().nullable(),
   })
   .strict();

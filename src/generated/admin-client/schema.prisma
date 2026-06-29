@@ -1,0 +1,712 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/admin-client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum AdminTier {
+  SUPER
+  EXECUTIVE
+  ADMIN
+  EMPLOYEE
+}
+
+enum AdminStatus {
+  ACTIVE
+  INACTIVE
+  LOCKED
+  PENDING
+}
+
+enum Department {
+  FINANCE
+  DEVELOPMENT
+  CUSTOMER_CARE
+  MARKETING
+  SOCIAL_MEDIA
+  EXECUTIVE
+  MANAGEMENT
+}
+
+enum AuditAction {
+  LOGIN
+  LOGOUT
+  LOGIN_FAILED
+  ACCOUNT_LOCKED
+  PASSWORD_CHANGED
+  PASSWORD_RESET_REQUESTED
+  PASSWORD_RESET_COMPLETED
+  USER_CREATED
+  USER_UPDATED
+  USER_DEACTIVATED
+  USER_ACTIVATED
+  USER_DELETED
+  TICKET_RESOLVED
+  TICKET_ASSIGNED
+  TICKET_UPDATED
+  PAYMENT_VIEWED
+  APPOINTMENT_VIEWED
+  TOKEN_REFRESHED
+  PROFILE_UPDATED
+  DOCUMENT_UPLOADED
+  DOCUMENT_DELETED
+  AVATAR_UPDATED
+  HRM_ATTENDANCE_CREATED
+  HRM_ATTENDANCE_UPDATED
+  HRM_LEAVE_APPROVED
+  HRM_LEAVE_DENIED
+  HRM_LEAVE_APPROVE_ALL
+  HRM_PAYROLL_UPDATED
+  HRM_VACANCY_CREATED
+  HRM_VACANCY_UPDATED
+  HRM_VACANCY_DELETED
+  HRM_VACANCY_STATUS_UPDATED
+  HRM_APPLICANT_STAGE_UPDATED
+}
+
+enum ProjectStatus {
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+}
+
+enum TaskStatus {
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+}
+
+enum LeaveRequestStatus {
+  PENDING
+  APPROVED
+  DENIED
+}
+
+enum LeaveType {
+  SICK
+  ANNUAL
+  EMERGENCY
+  MATERNITY
+  PATERNITY
+  UNPAID
+  OTHER
+}
+
+enum PayrollStatus {
+  PAID
+  PENDING
+}
+
+enum InvoiceStatus {
+  PAID
+  PENDING
+  OVERDUE
+}
+
+enum VacancyStatus {
+  OPEN
+  IN_REVIEW
+  CLOSED
+}
+
+enum ApplicantStage {
+  SCREENING
+  INTERVIEW
+  HIRED
+  REJECTED
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ADMIN USER
+// ─────────────────────────────────────────────────────────────────────────────
+
+model AdminUser {
+  id                   String      @id @default(uuid())
+  email                String      @unique
+  password             String
+  name                 String
+  position             String?
+  department           Department?
+  tier                 AdminTier   @default(EMPLOYEE)
+  status               AdminStatus @default(PENDING)
+  isTeamLead           Boolean     @default(false)
+  failedLoginAttempts  Int         @default(0)
+  googleId             String?     @unique
+  mainAppUserId        String?     @unique
+  lockedUntil          DateTime?
+  lastLoginAt          DateTime?
+  lastLoginIp          String?
+  mustChangePassword   Boolean     @default(true)
+  passwordResetToken   String?     @unique
+  passwordResetExpires DateTime?
+  passwordChangedAt    DateTime?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  createdBy            String?
+
+  // ── Avatar ─────────────────────────────────────────────────────
+  avatarUrl          String?
+  avatarCloudinaryId String?
+
+  // ── Personal Info (self-editable) ──────────────────────────────
+  preferredName String?
+  birthday      DateTime?
+  nationality   String?
+  gender        String?
+  maritalStatus String?
+
+  // ── Contact Info (self-editable) ───────────────────────────────
+  workPhone     String?
+  homePhone     String?
+  personalPhone String?
+  fax           String?
+  address       String?
+  state         String?
+  country       String?
+
+  // ── Emergency Contact (self-editable) ──────────────────────────
+  emergencyName     String?
+  emergencyPhone    String?
+  emergencyEmail    String?
+  emergencyRelation String?
+
+  // ── Employment Details — set by SUPER/EXECUTIVE ────────────────
+  employmentType     String?
+  employmentCategory String?
+  location           String?
+
+  // ── Sensitive — only SUPER/EXECUTIVE can write these ───────────
+  salary Decimal? @db.Decimal(15, 2)
+  bonus  Decimal? @db.Decimal(15, 2)
+  equity Decimal? @db.Decimal(15, 2)
+
+  // ── Relations ──────────────────────────────────────────────────
+  refreshTokens    RefreshToken[]
+  auditLogs        AuditLog[]
+  socialLinks      AdminSocialLink[]
+  educations       AdminEducation[]
+  documents        AdminDocument[]
+  performanceNotes AdminPerformanceNote[]
+  reports          AdminReport[]
+
+  // ── Work Section Relations ──────────────────────────────────────
+  teamMemberships       TeamMember[]
+  projectMemberships    ProjectMember[]
+  assignedTasks         Task[]          @relation("TaskAssignee")
+  createdTasks          Task[]          @relation("TaskAssigner")
+  notifications         Notification[]
+  attendanceLogs        AttendanceLog[]
+  leaveRequests         LeaveRequest[]  @relation("LeaveRequestEmployee")
+  reviewedLeaveRequests LeaveRequest[]  @relation("LeaveRequestReviewer")
+  leaveBalances         LeaveBalance[]
+  payrollRecords        PayrollRecord[]
+  payslips              Payslip[]
+  deductions            Deduction[]
+  receipts              Receipt[]
+  invoices              Invoice[]
+
+  @@map("admin_users")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AUTH
+// ─────────────────────────────────────────────────────────────────────────────
+
+model RefreshToken {
+  id          String    @id @default(uuid())
+  token       String    @unique
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  isRevoked   Boolean   @default(false)
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime  @default(now())
+
+  @@map("admin_refresh_tokens")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AUDIT
+// ─────────────────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id          String      @id @default(uuid())
+  adminUserId String?
+  adminUser   AdminUser?  @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
+  action      AuditAction
+  targetId    String?
+  targetType  String?
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime    @default(now())
+
+  @@map("admin_audit_logs")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PROFILE — Social Links, Education, Documents, Performance Notes, Reports
+// ─────────────────────────────────────────────────────────────────────────────
+
+model AdminSocialLink {
+  id          String    @id @default(uuid())
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  platform    String
+  username    String
+  createdAt   DateTime  @default(now())
+
+  @@map("admin_social_links")
+}
+
+model AdminEducation {
+  id          String    @id @default(uuid())
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  degreeTitle String
+  institution String
+  from        String?
+  to          String?
+  createdAt   DateTime  @default(now())
+
+  @@map("admin_educations")
+}
+
+// Uploaded by SUPER/EXECUTIVE on behalf of the employee. Employee is read-only.
+model AdminDocument {
+  id           String    @id @default(uuid())
+  adminUserId  String
+  adminUser    AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  name         String
+  title        String? // display title separate from the raw filename
+  type         String // "pdf", "docx", "jpg" etc.
+  url          String // Cloudinary secure URL
+  cloudinaryId String? // Cloudinary public_id — needed to delete the file
+  uploadedBy   String // id of the SUPER/EXECUTIVE who uploaded it
+  expiryDate   DateTime?
+  uploadedAt   DateTime  @default(now())
+
+  @@map("admin_documents")
+}
+
+// Written BY a SUPER/EXECUTIVE ABOUT an employee. Employee is read-only.
+model AdminPerformanceNote {
+  id           String    @id @default(uuid())
+  adminUserId  String
+  adminUser    AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  title        String
+  type         String    @default("docx")
+  url          String // Cloudinary secure URL
+  cloudinaryId String?
+  createdBy    String // id of the SUPER/EXECUTIVE who wrote it
+  date         DateTime  @default(now())
+
+  @@map("admin_performance_notes")
+}
+
+// Written BY the employee themselves (leave resumption, milestone, etc.)
+// Text-based — no file upload.
+model AdminReport {
+  id           String    @id @default(uuid())
+  adminUserId  String
+  adminUser    AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  title        String
+  type         String?   @default("text")
+  body         String?
+  note         String?
+  url          String?
+  cloudinaryId String?
+  createdBy    String
+  date         DateTime  @default(now())
+
+  @@map("admin_reports")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WORK SECTION — Teams
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Team {
+  id         String      @id @default(uuid())
+  title      String
+  department Department?
+  createdBy  String // id of the SUPER/EXECUTIVE who created the team
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  members  TeamMember[]
+  projects Project[]
+
+  @@map("teams")
+}
+
+// Join table: AdminUser ↔ Team
+model TeamMember {
+  id          String    @id @default(uuid())
+  teamId      String
+  team        Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  isTeamLead  Boolean   @default(false)
+  joinedAt    DateTime  @default(now())
+
+  @@unique([teamId, adminUserId])
+  @@map("team_members")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WORK SECTION — Projects
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Project {
+  id           String        @id @default(uuid())
+  title        String
+  description  String?
+  assignedDate DateTime      @default(now())
+  dueDate      DateTime
+  teamId       String
+  team         Team          @relation(fields: [teamId], references: [id])
+  status       ProjectStatus @default(IN_PROGRESS)
+  createdBy    String // id of the admin who created the project
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  assignees ProjectMember[]
+  tasks     Task[]
+
+  @@map("projects")
+}
+
+// Join table: AdminUser ↔ Project (individual assignees beyond the whole team)
+model ProjectMember {
+  id          String    @id @default(uuid())
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  assignedAt  DateTime  @default(now())
+
+  @@unique([projectId, adminUserId])
+  @@map("project_members")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WORK SECTION — Tasks
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Task {
+  id           String     @id @default(uuid())
+  title        String
+  description  String?
+  assignedDate DateTime   @default(now())
+  dueDate      DateTime
+  projectId    String? // optional — tasks can exist outside a project
+  project      Project?   @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  assignerId   String
+  assigner     AdminUser  @relation("TaskAssigner", fields: [assignerId], references: [id])
+  assigneeId   String
+  assignee     AdminUser  @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  status       TaskStatus @default(IN_PROGRESS)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@map("tasks")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────────────────────────────────────────
+
+// -----------------------------------------------------------------------------
+// HRM ATTENDANCE AND LEAVES
+// -----------------------------------------------------------------------------
+
+model AttendanceLog {
+  id          String           @id @default(uuid())
+  adminUserId String
+  date        DateTime
+  clockIn     DateTime?
+  clockOut    DateTime?
+  status      AttendanceStatus
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  adminUser AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+
+  @@unique([adminUserId, date])
+  @@index([adminUserId])
+  @@index([date])
+  @@index([status])
+}
+
+model LeaveRequest {
+  id             String             @id @default(uuid())
+  adminUserId    String
+  leaveType      LeaveType
+  startDate      DateTime
+  resumptionDate DateTime
+  reason         String?
+  status         LeaveRequestStatus @default(PENDING)
+  attachmentUrl  String?
+  attachmentName String?
+  reviewedById   String?
+  reviewedAt     DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  adminUser  AdminUser  @relation("LeaveRequestEmployee", fields: [adminUserId], references: [id], onDelete: Cascade)
+  reviewedBy AdminUser? @relation("LeaveRequestReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([adminUserId])
+  @@index([status])
+  @@index([startDate])
+  @@index([reviewedById])
+}
+
+model LeaveBalance {
+  id            String    @id @default(uuid())
+  adminUserId   String
+  leaveType     LeaveType
+  year          Int
+  availableDays Int       @default(0)
+  usedDays      Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  adminUser AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+
+  @@unique([adminUserId, leaveType, year])
+  @@index([adminUserId])
+  @@index([year])
+}
+
+model Notification {
+  id          String    @id @default(uuid())
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  icon        String // "alert" | "xcircle" | "settings" | "check" | "bell"
+  title       String
+  subtitle    String?
+  isRead      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  @@map("notifications")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HRM PAYROLL
+// ─────────────────────────────────────────────────────────────────────────────
+
+model PayrollRecord {
+  id              String        @id @default(uuid())
+  adminUserId     String
+  month           Int
+  year            Int
+  totalSalary     Decimal       @default(0) @db.Decimal(15, 2)
+  totalAllowance  Decimal       @default(0) @db.Decimal(15, 2)
+  totalBonus      Decimal       @default(0) @db.Decimal(15, 2)
+  totalDeductions Decimal       @default(0) @db.Decimal(15, 2)
+  grossPay        Decimal       @default(0) @db.Decimal(15, 2)
+  netPay          Decimal       @default(0) @db.Decimal(15, 2)
+  status          PayrollStatus @default(PENDING)
+  paymentMethod   String?
+  bankName        String?
+  bankAccount     String?
+  paymentDate     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  adminUser  AdminUser   @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  payslips   Payslip[]
+  deductions Deduction[]
+  receipts   Receipt[]
+  invoices   Invoice[]
+
+  @@unique([adminUserId, month, year])
+  @@index([adminUserId])
+  @@index([month, year])
+  @@index([status])
+  @@map("payroll_records")
+}
+
+model Payslip {
+  id              String    @id @default(uuid())
+  adminUserId     String
+  payrollRecordId String?
+  month           Int
+  year            Int
+  basicSalary     Decimal   @default(0) @db.Decimal(15, 2)
+  allowance       Decimal   @default(0) @db.Decimal(15, 2)
+  bonus           Decimal   @default(0) @db.Decimal(15, 2)
+  deductionsJson  Json?
+  netPay          Decimal   @default(0) @db.Decimal(15, 2)
+  paymentMethod   String?
+  paymentDate     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  adminUser     AdminUser      @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  payrollRecord PayrollRecord? @relation(fields: [payrollRecordId], references: [id], onDelete: SetNull)
+
+  @@index([adminUserId])
+  @@index([month, year])
+  @@map("payslips")
+}
+
+model Deduction {
+  id              String   @id @default(uuid())
+  adminUserId     String
+  payrollRecordId String?
+  name            String
+  amount          Decimal  @default(0) @db.Decimal(15, 2)
+  month           Int
+  year            Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  adminUser     AdminUser      @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  payrollRecord PayrollRecord? @relation(fields: [payrollRecordId], references: [id], onDelete: SetNull)
+
+  @@index([adminUserId])
+  @@index([month, year])
+  @@map("deductions")
+}
+
+model Receipt {
+  id              String   @id @default(uuid())
+  adminUserId     String
+  payrollRecordId String?
+  amount          Decimal  @default(0) @db.Decimal(15, 2)
+  description     String?
+  month           Int
+  year            Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  adminUser     AdminUser      @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  payrollRecord PayrollRecord? @relation(fields: [payrollRecordId], references: [id], onDelete: SetNull)
+
+  @@index([adminUserId])
+  @@index([month, year])
+  @@map("receipts")
+}
+
+model Invoice {
+  id              String        @id @default(uuid())
+  adminUserId     String
+  payrollRecordId String?
+  amount          Decimal       @default(0) @db.Decimal(15, 2)
+  description     String?
+  dueDate         DateTime?
+  status          InvoiceStatus @default(PENDING)
+  month           Int
+  year            Int
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  adminUser     AdminUser      @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  payrollRecord PayrollRecord? @relation(fields: [payrollRecordId], references: [id], onDelete: SetNull)
+
+  @@index([adminUserId])
+  @@index([month, year])
+  @@index([status])
+  @@map("invoices")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HRM HIRING
+// ─────────────────────────────────────────────────────────────────────────────
+
+model JobVacancy {
+  id                String        @id @default(uuid())
+  title             String
+  department        Department?
+  category          String?
+  location          String?
+  numberOfOpening   Int           @default(1)
+  experienceLevel   String?
+  salaryRange       String?
+  benefitsAndBonus  String?
+  jobDescription    String?
+  responsibilities  String?
+  requirements      String?
+  hiringStages      Json?
+  assignedRecruiter String?
+  deadline          DateTime?
+  status            VacancyStatus @default(OPEN)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  applicants JobApplicant[]
+
+  @@index([status])
+  @@index([department])
+  @@map("job_vacancies")
+}
+
+model JobApplicant {
+  id              String         @id @default(uuid())
+  vacancyId       String
+  fullName        String
+  email           String?
+  phone           String?
+  country         String?
+  stage           ApplicantStage @default(SCREENING)
+  via             String?
+  applicationDate DateTime       @default(now())
+  coverLetter     String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  vacancy     JobVacancy               @relation(fields: [vacancyId], references: [id], onDelete: Cascade)
+  attachments JobApplicantAttachment[]
+
+  @@index([vacancyId])
+  @@index([stage])
+  @@map("job_applicants")
+}
+
+model JobApplicantAttachment {
+  id          String   @id @default(uuid())
+  applicantId String
+  url         String
+  name        String?
+  type        String?
+  createdAt   DateTime @default(now())
+
+  applicant JobApplicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+
+  @@index([applicantId])
+  @@map("job_applicant_attachments")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HRM PERFORMANCE — Events
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  date        DateTime
+  time        String
+  location    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("events")
+}

@@ -9,6 +9,7 @@ const {
   assertUuid,
   buildMeta,
   destroyCloudinaryResource,
+  formatDateOnly,
   normalizeDepartment,
   paginate,
   safeLower,
@@ -27,6 +28,20 @@ const EMPLOYEE_PICKER_SELECT = {
   status: true,
 };
 
+const EMPLOYEE_DETAIL_SELECT = {
+  id: true,
+  name: true,
+  email: true,
+  position: true,
+  department: true,
+  avatarUrl: true,
+  status: true,
+  personalPhone: true,
+  homePhone: true,
+  workPhone: true,
+  location: true,
+};
+
 function mapPickerEmployee(user) {
   return {
     id: user.id,
@@ -40,15 +55,31 @@ function mapPickerEmployee(user) {
   };
 }
 
+function mapDetailEmployee(user) {
+  return {
+    id: user.id,
+    name: user.name,
+    employeeCode: null,
+    phone: user.personalPhone || user.homePhone || user.workPhone || null,
+    email: user.email,
+    position: user.position || null,
+    location: user.location || null,
+    headOfDepartment: null,
+    employmentDate: null,
+    avatarUrl: user.avatarUrl || null,
+  };
+}
+
 function mapDocument(document) {
   return {
     id: document.id,
-    title: document.name,
+    title: document.title || document.name,
     name: document.name,
     type: document.type,
     url: document.url,
     uploadedBy: document.uploadedBy,
     uploadedAt: document.uploadedAt,
+    expiryDate: formatDateOnly(document.expiryDate),
   };
 }
 
@@ -69,6 +100,7 @@ function documentWhereFromQuery(query = {}) {
     where.uploadedAt = { gte: date, lt: next };
   } else {
     where.OR = [
+      { title: { contains: search, mode: "insensitive" } },
       { name: { contains: search, mode: "insensitive" } },
       { type: { contains: search, mode: "insensitive" } },
     ];
@@ -126,22 +158,18 @@ class DocumentsService {
 
     const employee = await prisma.adminUser.findUnique({
       where: { id },
-      select: EMPLOYEE_PICKER_SELECT,
+      select: EMPLOYEE_DETAIL_SELECT,
     });
     if (!employee) throw new ApiError(404, "Employee not found");
 
-    const where = {
-      adminUserId: id,
-      ...documentWhereFromQuery(query),
-    };
-
+    const where = { adminUserId: id, ...documentWhereFromQuery(query) };
     const documents = await prisma.adminDocument.findMany({
       where,
       orderBy: { uploadedAt: "desc" },
     });
 
     return {
-      employee: mapPickerEmployee(employee),
+      employee: mapDetailEmployee(employee),
       documents: documents.map(mapDocument),
     };
   }
@@ -159,10 +187,7 @@ class DocumentsService {
       throw new ApiError(400, "Unsupported file extension");
     }
 
-    const employee = await prisma.adminUser.findUnique({
-      where: { id },
-      select: { id: true },
-    });
+    const employee = await prisma.adminUser.findUnique({ where: { id }, select: { id: true } });
     if (!employee) throw new ApiError(404, "Employee not found");
 
     const uploaded = await uploadBufferToCloudinary(file, {
@@ -172,14 +197,22 @@ class DocumentsService {
       use_filename: true,
     });
 
+    let expiryDate = null;
+    if (data.expiry) {
+      const parsed = new Date(data.expiry);
+      if (!Number.isNaN(parsed.getTime())) expiryDate = parsed;
+    }
+
     const document = await prisma.adminDocument.create({
       data: {
         adminUserId: id,
-        name: data.title,
+        name: file.originalname || data.title,
+        title: data.title,
         type: safeLower(format),
         url: uploaded.secure_url,
         cloudinaryId: uploaded.public_id,
         uploadedBy: actor.id,
+        expiryDate,
       },
     });
 
@@ -214,7 +247,7 @@ class DocumentsService {
       action: "DOCUMENT_DELETED",
       targetId: docId,
       targetType: "admin_document",
-      metadata: { employeeId: id, title: document.name },
+      metadata: { employeeId: id, title: document.title || document.name },
       req,
     });
   }
@@ -231,16 +264,12 @@ class DocumentsService {
     }
 
     const url = document.cloudinaryId
-      ? cloudinary.url(document.cloudinaryId, {
-          secure: true,
-          resource_type: "auto",
-          flags: "attachment",
-        })
+      ? cloudinary.url(document.cloudinaryId, { secure: true, resource_type: "auto", flags: "attachment" })
       : document.url;
 
     return {
       url,
-      name: document.name,
+      name: document.title || document.name,
       type: document.type,
     };
   }

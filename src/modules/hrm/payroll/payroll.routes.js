@@ -1,7 +1,12 @@
 const express = require("express");
 const { requireTier } = require("../../../shared/middlewares/rbac.middleware");
 const payrollController = require("./payroll.controller");
-const { payrollUpdateSchema, validateBody } = require("./payroll.validator");
+const {
+  payrollListQuerySchema,
+  payrollUpdateSchema,
+  validateBody,
+  validateQuery,
+} = require("./payroll.validator");
 
 const router = express.Router();
 
@@ -11,7 +16,12 @@ router.get("/receipts", requireTier("EXECUTIVE"), payrollController.listReceipts
 router.get("/deductions", requireTier("EXECUTIVE"), payrollController.listDeductions);
 router.get("/invoices", requireTier("EXECUTIVE"), payrollController.listInvoices);
 router.get("/report/download", requireTier("EXECUTIVE"), payrollController.downloadReport);
-router.get("/", requireTier("EXECUTIVE"), payrollController.listPayroll);
+router.get(
+  "/",
+  requireTier("EXECUTIVE"),
+  validateQuery(payrollListQuerySchema),
+  payrollController.listPayroll,
+);
 router.get(
   "/:employeeId/payslips/:id",
   requireTier("EXECUTIVE"),

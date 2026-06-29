@@ -3,22 +3,35 @@ const { requireTier } = require("../../../shared/middlewares/rbac.middleware");
 const hiringController = require("./hiring.controller");
 const {
   applicantStageSchema,
+  applicantsQuerySchema,
+  vacanciesQuerySchema,
   vacancySchema,
   vacancyStatusSchema,
   validateBody,
+  validateQuery,
 } = require("./hiring.validator");
 
 const router = express.Router();
 
 router.get("/stats", requireTier("ADMIN"), hiringController.getStats);
-router.get("/vacancies", requireTier("ADMIN"), hiringController.listVacancies);
+router.get(
+  "/vacancies",
+  requireTier("ADMIN"),
+  validateQuery(vacanciesQuerySchema),
+  hiringController.listVacancies,
+);
 router.post(
   "/vacancies",
   requireTier("ADMIN"),
   validateBody(vacancySchema),
   hiringController.createVacancy,
 );
-router.get("/vacancies/:id/applicants", requireTier("ADMIN"), hiringController.listApplicants);
+router.get(
+  "/vacancies/:id/applicants",
+  requireTier("ADMIN"),
+  validateQuery(applicantsQuerySchema),
+  hiringController.listApplicants,
+);
 router.get("/vacancies/:id", requireTier("ADMIN"), hiringController.getVacancy);
 router.put(
   "/vacancies/:id",

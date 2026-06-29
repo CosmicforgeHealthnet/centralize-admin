@@ -1,4 +1,5 @@
 const { prisma } = require("../../../shared/config/database");
+const { createAuditLog } = require("../../../shared/middlewares/audit.middleware");
 const ApiError = require("../../../shared/utils/ApiError");
 const {
   addUtcDays,
@@ -21,8 +22,6 @@ const {
 } = require("../hrm.utils");
 
 const ATTENDANCE_STATUSES = ["PRESENT", "LATE", "ABSENT"];
-const ATTENDANCE_MODEL_NAMES = ["attendanceLog", "attendance"];
-const MISSING_MODELS = ["AttendanceLog", "Attendance"];
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const LOG_PERIODS = ["This Week", "Last Week", "This Month"];
 
@@ -37,17 +36,10 @@ const EMPLOYEE_SELECT = {
   avatarUrl: true,
   createdAt: true,
 };
-
-function getAttendanceModel() {
-  const modelName = ATTENDANCE_MODEL_NAMES.find((name) => prisma[name]);
-  if (!modelName) return null;
-  return { modelName, delegate: prisma[modelName] };
-}
-
-function requireAttendanceModel(moduleName) {
-  const model = getAttendanceModel();
-  if (!model) unsupportedEndpoint(moduleName, MISSING_MODELS);
-  return model.delegate;
+function assertAttendanceSchemaSupported() {
+  if (!prisma.attendanceLog) {
+    unsupportedEndpoint("Attendance", ["AttendanceLog"]);
+  }
 }
 
 function normalizeStatus(value) {
@@ -72,7 +64,7 @@ function formatEmploymentType(employee = {}) {
 }
 
 function mapAttendanceRecord(record) {
-  const employee = record.adminUser || record.employee || {};
+  const employee = record.adminUser || {};
   return {
     id: record.id,
     adminUserId: record.adminUserId,
@@ -101,19 +93,19 @@ function mapLog(record) {
 }
 
 function employeeRelationWhere(query = {}) {
-  const relationWhere = {};
+  const where = {};
   const department = normalizeDepartment(query.department);
-  if (department) relationWhere.department = department;
+  if (department) where.department = department;
 
   const search = String(query.search || "").trim();
   if (search) {
-    relationWhere.OR = [
+    where.OR = [
       { name: { contains: search, mode: "insensitive" } },
       { email: { contains: search, mode: "insensitive" } },
     ];
   }
 
-  return Object.keys(relationWhere).length ? { adminUser: relationWhere } : {};
+  return Object.keys(where).length ? where : undefined;
 }
 
 function buildAttendanceWhere(query = {}) {
@@ -127,7 +119,9 @@ function buildAttendanceWhere(query = {}) {
   const status = normalizeStatus(query.status);
   if (status) where.status = status;
 
-  Object.assign(where, employeeRelationWhere(query));
+  const adminUser = employeeRelationWhere(query);
+  if (adminUser) where.adminUser = adminUser;
+
   return where;
 }
 
@@ -167,8 +161,8 @@ async function ensureEmployee(employeeId) {
   return employee;
 }
 
-async function countByStatus(delegate, range, status) {
-  return delegate.count({
+async function countByStatus(range, status) {
+  return prisma.attendanceLog.count({
     where: {
       date: { gte: range.start, lt: range.end },
       status,
@@ -176,8 +170,8 @@ async function countByStatus(delegate, range, status) {
   });
 }
 
-async function averageCheckInMinutes(delegate, range) {
-  const rows = await delegate.findMany({
+async function averageCheckInMinutes(range) {
+  const rows = await prisma.attendanceLog.findMany({
     where: {
       date: { gte: range.start, lt: range.end },
       clockIn: { not: null },
@@ -190,12 +184,13 @@ async function averageCheckInMinutes(delegate, range) {
 
 class AttendanceService {
   async getStats(query = {}) {
+    assertAttendanceSchemaSupported();
+
     const range = dateOnlyRange(query.date, "date");
     const previousRange = {
       start: addUtcDays(range.start, -1),
       end: range.start,
     };
-    const delegate = requireAttendanceModel("Attendance stats");
 
     const [
       totalPresent,
@@ -207,14 +202,14 @@ class AttendanceService {
       averageCheckInMinutesToday,
       averageCheckInMinutesPrevious,
     ] = await Promise.all([
-      countByStatus(delegate, range, "PRESENT"),
-      countByStatus(delegate, range, "LATE"),
-      countByStatus(delegate, range, "ABSENT"),
-      countByStatus(delegate, previousRange, "PRESENT"),
-      countByStatus(delegate, previousRange, "LATE"),
-      countByStatus(delegate, previousRange, "ABSENT"),
-      averageCheckInMinutes(delegate, range),
-      averageCheckInMinutes(delegate, previousRange),
+      countByStatus(range, "PRESENT"),
+      countByStatus(range, "LATE"),
+      countByStatus(range, "ABSENT"),
+      countByStatus(previousRange, "PRESENT"),
+      countByStatus(previousRange, "LATE"),
+      countByStatus(previousRange, "ABSENT"),
+      averageCheckInMinutes(range),
+      averageCheckInMinutes(previousRange),
     ]);
 
     return {
@@ -232,13 +227,14 @@ class AttendanceService {
   }
 
   async listAttendance(query = {}) {
+    assertAttendanceSchemaSupported();
+
     const { page, limit, skip } = paginate(query, 10, 100);
     const where = buildAttendanceWhere(query);
-    const delegate = requireAttendanceModel("Attendance list");
 
     const [total, records] = await Promise.all([
-      delegate.count({ where }),
-      delegate.findMany({
+      prisma.attendanceLog.count({ where }),
+      prisma.attendanceLog.findMany({
         where,
         include: { adminUser: { select: EMPLOYEE_SELECT } },
         orderBy: [{ date: "desc" }, { clockIn: "asc" }],
@@ -254,14 +250,15 @@ class AttendanceService {
   }
 
   async getEmployeeOverview(employeeId, query = {}) {
+    assertAttendanceSchemaSupported();
+
     const employee = await ensureEmployee(employeeId);
-    const delegate = requireAttendanceModel("Attendance employee overview");
     const year = Number(query.year) || new Date().getUTCFullYear();
     if (!Number.isInteger(year) || year < 1900 || year > 3000) {
       throw new ApiError(400, "Invalid year.");
     }
 
-    const records = await delegate.findMany({
+    const records = await prisma.attendanceLog.findMany({
       where: {
         adminUserId: employee.id,
         date: {
@@ -295,11 +292,12 @@ class AttendanceService {
   }
 
   async getEmployeeLogs(employeeId, query = {}) {
+    assertAttendanceSchemaSupported();
+
     const employee = await ensureEmployee(employeeId);
     const range = getLogPeriodRange(query.period);
-    const delegate = requireAttendanceModel("Attendance employee logs");
 
-    const records = await delegate.findMany({
+    const records = await prisma.attendanceLog.findMany({
       where: {
         adminUserId: employee.id,
         date: { gte: range.start, lt: range.end },
@@ -318,6 +316,8 @@ class AttendanceService {
   }
 
   async createAttendance({ data, actor, req }) {
+    assertAttendanceSchemaSupported();
+
     const adminUserId = assertUuid(data.adminUserId, "employee id");
     await ensureEmployee(adminUserId);
 
@@ -326,9 +326,8 @@ class AttendanceService {
     const clockIn = parseIsoDateTime(data.clockIn, "clockIn");
     const clockOut = parseIsoDateTime(data.clockOut, "clockOut");
     const status = normalizeStatus(data.status);
-    const delegate = requireAttendanceModel("Attendance create");
 
-    const existing = await delegate.findFirst({
+    const existing = await prisma.attendanceLog.findFirst({
       where: {
         adminUserId,
         date: { gte: range.start, lt: range.end },
@@ -337,7 +336,7 @@ class AttendanceService {
     });
     if (existing) throw new ApiError(409, "Attendance already exists for this employee and date");
 
-    const created = await delegate.create({
+    const created = await prisma.attendanceLog.create({
       data: {
         adminUserId,
         date,
@@ -348,12 +347,21 @@ class AttendanceService {
       select: { id: true },
     });
 
-    void actor;
-    void req;
+    await createAuditLog({
+      adminUserId: actor.id,
+      action: "HRM_ATTENDANCE_CREATED",
+      targetId: created.id,
+      targetType: "attendance_log",
+      metadata: { adminUserId, date: data.date, status },
+      req,
+    });
+
     return { id: created.id };
   }
 
   async updateAttendance({ id, data, actor, req }) {
+    assertAttendanceSchemaSupported();
+
     const attendanceId = assertUuid(id, "attendance id");
     const update = {};
 
@@ -363,23 +371,30 @@ class AttendanceService {
 
     if (!Object.keys(update).length) throw new ApiError(400, "No valid attendance fields provided");
 
-    const delegate = requireAttendanceModel("Attendance update");
-    const existing = await delegate.findUnique({ where: { id: attendanceId }, select: { id: true } });
+    const existing = await prisma.attendanceLog.findUnique({ where: { id: attendanceId }, select: { id: true } });
     if (!existing) throw new ApiError(404, "Attendance record not found");
 
-    await delegate.update({ where: { id: attendanceId }, data: update });
+    await prisma.attendanceLog.update({ where: { id: attendanceId }, data: update });
 
-    void actor;
-    void req;
+    await createAuditLog({
+      adminUserId: actor.id,
+      action: "HRM_ATTENDANCE_UPDATED",
+      targetId: attendanceId,
+      targetType: "attendance_log",
+      metadata: { changedFields: Object.keys(update) },
+      req,
+    });
+
     return {};
   }
 
   async downloadReport(query = {}) {
+    assertAttendanceSchemaSupported();
+
     const where = buildAttendanceWhere(query);
     if (query.employeeId) where.adminUserId = assertUuid(query.employeeId, "employee id");
-    const delegate = requireAttendanceModel("Attendance report download");
 
-    const records = await delegate.findMany({
+    const records = await prisma.attendanceLog.findMany({
       where,
       include: { adminUser: { select: EMPLOYEE_SELECT } },
       orderBy: [{ date: "desc" }, { clockIn: "asc" }],
@@ -405,4 +420,3 @@ class AttendanceService {
 }
 
 module.exports = new AttendanceService();
-

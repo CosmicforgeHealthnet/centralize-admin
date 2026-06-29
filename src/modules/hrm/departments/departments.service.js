@@ -30,7 +30,6 @@ function mapEmployee(user) {
     email: user.email,
     employeeCode: null,
     employmentType: formatEmploymentType(user),
-    employmentCategory: user.employmentCategory,
     department: user.department,
     designation: user.position,
     avatarUrl: user.avatarUrl,
