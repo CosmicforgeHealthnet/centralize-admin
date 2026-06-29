@@ -1,5 +1,6 @@
 const { prisma } = require("../../../shared/config/database");
 const ApiError = require("../../../shared/utils/ApiError");
+const { createAuditLog } = require("../../../shared/middlewares/audit.middleware");
 const {
   assertUuid,
   buildMeta,
@@ -19,6 +20,12 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 function percent(part, total) {
   if (!total) return 0;
   return Math.round((part / total) * 100);
+}
+
+function barColor(value) {
+  if (value >= 70) return "#0DA53F";
+  if (value >= 40) return "#F59E0B";
+  return "#EF4444";
 }
 
 function searchWhere(search, fields) {
@@ -123,9 +130,9 @@ class PerformanceService {
     return {
       score,
       bars: [
-        { label: "Project Timeline", value: timeline, color: "#F59E0B" },
-        { label: "Execution", value: execution, color: "#0DA53F" },
-        { label: "Attendance", value: attendance, color: "#0DA53F" },
+        { label: "Project Timeline", value: timeline, color: barColor(timeline) },
+        { label: "Execution", value: execution, color: barColor(execution) },
+        { label: "Attendance", value: attendance, color: barColor(attendance) },
       ],
       upcomingEvent: upcomingEvent
         ? { id: upcomingEvent.id, title: upcomingEvent.title, date: formatDateOnly(upcomingEvent.date), time: upcomingEvent.time }
@@ -163,6 +170,8 @@ class PerformanceService {
         if (task.status === "COMPLETED") buckets[monthIndex][dept].completed += 1;
       }
     }
+
+    if (!tasks.length) return { data: [] };
 
     return {
       data: buckets.map((b, i) => ({
@@ -320,7 +329,11 @@ class PerformanceService {
   }
 
   async getEvents() {
-    const events = await prisma.event.findMany({ orderBy: { date: "asc" } });
+    const now = new Date();
+    const events = await prisma.event.findMany({
+      where: { date: { gte: now } },
+      orderBy: { date: "asc" },
+    });
 
     return {
       data: events.map((e) => ({
@@ -334,7 +347,7 @@ class PerformanceService {
     };
   }
 
-  async createEvent({ data }) {
+  async createEvent({ data, actor, req }) {
     const date = new Date(data.date);
     if (Number.isNaN(date.getTime())) throw new ApiError(400, "Invalid date.");
 
@@ -347,6 +360,15 @@ class PerformanceService {
         location: data.location || null,
       },
       select: { id: true },
+    });
+
+    await createAuditLog({
+      adminUserId: actor?.id,
+      action: "HRM_EVENT_CREATED",
+      targetId: event.id,
+      targetType: "event",
+      metadata: { title: data.title },
+      req,
     });
 
     return { id: event.id };

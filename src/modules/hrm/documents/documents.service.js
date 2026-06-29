@@ -147,7 +147,7 @@ class DocumentsService {
     ]);
 
     return {
-      employees: employees.map(mapPickerEmployee),
+      data: employees.map(mapPickerEmployee),
       meta: buildMeta(total, page, limit),
     };
   }
