@@ -9,7 +9,23 @@ const {
   normalizeEnum,
   paginate,
   percentageChange,
+  unsupportedEndpoint,
 } = require("../hrm.utils");
+
+// Resolve event delegate at load time: use Event if present, fall back to HrmEvent.
+// Throws 501 at the call site only when neither model exists in the generated client.
+function resolveEventDelegate() {
+  if (prisma.event && typeof prisma.event.findMany === "function") return prisma.event;
+  if (prisma.hrmEvent && typeof prisma.hrmEvent.findMany === "function") return prisma.hrmEvent;
+  return null;
+}
+
+const eventDelegate = resolveEventDelegate();
+
+function assertEventDelegate() {
+  if (!eventDelegate) unsupportedEndpoint("Performance events", ["Event", "HrmEvent"]);
+  return eventDelegate;
+}
 
 const TASK_STATUSES = ["IN_PROGRESS", "COMPLETED", "OVERDUE"];
 const PROJECT_STATUSES = ["IN_PROGRESS", "COMPLETED", "OVERDUE"];
@@ -70,7 +86,7 @@ class PerformanceService {
       prisma.team.count(),
       prisma.task.count(),
       prisma.project.count(),
-      prisma.event.count(),
+      eventDelegate ? eventDelegate.count() : Promise.resolve(0),
       prisma.adminUser.count({ where: { createdAt: { gte: thisMonthStart } } }),
       prisma.adminUser.count({ where: { createdAt: { gte: prevMonthStart, lt: thisMonthStart } } }),
       prisma.team.count({ where: { createdAt: { gte: thisMonthStart } } }),
@@ -79,8 +95,8 @@ class PerformanceService {
       prisma.task.count({ where: { createdAt: { gte: prevMonthStart, lt: thisMonthStart } } }),
       prisma.project.count({ where: { createdAt: { gte: thisMonthStart } } }),
       prisma.project.count({ where: { createdAt: { gte: prevMonthStart, lt: thisMonthStart } } }),
-      prisma.event.count({ where: { createdAt: { gte: thisMonthStart } } }),
-      prisma.event.count({ where: { createdAt: { gte: prevMonthStart, lt: thisMonthStart } } }),
+      eventDelegate ? eventDelegate.count({ where: { createdAt: { gte: thisMonthStart } } }) : Promise.resolve(0),
+      eventDelegate ? eventDelegate.count({ where: { createdAt: { gte: prevMonthStart, lt: thisMonthStart } } }) : Promise.resolve(0),
     ]);
 
     return {
@@ -115,11 +131,13 @@ class PerformanceService {
       prisma.task.count({ where: { status: "COMPLETED" } }),
       prisma.attendanceLog.count({ where: { date: { gte: thirtyDaysAgo } } }),
       prisma.attendanceLog.count({ where: { status: "PRESENT", date: { gte: thirtyDaysAgo } } }),
-      prisma.event.findFirst({
-        where: { date: { gte: now } },
-        orderBy: { date: "asc" },
-        select: { id: true, title: true, date: true, time: true },
-      }),
+      eventDelegate
+        ? eventDelegate.findFirst({
+            where: { date: { gte: now } },
+            orderBy: { date: "asc" },
+            select: { id: true, title: true, date: true, time: true },
+          })
+        : Promise.resolve(null),
     ]);
 
     const timeline = percent(completedProjects, projectTotal);
@@ -330,7 +348,7 @@ class PerformanceService {
 
   async getEvents() {
     const now = new Date();
-    const events = await prisma.event.findMany({
+    const events = await assertEventDelegate().findMany({
       where: { date: { gte: now } },
       orderBy: { date: "asc" },
     });
@@ -348,10 +366,11 @@ class PerformanceService {
   }
 
   async createEvent({ data, actor, req }) {
+    assertEventDelegate();
     const date = new Date(data.date);
     if (Number.isNaN(date.getTime())) throw new ApiError(400, "Invalid date.");
 
-    const event = await prisma.event.create({
+    const event = await assertEventDelegate().create({
       data: {
         title: data.title,
         description: data.description || null,
@@ -375,8 +394,9 @@ class PerformanceService {
   }
 
   async getEvent(id) {
+    assertEventDelegate();
     const eventId = assertUuid(id, "event id");
-    const event = await prisma.event.findUnique({ where: { id: eventId } });
+    const event = await assertEventDelegate().findUnique({ where: { id: eventId } });
     if (!event) throw new ApiError(404, "Event not found");
 
     return {
