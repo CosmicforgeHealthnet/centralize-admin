@@ -4,41 +4,68 @@
 │       └── staging.yml
 ├── prisma
 │   ├── migrations
-│   │   ├── 20260328111338_init
+│   │   ├── 0_init
 │   │   │   └── migration.sql
-│   │   ├── 20260401124432_add_google_id
-│   │   │   └── migration.sql
-│   │   ├── 20260405081841_add_password_changed_at
-│   │   │   └── migration.sql
-│   │   ├── 20260417064318_add_main_app_user_id
-│   │   │   └── migration.sql
-│   │   ├── 20260422064812_add_profile_models
-│   │   │   └── migration.sql
-│   │   ├── 20260422102033_add_cloudinary_id
-│   │   │   └── migration.sql
-│   │   ├── 20260422110331_simplify_reports_and_documents
-│   │   │   └── migration.sql
-│   │   ├── 20260422111257_add_avatar_fields
-│   │   │   └── migration.sql
-│   │   ├── 20260422135412_add_employment_fields_and_report_note
-│   │   │   └── migration.sql
-│   │   ├── 20260422150751_add_work_section_models
-│   │   │   └── migration.sql
-│   │   ├── 20260424142703_add_report_file_fields
-│   │   │   └── migration.sql
-│   │   ├── 20260425091112_make_report_type_optional
+│   │   ├── 20260703010000_add_section_grants_and_2fa
 │   │   │   └── migration.sql
 │   │   └── migration_lock.toml
 │   ├── seeds
 │   │   ├── admin.seed.js
 │   │   ├── prod.seed.js
 │   │   └── staging.seed.js
+│   ├── dispatch.schema.prisma
 │   ├── main.schema.prisma
 │   └── schema.prisma
 ├── scripts
 │   └── testMainBackend.js
 ├── src
 │   ├── generated
+│   │   ├── admin-client
+│   │   │   ├── runtime
+│   │   │   │   ├── client.d.ts
+│   │   │   │   ├── client.js
+│   │   │   │   ├── index-browser.d.ts
+│   │   │   │   ├── index-browser.js
+│   │   │   │   └── wasm-compiler-edge.js
+│   │   │   ├── client.d.ts
+│   │   │   ├── client.js
+│   │   │   ├── default.d.ts
+│   │   │   ├── default.js
+│   │   │   ├── edge.d.ts
+│   │   │   ├── edge.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── index-browser.js
+│   │   │   ├── package.json
+│   │   │   ├── query_compiler_fast_bg.js
+│   │   │   ├── query_compiler_fast_bg.wasm
+│   │   │   ├── query_compiler_fast_bg.wasm-base64.js
+│   │   │   ├── schema.prisma
+│   │   │   ├── wasm-edge-light-loader.mjs
+│   │   │   └── wasm-worker-loader.mjs
+│   │   ├── dispatch-client
+│   │   │   ├── runtime
+│   │   │   │   ├── client.d.ts
+│   │   │   │   ├── client.js
+│   │   │   │   ├── index-browser.d.ts
+│   │   │   │   ├── index-browser.js
+│   │   │   │   └── wasm-compiler-edge.js
+│   │   │   ├── client.d.ts
+│   │   │   ├── client.js
+│   │   │   ├── default.d.ts
+│   │   │   ├── default.js
+│   │   │   ├── edge.d.ts
+│   │   │   ├── edge.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── index-browser.js
+│   │   │   ├── package.json
+│   │   │   ├── query_compiler_fast_bg.js
+│   │   │   ├── query_compiler_fast_bg.wasm
+│   │   │   ├── query_compiler_fast_bg.wasm-base64.js
+│   │   │   ├── schema.prisma
+│   │   │   ├── wasm-edge-light-loader.mjs
+│   │   │   └── wasm-worker-loader.mjs
 │   │   └── main-client
 │   │       ├── runtime
 │   │       │   ├── client.d.ts
@@ -115,6 +142,69 @@
 │   │   │   ├── healthnet.routes.js
 │   │   │   ├── healthnet.service.js
 │   │   │   └── index.js
+│   │   ├── hrm
+│   │   │   ├── accounts
+│   │   │   │   ├── accounts.controller.js
+│   │   │   │   ├── accounts.routes.js
+│   │   │   │   ├── accounts.service.js
+│   │   │   │   ├── accounts.validator.js
+│   │   │   │   └── index.js
+│   │   │   ├── attendance
+│   │   │   │   ├── attendance.controller.js
+│   │   │   │   ├── attendance.routes.js
+│   │   │   │   ├── attendance.service.js
+│   │   │   │   ├── attendance.validator.js
+│   │   │   │   └── index.js
+│   │   │   ├── departments
+│   │   │   │   ├── departments.controller.js
+│   │   │   │   ├── departments.routes.js
+│   │   │   │   ├── departments.service.js
+│   │   │   │   └── index.js
+│   │   │   ├── documents
+│   │   │   │   ├── documents.controller.js
+│   │   │   │   ├── documents.routes.js
+│   │   │   │   ├── documents.service.js
+│   │   │   │   ├── documents.validator.js
+│   │   │   │   └── index.js
+│   │   │   ├── employees
+│   │   │   │   ├── employees.controller.js
+│   │   │   │   ├── employees.routes.js
+│   │   │   │   ├── employees.service.js
+│   │   │   │   ├── employees.validator.js
+│   │   │   │   └── index.js
+│   │   │   ├── hiring
+│   │   │   │   ├── hiring.controller.js
+│   │   │   │   ├── hiring.routes.js
+│   │   │   │   ├── hiring.service.js
+│   │   │   │   ├── hiring.validator.js
+│   │   │   │   └── index.js
+│   │   │   ├── leaves
+│   │   │   │   ├── index.js
+│   │   │   │   ├── leaves.controller.js
+│   │   │   │   ├── leaves.routes.js
+│   │   │   │   ├── leaves.service.js
+│   │   │   │   └── leaves.validator.js
+│   │   │   ├── payroll
+│   │   │   │   ├── index.js
+│   │   │   │   ├── payroll.controller.js
+│   │   │   │   ├── payroll.routes.js
+│   │   │   │   ├── payroll.service.js
+│   │   │   │   └── payroll.validator.js
+│   │   │   ├── performance
+│   │   │   │   ├── index.js
+│   │   │   │   ├── performance.controller.js
+│   │   │   │   ├── performance.routes.js
+│   │   │   │   ├── performance.service.js
+│   │   │   │   └── performance.validator.js
+│   │   │   ├── hrm.routes.js
+│   │   │   ├── hrm.utils.js
+│   │   │   └── index.js
+│   │   ├── karrygo
+│   │   │   └── dispatch
+│   │   │       ├── dispatch.controller.js
+│   │   │       ├── dispatch.routes.js
+│   │   │       ├── dispatch.service.js
+│   │   │       └── index.js
 │   │   ├── logistics
 │   │   │   ├── index.js
 │   │   │   ├── logistics.controller.js
@@ -171,6 +261,7 @@
 │   │   ├── config
 │   │   │   ├── cloudinary.js
 │   │   │   ├── database.js
+│   │   │   ├── dispatchDatabase.js
 │   │   │   ├── google.strategy.js
 │   │   │   ├── mailer.js
 │   │   │   └── mainDatabase.js
@@ -206,11 +297,13 @@
 │   └── server.js
 ├── .gitignore
 ├── Dockerfile
+├── drop.sql
 ├── folder-structure.txt
 ├── nodemon.json
 ├── package.json
 ├── prisma.config.ts
 ├── prisma.dev.config.ts
+├── prisma.dispatch.config.ts
 ├── prisma.main.config.ts
 ├── prisma.prod.config.ts
 └── README.md

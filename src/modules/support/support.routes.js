@@ -1,7 +1,10 @@
 const router = require("express").Router();
 const rateLimit = require("express-rate-limit");
 const { authenticate } = require("../../shared/middlewares/auth.middleware");
-const { requireTier } = require("../../shared/middlewares/rbac.middleware");
+const {
+  requireTier,
+  requireSection,
+} = require("../../shared/middlewares/rbac.middleware");
 const {
   getStats,
   getMergedTickets,
@@ -25,13 +28,37 @@ router.use(authenticate);
 router.use(requireTier("ADMIN"));
 router.use(supportLimiter);
 
-router.get("/stats", getStats);
-router.get("/tickets", getMergedTickets);
+router.get("/stats", requireSection("support", "tickets", "VIEW"), getStats);
+router.get(
+  "/tickets",
+  requireSection("support", "tickets", "VIEW"),
+  getMergedTickets,
+);
 // router.get("/staff-activity", getStaffActivity);
-router.get("/user-traffic", getUserTraffic);
-router.get("/chats", getSupportChats);
-router.get("/chats/:roomId/messages", getChatMessages);
-router.post("/chats/:roomId/claim", claimChat);
-router.post("/chats/:roomId/messages", sendChatMessage);
+router.get(
+  "/user-traffic",
+  requireSection("support", "tickets", "VIEW"),
+  getUserTraffic,
+);
+router.get(
+  "/chats",
+  requireSection("support", "chats", "VIEW"),
+  getSupportChats,
+);
+router.get(
+  "/chats/:roomId/messages",
+  requireSection("support", "chats", "VIEW"),
+  getChatMessages,
+);
+router.post(
+  "/chats/:roomId/claim",
+  requireSection("support", "chats", "EDIT"),
+  claimChat,
+);
+router.post(
+  "/chats/:roomId/messages",
+  requireSection("support", "chats", "EDIT"),
+  sendChatMessage,
+);
 
 module.exports = router;

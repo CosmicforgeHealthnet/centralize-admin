@@ -1,55 +1,48 @@
 const router = require("express").Router();
 const rateLimit = require("express-rate-limit");
 const { authenticate } = require("../../shared/middlewares/auth.middleware");
-const { requireTier } = require("../../shared/middlewares/rbac.middleware");
 const {
-  // services
+  requireTier,
+  requireSection,
+} = require("../../shared/middlewares/rbac.middleware");
+const {
   listServices,
   getService,
   registerService,
   updateService,
   deregisterService,
   pingService,
-  // jobs
   listJobs,
   getJob,
   trackJob,
-  // dead letters
   listDeadLetters,
   getDeadLetter,
   resolveDeadLetter,
-  // webhooks
   listWebhooks,
   getWebhook,
   createWebhook,
   updateWebhook,
   deleteWebhook,
-  // webhook logs
   listWebhookLogs,
   getWebhookLog,
-  // incidents
   listIncidents,
   getIncident,
   createIncident,
   updateIncident,
   resolveIncident,
-  // alerts
   listAlerts,
   getAlert,
   createAlert,
   markAlertRead,
   resolveAlert,
-  // flags
   listFlags,
   getFlag,
   createFlag,
   updateFlag,
   deleteFlag,
   checkFlag,
-  // health
   listHealthHistory,
   getLatestHealthCheck,
-  // env configs
   listEnvConfigs,
   createEnvConfig,
   updateEnvConfig,
@@ -68,65 +61,58 @@ router.use(authenticate);
 router.use(requireTier("ADMIN"));
 router.use(limiter);
 
-// ─── Service Registry ────────────────────────────────────────────────────────
-router.get("/services", listServices);
-router.post("/services", registerService);
-router.get("/services/:id", getService);
-router.put("/services/:id", updateService);
-router.delete("/services/:id", deregisterService);
-router.post("/services/:id/ping", pingService);
+const view = requireSection("development", "admin-ops", "VIEW");
+const edit = requireSection("development", "admin-ops", "EDIT");
 
-// ─── Job Monitoring ──────────────────────────────────────────────────────────
-router.get("/jobs", listJobs);
-router.post("/jobs/track", trackJob);
-router.get("/jobs/:id", getJob);
+router.get("/services", view, listServices);
+router.post("/services", edit, registerService);
+router.get("/services/:id", view, getService);
+router.put("/services/:id", edit, updateService);
+router.delete("/services/:id", edit, deregisterService);
+router.post("/services/:id/ping", edit, pingService);
 
-// ─── Dead Letter Jobs ────────────────────────────────────────────────────────
-router.get("/dead-letters", listDeadLetters);
-router.get("/dead-letters/:id", getDeadLetter);
-router.put("/dead-letters/:id/resolve", resolveDeadLetter);
+router.get("/jobs", view, listJobs);
+router.post("/jobs/track", edit, trackJob);
+router.get("/jobs/:id", view, getJob);
 
-// ─── Webhook Endpoints ───────────────────────────────────────────────────────
-router.get("/webhooks", listWebhooks);
-router.post("/webhooks", createWebhook);
-router.get("/webhooks/:id", getWebhook);
-router.put("/webhooks/:id", updateWebhook);
-router.delete("/webhooks/:id", deleteWebhook);
+router.get("/dead-letters", view, listDeadLetters);
+router.get("/dead-letters/:id", view, getDeadLetter);
+router.put("/dead-letters/:id/resolve", edit, resolveDeadLetter);
 
-// ─── Webhook Delivery Logs ───────────────────────────────────────────────────
-router.get("/webhook-logs", listWebhookLogs);
-router.get("/webhook-logs/:id", getWebhookLog);
+router.get("/webhooks", view, listWebhooks);
+router.post("/webhooks", edit, createWebhook);
+router.get("/webhooks/:id", view, getWebhook);
+router.put("/webhooks/:id", edit, updateWebhook);
+router.delete("/webhooks/:id", edit, deleteWebhook);
 
-// ─── Incidents ───────────────────────────────────────────────────────────────
-router.get("/incidents", listIncidents);
-router.post("/incidents", createIncident);
-router.get("/incidents/:id", getIncident);
-router.put("/incidents/:id", updateIncident);
-router.post("/incidents/:id/resolve", resolveIncident);
+router.get("/webhook-logs", view, listWebhookLogs);
+router.get("/webhook-logs/:id", view, getWebhookLog);
 
-// ─── System Alerts ───────────────────────────────────────────────────────────
-router.get("/alerts", listAlerts);
-router.post("/alerts", createAlert);
-router.get("/alerts/:id", getAlert);
-router.put("/alerts/:id/read", markAlertRead);
-router.put("/alerts/:id/resolve", resolveAlert);
+router.get("/incidents", view, listIncidents);
+router.post("/incidents", edit, createIncident);
+router.get("/incidents/:id", view, getIncident);
+router.put("/incidents/:id", edit, updateIncident);
+router.post("/incidents/:id/resolve", edit, resolveIncident);
 
-// ─── Feature Flags ───────────────────────────────────────────────────────────
-router.get("/flags", listFlags);
-router.post("/flags", createFlag);
-router.get("/flags/:key/check", checkFlag);
-router.get("/flags/:key", getFlag);
-router.put("/flags/:key", updateFlag);
-router.delete("/flags/:key", deleteFlag);
+router.get("/alerts", view, listAlerts);
+router.post("/alerts", edit, createAlert);
+router.get("/alerts/:id", view, getAlert);
+router.put("/alerts/:id/read", edit, markAlertRead);
+router.put("/alerts/:id/resolve", edit, resolveAlert);
 
-// ─── Health History ──────────────────────────────────────────────────────────
-router.get("/health-history", listHealthHistory);
-router.get("/health-history/latest", getLatestHealthCheck);
+router.get("/flags", view, listFlags);
+router.post("/flags", edit, createFlag);
+router.get("/flags/:key/check", view, checkFlag);
+router.get("/flags/:key", view, getFlag);
+router.put("/flags/:key", edit, updateFlag);
+router.delete("/flags/:key", edit, deleteFlag);
 
-// ─── Environment Configs ─────────────────────────────────────────────────────
-router.get("/env-configs", listEnvConfigs);
-router.post("/env-configs", createEnvConfig);
-router.put("/env-configs/:id", updateEnvConfig);
-router.delete("/env-configs/:id", deleteEnvConfig);
+router.get("/health-history", view, listHealthHistory);
+router.get("/health-history/latest", view, getLatestHealthCheck);
+
+router.get("/env-configs", view, listEnvConfigs);
+router.post("/env-configs", edit, createEnvConfig);
+router.put("/env-configs/:id", edit, updateEnvConfig);
+router.delete("/env-configs/:id", edit, deleteEnvConfig);
 
 module.exports = router;

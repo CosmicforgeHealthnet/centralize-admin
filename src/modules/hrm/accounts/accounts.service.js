@@ -163,11 +163,32 @@ class AccountsService {
 
   async createAccount({ data, actor, req }) {
     if (["SUPER", "EXECUTIVE"].includes(data.tier) && actor.tier !== "SUPER") {
-      throw new ApiError(403, "Only Super accounts can create Super or Executive accounts");
+      throw new ApiError(
+        403,
+        "Only Super accounts can create Super or Executive accounts",
+      );
     }
 
-    const existing = await prisma.adminUser.findUnique({ where: { email: data.email } });
-    if (existing) throw new ApiError(409, "A user with this email already exists");
+    if (actor.tier === "ADMIN") {
+      if (!actor.department) {
+        throw new ApiError(
+          403,
+          "Your account has no department assigned. Contact a Super admin.",
+        );
+      }
+      if (data.department !== actor.department) {
+        throw new ApiError(
+          403,
+          "You can only create accounts within your own department",
+        );
+      }
+    }
+
+    const existing = await prisma.adminUser.findUnique({
+      where: { email: data.email },
+    });
+    if (existing)
+      throw new ApiError(409, "A user with this email already exists");
 
     const tempPassword = generateTempPassword();
     const password = await hashPassword(tempPassword);
@@ -186,7 +207,9 @@ class AccountsService {
     try {
       await sendInviteEmail({ user: created, tempPassword });
     } catch (error) {
-      logger.warn(`HRM account invite email failed for ${created.email}: ${error.message}`);
+      logger.warn(
+        `HRM account invite email failed for ${created.email}: ${error.message}`,
+      );
     }
 
     await createAuditLog({
@@ -194,7 +217,11 @@ class AccountsService {
       action: "USER_CREATED",
       targetId: created.id,
       targetType: "admin_user",
-      metadata: { email: created.email, tier: created.tier, department: created.department },
+      metadata: {
+        email: created.email,
+        tier: created.tier,
+        department: created.department,
+      },
       req,
     });
 
@@ -203,15 +230,24 @@ class AccountsService {
 
   async updateAccount({ id, data, actor, req }) {
     const accountId = assertUuid(id, "account id");
-    const existing = await prisma.adminUser.findUnique({ where: { id: accountId } });
+    const existing = await prisma.adminUser.findUnique({
+      where: { id: accountId },
+    });
     if (!existing) throw new ApiError(404, "Account not found");
 
     if (existing.tier === "SUPER" && actor.tier !== "SUPER") {
       throw new ApiError(403, "Only Super accounts can update Super accounts");
     }
 
-    if (data.tier && ["SUPER", "EXECUTIVE"].includes(data.tier) && actor.tier !== "SUPER") {
-      throw new ApiError(403, "Only Super accounts can assign Super or Executive tiers");
+    if (
+      data.tier &&
+      ["SUPER", "EXECUTIVE"].includes(data.tier) &&
+      actor.tier !== "SUPER"
+    ) {
+      throw new ApiError(
+        403,
+        "Only Super accounts can assign Super or Executive tiers",
+      );
     }
 
     const update = pickDefined(data, ACCOUNT_UPDATE_FIELDS);
@@ -240,9 +276,12 @@ class AccountsService {
 
   async deleteAccount({ id, actor, req }) {
     const accountId = assertUuid(id, "account id");
-    if (accountId === actor.id) throw new ApiError(400, "You cannot delete your own account");
+    if (accountId === actor.id)
+      throw new ApiError(400, "You cannot delete your own account");
 
-    const existing = await prisma.adminUser.findUnique({ where: { id: accountId } });
+    const existing = await prisma.adminUser.findUnique({
+      where: { id: accountId },
+    });
     if (!existing) throw new ApiError(404, "Account not found");
 
     await prisma.$transaction(async (tx) => {
@@ -266,23 +305,45 @@ class AccountsService {
     });
   }
 
-  async updateStatus({ id, status, actor, req }) {
+  async updateStatus({ id, status, reassignTo, actor, req }) {
     const accountId = assertUuid(id, "account id");
     if (accountId === actor.id && status === "INACTIVE") {
       throw new ApiError(400, "You cannot deactivate your own account");
     }
 
-    const existing = await prisma.adminUser.findUnique({ where: { id: accountId } });
+    const existing = await prisma.adminUser.findUnique({
+      where: { id: accountId },
+    });
     if (!existing) throw new ApiError(404, "Account not found");
     if (existing.tier === "SUPER" && actor.tier !== "SUPER") {
-      throw new ApiError(403, "Only Super accounts can change Super account status");
+      throw new ApiError(
+        403,
+        "Only Super accounts can change Super account status",
+      );
     }
+
+    const newOwnerId = reassignTo || actor.id;
 
     const updated = await prisma.$transaction(async (tx) => {
       if (status === "INACTIVE") {
         await tx.refreshToken.updateMany({
           where: { adminUserId: accountId },
           data: { isRevoked: true },
+        });
+
+        await tx.team.updateMany({
+          where: { createdBy: accountId },
+          data: { createdBy: newOwnerId },
+        });
+
+        await tx.project.updateMany({
+          where: { createdBy: accountId },
+          data: { createdBy: newOwnerId },
+        });
+
+        await tx.leaveRequest.updateMany({
+          where: { reviewedById: accountId, status: "PENDING" },
+          data: { reviewedById: newOwnerId },
         });
       }
 
@@ -298,7 +359,11 @@ class AccountsService {
       action: status === "ACTIVE" ? "USER_ACTIVATED" : "USER_DEACTIVATED",
       targetId: accountId,
       targetType: "admin_user",
-      metadata: { previousStatus: existing.status, status },
+      metadata: {
+        previousStatus: existing.status,
+        status,
+        reassignedTo: status === "INACTIVE" ? newOwnerId : undefined,
+      },
       req,
     });
 
@@ -329,7 +394,9 @@ class AccountsService {
     try {
       await sendInviteEmail({ user, tempPassword });
     } catch (error) {
-      logger.warn(`HRM invite resend email failed for ${user.email}: ${error.message}`);
+      logger.warn(
+        `HRM invite resend email failed for ${user.email}: ${error.message}`,
+      );
     }
 
     await createAuditLog({

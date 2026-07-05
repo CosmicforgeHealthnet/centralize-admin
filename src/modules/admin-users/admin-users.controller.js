@@ -42,6 +42,7 @@ const deactivateUser = asyncHandler(async (req, res) => {
   await adminUsersService.deactivateUser({
     id: req.params.id,
     deactivatedBy: req.adminUser.id,
+    reassignTo: req.body.reassignTo,
     req,
   });
   return ApiResponse.success(res, 200, "User deactivated");

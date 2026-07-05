@@ -1,7 +1,10 @@
 const router = require("express").Router();
 const rateLimit = require("express-rate-limit");
 const { authenticate } = require("../../shared/middlewares/auth.middleware");
-const { requireTier } = require("../../shared/middlewares/rbac.middleware");
+const {
+  requireTier,
+  requireSection,
+} = require("../../shared/middlewares/rbac.middleware");
 const {
   getSession,
   listSessions,
@@ -21,9 +24,17 @@ router.use(authenticate);
 router.use(requireTier("ADMIN"));
 router.use(limiter);
 
-router.get("/stats", getSessionStats);
-router.get("/", listSessions);
-router.get("/:id", getSession);
-router.patch("/:id/status", transitionSession);
+router.get(
+  "/stats",
+  requireSection("rtc", "sessions", "VIEW"),
+  getSessionStats,
+);
+router.get("/", requireSection("rtc", "sessions", "VIEW"), listSessions);
+router.get("/:id", requireSection("rtc", "sessions", "VIEW"), getSession);
+router.patch(
+  "/:id/status",
+  requireSection("rtc", "sessions", "EDIT"),
+  transitionSession,
+);
 
 module.exports = router;

@@ -29,6 +29,11 @@ export type RefreshToken = $Result.DefaultSelection<Prisma.$RefreshTokenPayload>
  */
 export type AuditLog = $Result.DefaultSelection<Prisma.$AuditLogPayload>
 /**
+ * Model AdminSectionGrant
+ * 
+ */
+export type AdminSectionGrant = $Result.DefaultSelection<Prisma.$AdminSectionGrantPayload>
+/**
  * Model AdminSocialLink
  * 
  */
@@ -175,10 +180,23 @@ export const Department: {
   MARKETING: 'MARKETING',
   SOCIAL_MEDIA: 'SOCIAL_MEDIA',
   EXECUTIVE: 'EXECUTIVE',
-  MANAGEMENT: 'MANAGEMENT'
+  MANAGEMENT: 'MANAGEMENT',
+  HR: 'HR',
+  VERIFICATION: 'VERIFICATION',
+  RTC: 'RTC',
+  TELEMEDICINE: 'TELEMEDICINE',
+  OPERATIONS: 'OPERATIONS'
 };
 
 export type Department = (typeof Department)[keyof typeof Department]
+
+
+export const SectionAccessMode: {
+  VIEW: 'VIEW',
+  EDIT: 'EDIT'
+};
+
+export type SectionAccessMode = (typeof SectionAccessMode)[keyof typeof SectionAccessMode]
 
 
 export const AuditAction: {
@@ -215,7 +233,10 @@ export const AuditAction: {
   HRM_VACANCY_DELETED: 'HRM_VACANCY_DELETED',
   HRM_VACANCY_STATUS_UPDATED: 'HRM_VACANCY_STATUS_UPDATED',
   HRM_APPLICANT_STAGE_UPDATED: 'HRM_APPLICANT_STAGE_UPDATED',
-  HRM_EVENT_CREATED: 'HRM_EVENT_CREATED'
+  HRM_EVENT_CREATED: 'HRM_EVENT_CREATED',
+  SECTION_GRANT_CREATED: 'SECTION_GRANT_CREATED',
+  SECTION_GRANT_REVOKED: 'SECTION_GRANT_REVOKED',
+  EMERGENCY_OVERRIDE_USED: 'EMERGENCY_OVERRIDE_USED'
 };
 
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]
@@ -318,6 +339,10 @@ export const AdminStatus: typeof $Enums.AdminStatus
 export type Department = $Enums.Department
 
 export const Department: typeof $Enums.Department
+
+export type SectionAccessMode = $Enums.SectionAccessMode
+
+export const SectionAccessMode: typeof $Enums.SectionAccessMode
 
 export type AuditAction = $Enums.AuditAction
 
@@ -509,6 +534,16 @@ export class PrismaClient<
     * ```
     */
   get auditLog(): Prisma.AuditLogDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.adminSectionGrant`: Exposes CRUD operations for the **AdminSectionGrant** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AdminSectionGrants
+    * const adminSectionGrants = await prisma.adminSectionGrant.findMany()
+    * ```
+    */
+  get adminSectionGrant(): Prisma.AdminSectionGrantDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.adminSocialLink`: Exposes CRUD operations for the **AdminSocialLink** model.
@@ -1176,6 +1211,7 @@ export namespace Prisma {
     AdminUser: 'AdminUser',
     RefreshToken: 'RefreshToken',
     AuditLog: 'AuditLog',
+    AdminSectionGrant: 'AdminSectionGrant',
     AdminSocialLink: 'AdminSocialLink',
     AdminEducation: 'AdminEducation',
     AdminDocument: 'AdminDocument',
@@ -1214,7 +1250,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "adminUser" | "refreshToken" | "auditLog" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event"
+      modelProps: "adminUser" | "refreshToken" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1437,6 +1473,80 @@ export namespace Prisma {
           count: {
             args: Prisma.AuditLogCountArgs<ExtArgs>
             result: $Utils.Optional<AuditLogCountAggregateOutputType> | number
+          }
+        }
+      }
+      AdminSectionGrant: {
+        payload: Prisma.$AdminSectionGrantPayload<ExtArgs>
+        fields: Prisma.AdminSectionGrantFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AdminSectionGrantFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSectionGrantPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AdminSectionGrantFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSectionGrantPayload>
+          }
+          findFirst: {
+            args: Prisma.AdminSectionGrantFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSectionGrantPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AdminSectionGrantFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSectionGrantPayload>
+          }
+          findMany: {
+            args: Prisma.AdminSectionGrantFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSectionGrantPayload>[]
+          }
+          create: {
+            args: Prisma.AdminSectionGrantCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSectionGrantPayload>
+          }
+          createMany: {
+            args: Prisma.AdminSectionGrantCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AdminSectionGrantCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSectionGrantPayload>[]
+          }
+          delete: {
+            args: Prisma.AdminSectionGrantDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSectionGrantPayload>
+          }
+          update: {
+            args: Prisma.AdminSectionGrantUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSectionGrantPayload>
+          }
+          deleteMany: {
+            args: Prisma.AdminSectionGrantDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AdminSectionGrantUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AdminSectionGrantUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSectionGrantPayload>[]
+          }
+          upsert: {
+            args: Prisma.AdminSectionGrantUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSectionGrantPayload>
+          }
+          aggregate: {
+            args: Prisma.AdminSectionGrantAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAdminSectionGrant>
+          }
+          groupBy: {
+            args: Prisma.AdminSectionGrantGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AdminSectionGrantGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AdminSectionGrantCountArgs<ExtArgs>
+            result: $Utils.Optional<AdminSectionGrantCountAggregateOutputType> | number
           }
         }
       }
@@ -3253,6 +3363,7 @@ export namespace Prisma {
     adminUser?: AdminUserOmit
     refreshToken?: RefreshTokenOmit
     auditLog?: AuditLogOmit
+    adminSectionGrant?: AdminSectionGrantOmit
     adminSocialLink?: AdminSocialLinkOmit
     adminEducation?: AdminEducationOmit
     adminDocument?: AdminDocumentOmit
@@ -3363,6 +3474,7 @@ export namespace Prisma {
     documents: number
     performanceNotes: number
     reports: number
+    sectionGrants: number
     teamMemberships: number
     projectMemberships: number
     assignedTasks: number
@@ -3387,6 +3499,7 @@ export namespace Prisma {
     documents?: boolean | AdminUserCountOutputTypeCountDocumentsArgs
     performanceNotes?: boolean | AdminUserCountOutputTypeCountPerformanceNotesArgs
     reports?: boolean | AdminUserCountOutputTypeCountReportsArgs
+    sectionGrants?: boolean | AdminUserCountOutputTypeCountSectionGrantsArgs
     teamMemberships?: boolean | AdminUserCountOutputTypeCountTeamMembershipsArgs
     projectMemberships?: boolean | AdminUserCountOutputTypeCountProjectMembershipsArgs
     assignedTasks?: boolean | AdminUserCountOutputTypeCountAssignedTasksArgs
@@ -3461,6 +3574,13 @@ export namespace Prisma {
    */
   export type AdminUserCountOutputTypeCountReportsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AdminReportWhereInput
+  }
+
+  /**
+   * AdminUserCountOutputType without action
+   */
+  export type AdminUserCountOutputTypeCountSectionGrantsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminSectionGrantWhereInput
   }
 
   /**
@@ -3815,6 +3935,8 @@ export namespace Prisma {
     createdAt: Date | null
     updatedAt: Date | null
     createdBy: string | null
+    twoFactorEnabled: boolean | null
+    twoFactorSecret: string | null
     avatarUrl: string | null
     avatarCloudinaryId: string | null
     preferredName: string | null
@@ -3864,6 +3986,8 @@ export namespace Prisma {
     createdAt: Date | null
     updatedAt: Date | null
     createdBy: string | null
+    twoFactorEnabled: boolean | null
+    twoFactorSecret: string | null
     avatarUrl: string | null
     avatarCloudinaryId: string | null
     preferredName: string | null
@@ -3913,6 +4037,8 @@ export namespace Prisma {
     createdAt: number
     updatedAt: number
     createdBy: number
+    twoFactorEnabled: number
+    twoFactorSecret: number
     avatarUrl: number
     avatarCloudinaryId: number
     preferredName: number
@@ -3978,6 +4104,8 @@ export namespace Prisma {
     createdAt?: true
     updatedAt?: true
     createdBy?: true
+    twoFactorEnabled?: true
+    twoFactorSecret?: true
     avatarUrl?: true
     avatarCloudinaryId?: true
     preferredName?: true
@@ -4027,6 +4155,8 @@ export namespace Prisma {
     createdAt?: true
     updatedAt?: true
     createdBy?: true
+    twoFactorEnabled?: true
+    twoFactorSecret?: true
     avatarUrl?: true
     avatarCloudinaryId?: true
     preferredName?: true
@@ -4076,6 +4206,8 @@ export namespace Prisma {
     createdAt?: true
     updatedAt?: true
     createdBy?: true
+    twoFactorEnabled?: true
+    twoFactorSecret?: true
     avatarUrl?: true
     avatarCloudinaryId?: true
     preferredName?: true
@@ -4212,6 +4344,8 @@ export namespace Prisma {
     createdAt: Date
     updatedAt: Date
     createdBy: string | null
+    twoFactorEnabled: boolean
+    twoFactorSecret: string | null
     avatarUrl: string | null
     avatarCloudinaryId: string | null
     preferredName: string | null
@@ -4280,6 +4414,8 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     createdBy?: boolean
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: boolean
     avatarUrl?: boolean
     avatarCloudinaryId?: boolean
     preferredName?: boolean
@@ -4311,6 +4447,7 @@ export namespace Prisma {
     documents?: boolean | AdminUser$documentsArgs<ExtArgs>
     performanceNotes?: boolean | AdminUser$performanceNotesArgs<ExtArgs>
     reports?: boolean | AdminUser$reportsArgs<ExtArgs>
+    sectionGrants?: boolean | AdminUser$sectionGrantsArgs<ExtArgs>
     teamMemberships?: boolean | AdminUser$teamMembershipsArgs<ExtArgs>
     projectMemberships?: boolean | AdminUser$projectMembershipsArgs<ExtArgs>
     assignedTasks?: boolean | AdminUser$assignedTasksArgs<ExtArgs>
@@ -4351,6 +4488,8 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     createdBy?: boolean
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: boolean
     avatarUrl?: boolean
     avatarCloudinaryId?: boolean
     preferredName?: boolean
@@ -4400,6 +4539,8 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     createdBy?: boolean
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: boolean
     avatarUrl?: boolean
     avatarCloudinaryId?: boolean
     preferredName?: boolean
@@ -4449,6 +4590,8 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     createdBy?: boolean
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: boolean
     avatarUrl?: boolean
     avatarCloudinaryId?: boolean
     preferredName?: boolean
@@ -4475,7 +4618,7 @@ export namespace Prisma {
     equity?: boolean
   }
 
-  export type AdminUserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "password" | "name" | "position" | "department" | "tier" | "status" | "isTeamLead" | "failedLoginAttempts" | "googleId" | "mainAppUserId" | "lockedUntil" | "lastLoginAt" | "lastLoginIp" | "mustChangePassword" | "passwordResetToken" | "passwordResetExpires" | "passwordChangedAt" | "createdAt" | "updatedAt" | "createdBy" | "avatarUrl" | "avatarCloudinaryId" | "preferredName" | "birthday" | "nationality" | "gender" | "maritalStatus" | "workPhone" | "homePhone" | "personalPhone" | "fax" | "address" | "state" | "country" | "emergencyName" | "emergencyPhone" | "emergencyEmail" | "emergencyRelation" | "employmentType" | "employmentCategory" | "location" | "salary" | "bonus" | "equity", ExtArgs["result"]["adminUser"]>
+  export type AdminUserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "password" | "name" | "position" | "department" | "tier" | "status" | "isTeamLead" | "failedLoginAttempts" | "googleId" | "mainAppUserId" | "lockedUntil" | "lastLoginAt" | "lastLoginIp" | "mustChangePassword" | "passwordResetToken" | "passwordResetExpires" | "passwordChangedAt" | "createdAt" | "updatedAt" | "createdBy" | "twoFactorEnabled" | "twoFactorSecret" | "avatarUrl" | "avatarCloudinaryId" | "preferredName" | "birthday" | "nationality" | "gender" | "maritalStatus" | "workPhone" | "homePhone" | "personalPhone" | "fax" | "address" | "state" | "country" | "emergencyName" | "emergencyPhone" | "emergencyEmail" | "emergencyRelation" | "employmentType" | "employmentCategory" | "location" | "salary" | "bonus" | "equity", ExtArgs["result"]["adminUser"]>
   export type AdminUserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     refreshTokens?: boolean | AdminUser$refreshTokensArgs<ExtArgs>
     auditLogs?: boolean | AdminUser$auditLogsArgs<ExtArgs>
@@ -4484,6 +4627,7 @@ export namespace Prisma {
     documents?: boolean | AdminUser$documentsArgs<ExtArgs>
     performanceNotes?: boolean | AdminUser$performanceNotesArgs<ExtArgs>
     reports?: boolean | AdminUser$reportsArgs<ExtArgs>
+    sectionGrants?: boolean | AdminUser$sectionGrantsArgs<ExtArgs>
     teamMemberships?: boolean | AdminUser$teamMembershipsArgs<ExtArgs>
     projectMemberships?: boolean | AdminUser$projectMembershipsArgs<ExtArgs>
     assignedTasks?: boolean | AdminUser$assignedTasksArgs<ExtArgs>
@@ -4513,6 +4657,7 @@ export namespace Prisma {
       documents: Prisma.$AdminDocumentPayload<ExtArgs>[]
       performanceNotes: Prisma.$AdminPerformanceNotePayload<ExtArgs>[]
       reports: Prisma.$AdminReportPayload<ExtArgs>[]
+      sectionGrants: Prisma.$AdminSectionGrantPayload<ExtArgs>[]
       teamMemberships: Prisma.$TeamMemberPayload<ExtArgs>[]
       projectMemberships: Prisma.$ProjectMemberPayload<ExtArgs>[]
       assignedTasks: Prisma.$TaskPayload<ExtArgs>[]
@@ -4551,6 +4696,8 @@ export namespace Prisma {
       createdAt: Date
       updatedAt: Date
       createdBy: string | null
+      twoFactorEnabled: boolean
+      twoFactorSecret: string | null
       avatarUrl: string | null
       avatarCloudinaryId: string | null
       preferredName: string | null
@@ -4976,6 +5123,7 @@ export namespace Prisma {
     documents<T extends AdminUser$documentsArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$documentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     performanceNotes<T extends AdminUser$performanceNotesArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$performanceNotesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminPerformanceNotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     reports<T extends AdminUser$reportsArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$reportsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    sectionGrants<T extends AdminUser$sectionGrantsArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$sectionGrantsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminSectionGrantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     teamMemberships<T extends AdminUser$teamMembershipsArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$teamMembershipsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TeamMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     projectMemberships<T extends AdminUser$projectMembershipsArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$projectMembershipsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProjectMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     assignedTasks<T extends AdminUser$assignedTasksArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$assignedTasksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -5041,6 +5189,8 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"AdminUser", 'DateTime'>
     readonly updatedAt: FieldRef<"AdminUser", 'DateTime'>
     readonly createdBy: FieldRef<"AdminUser", 'String'>
+    readonly twoFactorEnabled: FieldRef<"AdminUser", 'Boolean'>
+    readonly twoFactorSecret: FieldRef<"AdminUser", 'String'>
     readonly avatarUrl: FieldRef<"AdminUser", 'String'>
     readonly avatarCloudinaryId: FieldRef<"AdminUser", 'String'>
     readonly preferredName: FieldRef<"AdminUser", 'String'>
@@ -5623,6 +5773,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: AdminReportScalarFieldEnum | AdminReportScalarFieldEnum[]
+  }
+
+  /**
+   * AdminUser.sectionGrants
+   */
+  export type AdminUser$sectionGrantsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSectionGrant
+     */
+    select?: AdminSectionGrantSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSectionGrant
+     */
+    omit?: AdminSectionGrantOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSectionGrantInclude<ExtArgs> | null
+    where?: AdminSectionGrantWhereInput
+    orderBy?: AdminSectionGrantOrderByWithRelationInput | AdminSectionGrantOrderByWithRelationInput[]
+    cursor?: AdminSectionGrantWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AdminSectionGrantScalarFieldEnum | AdminSectionGrantScalarFieldEnum[]
   }
 
   /**
@@ -8209,6 +8383,1134 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: AuditLogInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AdminSectionGrant
+   */
+
+  export type AggregateAdminSectionGrant = {
+    _count: AdminSectionGrantCountAggregateOutputType | null
+    _min: AdminSectionGrantMinAggregateOutputType | null
+    _max: AdminSectionGrantMaxAggregateOutputType | null
+  }
+
+  export type AdminSectionGrantMinAggregateOutputType = {
+    id: string | null
+    adminUserId: string | null
+    module: string | null
+    section: string | null
+    mode: $Enums.SectionAccessMode | null
+    grantedBy: string | null
+    reason: string | null
+    expiresAt: Date | null
+    createdAt: Date | null
+    revokedAt: Date | null
+  }
+
+  export type AdminSectionGrantMaxAggregateOutputType = {
+    id: string | null
+    adminUserId: string | null
+    module: string | null
+    section: string | null
+    mode: $Enums.SectionAccessMode | null
+    grantedBy: string | null
+    reason: string | null
+    expiresAt: Date | null
+    createdAt: Date | null
+    revokedAt: Date | null
+  }
+
+  export type AdminSectionGrantCountAggregateOutputType = {
+    id: number
+    adminUserId: number
+    module: number
+    section: number
+    mode: number
+    grantedBy: number
+    reason: number
+    expiresAt: number
+    createdAt: number
+    revokedAt: number
+    _all: number
+  }
+
+
+  export type AdminSectionGrantMinAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    module?: true
+    section?: true
+    mode?: true
+    grantedBy?: true
+    reason?: true
+    expiresAt?: true
+    createdAt?: true
+    revokedAt?: true
+  }
+
+  export type AdminSectionGrantMaxAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    module?: true
+    section?: true
+    mode?: true
+    grantedBy?: true
+    reason?: true
+    expiresAt?: true
+    createdAt?: true
+    revokedAt?: true
+  }
+
+  export type AdminSectionGrantCountAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    module?: true
+    section?: true
+    mode?: true
+    grantedBy?: true
+    reason?: true
+    expiresAt?: true
+    createdAt?: true
+    revokedAt?: true
+    _all?: true
+  }
+
+  export type AdminSectionGrantAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminSectionGrant to aggregate.
+     */
+    where?: AdminSectionGrantWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminSectionGrants to fetch.
+     */
+    orderBy?: AdminSectionGrantOrderByWithRelationInput | AdminSectionGrantOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AdminSectionGrantWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminSectionGrants from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminSectionGrants.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AdminSectionGrants
+    **/
+    _count?: true | AdminSectionGrantCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AdminSectionGrantMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AdminSectionGrantMaxAggregateInputType
+  }
+
+  export type GetAdminSectionGrantAggregateType<T extends AdminSectionGrantAggregateArgs> = {
+        [P in keyof T & keyof AggregateAdminSectionGrant]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAdminSectionGrant[P]>
+      : GetScalarType<T[P], AggregateAdminSectionGrant[P]>
+  }
+
+
+
+
+  export type AdminSectionGrantGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminSectionGrantWhereInput
+    orderBy?: AdminSectionGrantOrderByWithAggregationInput | AdminSectionGrantOrderByWithAggregationInput[]
+    by: AdminSectionGrantScalarFieldEnum[] | AdminSectionGrantScalarFieldEnum
+    having?: AdminSectionGrantScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AdminSectionGrantCountAggregateInputType | true
+    _min?: AdminSectionGrantMinAggregateInputType
+    _max?: AdminSectionGrantMaxAggregateInputType
+  }
+
+  export type AdminSectionGrantGroupByOutputType = {
+    id: string
+    adminUserId: string
+    module: string
+    section: string
+    mode: $Enums.SectionAccessMode
+    grantedBy: string
+    reason: string | null
+    expiresAt: Date | null
+    createdAt: Date
+    revokedAt: Date | null
+    _count: AdminSectionGrantCountAggregateOutputType | null
+    _min: AdminSectionGrantMinAggregateOutputType | null
+    _max: AdminSectionGrantMaxAggregateOutputType | null
+  }
+
+  type GetAdminSectionGrantGroupByPayload<T extends AdminSectionGrantGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AdminSectionGrantGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AdminSectionGrantGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AdminSectionGrantGroupByOutputType[P]>
+            : GetScalarType<T[P], AdminSectionGrantGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AdminSectionGrantSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    module?: boolean
+    section?: boolean
+    mode?: boolean
+    grantedBy?: boolean
+    reason?: boolean
+    expiresAt?: boolean
+    createdAt?: boolean
+    revokedAt?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminSectionGrant"]>
+
+  export type AdminSectionGrantSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    module?: boolean
+    section?: boolean
+    mode?: boolean
+    grantedBy?: boolean
+    reason?: boolean
+    expiresAt?: boolean
+    createdAt?: boolean
+    revokedAt?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminSectionGrant"]>
+
+  export type AdminSectionGrantSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    module?: boolean
+    section?: boolean
+    mode?: boolean
+    grantedBy?: boolean
+    reason?: boolean
+    expiresAt?: boolean
+    createdAt?: boolean
+    revokedAt?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminSectionGrant"]>
+
+  export type AdminSectionGrantSelectScalar = {
+    id?: boolean
+    adminUserId?: boolean
+    module?: boolean
+    section?: boolean
+    mode?: boolean
+    grantedBy?: boolean
+    reason?: boolean
+    expiresAt?: boolean
+    createdAt?: boolean
+    revokedAt?: boolean
+  }
+
+  export type AdminSectionGrantOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "adminUserId" | "module" | "section" | "mode" | "grantedBy" | "reason" | "expiresAt" | "createdAt" | "revokedAt", ExtArgs["result"]["adminSectionGrant"]>
+  export type AdminSectionGrantInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+  export type AdminSectionGrantIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+  export type AdminSectionGrantIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+
+  export type $AdminSectionGrantPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AdminSectionGrant"
+    objects: {
+      adminUser: Prisma.$AdminUserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      adminUserId: string
+      module: string
+      section: string
+      mode: $Enums.SectionAccessMode
+      grantedBy: string
+      reason: string | null
+      expiresAt: Date | null
+      createdAt: Date
+      revokedAt: Date | null
+    }, ExtArgs["result"]["adminSectionGrant"]>
+    composites: {}
+  }
+
+  type AdminSectionGrantGetPayload<S extends boolean | null | undefined | AdminSectionGrantDefaultArgs> = $Result.GetResult<Prisma.$AdminSectionGrantPayload, S>
+
+  type AdminSectionGrantCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AdminSectionGrantFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AdminSectionGrantCountAggregateInputType | true
+    }
+
+  export interface AdminSectionGrantDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AdminSectionGrant'], meta: { name: 'AdminSectionGrant' } }
+    /**
+     * Find zero or one AdminSectionGrant that matches the filter.
+     * @param {AdminSectionGrantFindUniqueArgs} args - Arguments to find a AdminSectionGrant
+     * @example
+     * // Get one AdminSectionGrant
+     * const adminSectionGrant = await prisma.adminSectionGrant.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AdminSectionGrantFindUniqueArgs>(args: SelectSubset<T, AdminSectionGrantFindUniqueArgs<ExtArgs>>): Prisma__AdminSectionGrantClient<$Result.GetResult<Prisma.$AdminSectionGrantPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AdminSectionGrant that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AdminSectionGrantFindUniqueOrThrowArgs} args - Arguments to find a AdminSectionGrant
+     * @example
+     * // Get one AdminSectionGrant
+     * const adminSectionGrant = await prisma.adminSectionGrant.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AdminSectionGrantFindUniqueOrThrowArgs>(args: SelectSubset<T, AdminSectionGrantFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AdminSectionGrantClient<$Result.GetResult<Prisma.$AdminSectionGrantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminSectionGrant that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSectionGrantFindFirstArgs} args - Arguments to find a AdminSectionGrant
+     * @example
+     * // Get one AdminSectionGrant
+     * const adminSectionGrant = await prisma.adminSectionGrant.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AdminSectionGrantFindFirstArgs>(args?: SelectSubset<T, AdminSectionGrantFindFirstArgs<ExtArgs>>): Prisma__AdminSectionGrantClient<$Result.GetResult<Prisma.$AdminSectionGrantPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminSectionGrant that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSectionGrantFindFirstOrThrowArgs} args - Arguments to find a AdminSectionGrant
+     * @example
+     * // Get one AdminSectionGrant
+     * const adminSectionGrant = await prisma.adminSectionGrant.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AdminSectionGrantFindFirstOrThrowArgs>(args?: SelectSubset<T, AdminSectionGrantFindFirstOrThrowArgs<ExtArgs>>): Prisma__AdminSectionGrantClient<$Result.GetResult<Prisma.$AdminSectionGrantPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AdminSectionGrants that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSectionGrantFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AdminSectionGrants
+     * const adminSectionGrants = await prisma.adminSectionGrant.findMany()
+     * 
+     * // Get first 10 AdminSectionGrants
+     * const adminSectionGrants = await prisma.adminSectionGrant.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const adminSectionGrantWithIdOnly = await prisma.adminSectionGrant.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AdminSectionGrantFindManyArgs>(args?: SelectSubset<T, AdminSectionGrantFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminSectionGrantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AdminSectionGrant.
+     * @param {AdminSectionGrantCreateArgs} args - Arguments to create a AdminSectionGrant.
+     * @example
+     * // Create one AdminSectionGrant
+     * const AdminSectionGrant = await prisma.adminSectionGrant.create({
+     *   data: {
+     *     // ... data to create a AdminSectionGrant
+     *   }
+     * })
+     * 
+     */
+    create<T extends AdminSectionGrantCreateArgs>(args: SelectSubset<T, AdminSectionGrantCreateArgs<ExtArgs>>): Prisma__AdminSectionGrantClient<$Result.GetResult<Prisma.$AdminSectionGrantPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AdminSectionGrants.
+     * @param {AdminSectionGrantCreateManyArgs} args - Arguments to create many AdminSectionGrants.
+     * @example
+     * // Create many AdminSectionGrants
+     * const adminSectionGrant = await prisma.adminSectionGrant.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AdminSectionGrantCreateManyArgs>(args?: SelectSubset<T, AdminSectionGrantCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AdminSectionGrants and returns the data saved in the database.
+     * @param {AdminSectionGrantCreateManyAndReturnArgs} args - Arguments to create many AdminSectionGrants.
+     * @example
+     * // Create many AdminSectionGrants
+     * const adminSectionGrant = await prisma.adminSectionGrant.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AdminSectionGrants and only return the `id`
+     * const adminSectionGrantWithIdOnly = await prisma.adminSectionGrant.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AdminSectionGrantCreateManyAndReturnArgs>(args?: SelectSubset<T, AdminSectionGrantCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminSectionGrantPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AdminSectionGrant.
+     * @param {AdminSectionGrantDeleteArgs} args - Arguments to delete one AdminSectionGrant.
+     * @example
+     * // Delete one AdminSectionGrant
+     * const AdminSectionGrant = await prisma.adminSectionGrant.delete({
+     *   where: {
+     *     // ... filter to delete one AdminSectionGrant
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AdminSectionGrantDeleteArgs>(args: SelectSubset<T, AdminSectionGrantDeleteArgs<ExtArgs>>): Prisma__AdminSectionGrantClient<$Result.GetResult<Prisma.$AdminSectionGrantPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AdminSectionGrant.
+     * @param {AdminSectionGrantUpdateArgs} args - Arguments to update one AdminSectionGrant.
+     * @example
+     * // Update one AdminSectionGrant
+     * const adminSectionGrant = await prisma.adminSectionGrant.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AdminSectionGrantUpdateArgs>(args: SelectSubset<T, AdminSectionGrantUpdateArgs<ExtArgs>>): Prisma__AdminSectionGrantClient<$Result.GetResult<Prisma.$AdminSectionGrantPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AdminSectionGrants.
+     * @param {AdminSectionGrantDeleteManyArgs} args - Arguments to filter AdminSectionGrants to delete.
+     * @example
+     * // Delete a few AdminSectionGrants
+     * const { count } = await prisma.adminSectionGrant.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AdminSectionGrantDeleteManyArgs>(args?: SelectSubset<T, AdminSectionGrantDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminSectionGrants.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSectionGrantUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AdminSectionGrants
+     * const adminSectionGrant = await prisma.adminSectionGrant.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AdminSectionGrantUpdateManyArgs>(args: SelectSubset<T, AdminSectionGrantUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminSectionGrants and returns the data updated in the database.
+     * @param {AdminSectionGrantUpdateManyAndReturnArgs} args - Arguments to update many AdminSectionGrants.
+     * @example
+     * // Update many AdminSectionGrants
+     * const adminSectionGrant = await prisma.adminSectionGrant.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more AdminSectionGrants and only return the `id`
+     * const adminSectionGrantWithIdOnly = await prisma.adminSectionGrant.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AdminSectionGrantUpdateManyAndReturnArgs>(args: SelectSubset<T, AdminSectionGrantUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminSectionGrantPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AdminSectionGrant.
+     * @param {AdminSectionGrantUpsertArgs} args - Arguments to update or create a AdminSectionGrant.
+     * @example
+     * // Update or create a AdminSectionGrant
+     * const adminSectionGrant = await prisma.adminSectionGrant.upsert({
+     *   create: {
+     *     // ... data to create a AdminSectionGrant
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AdminSectionGrant we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AdminSectionGrantUpsertArgs>(args: SelectSubset<T, AdminSectionGrantUpsertArgs<ExtArgs>>): Prisma__AdminSectionGrantClient<$Result.GetResult<Prisma.$AdminSectionGrantPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AdminSectionGrants.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSectionGrantCountArgs} args - Arguments to filter AdminSectionGrants to count.
+     * @example
+     * // Count the number of AdminSectionGrants
+     * const count = await prisma.adminSectionGrant.count({
+     *   where: {
+     *     // ... the filter for the AdminSectionGrants we want to count
+     *   }
+     * })
+    **/
+    count<T extends AdminSectionGrantCountArgs>(
+      args?: Subset<T, AdminSectionGrantCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AdminSectionGrantCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AdminSectionGrant.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSectionGrantAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AdminSectionGrantAggregateArgs>(args: Subset<T, AdminSectionGrantAggregateArgs>): Prisma.PrismaPromise<GetAdminSectionGrantAggregateType<T>>
+
+    /**
+     * Group by AdminSectionGrant.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSectionGrantGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AdminSectionGrantGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AdminSectionGrantGroupByArgs['orderBy'] }
+        : { orderBy?: AdminSectionGrantGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AdminSectionGrantGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAdminSectionGrantGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AdminSectionGrant model
+   */
+  readonly fields: AdminSectionGrantFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AdminSectionGrant.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AdminSectionGrantClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    adminUser<T extends AdminUserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AdminUserDefaultArgs<ExtArgs>>): Prisma__AdminUserClient<$Result.GetResult<Prisma.$AdminUserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AdminSectionGrant model
+   */
+  interface AdminSectionGrantFieldRefs {
+    readonly id: FieldRef<"AdminSectionGrant", 'String'>
+    readonly adminUserId: FieldRef<"AdminSectionGrant", 'String'>
+    readonly module: FieldRef<"AdminSectionGrant", 'String'>
+    readonly section: FieldRef<"AdminSectionGrant", 'String'>
+    readonly mode: FieldRef<"AdminSectionGrant", 'SectionAccessMode'>
+    readonly grantedBy: FieldRef<"AdminSectionGrant", 'String'>
+    readonly reason: FieldRef<"AdminSectionGrant", 'String'>
+    readonly expiresAt: FieldRef<"AdminSectionGrant", 'DateTime'>
+    readonly createdAt: FieldRef<"AdminSectionGrant", 'DateTime'>
+    readonly revokedAt: FieldRef<"AdminSectionGrant", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AdminSectionGrant findUnique
+   */
+  export type AdminSectionGrantFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSectionGrant
+     */
+    select?: AdminSectionGrantSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSectionGrant
+     */
+    omit?: AdminSectionGrantOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSectionGrantInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminSectionGrant to fetch.
+     */
+    where: AdminSectionGrantWhereUniqueInput
+  }
+
+  /**
+   * AdminSectionGrant findUniqueOrThrow
+   */
+  export type AdminSectionGrantFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSectionGrant
+     */
+    select?: AdminSectionGrantSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSectionGrant
+     */
+    omit?: AdminSectionGrantOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSectionGrantInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminSectionGrant to fetch.
+     */
+    where: AdminSectionGrantWhereUniqueInput
+  }
+
+  /**
+   * AdminSectionGrant findFirst
+   */
+  export type AdminSectionGrantFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSectionGrant
+     */
+    select?: AdminSectionGrantSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSectionGrant
+     */
+    omit?: AdminSectionGrantOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSectionGrantInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminSectionGrant to fetch.
+     */
+    where?: AdminSectionGrantWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminSectionGrants to fetch.
+     */
+    orderBy?: AdminSectionGrantOrderByWithRelationInput | AdminSectionGrantOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminSectionGrants.
+     */
+    cursor?: AdminSectionGrantWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminSectionGrants from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminSectionGrants.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminSectionGrants.
+     */
+    distinct?: AdminSectionGrantScalarFieldEnum | AdminSectionGrantScalarFieldEnum[]
+  }
+
+  /**
+   * AdminSectionGrant findFirstOrThrow
+   */
+  export type AdminSectionGrantFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSectionGrant
+     */
+    select?: AdminSectionGrantSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSectionGrant
+     */
+    omit?: AdminSectionGrantOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSectionGrantInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminSectionGrant to fetch.
+     */
+    where?: AdminSectionGrantWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminSectionGrants to fetch.
+     */
+    orderBy?: AdminSectionGrantOrderByWithRelationInput | AdminSectionGrantOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminSectionGrants.
+     */
+    cursor?: AdminSectionGrantWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminSectionGrants from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminSectionGrants.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminSectionGrants.
+     */
+    distinct?: AdminSectionGrantScalarFieldEnum | AdminSectionGrantScalarFieldEnum[]
+  }
+
+  /**
+   * AdminSectionGrant findMany
+   */
+  export type AdminSectionGrantFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSectionGrant
+     */
+    select?: AdminSectionGrantSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSectionGrant
+     */
+    omit?: AdminSectionGrantOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSectionGrantInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminSectionGrants to fetch.
+     */
+    where?: AdminSectionGrantWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminSectionGrants to fetch.
+     */
+    orderBy?: AdminSectionGrantOrderByWithRelationInput | AdminSectionGrantOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AdminSectionGrants.
+     */
+    cursor?: AdminSectionGrantWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminSectionGrants from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminSectionGrants.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminSectionGrants.
+     */
+    distinct?: AdminSectionGrantScalarFieldEnum | AdminSectionGrantScalarFieldEnum[]
+  }
+
+  /**
+   * AdminSectionGrant create
+   */
+  export type AdminSectionGrantCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSectionGrant
+     */
+    select?: AdminSectionGrantSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSectionGrant
+     */
+    omit?: AdminSectionGrantOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSectionGrantInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AdminSectionGrant.
+     */
+    data: XOR<AdminSectionGrantCreateInput, AdminSectionGrantUncheckedCreateInput>
+  }
+
+  /**
+   * AdminSectionGrant createMany
+   */
+  export type AdminSectionGrantCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AdminSectionGrants.
+     */
+    data: AdminSectionGrantCreateManyInput | AdminSectionGrantCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AdminSectionGrant createManyAndReturn
+   */
+  export type AdminSectionGrantCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSectionGrant
+     */
+    select?: AdminSectionGrantSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSectionGrant
+     */
+    omit?: AdminSectionGrantOmit<ExtArgs> | null
+    /**
+     * The data used to create many AdminSectionGrants.
+     */
+    data: AdminSectionGrantCreateManyInput | AdminSectionGrantCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSectionGrantIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdminSectionGrant update
+   */
+  export type AdminSectionGrantUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSectionGrant
+     */
+    select?: AdminSectionGrantSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSectionGrant
+     */
+    omit?: AdminSectionGrantOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSectionGrantInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AdminSectionGrant.
+     */
+    data: XOR<AdminSectionGrantUpdateInput, AdminSectionGrantUncheckedUpdateInput>
+    /**
+     * Choose, which AdminSectionGrant to update.
+     */
+    where: AdminSectionGrantWhereUniqueInput
+  }
+
+  /**
+   * AdminSectionGrant updateMany
+   */
+  export type AdminSectionGrantUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AdminSectionGrants.
+     */
+    data: XOR<AdminSectionGrantUpdateManyMutationInput, AdminSectionGrantUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminSectionGrants to update
+     */
+    where?: AdminSectionGrantWhereInput
+    /**
+     * Limit how many AdminSectionGrants to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminSectionGrant updateManyAndReturn
+   */
+  export type AdminSectionGrantUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSectionGrant
+     */
+    select?: AdminSectionGrantSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSectionGrant
+     */
+    omit?: AdminSectionGrantOmit<ExtArgs> | null
+    /**
+     * The data used to update AdminSectionGrants.
+     */
+    data: XOR<AdminSectionGrantUpdateManyMutationInput, AdminSectionGrantUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminSectionGrants to update
+     */
+    where?: AdminSectionGrantWhereInput
+    /**
+     * Limit how many AdminSectionGrants to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSectionGrantIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdminSectionGrant upsert
+   */
+  export type AdminSectionGrantUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSectionGrant
+     */
+    select?: AdminSectionGrantSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSectionGrant
+     */
+    omit?: AdminSectionGrantOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSectionGrantInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AdminSectionGrant to update in case it exists.
+     */
+    where: AdminSectionGrantWhereUniqueInput
+    /**
+     * In case the AdminSectionGrant found by the `where` argument doesn't exist, create a new AdminSectionGrant with this data.
+     */
+    create: XOR<AdminSectionGrantCreateInput, AdminSectionGrantUncheckedCreateInput>
+    /**
+     * In case the AdminSectionGrant was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AdminSectionGrantUpdateInput, AdminSectionGrantUncheckedUpdateInput>
+  }
+
+  /**
+   * AdminSectionGrant delete
+   */
+  export type AdminSectionGrantDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSectionGrant
+     */
+    select?: AdminSectionGrantSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSectionGrant
+     */
+    omit?: AdminSectionGrantOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSectionGrantInclude<ExtArgs> | null
+    /**
+     * Filter which AdminSectionGrant to delete.
+     */
+    where: AdminSectionGrantWhereUniqueInput
+  }
+
+  /**
+   * AdminSectionGrant deleteMany
+   */
+  export type AdminSectionGrantDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminSectionGrants to delete
+     */
+    where?: AdminSectionGrantWhereInput
+    /**
+     * Limit how many AdminSectionGrants to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminSectionGrant without action
+   */
+  export type AdminSectionGrantDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSectionGrant
+     */
+    select?: AdminSectionGrantSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSectionGrant
+     */
+    omit?: AdminSectionGrantOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSectionGrantInclude<ExtArgs> | null
   }
 
 
@@ -34698,6 +36000,8 @@ export namespace Prisma {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     createdBy: 'createdBy',
+    twoFactorEnabled: 'twoFactorEnabled',
+    twoFactorSecret: 'twoFactorSecret',
     avatarUrl: 'avatarUrl',
     avatarCloudinaryId: 'avatarCloudinaryId',
     preferredName: 'preferredName',
@@ -34754,6 +36058,22 @@ export namespace Prisma {
   };
 
   export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+
+
+  export const AdminSectionGrantScalarFieldEnum: {
+    id: 'id',
+    adminUserId: 'adminUserId',
+    module: 'module',
+    section: 'section',
+    mode: 'mode',
+    grantedBy: 'grantedBy',
+    reason: 'reason',
+    expiresAt: 'expiresAt',
+    createdAt: 'createdAt',
+    revokedAt: 'revokedAt'
+  };
+
+  export type AdminSectionGrantScalarFieldEnum = (typeof AdminSectionGrantScalarFieldEnum)[keyof typeof AdminSectionGrantScalarFieldEnum]
 
 
   export const AdminSocialLinkScalarFieldEnum: {
@@ -35290,6 +36610,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'SectionAccessMode'
+   */
+  export type EnumSectionAccessModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SectionAccessMode'>
+    
+
+
+  /**
+   * Reference to a field of type 'SectionAccessMode[]'
+   */
+  export type ListEnumSectionAccessModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SectionAccessMode[]'>
+    
+
+
+  /**
    * Reference to a field of type 'ProjectStatus'
    */
   export type EnumProjectStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProjectStatus'>
@@ -35458,6 +36792,8 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"AdminUser"> | Date | string
     updatedAt?: DateTimeFilter<"AdminUser"> | Date | string
     createdBy?: StringNullableFilter<"AdminUser"> | string | null
+    twoFactorEnabled?: BoolFilter<"AdminUser"> | boolean
+    twoFactorSecret?: StringNullableFilter<"AdminUser"> | string | null
     avatarUrl?: StringNullableFilter<"AdminUser"> | string | null
     avatarCloudinaryId?: StringNullableFilter<"AdminUser"> | string | null
     preferredName?: StringNullableFilter<"AdminUser"> | string | null
@@ -35489,6 +36825,7 @@ export namespace Prisma {
     documents?: AdminDocumentListRelationFilter
     performanceNotes?: AdminPerformanceNoteListRelationFilter
     reports?: AdminReportListRelationFilter
+    sectionGrants?: AdminSectionGrantListRelationFilter
     teamMemberships?: TeamMemberListRelationFilter
     projectMemberships?: ProjectMemberListRelationFilter
     assignedTasks?: TaskListRelationFilter
@@ -35528,6 +36865,8 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     createdBy?: SortOrderInput | SortOrder
+    twoFactorEnabled?: SortOrder
+    twoFactorSecret?: SortOrderInput | SortOrder
     avatarUrl?: SortOrderInput | SortOrder
     avatarCloudinaryId?: SortOrderInput | SortOrder
     preferredName?: SortOrderInput | SortOrder
@@ -35559,6 +36898,7 @@ export namespace Prisma {
     documents?: AdminDocumentOrderByRelationAggregateInput
     performanceNotes?: AdminPerformanceNoteOrderByRelationAggregateInput
     reports?: AdminReportOrderByRelationAggregateInput
+    sectionGrants?: AdminSectionGrantOrderByRelationAggregateInput
     teamMemberships?: TeamMemberOrderByRelationAggregateInput
     projectMemberships?: ProjectMemberOrderByRelationAggregateInput
     assignedTasks?: TaskOrderByRelationAggregateInput
@@ -35601,6 +36941,8 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"AdminUser"> | Date | string
     updatedAt?: DateTimeFilter<"AdminUser"> | Date | string
     createdBy?: StringNullableFilter<"AdminUser"> | string | null
+    twoFactorEnabled?: BoolFilter<"AdminUser"> | boolean
+    twoFactorSecret?: StringNullableFilter<"AdminUser"> | string | null
     avatarUrl?: StringNullableFilter<"AdminUser"> | string | null
     avatarCloudinaryId?: StringNullableFilter<"AdminUser"> | string | null
     preferredName?: StringNullableFilter<"AdminUser"> | string | null
@@ -35632,6 +36974,7 @@ export namespace Prisma {
     documents?: AdminDocumentListRelationFilter
     performanceNotes?: AdminPerformanceNoteListRelationFilter
     reports?: AdminReportListRelationFilter
+    sectionGrants?: AdminSectionGrantListRelationFilter
     teamMemberships?: TeamMemberListRelationFilter
     projectMemberships?: ProjectMemberListRelationFilter
     assignedTasks?: TaskListRelationFilter
@@ -35671,6 +37014,8 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     createdBy?: SortOrderInput | SortOrder
+    twoFactorEnabled?: SortOrder
+    twoFactorSecret?: SortOrderInput | SortOrder
     avatarUrl?: SortOrderInput | SortOrder
     avatarCloudinaryId?: SortOrderInput | SortOrder
     preferredName?: SortOrderInput | SortOrder
@@ -35728,6 +37073,8 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"AdminUser"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"AdminUser"> | Date | string
     createdBy?: StringNullableWithAggregatesFilter<"AdminUser"> | string | null
+    twoFactorEnabled?: BoolWithAggregatesFilter<"AdminUser"> | boolean
+    twoFactorSecret?: StringNullableWithAggregatesFilter<"AdminUser"> | string | null
     avatarUrl?: StringNullableWithAggregatesFilter<"AdminUser"> | string | null
     avatarCloudinaryId?: StringNullableWithAggregatesFilter<"AdminUser"> | string | null
     preferredName?: StringNullableWithAggregatesFilter<"AdminUser"> | string | null
@@ -35897,6 +37244,86 @@ export namespace Prisma {
     ipAddress?: StringNullableWithAggregatesFilter<"AuditLog"> | string | null
     userAgent?: StringNullableWithAggregatesFilter<"AuditLog"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"AuditLog"> | Date | string
+  }
+
+  export type AdminSectionGrantWhereInput = {
+    AND?: AdminSectionGrantWhereInput | AdminSectionGrantWhereInput[]
+    OR?: AdminSectionGrantWhereInput[]
+    NOT?: AdminSectionGrantWhereInput | AdminSectionGrantWhereInput[]
+    id?: StringFilter<"AdminSectionGrant"> | string
+    adminUserId?: StringFilter<"AdminSectionGrant"> | string
+    module?: StringFilter<"AdminSectionGrant"> | string
+    section?: StringFilter<"AdminSectionGrant"> | string
+    mode?: EnumSectionAccessModeFilter<"AdminSectionGrant"> | $Enums.SectionAccessMode
+    grantedBy?: StringFilter<"AdminSectionGrant"> | string
+    reason?: StringNullableFilter<"AdminSectionGrant"> | string | null
+    expiresAt?: DateTimeNullableFilter<"AdminSectionGrant"> | Date | string | null
+    createdAt?: DateTimeFilter<"AdminSectionGrant"> | Date | string
+    revokedAt?: DateTimeNullableFilter<"AdminSectionGrant"> | Date | string | null
+    adminUser?: XOR<AdminUserScalarRelationFilter, AdminUserWhereInput>
+  }
+
+  export type AdminSectionGrantOrderByWithRelationInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    module?: SortOrder
+    section?: SortOrder
+    mode?: SortOrder
+    grantedBy?: SortOrder
+    reason?: SortOrderInput | SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    revokedAt?: SortOrderInput | SortOrder
+    adminUser?: AdminUserOrderByWithRelationInput
+  }
+
+  export type AdminSectionGrantWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: AdminSectionGrantWhereInput | AdminSectionGrantWhereInput[]
+    OR?: AdminSectionGrantWhereInput[]
+    NOT?: AdminSectionGrantWhereInput | AdminSectionGrantWhereInput[]
+    adminUserId?: StringFilter<"AdminSectionGrant"> | string
+    module?: StringFilter<"AdminSectionGrant"> | string
+    section?: StringFilter<"AdminSectionGrant"> | string
+    mode?: EnumSectionAccessModeFilter<"AdminSectionGrant"> | $Enums.SectionAccessMode
+    grantedBy?: StringFilter<"AdminSectionGrant"> | string
+    reason?: StringNullableFilter<"AdminSectionGrant"> | string | null
+    expiresAt?: DateTimeNullableFilter<"AdminSectionGrant"> | Date | string | null
+    createdAt?: DateTimeFilter<"AdminSectionGrant"> | Date | string
+    revokedAt?: DateTimeNullableFilter<"AdminSectionGrant"> | Date | string | null
+    adminUser?: XOR<AdminUserScalarRelationFilter, AdminUserWhereInput>
+  }, "id">
+
+  export type AdminSectionGrantOrderByWithAggregationInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    module?: SortOrder
+    section?: SortOrder
+    mode?: SortOrder
+    grantedBy?: SortOrder
+    reason?: SortOrderInput | SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    revokedAt?: SortOrderInput | SortOrder
+    _count?: AdminSectionGrantCountOrderByAggregateInput
+    _max?: AdminSectionGrantMaxOrderByAggregateInput
+    _min?: AdminSectionGrantMinOrderByAggregateInput
+  }
+
+  export type AdminSectionGrantScalarWhereWithAggregatesInput = {
+    AND?: AdminSectionGrantScalarWhereWithAggregatesInput | AdminSectionGrantScalarWhereWithAggregatesInput[]
+    OR?: AdminSectionGrantScalarWhereWithAggregatesInput[]
+    NOT?: AdminSectionGrantScalarWhereWithAggregatesInput | AdminSectionGrantScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AdminSectionGrant"> | string
+    adminUserId?: StringWithAggregatesFilter<"AdminSectionGrant"> | string
+    module?: StringWithAggregatesFilter<"AdminSectionGrant"> | string
+    section?: StringWithAggregatesFilter<"AdminSectionGrant"> | string
+    mode?: EnumSectionAccessModeWithAggregatesFilter<"AdminSectionGrant"> | $Enums.SectionAccessMode
+    grantedBy?: StringWithAggregatesFilter<"AdminSectionGrant"> | string
+    reason?: StringNullableWithAggregatesFilter<"AdminSectionGrant"> | string | null
+    expiresAt?: DateTimeNullableWithAggregatesFilter<"AdminSectionGrant"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"AdminSectionGrant"> | Date | string
+    revokedAt?: DateTimeNullableWithAggregatesFilter<"AdminSectionGrant"> | Date | string | null
   }
 
   export type AdminSocialLinkWhereInput = {
@@ -37759,6 +39186,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -37790,6 +39219,7 @@ export namespace Prisma {
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
@@ -37829,6 +39259,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -37860,6 +39292,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
@@ -37899,6 +39332,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -37930,6 +39365,7 @@ export namespace Prisma {
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
@@ -37969,6 +39405,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38000,6 +39438,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
@@ -38039,6 +39478,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -38088,6 +39529,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38137,6 +39580,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38320,6 +39765,96 @@ export namespace Prisma {
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     userAgent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdminSectionGrantCreateInput = {
+    id?: string
+    module: string
+    section: string
+    mode: $Enums.SectionAccessMode
+    grantedBy: string
+    reason?: string | null
+    expiresAt?: Date | string | null
+    createdAt?: Date | string
+    revokedAt?: Date | string | null
+    adminUser: AdminUserCreateNestedOneWithoutSectionGrantsInput
+  }
+
+  export type AdminSectionGrantUncheckedCreateInput = {
+    id?: string
+    adminUserId: string
+    module: string
+    section: string
+    mode: $Enums.SectionAccessMode
+    grantedBy: string
+    reason?: string | null
+    expiresAt?: Date | string | null
+    createdAt?: Date | string
+    revokedAt?: Date | string | null
+  }
+
+  export type AdminSectionGrantUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    module?: StringFieldUpdateOperationsInput | string
+    section?: StringFieldUpdateOperationsInput | string
+    mode?: EnumSectionAccessModeFieldUpdateOperationsInput | $Enums.SectionAccessMode
+    grantedBy?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adminUser?: AdminUserUpdateOneRequiredWithoutSectionGrantsNestedInput
+  }
+
+  export type AdminSectionGrantUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    module?: StringFieldUpdateOperationsInput | string
+    section?: StringFieldUpdateOperationsInput | string
+    mode?: EnumSectionAccessModeFieldUpdateOperationsInput | $Enums.SectionAccessMode
+    grantedBy?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminSectionGrantCreateManyInput = {
+    id?: string
+    adminUserId: string
+    module: string
+    section: string
+    mode: $Enums.SectionAccessMode
+    grantedBy: string
+    reason?: string | null
+    expiresAt?: Date | string | null
+    createdAt?: Date | string
+    revokedAt?: Date | string | null
+  }
+
+  export type AdminSectionGrantUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    module?: StringFieldUpdateOperationsInput | string
+    section?: StringFieldUpdateOperationsInput | string
+    mode?: EnumSectionAccessModeFieldUpdateOperationsInput | $Enums.SectionAccessMode
+    grantedBy?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminSectionGrantUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    module?: StringFieldUpdateOperationsInput | string
+    section?: StringFieldUpdateOperationsInput | string
+    mode?: EnumSectionAccessModeFieldUpdateOperationsInput | $Enums.SectionAccessMode
+    grantedBy?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type AdminSocialLinkCreateInput = {
@@ -40470,6 +42005,12 @@ export namespace Prisma {
     none?: AdminReportWhereInput
   }
 
+  export type AdminSectionGrantListRelationFilter = {
+    every?: AdminSectionGrantWhereInput
+    some?: AdminSectionGrantWhereInput
+    none?: AdminSectionGrantWhereInput
+  }
+
   export type TeamMemberListRelationFilter = {
     every?: TeamMemberWhereInput
     some?: TeamMemberWhereInput
@@ -40575,6 +42116,10 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type AdminSectionGrantOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type TeamMemberOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -40646,6 +42191,8 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     createdBy?: SortOrder
+    twoFactorEnabled?: SortOrder
+    twoFactorSecret?: SortOrder
     avatarUrl?: SortOrder
     avatarCloudinaryId?: SortOrder
     preferredName?: SortOrder
@@ -40702,6 +42249,8 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     createdBy?: SortOrder
+    twoFactorEnabled?: SortOrder
+    twoFactorSecret?: SortOrder
     avatarUrl?: SortOrder
     avatarCloudinaryId?: SortOrder
     preferredName?: SortOrder
@@ -40751,6 +42300,8 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     createdBy?: SortOrder
+    twoFactorEnabled?: SortOrder
+    twoFactorSecret?: SortOrder
     avatarUrl?: SortOrder
     avatarCloudinaryId?: SortOrder
     preferredName?: SortOrder
@@ -41059,6 +42610,62 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedJsonNullableFilter<$PrismaModel>
     _max?: NestedJsonNullableFilter<$PrismaModel>
+  }
+
+  export type EnumSectionAccessModeFilter<$PrismaModel = never> = {
+    equals?: $Enums.SectionAccessMode | EnumSectionAccessModeFieldRefInput<$PrismaModel>
+    in?: $Enums.SectionAccessMode[] | ListEnumSectionAccessModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SectionAccessMode[] | ListEnumSectionAccessModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumSectionAccessModeFilter<$PrismaModel> | $Enums.SectionAccessMode
+  }
+
+  export type AdminSectionGrantCountOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    module?: SortOrder
+    section?: SortOrder
+    mode?: SortOrder
+    grantedBy?: SortOrder
+    reason?: SortOrder
+    expiresAt?: SortOrder
+    createdAt?: SortOrder
+    revokedAt?: SortOrder
+  }
+
+  export type AdminSectionGrantMaxOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    module?: SortOrder
+    section?: SortOrder
+    mode?: SortOrder
+    grantedBy?: SortOrder
+    reason?: SortOrder
+    expiresAt?: SortOrder
+    createdAt?: SortOrder
+    revokedAt?: SortOrder
+  }
+
+  export type AdminSectionGrantMinOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    module?: SortOrder
+    section?: SortOrder
+    mode?: SortOrder
+    grantedBy?: SortOrder
+    reason?: SortOrder
+    expiresAt?: SortOrder
+    createdAt?: SortOrder
+    revokedAt?: SortOrder
+  }
+
+  export type EnumSectionAccessModeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SectionAccessMode | EnumSectionAccessModeFieldRefInput<$PrismaModel>
+    in?: $Enums.SectionAccessMode[] | ListEnumSectionAccessModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SectionAccessMode[] | ListEnumSectionAccessModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumSectionAccessModeWithAggregatesFilter<$PrismaModel> | $Enums.SectionAccessMode
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSectionAccessModeFilter<$PrismaModel>
+    _max?: NestedEnumSectionAccessModeFilter<$PrismaModel>
   }
 
   export type AdminSocialLinkCountOrderByAggregateInput = {
@@ -42324,6 +43931,13 @@ export namespace Prisma {
     connect?: AdminReportWhereUniqueInput | AdminReportWhereUniqueInput[]
   }
 
+  export type AdminSectionGrantCreateNestedManyWithoutAdminUserInput = {
+    create?: XOR<AdminSectionGrantCreateWithoutAdminUserInput, AdminSectionGrantUncheckedCreateWithoutAdminUserInput> | AdminSectionGrantCreateWithoutAdminUserInput[] | AdminSectionGrantUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminSectionGrantCreateOrConnectWithoutAdminUserInput | AdminSectionGrantCreateOrConnectWithoutAdminUserInput[]
+    createMany?: AdminSectionGrantCreateManyAdminUserInputEnvelope
+    connect?: AdminSectionGrantWhereUniqueInput | AdminSectionGrantWhereUniqueInput[]
+  }
+
   export type TeamMemberCreateNestedManyWithoutAdminUserInput = {
     create?: XOR<TeamMemberCreateWithoutAdminUserInput, TeamMemberUncheckedCreateWithoutAdminUserInput> | TeamMemberCreateWithoutAdminUserInput[] | TeamMemberUncheckedCreateWithoutAdminUserInput[]
     connectOrCreate?: TeamMemberCreateOrConnectWithoutAdminUserInput | TeamMemberCreateOrConnectWithoutAdminUserInput[]
@@ -42469,6 +44083,13 @@ export namespace Prisma {
     connectOrCreate?: AdminReportCreateOrConnectWithoutAdminUserInput | AdminReportCreateOrConnectWithoutAdminUserInput[]
     createMany?: AdminReportCreateManyAdminUserInputEnvelope
     connect?: AdminReportWhereUniqueInput | AdminReportWhereUniqueInput[]
+  }
+
+  export type AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput = {
+    create?: XOR<AdminSectionGrantCreateWithoutAdminUserInput, AdminSectionGrantUncheckedCreateWithoutAdminUserInput> | AdminSectionGrantCreateWithoutAdminUserInput[] | AdminSectionGrantUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminSectionGrantCreateOrConnectWithoutAdminUserInput | AdminSectionGrantCreateOrConnectWithoutAdminUserInput[]
+    createMany?: AdminSectionGrantCreateManyAdminUserInputEnvelope
+    connect?: AdminSectionGrantWhereUniqueInput | AdminSectionGrantWhereUniqueInput[]
   }
 
   export type TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput = {
@@ -42713,6 +44334,20 @@ export namespace Prisma {
     update?: AdminReportUpdateWithWhereUniqueWithoutAdminUserInput | AdminReportUpdateWithWhereUniqueWithoutAdminUserInput[]
     updateMany?: AdminReportUpdateManyWithWhereWithoutAdminUserInput | AdminReportUpdateManyWithWhereWithoutAdminUserInput[]
     deleteMany?: AdminReportScalarWhereInput | AdminReportScalarWhereInput[]
+  }
+
+  export type AdminSectionGrantUpdateManyWithoutAdminUserNestedInput = {
+    create?: XOR<AdminSectionGrantCreateWithoutAdminUserInput, AdminSectionGrantUncheckedCreateWithoutAdminUserInput> | AdminSectionGrantCreateWithoutAdminUserInput[] | AdminSectionGrantUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminSectionGrantCreateOrConnectWithoutAdminUserInput | AdminSectionGrantCreateOrConnectWithoutAdminUserInput[]
+    upsert?: AdminSectionGrantUpsertWithWhereUniqueWithoutAdminUserInput | AdminSectionGrantUpsertWithWhereUniqueWithoutAdminUserInput[]
+    createMany?: AdminSectionGrantCreateManyAdminUserInputEnvelope
+    set?: AdminSectionGrantWhereUniqueInput | AdminSectionGrantWhereUniqueInput[]
+    disconnect?: AdminSectionGrantWhereUniqueInput | AdminSectionGrantWhereUniqueInput[]
+    delete?: AdminSectionGrantWhereUniqueInput | AdminSectionGrantWhereUniqueInput[]
+    connect?: AdminSectionGrantWhereUniqueInput | AdminSectionGrantWhereUniqueInput[]
+    update?: AdminSectionGrantUpdateWithWhereUniqueWithoutAdminUserInput | AdminSectionGrantUpdateWithWhereUniqueWithoutAdminUserInput[]
+    updateMany?: AdminSectionGrantUpdateManyWithWhereWithoutAdminUserInput | AdminSectionGrantUpdateManyWithWhereWithoutAdminUserInput[]
+    deleteMany?: AdminSectionGrantScalarWhereInput | AdminSectionGrantScalarWhereInput[]
   }
 
   export type TeamMemberUpdateManyWithoutAdminUserNestedInput = {
@@ -43009,6 +44644,20 @@ export namespace Prisma {
     deleteMany?: AdminReportScalarWhereInput | AdminReportScalarWhereInput[]
   }
 
+  export type AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput = {
+    create?: XOR<AdminSectionGrantCreateWithoutAdminUserInput, AdminSectionGrantUncheckedCreateWithoutAdminUserInput> | AdminSectionGrantCreateWithoutAdminUserInput[] | AdminSectionGrantUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminSectionGrantCreateOrConnectWithoutAdminUserInput | AdminSectionGrantCreateOrConnectWithoutAdminUserInput[]
+    upsert?: AdminSectionGrantUpsertWithWhereUniqueWithoutAdminUserInput | AdminSectionGrantUpsertWithWhereUniqueWithoutAdminUserInput[]
+    createMany?: AdminSectionGrantCreateManyAdminUserInputEnvelope
+    set?: AdminSectionGrantWhereUniqueInput | AdminSectionGrantWhereUniqueInput[]
+    disconnect?: AdminSectionGrantWhereUniqueInput | AdminSectionGrantWhereUniqueInput[]
+    delete?: AdminSectionGrantWhereUniqueInput | AdminSectionGrantWhereUniqueInput[]
+    connect?: AdminSectionGrantWhereUniqueInput | AdminSectionGrantWhereUniqueInput[]
+    update?: AdminSectionGrantUpdateWithWhereUniqueWithoutAdminUserInput | AdminSectionGrantUpdateWithWhereUniqueWithoutAdminUserInput[]
+    updateMany?: AdminSectionGrantUpdateManyWithWhereWithoutAdminUserInput | AdminSectionGrantUpdateManyWithWhereWithoutAdminUserInput[]
+    deleteMany?: AdminSectionGrantScalarWhereInput | AdminSectionGrantScalarWhereInput[]
+  }
+
   export type TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput = {
     create?: XOR<TeamMemberCreateWithoutAdminUserInput, TeamMemberUncheckedCreateWithoutAdminUserInput> | TeamMemberCreateWithoutAdminUserInput[] | TeamMemberUncheckedCreateWithoutAdminUserInput[]
     connectOrCreate?: TeamMemberCreateOrConnectWithoutAdminUserInput | TeamMemberCreateOrConnectWithoutAdminUserInput[]
@@ -43237,6 +44886,24 @@ export namespace Prisma {
     delete?: AdminUserWhereInput | boolean
     connect?: AdminUserWhereUniqueInput
     update?: XOR<XOR<AdminUserUpdateToOneWithWhereWithoutAuditLogsInput, AdminUserUpdateWithoutAuditLogsInput>, AdminUserUncheckedUpdateWithoutAuditLogsInput>
+  }
+
+  export type AdminUserCreateNestedOneWithoutSectionGrantsInput = {
+    create?: XOR<AdminUserCreateWithoutSectionGrantsInput, AdminUserUncheckedCreateWithoutSectionGrantsInput>
+    connectOrCreate?: AdminUserCreateOrConnectWithoutSectionGrantsInput
+    connect?: AdminUserWhereUniqueInput
+  }
+
+  export type EnumSectionAccessModeFieldUpdateOperationsInput = {
+    set?: $Enums.SectionAccessMode
+  }
+
+  export type AdminUserUpdateOneRequiredWithoutSectionGrantsNestedInput = {
+    create?: XOR<AdminUserCreateWithoutSectionGrantsInput, AdminUserUncheckedCreateWithoutSectionGrantsInput>
+    connectOrCreate?: AdminUserCreateOrConnectWithoutSectionGrantsInput
+    upsert?: AdminUserUpsertWithoutSectionGrantsInput
+    connect?: AdminUserWhereUniqueInput
+    update?: XOR<XOR<AdminUserUpdateToOneWithWhereWithoutSectionGrantsInput, AdminUserUpdateWithoutSectionGrantsInput>, AdminUserUncheckedUpdateWithoutSectionGrantsInput>
   }
 
   export type AdminUserCreateNestedOneWithoutSocialLinksInput = {
@@ -44413,6 +46080,23 @@ export namespace Prisma {
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
+  export type NestedEnumSectionAccessModeFilter<$PrismaModel = never> = {
+    equals?: $Enums.SectionAccessMode | EnumSectionAccessModeFieldRefInput<$PrismaModel>
+    in?: $Enums.SectionAccessMode[] | ListEnumSectionAccessModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SectionAccessMode[] | ListEnumSectionAccessModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumSectionAccessModeFilter<$PrismaModel> | $Enums.SectionAccessMode
+  }
+
+  export type NestedEnumSectionAccessModeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SectionAccessMode | EnumSectionAccessModeFieldRefInput<$PrismaModel>
+    in?: $Enums.SectionAccessMode[] | ListEnumSectionAccessModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SectionAccessMode[] | ListEnumSectionAccessModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumSectionAccessModeWithAggregatesFilter<$PrismaModel> | $Enums.SectionAccessMode
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSectionAccessModeFilter<$PrismaModel>
+    _max?: NestedEnumSectionAccessModeFilter<$PrismaModel>
+  }
+
   export type NestedEnumProjectStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.ProjectStatus | EnumProjectStatusFieldRefInput<$PrismaModel>
     in?: $Enums.ProjectStatus[] | ListEnumProjectStatusFieldRefInput<$PrismaModel>
@@ -44802,6 +46486,40 @@ export namespace Prisma {
 
   export type AdminReportCreateManyAdminUserInputEnvelope = {
     data: AdminReportCreateManyAdminUserInput | AdminReportCreateManyAdminUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AdminSectionGrantCreateWithoutAdminUserInput = {
+    id?: string
+    module: string
+    section: string
+    mode: $Enums.SectionAccessMode
+    grantedBy: string
+    reason?: string | null
+    expiresAt?: Date | string | null
+    createdAt?: Date | string
+    revokedAt?: Date | string | null
+  }
+
+  export type AdminSectionGrantUncheckedCreateWithoutAdminUserInput = {
+    id?: string
+    module: string
+    section: string
+    mode: $Enums.SectionAccessMode
+    grantedBy: string
+    reason?: string | null
+    expiresAt?: Date | string | null
+    createdAt?: Date | string
+    revokedAt?: Date | string | null
+  }
+
+  export type AdminSectionGrantCreateOrConnectWithoutAdminUserInput = {
+    where: AdminSectionGrantWhereUniqueInput
+    create: XOR<AdminSectionGrantCreateWithoutAdminUserInput, AdminSectionGrantUncheckedCreateWithoutAdminUserInput>
+  }
+
+  export type AdminSectionGrantCreateManyAdminUserInputEnvelope = {
+    data: AdminSectionGrantCreateManyAdminUserInput | AdminSectionGrantCreateManyAdminUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -45500,6 +47218,38 @@ export namespace Prisma {
     date?: DateTimeFilter<"AdminReport"> | Date | string
   }
 
+  export type AdminSectionGrantUpsertWithWhereUniqueWithoutAdminUserInput = {
+    where: AdminSectionGrantWhereUniqueInput
+    update: XOR<AdminSectionGrantUpdateWithoutAdminUserInput, AdminSectionGrantUncheckedUpdateWithoutAdminUserInput>
+    create: XOR<AdminSectionGrantCreateWithoutAdminUserInput, AdminSectionGrantUncheckedCreateWithoutAdminUserInput>
+  }
+
+  export type AdminSectionGrantUpdateWithWhereUniqueWithoutAdminUserInput = {
+    where: AdminSectionGrantWhereUniqueInput
+    data: XOR<AdminSectionGrantUpdateWithoutAdminUserInput, AdminSectionGrantUncheckedUpdateWithoutAdminUserInput>
+  }
+
+  export type AdminSectionGrantUpdateManyWithWhereWithoutAdminUserInput = {
+    where: AdminSectionGrantScalarWhereInput
+    data: XOR<AdminSectionGrantUpdateManyMutationInput, AdminSectionGrantUncheckedUpdateManyWithoutAdminUserInput>
+  }
+
+  export type AdminSectionGrantScalarWhereInput = {
+    AND?: AdminSectionGrantScalarWhereInput | AdminSectionGrantScalarWhereInput[]
+    OR?: AdminSectionGrantScalarWhereInput[]
+    NOT?: AdminSectionGrantScalarWhereInput | AdminSectionGrantScalarWhereInput[]
+    id?: StringFilter<"AdminSectionGrant"> | string
+    adminUserId?: StringFilter<"AdminSectionGrant"> | string
+    module?: StringFilter<"AdminSectionGrant"> | string
+    section?: StringFilter<"AdminSectionGrant"> | string
+    mode?: EnumSectionAccessModeFilter<"AdminSectionGrant"> | $Enums.SectionAccessMode
+    grantedBy?: StringFilter<"AdminSectionGrant"> | string
+    reason?: StringNullableFilter<"AdminSectionGrant"> | string | null
+    expiresAt?: DateTimeNullableFilter<"AdminSectionGrant"> | Date | string | null
+    createdAt?: DateTimeFilter<"AdminSectionGrant"> | Date | string
+    revokedAt?: DateTimeNullableFilter<"AdminSectionGrant"> | Date | string | null
+  }
+
   export type TeamMemberUpsertWithWhereUniqueWithoutAdminUserInput = {
     where: TeamMemberWhereUniqueInput
     update: XOR<TeamMemberUpdateWithoutAdminUserInput, TeamMemberUncheckedUpdateWithoutAdminUserInput>
@@ -45935,6 +47685,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -45965,6 +47717,7 @@ export namespace Prisma {
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
@@ -46004,6 +47757,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -46034,6 +47789,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
@@ -46089,6 +47845,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -46119,6 +47877,7 @@ export namespace Prisma {
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
@@ -46158,6 +47917,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -46188,6 +47949,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
@@ -46227,6 +47989,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -46257,6 +48021,7 @@ export namespace Prisma {
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
@@ -46296,6 +48061,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -46326,6 +48093,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
@@ -46381,6 +48149,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -46411,6 +48181,7 @@ export namespace Prisma {
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
@@ -46450,6 +48221,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -46475,6 +48248,311 @@ export namespace Prisma {
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
+    educations?: AdminEducationUncheckedUpdateManyWithoutAdminUserNestedInput
+    documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
+    performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
+    reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
+    teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
+    projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
+    assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
+    createdTasks?: TaskUncheckedUpdateManyWithoutAssignerNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutAdminUserNestedInput
+    attendanceLogs?: AttendanceLogUncheckedUpdateManyWithoutAdminUserNestedInput
+    leaveRequests?: LeaveRequestUncheckedUpdateManyWithoutAdminUserNestedInput
+    reviewedLeaveRequests?: LeaveRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutAdminUserNestedInput
+    payrollRecords?: PayrollRecordUncheckedUpdateManyWithoutAdminUserNestedInput
+    payslips?: PayslipUncheckedUpdateManyWithoutAdminUserNestedInput
+    deductions?: DeductionUncheckedUpdateManyWithoutAdminUserNestedInput
+    receipts?: ReceiptUncheckedUpdateManyWithoutAdminUserNestedInput
+    invoices?: InvoiceUncheckedUpdateManyWithoutAdminUserNestedInput
+  }
+
+  export type AdminUserCreateWithoutSectionGrantsInput = {
+    id?: string
+    email: string
+    password: string
+    name: string
+    position?: string | null
+    department?: $Enums.Department | null
+    tier?: $Enums.AdminTier
+    status?: $Enums.AdminStatus
+    isTeamLead?: boolean
+    failedLoginAttempts?: number
+    googleId?: string | null
+    mainAppUserId?: string | null
+    lockedUntil?: Date | string | null
+    lastLoginAt?: Date | string | null
+    lastLoginIp?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
+    avatarUrl?: string | null
+    avatarCloudinaryId?: string | null
+    preferredName?: string | null
+    birthday?: Date | string | null
+    nationality?: string | null
+    gender?: string | null
+    maritalStatus?: string | null
+    workPhone?: string | null
+    homePhone?: string | null
+    personalPhone?: string | null
+    fax?: string | null
+    address?: string | null
+    state?: string | null
+    country?: string | null
+    emergencyName?: string | null
+    emergencyPhone?: string | null
+    emergencyEmail?: string | null
+    emergencyRelation?: string | null
+    employmentType?: string | null
+    employmentCategory?: string | null
+    location?: string | null
+    salary?: Decimal | DecimalJsLike | number | string | null
+    bonus?: Decimal | DecimalJsLike | number | string | null
+    equity?: Decimal | DecimalJsLike | number | string | null
+    refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
+    socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
+    educations?: AdminEducationCreateNestedManyWithoutAdminUserInput
+    documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
+    performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
+    reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
+    projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
+    assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
+    createdTasks?: TaskCreateNestedManyWithoutAssignerInput
+    notifications?: NotificationCreateNestedManyWithoutAdminUserInput
+    attendanceLogs?: AttendanceLogCreateNestedManyWithoutAdminUserInput
+    leaveRequests?: LeaveRequestCreateNestedManyWithoutAdminUserInput
+    reviewedLeaveRequests?: LeaveRequestCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceCreateNestedManyWithoutAdminUserInput
+    payrollRecords?: PayrollRecordCreateNestedManyWithoutAdminUserInput
+    payslips?: PayslipCreateNestedManyWithoutAdminUserInput
+    deductions?: DeductionCreateNestedManyWithoutAdminUserInput
+    receipts?: ReceiptCreateNestedManyWithoutAdminUserInput
+    invoices?: InvoiceCreateNestedManyWithoutAdminUserInput
+  }
+
+  export type AdminUserUncheckedCreateWithoutSectionGrantsInput = {
+    id?: string
+    email: string
+    password: string
+    name: string
+    position?: string | null
+    department?: $Enums.Department | null
+    tier?: $Enums.AdminTier
+    status?: $Enums.AdminStatus
+    isTeamLead?: boolean
+    failedLoginAttempts?: number
+    googleId?: string | null
+    mainAppUserId?: string | null
+    lockedUntil?: Date | string | null
+    lastLoginAt?: Date | string | null
+    lastLoginIp?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
+    avatarUrl?: string | null
+    avatarCloudinaryId?: string | null
+    preferredName?: string | null
+    birthday?: Date | string | null
+    nationality?: string | null
+    gender?: string | null
+    maritalStatus?: string | null
+    workPhone?: string | null
+    homePhone?: string | null
+    personalPhone?: string | null
+    fax?: string | null
+    address?: string | null
+    state?: string | null
+    country?: string | null
+    emergencyName?: string | null
+    emergencyPhone?: string | null
+    emergencyEmail?: string | null
+    emergencyRelation?: string | null
+    employmentType?: string | null
+    employmentCategory?: string | null
+    location?: string | null
+    salary?: Decimal | DecimalJsLike | number | string | null
+    bonus?: Decimal | DecimalJsLike | number | string | null
+    equity?: Decimal | DecimalJsLike | number | string | null
+    refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
+    socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
+    educations?: AdminEducationUncheckedCreateNestedManyWithoutAdminUserInput
+    documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
+    performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
+    reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
+    projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
+    assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
+    createdTasks?: TaskUncheckedCreateNestedManyWithoutAssignerInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutAdminUserInput
+    attendanceLogs?: AttendanceLogUncheckedCreateNestedManyWithoutAdminUserInput
+    leaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutAdminUserInput
+    reviewedLeaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutAdminUserInput
+    payrollRecords?: PayrollRecordUncheckedCreateNestedManyWithoutAdminUserInput
+    payslips?: PayslipUncheckedCreateNestedManyWithoutAdminUserInput
+    deductions?: DeductionUncheckedCreateNestedManyWithoutAdminUserInput
+    receipts?: ReceiptUncheckedCreateNestedManyWithoutAdminUserInput
+    invoices?: InvoiceUncheckedCreateNestedManyWithoutAdminUserInput
+  }
+
+  export type AdminUserCreateOrConnectWithoutSectionGrantsInput = {
+    where: AdminUserWhereUniqueInput
+    create: XOR<AdminUserCreateWithoutSectionGrantsInput, AdminUserUncheckedCreateWithoutSectionGrantsInput>
+  }
+
+  export type AdminUserUpsertWithoutSectionGrantsInput = {
+    update: XOR<AdminUserUpdateWithoutSectionGrantsInput, AdminUserUncheckedUpdateWithoutSectionGrantsInput>
+    create: XOR<AdminUserCreateWithoutSectionGrantsInput, AdminUserUncheckedCreateWithoutSectionGrantsInput>
+    where?: AdminUserWhereInput
+  }
+
+  export type AdminUserUpdateToOneWithWhereWithoutSectionGrantsInput = {
+    where?: AdminUserWhereInput
+    data: XOR<AdminUserUpdateWithoutSectionGrantsInput, AdminUserUncheckedUpdateWithoutSectionGrantsInput>
+  }
+
+  export type AdminUserUpdateWithoutSectionGrantsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    position?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: NullableEnumDepartmentFieldUpdateOperationsInput | $Enums.Department | null
+    tier?: EnumAdminTierFieldUpdateOperationsInput | $Enums.AdminTier
+    status?: EnumAdminStatusFieldUpdateOperationsInput | $Enums.AdminStatus
+    isTeamLead?: BoolFieldUpdateOperationsInput | boolean
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    mainAppUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginIp?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
+    preferredName?: NullableStringFieldUpdateOperationsInput | string | null
+    birthday?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nationality?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    maritalStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    homePhone?: NullableStringFieldUpdateOperationsInput | string | null
+    personalPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    fax?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyName?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyRelation?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentType?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
+    socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
+    educations?: AdminEducationUpdateManyWithoutAdminUserNestedInput
+    documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
+    performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
+    reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
+    projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
+    assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
+    createdTasks?: TaskUpdateManyWithoutAssignerNestedInput
+    notifications?: NotificationUpdateManyWithoutAdminUserNestedInput
+    attendanceLogs?: AttendanceLogUpdateManyWithoutAdminUserNestedInput
+    leaveRequests?: LeaveRequestUpdateManyWithoutAdminUserNestedInput
+    reviewedLeaveRequests?: LeaveRequestUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUpdateManyWithoutAdminUserNestedInput
+    payrollRecords?: PayrollRecordUpdateManyWithoutAdminUserNestedInput
+    payslips?: PayslipUpdateManyWithoutAdminUserNestedInput
+    deductions?: DeductionUpdateManyWithoutAdminUserNestedInput
+    receipts?: ReceiptUpdateManyWithoutAdminUserNestedInput
+    invoices?: InvoiceUpdateManyWithoutAdminUserNestedInput
+  }
+
+  export type AdminUserUncheckedUpdateWithoutSectionGrantsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    position?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: NullableEnumDepartmentFieldUpdateOperationsInput | $Enums.Department | null
+    tier?: EnumAdminTierFieldUpdateOperationsInput | $Enums.AdminTier
+    status?: EnumAdminStatusFieldUpdateOperationsInput | $Enums.AdminStatus
+    isTeamLead?: BoolFieldUpdateOperationsInput | boolean
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    mainAppUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginIp?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
+    preferredName?: NullableStringFieldUpdateOperationsInput | string | null
+    birthday?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nationality?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    maritalStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    homePhone?: NullableStringFieldUpdateOperationsInput | string | null
+    personalPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    fax?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyName?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyRelation?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentType?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
     educations?: AdminEducationUncheckedUpdateManyWithoutAdminUserNestedInput
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -46519,6 +48597,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -46549,6 +48629,7 @@ export namespace Prisma {
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
@@ -46588,6 +48669,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -46618,6 +48701,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
@@ -46673,6 +48757,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -46703,6 +48789,7 @@ export namespace Prisma {
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
@@ -46742,6 +48829,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -46772,6 +48861,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
@@ -46811,6 +48901,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -46841,6 +48933,7 @@ export namespace Prisma {
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
@@ -46880,6 +48973,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -46910,6 +49005,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
@@ -46965,6 +49061,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -46995,6 +49093,7 @@ export namespace Prisma {
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
@@ -47034,6 +49133,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -47064,6 +49165,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
@@ -47103,6 +49205,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -47133,6 +49237,7 @@ export namespace Prisma {
     educations?: AdminEducationCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
@@ -47172,6 +49277,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -47202,6 +49309,7 @@ export namespace Prisma {
     educations?: AdminEducationUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
@@ -47257,6 +49365,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -47287,6 +49397,7 @@ export namespace Prisma {
     educations?: AdminEducationUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
@@ -47326,6 +49437,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -47356,6 +49469,7 @@ export namespace Prisma {
     educations?: AdminEducationUncheckedUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
@@ -47395,6 +49509,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -47425,6 +49541,7 @@ export namespace Prisma {
     educations?: AdminEducationCreateNestedManyWithoutAdminUserInput
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
@@ -47464,6 +49581,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -47494,6 +49613,7 @@ export namespace Prisma {
     educations?: AdminEducationUncheckedCreateNestedManyWithoutAdminUserInput
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
@@ -47549,6 +49669,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -47579,6 +49701,7 @@ export namespace Prisma {
     educations?: AdminEducationUpdateManyWithoutAdminUserNestedInput
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
@@ -47618,6 +49741,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -47648,6 +49773,7 @@ export namespace Prisma {
     educations?: AdminEducationUncheckedUpdateManyWithoutAdminUserNestedInput
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
@@ -47687,6 +49813,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -47717,6 +49845,7 @@ export namespace Prisma {
     educations?: AdminEducationCreateNestedManyWithoutAdminUserInput
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
@@ -47756,6 +49885,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -47786,6 +49917,7 @@ export namespace Prisma {
     educations?: AdminEducationUncheckedCreateNestedManyWithoutAdminUserInput
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
@@ -47841,6 +49973,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -47871,6 +50005,7 @@ export namespace Prisma {
     educations?: AdminEducationUpdateManyWithoutAdminUserNestedInput
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
@@ -47910,6 +50045,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -47940,6 +50077,7 @@ export namespace Prisma {
     educations?: AdminEducationUncheckedUpdateManyWithoutAdminUserNestedInput
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
@@ -48114,6 +50252,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -48145,6 +50285,7 @@ export namespace Prisma {
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
     createdTasks?: TaskCreateNestedManyWithoutAssignerInput
@@ -48183,6 +50324,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -48214,6 +50357,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
     createdTasks?: TaskUncheckedCreateNestedManyWithoutAssignerInput
@@ -48299,6 +50443,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -48330,6 +50476,7 @@ export namespace Prisma {
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
     createdTasks?: TaskUpdateManyWithoutAssignerNestedInput
@@ -48368,6 +50515,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -48399,6 +50548,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
     createdTasks?: TaskUncheckedUpdateManyWithoutAssignerNestedInput
@@ -48616,6 +50766,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -48647,6 +50799,7 @@ export namespace Prisma {
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
     createdTasks?: TaskCreateNestedManyWithoutAssignerInput
@@ -48685,6 +50838,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -48716,6 +50871,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
     createdTasks?: TaskUncheckedCreateNestedManyWithoutAssignerInput
@@ -48809,6 +50965,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -48840,6 +50998,7 @@ export namespace Prisma {
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
     createdTasks?: TaskUpdateManyWithoutAssignerNestedInput
@@ -48878,6 +51037,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -48909,6 +51070,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
     createdTasks?: TaskUncheckedUpdateManyWithoutAssignerNestedInput
@@ -48980,6 +51142,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -49011,6 +51175,7 @@ export namespace Prisma {
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
@@ -49049,6 +51214,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -49080,6 +51247,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
@@ -49123,6 +51291,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -49154,6 +51324,7 @@ export namespace Prisma {
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     createdTasks?: TaskCreateNestedManyWithoutAssignerInput
@@ -49192,6 +51363,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -49223,6 +51396,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     createdTasks?: TaskUncheckedCreateNestedManyWithoutAssignerInput
@@ -49316,6 +51490,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -49347,6 +51523,7 @@ export namespace Prisma {
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
@@ -49385,6 +51562,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -49416,6 +51595,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
@@ -49465,6 +51645,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -49496,6 +51678,7 @@ export namespace Prisma {
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     createdTasks?: TaskUpdateManyWithoutAssignerNestedInput
@@ -49534,6 +51717,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -49565,6 +51750,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     createdTasks?: TaskUncheckedUpdateManyWithoutAssignerNestedInput
@@ -49603,6 +51789,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -49634,6 +51822,7 @@ export namespace Prisma {
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
@@ -49672,6 +51861,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -49703,6 +51894,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
@@ -49757,6 +51949,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -49788,6 +51982,7 @@ export namespace Prisma {
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
@@ -49826,6 +52021,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -49857,6 +52054,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
@@ -49895,6 +52093,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -49926,6 +52126,7 @@ export namespace Prisma {
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
@@ -49964,6 +52165,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -49995,6 +52198,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
@@ -50038,6 +52242,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -50069,6 +52275,7 @@ export namespace Prisma {
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
@@ -50107,6 +52314,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -50138,6 +52347,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
@@ -50192,6 +52402,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -50223,6 +52435,7 @@ export namespace Prisma {
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
@@ -50261,6 +52474,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -50292,6 +52507,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
@@ -50341,6 +52557,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -50372,6 +52590,7 @@ export namespace Prisma {
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
@@ -50410,6 +52629,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -50441,6 +52662,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
@@ -50479,6 +52701,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -50510,6 +52734,7 @@ export namespace Prisma {
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
@@ -50548,6 +52773,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -50579,6 +52806,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
@@ -50633,6 +52861,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -50664,6 +52894,7 @@ export namespace Prisma {
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
@@ -50702,6 +52933,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -50733,6 +52966,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
@@ -50771,6 +53005,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -50802,6 +53038,7 @@ export namespace Prisma {
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
@@ -50840,6 +53077,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -50871,6 +53110,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
@@ -50925,6 +53165,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -50956,6 +53198,7 @@ export namespace Prisma {
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
@@ -50994,6 +53237,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -51025,6 +53270,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
@@ -51063,6 +53309,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -51094,6 +53342,7 @@ export namespace Prisma {
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
@@ -51132,6 +53381,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -51163,6 +53414,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
@@ -51359,6 +53611,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -51390,6 +53644,7 @@ export namespace Prisma {
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
@@ -51428,6 +53683,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -51459,6 +53716,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
@@ -51561,6 +53819,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -51592,6 +53852,7 @@ export namespace Prisma {
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
@@ -51630,6 +53891,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -51661,6 +53924,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
@@ -51766,6 +54030,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -51797,6 +54063,7 @@ export namespace Prisma {
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
@@ -51835,6 +54102,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -51866,6 +54135,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
@@ -51961,6 +54231,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -51992,6 +54264,7 @@ export namespace Prisma {
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
@@ -52030,6 +54303,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -52061,6 +54336,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
@@ -52166,6 +54442,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -52197,6 +54475,7 @@ export namespace Prisma {
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
@@ -52235,6 +54514,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -52266,6 +54547,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
@@ -52361,6 +54643,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -52392,6 +54676,7 @@ export namespace Prisma {
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
@@ -52430,6 +54715,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -52461,6 +54748,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
@@ -52566,6 +54854,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -52597,6 +54887,7 @@ export namespace Prisma {
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
@@ -52635,6 +54926,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -52666,6 +54959,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
@@ -52761,6 +55055,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -52792,6 +55088,7 @@ export namespace Prisma {
     documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
@@ -52830,6 +55127,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -52861,6 +55160,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
     performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
     reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
     teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
     projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
     assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
@@ -52966,6 +55266,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -52997,6 +55299,7 @@ export namespace Prisma {
     documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
@@ -53035,6 +55338,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -53066,6 +55371,7 @@ export namespace Prisma {
     documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
     performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
     reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
     assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
@@ -53513,6 +55819,18 @@ export namespace Prisma {
     date?: Date | string
   }
 
+  export type AdminSectionGrantCreateManyAdminUserInput = {
+    id?: string
+    module: string
+    section: string
+    mode: $Enums.SectionAccessMode
+    grantedBy: string
+    reason?: string | null
+    expiresAt?: Date | string | null
+    createdAt?: Date | string
+    revokedAt?: Date | string | null
+  }
+
   export type TeamMemberCreateManyAdminUserInput = {
     id?: string
     teamId: string
@@ -53892,6 +56210,42 @@ export namespace Prisma {
     cloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: StringFieldUpdateOperationsInput | string
     date?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdminSectionGrantUpdateWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    module?: StringFieldUpdateOperationsInput | string
+    section?: StringFieldUpdateOperationsInput | string
+    mode?: EnumSectionAccessModeFieldUpdateOperationsInput | $Enums.SectionAccessMode
+    grantedBy?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminSectionGrantUncheckedUpdateWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    module?: StringFieldUpdateOperationsInput | string
+    section?: StringFieldUpdateOperationsInput | string
+    mode?: EnumSectionAccessModeFieldUpdateOperationsInput | $Enums.SectionAccessMode
+    grantedBy?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminSectionGrantUncheckedUpdateManyWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    module?: StringFieldUpdateOperationsInput | string
+    section?: StringFieldUpdateOperationsInput | string
+    mode?: EnumSectionAccessModeFieldUpdateOperationsInput | $Enums.SectionAccessMode
+    grantedBy?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type TeamMemberUpdateWithoutAdminUserInput = {

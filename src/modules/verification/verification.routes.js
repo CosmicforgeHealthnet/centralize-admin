@@ -1,43 +1,56 @@
 const express = require("express");
 const router = express.Router();
 const { authenticate } = require("../../shared/middlewares/auth.middleware");
-const { requireTier } = require("../../shared/middlewares/rbac.middleware");
+const {
+  requireTier,
+  requireDifferentReviewer,
+} = require("../../shared/middlewares/rbac.middleware");
 const controller = require("./verification.controller");
+const { mainPrisma } = require("../../shared/config/mainDatabase");
+const { prisma } = require("../../shared/config/database");
 
+const getDoctorPriorReviewer = async (req) => {
+  const vr = await mainPrisma.verification_requests.findUnique({
+    where: { id: req.params.id },
+    select: { assignedReviewerId: true },
+  });
+  if (!vr?.assignedReviewerId) return null;
 
-// GET /api/verification/health
+  const adminUser = await prisma.adminUser.findUnique({
+    where: { id: req.adminUser.id },
+    select: { mainAppUserId: true },
+  });
+
+  return vr.assignedReviewerId === adminUser?.mainAppUserId
+    ? req.adminUser.id
+    : null;
+};
+
 router.get("/health", controller.healthCheck);
 
-// All verification routes require authentication
 router.use(authenticate);
 
-// ── Combined (All tab) ─────────────────────────────────────────────────────────
-// GET /api/verification/all
 router.get("/all", controller.getAllCombined);
-
-// ── Doctor Verifications ───────────────────────────────────────────────────────
-// GET    /api/verification/doctors           — paginated list
-// GET    /api/verification/doctors/:id       — full detail
-// PATCH  /api/verification/doctors/:id/approve
-// PATCH  /api/verification/doctors/:id/reject
-// PATCH  /api/verification/doctors/:id/assign
 
 router.get("/doctors", controller.getAll);
 router.get("/doctors/:id", controller.getById);
-// requireTier("ADMIN") → ADMIN, EXECUTIVE, SUPER all pass (hierarchy-based)
-router.patch("/doctors/:id/approve", requireTier("ADMIN"), controller.approve);
-router.patch("/doctors/:id/reject", requireTier("ADMIN"), controller.reject);
+router.patch(
+  "/doctors/:id/approve",
+  requireTier("ADMIN"),
+  requireDifferentReviewer(getDoctorPriorReviewer),
+  controller.approve,
+);
+router.patch(
+  "/doctors/:id/reject",
+  requireTier("ADMIN"),
+  requireDifferentReviewer(getDoctorPriorReviewer),
+  controller.reject,
+);
 router.patch(
   "/doctors/:id/assign",
   requireTier("ADMIN"),
   controller.assignReviewer,
 );
-
-// ── Pharmacy Verifications ─────────────────────────────────────────────────────
-// GET    /api/verification/pharmacies
-// GET    /api/verification/pharmacies/:id
-// PATCH  /api/verification/pharmacies/:id/approve
-// PATCH  /api/verification/pharmacies/:id/reject
 
 router.get("/pharmacies", controller.getPharmacyVerifications);
 router.get("/pharmacies/:id", controller.getPharmacyVerificationById);
@@ -51,12 +64,6 @@ router.patch(
   requireTier("ADMIN"),
   controller.rejectPharmacy,
 );
-
-// ── Lab Verifications ──────────────────────────────────────────────────────────
-// GET    /api/verification/labs
-// GET    /api/verification/labs/:id
-// PATCH  /api/verification/labs/:id/approve
-// PATCH  /api/verification/labs/:id/reject
 
 router.get("/labs", controller.getLabVerifications);
 router.get("/labs/:id", controller.getLabVerificationById);

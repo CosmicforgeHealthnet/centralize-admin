@@ -5,6 +5,7 @@ const { authenticate } = require("../../shared/middlewares/auth.middleware");
 const {
   requireTier,
   requireExactTier,
+  require2FA,
 } = require("../../shared/middlewares/rbac.middleware");
 const {
   createUserSchema,
@@ -12,23 +13,20 @@ const {
   validate,
 } = require("./admin-users.validator");
 
-// All routes require authentication
 router.use(authenticate);
 
-// GET all users — ADMIN and above
 router.get("/", requireTier("ADMIN"), controller.getAllUsers);
 router.get("/audit-logs", requireTier("ADMIN"), controller.getAuditLogs);
 router.get("/:id", requireTier("ADMIN"), controller.getUserById);
 
-// Create user — ADMIN and above
 router.post(
   "/",
   requireTier("ADMIN"),
+  require2FA(),
   validate(createUserSchema),
   controller.createUser,
 );
 
-// Update user — ADMIN and above
 router.patch(
   "/:id",
   requireTier("ADMIN"),
@@ -36,18 +34,18 @@ router.patch(
   controller.updateUser,
 );
 
-// Activate / Deactivate — ADMIN and above
 router.patch("/:id/activate", requireTier("ADMIN"), controller.activateUser);
 router.patch(
   "/:id/deactivate",
   requireTier("ADMIN"),
+  require2FA(),
   controller.deactivateUser,
 );
 
-// Reset password — ADMIN and above
 router.post(
   "/:id/reset-password",
   requireTier("ADMIN"),
+  require2FA(),
   controller.resetUserPassword,
 );
 

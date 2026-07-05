@@ -1,0 +1,432 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../src/generated/dispatch-client"
+  previewFeatures = ["partialIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model availability_sessions {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider_id      String    @unique(map: "idx_sessions_provider_open", where: raw("(went_offline_at IS NULL)")) @db.Uuid
+  went_online_at   DateTime  @db.Timestamptz(6)
+  went_offline_at  DateTime? @db.Timestamptz(6)
+  duration_minutes Int?
+  trips_in_session Int       @default(0)
+  forced_offline   Boolean   @default(false)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  providers        providers @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([went_online_at], map: "idx_sessions_online_at")
+  @@index([provider_id], map: "idx_sessions_provider")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model bike_audit {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bike_id      String    @db.Uuid
+  provider_id  String    @db.Uuid
+  action       String
+  from_status  String
+  to_status    String
+  performed_by String?   @db.Uuid
+  notes        String?
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  bikes        bikes     @relation(fields: [bike_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  providers    providers @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([bike_id], map: "idx_bike_audit_bike")
+  @@index([provider_id], map: "idx_bike_audit_provider")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model bike_documents {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bike_id       String    @db.Uuid
+  provider_id   String    @db.Uuid
+  document_type String
+  file_url      String
+  file_size     Int?
+  mime_type     String?
+  expiry_date   DateTime? @db.Date
+  uploaded_at   DateTime  @default(now()) @db.Timestamptz(6)
+  bikes         bikes     @relation(fields: [bike_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  providers     providers @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([bike_id], map: "idx_bike_docs_bike")
+  @@index([provider_id], map: "idx_bike_docs_provider")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model bikes {
+  id                  String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider_id         String           @db.Uuid
+  bike_type           String
+  brand               String
+  model               String
+  year                Int              @db.SmallInt
+  color               String
+  plate_number        String           @unique
+  engine_cc           Int?             @db.SmallInt
+  chassis_number      String?
+  verification_status String           @default("unverified")
+  is_active           Boolean          @default(true)
+  is_primary          Boolean          @default(false)
+  created_at          DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime         @default(now()) @db.Timestamptz(6)
+  bike_audit          bike_audit[]
+  bike_documents      bike_documents[]
+  providers           providers        @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([provider_id], map: "idx_bikes_provider")
+  @@index([verification_status], map: "idx_bikes_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model cancellations {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  trip_id         String   @unique @db.Uuid
+  cancelled_by    String
+  reason_code     String
+  reason_text     String?
+  penalty_applied Boolean  @default(false)
+  cancelled_at    DateTime @default(now()) @db.Timestamptz(6)
+  trips           trips    @relation(fields: [trip_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([cancelled_at(sort: Desc)], map: "idx_cancellations_cancelled_at")
+  @@index([cancelled_by], map: "idx_cancelled_by")
+}
+
+model delivery_proofs {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  trip_id        String    @unique @db.Uuid
+  photo_ref      String
+  signature_ref  String
+  receiver_name  String
+  receiver_phone String
+  submitted_at   DateTime  @default(now()) @db.Timestamptz(6)
+  verified       Boolean   @default(false)
+  verified_at    DateTime? @db.Timestamptz(6)
+  trips          trips     @relation(fields: [trip_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model dispatch_rider_identities {
+  id                      String                    @id @db.Uuid
+  phone_number            String                    @unique
+  status                  String                    @default("active") @db.VarChar(30)
+  created_at              DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime                  @default(now()) @db.Timestamptz(6)
+  email                   String?                   @unique(map: "idx_dispatch_rider_identities_email_unique", where: raw("(email IS NOT NULL)"))
+  dispatch_rider_sessions dispatch_rider_sessions[]
+
+  @@index([phone_number], map: "idx_dispatch_rider_identities_phone_number")
+  @@index([status], map: "idx_dispatch_rider_identities_status")
+}
+
+model dispatch_rider_otps {
+  id            String    @id @db.Uuid
+  phone_number  String
+  otp_code_hash String
+  attempts      Int       @default(0)
+  max_attempts  Int       @default(3)
+  expires_at    DateTime  @db.Timestamptz(6)
+  verified      Boolean   @default(false)
+  locked_until  DateTime? @db.Timestamptz(6)
+  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime  @default(now()) @db.Timestamptz(6)
+  email         String?
+  purpose       String    @default("login")
+
+  @@index([expires_at], map: "idx_dispatch_rider_otps_expires_at")
+  @@index([locked_until], map: "idx_dispatch_rider_otps_locked_until")
+  @@index([phone_number], map: "idx_dispatch_rider_otps_phone_number")
+  @@index([verified], map: "idx_dispatch_rider_otps_verified")
+}
+
+model dispatch_rider_sessions {
+  id                        String                    @id @db.Uuid
+  dispatch_rider_id         String                    @db.Uuid
+  phone_number              String
+  refresh_token_hash        String
+  device_id                 String?
+  device_type               String?
+  ip_address                String?
+  user_agent                String?
+  expires_at                DateTime                  @db.Timestamptz(6)
+  revoked_at                DateTime?                 @db.Timestamptz(6)
+  created_at                DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime                  @default(now()) @db.Timestamptz(6)
+  dispatch_rider_identities dispatch_rider_identities @relation(fields: [dispatch_rider_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([dispatch_rider_id], map: "idx_dispatch_rider_sessions_dispatch_rider_id")
+  @@index([expires_at], map: "idx_dispatch_rider_sessions_expires_at")
+  @@index([phone_number], map: "idx_dispatch_rider_sessions_phone_number")
+  @@index([refresh_token_hash], map: "idx_dispatch_rider_sessions_refresh_token_hash")
+  @@index([revoked_at], map: "idx_dispatch_rider_sessions_revoked_at")
+}
+
+model emergency_contacts {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider_id  String    @unique @db.Uuid
+  full_name    String
+  phone        String
+  relationship String
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime  @default(now()) @db.Timestamptz(6)
+  providers    providers @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([provider_id], map: "idx_emergency_contacts_provider")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model face_checks {
+  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider_id        String             @db.Uuid
+  step_id            String             @db.Uuid
+  selfie_url         String
+  id_doc_url         String
+  match_score        Decimal?           @db.Decimal(5, 2)
+  result             String?
+  provider_used      String             @default("smile_identity")
+  error_message      String?
+  checked_at         DateTime           @default(now()) @db.Timestamptz(6)
+  providers          providers          @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  verification_steps verification_steps @relation(fields: [step_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([provider_id], map: "idx_face_provider")
+}
+
+model guarantors {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider_id String    @unique @db.Uuid
+  full_name   String
+  phone       String
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime  @default(now()) @db.Timestamptz(6)
+  providers   providers @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([provider_id], map: "idx_guarantors_provider")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model provider_availability {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider_id           String    @unique(map: "idx_avail_provider") @db.Uuid
+  status                String    @default("offline")
+  verified_to_go_online Boolean   @default(false)
+  session_start         DateTime? @db.Timestamptz(6)
+  last_changed_at       DateTime  @default(now()) @db.Timestamptz(6)
+  created_at            DateTime  @default(now()) @db.Timestamptz(6)
+  providers             providers @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([status], map: "idx_avail_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model provider_request_inbox {
+  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  broadcast_id       String             @db.Uuid
+  booking_id         String             @db.Uuid
+  provider_id        String             @db.Uuid
+  status             String             @default("pending")
+  received_at        DateTime           @default(now()) @db.Timestamptz(6)
+  responded_at       DateTime?          @db.Timestamptz(6)
+  fcm_sent           Boolean            @default(false)
+  fcm_sent_at        DateTime?          @db.Timestamptz(6)
+  request_broadcasts request_broadcasts @relation(fields: [broadcast_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  providers          providers          @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([provider_id, booking_id], map: "idx_inbox_provider_booking")
+  @@index([booking_id], map: "idx_inbox_booking")
+  @@index([broadcast_id], map: "idx_inbox_broadcast")
+  @@index([provider_id], map: "idx_inbox_provider")
+  @@index([provider_id, status, received_at(sort: Desc)], map: "idx_inbox_provider_status_received")
+  @@index([status], map: "idx_inbox_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model providers {
+  id                     String                   @id @db.Uuid
+  phone                  String                   @unique
+  full_name              String?
+  email                  String?
+  state                  String?
+  city                   String?
+  country                String                   @default("NG")
+  profile_photo_url      String?
+  operation_type         String?
+  verification_status    String                   @default("unverified")
+  avg_rating             Decimal                  @default(0.00) @db.Decimal(3, 2)
+  total_trips            Int                      @default(0)
+  is_active              Boolean                  @default(true)
+  onboarding_complete    Boolean                  @default(false)
+  created_at             DateTime                 @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime                 @default(now()) @db.Timestamptz(6)
+  availability_sessions  availability_sessions?
+  bike_audit             bike_audit[]
+  bike_documents         bike_documents[]
+  bikes                  bikes[]
+  emergency_contacts     emergency_contacts?
+  face_checks            face_checks[]
+  guarantors             guarantors?
+  provider_availability  provider_availability?
+  provider_request_inbox provider_request_inbox[]
+  ratings                ratings[]
+  request_broadcasts     request_broadcasts[]
+  trips                  trips[]
+  verification_audit     verification_audit[]
+  verification_documents verification_documents[]
+  verification_steps     verification_steps[]
+
+  @@index([verification_status], map: "idx_providers_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model ratings {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider_id          String    @db.Uuid
+  booking_id           String    @unique(map: "idx_ratings_booking") @db.Uuid
+  rated_by_customer_id String    @db.Uuid
+  score                Int       @db.SmallInt
+  comment              String?
+  created_at           DateTime  @default(now()) @db.Timestamptz(6)
+  providers            providers @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([provider_id], map: "idx_ratings_provider")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model request_broadcasts {
+  id                      String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  booking_id              String                   @unique(map: "idx_broadcasts_booking") @db.Uuid
+  service_type            String                   @default("dispatch")
+  broadcast_radius_km     Decimal                  @db.Decimal(6, 2)
+  attempt_number          Int                      @default(1) @db.SmallInt
+  providers_notified      Int                      @default(0)
+  status                  String                   @default("broadcasting")
+  broadcast_at            DateTime                 @default(now()) @db.Timestamptz(6)
+  expires_at              DateTime                 @db.Timestamptz(6)
+  accepted_by_provider_id String?                  @db.Uuid
+  booking_payload         Json
+  created_at              DateTime                 @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime                 @default(now()) @db.Timestamptz(6)
+  provider_request_inbox  provider_request_inbox[]
+  providers               providers?               @relation(fields: [accepted_by_provider_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([accepted_by_provider_id], map: "idx_broadcasts_accepted_provider", where: raw("(accepted_by_provider_id IS NOT NULL)"))
+  @@index([expires_at], map: "idx_broadcasts_expires")
+  @@index([status], map: "idx_broadcasts_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model trip_state_log {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  trip_id     String   @db.Uuid
+  from_status String
+  to_status   String
+  changed_at  DateTime @default(now()) @db.Timestamptz(6)
+  changed_by  String
+  notes       String?
+  trips       trips    @relation(fields: [trip_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([trip_id], map: "idx_state_log_trip")
+  @@index([trip_id, changed_at(sort: Desc)], map: "idx_state_log_trip_changed_at")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model trips {
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  booking_id      String           @unique(map: "idx_trips_booking") @db.Uuid
+  provider_id     String           @db.Uuid
+  customer_id     String           @db.Uuid
+  status          String           @default("assigned")
+  pickup_address  String
+  pickup_lat      Decimal          @db.Decimal(10, 7)
+  pickup_lng      Decimal          @db.Decimal(10, 7)
+  dropoff_address String
+  dropoff_lat     Decimal          @db.Decimal(10, 7)
+  dropoff_lng     Decimal          @db.Decimal(10, 7)
+  distance_km     Decimal          @default(0) @db.Decimal(8, 2)
+  fare_amount     BigInt
+  currency        String           @default("NGN")
+  receiver_name   String
+  receiver_phone  String
+  package_desc    String?
+  package_weight  Decimal?         @db.Decimal(6, 2)
+  started_at      DateTime?        @db.Timestamptz(6)
+  arrived_at      DateTime?        @db.Timestamptz(6)
+  completed_at    DateTime?        @db.Timestamptz(6)
+  cancelled_at    DateTime?        @db.Timestamptz(6)
+  created_at      DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime         @default(now()) @db.Timestamptz(6)
+  cancellations   cancellations?
+  delivery_proofs delivery_proofs?
+  trip_state_log  trip_state_log[]
+  providers       providers        @relation(fields: [provider_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([created_at(sort: Desc)], map: "idx_trips_created_at")
+  @@index([provider_id], map: "idx_trips_provider")
+  @@index([provider_id, status], map: "idx_trips_provider_active", where: raw("(status <> ALL (ARRAY['completed'::text, 'cancelled'::text, 'failed'::text]))"))
+  @@index([provider_id, created_at(sort: Desc)], map: "idx_trips_provider_created_at")
+  @@index([status], map: "idx_trips_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model verification_audit {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider_id  String    @db.Uuid
+  step         String
+  action       String
+  from_status  String
+  to_status    String
+  performed_by String?   @db.Uuid
+  notes        String?
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  providers    providers @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([provider_id], map: "idx_vaudit_provider")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model verification_documents {
+  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  step_id            String             @db.Uuid
+  provider_id        String             @db.Uuid
+  document_type      String
+  file_url           String
+  file_size          Int?
+  mime_type          String?
+  uploaded_at        DateTime           @default(now()) @db.Timestamptz(6)
+  providers          providers          @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  verification_steps verification_steps @relation(fields: [step_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([provider_id], map: "idx_vdocs_provider")
+  @@index([step_id], map: "idx_vdocs_step")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model verification_steps {
+  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider_id            String                   @db.Uuid
+  step                   String
+  is_optional            Boolean                  @default(false)
+  is_auto_confirmed      Boolean                  @default(false)
+  confirm_method         String?
+  status                 String                   @default("pending")
+  submitted_at           DateTime?                @db.Timestamptz(6)
+  reviewed_at            DateTime?                @db.Timestamptz(6)
+  reviewer_id            String?                  @db.Uuid
+  rejection_reason       String?
+  updated_at             DateTime                 @default(now()) @db.Timestamptz(6)
+  face_checks            face_checks[]
+  verification_documents verification_documents[]
+  providers              providers                @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([provider_id, step])
+  @@index([provider_id], map: "idx_vsteps_provider")
+  @@index([status], map: "idx_vsteps_status")
+}

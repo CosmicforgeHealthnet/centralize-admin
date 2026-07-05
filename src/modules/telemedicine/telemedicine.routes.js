@@ -1,13 +1,16 @@
 const router = require("express").Router();
 const rateLimit = require("express-rate-limit");
 const { authenticate } = require("../../shared/middlewares/auth.middleware");
-const { requireTier } = require("../../shared/middlewares/rbac.middleware");
+const {
+  requireTier,
+  requireSection,
+} = require("../../shared/middlewares/rbac.middleware");
 const {
   getConsultation,
   listConsultations,
   transitionConsultation,
   getConsultationStats,
-  healthCheck, 
+  healthCheck,
 } = require("./telemedicine.controller");
 
 const limiter = rateLimit({
@@ -18,15 +21,30 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
-
 router.get("/health", healthCheck);
 router.use(authenticate);
 router.use(requireTier("ADMIN"));
 router.use(limiter);
 
-router.get("/stats", getConsultationStats);
-router.get("/", listConsultations);
-router.get("/:id", getConsultation);
-router.patch("/:id/status", transitionConsultation);
+router.get(
+  "/stats",
+  requireSection("telemedicine", "consultations", "VIEW"),
+  getConsultationStats,
+);
+router.get(
+  "/",
+  requireSection("telemedicine", "consultations", "VIEW"),
+  listConsultations,
+);
+router.get(
+  "/:id",
+  requireSection("telemedicine", "consultations", "VIEW"),
+  getConsultation,
+);
+router.patch(
+  "/:id/status",
+  requireSection("telemedicine", "consultations", "EDIT"),
+  transitionConsultation,
+);
 
 module.exports = router;

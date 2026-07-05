@@ -61,18 +61,17 @@ class AdminUsersService {
   }
 
   async createUser({ data, createdBy, req }) {
-    // Check email not already taken in admin DB
     const existing = await prisma.adminUser.findUnique({
       where: { email: data.email },
     });
     if (existing)
       throw new ApiError(409, "A user with this email already exists");
 
-    // Only SUPER can create SUPER or EXECUTIVE accounts
+    const creator = await prisma.adminUser.findUnique({
+      where: { id: createdBy },
+    });
+
     if (["SUPER", "EXECUTIVE"].includes(data.tier)) {
-      const creator = await prisma.adminUser.findUnique({
-        where: { id: createdBy },
-      });
       if (creator?.tier !== "SUPER") {
         throw new ApiError(
           403,
@@ -81,21 +80,32 @@ class AdminUsersService {
       }
     }
 
+    if (creator?.tier === "ADMIN") {
+      if (!creator.department) {
+        throw new ApiError(
+          403,
+          "Your account has no department assigned. Contact a Super admin.",
+        );
+      }
+      if (data.department !== creator.department) {
+        throw new ApiError(
+          403,
+          "You can only create accounts within your own department",
+        );
+      }
+    }
+
     const hashed = await hashPassword(data.password);
 
-    // 👇 If CUSTOMER_CARE, create a matching user in the main app DB
     let mainAppUserId = null;
     if (data.department === "CUSTOMER_CARE") {
-      // Check if email already exists in main app DB
       const existingMainUser = await mainPrisma.users.findUnique({
         where: { email: data.email },
       });
 
       if (existingMainUser) {
-        // Reuse existing main app user
         mainAppUserId = existingMainUser.id;
       } else {
-        // Create new user in main app DB
         const mainAppUser = await mainPrisma.users.create({
           data: {
             fullName: data.name,
@@ -108,7 +118,6 @@ class AdminUsersService {
       }
     }
 
-    // Create admin user in your own DB
     const user = await prisma.adminUser.create({
       data: {
         ...data,
@@ -116,7 +125,7 @@ class AdminUsersService {
         mustChangePassword: true,
         status: "PENDING",
         createdBy,
-        mainAppUserId, // 👈 save the link
+        mainAppUserId,
       },
       select: SAFE_USER_SELECT,
     });
@@ -136,7 +145,6 @@ class AdminUsersService {
 
     return user;
   }
-
   async updateUser({ id, data, updatedBy, req }) {
     const user = await prisma.adminUser.findUnique({ where: { id } });
     if (!user) throw new ApiError(404, "User not found");
@@ -172,7 +180,7 @@ class AdminUsersService {
     return updated;
   }
 
-  async deactivateUser({ id, deactivatedBy, req }) {
+  async deactivateUser({ id, deactivatedBy, reassignTo, req }) {
     const user = await prisma.adminUser.findUnique({ where: { id } });
     if (!user) throw new ApiError(404, "User not found");
     if (id === deactivatedBy)
@@ -180,15 +188,33 @@ class AdminUsersService {
     if (user.tier === "SUPER")
       throw new ApiError(403, "Super accounts cannot be deactivated");
 
-    // Immediately revoke all tokens
-    await prisma.refreshToken.updateMany({
-      where: { adminUserId: id },
-      data: { isRevoked: true },
-    });
+    const newOwnerId = reassignTo || deactivatedBy;
 
-    await prisma.adminUser.update({
-      where: { id },
-      data: { status: "INACTIVE" },
+    await prisma.$transaction(async (tx) => {
+      await tx.refreshToken.updateMany({
+        where: { adminUserId: id },
+        data: { isRevoked: true },
+      });
+
+      await tx.team.updateMany({
+        where: { createdBy: id },
+        data: { createdBy: newOwnerId },
+      });
+
+      await tx.project.updateMany({
+        where: { createdBy: id },
+        data: { createdBy: newOwnerId },
+      });
+
+      await tx.leaveRequest.updateMany({
+        where: { reviewedById: id, status: "PENDING" },
+        data: { reviewedById: newOwnerId },
+      });
+
+      await tx.adminUser.update({
+        where: { id },
+        data: { status: "INACTIVE" },
+      });
     });
 
     await createAuditLog({
@@ -196,6 +222,7 @@ class AdminUsersService {
       action: "USER_DEACTIVATED",
       targetId: id,
       targetType: "admin_user",
+      metadata: { reassignedTo: newOwnerId },
       req,
     });
   }

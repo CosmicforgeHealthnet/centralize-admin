@@ -1,7 +1,10 @@
 const express = require("express");
 const multer = require("multer");
 const ApiError = require("../../../shared/utils/ApiError");
-const { requireTier } = require("../../../shared/middlewares/rbac.middleware");
+const {
+  requireTier,
+  requireSection,
+} = require("../../../shared/middlewares/rbac.middleware");
 const { multerSingle } = require("../hrm.utils");
 const documentsController = require("./documents.controller");
 const {
@@ -28,11 +31,20 @@ const documentUpload = multer({
   },
 });
 
-router.get("/employees", requireTier("ADMIN"), documentsController.getEmployees);
-router.get("/:employeeId", requireTier("EMPLOYEE"), documentsController.getEmployeeDocuments);
+router.get(
+  "/employees",
+  requireTier("ADMIN"),
+  documentsController.getEmployees,
+);
+router.get(
+  "/:employeeId",
+  requireTier("EMPLOYEE"),
+  documentsController.getEmployeeDocuments,
+);
 router.post(
   "/:employeeId",
   requireTier("EXECUTIVE"),
+  requireSection("hrm", "documents", "EDIT"),
   multerSingle(documentUpload, "file"),
   validateMultipartBody(documentUploadSchema),
   documentsController.uploadDocument,
@@ -40,6 +52,7 @@ router.post(
 router.delete(
   "/:employeeId/:docId",
   requireTier("EXECUTIVE"),
+  requireSection("hrm", "documents", "EDIT"),
   documentsController.deleteDocument,
 );
 router.get(

@@ -44,12 +44,12 @@ const updateStatus = asyncHandler(async (req, res) => {
   const account = await accountsService.updateStatus({
     id: req.params.id,
     status: req.body.status,
+    reassignTo: req.body.reassignTo,
     actor: req.adminUser,
     req,
   });
   return ApiResponse.success(res, 200, "HRM account status updated", account);
 });
-
 const resendInvite = asyncHandler(async (req, res) => {
   await accountsService.resendInvite({
     id: req.params.id,

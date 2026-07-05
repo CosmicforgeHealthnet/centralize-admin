@@ -1,7 +1,10 @@
 const express = require("express");
 const multer = require("multer");
 const ApiError = require("../../../shared/utils/ApiError");
-const { requireTier } = require("../../../shared/middlewares/rbac.middleware");
+const {
+  requireTier,
+  requireSection,
+} = require("../../../shared/middlewares/rbac.middleware");
 const { multerSingle } = require("../hrm.utils");
 const employeesController = require("./employees.controller");
 const {
@@ -23,12 +26,27 @@ const avatarUpload = multer({
   fileFilter: (req, file, cb) => {
     const allowed = ["image/jpeg", "image/png", "image/webp"];
     if (allowed.includes(file.mimetype)) return cb(null, true);
-    return cb(new ApiError(400, "Only JPG, PNG, and WEBP images are allowed for avatars"));
+    return cb(
+      new ApiError(
+        400,
+        "Only JPG, PNG, and WEBP images are allowed for avatars",
+      ),
+    );
   },
 });
 
-router.get("/", requireTier("EMPLOYEE"), employeesController.listEmployees);
-router.get("/:id", requireTier("EMPLOYEE"), employeesController.getEmployee);
+router.get(
+  "/",
+  requireTier("EMPLOYEE"),
+  requireSection("hrm", "employees", "VIEW"),
+  employeesController.listEmployees,
+);
+router.get(
+  "/:id",
+  requireTier("EMPLOYEE"),
+  requireSection("hrm", "employees", "VIEW"),
+  employeesController.getEmployee,
+);
 router.put(
   "/:id/personal",
   requireTier("EMPLOYEE"),
@@ -44,6 +62,7 @@ router.put(
 router.put(
   "/:id/employment",
   requireTier("EXECUTIVE"),
+  requireSection("hrm", "employees", "EDIT"),
   validateBody(employeeEmploymentSchema),
   employeesController.updateEmployment,
 );
@@ -62,6 +81,7 @@ router.put(
 router.put(
   "/:id/sensitive",
   requireTier("EXECUTIVE"),
+  requireSection("hrm", "employees", "EDIT"),
   validateBody(employeeSensitiveSchema),
   employeesController.updateSensitive,
 );
@@ -71,7 +91,11 @@ router.put(
   multerSingle(avatarUpload, "avatar"),
   employeesController.updateAvatar,
 );
-router.get("/:id/education", requireTier("EMPLOYEE"), employeesController.listEducation);
+router.get(
+  "/:id/education",
+  requireTier("EMPLOYEE"),
+  employeesController.listEducation,
+);
 router.post(
   "/:id/education",
   requireTier("EMPLOYEE"),

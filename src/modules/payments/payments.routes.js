@@ -1,14 +1,14 @@
 const router = require("express").Router();
 const rateLimit = require("express-rate-limit");
 const { authenticate } = require("../../shared/middlewares/auth.middleware");
-const { requireTier } = require("../../shared/middlewares/rbac.middleware");
+const { requireTier, requireSection } = require("../../shared/middlewares/rbac.middleware");
 const {
   getTransaction,
   listTransactions,
   transitionPayment,
   getPaymentStats,
   flagTransaction,
-  healthCheck, 
+  healthCheck,
 } = require("./payments.controller");
 
 const limiter = rateLimit({
@@ -19,18 +19,16 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
-
 router.get("/health", healthCheck);
 
-// These routes require authentication
 router.use(authenticate);
 router.use(requireTier("ADMIN"));
 router.use(limiter);
 
-router.get("/stats", getPaymentStats);
-router.get("/", listTransactions);
-router.get("/:id", getTransaction);
-router.patch("/:id/status", transitionPayment);
-router.post("/:id/flag", flagTransaction);
+router.get("/stats", requireSection("finance", "payments", "VIEW"), getPaymentStats);
+router.get("/", requireSection("finance", "payments", "VIEW"), listTransactions);
+router.get("/:id", requireSection("finance", "payments", "VIEW"), getTransaction);
+router.patch("/:id/status", requireSection("finance", "payments", "EDIT"), transitionPayment);
+router.post("/:id/flag", requireSection("finance", "payments", "EDIT"), flagTransaction);
 
 module.exports = router;

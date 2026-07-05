@@ -143,6 +143,8 @@ exports.Prisma.AdminUserScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   createdBy: 'createdBy',
+  twoFactorEnabled: 'twoFactorEnabled',
+  twoFactorSecret: 'twoFactorSecret',
   avatarUrl: 'avatarUrl',
   avatarCloudinaryId: 'avatarCloudinaryId',
   preferredName: 'preferredName',
@@ -190,6 +192,19 @@ exports.Prisma.AuditLogScalarFieldEnum = {
   ipAddress: 'ipAddress',
   userAgent: 'userAgent',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.AdminSectionGrantScalarFieldEnum = {
+  id: 'id',
+  adminUserId: 'adminUserId',
+  module: 'module',
+  section: 'section',
+  mode: 'mode',
+  grantedBy: 'grantedBy',
+  reason: 'reason',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  revokedAt: 'revokedAt'
 };
 
 exports.Prisma.AdminSocialLinkScalarFieldEnum = {
@@ -509,7 +524,12 @@ exports.Department = exports.$Enums.Department = {
   MARKETING: 'MARKETING',
   SOCIAL_MEDIA: 'SOCIAL_MEDIA',
   EXECUTIVE: 'EXECUTIVE',
-  MANAGEMENT: 'MANAGEMENT'
+  MANAGEMENT: 'MANAGEMENT',
+  HR: 'HR',
+  VERIFICATION: 'VERIFICATION',
+  RTC: 'RTC',
+  TELEMEDICINE: 'TELEMEDICINE',
+  OPERATIONS: 'OPERATIONS'
 };
 
 exports.AdminTier = exports.$Enums.AdminTier = {
@@ -560,7 +580,15 @@ exports.AuditAction = exports.$Enums.AuditAction = {
   HRM_VACANCY_DELETED: 'HRM_VACANCY_DELETED',
   HRM_VACANCY_STATUS_UPDATED: 'HRM_VACANCY_STATUS_UPDATED',
   HRM_APPLICANT_STAGE_UPDATED: 'HRM_APPLICANT_STAGE_UPDATED',
-  HRM_EVENT_CREATED: 'HRM_EVENT_CREATED'
+  HRM_EVENT_CREATED: 'HRM_EVENT_CREATED',
+  SECTION_GRANT_CREATED: 'SECTION_GRANT_CREATED',
+  SECTION_GRANT_REVOKED: 'SECTION_GRANT_REVOKED',
+  EMERGENCY_OVERRIDE_USED: 'EMERGENCY_OVERRIDE_USED'
+};
+
+exports.SectionAccessMode = exports.$Enums.SectionAccessMode = {
+  VIEW: 'VIEW',
+  EDIT: 'EDIT'
 };
 
 exports.ProjectStatus = exports.$Enums.ProjectStatus = {
@@ -625,6 +653,7 @@ exports.Prisma.ModelName = {
   AdminUser: 'AdminUser',
   RefreshToken: 'RefreshToken',
   AuditLog: 'AuditLog',
+  AdminSectionGrant: 'AdminSectionGrant',
   AdminSocialLink: 'AdminSocialLink',
   AdminEducation: 'AdminEducation',
   AdminDocument: 'AdminDocument',

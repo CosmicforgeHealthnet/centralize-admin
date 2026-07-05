@@ -33,6 +33,16 @@ enum Department {
   SOCIAL_MEDIA
   EXECUTIVE
   MANAGEMENT
+  HR
+  VERIFICATION
+  RTC
+  TELEMEDICINE
+  OPERATIONS
+}
+
+enum SectionAccessMode {
+  VIEW
+  EDIT
 }
 
 enum AuditAction {
@@ -70,6 +80,9 @@ enum AuditAction {
   HRM_VACANCY_STATUS_UPDATED
   HRM_APPLICANT_STAGE_UPDATED
   HRM_EVENT_CREATED
+  SECTION_GRANT_CREATED
+  SECTION_GRANT_REVOKED
+  EMERGENCY_OVERRIDE_USED
 }
 
 enum ProjectStatus {
@@ -158,6 +171,10 @@ model AdminUser {
   updatedAt            DateTime    @updatedAt
   createdBy            String?
 
+  // ── 2FA ────────────────────────────────────────────────────────
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret  String?
+
   // ── Avatar ─────────────────────────────────────────────────────
   avatarUrl          String?
   avatarCloudinaryId String?
@@ -202,6 +219,7 @@ model AdminUser {
   documents        AdminDocument[]
   performanceNotes AdminPerformanceNote[]
   reports          AdminReport[]
+  sectionGrants    AdminSectionGrant[]
 
   // ── Work Section Relations ──────────────────────────────────────
   teamMemberships       TeamMember[]
@@ -257,6 +275,31 @@ model AuditLog {
   createdAt   DateTime    @default(now())
 
   @@map("admin_audit_logs")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION-LEVEL PERMISSIONS (Addendum 2)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// One row = one person granted access to one specific section of one module,
+// independent of their home Department. Home role templates are just a
+// default starter set of these grants, applied at account creation.
+model AdminSectionGrant {
+  id          String            @id @default(uuid())
+  adminUserId String
+  adminUser   AdminUser         @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  module      String // e.g. "hrm", "finance", "verification"
+  section     String // e.g. "accounts", "payroll", "doctors" — use "*" for whole-module
+  mode        SectionAccessMode
+  grantedBy   String // id of the account that issued the grant
+  reason      String?
+  expiresAt   DateTime?
+  createdAt   DateTime          @default(now())
+  revokedAt   DateTime?
+
+  @@index([adminUserId])
+  @@index([module, section])
+  @@map("admin_section_grants")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
