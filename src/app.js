@@ -37,6 +37,7 @@ const adminOpsRoutes = require("./modules/admin-ops").router;
 const analyticsRouter = require("./modules/analytics").router;
 const adminSettingsRoutes = require("./modules/admin-settings").router;
 const healthnetRoutes = require("./modules/healthnet").router;
+const marketingRoutes = require("./modules/marketing").router;
 const hrmRoutes = require("./modules/hrm").router;
 
 
@@ -131,6 +132,7 @@ app.use("/api/admin/ops", adminOpsRoutes);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/admin-settings", adminSettingsRoutes);
 app.use("/api/healthnet", healthnetRoutes);
+app.use("/api/marketing", marketingRoutes);
 app.use("/api/hrm", hrmRoutes);
 
 
