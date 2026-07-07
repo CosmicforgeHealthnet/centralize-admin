@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 const { Readable } = require("stream");
 const cloudinary = require("../../shared/config/cloudinary");
-const { mainPrisma } = require("../../shared/config/mainDatabase");
+const { prisma: adminPrisma } = require("../../shared/config/database");
 const ApiError = require("../../shared/utils/ApiError");
 
 const UUID_REGEX =
@@ -147,15 +147,15 @@ function formatNumber(value) {
 
 function getAuthorName(content) {
   return (
-    content?.users?.fullName ||
+    content?.adminUser?.name ||
     content?.authorName ||
-    content?.users?.email ||
+    content?.adminUser?.email ||
     "Unknown"
   );
 }
 
 function getTeamMemberName(member) {
-  return member?.users?.fullName || member?.users?.email || "Unknown";
+  return member?.adminUser?.name || member?.adminUser?.email || "Unknown";
 }
 
 function buildCampaignWhere(query = {}) {
@@ -326,7 +326,7 @@ async function getCampaignOrThrow(id, include = {}) {
 
   if (Object.keys(include).length > 0) args.include = include;
 
-  const campaign = await mainPrisma.marketing_campaigns.findUnique(args);
+  const campaign = await adminPrisma.marketing_campaigns.findUnique(args);
 
   if (!campaign) throw new ApiError(404, "Campaign not found");
   return campaign;
@@ -338,7 +338,7 @@ async function getContentOrThrow(id, include = {}) {
 
   if (Object.keys(include).length > 0) args.include = include;
 
-  const content = await mainPrisma.marketing_content_items.findUnique(args);
+  const content = await adminPrisma.marketing_content_items.findUnique(args);
 
   if (!content) throw new ApiError(404, "Content item not found");
   return content;
@@ -346,11 +346,11 @@ async function getContentOrThrow(id, include = {}) {
 
 async function getAuthorOrThrow(authorId) {
   const id = assertUuid(authorId, "author id");
-  const author = await mainPrisma.users.findUnique({
+  const author = await adminPrisma.adminUser.findUnique({
     where: { id },
     select: {
       id: true,
-      fullName: true,
+      name: true,
       email: true,
     },
   });
@@ -360,7 +360,7 @@ async function getAuthorOrThrow(authorId) {
 }
 
 function userDisplayName(user) {
-  return user?.fullName || user?.email || "Unknown";
+  return user?.name || user?.email || "Unknown";
 }
 
 const EMAIL_CONTENT_DEFAULT = {
@@ -488,7 +488,7 @@ function decryptSocialCredentialIfNeeded(value) {
 }
 
 async function generateEventCode() {
-  const events = await mainPrisma.marketing_notification_events.findMany({
+  const events = await adminPrisma.marketing_notification_events.findMany({
     select: { eventCode: true },
   });
   const maxCode = events.reduce((max, item) => {
@@ -498,7 +498,7 @@ async function generateEventCode() {
 
   for (let next = maxCode + 1; next < maxCode + 1000; next += 1) {
     const eventCode = `#${next}`;
-    const exists = await mainPrisma.marketing_notification_events.findUnique({
+    const exists = await adminPrisma.marketing_notification_events.findUnique({
       where: { eventCode },
       select: { id: true },
     });
@@ -908,7 +908,7 @@ function buildBannerWhere(query = {}) {
 
 async function getPromotionOrThrow(id) {
   const promotionId = assertUuid(id, "promotion id");
-  const promotion = await mainPrisma.marketing_promotions.findUnique({
+  const promotion = await adminPrisma.marketing_promotions.findUnique({
     where: { id: promotionId },
   });
 
@@ -918,7 +918,7 @@ async function getPromotionOrThrow(id) {
 
 async function getBannerOrThrow(id) {
   const bannerId = assertUuid(id, "banner id");
-  const banner = await mainPrisma.marketing_banners.findUnique({
+  const banner = await adminPrisma.marketing_banners.findUnique({
     where: { id: bannerId },
   });
 
@@ -927,7 +927,7 @@ async function getBannerOrThrow(id) {
 }
 
 async function getLatestMarketingAnalyticsSnapshot() {
-  return mainPrisma.marketing_analytics_snapshots.findFirst({
+  return adminPrisma.marketing_analytics_snapshots.findFirst({
     orderBy: [{ createdAt: "desc" }],
   });
 }
@@ -979,18 +979,18 @@ async function listCampaigns(query) {
 
   const [campaigns, total, totalCount, active, drafts, completed] =
     await Promise.all([
-      mainPrisma.marketing_campaigns.findMany({
+      adminPrisma.marketing_campaigns.findMany({
         where,
         include: { performance: true },
         orderBy: [{ createdAt: "desc" }],
         skip,
         take: query.limit,
       }),
-      mainPrisma.marketing_campaigns.count({ where }),
-      mainPrisma.marketing_campaigns.count(),
-      mainPrisma.marketing_campaigns.count({ where: { status: "Active" } }),
-      mainPrisma.marketing_campaigns.count({ where: { status: "Drafts" } }),
-      mainPrisma.marketing_campaigns.count({ where: { status: "Completed" } }),
+      adminPrisma.marketing_campaigns.count({ where }),
+      adminPrisma.marketing_campaigns.count(),
+      adminPrisma.marketing_campaigns.count({ where: { status: "Active" } }),
+      adminPrisma.marketing_campaigns.count({ where: { status: "Drafts" } }),
+      adminPrisma.marketing_campaigns.count({ where: { status: "Completed" } }),
     ]);
 
   return {
@@ -1030,7 +1030,7 @@ async function getCampaignTimeline(id) {
   const campaignId = assertUuid(id, "campaign id");
   await getCampaignOrThrow(campaignId);
 
-  const timeline = await mainPrisma.marketing_campaign_timeline.findMany({
+  const timeline = await adminPrisma.marketing_campaign_timeline.findMany({
     where: { campaignId },
     orderBy: [{ sortOrder: "asc" }, { date: "asc" }],
   });
@@ -1048,13 +1048,13 @@ async function getCampaignTeam(id) {
   const campaignId = assertUuid(id, "campaign id");
   await getCampaignOrThrow(campaignId);
 
-  const team = await mainPrisma.marketing_campaign_team_members.findMany({
+  const team = await adminPrisma.marketing_campaign_team_members.findMany({
     where: { campaignId },
     include: {
-      users: {
+      adminUser: {
         select: {
           id: true,
-          fullName: true,
+          name: true,
           email: true,
         },
       },
@@ -1072,7 +1072,7 @@ async function getCampaignTeam(id) {
 }
 
 async function createCampaign(data) {
-  const campaign = await mainPrisma.marketing_campaigns.create({
+  const campaign = await adminPrisma.marketing_campaigns.create({
     data: {
       title: data.title,
       type: data.type,
@@ -1116,7 +1116,7 @@ async function updateCampaign(id, data) {
   if (data.launchDate) updateData.launchDate = parseDate(data.launchDate);
   if (data.estCompletion) updateData.estCompletion = parseDate(data.estCompletion);
 
-  const updated = await mainPrisma.marketing_campaigns.update({
+  const updated = await adminPrisma.marketing_campaigns.update({
     where: { id: campaignId },
     data: updateData,
   });
@@ -1128,17 +1128,17 @@ async function deleteCampaign(id) {
   const campaignId = assertUuid(id, "campaign id");
   await getCampaignOrThrow(campaignId);
 
-  await mainPrisma.$transaction([
-    mainPrisma.marketing_campaign_performance.deleteMany({
+  await adminPrisma.$transaction([
+    adminPrisma.marketing_campaign_performance.deleteMany({
       where: { campaignId },
     }),
-    mainPrisma.marketing_campaign_timeline.deleteMany({
+    adminPrisma.marketing_campaign_timeline.deleteMany({
       where: { campaignId },
     }),
-    mainPrisma.marketing_campaign_team_members.deleteMany({
+    adminPrisma.marketing_campaign_team_members.deleteMany({
       where: { campaignId },
     }),
-    mainPrisma.marketing_campaigns.delete({
+    adminPrisma.marketing_campaigns.delete({
       where: { id: campaignId },
     }),
   ]);
@@ -1148,7 +1148,7 @@ async function updateCampaignStatus(id, data) {
   const campaignId = assertUuid(id, "campaign id");
   await getCampaignOrThrow(campaignId);
 
-  const updated = await mainPrisma.marketing_campaigns.update({
+  const updated = await adminPrisma.marketing_campaigns.update({
     where: { id: campaignId },
     data: { status: data.status },
     select: { status: true },
@@ -1160,7 +1160,7 @@ async function updateCampaignStatus(id, data) {
 async function duplicateCampaign(id) {
   const source = await getCampaignOrThrow(id);
 
-  const duplicate = await mainPrisma.marketing_campaigns.create({
+  const duplicate = await adminPrisma.marketing_campaigns.create({
     data: {
       title: `${source.title} (Copy)`,
       type: source.type,
@@ -1193,12 +1193,12 @@ async function listContent(query) {
   const skip = (query.page - 1) * query.limit;
 
   const [items, total, sent, draft] = await Promise.all([
-    mainPrisma.marketing_content_items.findMany({
+    adminPrisma.marketing_content_items.findMany({
       where,
       include: {
-        users: {
+        adminUser: {
           select: {
-            fullName: true,
+            name: true,
             email: true,
           },
         },
@@ -1207,9 +1207,9 @@ async function listContent(query) {
       skip,
       take: query.limit,
     }),
-    mainPrisma.marketing_content_items.count({ where }),
-    mainPrisma.marketing_content_items.count({ where: { status: "Published" } }),
-    mainPrisma.marketing_content_items.count({ where: { status: "Draft" } }),
+    adminPrisma.marketing_content_items.count({ where }),
+    adminPrisma.marketing_content_items.count({ where: { status: "Published" } }),
+    adminPrisma.marketing_content_items.count({ where: { status: "Draft" } }),
   ]);
 
   return {
@@ -1229,9 +1229,9 @@ async function listContent(query) {
 
 async function getContent(id) {
   const content = await getContentOrThrow(id, {
-    users: {
+    adminUser: {
       select: {
-        fullName: true,
+        name: true,
         email: true,
       },
     },
@@ -1252,7 +1252,7 @@ async function getContentPerformance(id) {
   const contentId = assertUuid(id, "content id");
   await getContentOrThrow(contentId);
 
-  const chartData = await mainPrisma.marketing_content_monthly_performance.findMany({
+  const chartData = await adminPrisma.marketing_content_monthly_performance.findMany({
     where: { contentId },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     select: {
@@ -1267,7 +1267,7 @@ async function getContentPerformance(id) {
 async function createContent(data) {
   const author = await getAuthorOrThrow(data.authorId);
 
-  const content = await mainPrisma.marketing_content_items.create({
+  const content = await adminPrisma.marketing_content_items.create({
     data: {
       title: data.title,
       type: data.type,
@@ -1314,13 +1314,13 @@ async function updateContent(id, data) {
     updateData.authorName = userDisplayName(author);
   }
 
-  const updated = await mainPrisma.marketing_content_items.update({
+  const updated = await adminPrisma.marketing_content_items.update({
     where: { id: contentId },
     data: updateData,
     include: {
-      users: {
+      adminUser: {
         select: {
-          fullName: true,
+          name: true,
           email: true,
         },
       },
@@ -1334,11 +1334,11 @@ async function deleteContent(id) {
   const contentId = assertUuid(id, "content id");
   await getContentOrThrow(contentId);
 
-  await mainPrisma.$transaction([
-    mainPrisma.marketing_content_monthly_performance.deleteMany({
+  await adminPrisma.$transaction([
+    adminPrisma.marketing_content_monthly_performance.deleteMany({
       where: { contentId },
     }),
-    mainPrisma.marketing_content_items.delete({
+    adminPrisma.marketing_content_items.delete({
       where: { id: contentId },
     }),
   ]);
@@ -1346,9 +1346,9 @@ async function deleteContent(id) {
 
 async function getContentReport(id, query) {
   const content = await getContentOrThrow(id, {
-    users: {
+    adminUser: {
       select: {
-        fullName: true,
+        name: true,
         email: true,
       },
     },
@@ -1378,7 +1378,7 @@ async function getEmailTemplateEventOrThrow(id, include = {}) {
 
   if (Object.keys(include).length > 0) args.include = include;
 
-  const event = await mainPrisma.marketing_notification_events.findUnique(args);
+  const event = await adminPrisma.marketing_notification_events.findUnique(args);
   if (!event) throw new ApiError(404, "Event not found");
 
   return event;
@@ -1396,7 +1396,7 @@ async function listEmailTemplates(query) {
 
   const skip = (query.page - 1) * query.limit;
   const [events, total] = await Promise.all([
-    mainPrisma.marketing_notification_events.findMany({
+    adminPrisma.marketing_notification_events.findMany({
       where,
       include: {
         templates: {
@@ -1408,7 +1408,7 @@ async function listEmailTemplates(query) {
       skip,
       take: query.limit,
     }),
-    mainPrisma.marketing_notification_events.count({ where }),
+    adminPrisma.marketing_notification_events.count({ where }),
   ]);
 
   return {
@@ -1464,7 +1464,7 @@ async function createEmailTemplate(data) {
   const validTo = parseDate(data.validTo);
   assertChronologicalDateRange(validFrom, validTo, "validTo must not be before validFrom");
 
-  const event = await mainPrisma.$transaction(async (tx) => {
+  const event = await adminPrisma.$transaction(async (tx) => {
     const createdEvent = await tx.marketing_notification_events.create({
       data: {
         eventCode,
@@ -1501,7 +1501,7 @@ async function updateEmailTemplate(id, data) {
   const eventId = assertUuid(id, "email template event id");
   await getEmailTemplateEventOrThrow(eventId);
 
-  const latestTemplate = await mainPrisma.marketing_email_templates.findFirst({
+  const latestTemplate = await adminPrisma.marketing_email_templates.findFirst({
     where: { eventId },
     orderBy: [{ validTo: "desc" }, { createdAt: "desc" }],
   });
@@ -1520,11 +1520,11 @@ async function updateEmailTemplate(id, data) {
   assertChronologicalDateRange(nextValidFrom, nextValidTo, "validTo must not be before validFrom");
 
   const updatedTemplate = latestTemplate
-    ? await mainPrisma.marketing_email_templates.update({
+    ? await adminPrisma.marketing_email_templates.update({
         where: { id: latestTemplate.id },
         data: updateData,
       })
-    : await mainPrisma.marketing_email_templates.create({
+    : await adminPrisma.marketing_email_templates.create({
         data: {
           eventId,
           validFrom: updateData.validFrom || new Date(),
@@ -1534,7 +1534,7 @@ async function updateEmailTemplate(id, data) {
       });
 
   if (data.validTo) {
-    await mainPrisma.marketing_notification_events.update({
+    await adminPrisma.marketing_notification_events.update({
       where: { id: eventId },
       data: { validToDate: parseDate(data.validTo) },
     });
@@ -1547,9 +1547,9 @@ async function deleteEmailTemplate(id) {
   const eventId = assertUuid(id, "email template event id");
   await getEmailTemplateEventOrThrow(eventId);
 
-  await mainPrisma.$transaction([
-    mainPrisma.marketing_email_templates.deleteMany({ where: { eventId } }),
-    mainPrisma.marketing_notification_events.delete({ where: { id: eventId } }),
+  await adminPrisma.$transaction([
+    adminPrisma.marketing_email_templates.deleteMany({ where: { eventId } }),
+    adminPrisma.marketing_notification_events.delete({ where: { id: eventId } }),
   ]);
 }
 
@@ -1557,7 +1557,7 @@ async function updateEmailTemplateNotification(id, data) {
   const eventId = assertUuid(id, "email template event id");
   await getEmailTemplateEventOrThrow(eventId);
 
-  return mainPrisma.marketing_notification_events.update({
+  return adminPrisma.marketing_notification_events.update({
     where: { id: eventId },
     data: { notifyEnabled: data.notifyEnabled },
     select: { notifyEnabled: true },
@@ -1568,7 +1568,7 @@ async function updateEmailTemplateRecipients(id, data) {
   const eventId = assertUuid(id, "email template event id");
   await getEmailTemplateEventOrThrow(eventId);
 
-  await mainPrisma.marketing_notification_events.update({
+  await adminPrisma.marketing_notification_events.update({
     where: { id: eventId },
     data: {
       emailEnabled: data.channels.email,
@@ -1588,40 +1588,15 @@ async function updateEmailTemplateContent(id, data) {
   if (data.conditionalBlock) updateData.conditionalBlock = data.conditionalBlock;
   if (data.whatsappContent) updateData.whatsappContent = data.whatsappContent;
 
-  await mainPrisma.marketing_notification_events.update({
+  await adminPrisma.marketing_notification_events.update({
     where: { id: eventId },
     data: updateData,
   });
 }
 
 async function searchEmailTemplateCustomers(query) {
-  const customers = await mainPrisma.users.findMany({
-    where: {
-      role: "patient",
-      OR: [
-        { fullName: { contains: query.query, mode: "insensitive" } },
-        { email: { contains: query.query, mode: "insensitive" } },
-        { phoneNumber: { contains: query.query, mode: "insensitive" } },
-      ],
-    },
-    select: {
-      fullName: true,
-      email: true,
-      phoneNumber: true,
-      country: true,
-    },
-    orderBy: [{ fullName: "asc" }],
-    take: 20,
-  });
-
-  return {
-    data: customers.map((customer) => ({
-      fullName: customer.fullName || "",
-      email: customer.email || "",
-      phone: customer.phoneNumber || "",
-      country: customer.country || "",
-    })),
-  };
+  void query;
+  return { data: [] };
 }
 
 // =======================
@@ -1630,13 +1605,13 @@ async function searchEmailTemplateCustomers(query) {
 
 async function getSocialOverview() {
   const [snapshot, posts, recentUpload] = await Promise.all([
-    mainPrisma.marketing_social_analytics_snapshots.findFirst({
+    adminPrisma.marketing_social_analytics_snapshots.findFirst({
       orderBy: [{ createdAt: "desc" }],
     }),
-    mainPrisma.marketing_social_posts.findMany({
+    adminPrisma.marketing_social_posts.findMany({
       where: { status: { not: "Deleted" } },
     }),
-    mainPrisma.marketing_social_posts.findFirst({
+    adminPrisma.marketing_social_posts.findFirst({
       where: { status: "Published" },
       orderBy: [{ postedAt: "desc" }, { createdAt: "desc" }],
     }),
@@ -1689,7 +1664,7 @@ async function getSocialOverview() {
 }
 
 async function listSocialAccounts() {
-  const accounts = await mainPrisma.marketing_social_accounts.findMany({
+  const accounts = await adminPrisma.marketing_social_accounts.findMany({
     orderBy: [{ createdAt: "desc" }],
     select: {
       id: true,
@@ -1707,7 +1682,7 @@ async function createSocialAccount(data) {
     ? encryptSocialCredential(data.password)
     : null;
 
-  const existing = await mainPrisma.marketing_social_accounts.findFirst({
+  const existing = await adminPrisma.marketing_social_accounts.findFirst({
     where: {
       platform: data.platform,
       username: data.username,
@@ -1716,7 +1691,7 @@ async function createSocialAccount(data) {
   });
 
   const account = existing
-    ? await mainPrisma.marketing_social_accounts.update({
+    ? await adminPrisma.marketing_social_accounts.update({
         where: { id: existing.id },
         data: {
           connected: true,
@@ -1725,7 +1700,7 @@ async function createSocialAccount(data) {
         },
         select: { id: true, platform: true },
       })
-    : await mainPrisma.marketing_social_accounts.create({
+    : await adminPrisma.marketing_social_accounts.create({
         data: {
           platform: data.platform,
           username: data.username,
@@ -1741,21 +1716,21 @@ async function createSocialAccount(data) {
 
 async function deleteSocialAccount(id) {
   const accountId = assertUuid(id, "social account id");
-  const account = await mainPrisma.marketing_social_accounts.findUnique({
+  const account = await adminPrisma.marketing_social_accounts.findUnique({
     where: { id: accountId },
     select: { id: true },
   });
 
   if (!account) throw new ApiError(404, "Social account not found");
 
-  await mainPrisma.marketing_social_accounts.delete({ where: { id: accountId } });
+  await adminPrisma.marketing_social_accounts.delete({ where: { id: accountId } });
 }
 
 async function listSocialPosts(query) {
   const where = { status: { not: "Deleted" } };
   if (query.platform && query.platform !== "All") where.platform = query.platform;
 
-  const posts = await mainPrisma.marketing_social_posts.findMany({
+  const posts = await adminPrisma.marketing_social_posts.findMany({
     where,
     orderBy: [{ postedAt: "desc" }, { createdAt: "desc" }],
     skip: (query.page - 1) * query.limit,
@@ -1766,7 +1741,7 @@ async function listSocialPosts(query) {
 }
 
 async function createSocialPost(data) {
-  const post = await mainPrisma.marketing_social_posts.create({
+  const post = await adminPrisma.marketing_social_posts.create({
     data: {
       platform: data.platform,
       caption: data.caption,
@@ -1790,7 +1765,7 @@ async function createSocialPost(data) {
 
 async function getSocialPost(id) {
   const postId = assertUuid(id, "social post id");
-  const post = await mainPrisma.marketing_social_posts.findFirst({
+  const post = await adminPrisma.marketing_social_posts.findFirst({
     where: {
       id: postId,
       status: { not: "Deleted" },
@@ -1804,7 +1779,7 @@ async function getSocialPost(id) {
 
 async function updateSocialPost(id, data) {
   const postId = assertUuid(id, "social post id");
-  const post = await mainPrisma.marketing_social_posts.findUnique({
+  const post = await adminPrisma.marketing_social_posts.findUnique({
     where: { id: postId },
     select: { id: true, status: true },
   });
@@ -1835,7 +1810,7 @@ async function updateSocialPost(id, data) {
     updateData.imageUrl = data.attachmentUrls[0] || null;
   }
 
-  await mainPrisma.marketing_social_posts.update({
+  await adminPrisma.marketing_social_posts.update({
     where: { id: postId },
     data: updateData,
   });
@@ -1843,14 +1818,14 @@ async function updateSocialPost(id, data) {
 
 async function deleteSocialPost(id) {
   const postId = assertUuid(id, "social post id");
-  const post = await mainPrisma.marketing_social_posts.findUnique({
+  const post = await adminPrisma.marketing_social_posts.findUnique({
     where: { id: postId },
     select: { id: true },
   });
 
   if (!post) throw new ApiError(404, "Social post not found");
 
-  await mainPrisma.marketing_social_posts.update({
+  await adminPrisma.marketing_social_posts.update({
     where: { id: postId },
     data: { status: "Deleted" },
   });
@@ -1863,7 +1838,7 @@ async function getSocialSchedule(query) {
     scheduledFor: scheduledFor || { not: null },
   };
 
-  const posts = await mainPrisma.marketing_social_posts.findMany({
+  const posts = await adminPrisma.marketing_social_posts.findMany({
     where,
     orderBy: [{ scheduledFor: "asc" }],
   });
@@ -1908,7 +1883,7 @@ async function getSocialSchedule(query) {
 
 async function createSocialSchedule(data) {
   const scheduledFor = parseDateTime(data.scheduledFor);
-  const post = await mainPrisma.marketing_social_posts.create({
+  const post = await adminPrisma.marketing_social_posts.create({
     data: {
       platform: data.platform,
       caption: data.caption,
@@ -1935,7 +1910,7 @@ async function getSocialInsights(query) {
     where.OR = [{ postedAt: range }, { scheduledFor: range }];
   }
 
-  const posts = await mainPrisma.marketing_social_posts.findMany({ where });
+  const posts = await adminPrisma.marketing_social_posts.findMany({ where });
   const byPlatform = new Map();
 
   for (const post of posts) {
@@ -1981,16 +1956,16 @@ async function listPromotions(query) {
 
   const [promotions, total, totalPromotions, revenueAggregate, rateAggregate] =
     await Promise.all([
-      mainPrisma.marketing_promotions.findMany({
+      adminPrisma.marketing_promotions.findMany({
         where,
         orderBy: [{ createdAt: "desc" }],
         skip,
         take: query.limit,
       }),
-      mainPrisma.marketing_promotions.count({ where }),
-      mainPrisma.marketing_promotions.count(),
-      mainPrisma.marketing_promotions.aggregate({ _sum: { grossRevenue: true } }),
-      mainPrisma.marketing_promotions.aggregate({ _avg: { averageRate: true } }),
+      adminPrisma.marketing_promotions.count({ where }),
+      adminPrisma.marketing_promotions.count(),
+      adminPrisma.marketing_promotions.aggregate({ _sum: { grossRevenue: true } }),
+      adminPrisma.marketing_promotions.aggregate({ _avg: { averageRate: true } }),
     ]);
 
   return {
@@ -2013,7 +1988,7 @@ async function createPromotion(data) {
   const startDate = parseDate(data.startDate);
   const endDate = parseDate(data.endDate);
   assertChronologicalDateRange(startDate, endDate);
-  const promotion = await mainPrisma.marketing_promotions.create({
+  const promotion = await adminPrisma.marketing_promotions.create({
     data: {
       title: data.title,
       discountType: data.discountType,
@@ -2055,7 +2030,7 @@ async function updatePromotion(id, data) {
     updateData.status = computePromotionStatus(startDate, endDate);
   }
 
-  const promotion = await mainPrisma.marketing_promotions.update({
+  const promotion = await adminPrisma.marketing_promotions.update({
     where: { id: existing.id },
     data: updateData,
   });
@@ -2065,7 +2040,7 @@ async function updatePromotion(id, data) {
 
 async function deletePromotion(id) {
   const promotion = await getPromotionOrThrow(id);
-  await mainPrisma.marketing_promotions.delete({ where: { id: promotion.id } });
+  await adminPrisma.marketing_promotions.delete({ where: { id: promotion.id } });
 }
 
 async function listBanners(query) {
@@ -2073,13 +2048,13 @@ async function listBanners(query) {
   const skip = (query.page - 1) * query.limit;
 
   const [banners, total] = await Promise.all([
-    mainPrisma.marketing_banners.findMany({
+    adminPrisma.marketing_banners.findMany({
       where,
       orderBy: [{ createdAt: "desc" }],
       skip,
       take: query.limit,
     }),
-    mainPrisma.marketing_banners.count({ where }),
+    adminPrisma.marketing_banners.count({ where }),
   ]);
 
   return {
@@ -2106,7 +2081,7 @@ async function createBanner(data, file) {
   assertChronologicalDateRange(startDate, endDate);
   const uploaded = await uploadBannerFile(file);
   const fileUrl = uploaded?.secure_url || null;
-  const banner = await mainPrisma.marketing_banners.create({
+  const banner = await adminPrisma.marketing_banners.create({
     data: {
       mediaType: inferBannerMediaType(file),
       fileName: file.originalname || null,
@@ -2177,7 +2152,7 @@ async function updateBanner(id, data, file) {
     updateData.cloudinaryId = uploaded?.public_id || null;
   }
 
-  const banner = await mainPrisma.marketing_banners.update({
+  const banner = await adminPrisma.marketing_banners.update({
     where: { id: existing.id },
     data: updateData,
   });
@@ -2187,13 +2162,13 @@ async function updateBanner(id, data, file) {
 
 async function deleteBanner(id) {
   const banner = await getBannerOrThrow(id);
-  await mainPrisma.marketing_banners.delete({ where: { id: banner.id } });
+  await adminPrisma.marketing_banners.delete({ where: { id: banner.id } });
   await deleteBannerCloudinaryFile(banner.cloudinaryId);
 }
 
 async function updateBannerStatus(id, data) {
   const banner = await getBannerOrThrow(id);
-  return mainPrisma.marketing_banners.update({
+  return adminPrisma.marketing_banners.update({
     where: { id: banner.id },
     data: { status: data.status },
     select: { status: true },
@@ -2218,9 +2193,9 @@ async function getAnalyticsOverviewStats() {
   }
 
   const [performanceRows, banners, campaigns] = await Promise.all([
-    mainPrisma.marketing_campaign_performance.findMany(),
-    mainPrisma.marketing_banners.findMany(),
-    mainPrisma.marketing_campaigns.findMany(),
+    adminPrisma.marketing_campaign_performance.findMany(),
+    adminPrisma.marketing_banners.findMany(),
+    adminPrisma.marketing_campaigns.findMany(),
   ]);
   const leads =
     performanceRows.reduce((sum, row) => sum + safeNumber(row.conversions), 0) +
@@ -2259,7 +2234,7 @@ async function getAnalyticsSocialStats() {
     };
   }
 
-  const posts = await mainPrisma.marketing_social_posts.findMany({
+  const posts = await adminPrisma.marketing_social_posts.findMany({
     where: { status: { not: "Deleted" } },
   });
   const today = startOfUtcToday();
@@ -2302,7 +2277,7 @@ async function getAnalyticsLocation() {
   const saved = safeArray(snapshot?.locations);
   if (saved.length) return { data: saved };
 
-  const posts = await mainPrisma.marketing_social_posts.findMany({
+  const posts = await adminPrisma.marketing_social_posts.findMany({
     where: { status: { not: "Deleted" } },
     select: { locations: true },
   });
@@ -2338,7 +2313,7 @@ async function getAnalyticsAudienceBreakdown() {
     };
   }
 
-  const posts = await mainPrisma.marketing_social_posts.findMany({
+  const posts = await adminPrisma.marketing_social_posts.findMany({
     where: { status: { not: "Deleted" } },
   });
   return buildAudienceOverview(posts);
@@ -2356,8 +2331,8 @@ async function getAnalyticsConversionFunnel() {
   }
 
   const [performanceRows, banners] = await Promise.all([
-    mainPrisma.marketing_campaign_performance.findMany(),
-    mainPrisma.marketing_banners.findMany(),
+    adminPrisma.marketing_campaign_performance.findMany(),
+    adminPrisma.marketing_banners.findMany(),
   ]);
   const leads =
     performanceRows.reduce((sum, row) => sum + safeNumber(row.totalReach), 0) +
@@ -2388,7 +2363,7 @@ async function getAnalyticsWeeklyEngagement() {
   }
 
   const range = getThisWeekRange();
-  const posts = await mainPrisma.marketing_social_posts.findMany({
+  const posts = await adminPrisma.marketing_social_posts.findMany({
     where: { status: { not: "Deleted" } },
   });
   const weekPosts = posts.filter((post) => isWithinRange(post.postedAt || post.scheduledFor || post.createdAt, range));
@@ -2413,7 +2388,7 @@ async function getAnalyticsPerformanceData() {
     };
   }
 
-  const posts = await mainPrisma.marketing_social_posts.findMany({
+  const posts = await adminPrisma.marketing_social_posts.findMany({
     where: { status: { not: "Deleted" } },
   });
   const totalViews = posts.reduce((sum, post) => sum + safeNumber(post.views), 0);

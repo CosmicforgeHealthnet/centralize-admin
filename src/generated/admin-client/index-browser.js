@@ -171,6 +171,214 @@ exports.Prisma.AdminUserScalarFieldEnum = {
   equity: 'equity'
 };
 
+exports.Prisma.Marketing_campaignsScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  type: 'type',
+  status: 'status',
+  description: 'description',
+  budget: 'budget',
+  progress: 'progress',
+  launchDate: 'launchDate',
+  estCompletion: 'estCompletion',
+  targetAudience: 'targetAudience',
+  duration: 'duration',
+  channels: 'channels',
+  overview: 'overview',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_campaign_performanceScalarFieldEnum = {
+  id: 'id',
+  campaignId: 'campaignId',
+  opens: 'opens',
+  clicks: 'clicks',
+  conversions: 'conversions',
+  totalReach: 'totalReach',
+  engagementRate: 'engagementRate',
+  conversionRate: 'conversionRate',
+  costPerClick: 'costPerClick',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_campaign_timelineScalarFieldEnum = {
+  id: 'id',
+  campaignId: 'campaignId',
+  label: 'label',
+  date: 'date',
+  done: 'done',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_campaign_team_membersScalarFieldEnum = {
+  id: 'id',
+  campaignId: 'campaignId',
+  adminUserId: 'adminUserId',
+  role: 'role',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_content_itemsScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  type: 'type',
+  authorId: 'authorId',
+  authorName: 'authorName',
+  link: 'link',
+  description: 'description',
+  status: 'status',
+  performance: 'performance',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_content_monthly_performanceScalarFieldEnum = {
+  id: 'id',
+  contentId: 'contentId',
+  month: 'month',
+  value: 'value',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_notification_eventsScalarFieldEnum = {
+  id: 'id',
+  eventCode: 'eventCode',
+  event: 'event',
+  notifyEnabled: 'notifyEnabled',
+  emailEnabled: 'emailEnabled',
+  whatsappEnabled: 'whatsappEnabled',
+  smsEnabled: 'smsEnabled',
+  recipients: 'recipients',
+  validToDate: 'validToDate',
+  customerFullName: 'customerFullName',
+  customerEmail: 'customerEmail',
+  customerPhone: 'customerPhone',
+  customerCountry: 'customerCountry',
+  emailContent: 'emailContent',
+  conditionalBlock: 'conditionalBlock',
+  whatsappContent: 'whatsappContent',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_email_templatesScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  validFrom: 'validFrom',
+  validTo: 'validTo',
+  language: 'language',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_social_accountsScalarFieldEnum = {
+  id: 'id',
+  platform: 'platform',
+  username: 'username',
+  connected: 'connected',
+  encryptedPassword: 'encryptedPassword',
+  credentialsSaved: 'credentialsSaved',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_social_postsScalarFieldEnum = {
+  id: 'id',
+  platform: 'platform',
+  caption: 'caption',
+  description: 'description',
+  excerpt: 'excerpt',
+  attachmentUrl: 'attachmentUrl',
+  attachmentUrls: 'attachmentUrls',
+  thumbnailUrl: 'thumbnailUrl',
+  imageUrl: 'imageUrl',
+  postedAt: 'postedAt',
+  scheduledFor: 'scheduledFor',
+  status: 'status',
+  followers: 'followers',
+  views: 'views',
+  totalLikes: 'totalLikes',
+  comments: 'comments',
+  locations: 'locations',
+  performance: 'performance',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_social_analytics_snapshotsScalarFieldEnum = {
+  id: 'id',
+  stats: 'stats',
+  locations: 'locations',
+  audience: 'audience',
+  recentUpload: 'recentUpload',
+  weeklyEngagement: 'weeklyEngagement',
+  totalEngagementChange: 'totalEngagementChange',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_promotionsScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  discountType: 'discountType',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  grossSales: 'grossSales',
+  averageRate: 'averageRate',
+  grossRevenue: 'grossRevenue',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_bannersScalarFieldEnum = {
+  id: 'id',
+  mediaType: 'mediaType',
+  fileName: 'fileName',
+  fileUrl: 'fileUrl',
+  imageUrl: 'imageUrl',
+  cloudinaryId: 'cloudinaryId',
+  title: 'title',
+  description: 'description',
+  display: 'display',
+  placement: 'placement',
+  externalLink: 'externalLink',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  status: 'status',
+  totalImpressions: 'totalImpressions',
+  impressionsChange: 'impressionsChange',
+  clicks: 'clicks',
+  clicksChange: 'clicksChange',
+  signup: 'signup',
+  signupChange: 'signupChange',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_analytics_snapshotsScalarFieldEnum = {
+  id: 'id',
+  overviewStats: 'overviewStats',
+  socialStats: 'socialStats',
+  adsPerformance: 'adsPerformance',
+  locations: 'locations',
+  audienceBreakdown: 'audienceBreakdown',
+  conversionFunnel: 'conversionFunnel',
+  weeklyEngagement: 'weeklyEngagement',
+  performanceData: 'performanceData',
+  platformIntegrations: 'platformIntegrations',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.RefreshTokenScalarFieldEnum = {
   id: 'id',
   token: 'token',
@@ -546,6 +754,55 @@ exports.AdminStatus = exports.$Enums.AdminStatus = {
   PENDING: 'PENDING'
 };
 
+exports.marketing_campaign_type_enum = exports.$Enums.marketing_campaign_type_enum = {
+  Email: 'Email',
+  Social: 'Social',
+  Events: 'Events',
+  Ads: 'Ads'
+};
+
+exports.marketing_campaign_status_enum = exports.$Enums.marketing_campaign_status_enum = {
+  Active: 'Active',
+  Drafts: 'Drafts',
+  Completed: 'Completed',
+  Paused: 'Paused',
+  Archived: 'Archived'
+};
+
+exports.marketing_content_status_enum = exports.$Enums.marketing_content_status_enum = {
+  Published: 'Published',
+  Draft: 'Draft'
+};
+
+exports.marketing_social_platform_enum = exports.$Enums.marketing_social_platform_enum = {
+  Facebook: 'Facebook',
+  Instagram: 'Instagram',
+  Youtube: 'Youtube',
+  Twitter: 'Twitter',
+  Tiktok: 'Tiktok',
+  LinkedIn: 'LinkedIn'
+};
+
+exports.marketing_social_post_status_enum = exports.$Enums.marketing_social_post_status_enum = {
+  Published: 'Published',
+  Scheduled: 'Scheduled',
+  Draft: 'Draft',
+  Deleted: 'Deleted'
+};
+
+exports.marketing_promotion_status_enum = exports.$Enums.marketing_promotion_status_enum = {
+  Upcoming: 'Upcoming',
+  Active: 'Active',
+  Completed: 'Completed',
+  Ended: 'Ended'
+};
+
+exports.marketing_banner_status_enum = exports.$Enums.marketing_banner_status_enum = {
+  Active: 'Active',
+  Inactive: 'Inactive',
+  Expired: 'Expired'
+};
+
 exports.AuditAction = exports.$Enums.AuditAction = {
   LOGIN: 'LOGIN',
   LOGOUT: 'LOGOUT',
@@ -651,6 +908,20 @@ exports.ApplicantStage = exports.$Enums.ApplicantStage = {
 
 exports.Prisma.ModelName = {
   AdminUser: 'AdminUser',
+  marketing_campaigns: 'marketing_campaigns',
+  marketing_campaign_performance: 'marketing_campaign_performance',
+  marketing_campaign_timeline: 'marketing_campaign_timeline',
+  marketing_campaign_team_members: 'marketing_campaign_team_members',
+  marketing_content_items: 'marketing_content_items',
+  marketing_content_monthly_performance: 'marketing_content_monthly_performance',
+  marketing_notification_events: 'marketing_notification_events',
+  marketing_email_templates: 'marketing_email_templates',
+  marketing_social_accounts: 'marketing_social_accounts',
+  marketing_social_posts: 'marketing_social_posts',
+  marketing_social_analytics_snapshots: 'marketing_social_analytics_snapshots',
+  marketing_promotions: 'marketing_promotions',
+  marketing_banners: 'marketing_banners',
+  marketing_analytics_snapshots: 'marketing_analytics_snapshots',
   RefreshToken: 'RefreshToken',
   AuditLog: 'AuditLog',
   AdminSectionGrant: 'AdminSectionGrant',

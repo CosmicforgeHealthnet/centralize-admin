@@ -1,4 +1,4 @@
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 DO $$
 BEGIN
@@ -13,7 +13,7 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 CREATE TABLE IF NOT EXISTS "marketing_notification_events" (
-  "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+  "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
   "eventCode" VARCHAR(20) NOT NULL,
   "event" VARCHAR(255) NOT NULL,
   "notifyEnabled" BOOLEAN NOT NULL DEFAULT true,
@@ -36,8 +36,8 @@ CREATE TABLE IF NOT EXISTS "marketing_notification_events" (
 );
 
 CREATE TABLE IF NOT EXISTS "marketing_email_templates" (
-  "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
-  "eventId" UUID NOT NULL,
+  "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
+  "eventId" TEXT NOT NULL,
   "validFrom" DATE NOT NULL,
   "validTo" DATE NOT NULL,
   "language" VARCHAR(20) NOT NULL,
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS "marketing_email_templates" (
 );
 
 CREATE TABLE IF NOT EXISTS "marketing_social_accounts" (
-  "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+  "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
   "platform" marketing_social_platform_enum NOT NULL,
   "username" VARCHAR(255) NOT NULL,
   "connected" BOOLEAN NOT NULL DEFAULT true,
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS "marketing_social_accounts" (
 );
 
 CREATE TABLE IF NOT EXISTS "marketing_social_posts" (
-  "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+  "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
   "platform" marketing_social_platform_enum NOT NULL,
   "caption" TEXT NOT NULL,
   "description" TEXT,
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS "marketing_social_posts" (
 );
 
 CREATE TABLE IF NOT EXISTS "marketing_social_analytics_snapshots" (
-  "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+  "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
   "stats" JSON,
   "locations" JSON,
   "audience" JSON,

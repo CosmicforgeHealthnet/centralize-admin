@@ -1,4 +1,4 @@
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 DO $$
 BEGIN
@@ -13,7 +13,7 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 CREATE TABLE IF NOT EXISTS "marketing_promotions" (
-  "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+  "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
   "title" VARCHAR(255) NOT NULL,
   "discountType" VARCHAR(255) NOT NULL,
   "startDate" DATE NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS "marketing_promotions" (
 );
 
 CREATE TABLE IF NOT EXISTS "marketing_banners" (
-  "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+  "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
   "mediaType" VARCHAR(100) NOT NULL,
   "fileName" VARCHAR(255),
   "fileUrl" VARCHAR(1000),
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS "marketing_banners" (
 );
 
 CREATE TABLE IF NOT EXISTS "marketing_analytics_snapshots" (
-  "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+  "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
   "overviewStats" JSON,
   "socialStats" JSON,
   "adsPerformance" JSON,

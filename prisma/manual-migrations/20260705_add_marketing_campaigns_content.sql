@@ -1,4 +1,4 @@
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 DO $$
 BEGIN
@@ -19,7 +19,7 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 CREATE TABLE IF NOT EXISTS "marketing_campaigns" (
-  "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+  "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
   "title" VARCHAR(255) NOT NULL,
   "type" marketing_campaign_type_enum NOT NULL,
   "status" marketing_campaign_status_enum NOT NULL DEFAULT 'Drafts',
@@ -38,8 +38,8 @@ CREATE TABLE IF NOT EXISTS "marketing_campaigns" (
 );
 
 CREATE TABLE IF NOT EXISTS "marketing_campaign_performance" (
-  "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
-  "campaignId" UUID NOT NULL,
+  "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
+  "campaignId" TEXT NOT NULL,
   "opens" INTEGER NOT NULL DEFAULT 0,
   "clicks" INTEGER NOT NULL DEFAULT 0,
   "conversions" INTEGER NOT NULL DEFAULT 0,
@@ -55,8 +55,8 @@ CREATE TABLE IF NOT EXISTS "marketing_campaign_performance" (
 );
 
 CREATE TABLE IF NOT EXISTS "marketing_campaign_timeline" (
-  "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
-  "campaignId" UUID NOT NULL,
+  "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
+  "campaignId" TEXT NOT NULL,
   "label" VARCHAR(255) NOT NULL,
   "date" DATE NOT NULL,
   "done" BOOLEAN NOT NULL DEFAULT false,
@@ -68,22 +68,22 @@ CREATE TABLE IF NOT EXISTS "marketing_campaign_timeline" (
 );
 
 CREATE TABLE IF NOT EXISTS "marketing_campaign_team_members" (
-  "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
-  "campaignId" UUID NOT NULL,
-  "adminUserId" UUID,
+  "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
+  "campaignId" TEXT NOT NULL,
+  "adminUserId" TEXT,
   "role" VARCHAR(150) NOT NULL,
   "createdAt" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updatedAt" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "PK_marketing_campaign_team_members" PRIMARY KEY ("id"),
   CONSTRAINT "FK_marketing_campaign_team_members_campaignId" FOREIGN KEY ("campaignId") REFERENCES "marketing_campaigns"("id") ON DELETE CASCADE ON UPDATE NO ACTION,
-  CONSTRAINT "FK_marketing_campaign_team_members_adminUserId" FOREIGN KEY ("adminUserId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION
+  CONSTRAINT "FK_marketing_campaign_team_members_adminUserId" FOREIGN KEY ("adminUserId") REFERENCES "admin_users"("id") ON DELETE SET NULL ON UPDATE NO ACTION
 );
 
 CREATE TABLE IF NOT EXISTS "marketing_content_items" (
-  "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+  "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
   "title" VARCHAR(255) NOT NULL,
   "type" VARCHAR(100) NOT NULL,
-  "authorId" UUID,
+  "authorId" TEXT,
   "authorName" VARCHAR(255),
   "link" VARCHAR(1000),
   "description" TEXT,
@@ -92,12 +92,12 @@ CREATE TABLE IF NOT EXISTS "marketing_content_items" (
   "createdAt" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updatedAt" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "PK_marketing_content_items" PRIMARY KEY ("id"),
-  CONSTRAINT "FK_marketing_content_items_authorId" FOREIGN KEY ("authorId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION
+  CONSTRAINT "FK_marketing_content_items_authorId" FOREIGN KEY ("authorId") REFERENCES "admin_users"("id") ON DELETE SET NULL ON UPDATE NO ACTION
 );
 
 CREATE TABLE IF NOT EXISTS "marketing_content_monthly_performance" (
-  "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
-  "contentId" UUID NOT NULL,
+  "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
+  "contentId" TEXT NOT NULL,
   "month" VARCHAR(20) NOT NULL,
   "value" INTEGER NOT NULL DEFAULT 0,
   "sortOrder" INTEGER NOT NULL DEFAULT 0,
