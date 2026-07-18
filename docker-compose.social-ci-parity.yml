@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cosmicforge_admin
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cosmicforge_admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    image: node:20-bookworm
+    working_dir: /workspace
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/cosmicforge_admin
+      SOCIAL_WORKERS_ENABLED: "false"
+      SOCIAL_PUBLISHING_WORKER_ENABLED: "false"
+      SOCIAL_ACTION_WORKER_ENABLED: "false"
+      SOCIAL_REDACTION_WORKER_ENABLED: "false"
+      SOCIAL_INBOX_ENABLED: "false"
+      SOCIAL_PHASE_D_ENABLED: "false"
+      TEST_NETWORK_GUARD_ENABLED: "true"
+      MARKETING_INTELLIGENCE_SYNC_ENABLED: "false"
+      MARKETING_INTELLIGENCE_BOOTSTRAP_CONNECTIONS: "false"
+      META_SOCIAL_ENABLED: "false"
+      TIKTOK_SOCIAL_ENABLED: "false"
+      X_SOCIAL_ENABLED: "false"
+      LINKEDIN_SOCIAL_ENABLED: "false"
+      SOCIAL_MEDIA_STORAGE_PROVIDER: local
+    volumes:
+      - .:/workspace
+      - social_ci_node_modules:/workspace/node_modules
+    command: >
+      sh -lc "npm ci &&
+      node -e \"const { Client } = require('pg'); const client = new Client({ connectionString: process.env.DATABASE_URL }); client.connect().then(() => client.query('select current_database() as database')).then((result) => { console.log('docker-ci-parity database=' + result.rows[0].database); if (result.rows[0].database !== 'cosmicforge_admin') process.exitCode = 1; }).finally(() => client.end());\" &&
+      npm run social:ci:parity"
+
+volumes:
+  social_ci_node_modules:

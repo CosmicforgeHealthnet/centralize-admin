@@ -113,5 +113,17 @@ jobs:
       - name: Focused Social Operations tests
         run: npm run test:social-operations
 
+      - name: Upload focused Social Operations failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: social-operations-focused-tests
+          path: |
+            artifacts/social-operations-focused-tests.tap
+            artifacts/social-operations-focused-summary.json
+            artifacts/social-operations-focused-files.txt
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Full test suite
         run: npm test

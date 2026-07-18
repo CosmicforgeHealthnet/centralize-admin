@@ -87,9 +87,9 @@ function close(server) {
   return new Promise((resolve) => server.close(resolve));
 }
 
-function httpGet(url) {
+function httpGet(url, options = {}) {
   return new Promise((resolve, reject) => {
-    const request = http.get(url, (response) => {
+    const request = http.get(url, options, (response) => {
       let body = "";
       response.setEncoding("utf8");
       response.on("data", (chunk) => {
@@ -270,9 +270,17 @@ test("external DNS lookup is blocked", async () => {
 
 test("localhost HTTP mock server is allowed", async () => {
   const server = http.createServer((request, response) => response.end("localhost-ok"));
-  const address = await listen(server, "localhost");
+  const address = await listen(server, "127.0.0.1");
   try {
-    const response = await httpGet(`http://localhost:${address.port}/local`);
+    const response = await httpGet(`http://localhost:${address.port}/local`, {
+      lookup(hostname, options, callback) {
+        if (options?.all) {
+          callback(null, [{ address: "127.0.0.1", family: 4 }]);
+          return;
+        }
+        callback(null, "127.0.0.1", 4);
+      },
+    });
     assert.equal(response.body, "localhost-ok");
   } finally {
     await close(server);

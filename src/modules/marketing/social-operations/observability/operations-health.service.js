@@ -5,6 +5,9 @@ const {
 const {
   snapshotWorkerMetrics,
 } = require("./worker-metrics.registry");
+const {
+  withReferencedTimeout,
+} = require("../utils/timeout");
 
 const JOB_STATUSES = ["PENDING", "CLAIMED", "RUNNING", "RETRY_SCHEDULED", "SUCCEEDED", "FAILED", "CANCELLED"];
 const ACTIVE_PUBLICATION_JOB_STATUSES = ["PENDING", "CLAIMED", "RUNNING", "RETRY_SCHEDULED"];
@@ -15,18 +18,13 @@ function secondsSince(date, now) {
   return Math.max(0, Math.floor((now.getTime() - new Date(date).getTime()) / 1000));
 }
 
-async function withTimeout(promise, timeoutMs) {
-  let timer;
-  const timeout = new Promise((_, reject) => {
-    timer = setTimeout(() => reject(new Error("METRIC_TIMEOUT")), timeoutMs);
-    if (typeof timer.unref === "function") timer.unref();
-  });
-  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
-}
-
 async function safeCategory(name, fn, timeoutMs) {
   try {
-    return await withTimeout(Promise.resolve().then(fn), timeoutMs);
+    return await withReferencedTimeout(() => Promise.resolve().then(fn), {
+      timeoutMs,
+      operation: name,
+      createTimeoutError: () => new Error("METRIC_TIMEOUT"),
+    });
   } catch {
     return {
       available: false,

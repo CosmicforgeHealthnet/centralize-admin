@@ -183,6 +183,20 @@ test("one metric failure returns a safe unavailable marker without private detai
   assert.equal(health.publishingQueue.available, true);
 });
 
+test("operations health metric timeout resolves under Node 20 without cancelling the test", async () => {
+  const now = new Date("2026-07-18T00:00:00.000Z");
+  const db = fakeDb(now);
+  db.socialWebhookEvent = {
+    async groupBy() {
+      return new Promise(() => {});
+    },
+  };
+  const health = await getSocialOperationsHealth({ db, now, timeoutMs: 15 });
+  assert.equal(health.webhooks.available, false);
+  assert.equal(health.webhooks.error, "METRIC_UNAVAILABLE");
+  assert.equal(health.publishingQueue.available, true);
+});
+
 test("operations health route is authenticated and tied to social_operations VIEW", async () => {
   const grant = getSocialOperationGrant("OPERATIONS_VIEW");
   assert.deepEqual(grant, {
@@ -194,8 +208,10 @@ test("operations health route is authenticated and tied to social_operations VIE
 
 let server;
 let baseUrl;
+let previousNodeEnv;
 
 before(async () => {
+  previousNodeEnv = process.env.NODE_ENV;
   process.env.NODE_ENV = "test";
   const app = require("../src/app");
   await new Promise((resolve) => {
@@ -204,7 +220,11 @@ before(async () => {
   baseUrl = `http://127.0.0.1:${server.address().port}`;
 });
 
-after(() => new Promise((resolve) => server.close(resolve)));
+after(async () => {
+  await new Promise((resolve) => server.close(resolve));
+  if (previousNodeEnv !== undefined) process.env.NODE_ENV = previousNodeEnv;
+  else delete process.env.NODE_ENV;
+});
 
 test("operations health endpoint returns 401 without authentication", async () => {
   const response = await fetch(`${baseUrl}/api/v1/marketing/social/operations/health`);

@@ -92,16 +92,18 @@ test("legacy account write does not persist password-style provider credentials"
 });
 
 test("explicit legacy write deprecation blocks unsafe legacy writes without provider calls", async () => {
-  process.env.MARKETING_LEGACY_SOCIAL_FRONTEND_CUTOVER_COMPLETE = "true";
-  process.env.MARKETING_LEGACY_SOCIAL_WRITE_DEPRECATION_ENABLED = "true";
+  try {
+    process.env.MARKETING_LEGACY_SOCIAL_FRONTEND_CUTOVER_COMPLETE = "true";
+    process.env.MARKETING_LEGACY_SOCIAL_WRITE_DEPRECATION_ENABLED = "true";
 
-  await assert.rejects(
-    marketingService.createSocialPost({
-      platform: "Facebook",
-      caption: "blocked by cutover",
-    }),
-    (error) => error.statusCode === 409,
-  );
-
-  resetPolicyEnv();
+    await assert.rejects(
+      marketingService.createSocialPost({
+        platform: "Facebook",
+        caption: "blocked by cutover",
+      }),
+      (error) => error.statusCode === 409,
+    );
+  } finally {
+    resetPolicyEnv();
+  }
 });

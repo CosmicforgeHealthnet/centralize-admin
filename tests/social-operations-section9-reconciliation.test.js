@@ -11,25 +11,29 @@ const {
 
 test("reconciliation is disabled by default and makes no provider calls", async () => {
   const previous = process.env.SOCIAL_RECONCILIATION_ENABLED;
-  delete process.env.SOCIAL_RECONCILIATION_ENABLED;
-  assert.equal(socialReconciliationEnabled(), false);
-  assert.deepEqual(reconciliationStatus(), {
-    enabled: false,
-    providerPollingOnStartup: false,
-  });
+  try {
+    delete process.env.SOCIAL_RECONCILIATION_ENABLED;
+    assert.equal(socialReconciliationEnabled(), false);
+    assert.deepEqual(reconciliationStatus(), {
+      enabled: false,
+      providerPollingOnStartup: false,
+    });
 
-  const result = await runReconciliationOnce({
-    db: {
-      socialIdentitySyncState: {
-        async findMany() {
-          throw new Error("should not query when disabled");
+    const result = await runReconciliationOnce({
+      db: {
+        socialIdentitySyncState: {
+          async findMany() {
+            throw new Error("should not query when disabled");
+          },
         },
       },
-    },
-  });
-  assert.equal(result.providerCallsMade, 0);
-  assert.equal(result.enabled, false);
-  if (previous !== undefined) process.env.SOCIAL_RECONCILIATION_ENABLED = previous;
+    });
+    assert.equal(result.providerCallsMade, 0);
+    assert.equal(result.enabled, false);
+  } finally {
+    if (previous !== undefined) process.env.SOCIAL_RECONCILIATION_ENABLED = previous;
+    else delete process.env.SOCIAL_RECONCILIATION_ENABLED;
+  }
 });
 
 test("content sync route foundation enqueues a SYNC_PROVIDER_CONTENT job only", async () => {

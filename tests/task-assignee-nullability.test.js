@@ -6,6 +6,7 @@ process.env.DOTENV_CONFIG_QUIET = "true";
 require("dotenv").config({ quiet: true });
 
 const LOCAL_DB_NAME = "cosmicforge_admin";
+const LOCAL_DB_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "postgres"]);
 
 class RollbackTaskNullabilityTest extends Error {
   constructor() {
@@ -19,7 +20,7 @@ function isLocalAdminDatabase() {
   const parsed = new URL(databaseUrl);
   return (
     parsed.pathname.replace(/^\//, "") === LOCAL_DB_NAME &&
-    ["localhost", "127.0.0.1", "::1"].includes(parsed.hostname.toLowerCase())
+    LOCAL_DB_HOSTS.has(parsed.hostname.toLowerCase())
   );
 }
 

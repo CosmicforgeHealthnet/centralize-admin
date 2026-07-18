@@ -1,6 +1,7 @@
 const { test, before, after } = require("node:test");
 const assert = require("node:assert/strict");
 
+const previousNodeEnv = process.env.NODE_ENV;
 process.env.NODE_ENV = "test";
 
 const {
@@ -20,7 +21,11 @@ before(async () => {
   baseUrl = `http://127.0.0.1:${server.address().port}`;
 });
 
-after(() => new Promise((resolve) => server.close(resolve)));
+after(async () => {
+  await new Promise((resolve) => server.close(resolve));
+  if (previousNodeEnv !== undefined) process.env.NODE_ENV = previousNodeEnv;
+  else delete process.env.NODE_ENV;
+});
 
 test("versioned Social Operations API is mounted and auth-protected", async () => {
   const root = await fetch(`${baseUrl}/api/v1/marketing/social`);

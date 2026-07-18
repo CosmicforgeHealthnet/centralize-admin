@@ -10,24 +10,19 @@ const {
   safeSegment,
   sanitizeProviderMetadata,
 } = require("./media-storage.interface");
+const {
+  withReferencedTimeout,
+} = require("../../utils/timeout");
 
 function loadCloudinarySdk() {
   return require("cloudinary").v2;
 }
 
-function withTimeout(promise, timeoutMs, operation) {
-  let timeout;
-  const timeoutPromise = new Promise((_, reject) => {
-    timeout = setTimeout(() => {
-      reject(
-        new MediaStorageTransientError("Cloudinary media storage timed out", {
-          code: "SOCIAL_MEDIA_CLOUDINARY_TIMEOUT",
-          operation,
-        }),
-      );
-    }, timeoutMs);
+function cloudinaryTimeoutError({ operation }) {
+  return new MediaStorageTransientError("Cloudinary media storage timed out", {
+    code: "SOCIAL_MEDIA_CLOUDINARY_TIMEOUT",
+    operation,
   });
-  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeout));
 }
 
 function classifyCloudinaryError(error, operation) {
@@ -82,12 +77,32 @@ class CloudinaryMediaStorageAdapter {
     return `${owner}/${input.checksumSha256.slice(0, 20)}-${idempotency}`;
   }
 
-  uploadStream(buffer, options) {
+  uploadStream(buffer, options, { signal } = {}) {
     return new Promise((resolve, reject) => {
-      const stream = this.cloudinary.uploader.upload_stream(options, (error, result) => {
-        if (error) return reject(error);
-        return resolve(result);
+      let settled = false;
+      let stream;
+      const cleanup = () => {
+        if (signal) signal.removeEventListener("abort", onAbort);
+      };
+      const finish = (fn, value) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        fn(value);
+      };
+      const onAbort = () => {
+        if (stream && typeof stream.destroy === "function") stream.destroy(signal.reason);
+        finish(reject, signal?.reason || new Error("Cloudinary upload aborted"));
+      };
+      if (signal?.aborted) {
+        finish(reject, signal.reason || new Error("Cloudinary upload aborted"));
+        return;
+      }
+      stream = this.cloudinary.uploader.upload_stream(options, (error, result) => {
+        if (error) return finish(reject, error);
+        return finish(resolve, result);
       });
+      if (signal) signal.addEventListener("abort", onAbort, { once: true });
       stream.end(buffer);
     });
   }
@@ -107,10 +122,13 @@ class CloudinaryMediaStorageAdapter {
 
     let result;
     try {
-      result = await withTimeout(
-        this.uploadStream(normalized.buffer, options),
-        this.config.uploadTimeoutMs,
-        "upload",
+      result = await withReferencedTimeout(
+        ({ signal }) => this.uploadStream(normalized.buffer, options, { signal }),
+        {
+          timeoutMs: this.config.uploadTimeoutMs,
+          operation: "upload",
+          createTimeoutError: cloudinaryTimeoutError,
+        },
       );
     } catch (error) {
       throw classifyCloudinaryError(error, "upload");
@@ -157,13 +175,16 @@ class CloudinaryMediaStorageAdapter {
       return { deleted: true, alreadyDeleted: true };
     }
     try {
-      const result = await withTimeout(
+      const result = await withReferencedTimeout(
         this.cloudinary.uploader.destroy(resolvedPublicId, {
           resource_type: resourceType || "image",
           invalidate: true,
         }),
-        this.config.uploadTimeoutMs,
-        "delete",
+        {
+          timeoutMs: this.config.uploadTimeoutMs,
+          operation: "delete",
+          createTimeoutError: cloudinaryTimeoutError,
+        },
       );
       const code = String(result?.result || "").toLowerCase().replace(/\s+/g, "_");
       return {
@@ -180,12 +201,15 @@ class CloudinaryMediaStorageAdapter {
     const resolvedPublicId = publicId || storageKey;
     if (!resolvedPublicId) return { exists: false };
     try {
-      const result = await withTimeout(
+      const result = await withReferencedTimeout(
         this.cloudinary.uploader.explicit(resolvedPublicId, {
           resource_type: resourceType || "image",
         }),
-        this.config.uploadTimeoutMs,
-        "metadata",
+        {
+          timeoutMs: this.config.uploadTimeoutMs,
+          operation: "metadata",
+          createTimeoutError: cloudinaryTimeoutError,
+        },
       );
       return sanitizeProviderMetadata({
         exists: true,

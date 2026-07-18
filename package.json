@@ -10,6 +10,7 @@
     "test:network-guard": "node --require ./tests/helpers/network-guard.js --test tests/network-guard.test.js",
     "test:social-operations": "node scripts/social-operations/run-focused-tests.js",
     "social:test:focused": "node scripts/social-operations/run-focused-tests.js",
+    "social:ci:parity": "node scripts/social-operations/run-ci-parity.js",
     "config:validate": "node scripts/social-operations/validate-config.js",
     "config:validate:staging": "node scripts/social-operations/validate-config.js --mode=staging --synthetic",
     "config:validate:production": "node scripts/social-operations/validate-config.js --mode=production --synthetic",
