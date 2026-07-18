@@ -54,4 +54,3 @@ test("shutdown stops new claims without marking in-flight jobs failed", async ()
   assert.equal(shutdown.isStopping, true);
   assert.ok(result.inFlightRemaining >= 0);
 });
-

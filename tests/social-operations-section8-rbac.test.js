@@ -65,4 +65,3 @@ test("route middleware uses the confirmed three-argument requireSection signatur
     assert.equal(call[3], undefined);
   }
 });
-

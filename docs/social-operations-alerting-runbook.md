@@ -32,4 +32,3 @@ No monitoring platform access was available from this workspace. This runbook de
 ## Current Status
 
 Alerting is blocked by monitoring-platform access and staging deployment. Code emits safe domain events and sanitized audit metadata, but no real monitor/alert routing is configured in this workspace.
-

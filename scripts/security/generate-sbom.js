@@ -6,11 +6,11 @@ function npmBin() {
 
 try {
   const output = process.platform === "win32"
-    ? execSync(`${npmBin()} sbom --json`, {
+    ? execSync(`${npmBin()} sbom --json --sbom-format cyclonedx`, {
         encoding: "utf8",
         stdio: ["ignore", "pipe", "pipe"],
       })
-    : execFileSync(npmBin(), ["sbom", "--json"], {
+    : execFileSync(npmBin(), ["sbom", "--json", "--sbom-format", "cyclonedx"], {
         encoding: "utf8",
         stdio: ["ignore", "pipe", "pipe"],
       });

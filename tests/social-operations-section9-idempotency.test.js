@@ -151,4 +151,3 @@ test("processedAt is stamped only after domain event publish succeeds", async ()
   assert.equal(event.status, "FAILED");
   assert.ok(event.nextAttemptAt);
 });
-

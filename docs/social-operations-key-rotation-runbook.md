@@ -77,4 +77,3 @@ The infrastructure/security owner backs up key material using the approved secre
 ## Current Readiness
 
 Synthetic key-rotation behavior is covered by automated tests. A real staging-only key-rotation test is blocked until staging secret manager and database access are available.
-

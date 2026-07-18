@@ -32,4 +32,3 @@ No provider dashboard, deployment platform console, secret manager console, fron
 | Emergency template approver | Clinical/safety owner | Template approver | PENDING_LEGAL_APPROVAL | Safety owner | Approve saved replies/templates | Approval unavailable | APPROVED |
 | RBAC administrator | Admin platform | RBAC admin | PENDING_OWNER_ACTION | Security owner | Assign Section 7 grants in staging | No staging admin access | ASSIGNED |
 | CI/CD platform | GitHub Actions | Repo workflow access | AVAILABLE | Engineering owner | Added non-deploying Social Operations CI workflow | Workflow not executed remotely here | ACTIVE |
-

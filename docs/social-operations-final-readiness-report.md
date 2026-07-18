@@ -103,6 +103,15 @@ Runtime CI network-guard update:
 - Static guard checks verify CI enables the guard, test commands load it, live provider flags remain disabled, and tests/scripts do not shell out through curl/wget/PowerShell web clients.
 - Runtime network protection is considered verified only after `npm run test:network-guard`, focused Social Operations tests, and full `npm test` pass with the guard active.
 
+Migration manifest CI follow-up:
+
+- GitHub Actions exposed that raw-byte migration checksums were not portable between Windows CRLF working trees and Linux LF checkouts.
+- Manifest checksum generation and verification now use canonical UTF-8 text with no BOM, LF line endings, and exactly one final newline.
+- CI verifies the committed manifest with `npm run db:manifest:verify`; it does not regenerate the manifest.
+- Developers should run `npm run db:manifest:generate`, review the manifest diff, and then run `npm run db:manifest:verify` after adding or intentionally editing manual migrations.
+- Regression tests cover LF, CRLF, BOM, final newline behavior, path separator normalization, deterministic ordering, missing/extra/duplicate entries, invalid checksum format, generation idempotency, and the previously failing migrations.
+- This local correction still requires a new follow-up commit and a remote GitHub Actions rerun before claiming GitHub CI has passed.
+
 External status still pending:
 
 - Real provider dashboard access.

@@ -248,4 +248,3 @@ test("TikTok upload-to-draft maps to AWAITING_USER_ACTION, not PUBLISHED", async
   assert.equal(updates.publications.at(-1).status, "AWAITING_USER_ACTION");
   assert.notEqual(updates.publications.at(-1).status, "PUBLISHED");
 });
-

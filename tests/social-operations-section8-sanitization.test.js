@@ -59,4 +59,3 @@ test("sanitization recursively removes raw webhook and provider response data", 
   });
   assert.deepEqual(sanitized, { ok: true, nested: { safe: "value" } });
 });
-

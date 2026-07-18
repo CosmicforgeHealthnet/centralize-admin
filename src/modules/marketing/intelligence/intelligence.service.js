@@ -1,4 +1,4 @@
-﻿const { prisma } = require("../../../shared/config/database");
+const { prisma } = require("../../../shared/config/database");
 
 // Dashboard read service. Reads exclusively from
 // marketing_performance_snapshots  it never calls ad providers, so the
@@ -8,7 +8,7 @@
 // Conventions:
 //   - Monetary values (spend, revenue, cpa) are major decimal currency units.
 //   - conversionRate is a PERCENTAGE (0100), not a ratio.
-//   - Aggregate CPA/conversion rate are recomputed from period totals 
+//   - Aggregate CPA/conversion rate are recomputed from period totals
 //     never averaged from daily values.
 
 const DEFAULT_RANGE_DAYS = 30;

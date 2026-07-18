@@ -52,4 +52,3 @@ Replace `<staging-origin>` only with the actual approved HTTPS staging origin.
 - Webhook raw bytes: local route-specific raw body parser exists for Social webhook POST.
 - Signature-before-persistence: covered by automated tests.
 - Provider dashboard registration: blocked by provider and infrastructure access.
-

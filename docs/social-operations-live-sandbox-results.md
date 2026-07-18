@@ -26,4 +26,3 @@ When executed later, evidence must be sanitized and include:
 - timestamps;
 - screenshots or logs with tokens removed;
 - proof that `PUBLISHED` happened only after provider confirmation.
-

@@ -52,4 +52,3 @@ test("retry policy respects max attempts and never creates DEAD_LETTER", () => {
   assert.equal(exhausted.errorCategory, "RETRYABLE_EXHAUSTED");
   assert.notEqual(exhausted.errorCategory, "DEAD_LETTER");
 });
-

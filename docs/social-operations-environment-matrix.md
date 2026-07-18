@@ -43,4 +43,3 @@ Repository also contains Marketing Intelligence/Ads variables such as `META_APP_
 - Phase D defaults disabled.
 - Exact redirect allow-listing is implemented by URL string.
 - Safe-state validation is implemented by tests; a dedicated deployment-time env validator is still recommended before staging enablement.
-

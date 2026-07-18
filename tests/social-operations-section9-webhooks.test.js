@@ -120,4 +120,3 @@ test("webhook dedup works by provider eventId and payloadHash fallback", async (
   assert.equal(fallbackDuplicate.duplicate, true);
   assert.equal(db.rows.length, 2);
 });
-

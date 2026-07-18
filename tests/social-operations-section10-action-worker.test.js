@@ -180,4 +180,3 @@ test("one stuck action job does not block unrelated jobs", async () => {
   assert.equal(result.results[0].status, "ERROR");
   assert.equal(result.results[1].status, "SUCCEEDED");
 });
-

@@ -65,4 +65,3 @@ test("DST ambiguity is documented for UI reconfirmation", () => {
   assert.match(doc, /DST/i);
   assert.match(doc, /UI/i);
 });
-

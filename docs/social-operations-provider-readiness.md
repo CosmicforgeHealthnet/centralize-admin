@@ -19,4 +19,3 @@ No provider dashboard access or approved staging identities were available. No l
 - LinkedIn Page inbox remains `NATIVE_ONLY` unless official current documentation and approval prove otherwise.
 - LinkedIn member publishing remains gated by product policy.
 - Meta messaging remains policy-window restricted.
-

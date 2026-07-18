@@ -89,4 +89,3 @@ test("identity sync checkpoints are durable per identity and scope", async () =>
   assert.equal(writes[0].update.contentCursor, "cursor-1");
   assert.equal(writes[0].update.lastContentSync.toISOString(), "2026-07-16T00:00:00.000Z");
 });
-

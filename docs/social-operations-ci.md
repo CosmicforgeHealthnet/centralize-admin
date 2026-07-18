@@ -27,6 +27,13 @@ CI checks:
 - `npm run test:social-operations`
 - `npm test`
 
+Migration manifest policy:
+
+- CI runs `npm run db:manifest:verify`.
+- CI does not run `npm run db:manifest:generate`.
+- Manifest checksums are canonicalized as UTF-8 text with no BOM, LF line endings, and exactly one final newline.
+- This prevents Windows CRLF checkouts and Linux LF checkouts from producing different checksums while still detecting meaningful SQL text changes.
+
 Runtime network protection:
 
 - CI sets `TEST_NETWORK_GUARD_ENABLED=true`.

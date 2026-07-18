@@ -1,22 +1,22 @@
 {
   "version": 1,
-  "description": "Manual migration order and SHA-256 checksums for ADMIN-Backend additive SQL migrations.",
-  "generatedOn": "2026-07-18",
+  "description": "Manual migration order and canonical SHA-256 checksums for ADMIN-Backend additive SQL migrations.",
+  "checksumCanonicalization": "utf8-no-bom-lf-one-final-newline",
   "migrations": [
     {
       "order": 1,
       "file": "20260705_add_marketing_campaigns_content.sql",
-      "sha256": "064099a499a1dfd6603a991168fb7751cc45e68e6fb034f6541e8e33b413640d"
+      "sha256": "89b5e7d61f4d03396ae6a7ac4e17fde9f8ed8018b2abf24cd27516db204de61e"
     },
     {
       "order": 2,
       "file": "20260705_add_marketing_email_templates_social.sql",
-      "sha256": "70da30947000a455d1a7bab8282075eb4b12b6591483559084c88c082730157f"
+      "sha256": "94c4813fa9b52d0bb5c4a441576ffd641dea50aae187dc8c2b345324f79206c6"
     },
     {
       "order": 3,
       "file": "20260705_add_marketing_promotions_banners_analytics.sql",
-      "sha256": "7200599c2140d459862066a12e465aee5796783ea6897880ef0f077f67faf03d"
+      "sha256": "3453d37e2586d47f5b12f77f4afdf69c7fae24e7267b43679300920b30914bb0"
     },
     {
       "order": 4,
@@ -31,7 +31,7 @@
     {
       "order": 6,
       "file": "20260716_add_marketing_attributions_phase1.sql",
-      "sha256": "979711036098410cbed514d4c6f48f0170e3a8c2a7ee2ae1ec02ca04259d9591"
+      "sha256": "cba290cfd49d56b88b2273d289f4ab181f976aa45640bb163b092a3cf7ba49db"
     },
     {
       "order": 7,

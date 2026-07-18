@@ -13,6 +13,7 @@
     "config:validate": "node scripts/social-operations/validate-config.js",
     "config:validate:staging": "node scripts/social-operations/validate-config.js --mode=staging --synthetic",
     "config:validate:production": "node scripts/social-operations/validate-config.js --mode=production --synthetic",
+    "db:manifest:generate": "node scripts/social-operations/migration-manifest.js --generate",
     "db:manifest:verify": "node scripts/social-operations/migration-manifest.js",
     "db:replay:verify": "node scripts/social-operations/db-replay-verify.js",
     "db:replay:ci": "node scripts/social-operations/db-replay-verify.js",

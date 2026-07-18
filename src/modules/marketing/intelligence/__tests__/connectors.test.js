@@ -1,4 +1,4 @@
-﻿const { test, beforeEach } = require("node:test");
+const { test, beforeEach } = require("node:test");
 const assert = require("node:assert/strict");
 
 const metaConnector = require("../connectors/meta.connector");
@@ -14,7 +14,7 @@ beforeEach(() => {
   process.env.MARKETING_PROVIDER_MAX_RETRIES = "0";
 });
 
-//  Meta 
+//  Meta
 
 const META_ROW = {
   campaign_id: "120210000000001",
@@ -198,7 +198,7 @@ test("sanitizeProviderText scrubs bearer headers and token params", () => {
   assert.ok(!clean.includes("app-secret-value"));
 });
 
-//  TikTok 
+//  TikTok
 
 const TIKTOK_ROW = {
   dimensions: { campaign_id: "1789000000000001", stat_time_day: "2026-07-01 00:00:00" },

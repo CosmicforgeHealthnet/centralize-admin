@@ -94,4 +94,3 @@ test("provider I/O runs after the claim utility returns", async () => {
 
   assert.deepEqual(calls, ["provider-io:p1"]);
 });
-

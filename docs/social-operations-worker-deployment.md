@@ -39,4 +39,3 @@ Audit date: 2026-07-17
 ## Restart Test Status
 
 Automated unit tests cover lease recovery and exactly-once behavior. Real staging restart tests are blocked by staging infrastructure and provider approval.
-

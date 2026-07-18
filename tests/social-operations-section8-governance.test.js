@@ -102,4 +102,3 @@ test("publish execution validates capability, provider policy and revision state
   assert.equal(denied.allowed, false);
   assert.equal(denied.reasonCode, "CAPABILITY_NOT_AVAILABLE");
 });
-

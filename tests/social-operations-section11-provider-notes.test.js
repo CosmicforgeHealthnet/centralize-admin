@@ -95,4 +95,3 @@ test("Meta capabilities are derived from connector capability checks", () => {
   assert.match(apiSource, /connector\.getCapabilities/);
   assert.match(apiSource, /capabilitiesJson/);
 });
-

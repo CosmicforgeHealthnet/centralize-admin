@@ -46,4 +46,3 @@ Important frontend requirements:
 ## Current Status
 
 `FRONTEND_ACCESS_REQUIRED`. No frontend repository, staging frontend domain, browser E2E result, or capability alignment evidence was available.
-
