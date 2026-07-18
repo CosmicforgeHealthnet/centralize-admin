@@ -288,6 +288,22 @@ test("Cloudinary adapter classifies malformed, timeout, retryable and idempotent
   assert.equal(notFound.alreadyDeleted, true);
 });
 
+test("Cloudinary upload timeout resolves under Node 20 without cancelling the test", async () => {
+  await assert.rejects(
+    cloudinaryAdapter(cloudinaryMock({ noCallback: true })).upload({
+      ownerId: "admin-1",
+      filename: "upload.png",
+      mimeType: "image/png",
+      buffer: pngBuffer,
+      sizeBytes: pngBuffer.length,
+      checksumSha256: crypto.createHash("sha256").update(pngBuffer).digest("hex"),
+    }),
+    (error) =>
+      error instanceof MediaStorageTransientError &&
+      error.details?.code === "SOCIAL_MEDIA_CLOUDINARY_TIMEOUT",
+  );
+});
+
 function fakeMediaDb({ adminExists = true, existing = null, createFails = false, locked = false } = {}) {
   const rows = [];
   return {

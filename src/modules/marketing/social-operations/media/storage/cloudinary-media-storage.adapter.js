@@ -26,7 +26,6 @@ function withTimeout(promise, timeoutMs, operation) {
         }),
       );
     }, timeoutMs);
-    if (typeof timeout.unref === "function") timeout.unref();
   });
   return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeout));
 }
