@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 const { once } = require("node:events");
 const Module = require("node:module");
 const express = require("express");
+const { closeServer } = require("../../../../../tests/helpers/server-close");
 
 const ApiError = require("../../../../shared/utils/ApiError");
 const { errorHandler } = require("../../../../shared/middlewares/error.middleware");
@@ -112,7 +113,7 @@ async function fetchFromApp(app, path, options = {}) {
   try {
     return await fetch(baseUrl + path, options);
   } finally {
-    await new Promise((resolve) => server.close(resolve));
+    await closeServer(server);
   }
 }
 

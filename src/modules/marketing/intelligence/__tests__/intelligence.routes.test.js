@@ -1,5 +1,6 @@
 ﻿const { test, before, after } = require("node:test");
 const assert = require("node:assert/strict");
+const { closeServer } = require("../../../../../tests/helpers/server-close");
 
 // Route contract tests using the real Express app on an ephemeral port.
 // These verify mounting and the authentication gate; they intentionally use
@@ -18,7 +19,7 @@ before(async () => {
   baseUrl = `http://127.0.0.1:${server.address().port}`;
 });
 
-after(() => new Promise((resolve) => server.close(resolve)));
+after(() => closeServer(server));
 
 test("unauthenticated requests are rejected on the versioned route", async () => {
   const response = await fetch(`${baseUrl}/api/v1/marketing/intelligence/performance`);

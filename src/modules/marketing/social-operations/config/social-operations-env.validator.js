@@ -293,6 +293,48 @@ function validateUrls({ env, mode, issues }) {
   }
 }
 
+function validateAdminGoogleOAuth({ env, mode, issues }) {
+  const required = [
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "GOOGLE_CALLBACK_URL",
+  ];
+  const hasValue = (name) => env[name] !== undefined && String(env[name]).trim() !== "";
+  const present = required.filter((name) => hasValue(name));
+  if (present.length === 0) return;
+
+  for (const name of required) {
+    if (!hasValue(name)) issue(issues, name, "REQUIRED");
+  }
+  if (!hasValue("GOOGLE_CALLBACK_URL")) return;
+
+  const googleEnv = {
+    ...env,
+    GOOGLE_CALLBACK_URL: String(env.GOOGLE_CALLBACK_URL).trim(),
+  };
+  const before = issues.length;
+  parseUrl({
+    env: googleEnv,
+    name: "GOOGLE_CALLBACK_URL",
+    required: true,
+    mode,
+    issues,
+    mustBeHttps: ["staging", "production"].includes(mode),
+  });
+  if (issues.length > before) return;
+
+  const parsed = new URL(googleEnv.GOOGLE_CALLBACK_URL);
+  if (parsed.protocol === "http:" && !isLocalHost(parsed.hostname)) {
+    issue(issues, "GOOGLE_CALLBACK_URL", "HTTPS_REQUIRED");
+  }
+  for (const key of parsed.searchParams.keys()) {
+    if (/(?:code|token|secret|key|credential)/i.test(key)) {
+      issue(issues, "GOOGLE_CALLBACK_URL", "SENSITIVE_QUERY_PARAM_FORBIDDEN");
+      break;
+    }
+  }
+}
+
 function validateProviders({ env, mode, issues }) {
   const enabled = [];
   for (const provider of Object.keys(PROVIDERS)) {
@@ -390,6 +432,7 @@ function validateSocialOperationsEnvironment({
   validateEncryption({ env, mode: resolvedMode, issues });
   validateStorage({ env, mode: resolvedMode, issues });
   validateUrls({ env, mode: resolvedMode, issues });
+  validateAdminGoogleOAuth({ env, mode: resolvedMode, issues });
   const enabledProviders = validateProviders({ env, mode: resolvedMode, issues });
   const workerConfig = validateWorkers({ env, mode: resolvedMode, issues, complianceReady });
   if (issues.length) throw new SocialOperationsConfigError(issues);
@@ -409,5 +452,6 @@ module.exports = {
   NUMERIC_RULES,
   SocialOperationsConfigError,
   safeSyntheticEnv,
+  validateAdminGoogleOAuth,
   validateSocialOperationsEnvironment,
 };

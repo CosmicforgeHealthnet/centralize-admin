@@ -1,5 +1,6 @@
 const { before, after, test } = require("node:test");
 const assert = require("node:assert/strict");
+const { closeServer } = require("./helpers/server-close");
 
 const {
   getSocialOperationsHealth,
@@ -221,9 +222,12 @@ before(async () => {
 });
 
 after(async () => {
-  await new Promise((resolve) => server.close(resolve));
-  if (previousNodeEnv !== undefined) process.env.NODE_ENV = previousNodeEnv;
-  else delete process.env.NODE_ENV;
+  try {
+    await closeServer(server);
+  } finally {
+    if (previousNodeEnv !== undefined) process.env.NODE_ENV = previousNodeEnv;
+    else delete process.env.NODE_ENV;
+  }
 });
 
 test("operations health endpoint returns 401 without authentication", async () => {

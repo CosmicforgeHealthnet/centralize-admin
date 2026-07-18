@@ -4,6 +4,9 @@ const controller = require("./auth.controller");
 const { authenticate } = require("../../shared/middlewares/auth.middleware");
 const passport = require("../../shared/config/google.strategy");
 const {
+  requireGoogleOAuthConfigured,
+} = require("../../shared/config/google.strategy");
+const {
   authLimiter,
   passwordResetLimiter,
 } = require("../../shared/middlewares/rateLimiter.middleware");
@@ -46,6 +49,7 @@ router.post(
 // ── Google OAuth routes ──────────────────────────────────────────
 router.get(
   "/google",
+  requireGoogleOAuthConfigured,
   passport.authenticate("google", {
     session: false,
     scope: ["profile", "email"],
@@ -53,6 +57,7 @@ router.get(
 );
 router.get(
   "/google/callback",
+  requireGoogleOAuthConfigured,
   passport.authenticate("google", { session: false, failWithError: true }),
   controller.googleCallback,
 );

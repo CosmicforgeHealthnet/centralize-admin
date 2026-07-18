@@ -25,6 +25,9 @@ const CI_FLAGS = {
   X_SOCIAL_ENABLED: "false",
   LINKEDIN_SOCIAL_ENABLED: "false",
   SOCIAL_MEDIA_STORAGE_PROVIDER: "local",
+  GOOGLE_CLIENT_ID: "",
+  GOOGLE_CLIENT_SECRET: "",
+  GOOGLE_CALLBACK_URL: "",
 };
 
 function commandName(command) {

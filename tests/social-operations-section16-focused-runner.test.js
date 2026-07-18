@@ -12,10 +12,11 @@ test("focused runner discovers each intended Social Operations file exactly once
   const relative = files.map((file) => relativeTestPath(file));
   console.log(`focused-runner-discovery files=${relative.length}`);
 
-  assert.equal(relative.length, 43);
+  assert.equal(relative.length, 44);
   assert.equal(new Set(relative).size, relative.length);
   assert.equal(relative[0], "tests/marketing-legacy-social-freeze.test.js");
   assert.ok(relative.includes("tests/social-operations-section16-focused-runner.test.js"));
+  assert.ok(relative.includes("tests/social-operations-section16-google-oauth-import-safety.test.js"));
   assert.ok(relative.includes("tests/social-operations-section16-timeout-utils.test.js"));
   assert.ok(relative.every((file) => !file.includes("\\")));
 

@@ -1,5 +1,6 @@
 const { test, before, after } = require("node:test");
 const assert = require("node:assert/strict");
+const { closeServer } = require("./helpers/server-close");
 
 const previousNodeEnv = process.env.NODE_ENV;
 process.env.NODE_ENV = "test";
@@ -22,9 +23,12 @@ before(async () => {
 });
 
 after(async () => {
-  await new Promise((resolve) => server.close(resolve));
-  if (previousNodeEnv !== undefined) process.env.NODE_ENV = previousNodeEnv;
-  else delete process.env.NODE_ENV;
+  try {
+    await closeServer(server);
+  } finally {
+    if (previousNodeEnv !== undefined) process.env.NODE_ENV = previousNodeEnv;
+    else delete process.env.NODE_ENV;
+  }
 });
 
 test("versioned Social Operations API is mounted and auth-protected", async () => {

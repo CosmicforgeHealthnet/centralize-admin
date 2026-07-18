@@ -53,4 +53,12 @@ Runtime network protection:
 - Only registered local test servers and the configured local/ephemeral PostgreSQL destination are allowed.
 - `tests/network-guard.test.js` deliberately attempts external requests and passes only when the guard blocks them with sanitized errors.
 
+Optional Admin Google OAuth:
+
+- The workflow intentionally leaves `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_CALLBACK_URL` unset. Importing `src/app.js` must therefore succeed without Admin Google OAuth credentials.
+- Google OAuth is enabled only when all three values are supplied together. Supplying only part of the configuration fails with sanitized variable-name diagnostics before the server serves traffic.
+- The callback URL is read only from configuration. It is not inferred from request headers, must be exact, must not include wildcards or fragments, and must use HTTPS outside approved local loopback development/test URLs.
+- When Google OAuth is disabled, `/api/auth/google` and `/api/auth/google/callback` remain mounted behind an availability guard and return HTTP 503 with `GOOGLE_OAUTH_NOT_CONFIGURED`. JWT/password authentication remains unchanged.
+- Optional provider SDKs must not perform credential-dependent construction, network requests, listeners, workers, cron schedules, or timers at module import time. Bootstrap functions such as `configureGoogleStrategy` and `configureCloudinary` perform explicit setup and report a safe disabled status when optional credentials are absent.
+
 No validation workflow deploys staging or production. Provider calls are not made; provider acceptance remains mocked.

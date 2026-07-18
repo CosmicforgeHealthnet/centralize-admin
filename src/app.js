@@ -4,9 +4,10 @@ const cors = require("cors");
 const morgan = require("morgan");
 const hpp = require("hpp");
 const compression = require("compression");
-const cookieParser = require("cookie-parser"); // FIX #5: needed to read HttpOnly cookies
+const cookieParser = require("cookie-parser");
 const xss = require("xss");
 const passport = require("./shared/config/google.strategy");
+const cloudinary = require("./shared/config/cloudinary");
 
 const {
   globalLimiter,
@@ -17,151 +18,176 @@ const {
 } = require("./shared/middlewares/error.middleware");
 const logger = require("./shared/utils/logger");
 
-const authRoutes = require("./modules/auth").router;
-const adminUsersRoutes = require("./modules/admin-users").router;
-const dashboardRoutes = require("./modules/dashboard").router;
-const supportRoutes = require("./modules/support").router;
-const profileRouter = require("./modules/profile").router;
-const notificationRoutes = require("./modules/notifications").router;
-const auditRoutes = require("./modules/audit").router;
-const verificationRoutes = require("./modules/verification").router;
-const telemedicineRoutes = require("./modules/telemedicine").router;
-const rtcRoutes = require("./modules/rtc").router;
-const logisticsRoutes = require("./modules/logistics").router;
-const paymentsRoutes = require("./modules/payments").router;
-const notificationsServiceRoutes =
-  require("./modules/notifications-service").router;
-const auditServiceRoutes = require("./modules/audit-service").router;
-const usersRoutes = require("./modules/users").router;
-const adminOpsRoutes = require("./modules/admin-ops").router;
-const analyticsRouter = require("./modules/analytics").router;
-const adminSettingsRoutes = require("./modules/admin-settings").router;
-const healthnetRoutes = require("./modules/healthnet").router;
-const marketingRoutes = require("./modules/marketing").router;
-const socialOperationsRoutes = require("./modules/marketing/social-operations").router;
-const hrmRoutes = require("./modules/hrm").router;
-
-
-const app = express();
-
-app.use(helmet());
-app.set("trust proxy", 1); // Trust first proxy (needed for correct IP behind load balancers)
-
-const allowedOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(",").map((o) => o.trim())
-  : ["http://localhost:3000"];
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (e.g. mobile apps, curl, Postman in dev)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      logger.warn(`Blocked CORS request from: ${origin}`);
-      callback(new Error("Not allowed by CORS"));
-    },
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true, // Required for cookies to be sent cross-origin
-    optionsSuccessStatus: 200,
-  }),
-);
-
-app.options("/{*splat}", cors());
-
-const jsonBodyParser = express.json({ limit: "10kb" });
-const socialWebhookRawParser = express.raw({ type: "*/*", limit: "10kb" });
-
-app.use((req, res, next) => {
-  if (
-    req.method === "POST" &&
-    req.originalUrl?.startsWith("/api/v1/marketing/social/webhooks/")
-  ) {
-    return socialWebhookRawParser(req, res, (error) => {
-      if (error) return next(error);
-      req.rawBody = Buffer.isBuffer(req.body) ? Buffer.from(req.body) : Buffer.alloc(0);
-      return next();
-    });
-  }
-
-  return jsonBodyParser(req, res, next);
-}); // Hard limit on body size
-app.use(express.urlencoded({ extended: true, limit: "10kb" }));
-app.use(cookieParser()); // FIX #5: parse cookies before routes
-app.use(passport.initialize());
-app.use(hpp()); // Prevent HTTP parameter pollution
-app.use(compression());
-
-const SKIP_XSS_FIELDS = new Set([
-  "password",
-  "currentPassword",
-  "newPassword",
-  "confirmPassword",
-]);
-
-app.use((req, res, next) => {
-  if (req.body && typeof req.body === "object") {
-    const sanitize = (obj) => {
-      for (const key in obj) {
-        if (SKIP_XSS_FIELDS.has(key)) continue; // FIX #12: leave passwords untouched
-        if (typeof obj[key] === "string") obj[key] = xss(obj[key]);
-        else if (typeof obj[key] === "object") sanitize(obj[key]);
-      }
-    };
-    sanitize(req.body);
-  }
-  next();
-});
-
-if (process.env.NODE_ENV !== "test") {
-  app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
+function loadRoutes() {
+  return {
+    authRoutes: require("./modules/auth").router,
+    adminUsersRoutes: require("./modules/admin-users").router,
+    dashboardRoutes: require("./modules/dashboard").router,
+    supportRoutes: require("./modules/support").router,
+    profileRouter: require("./modules/profile").router,
+    notificationRoutes: require("./modules/notifications").router,
+    auditRoutes: require("./modules/audit").router,
+    verificationRoutes: require("./modules/verification").router,
+    telemedicineRoutes: require("./modules/telemedicine").router,
+    rtcRoutes: require("./modules/rtc").router,
+    logisticsRoutes: require("./modules/logistics").router,
+    paymentsRoutes: require("./modules/payments").router,
+    notificationsServiceRoutes: require("./modules/notifications-service").router,
+    auditServiceRoutes: require("./modules/audit-service").router,
+    usersRoutes: require("./modules/users").router,
+    adminOpsRoutes: require("./modules/admin-ops").router,
+    analyticsRouter: require("./modules/analytics").router,
+    adminSettingsRoutes: require("./modules/admin-settings").router,
+    healthnetRoutes: require("./modules/healthnet").router,
+    marketingRoutes: require("./modules/marketing").router,
+    socialOperationsRoutes: require("./modules/marketing/social-operations").router,
+    marketingIntelligenceInternalRoutes: require("./modules/marketing/intelligence/internal.routes"),
+    marketingIntelligenceRoutes: require("./modules/marketing/intelligence").router,
+    hrmRoutes: require("./modules/hrm").router,
+  };
 }
 
-app.use(globalLimiter);
-
-app.get("/health", (req, res) => {
-  res.json({
-    success: true,
-    status: "healthy",
-    service: "cosmicforge-admin-api",
-    version: "1.0.0",
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
+function createApp({
+  env = process.env,
+  passportInstance = passport,
+  appLogger = logger,
+  googleStrategyRegistrar = passport.configureGoogleStrategy,
+  cloudinaryConfigurator = cloudinary.configureCloudinary,
+} = {}) {
+  const googleOAuth = googleStrategyRegistrar({
+    passport: passportInstance,
+    env,
+    logger: appLogger,
   });
-});
+  const cloudinaryStatus = cloudinaryConfigurator({ env, logger: appLogger });
+  const routes = loadRoutes();
+  const app = express();
 
-app.use("/api/auth", authRoutes);
-app.use("/api/admin-users", adminUsersRoutes);
-app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/support", supportRoutes);
-app.use("/api/profile", profileRouter);
-app.use("/api/notifications", notificationRoutes);
-app.use("/api/audit", auditRoutes);
-app.use("/api/verification", verificationRoutes);
-app.use("/api/telemedicine", telemedicineRoutes);
-app.use("/api/rtc", rtcRoutes);
-app.use("/api/logistics", logisticsRoutes);
-app.use("/api/payments", paymentsRoutes);
-app.use("/api/notifications-service", notificationsServiceRoutes);
-app.use("/api/audit-service", auditServiceRoutes);
-app.use("/api/users", usersRoutes);
-app.use("/api/admin/ops", adminOpsRoutes);
-app.use("/api/analytics", analyticsRouter);
-app.use("/api/admin-settings", adminSettingsRoutes);
-app.use("/api/healthnet", healthnetRoutes);
-app.use("/api/marketing", marketingRoutes);
-app.use("/api/v1/marketing/social", socialOperationsRoutes);
-app.use("/api/internal/marketing/intelligence", require("./modules/marketing/intelligence/internal.routes"));
-// Versioned alias required for the Marketing Intelligence public contract.
-app.use(
-  "/api/v1/marketing/intelligence",
-  require("./modules/marketing/intelligence").router,
-);
-app.use("/api/hrm", hrmRoutes);
+  app.locals.googleOAuth = googleOAuth;
+  app.locals.cloudinary = cloudinaryStatus;
 
+  app.use(helmet());
+  app.set("trust proxy", 1);
 
+  const allowedOrigins = env.CORS_ORIGINS
+    ? env.CORS_ORIGINS.split(",").map((origin) => origin.trim())
+    : ["http://localhost:3000"];
 
-app.use("/{*splat}", notFound);
-app.use(errorHandler);
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        appLogger.warn(`Blocked CORS request from: ${origin}`);
+        callback(new Error("Not allowed by CORS"));
+      },
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+      credentials: true,
+      optionsSuccessStatus: 200,
+    }),
+  );
+
+  app.options("/{*splat}", cors());
+
+  const jsonBodyParser = express.json({ limit: "10kb" });
+  const socialWebhookRawParser = express.raw({ type: "*/*", limit: "10kb" });
+
+  app.use((req, res, next) => {
+    if (
+      req.method === "POST" &&
+      req.originalUrl?.startsWith("/api/v1/marketing/social/webhooks/")
+    ) {
+      return socialWebhookRawParser(req, res, (error) => {
+        if (error) return next(error);
+        req.rawBody = Buffer.isBuffer(req.body)
+          ? Buffer.from(req.body)
+          : Buffer.alloc(0);
+        return next();
+      });
+    }
+
+    return jsonBodyParser(req, res, next);
+  });
+  app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+  app.use(cookieParser());
+  app.use(passportInstance.initialize());
+  app.use(hpp());
+  app.use(compression());
+
+  const skipXssFields = new Set([
+    "password",
+    "currentPassword",
+    "newPassword",
+    "confirmPassword",
+  ]);
+
+  app.use((req, res, next) => {
+    if (req.body && typeof req.body === "object") {
+      const sanitize = (obj) => {
+        for (const key in obj) {
+          if (skipXssFields.has(key)) continue;
+          if (typeof obj[key] === "string") obj[key] = xss(obj[key]);
+          else if (obj[key] && typeof obj[key] === "object") sanitize(obj[key]);
+        }
+      };
+      sanitize(req.body);
+    }
+    next();
+  });
+
+  if (env.NODE_ENV !== "test") {
+    app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
+  }
+
+  app.use(globalLimiter);
+
+  app.get("/health", (req, res) => {
+    res.json({
+      success: true,
+      status: "healthy",
+      service: "cosmicforge-admin-api",
+      version: "1.0.0",
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+    });
+  });
+
+  app.use("/api/auth", routes.authRoutes);
+  app.use("/api/admin-users", routes.adminUsersRoutes);
+  app.use("/api/dashboard", routes.dashboardRoutes);
+  app.use("/api/support", routes.supportRoutes);
+  app.use("/api/profile", routes.profileRouter);
+  app.use("/api/notifications", routes.notificationRoutes);
+  app.use("/api/audit", routes.auditRoutes);
+  app.use("/api/verification", routes.verificationRoutes);
+  app.use("/api/telemedicine", routes.telemedicineRoutes);
+  app.use("/api/rtc", routes.rtcRoutes);
+  app.use("/api/logistics", routes.logisticsRoutes);
+  app.use("/api/payments", routes.paymentsRoutes);
+  app.use("/api/notifications-service", routes.notificationsServiceRoutes);
+  app.use("/api/audit-service", routes.auditServiceRoutes);
+  app.use("/api/users", routes.usersRoutes);
+  app.use("/api/admin/ops", routes.adminOpsRoutes);
+  app.use("/api/analytics", routes.analyticsRouter);
+  app.use("/api/admin-settings", routes.adminSettingsRoutes);
+  app.use("/api/healthnet", routes.healthnetRoutes);
+  app.use("/api/marketing", routes.marketingRoutes);
+  app.use("/api/v1/marketing/social", routes.socialOperationsRoutes);
+  app.use(
+    "/api/internal/marketing/intelligence",
+    routes.marketingIntelligenceInternalRoutes,
+  );
+  app.use("/api/v1/marketing/intelligence", routes.marketingIntelligenceRoutes);
+  app.use("/api/hrm", routes.hrmRoutes);
+
+  app.use("/{*splat}", notFound);
+  app.use(errorHandler);
+
+  return app;
+}
+
+const app = createApp();
 
 module.exports = app;
+module.exports.createApp = createApp;
