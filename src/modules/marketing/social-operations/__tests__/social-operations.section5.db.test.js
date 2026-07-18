@@ -57,6 +57,7 @@ async function assertSocialTablesExist(prisma, t) {
     FROM information_schema.tables
     WHERE table_schema = 'public'
       AND table_name LIKE 'social_%'
+      AND table_name <> 'social_manual_migrations'
   `;
 
   if (Number(tables[0]?.count || 0) !== 31) {

@@ -279,6 +279,11 @@ export type SocialSavedReply = $Result.DefaultSelection<Prisma.$SocialSavedReply
  */
 export type SocialOperationsSetting = $Result.DefaultSelection<Prisma.$SocialOperationsSettingPayload>
 /**
+ * Model AdminManualMigrationLedger
+ *
+ */
+export type AdminManualMigrationLedger = $Result.DefaultSelection<Prisma.$AdminManualMigrationLedgerPayload>
+/**
  * Model RefreshToken
  *
  */
@@ -1845,6 +1850,16 @@ export class PrismaClient<
   get socialOperationsSetting(): Prisma.SocialOperationsSettingDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.adminManualMigrationLedger`: Exposes CRUD operations for the **AdminManualMigrationLedger** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AdminManualMigrationLedgers
+    * const adminManualMigrationLedgers = await prisma.adminManualMigrationLedger.findMany()
+    * ```
+    */
+  get adminManualMigrationLedger(): Prisma.AdminManualMigrationLedgerDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.refreshToken`: Exposes CRUD operations for the **RefreshToken** model.
     * Example usage:
     * ```ts
@@ -2590,6 +2605,7 @@ export namespace Prisma {
     SocialInternalNote: 'SocialInternalNote',
     SocialSavedReply: 'SocialSavedReply',
     SocialOperationsSetting: 'SocialOperationsSetting',
+    AdminManualMigrationLedger: 'AdminManualMigrationLedger',
     RefreshToken: 'RefreshToken',
     AuditLog: 'AuditLog',
     AdminSectionGrant: 'AdminSectionGrant',
@@ -2631,7 +2647,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "adminUser" | "marketing_campaigns" | "marketing_campaign_performance" | "marketing_campaign_timeline" | "marketing_campaign_team_members" | "marketing_content_items" | "marketing_content_monthly_performance" | "marketing_notification_events" | "marketing_email_templates" | "marketing_social_accounts" | "marketing_social_posts" | "marketing_social_analytics_snapshots" | "marketing_promotions" | "marketing_banners" | "marketing_analytics_snapshots" | "marketing_ad_platform_connections" | "marketing_ad_insights_raw" | "marketing_performance_snapshots" | "marketing_oauth_states" | "marketing_attributions" | "marketing_funnel_events" | "marketing_sync_locks" | "socialAccountConnection" | "socialPublishingIdentity" | "socialOAuthState" | "socialPost" | "socialPostRevision" | "socialPostTarget" | "socialPostApproval" | "socialPublication" | "socialPublicationAttempt" | "socialPublishingJob" | "socialMediaAsset" | "socialPostMedia" | "socialContact" | "socialConversation" | "socialMessage" | "socialTag" | "socialConversationTag" | "socialProviderContent" | "socialComment" | "socialEngagementEvent" | "socialEscalation" | "socialWebhookSubscription" | "socialWebhookEvent" | "socialIdentityMetricSnapshot" | "socialProviderContentMetricSnapshot" | "socialIdentitySyncState" | "socialActionJob" | "socialActionAttempt" | "socialInternalNote" | "socialSavedReply" | "socialOperationsSetting" | "refreshToken" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event"
+      modelProps: "adminUser" | "marketing_campaigns" | "marketing_campaign_performance" | "marketing_campaign_timeline" | "marketing_campaign_team_members" | "marketing_content_items" | "marketing_content_monthly_performance" | "marketing_notification_events" | "marketing_email_templates" | "marketing_social_accounts" | "marketing_social_posts" | "marketing_social_analytics_snapshots" | "marketing_promotions" | "marketing_banners" | "marketing_analytics_snapshots" | "marketing_ad_platform_connections" | "marketing_ad_insights_raw" | "marketing_performance_snapshots" | "marketing_oauth_states" | "marketing_attributions" | "marketing_funnel_events" | "marketing_sync_locks" | "socialAccountConnection" | "socialPublishingIdentity" | "socialOAuthState" | "socialPost" | "socialPostRevision" | "socialPostTarget" | "socialPostApproval" | "socialPublication" | "socialPublicationAttempt" | "socialPublishingJob" | "socialMediaAsset" | "socialPostMedia" | "socialContact" | "socialConversation" | "socialMessage" | "socialTag" | "socialConversationTag" | "socialProviderContent" | "socialComment" | "socialEngagementEvent" | "socialEscalation" | "socialWebhookSubscription" | "socialWebhookEvent" | "socialIdentityMetricSnapshot" | "socialProviderContentMetricSnapshot" | "socialIdentitySyncState" | "socialActionJob" | "socialActionAttempt" | "socialInternalNote" | "socialSavedReply" | "socialOperationsSetting" | "adminManualMigrationLedger" | "refreshToken" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -6557,6 +6573,80 @@ export namespace Prisma {
           }
         }
       }
+      AdminManualMigrationLedger: {
+        payload: Prisma.$AdminManualMigrationLedgerPayload<ExtArgs>
+        fields: Prisma.AdminManualMigrationLedgerFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AdminManualMigrationLedgerFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminManualMigrationLedgerPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AdminManualMigrationLedgerFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminManualMigrationLedgerPayload>
+          }
+          findFirst: {
+            args: Prisma.AdminManualMigrationLedgerFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminManualMigrationLedgerPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AdminManualMigrationLedgerFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminManualMigrationLedgerPayload>
+          }
+          findMany: {
+            args: Prisma.AdminManualMigrationLedgerFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminManualMigrationLedgerPayload>[]
+          }
+          create: {
+            args: Prisma.AdminManualMigrationLedgerCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminManualMigrationLedgerPayload>
+          }
+          createMany: {
+            args: Prisma.AdminManualMigrationLedgerCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AdminManualMigrationLedgerCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminManualMigrationLedgerPayload>[]
+          }
+          delete: {
+            args: Prisma.AdminManualMigrationLedgerDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminManualMigrationLedgerPayload>
+          }
+          update: {
+            args: Prisma.AdminManualMigrationLedgerUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminManualMigrationLedgerPayload>
+          }
+          deleteMany: {
+            args: Prisma.AdminManualMigrationLedgerDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AdminManualMigrationLedgerUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AdminManualMigrationLedgerUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminManualMigrationLedgerPayload>[]
+          }
+          upsert: {
+            args: Prisma.AdminManualMigrationLedgerUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminManualMigrationLedgerPayload>
+          }
+          aggregate: {
+            args: Prisma.AdminManualMigrationLedgerAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAdminManualMigrationLedger>
+          }
+          groupBy: {
+            args: Prisma.AdminManualMigrationLedgerGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AdminManualMigrationLedgerGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AdminManualMigrationLedgerCountArgs<ExtArgs>
+            result: $Utils.Optional<AdminManualMigrationLedgerCountAggregateOutputType> | number
+          }
+        }
+      }
       RefreshToken: {
         payload: Prisma.$RefreshTokenPayload<ExtArgs>
         fields: Prisma.RefreshTokenFieldRefs
@@ -8642,6 +8732,7 @@ export namespace Prisma {
     socialInternalNote?: SocialInternalNoteOmit
     socialSavedReply?: SocialSavedReplyOmit
     socialOperationsSetting?: SocialOperationsSettingOmit
+    adminManualMigrationLedger?: AdminManualMigrationLedgerOmit
     refreshToken?: RefreshTokenOmit
     auditLog?: AuditLogOmit
     adminSectionGrant?: AdminSectionGrantOmit
@@ -75377,6 +75468,980 @@ export namespace Prisma {
 
 
   /**
+   * Model AdminManualMigrationLedger
+   */
+
+  export type AggregateAdminManualMigrationLedger = {
+    _count: AdminManualMigrationLedgerCountAggregateOutputType | null
+    _min: AdminManualMigrationLedgerMinAggregateOutputType | null
+    _max: AdminManualMigrationLedgerMaxAggregateOutputType | null
+  }
+
+  export type AdminManualMigrationLedgerMinAggregateOutputType = {
+    file: string | null
+    sha256: string | null
+    appliedAt: Date | null
+  }
+
+  export type AdminManualMigrationLedgerMaxAggregateOutputType = {
+    file: string | null
+    sha256: string | null
+    appliedAt: Date | null
+  }
+
+  export type AdminManualMigrationLedgerCountAggregateOutputType = {
+    file: number
+    sha256: number
+    appliedAt: number
+    _all: number
+  }
+
+
+  export type AdminManualMigrationLedgerMinAggregateInputType = {
+    file?: true
+    sha256?: true
+    appliedAt?: true
+  }
+
+  export type AdminManualMigrationLedgerMaxAggregateInputType = {
+    file?: true
+    sha256?: true
+    appliedAt?: true
+  }
+
+  export type AdminManualMigrationLedgerCountAggregateInputType = {
+    file?: true
+    sha256?: true
+    appliedAt?: true
+    _all?: true
+  }
+
+  export type AdminManualMigrationLedgerAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminManualMigrationLedger to aggregate.
+     */
+    where?: AdminManualMigrationLedgerWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AdminManualMigrationLedgers to fetch.
+     */
+    orderBy?: AdminManualMigrationLedgerOrderByWithRelationInput | AdminManualMigrationLedgerOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: AdminManualMigrationLedgerWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AdminManualMigrationLedgers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AdminManualMigrationLedgers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned AdminManualMigrationLedgers
+    **/
+    _count?: true | AdminManualMigrationLedgerCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+    **/
+    _min?: AdminManualMigrationLedgerMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+    **/
+    _max?: AdminManualMigrationLedgerMaxAggregateInputType
+  }
+
+  export type GetAdminManualMigrationLedgerAggregateType<T extends AdminManualMigrationLedgerAggregateArgs> = {
+        [P in keyof T & keyof AggregateAdminManualMigrationLedger]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAdminManualMigrationLedger[P]>
+      : GetScalarType<T[P], AggregateAdminManualMigrationLedger[P]>
+  }
+
+
+
+
+  export type AdminManualMigrationLedgerGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminManualMigrationLedgerWhereInput
+    orderBy?: AdminManualMigrationLedgerOrderByWithAggregationInput | AdminManualMigrationLedgerOrderByWithAggregationInput[]
+    by: AdminManualMigrationLedgerScalarFieldEnum[] | AdminManualMigrationLedgerScalarFieldEnum
+    having?: AdminManualMigrationLedgerScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AdminManualMigrationLedgerCountAggregateInputType | true
+    _min?: AdminManualMigrationLedgerMinAggregateInputType
+    _max?: AdminManualMigrationLedgerMaxAggregateInputType
+  }
+
+  export type AdminManualMigrationLedgerGroupByOutputType = {
+    file: string
+    sha256: string
+    appliedAt: Date
+    _count: AdminManualMigrationLedgerCountAggregateOutputType | null
+    _min: AdminManualMigrationLedgerMinAggregateOutputType | null
+    _max: AdminManualMigrationLedgerMaxAggregateOutputType | null
+  }
+
+  type GetAdminManualMigrationLedgerGroupByPayload<T extends AdminManualMigrationLedgerGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AdminManualMigrationLedgerGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AdminManualMigrationLedgerGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AdminManualMigrationLedgerGroupByOutputType[P]>
+            : GetScalarType<T[P], AdminManualMigrationLedgerGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AdminManualMigrationLedgerSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    file?: boolean
+    sha256?: boolean
+    appliedAt?: boolean
+  }, ExtArgs["result"]["adminManualMigrationLedger"]>
+
+  export type AdminManualMigrationLedgerSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    file?: boolean
+    sha256?: boolean
+    appliedAt?: boolean
+  }, ExtArgs["result"]["adminManualMigrationLedger"]>
+
+  export type AdminManualMigrationLedgerSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    file?: boolean
+    sha256?: boolean
+    appliedAt?: boolean
+  }, ExtArgs["result"]["adminManualMigrationLedger"]>
+
+  export type AdminManualMigrationLedgerSelectScalar = {
+    file?: boolean
+    sha256?: boolean
+    appliedAt?: boolean
+  }
+
+  export type AdminManualMigrationLedgerOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"file" | "sha256" | "appliedAt", ExtArgs["result"]["adminManualMigrationLedger"]>
+
+  export type $AdminManualMigrationLedgerPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AdminManualMigrationLedger"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      file: string
+      sha256: string
+      appliedAt: Date
+    }, ExtArgs["result"]["adminManualMigrationLedger"]>
+    composites: {}
+  }
+
+  type AdminManualMigrationLedgerGetPayload<S extends boolean | null | undefined | AdminManualMigrationLedgerDefaultArgs> = $Result.GetResult<Prisma.$AdminManualMigrationLedgerPayload, S>
+
+  type AdminManualMigrationLedgerCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AdminManualMigrationLedgerFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AdminManualMigrationLedgerCountAggregateInputType | true
+    }
+
+  export interface AdminManualMigrationLedgerDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AdminManualMigrationLedger'], meta: { name: 'AdminManualMigrationLedger' } }
+    /**
+     * Find zero or one AdminManualMigrationLedger that matches the filter.
+     * @param {AdminManualMigrationLedgerFindUniqueArgs} args - Arguments to find a AdminManualMigrationLedger
+     * @example
+     * // Get one AdminManualMigrationLedger
+     * const adminManualMigrationLedger = await prisma.adminManualMigrationLedger.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AdminManualMigrationLedgerFindUniqueArgs>(args: SelectSubset<T, AdminManualMigrationLedgerFindUniqueArgs<ExtArgs>>): Prisma__AdminManualMigrationLedgerClient<$Result.GetResult<Prisma.$AdminManualMigrationLedgerPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AdminManualMigrationLedger that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AdminManualMigrationLedgerFindUniqueOrThrowArgs} args - Arguments to find a AdminManualMigrationLedger
+     * @example
+     * // Get one AdminManualMigrationLedger
+     * const adminManualMigrationLedger = await prisma.adminManualMigrationLedger.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AdminManualMigrationLedgerFindUniqueOrThrowArgs>(args: SelectSubset<T, AdminManualMigrationLedgerFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AdminManualMigrationLedgerClient<$Result.GetResult<Prisma.$AdminManualMigrationLedgerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminManualMigrationLedger that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminManualMigrationLedgerFindFirstArgs} args - Arguments to find a AdminManualMigrationLedger
+     * @example
+     * // Get one AdminManualMigrationLedger
+     * const adminManualMigrationLedger = await prisma.adminManualMigrationLedger.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AdminManualMigrationLedgerFindFirstArgs>(args?: SelectSubset<T, AdminManualMigrationLedgerFindFirstArgs<ExtArgs>>): Prisma__AdminManualMigrationLedgerClient<$Result.GetResult<Prisma.$AdminManualMigrationLedgerPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminManualMigrationLedger that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminManualMigrationLedgerFindFirstOrThrowArgs} args - Arguments to find a AdminManualMigrationLedger
+     * @example
+     * // Get one AdminManualMigrationLedger
+     * const adminManualMigrationLedger = await prisma.adminManualMigrationLedger.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AdminManualMigrationLedgerFindFirstOrThrowArgs>(args?: SelectSubset<T, AdminManualMigrationLedgerFindFirstOrThrowArgs<ExtArgs>>): Prisma__AdminManualMigrationLedgerClient<$Result.GetResult<Prisma.$AdminManualMigrationLedgerPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AdminManualMigrationLedgers that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminManualMigrationLedgerFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AdminManualMigrationLedgers
+     * const adminManualMigrationLedgers = await prisma.adminManualMigrationLedger.findMany()
+     *
+     * // Get first 10 AdminManualMigrationLedgers
+     * const adminManualMigrationLedgers = await prisma.adminManualMigrationLedger.findMany({ take: 10 })
+     *
+     * // Only select the `file`
+     * const adminManualMigrationLedgerWithFileOnly = await prisma.adminManualMigrationLedger.findMany({ select: { file: true } })
+     *
+     */
+    findMany<T extends AdminManualMigrationLedgerFindManyArgs>(args?: SelectSubset<T, AdminManualMigrationLedgerFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminManualMigrationLedgerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AdminManualMigrationLedger.
+     * @param {AdminManualMigrationLedgerCreateArgs} args - Arguments to create a AdminManualMigrationLedger.
+     * @example
+     * // Create one AdminManualMigrationLedger
+     * const AdminManualMigrationLedger = await prisma.adminManualMigrationLedger.create({
+     *   data: {
+     *     // ... data to create a AdminManualMigrationLedger
+     *   }
+     * })
+     *
+     */
+    create<T extends AdminManualMigrationLedgerCreateArgs>(args: SelectSubset<T, AdminManualMigrationLedgerCreateArgs<ExtArgs>>): Prisma__AdminManualMigrationLedgerClient<$Result.GetResult<Prisma.$AdminManualMigrationLedgerPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AdminManualMigrationLedgers.
+     * @param {AdminManualMigrationLedgerCreateManyArgs} args - Arguments to create many AdminManualMigrationLedgers.
+     * @example
+     * // Create many AdminManualMigrationLedgers
+     * const adminManualMigrationLedger = await prisma.adminManualMigrationLedger.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends AdminManualMigrationLedgerCreateManyArgs>(args?: SelectSubset<T, AdminManualMigrationLedgerCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AdminManualMigrationLedgers and returns the data saved in the database.
+     * @param {AdminManualMigrationLedgerCreateManyAndReturnArgs} args - Arguments to create many AdminManualMigrationLedgers.
+     * @example
+     * // Create many AdminManualMigrationLedgers
+     * const adminManualMigrationLedger = await prisma.adminManualMigrationLedger.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many AdminManualMigrationLedgers and only return the `file`
+     * const adminManualMigrationLedgerWithFileOnly = await prisma.adminManualMigrationLedger.createManyAndReturn({
+     *   select: { file: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends AdminManualMigrationLedgerCreateManyAndReturnArgs>(args?: SelectSubset<T, AdminManualMigrationLedgerCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminManualMigrationLedgerPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AdminManualMigrationLedger.
+     * @param {AdminManualMigrationLedgerDeleteArgs} args - Arguments to delete one AdminManualMigrationLedger.
+     * @example
+     * // Delete one AdminManualMigrationLedger
+     * const AdminManualMigrationLedger = await prisma.adminManualMigrationLedger.delete({
+     *   where: {
+     *     // ... filter to delete one AdminManualMigrationLedger
+     *   }
+     * })
+     *
+     */
+    delete<T extends AdminManualMigrationLedgerDeleteArgs>(args: SelectSubset<T, AdminManualMigrationLedgerDeleteArgs<ExtArgs>>): Prisma__AdminManualMigrationLedgerClient<$Result.GetResult<Prisma.$AdminManualMigrationLedgerPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AdminManualMigrationLedger.
+     * @param {AdminManualMigrationLedgerUpdateArgs} args - Arguments to update one AdminManualMigrationLedger.
+     * @example
+     * // Update one AdminManualMigrationLedger
+     * const adminManualMigrationLedger = await prisma.adminManualMigrationLedger.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends AdminManualMigrationLedgerUpdateArgs>(args: SelectSubset<T, AdminManualMigrationLedgerUpdateArgs<ExtArgs>>): Prisma__AdminManualMigrationLedgerClient<$Result.GetResult<Prisma.$AdminManualMigrationLedgerPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AdminManualMigrationLedgers.
+     * @param {AdminManualMigrationLedgerDeleteManyArgs} args - Arguments to filter AdminManualMigrationLedgers to delete.
+     * @example
+     * // Delete a few AdminManualMigrationLedgers
+     * const { count } = await prisma.adminManualMigrationLedger.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends AdminManualMigrationLedgerDeleteManyArgs>(args?: SelectSubset<T, AdminManualMigrationLedgerDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminManualMigrationLedgers.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminManualMigrationLedgerUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AdminManualMigrationLedgers
+     * const adminManualMigrationLedger = await prisma.adminManualMigrationLedger.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends AdminManualMigrationLedgerUpdateManyArgs>(args: SelectSubset<T, AdminManualMigrationLedgerUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminManualMigrationLedgers and returns the data updated in the database.
+     * @param {AdminManualMigrationLedgerUpdateManyAndReturnArgs} args - Arguments to update many AdminManualMigrationLedgers.
+     * @example
+     * // Update many AdminManualMigrationLedgers
+     * const adminManualMigrationLedger = await prisma.adminManualMigrationLedger.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more AdminManualMigrationLedgers and only return the `file`
+     * const adminManualMigrationLedgerWithFileOnly = await prisma.adminManualMigrationLedger.updateManyAndReturn({
+     *   select: { file: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends AdminManualMigrationLedgerUpdateManyAndReturnArgs>(args: SelectSubset<T, AdminManualMigrationLedgerUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminManualMigrationLedgerPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AdminManualMigrationLedger.
+     * @param {AdminManualMigrationLedgerUpsertArgs} args - Arguments to update or create a AdminManualMigrationLedger.
+     * @example
+     * // Update or create a AdminManualMigrationLedger
+     * const adminManualMigrationLedger = await prisma.adminManualMigrationLedger.upsert({
+     *   create: {
+     *     // ... data to create a AdminManualMigrationLedger
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AdminManualMigrationLedger we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AdminManualMigrationLedgerUpsertArgs>(args: SelectSubset<T, AdminManualMigrationLedgerUpsertArgs<ExtArgs>>): Prisma__AdminManualMigrationLedgerClient<$Result.GetResult<Prisma.$AdminManualMigrationLedgerPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AdminManualMigrationLedgers.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminManualMigrationLedgerCountArgs} args - Arguments to filter AdminManualMigrationLedgers to count.
+     * @example
+     * // Count the number of AdminManualMigrationLedgers
+     * const count = await prisma.adminManualMigrationLedger.count({
+     *   where: {
+     *     // ... the filter for the AdminManualMigrationLedgers we want to count
+     *   }
+     * })
+    **/
+    count<T extends AdminManualMigrationLedgerCountArgs>(
+      args?: Subset<T, AdminManualMigrationLedgerCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AdminManualMigrationLedgerCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AdminManualMigrationLedger.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminManualMigrationLedgerAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AdminManualMigrationLedgerAggregateArgs>(args: Subset<T, AdminManualMigrationLedgerAggregateArgs>): Prisma.PrismaPromise<GetAdminManualMigrationLedgerAggregateType<T>>
+
+    /**
+     * Group by AdminManualMigrationLedger.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminManualMigrationLedgerGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+    **/
+    groupBy<
+      T extends AdminManualMigrationLedgerGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AdminManualMigrationLedgerGroupByArgs['orderBy'] }
+        : { orderBy?: AdminManualMigrationLedgerGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AdminManualMigrationLedgerGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAdminManualMigrationLedgerGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AdminManualMigrationLedger model
+   */
+  readonly fields: AdminManualMigrationLedgerFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AdminManualMigrationLedger.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AdminManualMigrationLedgerClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AdminManualMigrationLedger model
+   */
+  interface AdminManualMigrationLedgerFieldRefs {
+    readonly file: FieldRef<"AdminManualMigrationLedger", 'String'>
+    readonly sha256: FieldRef<"AdminManualMigrationLedger", 'String'>
+    readonly appliedAt: FieldRef<"AdminManualMigrationLedger", 'DateTime'>
+  }
+
+
+  // Custom InputTypes
+  /**
+   * AdminManualMigrationLedger findUnique
+   */
+  export type AdminManualMigrationLedgerFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminManualMigrationLedger
+     */
+    select?: AdminManualMigrationLedgerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminManualMigrationLedger
+     */
+    omit?: AdminManualMigrationLedgerOmit<ExtArgs> | null
+    /**
+     * Filter, which AdminManualMigrationLedger to fetch.
+     */
+    where: AdminManualMigrationLedgerWhereUniqueInput
+  }
+
+  /**
+   * AdminManualMigrationLedger findUniqueOrThrow
+   */
+  export type AdminManualMigrationLedgerFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminManualMigrationLedger
+     */
+    select?: AdminManualMigrationLedgerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminManualMigrationLedger
+     */
+    omit?: AdminManualMigrationLedgerOmit<ExtArgs> | null
+    /**
+     * Filter, which AdminManualMigrationLedger to fetch.
+     */
+    where: AdminManualMigrationLedgerWhereUniqueInput
+  }
+
+  /**
+   * AdminManualMigrationLedger findFirst
+   */
+  export type AdminManualMigrationLedgerFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminManualMigrationLedger
+     */
+    select?: AdminManualMigrationLedgerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminManualMigrationLedger
+     */
+    omit?: AdminManualMigrationLedgerOmit<ExtArgs> | null
+    /**
+     * Filter, which AdminManualMigrationLedger to fetch.
+     */
+    where?: AdminManualMigrationLedgerWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AdminManualMigrationLedgers to fetch.
+     */
+    orderBy?: AdminManualMigrationLedgerOrderByWithRelationInput | AdminManualMigrationLedgerOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for AdminManualMigrationLedgers.
+     */
+    cursor?: AdminManualMigrationLedgerWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AdminManualMigrationLedgers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AdminManualMigrationLedgers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AdminManualMigrationLedgers.
+     */
+    distinct?: AdminManualMigrationLedgerScalarFieldEnum | AdminManualMigrationLedgerScalarFieldEnum[]
+  }
+
+  /**
+   * AdminManualMigrationLedger findFirstOrThrow
+   */
+  export type AdminManualMigrationLedgerFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminManualMigrationLedger
+     */
+    select?: AdminManualMigrationLedgerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminManualMigrationLedger
+     */
+    omit?: AdminManualMigrationLedgerOmit<ExtArgs> | null
+    /**
+     * Filter, which AdminManualMigrationLedger to fetch.
+     */
+    where?: AdminManualMigrationLedgerWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AdminManualMigrationLedgers to fetch.
+     */
+    orderBy?: AdminManualMigrationLedgerOrderByWithRelationInput | AdminManualMigrationLedgerOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for AdminManualMigrationLedgers.
+     */
+    cursor?: AdminManualMigrationLedgerWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AdminManualMigrationLedgers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AdminManualMigrationLedgers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AdminManualMigrationLedgers.
+     */
+    distinct?: AdminManualMigrationLedgerScalarFieldEnum | AdminManualMigrationLedgerScalarFieldEnum[]
+  }
+
+  /**
+   * AdminManualMigrationLedger findMany
+   */
+  export type AdminManualMigrationLedgerFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminManualMigrationLedger
+     */
+    select?: AdminManualMigrationLedgerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminManualMigrationLedger
+     */
+    omit?: AdminManualMigrationLedgerOmit<ExtArgs> | null
+    /**
+     * Filter, which AdminManualMigrationLedgers to fetch.
+     */
+    where?: AdminManualMigrationLedgerWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AdminManualMigrationLedgers to fetch.
+     */
+    orderBy?: AdminManualMigrationLedgerOrderByWithRelationInput | AdminManualMigrationLedgerOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing AdminManualMigrationLedgers.
+     */
+    cursor?: AdminManualMigrationLedgerWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AdminManualMigrationLedgers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AdminManualMigrationLedgers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AdminManualMigrationLedgers.
+     */
+    distinct?: AdminManualMigrationLedgerScalarFieldEnum | AdminManualMigrationLedgerScalarFieldEnum[]
+  }
+
+  /**
+   * AdminManualMigrationLedger create
+   */
+  export type AdminManualMigrationLedgerCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminManualMigrationLedger
+     */
+    select?: AdminManualMigrationLedgerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminManualMigrationLedger
+     */
+    omit?: AdminManualMigrationLedgerOmit<ExtArgs> | null
+    /**
+     * The data needed to create a AdminManualMigrationLedger.
+     */
+    data: XOR<AdminManualMigrationLedgerCreateInput, AdminManualMigrationLedgerUncheckedCreateInput>
+  }
+
+  /**
+   * AdminManualMigrationLedger createMany
+   */
+  export type AdminManualMigrationLedgerCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AdminManualMigrationLedgers.
+     */
+    data: AdminManualMigrationLedgerCreateManyInput | AdminManualMigrationLedgerCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AdminManualMigrationLedger createManyAndReturn
+   */
+  export type AdminManualMigrationLedgerCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminManualMigrationLedger
+     */
+    select?: AdminManualMigrationLedgerSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminManualMigrationLedger
+     */
+    omit?: AdminManualMigrationLedgerOmit<ExtArgs> | null
+    /**
+     * The data used to create many AdminManualMigrationLedgers.
+     */
+    data: AdminManualMigrationLedgerCreateManyInput | AdminManualMigrationLedgerCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AdminManualMigrationLedger update
+   */
+  export type AdminManualMigrationLedgerUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminManualMigrationLedger
+     */
+    select?: AdminManualMigrationLedgerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminManualMigrationLedger
+     */
+    omit?: AdminManualMigrationLedgerOmit<ExtArgs> | null
+    /**
+     * The data needed to update a AdminManualMigrationLedger.
+     */
+    data: XOR<AdminManualMigrationLedgerUpdateInput, AdminManualMigrationLedgerUncheckedUpdateInput>
+    /**
+     * Choose, which AdminManualMigrationLedger to update.
+     */
+    where: AdminManualMigrationLedgerWhereUniqueInput
+  }
+
+  /**
+   * AdminManualMigrationLedger updateMany
+   */
+  export type AdminManualMigrationLedgerUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AdminManualMigrationLedgers.
+     */
+    data: XOR<AdminManualMigrationLedgerUpdateManyMutationInput, AdminManualMigrationLedgerUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminManualMigrationLedgers to update
+     */
+    where?: AdminManualMigrationLedgerWhereInput
+    /**
+     * Limit how many AdminManualMigrationLedgers to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminManualMigrationLedger updateManyAndReturn
+   */
+  export type AdminManualMigrationLedgerUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminManualMigrationLedger
+     */
+    select?: AdminManualMigrationLedgerSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminManualMigrationLedger
+     */
+    omit?: AdminManualMigrationLedgerOmit<ExtArgs> | null
+    /**
+     * The data used to update AdminManualMigrationLedgers.
+     */
+    data: XOR<AdminManualMigrationLedgerUpdateManyMutationInput, AdminManualMigrationLedgerUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminManualMigrationLedgers to update
+     */
+    where?: AdminManualMigrationLedgerWhereInput
+    /**
+     * Limit how many AdminManualMigrationLedgers to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminManualMigrationLedger upsert
+   */
+  export type AdminManualMigrationLedgerUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminManualMigrationLedger
+     */
+    select?: AdminManualMigrationLedgerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminManualMigrationLedger
+     */
+    omit?: AdminManualMigrationLedgerOmit<ExtArgs> | null
+    /**
+     * The filter to search for the AdminManualMigrationLedger to update in case it exists.
+     */
+    where: AdminManualMigrationLedgerWhereUniqueInput
+    /**
+     * In case the AdminManualMigrationLedger found by the `where` argument doesn't exist, create a new AdminManualMigrationLedger with this data.
+     */
+    create: XOR<AdminManualMigrationLedgerCreateInput, AdminManualMigrationLedgerUncheckedCreateInput>
+    /**
+     * In case the AdminManualMigrationLedger was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AdminManualMigrationLedgerUpdateInput, AdminManualMigrationLedgerUncheckedUpdateInput>
+  }
+
+  /**
+   * AdminManualMigrationLedger delete
+   */
+  export type AdminManualMigrationLedgerDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminManualMigrationLedger
+     */
+    select?: AdminManualMigrationLedgerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminManualMigrationLedger
+     */
+    omit?: AdminManualMigrationLedgerOmit<ExtArgs> | null
+    /**
+     * Filter which AdminManualMigrationLedger to delete.
+     */
+    where: AdminManualMigrationLedgerWhereUniqueInput
+  }
+
+  /**
+   * AdminManualMigrationLedger deleteMany
+   */
+  export type AdminManualMigrationLedgerDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminManualMigrationLedgers to delete
+     */
+    where?: AdminManualMigrationLedgerWhereInput
+    /**
+     * Limit how many AdminManualMigrationLedgers to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminManualMigrationLedger without action
+   */
+  export type AdminManualMigrationLedgerDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminManualMigrationLedger
+     */
+    select?: AdminManualMigrationLedgerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminManualMigrationLedger
+     */
+    omit?: AdminManualMigrationLedgerOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Model RefreshToken
    */
 
@@ -106252,6 +107317,15 @@ export namespace Prisma {
   export type SocialOperationsSettingScalarFieldEnum = (typeof SocialOperationsSettingScalarFieldEnum)[keyof typeof SocialOperationsSettingScalarFieldEnum]
 
 
+  export const AdminManualMigrationLedgerScalarFieldEnum: {
+    file: 'file',
+    sha256: 'sha256',
+    appliedAt: 'appliedAt'
+  };
+
+  export type AdminManualMigrationLedgerScalarFieldEnum = (typeof AdminManualMigrationLedgerScalarFieldEnum)[keyof typeof AdminManualMigrationLedgerScalarFieldEnum]
+
+
   export const RefreshTokenScalarFieldEnum: {
     id: 'id',
     token: 'token',
@@ -112933,6 +114007,48 @@ export namespace Prisma {
     valueJson?: JsonWithAggregatesFilter<"SocialOperationsSetting">
     updatedById?: StringWithAggregatesFilter<"SocialOperationsSetting"> | string
     updatedAt?: DateTimeWithAggregatesFilter<"SocialOperationsSetting"> | Date | string
+  }
+
+  export type AdminManualMigrationLedgerWhereInput = {
+    AND?: AdminManualMigrationLedgerWhereInput | AdminManualMigrationLedgerWhereInput[]
+    OR?: AdminManualMigrationLedgerWhereInput[]
+    NOT?: AdminManualMigrationLedgerWhereInput | AdminManualMigrationLedgerWhereInput[]
+    file?: StringFilter<"AdminManualMigrationLedger"> | string
+    sha256?: StringFilter<"AdminManualMigrationLedger"> | string
+    appliedAt?: DateTimeFilter<"AdminManualMigrationLedger"> | Date | string
+  }
+
+  export type AdminManualMigrationLedgerOrderByWithRelationInput = {
+    file?: SortOrder
+    sha256?: SortOrder
+    appliedAt?: SortOrder
+  }
+
+  export type AdminManualMigrationLedgerWhereUniqueInput = Prisma.AtLeast<{
+    file?: string
+    AND?: AdminManualMigrationLedgerWhereInput | AdminManualMigrationLedgerWhereInput[]
+    OR?: AdminManualMigrationLedgerWhereInput[]
+    NOT?: AdminManualMigrationLedgerWhereInput | AdminManualMigrationLedgerWhereInput[]
+    sha256?: StringFilter<"AdminManualMigrationLedger"> | string
+    appliedAt?: DateTimeFilter<"AdminManualMigrationLedger"> | Date | string
+  }, "file">
+
+  export type AdminManualMigrationLedgerOrderByWithAggregationInput = {
+    file?: SortOrder
+    sha256?: SortOrder
+    appliedAt?: SortOrder
+    _count?: AdminManualMigrationLedgerCountOrderByAggregateInput
+    _max?: AdminManualMigrationLedgerMaxOrderByAggregateInput
+    _min?: AdminManualMigrationLedgerMinOrderByAggregateInput
+  }
+
+  export type AdminManualMigrationLedgerScalarWhereWithAggregatesInput = {
+    AND?: AdminManualMigrationLedgerScalarWhereWithAggregatesInput | AdminManualMigrationLedgerScalarWhereWithAggregatesInput[]
+    OR?: AdminManualMigrationLedgerScalarWhereWithAggregatesInput[]
+    NOT?: AdminManualMigrationLedgerScalarWhereWithAggregatesInput | AdminManualMigrationLedgerScalarWhereWithAggregatesInput[]
+    file?: StringWithAggregatesFilter<"AdminManualMigrationLedger"> | string
+    sha256?: StringWithAggregatesFilter<"AdminManualMigrationLedger"> | string
+    appliedAt?: DateTimeWithAggregatesFilter<"AdminManualMigrationLedger"> | Date | string
   }
 
   export type RefreshTokenWhereInput = {
@@ -121203,6 +122319,48 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type AdminManualMigrationLedgerCreateInput = {
+    file: string
+    sha256: string
+    appliedAt?: Date | string
+  }
+
+  export type AdminManualMigrationLedgerUncheckedCreateInput = {
+    file: string
+    sha256: string
+    appliedAt?: Date | string
+  }
+
+  export type AdminManualMigrationLedgerUpdateInput = {
+    file?: StringFieldUpdateOperationsInput | string
+    sha256?: StringFieldUpdateOperationsInput | string
+    appliedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdminManualMigrationLedgerUncheckedUpdateInput = {
+    file?: StringFieldUpdateOperationsInput | string
+    sha256?: StringFieldUpdateOperationsInput | string
+    appliedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdminManualMigrationLedgerCreateManyInput = {
+    file: string
+    sha256: string
+    appliedAt?: Date | string
+  }
+
+  export type AdminManualMigrationLedgerUpdateManyMutationInput = {
+    file?: StringFieldUpdateOperationsInput | string
+    sha256?: StringFieldUpdateOperationsInput | string
+    appliedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdminManualMigrationLedgerUncheckedUpdateManyInput = {
+    file?: StringFieldUpdateOperationsInput | string
+    sha256?: StringFieldUpdateOperationsInput | string
+    appliedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type RefreshTokenCreateInput = {
     id?: string
     token: string
@@ -128190,6 +129348,24 @@ export namespace Prisma {
     key?: SortOrder
     updatedById?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type AdminManualMigrationLedgerCountOrderByAggregateInput = {
+    file?: SortOrder
+    sha256?: SortOrder
+    appliedAt?: SortOrder
+  }
+
+  export type AdminManualMigrationLedgerMaxOrderByAggregateInput = {
+    file?: SortOrder
+    sha256?: SortOrder
+    appliedAt?: SortOrder
+  }
+
+  export type AdminManualMigrationLedgerMinOrderByAggregateInput = {
+    file?: SortOrder
+    sha256?: SortOrder
+    appliedAt?: SortOrder
   }
 
   export type RefreshTokenCountOrderByAggregateInput = {

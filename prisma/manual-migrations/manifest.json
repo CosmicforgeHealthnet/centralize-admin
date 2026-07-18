@@ -60,11 +60,16 @@
     },
     {
       "order": 12,
+      "file": "20260718_ensure_social_operations_partial_indexes.sql",
+      "sha256": "553c68cdfc5eff9da390c2c9f70dbe3269de486409899f528edbe2fb8e1d3000"
+    },
+    {
+      "order": 13,
       "file": "20260719_finalize_marketing_intelligence_connections.sql",
       "sha256": "684400384132123f358a5e56b9f0d1769baebbb1bcbc817497e2ab3fd2f8ff8a"
     },
     {
-      "order": 13,
+      "order": 14,
       "file": "20260720_fix_marketing_intelligence_currency_width.sql",
       "sha256": "776118f4a70a6958ff7caf24e15fa11d5f229789903a084b02dff1fe47338d7e"
     }

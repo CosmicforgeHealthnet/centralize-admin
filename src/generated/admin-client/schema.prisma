@@ -1705,6 +1705,14 @@ model SocialOperationsSetting {
   @@map("social_operations_settings")
 }
 
+model AdminManualMigrationLedger {
+  file      String   @id
+  sha256    String
+  appliedAt DateTime @default(now()) @map("applied_at") @db.Timestamptz(6)
+
+  @@map("social_manual_migrations")
+}
+
 // -----------------------------------------------------------------------------
 // AUTH
 
@@ -1929,7 +1937,7 @@ model Task {
   assignerId   String
   assigner     AdminUser  @relation("TaskAssigner", fields: [assignerId], references: [id])
   assigneeId   String?
-  assignee     AdminUser? @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  assignee     AdminUser? @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: Restrict)
   status       TaskStatus @default(IN_PROGRESS)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt

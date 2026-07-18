@@ -112,6 +112,15 @@ Migration manifest CI follow-up:
 - Regression tests cover LF, CRLF, BOM, final newline behavior, path separator normalization, deterministic ordering, missing/extra/duplicate entries, invalid checksum format, generation idempotency, and the previously failing migrations.
 - This local correction still requires a new follow-up commit and a remote GitHub Actions rerun before claiming GitHub CI has passed.
 
+Same Admin database CI follow-up:
+
+- Social Operations CI now uses the PostgreSQL service database named `cosmicforge_admin` as the CI instance of the project Admin database.
+- CI no longer calls the disposable replay-database command or creates `cosmicforge_social_replay_*`.
+- Prisma `db push` still runs against `cosmicforge_admin`, then `npm run db:admin:prepare` applies the approved PostgreSQL-only partial-index artifact to the same database before strict schema assertions.
+- Admin database preparation validates the target without printing credentials, verifies the manifest, acquires an advisory lock, checks duplicate data safely, records the canonical checksum in `social_manual_migrations`, and is idempotent on repeat runs.
+- Schema assertions remain strict and validate the required partial unique indexes through PostgreSQL catalogs, including schema, table, uniqueness, readiness, validity, columns, and predicate.
+- Staging must follow the same Admin-database preparation sequence after backup and before starting application or worker processes.
+
 External status still pending:
 
 - Real provider dashboard access.

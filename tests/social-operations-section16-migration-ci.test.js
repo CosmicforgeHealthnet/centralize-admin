@@ -26,7 +26,7 @@ function nodeScript(script) {
 test("manual migration manifest protects order and checksums", () => {
   const result = verifyMigrationManifest();
   assert.equal(result.failures.length, 0);
-  assert.equal(result.count, 13);
+  assert.equal(result.count, 14);
   assert.equal(
     result.manifest.migrations.some(
       (entry) => entry.file === "20260716_add_social_operations_section_5.sql",
@@ -57,13 +57,26 @@ test("migration safety and static Social Operations checks pass", () => {
   );
 });
 
-test("CI uses ephemeral PostgreSQL, migration replay, static checks, and disabled live providers", () => {
+test("CI uses the Admin database, prepares PostgreSQL artifacts before assertions, and keeps live providers disabled", () => {
   const source = fs.readFileSync(
     path.join(ROOT, ".github", "workflows", "social-operations-ci.yml"),
     "utf8",
   );
   assert.match(source, /postgres:16/);
-  assert.match(source, /npm run db:replay:ci/);
+  assert.match(source, /POSTGRES_DB:\s*cosmicforge_admin/);
+  assert.match(source, /DATABASE_URL:\s*postgresql:\/\/postgres:postgres@localhost:5432\/cosmicforge_admin\b/);
+  assert.match(source, /npm run db:admin:guard/);
+  assert.match(source, /npx prisma db push --schema prisma\/schema\.prisma/);
+  assert.match(source, /npm run db:admin:prepare/);
+  assert.match(source, /npm run db:schema:assert/);
+  assert.ok(source.indexOf("npm run db:admin:prepare") < source.indexOf("npm run db:schema:assert"));
+  assert.doesNotMatch(source, /db:replay:ci/);
+  assert.doesNotMatch(source, /cosmicforge_social_replay_/);
+  assert.doesNotMatch(source, /\bCREATE\s+DATABASE\b/i);
+  assert.doesNotMatch(source, /\bDROP\s+DATABASE\b/i);
+  assert.doesNotMatch(source, /\bcreatedb\b/i);
+  assert.doesNotMatch(source, /\bdropdb\b/i);
+  assert.doesNotMatch(source, /db:manifest:generate/);
   assert.match(source, /npm run security:static-social/);
   assert.match(source, /npm run security:network-guard-static/);
   assert.match(source, /npm run test:network-guard/);

@@ -965,6 +965,12 @@ exports.Prisma.SocialOperationsSettingScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.AdminManualMigrationLedgerScalarFieldEnum = {
+  file: 'file',
+  sha256: 'sha256',
+  appliedAt: 'appliedAt'
+};
+
 exports.Prisma.RefreshTokenScalarFieldEnum = {
   id: 'id',
   token: 'token',
@@ -1798,6 +1804,7 @@ exports.Prisma.ModelName = {
   SocialInternalNote: 'SocialInternalNote',
   SocialSavedReply: 'SocialSavedReply',
   SocialOperationsSetting: 'SocialOperationsSetting',
+  AdminManualMigrationLedger: 'AdminManualMigrationLedger',
   RefreshToken: 'RefreshToken',
   AuditLog: 'AuditLog',
   AdminSectionGrant: 'AdminSectionGrant',

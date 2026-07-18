@@ -35,13 +35,18 @@ No controlled staging deployment was executed because staging domain, staging da
 
 Do not run until staging access exists:
 
-1. Confirm staging database name and host.
-2. Confirm host is not localhost and database is not local `cosmicforge_admin`.
-3. Create staging database backup.
-4. Review migrations.
-5. Apply migrations in order through the repository-approved migration runner.
-6. Regenerate Prisma client during build.
-7. Verify required tables and indexes.
-8. Verify webhook partial indexes directly in PostgreSQL.
-9. Verify Task assignee nullability.
-10. Verify legacy-source partial index.
+1. Validate the staging Admin database target and confirm it is not production.
+2. Back up the staging Admin database according to operations policy.
+3. Review Prisma schema changes and manual migration manifest checksums.
+4. Regenerate Prisma client during build.
+5. Apply Prisma schema changes to the staging Admin database.
+6. Run the same Admin-database PostgreSQL artifact preparation step used by CI.
+7. Confirm the preparation advisory lock completed and `social_manual_migrations` recorded the applied artifact checksum.
+8. Verify duplicate-data prechecks did not block partial unique index creation.
+9. Run strict schema assertions.
+10. Verify webhook partial indexes directly in PostgreSQL.
+11. Verify Task assignee nullability.
+12. Verify legacy-source partial index.
+13. Start application and worker processes only after database validation passes.
+
+Do not activate Phase D, live inbox, live providers, live Cloudinary, or Social workers requiring provider credentials during migration validation.

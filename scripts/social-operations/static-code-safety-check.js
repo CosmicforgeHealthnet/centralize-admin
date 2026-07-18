@@ -40,7 +40,22 @@ function main() {
   checks.push("production-release-governance");
 
   assert(/postgres:16/.test(socialCi), "CI_POSTGRES_SERVICE_MISSING");
-  assert(/db:replay:ci/.test(socialCi), "CI_MIGRATION_REPLAY_MISSING");
+  assert(/POSTGRES_DB:\s*cosmicforge_admin/.test(socialCi), "CI_ADMIN_DATABASE_NAME_MISSING");
+  assert(/DATABASE_URL:\s*postgresql:\/\/postgres:postgres@localhost:5432\/cosmicforge_admin\b/.test(socialCi), "CI_ADMIN_DATABASE_URL_MISSING");
+  assert(/db:admin:guard/.test(socialCi), "CI_ADMIN_DATABASE_GUARD_MISSING");
+  assert(/npx prisma db push --schema prisma\/schema\.prisma/.test(socialCi), "CI_PRISMA_PUSH_MISSING");
+  assert(/db:admin:prepare/.test(socialCi), "CI_ADMIN_DATABASE_PREPARE_MISSING");
+  assert(!/db:replay:ci/.test(socialCi), "CI_REPLAY_DATABASE_COMMAND_FOUND");
+  assert(!/cosmicforge_social_replay_/.test(socialCi), "CI_REPLAY_DATABASE_NAME_FOUND");
+  assert(!/\bCREATE\s+DATABASE\b/i.test(socialCi), "CI_CREATE_DATABASE_FOUND");
+  assert(!/\bDROP\s+DATABASE\b/i.test(socialCi), "CI_DROP_DATABASE_FOUND");
+  assert(!/\bcreatedb\b/i.test(socialCi), "CI_CREATEDB_FOUND");
+  assert(!/\bdropdb\b/i.test(socialCi), "CI_DROPDB_FOUND");
+  assert(
+    socialCi.indexOf("npm run db:admin:prepare") < socialCi.indexOf("npm run db:schema:assert"),
+    "CI_ASSERTION_BEFORE_ADMIN_PREPARE",
+  );
+  assert(!/db:manifest:generate/.test(socialCi), "CI_MANIFEST_GENERATION_FOUND");
   assert(/SOCIAL_WORKERS_ENABLED:\s*"false"/.test(socialCi), "CI_WORKERS_NOT_DISABLED");
   assert(/META_SOCIAL_ENABLED:\s*"false"/.test(socialCi), "CI_LIVE_PROVIDERS_NOT_DISABLED");
   checks.push("ci-database-and-network-guard");

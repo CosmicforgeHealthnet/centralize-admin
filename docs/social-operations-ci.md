@@ -4,7 +4,7 @@ Workflow:
 
 `.github/workflows/social-operations-ci.yml`
 
-The validation workflow uses PostgreSQL 16 as an ephemeral CI service and disables workers, Phase D, live inbox, and all live provider flags.
+The validation workflow uses one PostgreSQL 16 service as the CI instance of the project Admin database. The service database is named `cosmicforge_admin`, uses the `public` schema, and disables workers, Phase D, live inbox, and all live provider flags.
 
 CI checks:
 
@@ -14,7 +14,9 @@ CI checks:
 - `npm run config:validate:staging`
 - `npm run config:validate:production`
 - `npm run db:manifest:verify`
-- `npm run db:replay:ci`
+- `npm run db:admin:guard`
+- `npx prisma db push --schema prisma/schema.prisma`
+- `npm run db:admin:prepare`
 - `npm run db:schema:assert`
 - `npm run migrations:safety`
 - `npm run security:secret-scan`
@@ -33,6 +35,15 @@ Migration manifest policy:
 - CI does not run `npm run db:manifest:generate`.
 - Manifest checksums are canonicalized as UTF-8 text with no BOM, LF line endings, and exactly one final newline.
 - This prevents Windows CRLF checkouts and Linux LF checkouts from producing different checksums while still detecting meaningful SQL text changes.
+
+Admin database preparation:
+
+- Prisma `db push` creates the Prisma-representable schema but does not create PostgreSQL partial indexes.
+- CI therefore runs `npm run db:admin:prepare` after `prisma db push` and before `npm run db:schema:assert`.
+- The preparation command validates that `DATABASE_URL` targets `cosmicforge_admin` on an approved local CI host and confirms `current_database()` and `current_schema()` without printing credentials.
+- It verifies the migration manifest, takes a PostgreSQL advisory lock, checks for duplicate rows covered by the required partial unique indexes, applies the approved PostgreSQL-only corrective artifact, and records it in `public.social_manual_migrations`.
+- Re-running the command is idempotent: an already recorded artifact must have the same canonical checksum and the required indexes must still match the strict catalog assertions.
+- CI does not create `cosmicforge_social_replay_*` or any other second database.
 
 Runtime network protection:
 

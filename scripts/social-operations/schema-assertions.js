@@ -1,5 +1,10 @@
 require("dotenv").config();
 const { Client } = require("pg");
+const {
+  validateAdminDatabaseTarget,
+  verifyConnectedDatabaseTarget,
+  formatTargetSummary,
+} = require("./admin-database-target");
 
 const SOCIAL_TABLES = [
   "social_account_connections",
@@ -35,11 +40,30 @@ const SOCIAL_TABLES = [
   "social_operations_settings",
 ];
 
-const REQUIRED_INDEXES = {
-  social_webhook_subscription_connection_event_unique: "identity_id IS NULL",
-  social_webhook_subscription_identity_event_unique: "identity_id IS NOT NULL",
-  social_posts_legacy_source_id_unique: "legacy_source_id IS NOT NULL",
+const REQUIRED_PARTIAL_INDEXES = {
+  social_webhook_subscription_connection_event_unique: {
+    schema: "public",
+    table: "social_webhook_subscriptions",
+    columns: ["connection_id", "event_type"],
+    predicate: "identity_id IS NULL",
+  },
+  social_webhook_subscription_identity_event_unique: {
+    schema: "public",
+    table: "social_webhook_subscriptions",
+    columns: ["connection_id", "identity_id", "event_type"],
+    predicate: "identity_id IS NOT NULL",
+  },
+  social_posts_legacy_source_id_unique: {
+    schema: "public",
+    table: "social_posts",
+    columns: ["legacy_source_id"],
+    predicate: "legacy_source_id IS NOT NULL",
+  },
 };
+
+const REQUIRED_INDEXES = Object.fromEntries(
+  Object.entries(REQUIRED_PARTIAL_INDEXES).map(([name, spec]) => [name, spec.predicate]),
+);
 
 function normalizePredicate(text) {
   return String(text || "")
@@ -49,17 +73,116 @@ function normalizePredicate(text) {
     .toLowerCase();
 }
 
+function normalizeColumn(text) {
+  return String(text || "")
+    .replace(/"/g, "")
+    .trim()
+    .toLowerCase();
+}
+
+function compareArrays(actual, expected) {
+  return actual.length === expected.length && actual.every((value, index) => value === expected[index]);
+}
+
+async function loadPartialIndexCatalog(client, indexNames = Object.keys(REQUIRED_PARTIAL_INDEXES)) {
+  const result = await client.query(
+    `
+    SELECT
+      n.nspname AS "schemaName",
+      i.relname AS "indexName",
+      t.relname AS "tableName",
+      ix.indisunique AS "isUnique",
+      ix.indisvalid AS "isValid",
+      ix.indisready AS "isReady",
+      pg_get_indexdef(ix.indexrelid) AS "indexDef",
+      pg_get_expr(ix.indpred, ix.indrelid) AS "predicate",
+      ARRAY(
+        SELECT pg_get_indexdef(ix.indexrelid, key_position, true)
+        FROM generate_series(1, ix.indnkeyatts) AS key_position
+        ORDER BY key_position
+      ) AS "columns"
+    FROM pg_index ix
+    JOIN pg_class i ON i.oid = ix.indexrelid
+    JOIN pg_class t ON t.oid = ix.indrelid
+    JOIN pg_namespace n ON n.oid = i.relnamespace
+    WHERE i.relname = ANY($1)
+    ORDER BY i.relname
+    `,
+    [indexNames],
+  );
+  return new Map(result.rows.map((row) => [row.indexName, row]));
+}
+
+function validatePartialIndexDefinition(name, row, spec = REQUIRED_PARTIAL_INDEXES[name]) {
+  if (!row) return { present: false, status: "MISSING", predicateMatched: false };
+  if (row.schemaName !== spec.schema) return { present: true, status: "WRONG_SCHEMA", row };
+  if (row.tableName !== spec.table) return { present: true, status: "WRONG_TABLE", row };
+  if (row.isUnique !== true) return { present: true, status: "NOT_UNIQUE", row };
+  if (row.isValid !== true) return { present: true, status: "INVALID", row };
+  if (row.isReady !== true) return { present: true, status: "NOT_READY", row };
+  const actualColumns = (row.columns || []).map(normalizeColumn);
+  const expectedColumns = spec.columns.map(normalizeColumn);
+  if (!compareArrays(actualColumns, expectedColumns)) {
+    return {
+      present: true,
+      status: "WRONG_COLUMNS",
+      row,
+      actualColumns,
+      expectedColumns,
+    };
+  }
+  const predicateMatched = normalizePredicate(row.predicate) === normalizePredicate(spec.predicate);
+  if (!predicateMatched) {
+    return {
+      present: true,
+      status: "WRONG_PREDICATE",
+      row,
+      predicateMatched,
+      actualPredicate: row.predicate,
+      expectedPredicate: spec.predicate,
+    };
+  }
+  return {
+    present: true,
+    status: "OK",
+    predicateMatched: true,
+    row,
+    schema: row.schemaName,
+    table: row.tableName,
+    columns: actualColumns,
+    predicate: row.predicate,
+    definition: row.indexDef,
+    unique: row.isUnique,
+    valid: row.isValid,
+    ready: row.isReady,
+  };
+}
+
+async function inspectRequiredPartialIndexes(client) {
+  const catalog = await loadPartialIndexCatalog(client);
+  return Object.fromEntries(
+    Object.entries(REQUIRED_PARTIAL_INDEXES).map(([name, spec]) => [
+      name,
+      validatePartialIndexDefinition(name, catalog.get(name), spec),
+    ]),
+  );
+}
+
 async function runSchemaAssertions({ connectionString = process.env.DATABASE_URL } = {}) {
   if (!connectionString) throw new Error("DATABASE_URL is required for schema assertions");
+  const target = validateAdminDatabaseTarget({ connectionString });
   const client = new Client({ connectionString });
   await client.connect();
   const results = {
+    databaseTarget: target,
+    connectedTarget: null,
     socialTables: null,
     partialIndexes: {},
     taskAssigneeNullable: null,
     foreignKeyTypes: {},
   };
   try {
+    results.connectedTarget = await verifyConnectedDatabaseTarget(client, target);
     const tableRows = await client.query(
       `
       SELECT table_name
@@ -77,23 +200,7 @@ async function runSchemaAssertions({ connectionString = process.env.DATABASE_URL
       missing,
     };
 
-    const indexRows = await client.query(
-      `
-      SELECT indexname, indexdef
-      FROM pg_indexes
-      WHERE schemaname = 'public'
-        AND indexname = ANY($1)
-      `,
-      [Object.keys(REQUIRED_INDEXES)],
-    );
-    const indexes = new Map(indexRows.rows.map((row) => [row.indexname, row.indexdef]));
-    for (const [name, expectedPredicate] of Object.entries(REQUIRED_INDEXES)) {
-      const indexdef = indexes.get(name) || "";
-      results.partialIndexes[name] = {
-        present: Boolean(indexdef),
-        predicateMatched: normalizePredicate(indexdef).includes(normalizePredicate(expectedPredicate)),
-      };
-    }
+    results.partialIndexes = await inspectRequiredPartialIndexes(client);
 
     const taskColumn = await client.query(
       `
@@ -160,7 +267,7 @@ async function runSchemaAssertions({ connectionString = process.env.DATABASE_URL
     failures.push(`missing social tables: ${results.socialTables.missing.join(",")}`);
   }
   for (const [name, index] of Object.entries(results.partialIndexes)) {
-    if (!index.present || !index.predicateMatched) failures.push(`partial index invalid: ${name}`);
+    if (index.status !== "OK") failures.push(`partial index invalid: ${name}:${index.status}`);
   }
   if (!results.taskAssigneeNullable) failures.push("tasks.assigneeId is not nullable");
   for (const group of Object.values(results.foreignKeyTypes)) {
@@ -180,6 +287,7 @@ async function runSchemaAssertions({ connectionString = process.env.DATABASE_URL
 async function main() {
   try {
     const results = await runSchemaAssertions();
+    console.log(`db-schema-assert target ${formatTargetSummary(results.databaseTarget)}`);
     console.log(
       `db-schema-assert social_tables=${results.socialTables.present}/${results.socialTables.expected} partial_indexes=ok task_assignee_nullable=${results.taskAssigneeNullable}`,
     );
@@ -197,5 +305,11 @@ if (require.main === module) {
 module.exports = {
   SOCIAL_TABLES,
   REQUIRED_INDEXES,
+  REQUIRED_PARTIAL_INDEXES,
+  normalizePredicate,
+  normalizeColumn,
+  loadPartialIndexCatalog,
+  validatePartialIndexDefinition,
+  inspectRequiredPartialIndexes,
   runSchemaAssertions,
 };

@@ -75,12 +75,17 @@ jobs:
       - name: Verify migration manifest
         run: npm run db:manifest:verify
 
-      - name: Replay schema and manual migrations in fresh PostgreSQL
-        run: npm run db:replay:ci
+      - name: Verify Admin database target
+        run: npm run db:admin:guard
+
+      - name: Push Prisma schema to Admin database
+        run: npx prisma db push --schema prisma/schema.prisma
+
+      - name: Apply Admin database PostgreSQL-only artifacts
+        run: npm run db:admin:prepare
 
       - name: Assert PostgreSQL Social Operations schema
         run: |
-          npx prisma db push --schema prisma/schema.prisma
           npm run db:schema:assert
 
       - name: Migration safety check
