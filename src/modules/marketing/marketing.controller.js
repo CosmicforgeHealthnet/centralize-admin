@@ -324,7 +324,7 @@ const createSocialPost = asyncHandler(async (req, res) => {
   const data = await marketingService.createSocialPost(body);
 
   return res.status(201).json({
-    message: "Post sent successfully",
+    message: "Post saved as draft; provider publication requires Social Operations",
     data,
   });
 });
@@ -364,7 +364,7 @@ const createSocialSchedule = asyncHandler(async (req, res) => {
   const data = await marketingService.createSocialSchedule(body);
 
   return res.status(201).json({
-    message: "Post scheduled successfully",
+    message: "Post saved as draft; scheduling requires Social Operations worker acceptance",
     data,
   });
 });

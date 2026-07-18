@@ -3,6 +3,11 @@ const { Readable } = require("stream");
 const cloudinary = require("../../shared/config/cloudinary");
 const { prisma: adminPrisma } = require("../../shared/config/database");
 const ApiError = require("../../shared/utils/ApiError");
+const {
+  assertLegacySocialReadAllowed,
+  assertLegacySocialWriteAllowed,
+  getLegacySocialCompatibilityPolicy,
+} = require("./legacy-social-transition.policy");
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -91,6 +96,14 @@ function safeObject(value, fallback = {}) {
   }
 
   return fallback;
+}
+
+function assertLegacySocialRead() {
+  assertLegacySocialReadAllowed(getLegacySocialCompatibilityPolicy());
+}
+
+function assertLegacySocialWrite() {
+  assertLegacySocialWriteAllowed(getLegacySocialCompatibilityPolicy());
 }
 
 function formatDateTimeYYYYMMDDHHMM(date) {
@@ -1664,6 +1677,7 @@ async function getSocialOverview() {
 }
 
 async function listSocialAccounts() {
+  assertLegacySocialRead();
   const accounts = await adminPrisma.marketing_social_accounts.findMany({
     orderBy: [{ createdAt: "desc" }],
     select: {
@@ -1678,9 +1692,10 @@ async function listSocialAccounts() {
 }
 
 async function createSocialAccount(data) {
-  const encryptedPassword = data.saveCredentials
-    ? encryptSocialCredential(data.password)
-    : null;
+  assertLegacySocialWrite();
+  // Legacy username/password provider credentials are no longer persisted.
+  // Social Operations connections require a fresh OAuth authorization.
+  const encryptedPassword = null;
 
   const existing = await adminPrisma.marketing_social_accounts.findFirst({
     where: {
@@ -1696,7 +1711,7 @@ async function createSocialAccount(data) {
         data: {
           connected: true,
           encryptedPassword,
-          credentialsSaved: Boolean(data.saveCredentials),
+          credentialsSaved: false,
         },
         select: { id: true, platform: true },
       })
@@ -1706,7 +1721,7 @@ async function createSocialAccount(data) {
           username: data.username,
           connected: true,
           encryptedPassword,
-          credentialsSaved: Boolean(data.saveCredentials),
+          credentialsSaved: false,
         },
         select: { id: true, platform: true },
       });
@@ -1715,6 +1730,7 @@ async function createSocialAccount(data) {
 }
 
 async function deleteSocialAccount(id) {
+  assertLegacySocialWrite();
   const accountId = assertUuid(id, "social account id");
   const account = await adminPrisma.marketing_social_accounts.findUnique({
     where: { id: accountId },
@@ -1727,6 +1743,7 @@ async function deleteSocialAccount(id) {
 }
 
 async function listSocialPosts(query) {
+  assertLegacySocialRead();
   const where = { status: { not: "Deleted" } };
   if (query.platform && query.platform !== "All") where.platform = query.platform;
 
@@ -1741,6 +1758,7 @@ async function listSocialPosts(query) {
 }
 
 async function createSocialPost(data) {
+  assertLegacySocialWrite();
   const post = await adminPrisma.marketing_social_posts.create({
     data: {
       platform: data.platform,
@@ -1751,8 +1769,8 @@ async function createSocialPost(data) {
       attachmentUrls: data.attachmentUrl ? [data.attachmentUrl] : [],
       thumbnailUrl: data.attachmentUrl || null,
       imageUrl: data.attachmentUrl || null,
-      postedAt: new Date(),
-      status: "Published",
+      postedAt: null,
+      status: "Draft",
     },
     select: {
       id: true,
@@ -1764,6 +1782,7 @@ async function createSocialPost(data) {
 }
 
 async function getSocialPost(id) {
+  assertLegacySocialRead();
   const postId = assertUuid(id, "social post id");
   const post = await adminPrisma.marketing_social_posts.findFirst({
     where: {
@@ -1778,6 +1797,7 @@ async function getSocialPost(id) {
 }
 
 async function updateSocialPost(id, data) {
+  assertLegacySocialWrite();
   const postId = assertUuid(id, "social post id");
   const post = await adminPrisma.marketing_social_posts.findUnique({
     where: { id: postId },
@@ -1817,6 +1837,7 @@ async function updateSocialPost(id, data) {
 }
 
 async function deleteSocialPost(id) {
+  assertLegacySocialWrite();
   const postId = assertUuid(id, "social post id");
   const post = await adminPrisma.marketing_social_posts.findUnique({
     where: { id: postId },
@@ -1832,6 +1853,7 @@ async function deleteSocialPost(id) {
 }
 
 async function getSocialSchedule(query) {
+  assertLegacySocialRead();
   const scheduledFor = getScheduledRange(query);
   const where = {
     status: "Scheduled",
@@ -1882,6 +1904,7 @@ async function getSocialSchedule(query) {
 }
 
 async function createSocialSchedule(data) {
+  assertLegacySocialWrite();
   const scheduledFor = parseDateTime(data.scheduledFor);
   const post = await adminPrisma.marketing_social_posts.create({
     data: {
@@ -1894,7 +1917,7 @@ async function createSocialSchedule(data) {
       thumbnailUrl: data.attachmentUrls[0] || null,
       imageUrl: data.attachmentUrls[0] || null,
       scheduledFor,
-      status: "Scheduled",
+      status: "Draft",
     },
     select: { id: true },
   });

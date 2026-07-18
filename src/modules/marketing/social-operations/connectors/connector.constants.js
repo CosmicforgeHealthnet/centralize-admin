@@ -1,0 +1,135 @@
+const SOCIAL_PROVIDERS = Object.freeze(["META", "TIKTOK", "X", "LINKEDIN"]);
+
+const CONNECTOR_METHODS = Object.freeze([
+  "discoverIdentities",
+  "getCapabilities",
+  "validatePost",
+  "uploadMedia",
+  "publishPost",
+  "getPublishStatus",
+  "updatePost",
+  "deletePost",
+  "listComments",
+  "replyToComment",
+  "moderateComment",
+  "listConversations",
+  "sendMessage",
+  "listContent",
+  "getContent",
+  "listContentMetrics",
+  "verifyWebhook",
+  "normalizeWebhookEvent",
+]);
+
+const CONNECTOR_PUBLIC_KEYS = Object.freeze(["platform", ...CONNECTOR_METHODS]);
+
+const CAPABILITY_STATUS = Object.freeze({
+  AVAILABLE: "AVAILABLE",
+  READ_ONLY: "READ_ONLY",
+  REQUIRES_REAUTHORIZATION: "REQUIRES_REAUTHORIZATION",
+  REQUIRES_PLATFORM_APPROVAL: "REQUIRES_PLATFORM_APPROVAL",
+  RATE_LIMITED: "RATE_LIMITED",
+  NATIVE_ONLY: "NATIVE_ONLY",
+  UNSUPPORTED_ACCOUNT_TYPE: "UNSUPPORTED_ACCOUNT_TYPE",
+  DISABLED_BY_POLICY: "DISABLED_BY_POLICY",
+});
+
+const CAPABILITY_STATUS_VALUES = Object.freeze(Object.values(CAPABILITY_STATUS));
+
+const PROVIDER_BACKED_OPERATIONS = Object.freeze([
+  "discoverIdentities",
+  "validatePost",
+  "uploadMedia",
+  "publishPost",
+  "getPublishStatus",
+  "updatePost",
+  "deletePost",
+  "listComments",
+  "replyToComment",
+  "moderateComment",
+  "listConversations",
+  "sendMessage",
+  "listContent",
+  "getContent",
+  "listContentMetrics",
+  "verifyWebhook",
+  "normalizeWebhookEvent",
+]);
+
+const PROVIDER_WRITE_OPERATIONS = Object.freeze([
+  "uploadMedia",
+  "publishPost",
+  "updatePost",
+  "deletePost",
+  "replyToComment",
+  "moderateComment",
+  "sendMessage",
+]);
+
+const SOCIAL_PUBLICATION_STATUSES = Object.freeze([
+  "PENDING",
+  "VALIDATING",
+  "UPLOADING",
+  "PROCESSING",
+  "PUBLISHING",
+  "AWAITING_USER_ACTION",
+  "PUBLISHED",
+  "FAILED_RETRYABLE",
+  "FAILED_PERMANENT",
+  "CANCELLED",
+  "DELETED",
+]);
+
+const SOCIAL_POSTING_MODES = Object.freeze(["DIRECT_POST", "UPLOAD_TO_DRAFT"]);
+
+const SOCIAL_PROVIDER_CONTENT_TYPES = Object.freeze([
+  "TEXT",
+  "IMAGE",
+  "VIDEO",
+  "CAROUSEL",
+  "REEL",
+  "STORY",
+  "LINK",
+  "DOCUMENT",
+  "OTHER",
+]);
+
+const WEBHOOK_EVENT_KINDS = Object.freeze([
+  "MESSAGE",
+  "COMMENT",
+  "REACTION",
+  "MENTION",
+  "PUBLICATION_STATUS",
+  "CONNECTION",
+]);
+
+const REASON_CODES = Object.freeze({
+  PROVIDER_RUNTIME_NOT_ENABLED: "PROVIDER_RUNTIME_NOT_ENABLED",
+  PROVIDER_API_NOT_AVAILABLE: "PROVIDER_API_NOT_AVAILABLE",
+  PROVIDER_PRODUCT_APPROVAL_REQUIRED: "PROVIDER_PRODUCT_APPROVAL_REQUIRED",
+  AUTHORIZATION_INCOMPLETE: "AUTHORIZATION_INCOMPLETE",
+  CONNECTION_DISABLED: "CONNECTION_DISABLED",
+  CONNECTION_ERROR: "CONNECTION_ERROR",
+  CREDENTIAL_REAUTHORIZATION_REQUIRED: "CREDENTIAL_REAUTHORIZATION_REQUIRED",
+  UNSUPPORTED_ACCOUNT_TYPE: "UNSUPPORTED_ACCOUNT_TYPE",
+  CUSTOMER_INITIATED_WINDOW_REQUIRED: "CUSTOMER_INITIATED_WINDOW_REQUIRED",
+  X_PAID_ACCESS_REQUIRED: "X_PAID_ACCESS_REQUIRED",
+  LINKEDIN_MEMBER_PUBLISHING_DEFERRED: "LINKEDIN_MEMBER_PUBLISHING_DEFERRED",
+  WEBHOOK_SIGNATURE_VERIFICATION_NOT_CONFIGURED:
+    "WEBHOOK_SIGNATURE_VERIFICATION_NOT_CONFIGURED",
+});
+
+module.exports = {
+  SOCIAL_PROVIDERS,
+  CONNECTOR_METHODS,
+  CONNECTOR_PUBLIC_KEYS,
+  CAPABILITY_STATUS,
+  CAPABILITY_STATUS_VALUES,
+  PROVIDER_BACKED_OPERATIONS,
+  PROVIDER_WRITE_OPERATIONS,
+  SOCIAL_PUBLICATION_STATUSES,
+  SOCIAL_POSTING_MODES,
+  SOCIAL_PROVIDER_CONTENT_TYPES,
+  WEBHOOK_EVENT_KINDS,
+  REASON_CODES,
+};

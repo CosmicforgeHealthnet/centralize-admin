@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "description": "Manual migration order and SHA-256 checksums for ADMIN-Backend additive SQL migrations.",
+  "generatedOn": "2026-07-18",
+  "migrations": [
+    {
+      "order": 1,
+      "file": "20260705_add_marketing_campaigns_content.sql",
+      "sha256": "064099a499a1dfd6603a991168fb7751cc45e68e6fb034f6541e8e33b413640d"
+    },
+    {
+      "order": 2,
+      "file": "20260705_add_marketing_email_templates_social.sql",
+      "sha256": "70da30947000a455d1a7bab8282075eb4b12b6591483559084c88c082730157f"
+    },
+    {
+      "order": 3,
+      "file": "20260705_add_marketing_promotions_banners_analytics.sql",
+      "sha256": "7200599c2140d459862066a12e465aee5796783ea6897880ef0f077f67faf03d"
+    },
+    {
+      "order": 4,
+      "file": "20260714_add_marketing_intelligence_phase1.sql",
+      "sha256": "ee5b4cfb788c47eea1d601cd036b4c8dc5e75a47fac9a2c4a88b665962a22628"
+    },
+    {
+      "order": 5,
+      "file": "20260715_add_marketing_connection_token_expiry.sql",
+      "sha256": "844dfd8f475c445a87596f10073e097edc8beed4f34f4982b57c2ff33a6eaa64"
+    },
+    {
+      "order": 6,
+      "file": "20260716_add_marketing_attributions_phase1.sql",
+      "sha256": "979711036098410cbed514d4c6f48f0170e3a8c2a7ee2ae1ec02ca04259d9591"
+    },
+    {
+      "order": 7,
+      "file": "20260716_add_social_operations_section_5.sql",
+      "sha256": "4314a51ff53c520c58b9f5f2f92f25951ca96913b9d5227fbb95c0b26b6542b1"
+    },
+    {
+      "order": 8,
+      "file": "20260717_212000_migrate_legacy_marketing_social_records.sql",
+      "sha256": "4f73d3c2667494ee9c95064c16b50cddda168406ad3c2e9152a2fa14859dec36"
+    },
+    {
+      "order": 9,
+      "file": "20260717_extend_marketing_ad_platforms.sql",
+      "sha256": "8848d7a710b96641c6533b0f4c86368353c03917098f9adf30e29dd295450e87"
+    },
+    {
+      "order": 10,
+      "file": "20260717_make_task_assignee_nullable_for_safety.sql",
+      "sha256": "de9cf4827afe00b860e4a857d40203d6e3f66595df4ba9101144755b834f769c"
+    },
+    {
+      "order": 11,
+      "file": "20260718_add_marketing_connection_credentials_currency.sql",
+      "sha256": "406e2c476f44502a1eca98ad99fcf31269dcdeceba7a7fea72ecdbcc1a14c4ed"
+    },
+    {
+      "order": 12,
+      "file": "20260719_finalize_marketing_intelligence_connections.sql",
+      "sha256": "684400384132123f358a5e56b9f0d1769baebbb1bcbc817497e2ab3fd2f8ff8a"
+    },
+    {
+      "order": 13,
+      "file": "20260720_fix_marketing_intelligence_currency_width.sql",
+      "sha256": "776118f4a70a6958ff7caf24e15fa11d5f229789903a084b02dff1fe47338d7e"
+    }
+  ]
+}

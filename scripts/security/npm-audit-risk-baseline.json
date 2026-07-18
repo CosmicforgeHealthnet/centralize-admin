@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "reviewedOn": "2026-07-18",
+  "allowedAdvisories": [
+    {
+      "id": "GHSA-92pp-h63x-v22m",
+      "severity": "moderate",
+      "affectedPackages": [
+        "@hono/node-server",
+        "@prisma/dev",
+        "prisma"
+      ],
+      "classification": "Prisma CLI/toolchain transitive advisory; no Social Operations runtime route uses @hono/node-server serveStatic.",
+      "compensatingControls": [
+        "Do not run npm audit fix --force.",
+        "Do not downgrade Prisma below the repository's Prisma 7 toolchain.",
+        "Revisit when Prisma publishes a compatible non-downgrade fix."
+      ],
+      "owner": "backend",
+      "reviewDeadline": "2026-08-18"
+    }
+  ]
+}

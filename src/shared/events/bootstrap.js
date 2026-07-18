@@ -1,4 +1,4 @@
-const logger = require("../utils/logger");
+﻿const logger = require("../utils/logger");
 
 const bootstrap = () => {
   require("../../modules/rtc/rtc.service");
@@ -6,9 +6,10 @@ const bootstrap = () => {
   require("../../modules/payments/payments.service");
   require("../../modules/notifications-service/notifications-service.service");
   require("../../modules/audit-service/audit-service.service");
+  require("../../modules/marketing/intelligence/listeners/funnel-event.listener").register();
 
   logger.info(
-    "[IT Systems] All services bootstrapped — event listeners active",
+    "[IT Systems] All services bootstrapped  event listeners active",
   );
 };
 

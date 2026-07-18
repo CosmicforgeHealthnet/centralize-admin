@@ -1,5 +1,7 @@
-const { mainPrisma } = require("../../shared/config/mainDatabase");
+﻿const { mainPrisma } = require("../../shared/config/mainDatabase");
 const logger = require("../../shared/utils/logger");
+const eventBus = require("../../shared/events/eventBus");
+const EVENTS = require("../../shared/events/events");
 
 // Valid prod status values
 const VALID_STATUSES = [
@@ -14,7 +16,7 @@ const VALID_STATUSES = [
 
 const ACTIVE_STATUSES = ["active", "doctor_active", "pharmacy_active"];
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// Helpers
 
 const calcGrowthRate = (current, previous) => {
   if (current === 0 && previous === 0) return 0;
@@ -35,10 +37,10 @@ const withLastLoginAt = async (queryFn, fallbackFn) => {
   }
 };
 
-// ── Service ───────────────────────────────────────────────────────────────────
+// Service
 
 class UsersService {
-  // ── Stats ──────────────────────────────────────────────────────────────────
+  // Stats
 
   async getStats() {
     const now = new Date();
@@ -109,7 +111,7 @@ class UsersService {
     };
   }
 
-  // ── Charts ─────────────────────────────────────────────────────────────────
+  // Charts
 
   async getGrowthChart() {
     const now = new Date();
@@ -181,7 +183,7 @@ class UsersService {
     return Object.values(monthMap);
   }
 
-  // ── List users ─────────────────────────────────────────────────────────────
+  // List users
 
   async listUsers({
     role,
@@ -275,7 +277,7 @@ class UsersService {
     };
   }
 
-  // ── Single user ────────────────────────────────────────────────────────────
+  // Single user
 
   async getUser(id) {
     const baseSelect = {
@@ -362,7 +364,7 @@ class UsersService {
     return user;
   }
 
-  // ── Get user activity ──────────────────────────────────────────────────────
+  // Get user activity
 
   async getUserActivity(id) {
     const user = await mainPrisma.users.findUnique({
@@ -389,7 +391,7 @@ class UsersService {
       }),
     ]);
 
-    // lab_orders — graceful fallback if table not migrated yet
+    // lab_orders - graceful fallback if table not migrated yet
     let labOrders = 0;
     try {
       labOrders = await mainPrisma.lab_orders.count({
@@ -402,12 +404,12 @@ class UsersService {
     return { appointments, transactions, prescriptions, labOrders };
   }
 
-  // ── Get user transactions ──────────────────────────────────────────────────
+  // Get user transactions
 
   async getUserTransactions(id, { page = 1, limit = 20 } = {}) {
     const user = await mainPrisma.users.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, status: true },
     });
     if (!user) throw new Error("User not found");
 
@@ -440,12 +442,12 @@ class UsersService {
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  // ── Get user appointments ──────────────────────────────────────────────────
+  // Get user appointments
 
   async getUserAppointments(id, { page = 1, limit = 20 } = {}) {
     const user = await mainPrisma.users.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, status: true },
     });
     if (!user) throw new Error("User not found");
 
@@ -479,12 +481,12 @@ class UsersService {
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  // ── Get user subscriptions ─────────────────────────────────────────────────
+  // Get user subscriptions
 
   async getUserSubscriptions(id) {
     const user = await mainPrisma.users.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, status: true },
     });
     if (!user) throw new Error("User not found");
 
@@ -508,7 +510,7 @@ class UsersService {
     });
   }
 
-  // ── Update status ──────────────────────────────────────────────────────────
+  // Update status
 
   async updateUserStatus(id, status, adminUser) {
     if (!VALID_STATUSES.includes(status)) {
@@ -519,7 +521,7 @@ class UsersService {
 
     const user = await mainPrisma.users.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, status: true },
     });
     if (!user) throw new Error("User not found");
 
@@ -529,12 +531,24 @@ class UsersService {
     });
 
     logger.info(
-      `[Users] User ${id} status → ${status} by admin ${adminUser.id}`,
+      `[Users] User ${id} status -> ${status} by admin ${adminUser.id}`,
     );
+    if (
+      !ACTIVE_STATUSES.includes(user.status) &&
+      ACTIVE_STATUSES.includes(status)
+    ) {
+      eventBus.publish(EVENTS.USER_BECAME_ACTIVE, {
+        eventId: `active:${id}:status:${status}`,
+        userId: id,
+        activationType: `status:${status}`,
+        occurredAt: new Date(),
+      });
+    }
+
     return updated;
   }
 
-  // ── Bulk update status ─────────────────────────────────────────────────────
+  // Bulk update status
 
   async bulkUpdateStatus(ids, status, adminUser) {
     if (!VALID_STATUSES.includes(status)) {
@@ -557,13 +571,13 @@ class UsersService {
     });
 
     logger.info(
-      `[Users] Bulk status update → ${status} for ${result.count} users by admin ${adminUser.id}`,
+      `[Users] Bulk status update -> ${status} for ${result.count} users by admin ${adminUser.id}`,
     );
 
     return { updated: result.count };
   }
 
-  // ── Delete user ────────────────────────────────────────────────────────────
+  // Delete user
 
   async deleteUser(id, adminUser) {
     const user = await mainPrisma.users.findUnique({
@@ -581,12 +595,12 @@ class UsersService {
     return { deleted: true };
   }
 
-  // ── Force password reset ───────────────────────────────────────────────────
+  // Force password reset
 
   async forcePasswordReset(id, adminUser) {
     const user = await mainPrisma.users.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, status: true },
     });
     if (!user) throw new Error("User not found");
 

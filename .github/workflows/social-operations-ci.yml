@@ -1,0 +1,112 @@
+name: Social Operations CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - fix/marketing-admin-db-target
+      - staging
+
+jobs:
+  verify:
+    name: Verify Social Operations backend
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cosmicforge_admin
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d cosmicforge_admin"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cosmicforge_admin
+      SOCIAL_WORKERS_ENABLED: "false"
+      SOCIAL_PUBLISHING_WORKER_ENABLED: "false"
+      SOCIAL_ACTION_WORKER_ENABLED: "false"
+      SOCIAL_REDACTION_WORKER_ENABLED: "false"
+      SOCIAL_INBOX_ENABLED: "false"
+      SOCIAL_PHASE_D_ENABLED: "false"
+      TEST_NETWORK_GUARD_ENABLED: "true"
+      MARKETING_INTELLIGENCE_SYNC_ENABLED: "false"
+      MARKETING_INTELLIGENCE_BOOTSTRAP_CONNECTIONS: "false"
+      META_SOCIAL_ENABLED: "false"
+      TIKTOK_SOCIAL_ENABLED: "false"
+      X_SOCIAL_ENABLED: "false"
+      LINKEDIN_SOCIAL_ENABLED: "false"
+      SOCIAL_MEDIA_STORAGE_PROVIDER: "local"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma format check
+        run: |
+          npx prisma format --schema prisma/schema.prisma
+          git diff --exit-code -- prisma/schema.prisma
+
+      - name: Prisma validate
+        run: npx prisma validate --schema prisma/schema.prisma
+
+      - name: Prisma generate
+        run: npx prisma generate --schema prisma/schema.prisma
+
+      - name: Validate Social Operations configuration
+        run: |
+          npm run config:validate
+          npm run config:validate:staging
+          npm run config:validate:production
+
+      - name: Verify migration manifest
+        run: npm run db:manifest:verify
+
+      - name: Replay schema and manual migrations in fresh PostgreSQL
+        run: npm run db:replay:ci
+
+      - name: Assert PostgreSQL Social Operations schema
+        run: |
+          npx prisma db push --schema prisma/schema.prisma
+          npm run db:schema:assert
+
+      - name: Migration safety check
+        run: npm run migrations:safety
+
+      - name: Redacted secret scan
+        run: npm run security:secret-scan
+
+      - name: Dependency audit policy
+        run: |
+          npm run security:audit-policy
+          npm run security:audit-policy:production
+
+      - name: Static Social Operations safety checks
+        run: |
+          npm run security:static-social
+          npm run security:network-guard-static
+
+      - name: SBOM inventory
+        run: npm run security:sbom > /tmp/social-operations-sbom.json
+
+      - name: Runtime network guard negative tests
+        run: npm run test:network-guard
+
+      - name: Focused Social Operations tests
+        run: npm run test:social-operations
+
+      - name: Full test suite
+        run: npm test

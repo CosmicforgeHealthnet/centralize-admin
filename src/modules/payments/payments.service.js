@@ -1,4 +1,4 @@
-const { mainPrisma } = require("../../shared/config/mainDatabase");
+﻿const { mainPrisma } = require("../../shared/config/mainDatabase");
 const eventBus = require("../../shared/events/eventBus");
 const EVENTS = require("../../shared/events/events");
 const {
@@ -95,6 +95,9 @@ class PaymentsService {
         serviceType: true,
         serviceId: true,
         patientId: true,
+        originalAmount: true,
+        originalCurrency: true,
+        usdAmount: true,
       },
     });
 
@@ -111,14 +114,24 @@ class PaymentsService {
       },
     });
 
-    logger.info(`[Payments] Transaction ${id} → ${toStatus}`);
+    logger.info(`[Payments] Transaction ${id} -> ${toStatus}`);
 
     if (toStatus === PAYMENT_STATES.SUCCESS) {
       eventBus.publish(EVENTS.PAYMENT_SUCCESS, {
+        eventId: `payment:${id}`,
         transactionId: id,
         userId: transaction.patientId,
         serviceType: transaction.serviceType,
         serviceId: transaction.serviceId,
+        amount:
+          updated.usdAmount !== null && updated.usdAmount !== undefined
+            ? Number(updated.usdAmount)
+            : Number(updated.originalAmount),
+        currency:
+          updated.usdAmount !== null && updated.usdAmount !== undefined
+            ? "USD"
+            : transaction.originalCurrency,
+        occurredAt: updated.completedAt || new Date(),
       });
     }
 

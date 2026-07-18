@@ -83,6 +83,11 @@ class NotificationService {
   }
 
   async createNotification({ adminUserId, icon, title, subtitle = "" }) {
+    if (!adminUserId) {
+      logger.warn("Skipped notification without adminUserId");
+      return null;
+    }
+
     try {
       const notification = await prisma.notification.create({
         data: {

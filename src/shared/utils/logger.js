@@ -1,5 +1,8 @@
 const { createLogger, format, transports } = require("winston");
 const path = require("path");
+const {
+  redactLogPayload,
+} = require("../../modules/marketing/social-operations/security/log-redaction.service");
 
 const { combine, timestamp, printf, colorize, errors } = format;
 
@@ -28,18 +31,7 @@ const logger = createLogger({
 
 // Mask sensitive fields from logs
 logger.maskSensitive = (obj) => {
-  const sensitive = [
-    "password",
-    "token",
-    "secret",
-    "authorization",
-    "refreshToken",
-  ];
-  const masked = { ...obj };
-  sensitive.forEach((key) => {
-    if (masked[key]) masked[key] = "***REDACTED***";
-  });
-  return masked;
+  return redactLogPayload(obj);
 };
 
 module.exports = logger;

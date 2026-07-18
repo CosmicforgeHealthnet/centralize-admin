@@ -6,7 +6,13 @@ const { requireTier } = require("../../shared/middlewares/rbac.middleware");
 const ApiError = require("../../shared/utils/ApiError");
 const marketingController = require("./marketing.controller");
 
+const intelligenceRoutes = require("./intelligence/intelligence.routes");
+
 const router = express.Router();
+
+// Marketing Intelligence submodule - mounted before the router-level
+// middleware because its router applies its own auth + RBAC stack.
+router.use("/intelligence", intelligenceRoutes);
 
 const limiter = rateLimit({
   windowMs: 60 * 1000,

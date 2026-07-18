@@ -1,35 +1,49 @@
-name: Production – Build & Push & Deploy
+name: Production - Build & Push & Deploy
+
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      imageTag:
+        description: Production image tag suffix
+        required: false
+        default: latest
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ghcr.io/cosmicforgehealthnet/admin-backend
+
+concurrency:
+  group: production-admin-backend
+  cancel-in-progress: false
+
 jobs:
   build-and-push:
     name: Build & Push to GHCR (Production)
     runs-on: ubuntu-latest
+    environment: production
     permissions:
       contents: read
       packages: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: |
-            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ inputs.imageTag }}
             ${{ env.IMAGE_NAME }}:production-${{ github.sha }}
+
       - name: Deploy to production server
         uses: appleboy/ssh-action@v1.0.3
         with:

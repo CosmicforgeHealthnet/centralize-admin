@@ -38,6 +38,7 @@ const analyticsRouter = require("./modules/analytics").router;
 const adminSettingsRoutes = require("./modules/admin-settings").router;
 const healthnetRoutes = require("./modules/healthnet").router;
 const marketingRoutes = require("./modules/marketing").router;
+const socialOperationsRoutes = require("./modules/marketing/social-operations").router;
 const hrmRoutes = require("./modules/hrm").router;
 
 
@@ -68,7 +69,23 @@ app.use(
 
 app.options("/{*splat}", cors());
 
-app.use(express.json({ limit: "10kb" })); // Hard limit on body size
+const jsonBodyParser = express.json({ limit: "10kb" });
+const socialWebhookRawParser = express.raw({ type: "*/*", limit: "10kb" });
+
+app.use((req, res, next) => {
+  if (
+    req.method === "POST" &&
+    req.originalUrl?.startsWith("/api/v1/marketing/social/webhooks/")
+  ) {
+    return socialWebhookRawParser(req, res, (error) => {
+      if (error) return next(error);
+      req.rawBody = Buffer.isBuffer(req.body) ? Buffer.from(req.body) : Buffer.alloc(0);
+      return next();
+    });
+  }
+
+  return jsonBodyParser(req, res, next);
+}); // Hard limit on body size
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(cookieParser()); // FIX #5: parse cookies before routes
 app.use(passport.initialize());
@@ -133,6 +150,13 @@ app.use("/api/analytics", analyticsRouter);
 app.use("/api/admin-settings", adminSettingsRoutes);
 app.use("/api/healthnet", healthnetRoutes);
 app.use("/api/marketing", marketingRoutes);
+app.use("/api/v1/marketing/social", socialOperationsRoutes);
+app.use("/api/internal/marketing/intelligence", require("./modules/marketing/intelligence/internal.routes"));
+// Versioned alias required for the Marketing Intelligence public contract.
+app.use(
+  "/api/v1/marketing/intelligence",
+  require("./modules/marketing/intelligence").router,
+);
 app.use("/api/hrm", hrmRoutes);
 
 

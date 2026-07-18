@@ -24,12 +24,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 7.6.0
- * Query Engine version: 75cbdc1eb7150937890ad5465d861175c6624711
+ * Prisma Client JS version: 7.8.0
+ * Query Engine version: 3c6e192761c0362d496ed980de936e2f3cebcd3a
  */
 Prisma.prismaVersion = {
-  client: "7.6.0",
-  engine: "75cbdc1eb7150937890ad5465d861175c6624711"
+  client: "7.8.0",
+  engine: "3c6e192761c0362d496ed980de936e2f3cebcd3a"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -379,6 +379,592 @@ exports.Prisma.Marketing_analytics_snapshotsScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.Marketing_ad_platform_connectionsScalarFieldEnum = {
+  id: 'id',
+  platform: 'platform',
+  accountId: 'accountId',
+  accessToken: 'accessToken',
+  refreshToken: 'refreshToken',
+  encryptedCredentials: 'encryptedCredentials',
+  credentialVersion: 'credentialVersion',
+  connectionMetadata: 'connectionMetadata',
+  currency: 'currency',
+  requiresReauthorization: 'requiresReauthorization',
+  status: 'status',
+  lastSyncedAt: 'lastSyncedAt',
+  lastSyncError: 'lastSyncError',
+  accessTokenExpiresAt: 'accessTokenExpiresAt',
+  refreshTokenExpiresAt: 'refreshTokenExpiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_ad_insights_rawScalarFieldEnum = {
+  id: 'id',
+  connectionId: 'connectionId',
+  accountId: 'accountId',
+  platform: 'platform',
+  campaignExternalId: 'campaignExternalId',
+  date: 'date',
+  rawJson: 'rawJson',
+  fetchedAt: 'fetchedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.Marketing_performance_snapshotsScalarFieldEnum = {
+  id: 'id',
+  connectionId: 'connectionId',
+  accountId: 'accountId',
+  platform: 'platform',
+  campaignExternalId: 'campaignExternalId',
+  campaignName: 'campaignName',
+  date: 'date',
+  currency: 'currency',
+  spend: 'spend',
+  impressions: 'impressions',
+  clicks: 'clicks',
+  signups: 'signups',
+  activeUsers: 'activeUsers',
+  payments: 'payments',
+  revenue: 'revenue',
+  cpa: 'cpa',
+  conversionRate: 'conversionRate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_oauth_statesScalarFieldEnum = {
+  id: 'id',
+  stateHash: 'stateHash',
+  platform: 'platform',
+  adminUserId: 'adminUserId',
+  connectionId: 'connectionId',
+  accountId: 'accountId',
+  encryptedVerifier: 'encryptedVerifier',
+  encryptedSecret: 'encryptedSecret',
+  metadata: 'metadata',
+  expiresAt: 'expiresAt',
+  usedAt: 'usedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_attributionsScalarFieldEnum = {
+  id: 'id',
+  anonId: 'anonId',
+  userId: 'userId',
+  source: 'source',
+  platform: 'platform',
+  campaignExternalId: 'campaignExternalId',
+  campaignName: 'campaignName',
+  utmParams: 'utmParams',
+  firstCapturedAt: 'firstCapturedAt',
+  lastSeenAt: 'lastSeenAt',
+  convertedAt: 'convertedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_funnel_eventsScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  anonId: 'anonId',
+  stage: 'stage',
+  source: 'source',
+  campaignExternalId: 'campaignExternalId',
+  utmParams: 'utmParams',
+  value: 'value',
+  currency: 'currency',
+  externalEventId: 'externalEventId',
+  occurredAt: 'occurredAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.Marketing_sync_locksScalarFieldEnum = {
+  key: 'key',
+  owner: 'owner',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SocialAccountConnectionScalarFieldEnum = {
+  id: 'id',
+  provider: 'provider',
+  providerConnectionId: 'providerConnectionId',
+  encryptedCredentials: 'encryptedCredentials',
+  credentialVersion: 'credentialVersion',
+  scopes: 'scopes',
+  status: 'status',
+  accessTokenExpiresAt: 'accessTokenExpiresAt',
+  refreshTokenExpiresAt: 'refreshTokenExpiresAt',
+  requiresReauthorization: 'requiresReauthorization',
+  lastTestedAt: 'lastTestedAt',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SocialPublishingIdentityScalarFieldEnum = {
+  id: 'id',
+  connectionId: 'connectionId',
+  providerIdentityId: 'providerIdentityId',
+  type: 'type',
+  name: 'name',
+  username: 'username',
+  avatarUrl: 'avatarUrl',
+  capabilitiesJson: 'capabilitiesJson',
+  role: 'role',
+  disabledAt: 'disabledAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SocialOAuthStateScalarFieldEnum = {
+  id: 'id',
+  stateHash: 'stateHash',
+  provider: 'provider',
+  adminUserId: 'adminUserId',
+  connectionContextJson: 'connectionContextJson',
+  encryptedVerifier: 'encryptedVerifier',
+  expiresAt: 'expiresAt',
+  usedAt: 'usedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.SocialPostScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  status: 'status',
+  campaignId: 'campaignId',
+  createdById: 'createdById',
+  currentVersion: 'currentVersion',
+  legacySourceId: 'legacySourceId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SocialPostRevisionScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  version: 'version',
+  title: 'title',
+  baseText: 'baseText',
+  snapshotJson: 'snapshotJson',
+  changeSummary: 'changeSummary',
+  createdById: 'createdById',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.SocialPostTargetScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  identityId: 'identityId',
+  status: 'status',
+  text: 'text',
+  optionsJson: 'optionsJson',
+  contentVersion: 'contentVersion',
+  capabilitySnapshotJson: 'capabilitySnapshotJson',
+  validationStatus: 'validationStatus',
+  validationErrorsJson: 'validationErrorsJson',
+  lastValidatedAt: 'lastValidatedAt',
+  scheduledForUtc: 'scheduledForUtc',
+  timezone: 'timezone',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SocialPostApprovalScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  revisionId: 'revisionId',
+  targetId: 'targetId',
+  submittedById: 'submittedById',
+  decidedById: 'decidedById',
+  decision: 'decision',
+  reason: 'reason',
+  createdAt: 'createdAt',
+  decidedAt: 'decidedAt'
+};
+
+exports.Prisma.SocialPublicationScalarFieldEnum = {
+  id: 'id',
+  targetId: 'targetId',
+  postVersion: 'postVersion',
+  requestedById: 'requestedById',
+  approvedById: 'approvedById',
+  providerPostId: 'providerPostId',
+  url: 'url',
+  status: 'status',
+  postingMode: 'postingMode',
+  idempotencyKey: 'idempotencyKey',
+  publishedAt: 'publishedAt',
+  lastError: 'lastError',
+  lastErrorCategory: 'lastErrorCategory',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SocialPublicationAttemptScalarFieldEnum = {
+  id: 'id',
+  publicationId: 'publicationId',
+  attemptNo: 'attemptNo',
+  category: 'category',
+  responseMetaJson: 'responseMetaJson',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt'
+};
+
+exports.Prisma.SocialPublishingJobScalarFieldEnum = {
+  id: 'id',
+  publicationId: 'publicationId',
+  status: 'status',
+  priority: 'priority',
+  scheduledForUtc: 'scheduledForUtc',
+  nextAttemptAt: 'nextAttemptAt',
+  attemptCount: 'attemptCount',
+  maxAttempts: 'maxAttempts',
+  leaseOwner: 'leaseOwner',
+  leaseExpiresAt: 'leaseExpiresAt',
+  heartbeatAt: 'heartbeatAt',
+  lastErrorCategory: 'lastErrorCategory',
+  lastError: 'lastError',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SocialMediaAssetScalarFieldEnum = {
+  id: 'id',
+  ownerId: 'ownerId',
+  storageProvider: 'storageProvider',
+  storageKey: 'storageKey',
+  url: 'url',
+  secureUrl: 'secureUrl',
+  mimeType: 'mimeType',
+  sizeBytes: 'sizeBytes',
+  width: 'width',
+  height: 'height',
+  durationMs: 'durationMs',
+  aspectRatio: 'aspectRatio',
+  checksumSha256: 'checksumSha256',
+  status: 'status',
+  processingMetadataJson: 'processingMetadataJson',
+  deletedAt: 'deletedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SocialPostMediaScalarFieldEnum = {
+  id: 'id',
+  targetId: 'targetId',
+  assetId: 'assetId',
+  position: 'position',
+  altText: 'altText',
+  providerOptionsJson: 'providerOptionsJson'
+};
+
+exports.Prisma.SocialContactScalarFieldEnum = {
+  id: 'id',
+  identityId: 'identityId',
+  providerUserId: 'providerUserId',
+  displayName: 'displayName',
+  username: 'username',
+  avatarUrl: 'avatarUrl',
+  linkedSubjectType: 'linkedSubjectType',
+  linkedSubjectId: 'linkedSubjectId',
+  linkedSubjectSource: 'linkedSubjectSource',
+  linkedAt: 'linkedAt',
+  linkedById: 'linkedById',
+  consentJson: 'consentJson',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SocialConversationScalarFieldEnum = {
+  id: 'id',
+  identityId: 'identityId',
+  providerConversationId: 'providerConversationId',
+  contactId: 'contactId',
+  state: 'state',
+  priority: 'priority',
+  assigneeId: 'assigneeId',
+  assignedAt: 'assignedAt',
+  assignedById: 'assignedById',
+  firstResponseDueAt: 'firstResponseDueAt',
+  resolutionDueAt: 'resolutionDueAt',
+  firstRespondedAt: 'firstRespondedAt',
+  slaDeadlineAt: 'slaDeadlineAt',
+  snoozedUntil: 'snoozedUntil',
+  resolvedAt: 'resolvedAt',
+  nativeUrl: 'nativeUrl',
+  unreadCount: 'unreadCount',
+  lastInboundAt: 'lastInboundAt',
+  lastOutboundAt: 'lastOutboundAt',
+  lastMessageAt: 'lastMessageAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SocialMessageScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  providerMessageId: 'providerMessageId',
+  clientIdempotencyKey: 'clientIdempotencyKey',
+  direction: 'direction',
+  type: 'type',
+  content: 'content',
+  contentHash: 'contentHash',
+  attachmentsJson: 'attachmentsJson',
+  status: 'status',
+  sensitiveDataState: 'sensitiveDataState',
+  retentionExpiresAt: 'retentionExpiresAt',
+  redactedAt: 'redactedAt',
+  sentByAdminId: 'sentByAdminId',
+  errorMessage: 'errorMessage',
+  providerCreatedAt: 'providerCreatedAt',
+  queuedAt: 'queuedAt',
+  sentAt: 'sentAt',
+  deliveredAt: 'deliveredAt',
+  readAt: 'readAt',
+  failedAt: 'failedAt'
+};
+
+exports.Prisma.SocialTagScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  color: 'color',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.SocialConversationTagScalarFieldEnum = {
+  conversationId: 'conversationId',
+  tagId: 'tagId',
+  taggedById: 'taggedById',
+  taggedAt: 'taggedAt'
+};
+
+exports.Prisma.SocialProviderContentScalarFieldEnum = {
+  id: 'id',
+  identityId: 'identityId',
+  providerContentId: 'providerContentId',
+  source: 'source',
+  contentType: 'contentType',
+  text: 'text',
+  providerUrl: 'providerUrl',
+  providerCreatedAt: 'providerCreatedAt',
+  providerUpdatedAt: 'providerUpdatedAt',
+  publicationId: 'publicationId',
+  metadataJson: 'metadataJson',
+  deletedAt: 'deletedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SocialCommentScalarFieldEnum = {
+  id: 'id',
+  identityId: 'identityId',
+  providerContentId: 'providerContentId',
+  providerCommentId: 'providerCommentId',
+  clientIdempotencyKey: 'clientIdempotencyKey',
+  providerParentCommentId: 'providerParentCommentId',
+  parentId: 'parentId',
+  direction: 'direction',
+  authorContactId: 'authorContactId',
+  authorJson: 'authorJson',
+  text: 'text',
+  contentHash: 'contentHash',
+  sensitiveDataState: 'sensitiveDataState',
+  retentionExpiresAt: 'retentionExpiresAt',
+  redactedAt: 'redactedAt',
+  moderationState: 'moderationState',
+  assigneeId: 'assigneeId',
+  priority: 'priority',
+  sentByAdminId: 'sentByAdminId',
+  providerStatus: 'providerStatus',
+  lastErrorCategory: 'lastErrorCategory',
+  lastError: 'lastError',
+  nativeUrl: 'nativeUrl',
+  providerCreatedAt: 'providerCreatedAt',
+  queuedAt: 'queuedAt',
+  sentAt: 'sentAt',
+  failedAt: 'failedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+};
+
+exports.Prisma.SocialEngagementEventScalarFieldEnum = {
+  id: 'id',
+  identityId: 'identityId',
+  type: 'type',
+  providerEventId: 'providerEventId',
+  occurredAt: 'occurredAt',
+  payloadJson: 'payloadJson'
+};
+
+exports.Prisma.SocialEscalationScalarFieldEnum = {
+  id: 'id',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  classification: 'classification',
+  status: 'status',
+  restrictedVisibility: 'restrictedVisibility',
+  detectedAt: 'detectedAt',
+  confirmedById: 'confirmedById',
+  confirmedAt: 'confirmedAt',
+  taskId: 'taskId',
+  resolvedAt: 'resolvedAt',
+  resolutionNotes: 'resolutionNotes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SocialWebhookSubscriptionScalarFieldEnum = {
+  id: 'id',
+  connectionId: 'connectionId',
+  identityId: 'identityId',
+  eventType: 'eventType',
+  providerSubscriptionId: 'providerSubscriptionId',
+  status: 'status',
+  lastVerifiedAt: 'lastVerifiedAt',
+  lastEventAt: 'lastEventAt',
+  lastError: 'lastError'
+};
+
+exports.Prisma.SocialWebhookEventScalarFieldEnum = {
+  id: 'id',
+  provider: 'provider',
+  eventId: 'eventId',
+  payloadHash: 'payloadHash',
+  identityProviderId: 'identityProviderId',
+  providerEventType: 'providerEventType',
+  status: 'status',
+  signatureValid: 'signatureValid',
+  encryptedRawPayload: 'encryptedRawPayload',
+  payloadMetadataJson: 'payloadMetadataJson',
+  receivedAt: 'receivedAt',
+  processingStartedAt: 'processingStartedAt',
+  processedAt: 'processedAt',
+  attemptCount: 'attemptCount',
+  nextAttemptAt: 'nextAttemptAt',
+  lastError: 'lastError',
+  retentionExpiresAt: 'retentionExpiresAt',
+  redactedAt: 'redactedAt'
+};
+
+exports.Prisma.SocialIdentityMetricSnapshotScalarFieldEnum = {
+  id: 'id',
+  identityId: 'identityId',
+  date: 'date',
+  impressions: 'impressions',
+  reach: 'reach',
+  followers: 'followers',
+  rawJson: 'rawJson'
+};
+
+exports.Prisma.SocialProviderContentMetricSnapshotScalarFieldEnum = {
+  id: 'id',
+  providerContentId: 'providerContentId',
+  date: 'date',
+  impressions: 'impressions',
+  reach: 'reach',
+  views: 'views',
+  clicks: 'clicks',
+  reactions: 'reactions',
+  comments: 'comments',
+  shares: 'shares',
+  videoViews: 'videoViews',
+  watchTimeMs: 'watchTimeMs',
+  rawJson: 'rawJson'
+};
+
+exports.Prisma.SocialIdentitySyncStateScalarFieldEnum = {
+  identityId: 'identityId',
+  lastContentSync: 'lastContentSync',
+  lastCommentSync: 'lastCommentSync',
+  lastMessageSync: 'lastMessageSync',
+  lastMetricSync: 'lastMetricSync',
+  contentCursor: 'contentCursor',
+  commentCursor: 'commentCursor',
+  messageCursor: 'messageCursor',
+  metricCursor: 'metricCursor',
+  lastError: 'lastError'
+};
+
+exports.Prisma.SocialActionJobScalarFieldEnum = {
+  id: 'id',
+  jobType: 'jobType',
+  status: 'status',
+  identityId: 'identityId',
+  publicationId: 'publicationId',
+  providerContentId: 'providerContentId',
+  messageId: 'messageId',
+  commentId: 'commentId',
+  idempotencyKey: 'idempotencyKey',
+  payloadJson: 'payloadJson',
+  priority: 'priority',
+  scheduledForUtc: 'scheduledForUtc',
+  nextAttemptAt: 'nextAttemptAt',
+  attemptCount: 'attemptCount',
+  maxAttempts: 'maxAttempts',
+  leaseOwner: 'leaseOwner',
+  leaseExpiresAt: 'leaseExpiresAt',
+  heartbeatAt: 'heartbeatAt',
+  lastErrorCategory: 'lastErrorCategory',
+  lastError: 'lastError',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SocialActionAttemptScalarFieldEnum = {
+  id: 'id',
+  jobId: 'jobId',
+  attemptNo: 'attemptNo',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  resultStatus: 'resultStatus',
+  errorCategory: 'errorCategory',
+  sanitizedError: 'sanitizedError',
+  providerRequestId: 'providerRequestId',
+  responseMetaJson: 'responseMetaJson',
+  retryAfter: 'retryAfter'
+};
+
+exports.Prisma.SocialInternalNoteScalarFieldEnum = {
+  id: 'id',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  text: 'text',
+  contentHash: 'contentHash',
+  sensitiveDataState: 'sensitiveDataState',
+  restrictedVisibility: 'restrictedVisibility',
+  retentionExpiresAt: 'retentionExpiresAt',
+  redactedAt: 'redactedAt',
+  authorId: 'authorId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SocialSavedReplyScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  channel: 'channel',
+  text: 'text',
+  variablesJson: 'variablesJson',
+  status: 'status',
+  createdById: 'createdById',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.SocialOperationsSettingScalarFieldEnum = {
+  key: 'key',
+  valueJson: 'valueJson',
+  updatedById: 'updatedById',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.RefreshTokenScalarFieldEnum = {
   id: 'id',
   token: 'token',
@@ -710,6 +1296,10 @@ exports.Prisma.NullableJsonNullValueInput = {
   JsonNull: Prisma.JsonNull
 };
 
+exports.Prisma.JsonNullValueInput = {
+  JsonNull: Prisma.JsonNull
+};
+
 exports.Prisma.QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -801,6 +1391,254 @@ exports.marketing_banner_status_enum = exports.$Enums.marketing_banner_status_en
   Active: 'Active',
   Inactive: 'Inactive',
   Expired: 'Expired'
+};
+
+exports.marketing_ad_platform_enum = exports.$Enums.marketing_ad_platform_enum = {
+  META: 'META',
+  TIKTOK: 'TIKTOK',
+  X: 'X',
+  LINKEDIN: 'LINKEDIN',
+  GOOGLE_ADS: 'GOOGLE_ADS'
+};
+
+exports.marketing_ad_connection_status_enum = exports.$Enums.marketing_ad_connection_status_enum = {
+  ACTIVE: 'ACTIVE',
+  DISABLED: 'DISABLED',
+  ERROR: 'ERROR'
+};
+
+exports.marketing_funnel_stage_enum = exports.$Enums.marketing_funnel_stage_enum = {
+  CLICK: 'CLICK',
+  SIGNUP: 'SIGNUP',
+  ACTIVE: 'ACTIVE',
+  PAYMENT: 'PAYMENT'
+};
+
+exports.SocialProvider = exports.$Enums.SocialProvider = {
+  META: 'META',
+  TIKTOK: 'TIKTOK',
+  X: 'X',
+  LINKEDIN: 'LINKEDIN'
+};
+
+exports.SocialConnectionStatus = exports.$Enums.SocialConnectionStatus = {
+  PENDING_AUTHORIZATION: 'PENDING_AUTHORIZATION',
+  PENDING_PLATFORM_APPROVAL: 'PENDING_PLATFORM_APPROVAL',
+  ACTIVE: 'ACTIVE',
+  DISABLED: 'DISABLED',
+  ERROR: 'ERROR',
+  REAUTHORIZATION_REQUIRED: 'REAUTHORIZATION_REQUIRED'
+};
+
+exports.SocialIdentityType = exports.$Enums.SocialIdentityType = {
+  FACEBOOK_PAGE: 'FACEBOOK_PAGE',
+  INSTAGRAM_PROFESSIONAL: 'INSTAGRAM_PROFESSIONAL',
+  TIKTOK_ACCOUNT: 'TIKTOK_ACCOUNT',
+  X_USER: 'X_USER',
+  LINKEDIN_ORGANIZATION: 'LINKEDIN_ORGANIZATION',
+  LINKEDIN_MEMBER: 'LINKEDIN_MEMBER'
+};
+
+exports.SocialPostStatus = exports.$Enums.SocialPostStatus = {
+  DRAFT: 'DRAFT',
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  SCHEDULED: 'SCHEDULED',
+  PUBLISHING: 'PUBLISHING',
+  PARTIALLY_PUBLISHED: 'PARTIALLY_PUBLISHED',
+  PUBLISHED: 'PUBLISHED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED',
+  ARCHIVED: 'ARCHIVED',
+  LEGACY_PUBLISHED_UNVERIFIED: 'LEGACY_PUBLISHED_UNVERIFIED',
+  LEGACY_SCHEDULED_UNVERIFIED: 'LEGACY_SCHEDULED_UNVERIFIED'
+};
+
+exports.SocialTargetStatus = exports.$Enums.SocialTargetStatus = {
+  DRAFT: 'DRAFT',
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
+  APPROVED: 'APPROVED',
+  SCHEDULED: 'SCHEDULED',
+  PUBLISHING: 'PUBLISHING',
+  PUBLISHED: 'PUBLISHED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.SocialApprovalDecision = exports.$Enums.SocialApprovalDecision = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  CHANGES_REQUESTED: 'CHANGES_REQUESTED'
+};
+
+exports.SocialPublicationStatus = exports.$Enums.SocialPublicationStatus = {
+  PENDING: 'PENDING',
+  VALIDATING: 'VALIDATING',
+  UPLOADING: 'UPLOADING',
+  PROCESSING: 'PROCESSING',
+  PUBLISHING: 'PUBLISHING',
+  AWAITING_USER_ACTION: 'AWAITING_USER_ACTION',
+  PUBLISHED: 'PUBLISHED',
+  FAILED_RETRYABLE: 'FAILED_RETRYABLE',
+  FAILED_PERMANENT: 'FAILED_PERMANENT',
+  CANCELLED: 'CANCELLED',
+  DELETED: 'DELETED'
+};
+
+exports.SocialPostingMode = exports.$Enums.SocialPostingMode = {
+  DIRECT_POST: 'DIRECT_POST',
+  UPLOAD_TO_DRAFT: 'UPLOAD_TO_DRAFT'
+};
+
+exports.SocialJobStatus = exports.$Enums.SocialJobStatus = {
+  PENDING: 'PENDING',
+  CLAIMED: 'CLAIMED',
+  RUNNING: 'RUNNING',
+  RETRY_SCHEDULED: 'RETRY_SCHEDULED',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.SocialAssetStatus = exports.$Enums.SocialAssetStatus = {
+  UPLOADING: 'UPLOADING',
+  PROCESSING: 'PROCESSING',
+  READY: 'READY',
+  FAILED: 'FAILED',
+  DELETED: 'DELETED'
+};
+
+exports.SocialConversationStatus = exports.$Enums.SocialConversationStatus = {
+  OPEN: 'OPEN',
+  PENDING: 'PENDING',
+  SNOOZED: 'SNOOZED',
+  RESOLVED: 'RESOLVED',
+  SPAM: 'SPAM',
+  ARCHIVED: 'ARCHIVED'
+};
+
+exports.SocialMessageDirection = exports.$Enums.SocialMessageDirection = {
+  INBOUND: 'INBOUND',
+  OUTBOUND: 'OUTBOUND'
+};
+
+exports.SocialMessageType = exports.$Enums.SocialMessageType = {
+  TEXT: 'TEXT',
+  ATTACHMENT: 'ATTACHMENT',
+  TEMPLATE: 'TEMPLATE'
+};
+
+exports.SocialMessageStatus = exports.$Enums.SocialMessageStatus = {
+  QUEUED: 'QUEUED',
+  SENT: 'SENT',
+  DELIVERED: 'DELIVERED',
+  READ: 'READ',
+  FAILED: 'FAILED'
+};
+
+exports.SocialSensitiveDataState = exports.$Enums.SocialSensitiveDataState = {
+  UNCLASSIFIED: 'UNCLASSIFIED',
+  CLEAR: 'CLEAR',
+  FLAGGED: 'FLAGGED',
+  CONFIRMED: 'CONFIRMED',
+  REDACTED: 'REDACTED'
+};
+
+exports.SocialProviderContentSource = exports.$Enums.SocialProviderContentSource = {
+  ADMIN_PUBLISHED: 'ADMIN_PUBLISHED',
+  PROVIDER_IMPORTED: 'PROVIDER_IMPORTED'
+};
+
+exports.SocialProviderContentType = exports.$Enums.SocialProviderContentType = {
+  TEXT: 'TEXT',
+  IMAGE: 'IMAGE',
+  VIDEO: 'VIDEO',
+  CAROUSEL: 'CAROUSEL',
+  REEL: 'REEL',
+  STORY: 'STORY',
+  LINK: 'LINK',
+  DOCUMENT: 'DOCUMENT',
+  OTHER: 'OTHER'
+};
+
+exports.SocialCommentDirection = exports.$Enums.SocialCommentDirection = {
+  INBOUND: 'INBOUND',
+  OUTBOUND: 'OUTBOUND'
+};
+
+exports.SocialModerationStatus = exports.$Enums.SocialModerationStatus = {
+  VISIBLE: 'VISIBLE',
+  HIDDEN: 'HIDDEN',
+  DELETED: 'DELETED',
+  FLAGGED: 'FLAGGED',
+  ESCALATED: 'ESCALATED'
+};
+
+exports.SocialEngagementType = exports.$Enums.SocialEngagementType = {
+  REACTION: 'REACTION',
+  MENTION: 'MENTION',
+  FOLLOW: 'FOLLOW',
+  OTHER: 'OTHER'
+};
+
+exports.SocialEscalationClassification = exports.$Enums.SocialEscalationClassification = {
+  MEDICAL_EMERGENCY: 'MEDICAL_EMERGENCY',
+  SELF_HARM_RISK: 'SELF_HARM_RISK',
+  CLINICAL_ADVICE_REQUEST: 'CLINICAL_ADVICE_REQUEST',
+  PRESCRIPTION_REQUEST: 'PRESCRIPTION_REQUEST',
+  PROTECTED_HEALTH_INFORMATION: 'PROTECTED_HEALTH_INFORMATION',
+  PRIVACY_INCIDENT: 'PRIVACY_INCIDENT',
+  PATIENT_COMPLAINT: 'PATIENT_COMPLAINT',
+  LEGAL_THREAT: 'LEGAL_THREAT',
+  MEDICAL_MISINFORMATION: 'MEDICAL_MISINFORMATION',
+  GENERAL_INQUIRY: 'GENERAL_INQUIRY'
+};
+
+exports.SocialEscalationStatus = exports.$Enums.SocialEscalationStatus = {
+  DETECTED: 'DETECTED',
+  CONFIRMED: 'CONFIRMED',
+  DISMISSED: 'DISMISSED',
+  RESOLVED: 'RESOLVED'
+};
+
+exports.SocialWebhookSubscriptionStatus = exports.$Enums.SocialWebhookSubscriptionStatus = {
+  ACTIVE: 'ACTIVE',
+  DEGRADED: 'DEGRADED',
+  UNSUBSCRIBED: 'UNSUBSCRIBED',
+  ERROR: 'ERROR'
+};
+
+exports.SocialWebhookStatus = exports.$Enums.SocialWebhookStatus = {
+  RECEIVED: 'RECEIVED',
+  PROCESSING: 'PROCESSING',
+  PROCESSED: 'PROCESSED',
+  FAILED: 'FAILED',
+  IGNORED_DUPLICATE: 'IGNORED_DUPLICATE'
+};
+
+exports.SocialActionJobType = exports.$Enums.SocialActionJobType = {
+  POLL_PUBLICATION: 'POLL_PUBLICATION',
+  DELETE_PROVIDER_POST: 'DELETE_PROVIDER_POST',
+  SEND_MESSAGE: 'SEND_MESSAGE',
+  REPLY_COMMENT: 'REPLY_COMMENT',
+  HIDE_COMMENT: 'HIDE_COMMENT',
+  DELETE_COMMENT: 'DELETE_COMMENT',
+  SYNC_PROVIDER_CONTENT: 'SYNC_PROVIDER_CONTENT',
+  SYNC_COMMENTS: 'SYNC_COMMENTS',
+  SYNC_MESSAGES: 'SYNC_MESSAGES',
+  SYNC_METRICS: 'SYNC_METRICS'
+};
+
+exports.SocialActionStatus = exports.$Enums.SocialActionStatus = {
+  PENDING: 'PENDING',
+  CLAIMED: 'CLAIMED',
+  RUNNING: 'RUNNING',
+  RETRY_SCHEDULED: 'RETRY_SCHEDULED',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
 };
 
 exports.AuditAction = exports.$Enums.AuditAction = {
@@ -922,6 +1760,44 @@ exports.Prisma.ModelName = {
   marketing_promotions: 'marketing_promotions',
   marketing_banners: 'marketing_banners',
   marketing_analytics_snapshots: 'marketing_analytics_snapshots',
+  marketing_ad_platform_connections: 'marketing_ad_platform_connections',
+  marketing_ad_insights_raw: 'marketing_ad_insights_raw',
+  marketing_performance_snapshots: 'marketing_performance_snapshots',
+  marketing_oauth_states: 'marketing_oauth_states',
+  marketing_attributions: 'marketing_attributions',
+  marketing_funnel_events: 'marketing_funnel_events',
+  marketing_sync_locks: 'marketing_sync_locks',
+  SocialAccountConnection: 'SocialAccountConnection',
+  SocialPublishingIdentity: 'SocialPublishingIdentity',
+  SocialOAuthState: 'SocialOAuthState',
+  SocialPost: 'SocialPost',
+  SocialPostRevision: 'SocialPostRevision',
+  SocialPostTarget: 'SocialPostTarget',
+  SocialPostApproval: 'SocialPostApproval',
+  SocialPublication: 'SocialPublication',
+  SocialPublicationAttempt: 'SocialPublicationAttempt',
+  SocialPublishingJob: 'SocialPublishingJob',
+  SocialMediaAsset: 'SocialMediaAsset',
+  SocialPostMedia: 'SocialPostMedia',
+  SocialContact: 'SocialContact',
+  SocialConversation: 'SocialConversation',
+  SocialMessage: 'SocialMessage',
+  SocialTag: 'SocialTag',
+  SocialConversationTag: 'SocialConversationTag',
+  SocialProviderContent: 'SocialProviderContent',
+  SocialComment: 'SocialComment',
+  SocialEngagementEvent: 'SocialEngagementEvent',
+  SocialEscalation: 'SocialEscalation',
+  SocialWebhookSubscription: 'SocialWebhookSubscription',
+  SocialWebhookEvent: 'SocialWebhookEvent',
+  SocialIdentityMetricSnapshot: 'SocialIdentityMetricSnapshot',
+  SocialProviderContentMetricSnapshot: 'SocialProviderContentMetricSnapshot',
+  SocialIdentitySyncState: 'SocialIdentitySyncState',
+  SocialActionJob: 'SocialActionJob',
+  SocialActionAttempt: 'SocialActionAttempt',
+  SocialInternalNote: 'SocialInternalNote',
+  SocialSavedReply: 'SocialSavedReply',
+  SocialOperationsSetting: 'SocialOperationsSetting',
   RefreshToken: 'RefreshToken',
   AuditLog: 'AuditLog',
   AdminSectionGrant: 'AdminSectionGrant',
