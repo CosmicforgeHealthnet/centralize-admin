@@ -929,10 +929,15 @@ class VerificationService {
   /**
    * PATCH /api/verification/pharmacies/:id/approve
    */
+  /**
+   * PATCH /api/verification/pharmacies/:id/approve
+   */
   async approvePharmacy({ id, adminUserId, reviewNotes, req }) {
     const pvr = await mainPrisma.pharmacy_verification_requests.findUnique({
       where: { id },
-      include: { pharmacy_profiles: { select: { id: true, userId: true } } },
+      include: {
+        pharmacy_profiles: { select: { id: true, userId: true } },
+      },
     });
     if (!pvr)
       throw new ApiError(404, "Pharmacy verification request not found");
@@ -964,6 +969,15 @@ class VerificationService {
         await tx.pharmacy_profiles.update({
           where: { id: pvr.pharmacy_profiles.id },
           data: { verificationStatus: "approved", isActive: true },
+        });
+      }
+
+      // Sync the pharmacy owner's user status so login/dashboard gates
+      // that read users.status reflect the approval too
+      if (pvr.pharmacy_profiles?.userId) {
+        await tx.users.update({
+          where: { id: pvr.pharmacy_profiles.userId },
+          data: { status: "pharmacy_active" },
         });
       }
     });
@@ -1399,21 +1413,6 @@ class VerificationService {
     return { id, status: "Failed" };
   }
 
-  // ── COMBINED LIST (for "All" tab) ─────────────────────────────────────────────
-
-  /**
-   * GET /api/verification/all
-   *
-   * Strategy: run three lightweight DB queries in parallel — each fetches only
-   * the current page window worth of rows (limit rows, sorted by date desc).
-   * We then merge-sort the three small arrays and slice to one page.
-   *
-   * This avoids the "fetch 9999 rows into memory" anti-pattern while still
-   * giving correct cross-source date ordering within a page.
-   *
-   * Trade-off: total item count is the sum of three independent counts, which
-   * is accurate. The merge-sort is O(3 * limit) — negligible.
-   */
   async getAllCombined({
     page = 1,
     limit = 10,
