@@ -28,7 +28,7 @@ function matchesDate(value, condition) {
 
 function createFakePrisma() {
   let idCounter = 0;
-  const nextId = () => `fake-id-${(idCounter += 1)}`;
+  const nextId = () => `00000000-0000-4000-8000-${(idCounter += 1).toString(16).padStart(12, "0")}`;
 
   const locks = new Map();
   const connections = [];
@@ -37,12 +37,28 @@ function createFakePrisma() {
   const funnelEvents = [];
   const attributions = [];
   const oauthStates = [];
+  const identityLinks = [];
+  const attributionDecisions = [];
+  const settings = [];
+  const evaluationRuns = [];
 
   const snapshotKey = (row) =>
     `${row.platform}|${row.accountId || "ENV"}|${row.campaignExternalId}|${row.date.toISOString().slice(0, 10)}`;
 
   return {
-    __state: { locks, connections, rawInsights, snapshots, funnelEvents, attributions, oauthStates },
+    __state: {
+      locks,
+      connections,
+      rawInsights,
+      snapshots,
+      funnelEvents,
+      attributions,
+      oauthStates,
+      identityLinks,
+      attributionDecisions,
+      settings,
+      evaluationRuns,
+    },
 
     marketing_sync_locks: {
       async create({ data }) {
@@ -55,6 +71,9 @@ function createFakePrisma() {
         if (!row) return { count: 0 };
         if (where.owner && row.owner !== where.owner) return { count: 0 };
         if (where.expiresAt?.lt && !(row.expiresAt < where.expiresAt.lt)) {
+          return { count: 0 };
+        }
+        if (where.expiresAt?.gt && !(row.expiresAt > where.expiresAt.gt)) {
           return { count: 0 };
         }
         Object.assign(row, data);
@@ -212,16 +231,18 @@ function createFakePrisma() {
         return row ? pick(row, select) : null;
       },
       async findMany({ where, select } = {}) {
-        return snapshots
+        let rows = snapshots
           .filter((row) => !where?.platform || row.platform === where.platform)
           .filter((row) => !where?.accountId || row.accountId === where.accountId)
+          .filter((row) => !where?.connectionId || row.connectionId === where.connectionId)
           .filter(
             (row) =>
               !where?.campaignExternalId ||
               row.campaignExternalId === where.campaignExternalId,
           )
-          .filter((row) => !where?.date || matchesDate(row.date, where.date))
-          .map((row) => pick(row, select));
+          .filter((row) => !where?.date || matchesDate(row.date, where.date));
+        if (arguments[0]?.take) rows = rows.slice(0, arguments[0].take);
+        return rows.map((row) => pick(row, select));
       },
       async findFirst({ where, select } = {}) {
         const rows = await this.findMany({ where, select });
@@ -260,14 +281,31 @@ function createFakePrisma() {
 
     marketing_funnel_events: {
       async findMany({ where, select } = {}) {
-        return funnelEvents
+        let rows = funnelEvents
+          .filter((row) => {
+            if (!where?.stage) return true;
+            if (where.stage.in) return where.stage.in.includes(row.stage);
+            return row.stage === where.stage;
+          })
           .filter(
             (row) =>
               !where?.campaignExternalId ||
               row.campaignExternalId === where.campaignExternalId,
           )
+          .filter((row) => !where?.connectionId || row.connectionId === where.connectionId)
+          .filter((row) => !where?.accountExternalId || row.accountExternalId === where.accountExternalId)
           .filter((row) => !where?.occurredAt || matchesDate(row.occurredAt, where.occurredAt))
-          .map((row) => pick(row, select));
+          .filter((row) => {
+            if (!where?.OR) return true;
+            return where.OR.some((clause) => {
+              if (clause.userId && row.userId === clause.userId) return true;
+              if (clause.anonId?.in && clause.anonId.in.includes(row.anonId)) return true;
+              if (clause.anonId && row.anonId === clause.anonId) return true;
+              return false;
+            });
+          });
+        if (arguments[0]?.take) rows = rows.slice(0, arguments[0].take);
+        return rows.map((row) => pick(row, select));
       },
       async findUnique({ where, select }) {
         const row =
@@ -275,7 +313,9 @@ function createFakePrisma() {
             (candidate) =>
               where.externalEventId &&
               candidate.externalEventId === where.externalEventId,
-          ) || null;
+          ) ||
+          funnelEvents.find((candidate) => where.id && candidate.id === where.id) ||
+          null;
         return row ? pick(row, select) : null;
       },
       async create({ data }) {
@@ -285,8 +325,133 @@ function createFakePrisma() {
         ) {
           throw p2002();
         }
-        const row = { id: nextId(), ...data };
+        const normalizedData = {
+          ...data,
+          ...(data.value && typeof data.value.toFixed === "function"
+            ? { value: Number(data.value.toFixed(2)) }
+            : {}),
+        };
+        const row = { id: nextId(), ...normalizedData };
         funnelEvents.push(row);
+        return { ...row };
+      },
+      async update({ where, data }) {
+        const row = funnelEvents.find(
+          (candidate) =>
+            (where.id && candidate.id === where.id) ||
+            (where.externalEventId && candidate.externalEventId === where.externalEventId),
+        );
+        if (!row) {
+          const error = new Error("Record not found");
+          error.code = "P2025";
+          throw error;
+        }
+        Object.assign(row, data);
+        return { ...row };
+      },
+    },
+
+    marketing_identity_links: {
+      async findUnique({ where }) {
+        const row =
+          identityLinks.find((candidate) => where.id && candidate.id === where.id) ||
+          identityLinks.find((candidate) => where.anonIdHash && candidate.anonIdHash === where.anonIdHash) ||
+          null;
+        return row ? { ...row } : null;
+      },
+      async create({ data }) {
+        if (identityLinks.some((row) => row.anonIdHash === data.anonIdHash)) throw p2002();
+        const row = { id: nextId(), createdAt: new Date(), updatedAt: new Date(), ...data };
+        identityLinks.push(row);
+        return { ...row };
+      },
+      async update({ where, data }) {
+        const row = identityLinks.find((candidate) => candidate.id === where.id || candidate.anonIdHash === where.anonIdHash);
+        if (!row) {
+          const error = new Error("Record not found");
+          error.code = "P2025";
+          throw error;
+        }
+        Object.assign(row, data, { updatedAt: new Date() });
+        return { ...row };
+      },
+    },
+
+    marketing_attribution_decisions: {
+      async findMany({ where, select } = {}) {
+        return attributionDecisions
+          .filter((row) => {
+            if (!where?.conversionEventId) return true;
+            if (where.conversionEventId.in) {
+              return where.conversionEventId.in.includes(row.conversionEventId);
+            }
+            return row.conversionEventId === where.conversionEventId;
+          })
+          .filter((row) => !where?.status || row.status === where.status)
+          .map((row) => pick(row, select));
+      },
+      async findUnique({ where }) {
+        const row =
+          attributionDecisions.find((candidate) => where.id && candidate.id === where.id) ||
+          attributionDecisions.find(
+            (candidate) =>
+              where.conversionEventId &&
+              candidate.conversionEventId === where.conversionEventId,
+          ) ||
+          null;
+        return row ? { ...row } : null;
+      },
+      async create({ data }) {
+        if (attributionDecisions.some((row) => row.conversionEventId === data.conversionEventId)) throw p2002();
+        const row = { id: nextId(), createdAt: new Date(), updatedAt: new Date(), ...data };
+        attributionDecisions.push(row);
+        return { ...row };
+      },
+      async upsert({ where, create, update }) {
+        const row = attributionDecisions.find(
+          (candidate) => candidate.conversionEventId === where.conversionEventId,
+        );
+        if (row) {
+          Object.assign(row, update, { updatedAt: new Date() });
+          return { ...row };
+        }
+        const created = { id: nextId(), createdAt: new Date(), updatedAt: new Date(), ...create };
+        attributionDecisions.push(created);
+        return { ...created };
+      },
+    },
+
+    marketing_intelligence_settings: {
+      async findUnique({ where }) {
+        const row = settings.find((candidate) => candidate.key === where.key) || null;
+        return row ? { ...row } : null;
+      },
+      async upsert({ where, create, update }) {
+        const row = settings.find((candidate) => candidate.key === where.key);
+        if (row) {
+          Object.assign(row, update, { updatedAt: new Date() });
+          return { ...row };
+        }
+        const created = { createdAt: new Date(), updatedAt: new Date(), ...create };
+        settings.push(created);
+        return { ...created };
+      },
+    },
+
+    marketing_intelligence_evaluation_runs: {
+      async create({ data }) {
+        const row = { id: nextId(), createdAt: new Date(), updatedAt: new Date(), ...data };
+        evaluationRuns.push(row);
+        return { ...row };
+      },
+      async update({ where, data }) {
+        const row = evaluationRuns.find((candidate) => candidate.id === where.id);
+        if (!row) {
+          const error = new Error("Record not found");
+          error.code = "P2025";
+          throw error;
+        }
+        Object.assign(row, data, { updatedAt: new Date() });
         return { ...row };
       },
     },

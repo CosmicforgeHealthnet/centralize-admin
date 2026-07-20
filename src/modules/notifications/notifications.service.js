@@ -3,6 +3,11 @@ const ApiError = require("../../shared/utils/ApiError");
 const logger = require("../../shared/utils/logger");
 
 class NotificationService {
+  async createNotificationWithClient(client, { adminUserId, icon, title, subtitle = "" }) {
+    if (!adminUserId) throw new ApiError(400, "Notification recipient is required");
+    return client.notification.create({ data: { adminUserId, icon, title, subtitle, isRead: false } });
+  }
+
   async getMyNotifications(adminUserId) {
     try {
       const notifications = await prisma.notification.findMany({
@@ -89,15 +94,7 @@ class NotificationService {
     }
 
     try {
-      const notification = await prisma.notification.create({
-        data: {
-          adminUserId,
-          icon,
-          title,
-          subtitle,
-          isRead: false,
-        },
-      });
+      const notification = await this.createNotificationWithClient(prisma, { adminUserId, icon, title, subtitle });
 
       logger.info(`Notification created for user ${adminUserId}: ${title}`);
       return notification;

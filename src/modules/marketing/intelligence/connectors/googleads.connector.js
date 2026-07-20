@@ -14,6 +14,7 @@ const {
   resolveStoredCredentials,
 } = require("../utils/credential-envelope");
 const logger = require("../../../../shared/utils/logger");
+const { EVENTS, logEvent } = require("../observability");
 
 const PLATFORM = "GOOGLE_ADS";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -195,7 +196,7 @@ async function fetchDailyCampaignInsights({ since, until, connection, httpClient
     if (!pageToken) break;
   }
 
-  logger.info(`[MarketingIntelligence] GOOGLE_ADS fetched ${rows.length} campaign/day rows for ${since}..${until}`);
+  logEvent(EVENTS.PROVIDER_FETCH_COMPLETED, { platform: PLATFORM, connectionId: connection?.id || null, operation: "CAMPAIGN_INSIGHTS", windowStart: since, windowEnd: until, rowsProcessed: rows.length, status: "SUCCEEDED" }, { log: logger });
   return rows;
 }
 
@@ -204,6 +205,7 @@ module.exports = {
   validateConfiguration,
   fetchDailyCampaignInsights,
   refreshAccessToken,
+  apiVersion,
   normalizeCustomerId,
   normalizeRow,
   gaql,

@@ -1,7 +1,8 @@
-﻿const { mainPrisma } = require("../../shared/config/mainDatabase");
+const { mainPrisma } = require("../../shared/config/mainDatabase");
 const logger = require("../../shared/utils/logger");
 const eventBus = require("../../shared/events/eventBus");
 const EVENTS = require("../../shared/events/events");
+const crypto = require("crypto");
 
 // Valid prod status values
 const VALID_STATUSES = [
@@ -15,6 +16,15 @@ const VALID_STATUSES = [
 ];
 
 const ACTIVE_STATUSES = ["active", "doctor_active", "pharmacy_active"];
+
+function deterministicUserEventId(type, userId, scope) {
+  const digest = crypto
+    .createHash("sha256")
+    .update([type, userId, scope].filter(Boolean).join("|"))
+    .digest("hex")
+    .slice(0, 32);
+  return `${type.toLowerCase()}:${digest}`;
+}
 
 // Helpers
 
@@ -530,15 +540,17 @@ class UsersService {
       data: { status },
     });
 
-    logger.info(
-      `[Users] User ${id} status -> ${status} by admin ${adminUser.id}`,
-    );
+    logger.info("[Users] User status changed", {
+      hasUserId: Boolean(id),
+      status,
+      hasAdminUser: Boolean(adminUser?.id),
+    });
     if (
       !ACTIVE_STATUSES.includes(user.status) &&
       ACTIVE_STATUSES.includes(status)
     ) {
       eventBus.publish(EVENTS.USER_BECAME_ACTIVE, {
-        eventId: `active:${id}:status:${status}`,
+        eventId: deterministicUserEventId("active", id, `status:${status}`),
         userId: id,
         activationType: `status:${status}`,
         occurredAt: new Date(),

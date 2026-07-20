@@ -1,6 +1,7 @@
 const { execFileSync, execSync } = require("child_process");
 require("dotenv").config();
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 const { Client } = require("pg");
 const {
@@ -77,6 +78,23 @@ function runPrisma(args, env) {
   });
 }
 
+function writeCommittedBaselineSchema() {
+  let schema;
+  try {
+    schema = execFileSync("git", ["show", "HEAD:prisma/schema.prisma"], {
+      cwd: ROOT,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch (error) {
+    throw new Error(`unable to read committed staging schema for replay: ${error.message}`);
+  }
+  const tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "cosmicforge-admin-replay-"));
+  const schemaPath = path.join(tempDirectory, "baseline.prisma");
+  fs.writeFileSync(schemaPath, schema, "utf8");
+  return { tempDirectory, schemaPath };
+}
+
 async function applyManualMigrations(connectionString, manifest) {
   const client = new Client({ connectionString });
   await client.connect();
@@ -145,14 +163,18 @@ async function replayVerify({ keep = false } = {}) {
   let postgresVersion = null;
   let driftExitCode = 0;
   let driftSummary = "not_run";
-  await createDatabase(sourceUrl, dbName);
+  const baseline = writeCommittedBaselineSchema();
   try {
+    await createDatabase(sourceUrl, dbName);
     postgresVersion = await queryPostgresVersion(replayUrl);
-    runPrisma(["prisma", "db", "push", "--schema", "prisma/schema.prisma"], {
+    // Manual migrations are additive to the committed Admin schema. Build
+    // that baseline in a genuinely empty database, then replay the manifest
+    // to the current uncommitted schema under review.
+    runPrisma(["prisma", "db", "push", "--schema", baseline.schemaPath], {
       DATABASE_URL: replayUrl,
     });
     await applyManualMigrations(replayUrl, manifestResult.manifest);
-    await runSchemaAssertions({ connectionString: replayUrl });
+    await runSchemaAssertions({ connectionString: replayUrl, allowDisposableReplay: true });
     try {
       runPrisma(
         [
@@ -171,6 +193,9 @@ async function replayVerify({ keep = false } = {}) {
       driftExitCode = Number(error.status || error.code || 1);
       driftSummary = driftExitCode === 2 ? "diff_detected" : "diff_check_failed";
     }
+    if (driftExitCode !== 0) {
+      throw new Error(`migration replay schema verification failed: ${driftSummary}`);
+    }
     return {
       replayUrl,
       databaseName: dbName,
@@ -180,7 +205,11 @@ async function replayVerify({ keep = false } = {}) {
       driftExitCode,
     };
   } finally {
-    if (!keep) await dropDatabase(sourceUrl, dbName);
+    try {
+      if (!keep) await dropDatabase(sourceUrl, dbName);
+    } finally {
+      fs.rmSync(baseline.tempDirectory, { recursive: true, force: true });
+    }
   }
 }
 

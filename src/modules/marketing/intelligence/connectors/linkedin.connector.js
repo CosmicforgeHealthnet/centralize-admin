@@ -14,6 +14,7 @@ const {
   resolveStoredCredentials,
 } = require("../utils/credential-envelope");
 const logger = require("../../../../shared/utils/logger");
+const { EVENTS, logEvent } = require("../observability");
 
 const PLATFORM = "LINKEDIN";
 const API_BASE = "https://api.linkedin.com/rest";
@@ -268,7 +269,7 @@ async function fetchDailyCampaignInsights({
   const campaignUrns = [...new Set(elements.map((row) => row.pivotValues?.[0]).filter(Boolean))];
   const names = await fetchCampaignNames(client, credentials, connection, campaignUrns);
   const rows = elements.map((row) => normalizeAnalyticsRow(row, names, credentials.currency)).filter((row) => row.campaignExternalId && row.date);
-  logger.info(`[MarketingIntelligence] LINKEDIN fetched ${rows.length} campaign/day rows for ${since}..${until}`);
+  logEvent(EVENTS.PROVIDER_FETCH_COMPLETED, { platform: PLATFORM, connectionId: connection?.id || null, operation: "CAMPAIGN_INSIGHTS", windowStart: since, windowEnd: until, rowsProcessed: rows.length, status: "SUCCEEDED" }, { log: logger });
   return rows;
 }
 
@@ -278,6 +279,8 @@ module.exports = {
   fetchDailyCampaignInsights,
   refreshAccessToken,
   resolveCredentials,
+  tokenNeedsRefresh,
+  linkedInVersion,
   headers,
   normalizeAnalyticsRow,
 };

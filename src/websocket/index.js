@@ -1,6 +1,8 @@
 const { Server } = require("socket.io");
 const SupportChatSocket = require("./supportChat.socket");
 
+let ioInstance = null;
+
 const initializeWebSocket = (httpServer) => {
   const allowedOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(",").map((o) => o.trim())
@@ -20,7 +22,15 @@ const initializeWebSocket = (httpServer) => {
   const supportChat = new SupportChatSocket(supportNamespace);
   supportChat.initialize();
 
+  ioInstance = io;
+
   return io;
 };
 
-module.exports = { initializeWebSocket };
+const emitAdminNotification = (adminUserId, payload) => {
+  if (!ioInstance) return false;
+  ioInstance.to(`admin:${adminUserId}`).emit("notification:new", payload);
+  return true;
+};
+
+module.exports = { initializeWebSocket, emitAdminNotification };

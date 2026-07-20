@@ -13,6 +13,7 @@ const {
 const { decryptCredential } = require("../utils/credential-encryption");
 const { resolveStoredCredentials } = require("../utils/credential-envelope");
 const logger = require("../../../../shared/utils/logger");
+const { EVENTS, logEvent } = require("../observability");
 
 // TikTok Marketing API connector  campaign-level daily basic report.
 // Docs: https://business-api.tiktok.com/portal/docs?id=1740302848100353
@@ -170,7 +171,7 @@ async function refreshAccessToken({ credentials, httpClient } = {}) {
     ),
   };
 
-  logger.info("[MarketingIntelligence] TIKTOK access token refreshed");
+  logEvent(EVENTS.TOKEN_REFRESHED, { platform: PLATFORM, operation: "TOKEN_REFRESH", status: "SUCCEEDED" }, { log: logger });
   return tokens;
 }
 
@@ -337,9 +338,7 @@ async function fetchDailyCampaignInsights({
     if (!totalPages || page >= totalPages) break;
   }
 
-  logger.info(
-    `[MarketingIntelligence] TIKTOK fetched ${rows.length} campaign/day rows for ${since}..${until}`,
-  );
+  logEvent(EVENTS.PROVIDER_FETCH_COMPLETED, { platform: PLATFORM, connectionId: connection?.id || null, operation: "CAMPAIGN_INSIGHTS", windowStart: since, windowEnd: until, rowsProcessed: rows.length, status: "SUCCEEDED" }, { log: logger });
 
   return rows;
 }
@@ -349,5 +348,12 @@ module.exports = {
   validateConfiguration,
   fetchDailyCampaignInsights,
   refreshAccessToken,
+  resolveCredentials,
+  canRefresh,
+  accessTokenNeedsRefresh,
+  applyRefreshedTokens,
+  apiBaseUrl,
+  AUTH_ERROR_CODES,
+  RATE_LIMIT_ERROR_CODES,
   normalizeRow,
 };

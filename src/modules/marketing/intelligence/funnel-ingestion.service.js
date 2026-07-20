@@ -1,13 +1,16 @@
-﻿const EVENTS = require("../../../shared/events/events");
+const EVENTS = require("../../../shared/events/events");
 const eventBus = require("../../../shared/events/eventBus");
 const attributionService = require("./attribution.service");
 const funnelListener = require("./listeners/funnel-event.listener");
+const { deterministicMarketingEventId } = require("./utils/event-id");
 
 const EVENT_STAGE = Object.freeze({
   [EVENTS.MARKETING_CLICK_RECORDED]: "CLICK",
   [EVENTS.USER_SIGNUP_COMPLETED]: "SIGNUP",
   [EVENTS.USER_BECAME_ACTIVE]: "ACTIVE",
   [EVENTS.PAYMENT_SUCCESS]: "PAYMENT",
+  [EVENTS.PAYMENT_REFUNDED]: "REFUND",
+  [EVENTS.PAYMENT_CHARGEBACK]: "CHARGEBACK",
 });
 
 function stableClickEventId(payload) {
@@ -17,7 +20,7 @@ function stableClickEventId(payload) {
     .slice(0, 10);
   const source = payload.source || payload.platform || "unknown";
   const campaign = payload.campaignExternalId || "none";
-  return `click:${payload.anonId}:${source}:${campaign}:${day}`;
+  return deterministicMarketingEventId("click", payload.anonId, source, campaign, day);
 }
 
 function createFunnelIngestionService({
@@ -41,6 +44,8 @@ function createFunnelIngestionService({
       userId: attributionRow.userId || payload.userId || null,
       source: attributionRow.source,
       platform: attributionRow.platform,
+      connectionId: attributionRow.connectionId || payload.connectionId || null,
+      accountExternalId: attributionRow.accountExternalId || payload.accountExternalId || payload.accountId || null,
       campaignExternalId: attributionRow.campaignExternalId,
       campaignName: attributionRow.campaignName,
       utmParams: attributionRow.utmParams,
@@ -60,7 +65,7 @@ function createFunnelIngestionService({
     const enriched = await attribution.enrichPayload(payload);
     return listener.recordFunnelEvent("SIGNUP", {
       ...enriched,
-      eventId: enriched.eventId || (enriched.userId ? `signup:${enriched.userId}` : null),
+      eventId: enriched.eventId || (enriched.userId ? deterministicMarketingEventId("signup", enriched.userId) : null),
     });
   }
 
@@ -70,7 +75,9 @@ function createFunnelIngestionService({
       ...enriched,
       eventId:
         enriched.eventId ||
-        (enriched.userId ? `active:${enriched.userId}:${enriched.activationType || "default"}` : null),
+        (enriched.userId
+          ? deterministicMarketingEventId("active", enriched.userId, enriched.activationType || "default")
+          : null),
     });
   }
 
@@ -80,7 +87,41 @@ function createFunnelIngestionService({
       ...enriched,
       eventId:
         enriched.eventId ||
-        (enriched.transactionId ? `payment:${enriched.transactionId}` : null),
+        (enriched.transactionId ? deterministicMarketingEventId("payment", enriched.transactionId) : null),
+    });
+  }
+
+  async function recordRefund(payload = {}) {
+    const enriched = await attribution.enrichPayload(payload);
+    return listener.recordFunnelEvent("REFUND", {
+      ...enriched,
+      eventId:
+        enriched.eventId ||
+        (enriched.refundId
+          ? deterministicMarketingEventId("refund", enriched.refundId)
+          : enriched.transactionId
+            ? deterministicMarketingEventId("refund", enriched.transactionId)
+            : null),
+      originalPaymentExternalEventId:
+        enriched.originalPaymentExternalEventId ||
+        (enriched.transactionId ? deterministicMarketingEventId("payment", enriched.transactionId) : null),
+    });
+  }
+
+  async function recordChargeback(payload = {}) {
+    const enriched = await attribution.enrichPayload(payload);
+    return listener.recordFunnelEvent("CHARGEBACK", {
+      ...enriched,
+      eventId:
+        enriched.eventId ||
+        (enriched.chargebackId
+          ? deterministicMarketingEventId("chargeback", enriched.chargebackId)
+          : enriched.transactionId
+            ? deterministicMarketingEventId("chargeback", enriched.transactionId)
+            : null),
+      originalPaymentExternalEventId:
+        enriched.originalPaymentExternalEventId ||
+        (enriched.transactionId ? deterministicMarketingEventId("payment", enriched.transactionId) : null),
     });
   }
 
@@ -96,6 +137,8 @@ function createFunnelIngestionService({
     if (eventType === EVENTS.USER_SIGNUP_COMPLETED) return recordSignup(payload);
     if (eventType === EVENTS.USER_BECAME_ACTIVE) return recordActiveUser(payload);
     if (eventType === EVENTS.PAYMENT_SUCCESS) return recordPayment(payload);
+    if (eventType === EVENTS.PAYMENT_REFUNDED) return recordRefund(payload);
+    if (eventType === EVENTS.PAYMENT_CHARGEBACK) return recordChargeback(payload);
 
     const error = new Error(`Unsupported marketing intelligence event type: ${eventType}`);
     error.statusCode = 400;
@@ -116,6 +159,8 @@ function createFunnelIngestionService({
     recordSignup,
     recordActiveUser,
     recordPayment,
+    recordRefund,
+    recordChargeback,
     ingestEnvelope,
     publishSameProcess,
   };

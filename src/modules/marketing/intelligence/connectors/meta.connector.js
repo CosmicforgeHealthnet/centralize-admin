@@ -11,6 +11,7 @@ const {
 } = require("./provider-http");
 const { decryptCredential } = require("../utils/credential-encryption");
 const logger = require("../../../../shared/utils/logger");
+const { EVENTS, logEvent } = require("../observability");
 
 // Meta Marketing Insights connector (campaign level, daily increment).
 // Docs: https://developers.facebook.com/docs/marketing-api/insights
@@ -142,9 +143,7 @@ async function fetchDailyCampaignInsights({ since, until, connection, httpClient
     params = undefined;
   }
 
-  logger.info(
-    `[MarketingIntelligence] META fetched ${rows.length} campaign/day rows for ${since}..${until}`,
-  );
+  logEvent(EVENTS.PROVIDER_FETCH_COMPLETED, { platform: PLATFORM, connectionId: connection?.id || null, operation: "CAMPAIGN_INSIGHTS", windowStart: since, windowEnd: until, rowsProcessed: rows.length, status: "SUCCEEDED" }, { log: logger });
 
   return rows;
 }

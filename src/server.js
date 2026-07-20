@@ -11,6 +11,9 @@ const {
   registerMarketingIntelligenceCron,
 } = require("./modules/marketing/intelligence/aggregation/aggregation.cron");
 const {
+  registerIntelligenceSchedulers,
+} = require("./modules/marketing/intelligence/scheduling/intelligence-scheduler.registry");
+const {
   registerSocialWorkers,
 } = require("./modules/marketing/social-operations/workers/social-worker-runner");
 const {
@@ -23,6 +26,8 @@ const PORT = process.env.PORT || 4000;
 
 const startServer = async () => {
   let socialWorkers = null;
+  let marketingSyncCron = null;
+  let intelligenceSchedulers = null;
   try {
     const socialConfig = validateSocialOperationsEnvironment();
     logger.info(
@@ -44,7 +49,8 @@ const startServer = async () => {
       logger.info(`[MarketingIntelligence] Provider bootstrap checked: ${JSON.stringify(summary)}`);
     }
     bootstrap();
-    registerMarketingIntelligenceCron();
+    marketingSyncCron = registerMarketingIntelligenceCron();
+    intelligenceSchedulers = registerIntelligenceSchedulers();
     socialWorkers = registerSocialWorkers();
 
     const server = http.createServer(app);
@@ -66,6 +72,8 @@ const startServer = async () => {
         if (socialWorkers?.shutdown) {
           await socialWorkers.shutdown();
         }
+        await intelligenceSchedulers?.stop();
+        await marketingSyncCron?.stop();
         await prisma.$disconnect();
         await mainPrisma.$disconnect();
         logger.info("Databases disconnected");

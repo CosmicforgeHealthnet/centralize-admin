@@ -9,6 +9,8 @@ const {
 const { CONNECTORS } = require("./connectors");
 const { ProviderError, sanitizeProviderText } = require("./connectors/provider-http");
 const { AD_PLATFORMS, normalizePlatform: knownPlatform } = require("./platforms");
+const { assertUuid, sanitizeBoundedJson } = require("./validation-security");
+const { EVENTS, logEvent, providerFailure, safeRequestId } = require("./observability");
 
 const SECRET_METADATA_KEYS = new Set([
   "accessToken",
@@ -44,7 +46,11 @@ function normalizePlatform(platform) {
 
 function normalizeCurrency(value) {
   const normalized = String(value || "").trim().toUpperCase();
-  return normalized ? normalized.slice(0, 16) : null;
+  if (!normalized) return null;
+  if (normalized !== "UNSPECIFIED" && !/^[A-Z]{3}$/.test(normalized)) {
+    throw new ApiError(400, "currency must be an ISO 4217 code");
+  }
+  return normalized.slice(0, 16);
 }
 
 function currencyEnv(...names) {
@@ -85,7 +91,7 @@ function sanitizeMetadata(input) {
     if (value === undefined || value === "") continue;
     out[key] = value;
   }
-  return Object.keys(out).length ? out : null;
+  return Object.keys(out).length ? sanitizeBoundedJson(out, { maxBytes: 16384, maxDepth: 6, maxFields: 100, maxArray: 100, maxString: 1000 }) : null;
 }
 
 function hasRequiredCredentials(platform, credentials) {
@@ -98,6 +104,40 @@ function hasRequiredCredentials(platform, credentials) {
   }[platform];
 
   return required.every((key) => Boolean(credentials?.[key]));
+}
+
+function tokenRefreshVerificationRequired(connection) {
+  return Boolean(
+    connection?.refreshToken || connection?.connectionMetadata?.tokenRefreshApplicable === true,
+  );
+}
+
+function hasCompleteLiveValidation(connection) {
+  return Boolean(
+    connection?.lastConnectionTestAt &&
+      connection?.lastSuccessfulFetchAt &&
+      connection?.lastMetricReconciliationAt &&
+      connection?.lastPaginationVerificationAt &&
+      connection?.lastRateLimitVerificationAt &&
+      (!tokenRefreshVerificationRequired(connection) ||
+        connection?.lastTokenRefreshVerificationAt),
+  );
+}
+
+function evidenceValidationStatus(connection) {
+  if (hasCompleteLiveValidation(connection)) return "LIVE_VALIDATED";
+  if (connection?.lastMetricReconciliationAt) return "METRIC_RECONCILED";
+  if (connection?.lastSuccessfulFetchAt) return "BOUNDED_FETCH_PASSED";
+  if (connection?.lastConnectionTestAt) return "CONNECTION_TEST_PASSED";
+  return "NOT_VALIDATED";
+}
+
+function effectiveValidationStatus(connection) {
+  const stored = connection?.validationStatus || "NOT_VALIDATED";
+  if (["CREDENTIAL_BLOCKED", "APPROVAL_BLOCKED", "FAILED"].includes(stored)) {
+    return stored;
+  }
+  return evidenceValidationStatus(connection);
 }
 
 function connectionMetadata(connection) {
@@ -119,7 +159,19 @@ function connectionMetadata(connection) {
     accessTokenExpiresAt: connection.accessTokenExpiresAt,
     refreshTokenExpiresAt: connection.refreshTokenExpiresAt,
     lastSyncedAt: connection.lastSyncedAt,
-    lastSyncError: connection.lastSyncError,
+    lastSyncError: connection.lastSyncError
+      ? sanitizeProviderText(String(connection.lastSyncError)).slice(0, 1000)
+      : null,
+    validationStatus: effectiveValidationStatus(connection),
+    lastConnectionTestAt: connection.lastConnectionTestAt || null,
+    lastSuccessfulFetchAt: connection.lastSuccessfulFetchAt || null,
+    lastMetricReconciliationAt: connection.lastMetricReconciliationAt || null,
+    lastPaginationVerificationAt: connection.lastPaginationVerificationAt || null,
+    lastRateLimitVerificationAt: connection.lastRateLimitVerificationAt || null,
+    lastTokenRefreshVerificationAt: connection.lastTokenRefreshVerificationAt || null,
+    sanitizedValidationError: connection.sanitizedValidationError
+      ? sanitizeProviderText(String(connection.sanitizedValidationError)).slice(0, 1000)
+      : null,
     hasAccessToken: Boolean(credentials.accessToken),
     hasRefreshToken: Boolean(credentials.refreshToken),
     hasEncryptedCredentials: Boolean(connection.encryptedCredentials),
@@ -355,7 +407,17 @@ function categoryForError(error) {
   return "PROVIDER_UNAVAILABLE";
 }
 
-function createProviderConnectionService({ prisma: db = prisma, connectors = CONNECTORS } = {}) {
+function validationStatusForError(category) {
+  if (["INVALID_CREDENTIALS", "REAUTHORIZATION_REQUIRED"].includes(category)) {
+    return "CREDENTIAL_BLOCKED";
+  }
+  if (["INSUFFICIENT_PERMISSION", "ACCOUNT_NOT_FOUND"].includes(category)) {
+    return "APPROVAL_BLOCKED";
+  }
+  return "FAILED";
+}
+
+function createProviderConnectionService({ prisma: db = prisma, connectors = CONNECTORS, log } = {}) {
   async function listConnections({ platform } = {}) {
     const where = platform ? { platform: normalizePlatform(platform) } : {};
     const rows = await db.marketing_ad_platform_connections.findMany({
@@ -365,7 +427,32 @@ function createProviderConnectionService({ prisma: db = prisma, connectors = CON
     return rows.map(connectionMetadata);
   }
 
+  async function listValidationStatus() {
+    const rows = await db.marketing_ad_platform_connections.findMany({
+      orderBy: [{ platform: "asc" }, { createdAt: "desc" }],
+    });
+    const grouped = new Map(AD_PLATFORMS.map((platform) => [platform, []]));
+    for (const row of rows) {
+      grouped.get(row.platform)?.push(connectionMetadata(row));
+    }
+
+    return AD_PLATFORMS.map((platform) => {
+      const connections = grouped.get(platform) || [];
+      const liveValidated = connections.some((row) => row.validationStatus === "LIVE_VALIDATED");
+      const best = connections.find((row) => row.status === "ACTIVE") || connections[0] || null;
+      return {
+        platform,
+        codeStatus: "IMPLEMENTED",
+        mockTests: "MOCK_VERIFIED",
+        liveStatus: liveValidated ? "LIVE_VALIDATED" : best?.validationStatus || "NOT_VALIDATED",
+        blocker: liveValidated ? null : "EXTERNAL_CREDENTIAL_OR_APPROVAL_REQUIRED",
+        connections,
+      };
+    });
+  }
+
   async function getConnection(id) {
+    assertUuid(id, "connectionId");
     const row = await db.marketing_ad_platform_connections.findUnique({ where: { id } });
     if (!row) throw new ApiError(404, "Connection not found");
     return connectionMetadata(row);
@@ -436,6 +523,7 @@ function createProviderConnectionService({ prisma: db = prisma, connectors = CON
   }
 
   async function updateConnection(id, input) {
+    assertUuid(id, "connectionId");
     const existing = await db.marketing_ad_platform_connections.findUnique({ where: { id } });
     if (!existing) throw new ApiError(404, "Connection not found");
     return upsertConnection({
@@ -448,6 +536,7 @@ function createProviderConnectionService({ prisma: db = prisma, connectors = CON
   }
 
   async function setConnectionStatus(id, status) {
+    assertUuid(id, "connectionId");
     const row = await db.marketing_ad_platform_connections.update({
       where: { id },
       data: {
@@ -538,6 +627,7 @@ function createProviderConnectionService({ prisma: db = prisma, connectors = CON
   }
 
   async function testConnection(id, { since, until } = {}) {
+    assertUuid(id, "connectionId");
     const connection = await db.marketing_ad_platform_connections.findUnique({ where: { id } });
     if (!connection) throw new ApiError(404, "Connection not found");
     if (connection.status !== "ACTIVE") throw new ApiError(400, "Connection is not active");
@@ -549,6 +639,7 @@ function createProviderConnectionService({ prisma: db = prisma, connectors = CON
     const range = { since: since || yesterday, until: until || yesterday };
 
     try {
+      const checkedAt = new Date();
       const rows = await connector.fetchDailyCampaignInsights({
         ...range,
         connection,
@@ -560,6 +651,10 @@ function createProviderConnectionService({ prisma: db = prisma, connectors = CON
           status: "ACTIVE",
           requiresReauthorization: false,
           lastSyncError: null,
+          validationStatus: "BOUNDED_FETCH_PASSED",
+          lastConnectionTestAt: checkedAt,
+          lastSuccessfulFetchAt: checkedAt,
+          sanitizedValidationError: null,
         },
       });
       return {
@@ -568,7 +663,8 @@ function createProviderConnectionService({ prisma: db = prisma, connectors = CON
         platform: connection.platform,
         accountId: connection.accountId,
         status: "CONNECTED",
-        checkedAt: new Date().toISOString(),
+        checkedAt: checkedAt.toISOString(),
+        validationStatus: "BOUNDED_FETCH_PASSED",
         range,
         rowsFetched: rows.length,
         accountMetadata: {
@@ -577,27 +673,67 @@ function createProviderConnectionService({ prisma: db = prisma, connectors = CON
       };
     } catch (error) {
       const category = categoryForError(error);
+      const failure = providerFailure(error);
       const requiresReauthorization = ["INVALID_CREDENTIALS", "REAUTHORIZATION_REQUIRED"].includes(category);
+      const checkedAt = new Date();
+      const sanitized = sanitizeProviderText(String(error.message || error)).slice(0, 1000);
       await db.marketing_ad_platform_connections.update({
         where: { id },
         data: {
           status: requiresReauthorization ? "ERROR" : connection.status,
           requiresReauthorization,
-          lastSyncError: sanitizeProviderText(String(error.message || error)).slice(0, 1000),
+          lastSyncError: sanitized,
+          validationStatus: validationStatusForError(category),
+          lastConnectionTestAt: checkedAt,
+          sanitizedValidationError: sanitized,
         },
       });
+      logEvent(EVENTS.PROVIDER_FAILURE, {
+        runId: null, platform: connection.platform, connectionId: id,
+        ...failure, attempt: 1,
+        safeRequestId: safeRequestId(error.requestId || error.response?.headers?.["x-request-id"]),
+        operation: "CONNECTION_TEST", status: "FAILED",
+      }, { log, level: "warn" });
       return {
         success: false,
         ok: false,
         platform: connection.platform,
         accountId: connection.accountId,
         status: requiresReauthorization ? "ERROR" : connection.status,
-        checkedAt: new Date().toISOString(),
+        checkedAt: checkedAt.toISOString(),
+        validationStatus: validationStatusForError(category),
         range,
         errorCategory: category,
-        error: sanitizeProviderText(String(error.message || error)),
+        providerErrorCategory: failure.providerErrorCategory,
+        retryable: failure.retryable,
+        safeRequestId: safeRequestId(error.requestId || error.response?.headers?.["x-request-id"]),
+        error: sanitized,
       };
     }
+  }
+
+  async function recordValidationEvidence(id, evidence = {}) {
+    assertUuid(id, "connectionId");
+    const connection = await db.marketing_ad_platform_connections.findUnique({ where: { id } });
+    if (!connection) throw new ApiError(404, "Connection not found");
+
+    const checkedAt = evidence.checkedAt ? new Date(evidence.checkedAt) : new Date();
+    if (Number.isNaN(checkedAt.getTime())) throw new ApiError(400, "checkedAt is invalid");
+
+    const data = { sanitizedValidationError: null };
+    if (evidence.connectionTestPassed) data.lastConnectionTestAt = checkedAt;
+    if (evidence.boundedFetchPassed) data.lastSuccessfulFetchAt = checkedAt;
+    if (evidence.metricReconciled) data.lastMetricReconciliationAt = checkedAt;
+    if (evidence.paginationVerified) data.lastPaginationVerificationAt = checkedAt;
+    if (evidence.rateLimitVerified) data.lastRateLimitVerificationAt = checkedAt;
+    if (evidence.tokenRefreshVerified) data.lastTokenRefreshVerificationAt = checkedAt;
+
+    data.validationStatus = evidenceValidationStatus({ ...connection, ...data });
+    const updated = await db.marketing_ad_platform_connections.update({
+      where: { id },
+      data,
+    });
+    return connectionMetadata(updated);
   }
 
   return {
@@ -611,7 +747,9 @@ function createProviderConnectionService({ prisma: db = prisma, connectors = CON
     bootstrapConnectionFromEnv,
     bootstrapAllFromEnv,
     getActiveConnectionOrBootstrap,
+    listValidationStatus,
     testConnection,
+    recordValidationEvidence,
   };
 }
 
@@ -627,5 +765,8 @@ module.exports = {
   normalizeLinkedInAccountUrn,
   buildProviderPayload,
   configuredEnvStatus,
+  validationStatusForError,
+  hasCompleteLiveValidation,
+  evidenceValidationStatus,
   ...defaultService,
 };

@@ -7,6 +7,16 @@ const { decryptCredential, encryptCredential } = require("../utils/credential-en
 const { decryptCredentialEnvelope, ENVELOPE_MARKER } = require("../utils/credential-envelope");
 const { createFakePrisma } = require("./helpers/fake-prisma");
 
+const CONNECTION_IDS = Object.freeze({
+  primary: "11111111-1111-4111-8111-111111111111",
+  meta: "22222222-2222-4222-8222-222222222222",
+  metaSuccess: "33333333-3333-4333-8333-333333333333",
+  metaLive: "44444444-4444-4444-8444-444444444444",
+  tiktok: "55555555-5555-4555-8555-555555555555",
+  linkedin: "66666666-6666-4666-8666-666666666666",
+  google: "77777777-7777-4777-8777-777777777777",
+});
+
 beforeEach(() => {
   process.env.MARKETING_CREDENTIALS_ENCRYPTION_KEY = crypto.randomBytes(32).toString("hex");
   process.env.META_ACCESS_TOKEN = "meta-env-token";
@@ -53,7 +63,7 @@ test("bootstrap is idempotent and does not duplicate existing connections", asyn
 test("existing DB credentials are preferred over older environment tokens", async () => {
   const prisma = createFakePrisma();
   prisma.__state.connections.push({
-    id: "conn-1",
+    id: CONNECTION_IDS.primary,
     platform: "TIKTOK",
     accountId: "tt-adv-123",
     accessToken: encryptCredential("db-new-token"),
@@ -201,7 +211,7 @@ test("Google Ads customer IDs are normalized and invalid IDs are rejected", asyn
 test("connection test returns sanitized provider failures", async () => {
   const prisma = createFakePrisma();
   prisma.__state.connections.push({
-    id: "conn-meta",
+    id: CONNECTION_IDS.meta,
     platform: "META",
     accountId: "act_meta_123",
     accessToken: encryptCredential("meta-secret-token"),
@@ -218,10 +228,136 @@ test("connection test returns sanitized provider failures", async () => {
   };
   const service = createProviderConnectionService({ prisma, connectors });
 
-  const result = await service.testConnection("conn-meta", { since: "2026-07-01", until: "2026-07-01" });
+  const result = await service.testConnection(CONNECTION_IDS.meta, { since: "2026-07-01", until: "2026-07-01" });
 
   assert.equal(result.ok, false);
+  assert.equal(result.validationStatus, "FAILED");
+  assert.equal(prisma.__state.connections[0].validationStatus, "FAILED");
   assert.ok(!result.error.includes("meta-secret-token"));
   assert.ok(!result.error.includes("app-secret"));
   assert.ok(result.error.includes("***REDACTED***"));
+});
+
+test("connection test records bounded-fetch success without live provider calls", async () => {
+  const prisma = createFakePrisma();
+  prisma.__state.connections.push({
+    id: CONNECTION_IDS.metaSuccess,
+    platform: "META",
+    accountId: "act_meta_123",
+    accessToken: encryptCredential("meta-secret-token"),
+    currency: "USD",
+    status: "ACTIVE",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+  let calls = 0;
+  const connectors = {
+    META: {
+      async fetchDailyCampaignInsights() {
+        calls += 1;
+        return [{ campaignExternalId: "camp-1" }];
+      },
+    },
+  };
+  const service = createProviderConnectionService({ prisma, connectors });
+
+  const result = await service.testConnection(CONNECTION_IDS.metaSuccess, {
+    since: "2026-07-01",
+    until: "2026-07-01",
+  });
+
+  assert.equal(calls, 1);
+  assert.equal(result.ok, true);
+  assert.equal(result.validationStatus, "BOUNDED_FETCH_PASSED");
+  assert.equal(prisma.__state.connections[0].validationStatus, "BOUNDED_FETCH_PASSED");
+  assert.ok(prisma.__state.connections[0].lastConnectionTestAt instanceof Date);
+  assert.ok(prisma.__state.connections[0].lastSuccessfulFetchAt instanceof Date);
+  assert.equal(prisma.__state.connections[0].sanitizedValidationError, null);
+});
+
+test("provider validation status reports all five platforms and isolates blockers", async () => {
+  const prisma = createFakePrisma();
+  prisma.__state.connections.push(
+    {
+      id: CONNECTION_IDS.metaLive,
+      platform: "META",
+      accountId: "act_meta_123",
+      status: "ACTIVE",
+      validationStatus: "LIVE_VALIDATED",
+      lastConnectionTestAt: new Date(),
+      lastSuccessfulFetchAt: new Date(),
+      lastMetricReconciliationAt: new Date(),
+      lastPaginationVerificationAt: new Date(),
+      lastRateLimitVerificationAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: CONNECTION_IDS.tiktok,
+      platform: "TIKTOK",
+      accountId: "tt-adv-123",
+      status: "ERROR",
+      validationStatus: "CREDENTIAL_BLOCKED",
+      sanitizedValidationError: "invalid token",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: CONNECTION_IDS.linkedin,
+      platform: "LINKEDIN",
+      accountId: "urn:li:sponsoredAccount:123",
+      status: "ACTIVE",
+      validationStatus: "APPROVAL_BLOCKED",
+      sanitizedValidationError: "missing scope",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  );
+  const service = createProviderConnectionService({ prisma, connectors: {} });
+
+  const statuses = await service.listValidationStatus();
+  const byPlatform = Object.fromEntries(statuses.map((row) => [row.platform, row]));
+
+  assert.deepEqual(statuses.map((row) => row.platform), ["META", "TIKTOK", "X", "LINKEDIN", "GOOGLE_ADS"]);
+  for (const row of statuses) {
+    assert.equal(row.codeStatus, "IMPLEMENTED");
+    assert.equal(row.mockTests, "MOCK_VERIFIED");
+  }
+  assert.equal(byPlatform.META.liveStatus, "LIVE_VALIDATED");
+  assert.equal(byPlatform.META.blocker, null);
+  assert.equal(byPlatform.TIKTOK.liveStatus, "CREDENTIAL_BLOCKED");
+  assert.equal(byPlatform.LINKEDIN.liveStatus, "APPROVAL_BLOCKED");
+  assert.equal(byPlatform.X.liveStatus, "NOT_VALIDATED");
+  assert.equal(byPlatform.GOOGLE_ADS.liveStatus, "NOT_VALIDATED");
+  assert.equal(byPlatform.TIKTOK.blocker, "EXTERNAL_CREDENTIAL_OR_APPROVAL_REQUIRED");
+  assert.ok(!JSON.stringify(statuses).includes("meta-secret-token"));
+});
+
+test("live validation requires every applicable gate including token refresh", async () => {
+  const prisma = createFakePrisma();
+  prisma.__state.connections.push({
+    id: CONNECTION_IDS.google,
+    platform: "GOOGLE_ADS",
+    accountId: "1234567890",
+    status: "ACTIVE",
+    connectionMetadata: { tokenRefreshApplicable: true },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+  const service = createProviderConnectionService({ prisma, connectors: {} });
+
+  const partial = await service.recordValidationEvidence(CONNECTION_IDS.google, {
+    connectionTestPassed: true,
+    boundedFetchPassed: true,
+    metricReconciled: true,
+    paginationVerified: true,
+    rateLimitVerified: true,
+  });
+  assert.equal(partial.validationStatus, "METRIC_RECONCILED");
+
+  const complete = await service.recordValidationEvidence(CONNECTION_IDS.google, {
+    tokenRefreshVerified: true,
+  });
+  assert.equal(complete.validationStatus, "LIVE_VALIDATED");
+  assert.ok(complete.lastTokenRefreshVerificationAt instanceof Date);
 });

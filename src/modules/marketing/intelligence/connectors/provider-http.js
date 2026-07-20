@@ -1,5 +1,8 @@
 ﻿const logger = require("../../../../shared/utils/logger");
 
+const { EVENTS, logEvent, providerFailure } = require("../observability");
+const { sanitizePlainText } = require("../validation-security");
+
 // Shared HTTP error handling for advertising provider connectors.
 
 const DEFAULT_TIMEOUT_MS = 30000;
@@ -32,12 +35,13 @@ function providerMaxRetries() {
 function sanitizeProviderText(text) {
   if (typeof text !== "string") return text;
 
-  return text
+  const redacted = text
     .replace(/((?:access[_-]?token|refresh[_-]?token|access[_-]?token[_-]?secret|consumer[_-]?key|consumer[_-]?secret|client[_-]?secret|developer[_-]?token|oauth[_-]?signature|app[_-]?secret|secret)=)[^&\s"']+/gi, "$1***REDACTED***")
     .replace(/("?(?:access[_-]?token|refresh[_-]?token|access[_-]?token[_-]?secret|consumer[_-]?key|consumer[_-]?secret|client[_-]?secret|developer[_-]?token|oauth[_-]?signature|authorization|app[_-]?secret|secret)"?\s*[:=]\s*")[^"]+(")/gi, "$1***REDACTED***$2")
-    .replace(/\bBearer\s+[A-Za-z0-9._~+/=-]+/g, "Bearer ***REDACTED***")
+    .replace(/\bBearer\s+[A-Za-z0-9._~+/=-]+/gi, "[REDACTED]")
     .replace(/\bOAuth\s+[^"\n\r]+/g, "OAuth ***REDACTED***")
     .replace(/\b(EAA|act_token_)[A-Za-z0-9]{20,}\b/g, "***REDACTED***");
+  return sanitizePlainText(redacted, 4000) || "";
 }
 
 // Classify an axios failure into a ProviderError without leaking credentials.
@@ -104,9 +108,10 @@ async function requestWithRetry(platform, requestFn, { retryDelayMs = 500 } = {}
 
       lastError = classified;
       const delay = retryDelayMs * 2 ** attempt;
-      logger.warn(
-        `[MarketingIntelligence] ${platform} retryable failure (${classified.kind}), retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`,
-      );
+      logEvent(EVENTS.PROVIDER_FAILURE, {
+        runId: null, platform, connectionId: null, ...providerFailure(classified),
+        attempt: attempt + 1, safeRequestId: null, operation: "PROVIDER_REQUEST", status: "RETRYING",
+      }, { log: logger, level: "warn" });
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }

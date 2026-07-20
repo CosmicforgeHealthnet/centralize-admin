@@ -5,6 +5,7 @@ const EventEmitter = require("node:events");
 const { createFunnelEventListener, STAGE_BY_EVENT } = require("../listeners/funnel-event.listener");
 const EVENTS = require("../../../../shared/events/events");
 const { createFakePrisma } = require("./helpers/fake-prisma");
+const { deterministicMarketingEventId } = require("../utils/event-id");
 
 const silentLog = { info() {}, warn() {}, error() {} };
 
@@ -94,7 +95,7 @@ test("payment without payload amount still records with no revenue", async () =>
   });
 
   const [event] = prisma.__state.funnelEvents;
-  assert.equal(event.externalEventId, "payment:txn-1");
+  assert.equal(event.externalEventId, deterministicMarketingEventId("payment", "txn-1"));
   assert.equal(event.value, null);
   assert.equal(event.currency, null);
 });
@@ -140,12 +141,15 @@ test("attributed events trigger snapshot reconciliation for the mapped platform"
     source: "instagram",
     campaignExternalId: "camp-9",
     amount: 10,
+    currency: "USD",
     occurredAt: "2026-07-01T10:00:00.000Z",
   });
 
-  assert.deepEqual(reconcileCalls, [
-    { platform: "META", campaignExternalId: "camp-9", date: "2026-07-01" },
-  ]);
+  assert.equal(reconcileCalls.length, 1);
+  assert.equal(reconcileCalls[0].platform, "META");
+  assert.equal(reconcileCalls[0].campaignExternalId, "camp-9");
+  assert.equal(reconcileCalls[0].date, "2026-07-01");
+  assert.equal(reconcileCalls[0].currency, "USD");
 });
 
 test("missing campaign attribution is handled safely (no reconciliation)", async () => {
@@ -213,8 +217,10 @@ test("a listener failure does not break the emitter (event bus contract)", async
   assert.ok(bus.lastError);
 });
 
-test("listener maps all four funnel events to stages", () => {
+test("listener maps all funnel events to stages", () => {
   assert.equal(STAGE_BY_EVENT[EVENTS.PAYMENT_SUCCESS], "PAYMENT");
+  assert.equal(STAGE_BY_EVENT[EVENTS.PAYMENT_REFUNDED], "REFUND");
+  assert.equal(STAGE_BY_EVENT[EVENTS.PAYMENT_CHARGEBACK], "CHARGEBACK");
   assert.equal(STAGE_BY_EVENT[EVENTS.USER_SIGNUP_COMPLETED], "SIGNUP");
   assert.equal(STAGE_BY_EVENT[EVENTS.USER_BECAME_ACTIVE], "ACTIVE");
   assert.equal(STAGE_BY_EVENT[EVENTS.MARKETING_CLICK_RECORDED], "CLICK");

@@ -1,4 +1,4 @@
-﻿const { prisma } = require("../../../../shared/config/database");
+const { prisma } = require("../../../../shared/config/database");
 const logger = require("../../../../shared/utils/logger");
 const ApiError = require("../../../../shared/utils/ApiError");
 const { CONNECTORS } = require("../connectors");
@@ -12,6 +12,10 @@ const {
 const { AD_PLATFORMS } = require("../platforms");
 const { createSyncLock, SYNC_LOCK_KEY } = require("./sync-lock");
 const providerConnections = require("../provider-connections.service");
+const { createRunLedgerService } = require("../run-ledger.service");
+const { requireOperationActor } = require("../actor-validation");
+const { toMoneyDecimal } = require("../utils/currency");
+const { structuredLogger } = require("../observability");
 
 // Aggregation service: pulls provider insights, stores raw rows, upserts
 // normalized daily snapshots, and reconciles internal funnel metrics.
@@ -54,6 +58,15 @@ function normalizeCurrency(value) {
   return normalized ? normalized.slice(0, 16) : "UNSPECIFIED";
 }
 
+function isFinalizedMonetaryStatus(value) {
+  const normalized = String(value || "FINALIZED").trim().toUpperCase();
+  return ["FINALIZED", "SUCCEEDED", "SUCCESS", "COMPLETED", "SETTLED"].includes(normalized);
+}
+
+function decimalNumber(value, places = 2) {
+  return toMoneyDecimal(value).toDecimalPlaces(places).toNumber();
+}
+
 function assertValidRange(since, until) {
   if (!DATE_ONLY_REGEX.test(since || "") || !DATE_ONLY_REGEX.test(until || "")) {
     throw new ApiError(400, "since and until must be YYYY-MM-DD dates");
@@ -66,54 +79,157 @@ function assertValidRange(since, until) {
 // CPA = spend / signups; conversion rate = payments / clicks as a PERCENTAGE
 // (0-100). Zero denominators yield 0 - never Infinity or NaN.
 function deriveMetrics({ spend, signups, clicks, payments }) {
-  const spendNumber = Number(spend) || 0;
-  const cpa = signups > 0 ? spendNumber / signups : 0;
-  const conversionRate = clicks > 0 ? (payments / clicks) * 100 : 0;
+  const spendDecimal = toMoneyDecimal(spend || 0);
+  const cpa = signups > 0
+    ? spendDecimal.div(signups).toDecimalPlaces(2).toNumber()
+    : 0;
+  const conversionRate = clicks > 0
+    ? toMoneyDecimal(payments).div(clicks).mul(100).toDecimalPlaces(2).toNumber()
+    : 0;
 
-  return {
-    cpa: Math.round(cpa * 100) / 100,
-    conversionRate: Math.round(conversionRate * 100) / 100,
+  return { cpa, conversionRate };
+}
+
+async function persistRefreshedConnectionTokens({ db, connection, tokens, log = logger }) {
+  log = structuredLogger(log, "marketing.provider.token_persistence");
+  if (!connection || !tokens?.accessToken) return;
+
+  const envelopeCredentials = {
+    ...resolveStoredCredentials(connection),
+    ...(tokens.credentials || {}),
+    accessToken: tokens.accessToken,
+    ...(tokens.refreshToken ? { refreshToken: tokens.refreshToken } : {}),
   };
+  const data = {
+    accessToken: encryptCredential(tokens.accessToken),
+    encryptedCredentials: encryptCredentialEnvelope(envelopeCredentials),
+    credentialVersion: 1,
+    accessTokenExpiresAt: tokens.accessTokenExpiresAt || null,
+    requiresReauthorization: false,
+  };
+  if (tokens.refreshToken) data.refreshToken = encryptCredential(tokens.refreshToken);
+  if (tokens.refreshTokenExpiresAt) data.refreshTokenExpiresAt = tokens.refreshTokenExpiresAt;
+
+  await db.marketing_ad_platform_connections.update({ where: { id: connection.id }, data });
+  log.info(
+    `[MarketingIntelligence] Stored refreshed ${connection.platform} tokens for connection ${connection.id}`,
+  );
 }
 
 function createAggregationService({
   prisma: db = prisma,
   connectors = CONNECTORS,
   syncLock,
+  runLedger,
   log = logger,
 } = {}) {
+  log = structuredLogger(log, "marketing.aggregation.operation");
   const lock = syncLock || createSyncLock({ prisma: db });
+  const ledger = runLedger || createRunLedgerService({ prisma: db });
 
-  // Aggregate internal funnel events for one campaign/day. Events attribute
-  // when their campaignExternalId matches and their source either maps to the
-  // platform or is absent (the external campaign id is platform-scoped).
-  async function computeFunnelMetrics(platform, campaignExternalId, dateString) {
+  // Aggregate internal funnel events for one campaign/day. WP0 keeps matching
+  // platform/account aware: if a snapshot has account context, events without
+  // matching account context are not guessed onto it.
+  async function computeFunnelMetrics(platform, campaignExternalId, dateString, context = {}) {
     const dayStart = toUtcDay(dateString);
     const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+    const expectedCurrency = normalizeCurrency(context.currency);
+    const accountId = context.accountId || context.accountExternalId || context.connection?.accountId || null;
+    const connectionId = context.connectionId || context.connection?.id || null;
 
     const events = await db.marketing_funnel_events.findMany({
       where: {
-        campaignExternalId,
         occurredAt: { gte: dayStart, lt: dayEnd },
       },
-      select: { stage: true, source: true, value: true },
+      select: {
+        id: true,
+        stage: true,
+        source: true,
+        platform: true,
+        connectionId: true,
+        accountExternalId: true,
+        campaignExternalId: true,
+        value: true,
+        currency: true,
+        monetaryStatus: true,
+      },
     });
 
-    const metrics = { signups: 0, activeUsers: 0, payments: 0, revenue: 0 };
+    const decisions = db.marketing_attribution_decisions?.findMany
+      ? await db.marketing_attribution_decisions.findMany({
+          where: { conversionEventId: { in: events.map((event) => event.id) } },
+          select: {
+            conversionEventId: true,
+            status: true,
+            platform: true,
+            connectionId: true,
+            accountExternalId: true,
+            campaignExternalId: true,
+          },
+        })
+      : [];
+    const decisionByEventId = new Map(
+      decisions.map((decision) => [decision.conversionEventId, decision]),
+    );
+
+    const metrics = {
+      signups: 0,
+      activeUsers: 0,
+      payments: 0,
+      refunds: 0,
+      chargebacks: 0,
+      revenue: toMoneyDecimal(0),
+      netRevenue: toMoneyDecimal(0),
+      currencyCompatibility: true,
+    };
 
     for (const event of events) {
-      const eventPlatform = resolvePlatformFromSource(event.source);
+      const decision = decisionByEventId.get(event.id);
+      if (decision && decision.status !== "ATTRIBUTED") continue;
+      const effectiveCampaign = decision?.campaignExternalId || event.campaignExternalId;
+      if (effectiveCampaign !== campaignExternalId) continue;
+      const eventPlatform = decision?.platform || event.platform || resolvePlatformFromSource(event.source);
+      const eventConnectionId = decision?.connectionId || event.connectionId;
+      const eventAccountId = decision?.accountExternalId || event.accountExternalId;
       if (eventPlatform && eventPlatform !== platform) continue;
+      if (!eventPlatform && accountId && !["ENV", "UNKNOWN"].includes(accountId)) continue;
+      if (connectionId && eventConnectionId !== connectionId) continue;
+      if (
+        !connectionId &&
+        accountId &&
+        !["ENV", "UNKNOWN"].includes(accountId) &&
+        eventAccountId !== accountId
+      ) {
+        continue;
+      }
 
       if (event.stage === "SIGNUP") metrics.signups += 1;
       if (event.stage === "ACTIVE") metrics.activeUsers += 1;
       if (event.stage === "PAYMENT") {
+        if (!isFinalizedMonetaryStatus(event.monetaryStatus)) continue;
         metrics.payments += 1;
-        metrics.revenue += Number(event.value) || 0;
+        if (event.currency && normalizeCurrency(event.currency) !== expectedCurrency) {
+          metrics.currencyCompatibility = false;
+          continue;
+        }
+        const value = toMoneyDecimal(event.value || 0);
+        metrics.revenue = metrics.revenue.plus(value);
+        metrics.netRevenue = metrics.netRevenue.plus(value);
+      }
+      if (event.stage === "REFUND" || event.stage === "CHARGEBACK") {
+        if (!isFinalizedMonetaryStatus(event.monetaryStatus)) continue;
+        if (event.stage === "REFUND") metrics.refunds += 1;
+        if (event.stage === "CHARGEBACK") metrics.chargebacks += 1;
+        if (event.currency && normalizeCurrency(event.currency) !== expectedCurrency) {
+          metrics.currencyCompatibility = false;
+          continue;
+        }
+        metrics.netRevenue = metrics.netRevenue.plus(toMoneyDecimal(event.value || 0));
       }
     }
 
-    metrics.revenue = Math.round(metrics.revenue * 100) / 100;
+    metrics.revenue = metrics.revenue.toDecimalPlaces(2).toNumber();
+    metrics.netRevenue = metrics.netRevenue.toDecimalPlaces(2).toNumber();
     return metrics;
   }
 
@@ -162,17 +278,23 @@ function createAggregationService({
   async function upsertSnapshot(row, connection) {
     const date = toUtcDay(row.date);
     const scope = accountScope(connection);
-    const funnel = await computeFunnelMetrics(
-      row.platform,
-      row.campaignExternalId,
-      row.date,
-    );
+    const currency = normalizeCurrency(row.currency);
+    const funnel = await computeFunnelMetrics(row.platform, row.campaignExternalId, row.date, {
+      connection,
+      accountId: scope.accountId,
+      currency,
+    });
     const derived = deriveMetrics({
       spend: row.spend,
       signups: funnel.signups,
       clicks: row.clicks,
       payments: funnel.payments,
     });
+    const spendDecimal = toMoneyDecimal(row.spend || 0);
+    const roas =
+      spendDecimal.gt(0) && funnel.currencyCompatibility
+        ? decimalNumber(toMoneyDecimal(funnel.netRevenue).div(spendDecimal))
+        : null;
 
     const where = {
       platform_accountId_campaignExternalId_date: {
@@ -193,14 +315,19 @@ function createAggregationService({
       connectionId: scope.connectionId,
       accountId: scope.accountId,
       spend: row.spend,
-      currency: normalizeCurrency(row.currency),
+      currency,
       impressions: row.impressions,
       clicks: row.clicks,
       signups: funnel.signups,
       activeUsers: funnel.activeUsers,
       payments: funnel.payments,
+      refunds: funnel.refunds,
+      chargebacks: funnel.chargebacks,
       revenue: funnel.revenue,
+      netRevenue: funnel.netRevenue,
       cpa: derived.cpa,
+      roas,
+      currencyCompatibility: funnel.currencyCompatibility,
       conversionRate: derived.conversionRate,
     };
 
@@ -225,40 +352,49 @@ function createAggregationService({
   // Idempotent funnel reconciliation for an existing snapshot - recomputes
   // signups/activeUsers/payments/revenue and derived metrics. Used after a
   // delayed funnel event lands so already-created snapshots stay correct.
-  async function reconcileSnapshotFunnel({ platform, campaignExternalId, date }) {
+  async function reconcileSnapshotFunnel({
+    platform,
+    campaignExternalId,
+    date,
+    connectionId,
+    accountId,
+    currency,
+  }) {
     const dateString = typeof date === "string" ? date : date.toISOString().slice(0, 10);
 
-    let snapshot;
-    if (typeof db.marketing_performance_snapshots.findFirst === "function") {
-      snapshot = await db.marketing_performance_snapshots.findFirst({
-        where: {
-          platform,
-          campaignExternalId,
-          date: toUtcDay(dateString),
-        },
-      });
-    } else {
-      snapshot = await db.marketing_performance_snapshots.findUnique({
-        where: {
-          platform_accountId_campaignExternalId_date: {
-            platform,
-            accountId: "ENV",
-            campaignExternalId,
-            date: toUtcDay(dateString),
-          },
-        },
-      });
-    }
+    const where = {
+      platform,
+      campaignExternalId,
+      date: toUtcDay(dateString),
+      ...(connectionId ? { connectionId } : {}),
+      ...(accountId ? { accountId } : {}),
+    };
 
-    if (!snapshot) return null;
+    const matches = await db.marketing_performance_snapshots.findMany({
+      where,
+      take: accountId || connectionId ? 2 : undefined,
+    });
 
-    const funnel = await computeFunnelMetrics(platform, campaignExternalId, dateString);
+    if (matches.length !== 1) return null;
+    const snapshot = matches[0];
+
+    const snapshotCurrency = normalizeCurrency(currency || snapshot.currency);
+    const funnel = await computeFunnelMetrics(platform, campaignExternalId, dateString, {
+      connectionId: snapshot.connectionId,
+      accountId: snapshot.accountId,
+      currency: snapshotCurrency,
+    });
     const derived = deriveMetrics({
       spend: snapshot.spend,
       signups: funnel.signups,
       clicks: snapshot.clicks,
       payments: funnel.payments,
     });
+    const spendDecimal = toMoneyDecimal(snapshot.spend || 0);
+    const roas =
+      spendDecimal.gt(0) && funnel.currencyCompatibility
+        ? decimalNumber(toMoneyDecimal(funnel.netRevenue).div(spendDecimal))
+        : null;
 
     return db.marketing_performance_snapshots.update({
       where: { id: snapshot.id },
@@ -266,8 +402,13 @@ function createAggregationService({
         signups: funnel.signups,
         activeUsers: funnel.activeUsers,
         payments: funnel.payments,
+        refunds: funnel.refunds,
+        chargebacks: funnel.chargebacks,
         revenue: funnel.revenue,
+        netRevenue: funnel.netRevenue,
         cpa: derived.cpa,
+        roas,
+        currencyCompatibility: funnel.currencyCompatibility,
         conversionRate: derived.conversionRate,
       },
     });
@@ -338,36 +479,7 @@ function createAggregationService({
   // Persist tokens rotated by a connector's refresh cycle, encrypted.
   // Only applies to database-backed connections (env credentials have no row).
   async function persistRefreshedTokens(connection, tokens) {
-    if (!connection || !tokens?.accessToken) return;
-
-    const envelopeCredentials = {
-      ...resolveStoredCredentials(connection),
-      ...(tokens.credentials || {}),
-      accessToken: tokens.accessToken,
-      ...(tokens.refreshToken ? { refreshToken: tokens.refreshToken } : {}),
-    };
-
-    const data = {
-      accessToken: encryptCredential(tokens.accessToken),
-      encryptedCredentials: encryptCredentialEnvelope(envelopeCredentials),
-      credentialVersion: 1,
-      accessTokenExpiresAt: tokens.accessTokenExpiresAt || null,
-      requiresReauthorization: false,
-    };
-    if (tokens.refreshToken) {
-      data.refreshToken = encryptCredential(tokens.refreshToken);
-    }
-    if (tokens.refreshTokenExpiresAt) {
-      data.refreshTokenExpiresAt = tokens.refreshTokenExpiresAt;
-    }
-
-    await db.marketing_ad_platform_connections.update({
-      where: { id: connection.id },
-      data,
-    });
-    log.info(
-      `[MarketingIntelligence] Stored refreshed ${connection.platform} tokens for connection ${connection.id}`,
-    );
+    return persistRefreshedConnectionTokens({ db, connection, tokens, log });
   }
 
   async function markConnectionError(connection, error) {
@@ -485,8 +597,9 @@ function createAggregationService({
 
   // Main entry point. Prevents overlapping runs via the distributed lock;
   // a skipped run returns { skipped: true } and is not an error.
-  async function syncMarketingInsights({ since, until, platforms, connectionIds = [], trigger = "manual" } = {}) {
+  async function syncMarketingInsights({ since, until, platforms, connectionIds = [], trigger = "manual", requestedByAdminUserId } = {}) {
     assertValidRange(since, until);
+    await requireOperationActor(db, { trigger, requestedByAdminUserId });
 
     const requested = (platforms && platforms.length ? platforms : AD_PLATFORMS)
       .map((value) => String(value).toUpperCase())
@@ -496,26 +609,112 @@ function createAggregationService({
       throw new ApiError(400, `platforms must contain at least one of: ${AD_PLATFORMS.join(", ")}`);
     }
 
-    const owner = await lock.acquire(SYNC_LOCK_KEY);
+    const ttlSeconds = typeof lock.lockTtlSeconds === "function" ? lock.lockTtlSeconds() : undefined;
+    const startedAt = new Date();
+    let run = await ledger.startRun({
+      runType: "SYNC",
+      status: "STARTED",
+      trigger,
+      requestedByAdminUserId,
+      startedAt,
+      summary: { requested },
+    });
+    const owner = await lock.acquire(SYNC_LOCK_KEY, ttlSeconds);
     if (!owner) {
       log.info(
         `[MarketingIntelligence] Sync skipped (trigger=${trigger}) - another synchronization is already running`,
       );
-      return { skipped: true, reason: "sync_already_running", trigger };
+      await ledger.finishRun(run?.id, { status: "SKIPPED_LOCKED", summary: { requested, reasonCode: "LOCK_UNAVAILABLE", lockScope: SYNC_LOCK_KEY } });
+      return { skipped: true, reason: "sync_already_running", trigger, runId: run?.id || null };
     }
 
-    const startedAt = new Date();
     const result = { startedAt, completedAt: null, trigger, platforms: {} };
+    try {
+      await ledger.updateRun?.(run?.id, { lockKey: SYNC_LOCK_KEY, lockOwner: owner });
+    } catch (error) {
+      await lock.release(SYNC_LOCK_KEY, owner).catch(() => {});
+      throw error;
+    }
+    let renewalFailed = false;
+    let renewalError = null;
+    let heartbeat = null;
+    try {
+      heartbeat =
+        typeof lock.startHeartbeat === "function"
+          ? lock.startHeartbeat({
+            key: SYNC_LOCK_KEY,
+            owner,
+            ttlSeconds,
+            onFailure: async (error) => {
+              renewalFailed = true;
+              renewalError = error;
+              if (run?.id) {
+                await ledger.finishRun(run.id, {
+                  status: "LOCK_RENEWAL_FAILED",
+                  errorCode: "LOCK_RENEWAL_FAILED",
+                  sanitizedError: error.message,
+                  summary: result.platforms,
+                });
+              }
+            },
+            })
+          : null;
+    } catch (error) {
+      await ledger.finishRun(run?.id, {
+        status: "FAILED",
+        errorCode: "LOCK_HEARTBEAT_START_FAILED",
+        sanitizedError: error.message,
+      }).catch(() => {});
+      await lock.release(SYNC_LOCK_KEY, owner).catch(() => {});
+      throw error;
+    }
 
     try {
       for (const platform of requested) {
+        if (renewalFailed) break;
         result.platforms[platform] = await syncPlatform(platform, {
           since,
           until,
           connectionIds,
         });
       }
+      const platformStatuses = Object.values(result.platforms).map((stats) => stats.status);
+      const failedCount = Object.values(result.platforms).reduce((sum, stats) => sum + (stats.failed || 0), 0);
+      const succeededCount = Object.values(result.platforms).filter((stats) =>
+        ["SUCCESS", "PARTIAL"].includes(stats.status),
+      ).length;
+      const skippedCount = Object.values(result.platforms).filter((stats) =>
+        String(stats.status || "").startsWith("SKIPPED"),
+      ).length;
+      const finalStatus = renewalFailed
+        ? "LOCK_RENEWAL_FAILED"
+        : platformStatuses.includes("FAILED") || platformStatuses.includes("PARTIAL")
+          ? "PARTIALLY_SUCCEEDED"
+          : "SUCCEEDED";
+      result.completedAt = new Date();
+      await ledger.finishRun(run?.id, {
+        status: finalStatus,
+        processedCount: Object.keys(result.platforms).length,
+        succeededCount,
+        failedCount,
+        skippedCount,
+        errorCode: renewalFailed ? "LOCK_RENEWAL_FAILED" : null,
+        sanitizedError: renewalError?.message,
+        summary: result.platforms,
+        completedAt: result.completedAt,
+      });
+    } catch (error) {
+      result.completedAt = new Date();
+      await ledger.finishRun(run?.id, {
+        status: "FAILED",
+        errorCode: error.code || "SYNC_FAILED",
+        sanitizedError: error.message,
+        summary: result.platforms,
+        completedAt: result.completedAt,
+      });
+      throw error;
     } finally {
+      if (heartbeat) heartbeat.stop();
       await lock.release(SYNC_LOCK_KEY, owner).catch((releaseError) => {
         log.error(
           `[MarketingIntelligence] Failed to release sync lock: ${releaseError.message}`,
@@ -523,14 +722,12 @@ function createAggregationService({
       });
     }
 
-    result.completedAt = new Date();
-
     const durationMs = result.completedAt.getTime() - startedAt.getTime();
     log.info(
       `[MarketingIntelligence] Sync finished (trigger=${trigger}, range=${since}..${until}, duration=${durationMs}ms): ${JSON.stringify(result.platforms)}`,
     );
 
-    return result;
+    return { ...result, runId: run?.id || null };
   }
 
   return {
@@ -547,6 +744,7 @@ const defaultService = createAggregationService();
 module.exports = {
   createAggregationService,
   deriveMetrics,
+  persistRefreshedConnectionTokens,
   resolvePlatformFromSource,
   SOURCE_PLATFORM_ALIASES,
   ...defaultService,

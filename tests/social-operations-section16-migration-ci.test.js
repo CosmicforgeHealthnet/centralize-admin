@@ -26,10 +26,46 @@ function nodeScript(script) {
 test("manual migration manifest protects order and checksums", () => {
   const result = verifyMigrationManifest();
   assert.equal(result.failures.length, 0);
-  assert.equal(result.count, 14);
+  assert.equal(result.count, 21);
   assert.equal(
     result.manifest.migrations.some(
       (entry) => entry.file === "20260716_add_social_operations_section_5.sql",
+    ),
+    true,
+  );
+  assert.equal(
+    result.manifest.migrations.some(
+      (entry) => entry.file === "20260721_marketing_intelligence_wp0_corrections.sql",
+    ),
+    true,
+  );
+  assert.equal(
+    result.manifest.migrations.some(
+      (entry) => entry.file === "20260722_marketing_intelligence_phase2_section7_schema.sql",
+    ),
+    true,
+  );
+  assert.equal(
+    result.manifest.migrations.some(
+      (entry) => entry.file === "20260723_marketing_intelligence_phase2_section8_raw_ingestion.sql",
+    ),
+    true,
+  );
+  assert.equal(
+    result.manifest.migrations.some(
+      (entry) => entry.file === "20260724_marketing_intelligence_phase2_section9_scoring_enums.sql",
+    ),
+    true,
+  );
+  assert.equal(
+    result.manifest.migrations.some(
+      (entry) => entry.file === "20260725_marketing_intelligence_phase2_sections10_13.sql",
+    ),
+    true,
+  );
+  assert.equal(
+    result.manifest.migrations.some(
+      (entry) => entry.file === "20260727_marketing_intelligence_sections14_17.sql",
     ),
     true,
   );

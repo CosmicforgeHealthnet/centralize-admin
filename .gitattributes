@@ -4,3 +4,4 @@ scripts/social-operations/*.js text eol=lf
 scripts/security/*.js text eol=lf
 .github/workflows/*.yml text eol=lf
 .github/workflows/*.yaml text eol=lf
+src/generated/admin-client/** -whitespace

@@ -1,7 +1,8 @@
 class ApiResponse {
-  static success(res, statusCode = 200, message = "Success", data = null) {
+  static success(res, statusCode = 200, message = "Success", data = null, meta = null) {
     const response = { success: true, message };
     if (data !== null) response.data = data;
+    if (meta && typeof meta === "object" && Object.keys(meta).length > 0) response.meta = meta;
     return res.status(statusCode).json(response);
   }
 

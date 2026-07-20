@@ -74,6 +74,23 @@ enum AuditAction {
   HRM_LEAVE_DENIED
   HRM_LEAVE_APPROVE_ALL
   HRM_PAYROLL_UPDATED
+  MARKETING_INTELLIGENCE_VALIDATION_UPDATED
+  MARKETING_RECOMMENDATION_EVALUATED
+  MARKETING_RECOMMENDATION_ACCEPTED
+  MARKETING_RECOMMENDATION_DISMISSED
+  MARKETING_ALERT_EVALUATED
+  MARKETING_ALERT_ACKNOWLEDGED
+  MARKETING_ALERT_RESOLVED
+  MARKETING_RECOMMENDATION_TASK_CONVERTED
+  MARKETING_EXPERIMENT_CREATED
+  MARKETING_EXPERIMENT_UPDATED
+  MARKETING_EXPERIMENT_STARTED
+  MARKETING_EXPERIMENT_COMPLETED
+  MARKETING_EXPERIMENT_CANCELLED
+  MARKETING_CREATIVE_SYNCED
+  MARKETING_CREATIVE_SCORED
+  MARKETING_INTELLIGENCE_SYNCED
+  MARKETING_INTELLIGENCE_SETTINGS_UPDATED
   HRM_VACANCY_CREATED
   HRM_VACANCY_UPDATED
   HRM_VACANCY_DELETED
@@ -211,6 +228,157 @@ enum marketing_funnel_stage_enum {
   SIGNUP
   ACTIVE
   PAYMENT
+  REFUND
+  CHARGEBACK
+}
+
+enum marketing_attribution_model_enum {
+  LAST_TOUCH
+}
+
+enum marketing_attribution_status_enum {
+  ATTRIBUTED
+  UNRESOLVED
+}
+
+enum marketing_intelligence_run_type_enum {
+  SYNC
+  CONNECTION_TEST
+  VALIDATION
+  CREATIVE_SYNC
+  SCORE
+  RECOMMEND
+  ALERT
+  FULL_EVALUATION
+}
+
+enum marketing_intelligence_run_status_enum {
+  STARTED
+  SUCCEEDED
+  PARTIALLY_SUCCEEDED
+  FAILED
+  SKIPPED_LOCKED
+  LOCK_RENEWAL_FAILED
+  PARTIAL_SUCCESS
+}
+
+enum marketing_provider_validation_status_enum {
+  NOT_VALIDATED
+  MOCK_VERIFIED
+  CONNECTION_TEST_PASSED
+  BOUNDED_FETCH_PASSED
+  METRIC_RECONCILED
+  LIVE_VALIDATED
+  CREDENTIAL_BLOCKED
+  APPROVAL_BLOCKED
+  FAILED
+}
+
+enum marketing_creative_type_enum {
+  IMAGE
+  VIDEO
+  CAROUSEL
+  TEXT
+  RESPONSIVE
+  OTHER
+  UNKNOWN
+}
+
+enum marketing_creative_data_sufficiency_enum {
+  INSUFFICIENT
+  LIMITED
+  SUFFICIENT
+  STRONG
+}
+
+enum marketing_creative_fatigue_status_enum {
+  UNKNOWN
+  HEALTHY
+  NONE
+  WATCH
+  FATIGUED
+  RECOVERED
+}
+
+enum marketing_recommendation_type_enum {
+  PAUSE
+  SCALE
+  CREATE_CONTENT
+  REFRESH_CREATIVE
+  SCALE_CREATIVE
+  REDUCE_SPEND
+  REALLOCATE_BUDGET
+  REVIEW_CAMPAIGN
+  OTHER
+}
+
+enum marketing_recommendation_status_enum {
+  PENDING
+  CONVERTED_TO_TASK
+  OPEN
+  ACCEPTED
+  DISMISSED
+  EXPIRED
+}
+
+enum marketing_alert_type_enum {
+  CPA_TARGET_BREACH
+  SPEND_WITHOUT_CONVERSION
+  CONVERSION_RATE_DROP
+  CREATIVE_FATIGUE
+  SYNC_STALE
+  CAMPAIGN_PERFORMANCE_DROP
+  HIGH_PERFORMING_CAMPAIGN
+  TOKEN_REFRESH_FAILED
+  CONNECTION_DEGRADED
+  PLATFORM_PERMISSION_ERROR
+  PERFORMANCE_DROP
+  SPEND_ANOMALY
+  DATA_QUALITY
+  CONNECTION_FAILURE
+  OTHER
+}
+
+enum marketing_alert_severity_enum {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum marketing_alert_status_enum {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+enum marketing_experiment_status_enum {
+  DRAFT
+  RUNNING
+  COMPLETED
+  CANCELLED
+}
+
+enum marketing_experiment_metric_enum {
+  CTR
+  CPC
+  CPM
+  CONVERSION_RATE
+  CPA
+  ROAS
+}
+
+enum marketing_intelligence_setting_scope_type_enum {
+  GLOBAL
+  PLATFORM
+  CONNECTION
+}
+
+enum marketing_intelligence_setting_value_type_enum {
+  BOOLEAN
+  INTEGER
+  DECIMAL
+  STRING
+  JSON
 }
 
 enum SocialProvider {
@@ -509,36 +677,43 @@ model AdminUser {
   equity Decimal? @db.Decimal(15, 2)
 
   //  Relations
-  refreshTokens                    RefreshToken[]
-  auditLogs                        AuditLog[]
-  socialLinks                      AdminSocialLink[]
-  educations                       AdminEducation[]
-  documents                        AdminDocument[]
-  performanceNotes                 AdminPerformanceNote[]
-  reports                          AdminReport[]
-  sectionGrants                    AdminSectionGrant[]
-  marketingCampaignTeamMemberships marketing_campaign_team_members[] @relation("marketing_campaign_team_members_adminUserIdToAdminUser")
-  marketingContentItems            marketing_content_items[]         @relation("marketing_content_items_authorIdToAdminUser")
-  socialAccountConnections         SocialAccountConnection[]
-  socialOAuthStates                SocialOAuthState[]
-  socialPostsCreated               SocialPost[]                      @relation("SocialPostCreatedBy")
-  socialPostRevisionsCreated       SocialPostRevision[]              @relation("SocialPostRevisionCreatedBy")
-  socialApprovalsSubmitted         SocialPostApproval[]              @relation("SocialApprovalSubmittedBy")
-  socialApprovalsDecided           SocialPostApproval[]              @relation("SocialApprovalDecidedBy")
-  socialPublicationsRequested      SocialPublication[]               @relation("SocialPublicationRequestedBy")
-  socialPublicationsApproved       SocialPublication[]               @relation("SocialPublicationApprovedBy")
-  socialMediaAssets                SocialMediaAsset[]
-  socialContactsLinked             SocialContact[]                   @relation("SocialContactLinkedBy")
-  socialConversationsAssigned      SocialConversation[]              @relation("SocialConversationAssignee")
-  socialConversationAssignments    SocialConversation[]              @relation("SocialConversationAssignedBy")
-  socialMessagesSent               SocialMessage[]
-  socialConversationTagsAdded      SocialConversationTag[]           @relation("SocialConversationTagTaggedBy")
-  socialCommentsAssigned           SocialComment[]                   @relation("SocialCommentAssignee")
-  socialCommentsSent               SocialComment[]                   @relation("SocialCommentSentByAdmin")
-  socialEscalationsConfirmed       SocialEscalation[]                @relation("SocialEscalationConfirmedBy")
-  socialInternalNotesAuthored      SocialInternalNote[]
-  socialSavedRepliesCreated        SocialSavedReply[]
-  socialSettingsUpdated            SocialOperationsSetting[]
+  refreshTokens                     RefreshToken[]
+  auditLogs                         AuditLog[]
+  socialLinks                       AdminSocialLink[]
+  educations                        AdminEducation[]
+  documents                         AdminDocument[]
+  performanceNotes                  AdminPerformanceNote[]
+  reports                           AdminReport[]
+  sectionGrants                     AdminSectionGrant[]
+  marketingCampaignTeamMemberships  marketing_campaign_team_members[]        @relation("marketing_campaign_team_members_adminUserIdToAdminUser")
+  marketingContentItems             marketing_content_items[]                @relation("marketing_content_items_authorIdToAdminUser")
+  socialAccountConnections          SocialAccountConnection[]
+  socialOAuthStates                 SocialOAuthState[]
+  socialPostsCreated                SocialPost[]                             @relation("SocialPostCreatedBy")
+  socialPostRevisionsCreated        SocialPostRevision[]                     @relation("SocialPostRevisionCreatedBy")
+  socialApprovalsSubmitted          SocialPostApproval[]                     @relation("SocialApprovalSubmittedBy")
+  socialApprovalsDecided            SocialPostApproval[]                     @relation("SocialApprovalDecidedBy")
+  socialPublicationsRequested       SocialPublication[]                      @relation("SocialPublicationRequestedBy")
+  socialPublicationsApproved        SocialPublication[]                      @relation("SocialPublicationApprovedBy")
+  socialMediaAssets                 SocialMediaAsset[]
+  socialContactsLinked              SocialContact[]                          @relation("SocialContactLinkedBy")
+  socialConversationsAssigned       SocialConversation[]                     @relation("SocialConversationAssignee")
+  socialConversationAssignments     SocialConversation[]                     @relation("SocialConversationAssignedBy")
+  socialMessagesSent                SocialMessage[]
+  socialConversationTagsAdded       SocialConversationTag[]                  @relation("SocialConversationTagTaggedBy")
+  socialCommentsAssigned            SocialComment[]                          @relation("SocialCommentAssignee")
+  socialCommentsSent                SocialComment[]                          @relation("SocialCommentSentByAdmin")
+  socialEscalationsConfirmed        SocialEscalation[]                       @relation("SocialEscalationConfirmedBy")
+  socialInternalNotesAuthored       SocialInternalNote[]
+  socialSavedRepliesCreated         SocialSavedReply[]
+  socialSettingsUpdated             SocialOperationsSetting[]
+  marketingRecommendationsAccepted  marketing_recommendations[]              @relation("MarketingRecommendationAcceptedBy")
+  marketingRecommendationsDismissed marketing_recommendations[]              @relation("MarketingRecommendationDismissedBy")
+  marketingAlertsResolved           marketing_alerts[]                       @relation("MarketingAlertResolvedBy")
+  marketingAlertsAcknowledged       marketing_alerts[]                       @relation("MarketingAlertAcknowledgedBy")
+  marketingExperimentsCreated       marketing_experiments[]                  @relation("MarketingExperimentCreatedBy")
+  marketingEvaluationRunsRequested  marketing_intelligence_evaluation_runs[] @relation("MarketingEvaluationRunRequestedBy")
+  marketingSettingsUpdated          marketing_intelligence_settings[]        @relation("MarketingIntelligenceSettingUpdatedBy")
 
   //  Work Section Relations
   teamMemberships       TeamMember[]
@@ -847,29 +1022,44 @@ model marketing_analytics_snapshots {
 // -----------------------------------------------------------------------------
 
 model marketing_ad_platform_connections {
-  id                      String                              @id(map: "PK_marketing_ad_platform_connections") @default(uuid())
-  platform                marketing_ad_platform_enum
-  accountId               String                              @db.VarChar(255)
+  id                             String                                    @id(map: "PK_marketing_ad_platform_connections") @default(uuid())
+  platform                       marketing_ad_platform_enum
+  accountId                      String                                    @db.VarChar(255)
   // AES-256-GCM encrypted payloads ("v1:<iv>:<tag>:<ciphertext>") - never plaintext
-  accessToken             String
-  refreshToken            String?
-  encryptedCredentials    String?
-  credentialVersion       Int                                 @default(1)
-  connectionMetadata      Json?                               @db.Json
-  currency                String?                             @db.VarChar(16)
-  requiresReauthorization Boolean                             @default(false)
-  status                  marketing_ad_connection_status_enum @default(ACTIVE)
-  lastSyncedAt            DateTime?                           @db.Timestamp(6)
-  lastSyncError           String?
+  accessToken                    String
+  refreshToken                   String?
+  encryptedCredentials           String?
+  credentialVersion              Int                                       @default(1)
+  connectionMetadata             Json?                                     @db.Json
+  currency                       String?                                   @db.VarChar(16)
+  requiresReauthorization        Boolean                                   @default(false)
+  status                         marketing_ad_connection_status_enum       @default(ACTIVE)
+  lastSyncedAt                   DateTime?                                 @db.Timestamp(6)
+  lastSyncError                  String?
+  validationStatus               marketing_provider_validation_status_enum @default(NOT_VALIDATED)
+  lastConnectionTestAt           DateTime?                                 @db.Timestamp(6)
+  lastSuccessfulFetchAt          DateTime?                                 @db.Timestamp(6)
+  lastMetricReconciliationAt     DateTime?                                 @db.Timestamp(6)
+  lastPaginationVerificationAt   DateTime?                                 @db.Timestamp(6)
+  lastRateLimitVerificationAt    DateTime?                                 @db.Timestamp(6)
+  lastTokenRefreshVerificationAt DateTime?                                 @db.Timestamp(6)
+  sanitizedValidationError       String?
   // Token lifecycle metadata (populated when the provider reports expiry)
-  accessTokenExpiresAt    DateTime?                           @db.Timestamp(6)
-  refreshTokenExpiresAt   DateTime?                           @db.Timestamp(6)
-  createdAt               DateTime                            @default(now()) @db.Timestamp(6)
-  updatedAt               DateTime                            @updatedAt @db.Timestamp(6)
+  accessTokenExpiresAt           DateTime?                                 @db.Timestamp(6)
+  refreshTokenExpiresAt          DateTime?                                 @db.Timestamp(6)
+  createdAt                      DateTime                                  @default(now()) @db.Timestamp(6)
+  updatedAt                      DateTime                                  @updatedAt @db.Timestamp(6)
 
   rawInsights          marketing_ad_insights_raw[]
   performanceSnapshots marketing_performance_snapshots[]
   oauthStates          marketing_oauth_states[]
+  evaluationRuns       marketing_intelligence_evaluation_runs[]
+  creativeAssets       marketing_creative_assets[]
+  creativeSnapshots    marketing_creative_performance_snapshots[]
+  recommendations      marketing_recommendations[]
+  alerts               marketing_alerts[]
+  experiments          marketing_experiments[]
+  intelligenceSettings marketing_intelligence_settings[]
 
   @@unique([platform, accountId], map: "UQ_marketing_ad_platform_connections_platform_accountId")
   @@index([platform, status], map: "IDX_marketing_ad_platform_connections_platform_status")
@@ -883,10 +1073,17 @@ model marketing_ad_insights_raw {
   campaignExternalId String                     @db.VarChar(255)
   date               DateTime                   @db.Date
   rawJson            Json                       @db.Json
+  payloadCategory    String                     @default("CAMPAIGN_INSIGHT") @db.VarChar(64)
+  payloadKey         String?                    @unique(map: "UQ_marketing_ad_insights_raw_payloadKey") @db.VarChar(128)
+  requestRangeStart  DateTime?                  @db.Date
+  requestRangeEnd    DateTime?                  @db.Date
+  providerRequestId  String?                    @db.VarChar(255)
+  requestMetadata    Json?                      @db.Json
   fetchedAt          DateTime                   @default(now()) @db.Timestamp(6)
   createdAt          DateTime                   @default(now()) @db.Timestamp(6)
 
-  connection marketing_ad_platform_connections? @relation(fields: [connectionId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_ad_insights_raw_connectionId")
+  connection                   marketing_ad_platform_connections?         @relation(fields: [connectionId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_ad_insights_raw_connectionId")
+  creativePerformanceSnapshots marketing_creative_performance_snapshots[]
 
   @@unique([platform, accountId, campaignExternalId, date], map: "UQ_marketing_ad_insights_raw_platform_account_campaign_date")
   @@index([connectionId], map: "IDX_marketing_ad_insights_raw_connectionId")
@@ -896,26 +1093,31 @@ model marketing_ad_insights_raw {
 }
 
 model marketing_performance_snapshots {
-  id                 String                     @id(map: "PK_marketing_performance_snapshots") @default(uuid())
-  connectionId       String?
-  accountId          String                     @default("UNKNOWN") @db.VarChar(255)
-  platform           marketing_ad_platform_enum
-  campaignExternalId String                     @db.VarChar(255)
-  campaignName       String                     @db.VarChar(512)
-  date               DateTime                   @db.Date
-  currency           String                     @default("UNSPECIFIED") @db.VarChar(16)
-  spend              Decimal                    @default(0) @db.Decimal(14, 2)
-  impressions        Int                        @default(0)
-  clicks             Int                        @default(0)
-  signups            Int                        @default(0)
-  activeUsers        Int                        @default(0)
-  payments           Int                        @default(0)
-  revenue            Decimal                    @default(0) @db.Decimal(14, 2)
-  cpa                Decimal                    @default(0) @db.Decimal(14, 2)
+  id                    String                     @id(map: "PK_marketing_performance_snapshots") @default(uuid())
+  connectionId          String?
+  accountId             String                     @default("UNKNOWN") @db.VarChar(255)
+  platform              marketing_ad_platform_enum
+  campaignExternalId    String                     @db.VarChar(255)
+  campaignName          String                     @db.VarChar(512)
+  date                  DateTime                   @db.Date
+  currency              String                     @default("UNSPECIFIED") @db.VarChar(16)
+  spend                 Decimal                    @default(0) @db.Decimal(14, 2)
+  impressions           Int                        @default(0)
+  clicks                Int                        @default(0)
+  signups               Int                        @default(0)
+  activeUsers           Int                        @default(0)
+  payments              Int                        @default(0)
+  refunds               Int                        @default(0)
+  chargebacks           Int                        @default(0)
+  revenue               Decimal                    @default(0) @db.Decimal(14, 2)
+  netRevenue            Decimal                    @default(0) @db.Decimal(14, 2)
+  cpa                   Decimal                    @default(0) @db.Decimal(14, 2)
+  roas                  Decimal?                   @db.Decimal(14, 2)
+  currencyCompatibility Boolean                    @default(true)
   // Percentage (0-100), not a ratio
-  conversionRate     Decimal                    @default(0) @db.Decimal(8, 2)
-  createdAt          DateTime                   @default(now()) @db.Timestamp(6)
-  updatedAt          DateTime                   @updatedAt @db.Timestamp(6)
+  conversionRate        Decimal                    @default(0) @db.Decimal(8, 2)
+  createdAt             DateTime                   @default(now()) @db.Timestamp(6)
+  updatedAt             DateTime                   @updatedAt @db.Timestamp(6)
 
   connection marketing_ad_platform_connections? @relation(fields: [connectionId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_performance_snapshots_connectionId")
 
@@ -955,6 +1157,8 @@ model marketing_attributions {
   userId             String?                     @db.VarChar(255)
   source             String?                     @db.VarChar(100)
   platform           marketing_ad_platform_enum?
+  connectionId       String?
+  accountExternalId  String?                     @db.VarChar(255)
   campaignExternalId String?                     @db.VarChar(255)
   campaignName       String?                     @db.VarChar(512)
   utmParams          Json?                       @db.JsonB
@@ -965,31 +1169,385 @@ model marketing_attributions {
   updatedAt          DateTime                    @updatedAt @db.Timestamp(6)
 
   @@index([userId], map: "IDX_marketing_attributions_userId")
+  @@index([connectionId], map: "IDX_marketing_attributions_connectionId")
+  @@index([platform, accountExternalId, campaignExternalId], map: "IDX_marketing_attributions_platform_account_campaign")
   @@index([platform, campaignExternalId], map: "IDX_marketing_attributions_platform_campaign")
   @@index([firstCapturedAt], map: "IDX_marketing_attributions_firstCapturedAt")
   @@index([source], map: "IDX_marketing_attributions_source")
 }
 
 model marketing_funnel_events {
-  id                 String                      @id(map: "PK_marketing_funnel_events") @default(uuid())
-  userId             String?                     @db.VarChar(255)
-  anonId             String?                     @db.VarChar(255)
-  stage              marketing_funnel_stage_enum
-  source             String?                     @db.VarChar(100)
-  campaignExternalId String?                     @db.VarChar(255)
-  utmParams          Json?                       @db.Json
-  // Monetary value in major currency units; populated for PAYMENT events
-  value              Decimal?                    @db.Decimal(14, 2)
-  currency           String?                     @db.VarChar(10)
+  id                             String                             @id(map: "PK_marketing_funnel_events") @default(uuid())
+  userId                         String?                            @db.VarChar(255)
+  anonId                         String?                            @db.VarChar(255)
+  stage                          marketing_funnel_stage_enum
+  source                         String?                            @db.VarChar(100)
+  platform                       marketing_ad_platform_enum?
+  connectionId                   String?
+  accountExternalId              String?                            @db.VarChar(255)
+  campaignExternalId             String?                            @db.VarChar(255)
+  utmParams                      Json?                              @db.Json
+  // Monetary value in major currency units; positive for PAYMENT and negative
+  // for REFUND/CHARGEBACK adjustment events.
+  value                          Decimal?                           @db.Decimal(14, 2)
+  currency                       String?                            @db.VarChar(10)
+  originalPaymentExternalEventId String?                            @db.VarChar(255)
+  monetaryStatus                 String?                            @db.VarChar(40)
+  attributionStatus              marketing_attribution_status_enum?
+  unresolvedReason               String?                            @db.VarChar(100)
+  attributedClickEventId         String?
+  attributionModel               marketing_attribution_model_enum?
+  attributionWindowDays          Int?
+  attributionWindowStart         DateTime?                          @db.Timestamp(6)
+  attributionWindowEnd           DateTime?                          @db.Timestamp(6)
+  resolvedAt                     DateTime?                          @db.Timestamp(6)
   // Idempotency key from the emitting system - prevents duplicate funnel events
-  externalEventId    String?                     @unique(map: "UQ_marketing_funnel_events_externalEventId") @db.VarChar(255)
-  occurredAt         DateTime                    @db.Timestamp(6)
-  createdAt          DateTime                    @default(now()) @db.Timestamp(6)
+  externalEventId                String?                            @unique(map: "UQ_marketing_funnel_events_externalEventId") @db.VarChar(255)
+  occurredAt                     DateTime                           @db.Timestamp(6)
+  createdAt                      DateTime                           @default(now()) @db.Timestamp(6)
+
+  conversionAttributionDecision     marketing_attribution_decisions?  @relation("conversionAttributionDecision")
+  selectedClickAttributionDecisions marketing_attribution_decisions[] @relation("selectedClickAttributionDecision")
 
   @@index([campaignExternalId, stage, occurredAt], map: "IDX_marketing_funnel_events_campaign_stage_occurredAt")
+  @@index([platform, accountExternalId, campaignExternalId, occurredAt], map: "IDX_mkt_funnel_platform_account_campaign_time")
+  @@index([connectionId, campaignExternalId, occurredAt], map: "IDX_marketing_funnel_events_connection_campaign_occurredAt")
   @@index([stage, occurredAt], map: "IDX_marketing_funnel_events_stage_occurredAt")
   @@index([source], map: "IDX_marketing_funnel_events_source")
   @@index([userId], map: "IDX_marketing_funnel_events_userId")
+  @@index([anonId], map: "IDX_marketing_funnel_events_anonId")
+  @@index([attributedClickEventId], map: "IDX_marketing_funnel_events_attributedClickEventId")
+  @@index([originalPaymentExternalEventId], map: "IDX_marketing_funnel_events_originalPaymentExternalEventId")
+}
+
+model marketing_identity_links {
+  id                  String   @id(map: "PK_marketing_identity_links") @default(dbgenerated("(gen_random_uuid())::text"))
+  anonIdHash          String   @unique(map: "UQ_marketing_identity_links_anonIdHash") @db.VarChar(128)
+  userId              String   @db.VarChar(255)
+  sourceSignupEventId String?  @db.VarChar(255)
+  status              String   @default("ACTIVE") @db.VarChar(40)
+  conflictReason      String?  @db.VarChar(100)
+  linkedAt            DateTime @db.Timestamp(6)
+  createdAt           DateTime @default(now()) @db.Timestamp(6)
+  updatedAt           DateTime @default(now()) @updatedAt @db.Timestamp(6)
+
+  @@index([userId], map: "IDX_marketing_identity_links_userId")
+  @@index([sourceSignupEventId], map: "IDX_marketing_identity_links_sourceSignupEventId")
+}
+
+model marketing_attribution_decisions {
+  id                    String                            @id(map: "PK_marketing_attribution_decisions") @default(dbgenerated("(gen_random_uuid())::text"))
+  conversionEventId     String                            @unique(map: "UQ_marketing_attribution_decisions_conversionEventId")
+  selectedClickEventId  String?
+  model                 marketing_attribution_model_enum  @default(LAST_TOUCH)
+  attributionWindowDays Int
+  windowStart           DateTime                          @db.Timestamp(6)
+  windowEnd             DateTime                          @db.Timestamp(6)
+  platform              marketing_ad_platform_enum?
+  connectionId          String?
+  accountExternalId     String?                           @db.VarChar(255)
+  campaignExternalId    String?                           @db.VarChar(255)
+  status                marketing_attribution_status_enum
+  unresolvedReason      String?                           @db.VarChar(100)
+  resolvedAt            DateTime                          @db.Timestamp(6)
+  createdAt             DateTime                          @default(now()) @db.Timestamp(6)
+  updatedAt             DateTime                          @default(now()) @updatedAt @db.Timestamp(6)
+
+  conversionEvent    marketing_funnel_events  @relation("conversionAttributionDecision", fields: [conversionEventId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_marketing_attribution_decisions_conversionEventId")
+  selectedClickEvent marketing_funnel_events? @relation("selectedClickAttributionDecision", fields: [selectedClickEventId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_attribution_decisions_selectedClickEventId")
+
+  @@index([selectedClickEventId], map: "IDX_marketing_attribution_decisions_selectedClickEventId")
+  @@index([status, resolvedAt], map: "IDX_marketing_attribution_decisions_status_resolvedAt")
+  @@index([platform, accountExternalId, campaignExternalId], map: "IDX_marketing_attribution_decisions_platform_account_campaign")
+}
+
+model marketing_intelligence_settings {
+  id                   String                                         @id(map: "PK_marketing_intelligence_settings") @default(dbgenerated("(gen_random_uuid())::text"))
+  key                  String                                         @db.VarChar(100)
+  scopeType            marketing_intelligence_setting_scope_type_enum @default(GLOBAL)
+  platform             marketing_ad_platform_enum?
+  connectionId         String?
+  currencyCode         String?                                        @db.VarChar(3)
+  scopeFingerprint     String                                         @default("GLOBAL") @db.VarChar(255)
+  valueType            marketing_intelligence_setting_value_type_enum @default(JSON)
+  valueJson            Json                                           @db.Json
+  legacyValue          Json?                                          @map("value") @db.Json
+  version              Int                                            @default(1)
+  updatedByAdminUserId String?
+  createdAt            DateTime                                       @default(now()) @db.Timestamp(6)
+  updatedAt            DateTime                                       @default(now()) @updatedAt @db.Timestamp(6)
+
+  connection     marketing_ad_platform_connections? @relation(fields: [connectionId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_intelligence_settings_connectionId")
+  updatedByAdmin AdminUser?                         @relation("MarketingIntelligenceSettingUpdatedBy", fields: [updatedByAdminUserId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_intelligence_settings_updatedByAdminUserId")
+
+  @@unique([key, scopeFingerprint], map: "UQ_marketing_intelligence_settings_key_scopeFingerprint")
+  @@index([scopeType, platform, connectionId, currencyCode], map: "IDX_marketing_intelligence_settings_scope")
+  @@index([key, scopeType], map: "IDX_marketing_intelligence_settings_key_scopeType")
+}
+
+model marketing_intelligence_evaluation_runs {
+  id                     String                                 @id(map: "PK_marketing_intelligence_evaluation_runs") @default(dbgenerated("(gen_random_uuid())::text"))
+  runType                marketing_intelligence_run_type_enum
+  status                 marketing_intelligence_run_status_enum
+  trigger                String?                                @db.VarChar(100)
+  platform               marketing_ad_platform_enum?
+  connectionId           String?
+  accountExternalId      String?                                @db.VarChar(255)
+  requestedByAdminUserId String?
+  windowStart            DateTime?                              @db.Timestamp(6)
+  windowEnd              DateTime?                              @db.Timestamp(6)
+  startedAt              DateTime                               @db.Timestamp(6)
+  completedAt            DateTime?                              @db.Timestamp(6)
+  lockKeyHash            String?                                @db.VarChar(128)
+  lockOwnerHash          String?                                @db.VarChar(128)
+  processedCount         Int                                    @default(0)
+  createdCount           Int                                    @default(0)
+  updatedCount           Int                                    @default(0)
+  succeededCount         Int                                    @default(0)
+  failedCount            Int                                    @default(0)
+  skippedCount           Int                                    @default(0)
+  summary                Json?                                  @db.Json
+  errorCode              String?                                @db.VarChar(100)
+  sanitizedError         String?
+  errorMessage           String?
+  createdAt              DateTime                               @default(now()) @db.Timestamp(6)
+  updatedAt              DateTime                               @default(now()) @updatedAt @db.Timestamp(6)
+
+  connection       marketing_ad_platform_connections? @relation(fields: [connectionId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_intelligence_evaluation_runs_connectionId")
+  requestedByAdmin AdminUser?                         @relation("MarketingEvaluationRunRequestedBy", fields: [requestedByAdminUserId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_intel_runs_requested_admin")
+
+  @@index([runType, status, startedAt], map: "IDX_marketing_intelligence_runs_type_status_startedAt")
+  @@index([platform, startedAt], map: "IDX_marketing_intelligence_runs_platform_startedAt")
+  @@index([connectionId, startedAt], map: "IDX_marketing_intelligence_runs_connection_startedAt")
+}
+
+model marketing_creative_assets {
+  id                       String                       @id(map: "PK_marketing_creative_assets") @default(dbgenerated("(gen_random_uuid())::text"))
+  platform                 marketing_ad_platform_enum
+  connectionId             String
+  accountExternalId        String                       @db.VarChar(255)
+  campaignExternalId       String                       @db.VarChar(255)
+  adGroupExternalId        String?                      @db.VarChar(255)
+  adExternalId             String?                      @db.VarChar(255)
+  creativeExternalId       String                       @db.VarChar(512)
+  sourceKey                String                       @db.VarChar(512)
+  name                     String?                      @db.VarChar(512)
+  type                     marketing_creative_type_enum
+  status                   String?                      @db.VarChar(100)
+  durationSeconds          Int?
+  hasHumanPresence         Boolean?
+  ctaType                  String?                      @db.VarChar(100)
+  headline                 String?
+  bodyText                 String?
+  sourceUrl                String?
+  thumbnailUrl             String?
+  creativeHash             String?                      @db.VarChar(128)
+  sourceSocialMediaAssetId String?                      @db.Uuid
+  nativeIdentifiers        Json?                        @db.Json
+  metadata                 Json?                        @db.Json
+  firstSeenAt              DateTime                     @db.Timestamp(6)
+  lastSeenAt               DateTime                     @db.Timestamp(6)
+  createdAt                DateTime                     @default(now()) @db.Timestamp(6)
+  updatedAt                DateTime                     @default(now()) @updatedAt @db.Timestamp(6)
+
+  connection             marketing_ad_platform_connections          @relation(fields: [connectionId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_creative_assets_connectionId")
+  sourceSocialMediaAsset SocialMediaAsset?                          @relation(fields: [sourceSocialMediaAssetId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_creative_assets_sourceSocialMediaAssetId")
+  performanceSnapshots   marketing_creative_performance_snapshots[]
+  scoreSnapshots         marketing_creative_score_snapshots[]
+  alerts                 marketing_alerts[]
+
+  @@unique([connectionId, sourceKey], map: "UQ_marketing_creative_assets_connection_sourceKey")
+  @@index([platform, accountExternalId, campaignExternalId], map: "IDX_marketing_creative_assets_platform_account_campaign")
+  @@index([platform, creativeExternalId], map: "IDX_marketing_creative_assets_platform_creative")
+  @@index([connectionId, campaignExternalId], map: "IDX_marketing_creative_assets_connection_campaign")
+  @@index([lastSeenAt], map: "IDX_marketing_creative_assets_lastSeenAt")
+}
+
+model marketing_creative_performance_snapshots {
+  id                  String                     @id(map: "PK_marketing_creative_performance_snapshots") @default(dbgenerated("(gen_random_uuid())::text"))
+  creativeAssetId     String
+  platform            marketing_ad_platform_enum
+  connectionId        String
+  accountExternalId   String                     @db.VarChar(255)
+  campaignExternalId  String                     @db.VarChar(255)
+  adGroupExternalId   String?                    @db.VarChar(255)
+  adExternalId        String?                    @db.VarChar(255)
+  creativeExternalId  String                     @db.VarChar(512)
+  sourceMetricKey     String                     @db.VarChar(512)
+  date                DateTime                   @db.Date
+  currencyCode        String?                    @db.VarChar(16)
+  spend               Decimal?                   @db.Decimal(18, 2)
+  revenue             Decimal?                   @db.Decimal(18, 2)
+  impressions         BigInt?
+  reach               BigInt?
+  clicks              BigInt?
+  providerConversions Decimal?                   @db.Decimal(18, 6)
+  attributedSignups   BigInt?
+  attributedPayments  BigInt?
+  ctr                 Decimal?                   @db.Decimal(18, 6)
+  cpc                 Decimal?                   @db.Decimal(18, 6)
+  cpm                 Decimal?                   @db.Decimal(18, 6)
+  conversionRate      Decimal?                   @db.Decimal(18, 6)
+  cpa                 Decimal?                   @db.Decimal(18, 6)
+  roas                Decimal?                   @db.Decimal(18, 6)
+  rawInsightId        String?
+  metadata            Json?                      @db.Json
+  createdAt           DateTime                   @default(now()) @db.Timestamp(6)
+  updatedAt           DateTime                   @default(now()) @updatedAt @db.Timestamp(6)
+
+  creativeAsset marketing_creative_assets         @relation(fields: [creativeAssetId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_creative_perf_snapshots_creativeAssetId")
+  connection    marketing_ad_platform_connections @relation(fields: [connectionId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_creative_perf_snapshots_connectionId")
+  rawInsight    marketing_ad_insights_raw?        @relation(fields: [rawInsightId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_creative_perf_snapshots_rawInsightId")
+
+  @@unique([connectionId, sourceMetricKey, date], map: "UQ_marketing_creative_perf_snapshots_connection_metric_date")
+  @@index([platform, accountExternalId, campaignExternalId, date], map: "IDX_marketing_creative_perf_platform_account_campaign_date")
+  @@index([creativeAssetId, date], map: "IDX_marketing_creative_perf_asset_date")
+  @@index([connectionId, date], map: "IDX_marketing_creative_perf_connection_date")
+  @@index([platform, creativeExternalId, date], map: "IDX_marketing_creative_perf_platform_creative_date")
+}
+
+model marketing_creative_score_snapshots {
+  id                    String                                   @id(map: "PK_marketing_creative_score_snapshots") @default(dbgenerated("(gen_random_uuid())::text"))
+  creativeAssetId       String
+  analysisWindowStart   DateTime                                 @db.Timestamp(6)
+  analysisWindowEnd     DateTime                                 @db.Timestamp(6)
+  comparisonWindowStart DateTime?                                @db.Timestamp(6)
+  comparisonWindowEnd   DateTime?                                @db.Timestamp(6)
+  score                 Decimal                                  @db.Decimal(5, 2)
+  dataSufficiency       marketing_creative_data_sufficiency_enum
+  fatigueStatus         marketing_creative_fatigue_status_enum
+  components            Json                                     @db.Json
+  evidence              Json                                     @db.Json
+  ruleVersion           String                                   @db.VarChar(64)
+  settingsVersion       String?                                  @db.VarChar(128)
+  generatedAt           DateTime                                 @db.Timestamp(6)
+  createdAt             DateTime                                 @default(now()) @db.Timestamp(6)
+
+  creativeAsset marketing_creative_assets @relation(fields: [creativeAssetId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_creative_score_snapshots_creativeAssetId")
+
+  @@unique([creativeAssetId, analysisWindowStart, analysisWindowEnd, ruleVersion], map: "UQ_marketing_creative_scores_asset_window_rule")
+  @@index([score, generatedAt], map: "IDX_marketing_creative_scores_score_generatedAt")
+  @@index([fatigueStatus, generatedAt], map: "IDX_marketing_creative_scores_fatigue_generatedAt")
+  @@index([creativeAssetId, generatedAt], map: "IDX_marketing_creative_scores_asset_generatedAt")
+}
+
+model marketing_recommendations {
+  id                            String                               @id(map: "PK_marketing_recommendations") @default(dbgenerated("(gen_random_uuid())::text"))
+  type                          marketing_recommendation_type_enum
+  status                        marketing_recommendation_status_enum @default(OPEN)
+  platform                      marketing_ad_platform_enum?
+  connectionId                  String?
+  targetCampaignExternalId      String                               @db.VarChar(255)
+  sourceCampaignExternalId      String?                              @db.VarChar(255)
+  destinationCampaignExternalId String?                              @db.VarChar(255)
+  currencyCode                  String?                              @db.VarChar(16)
+  reasoning                     String
+  confidence                    Decimal                              @db.Decimal(5, 4)
+  evidence                      Json                                 @db.Json
+  materialEvidenceFingerprint   String?                              @db.VarChar(128)
+  suggestedAction               Json?                                @db.Json
+  ruleCode                      String                               @db.VarChar(100)
+  ruleVersion                   String                               @db.VarChar(64)
+  dedupeKey                     String                               @unique(map: "UQ_marketing_recommendations_dedupeKey") @db.VarChar(512)
+  analysisWindowStart           DateTime                             @db.Timestamp(6)
+  analysisWindowEnd             DateTime                             @db.Timestamp(6)
+  generatedAt                   DateTime                             @db.Timestamp(6)
+  lastEvaluatedAt               DateTime?                            @db.Timestamp(6)
+  expiresAt                     DateTime?                            @db.Timestamp(6)
+  expirationReason              String?                              @db.VarChar(255)
+  recoveryStreak                Int                                  @default(0)
+  acceptedAt                    DateTime?                            @db.Timestamp(6)
+  acceptedByAdminUserId         String?
+  dismissedAt                   DateTime?                            @db.Timestamp(6)
+  dismissedByAdminUserId        String?
+  dismissalReason               String?
+  convertedToTaskId             String?                              @unique(map: "UQ_marketing_recommendations_convertedToTaskId")
+  createdAt                     DateTime                             @default(now()) @db.Timestamp(6)
+  updatedAt                     DateTime                             @default(now()) @updatedAt @db.Timestamp(6)
+
+  connection       marketing_ad_platform_connections? @relation(fields: [connectionId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_recommendations_connectionId")
+  acceptedByAdmin  AdminUser?                         @relation("MarketingRecommendationAcceptedBy", fields: [acceptedByAdminUserId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_recommendations_acceptedByAdminUserId")
+  dismissedByAdmin AdminUser?                         @relation("MarketingRecommendationDismissedBy", fields: [dismissedByAdminUserId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_recommendations_dismissedByAdminUserId")
+  convertedToTask  Task?                              @relation(fields: [convertedToTaskId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_recommendations_convertedToTaskId")
+
+  @@index([status, generatedAt], map: "IDX_marketing_recommendations_status_generatedAt")
+  @@index([platform, targetCampaignExternalId, status], map: "IDX_marketing_recommendations_platform_campaign_status")
+  @@index([convertedToTaskId], map: "IDX_marketing_recommendations_convertedToTaskId")
+  @@index([connectionId, status], map: "IDX_marketing_recommendations_connection_status")
+  @@index([materialEvidenceFingerprint], map: "IDX_marketing_recommendations_evidence_fingerprint")
+  @@index([status, recoveryStreak, expiresAt], map: "IDX_marketing_recommendations_pending_recovery")
+}
+
+model marketing_alerts {
+  id                        String                        @id(map: "PK_marketing_alerts") @default(dbgenerated("(gen_random_uuid())::text"))
+  type                      marketing_alert_type_enum
+  severity                  marketing_alert_severity_enum
+  status                    marketing_alert_status_enum   @default(OPEN)
+  platform                  marketing_ad_platform_enum?
+  connectionId              String?
+  campaignExternalId        String?                       @db.VarChar(255)
+  creativeAssetId           String?
+  message                   String
+  evidence                  Json                          @db.Json
+  conditionKey              String                        @db.VarChar(128)
+  lifecycle                 Int                           @default(1)
+  currencyCode              String?                       @db.VarChar(16)
+  dedupeKey                 String                        @unique(map: "UQ_marketing_alerts_dedupeKey") @db.VarChar(512)
+  triggeredAt               DateTime                      @db.Timestamp(6)
+  lastTriggeredAt           DateTime                      @db.Timestamp(6)
+  occurrenceCount           Int                           @default(1)
+  cooldownUntil             DateTime?                     @db.Timestamp(6)
+  recoveryStreak            Int                           @default(0)
+  acknowledgedAt            DateTime?                     @db.Timestamp(6)
+  acknowledgedByAdminUserId String?
+  resolvedAt                DateTime?                     @db.Timestamp(6)
+  resolvedByAdminUserId     String?
+  resolutionReason          String?
+  notificationId            String?
+  deliveryFailure           String?                       @db.VarChar(500)
+  createdAt                 DateTime                      @default(now()) @db.Timestamp(6)
+  updatedAt                 DateTime                      @default(now()) @updatedAt @db.Timestamp(6)
+
+  connection          marketing_ad_platform_connections? @relation(fields: [connectionId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_alerts_connectionId")
+  creativeAsset       marketing_creative_assets?         @relation(fields: [creativeAssetId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_alerts_creativeAssetId")
+  acknowledgedByAdmin AdminUser?                         @relation("MarketingAlertAcknowledgedBy", fields: [acknowledgedByAdminUserId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_alerts_acknowledgedByAdminUserId")
+  resolvedByAdmin     AdminUser?                         @relation("MarketingAlertResolvedBy", fields: [resolvedByAdminUserId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_alerts_resolvedByAdminUserId")
+  notification        Notification?                      @relation(fields: [notificationId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_alerts_notificationId")
+
+  @@index([status, severity, lastTriggeredAt], map: "IDX_marketing_alerts_status_severity_lastTriggeredAt")
+  @@index([connectionId, status], map: "IDX_marketing_alerts_connection_status")
+  @@index([creativeAssetId, status], map: "IDX_marketing_alerts_creative_status")
+  @@index([conditionKey, status], map: "IDX_marketing_alerts_condition_status")
+}
+
+model marketing_experiments {
+  id                   String                           @id(map: "PK_marketing_experiments") @default(dbgenerated("(gen_random_uuid())::text"))
+  name                 String                           @db.VarChar(255)
+  hypothesis           String
+  platform             marketing_ad_platform_enum?
+  connectionId         String?
+  campaignExternalId   String?                          @db.VarChar(255)
+  variantAConfig       Json                             @db.Json
+  variantBConfig       Json                             @db.Json
+  metric               marketing_experiment_metric_enum
+  status               marketing_experiment_status_enum @default(DRAFT)
+  version              Int                              @default(1)
+  result               Json?                            @db.Json
+  conclusion           String?
+  startedAt            DateTime?                        @db.Timestamp(6)
+  endedAt              DateTime?                        @db.Timestamp(6)
+  cancelledAt          DateTime?                        @db.Timestamp(6)
+  cancellationReason   String?
+  createdByAdminUserId String
+  createdAt            DateTime                         @default(now()) @db.Timestamp(6)
+  updatedAt            DateTime                         @default(now()) @updatedAt @db.Timestamp(6)
+
+  connection     marketing_ad_platform_connections? @relation(fields: [connectionId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_experiments_connectionId")
+  createdByAdmin AdminUser                          @relation("MarketingExperimentCreatedBy", fields: [createdByAdminUserId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_experiments_createdByAdminUserId")
+
+  @@index([status, createdAt], map: "IDX_marketing_experiments_status_createdAt")
+  @@index([platform, campaignExternalId], map: "IDX_marketing_experiments_platform_campaign")
+  @@index([connectionId, status], map: "IDX_marketing_experiments_connection_status")
 }
 
 // Postgres-backed distributed lock (Redis-equivalent SET NX PX semantics).
@@ -1256,7 +1814,8 @@ model SocialMediaAsset {
   createdAt              DateTime          @default(now()) @map("created_at")
   updatedAt              DateTime          @updatedAt @map("updated_at")
 
-  usages SocialPostMedia[]
+  usages                    SocialPostMedia[]
+  marketing_creative_assets marketing_creative_assets[]
 
   @@unique([ownerId, checksumSha256])
   @@map("social_media_assets")
@@ -1942,7 +2501,8 @@ model Task {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
-  socialEscalations SocialEscalation[]
+  socialEscalations        SocialEscalation[]
+  marketingRecommendations marketing_recommendations[]
 
   @@map("tasks")
 }
@@ -2023,6 +2583,8 @@ model Notification {
   subtitle    String?
   isRead      Boolean   @default(false)
   createdAt   DateTime  @default(now())
+
+  marketingAlerts marketing_alerts[]
 
   @@map("notifications")
 }
