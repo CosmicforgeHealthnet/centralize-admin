@@ -1479,40 +1479,40 @@ model marketing_recommendations {
 }
 
 model marketing_alerts {
-  id                    String                        @id(map: "PK_marketing_alerts") @default(dbgenerated("(gen_random_uuid())::text"))
-  type                  marketing_alert_type_enum
-  severity              marketing_alert_severity_enum
-  status                marketing_alert_status_enum   @default(OPEN)
-  platform              marketing_ad_platform_enum?
-  connectionId          String?
-  campaignExternalId    String?                       @db.VarChar(255)
-  creativeAssetId       String?
-  message               String
-  evidence              Json                          @db.Json
-  conditionKey          String                        @db.VarChar(128)
-  lifecycle             Int                           @default(1)
-  currencyCode          String?                       @db.VarChar(16)
-  dedupeKey             String                        @unique(map: "UQ_marketing_alerts_dedupeKey") @db.VarChar(512)
-  triggeredAt           DateTime                      @db.Timestamp(6)
-  lastTriggeredAt       DateTime                      @db.Timestamp(6)
-  occurrenceCount       Int                           @default(1)
-  cooldownUntil         DateTime?                     @db.Timestamp(6)
-  recoveryStreak        Int                           @default(0)
-  acknowledgedAt        DateTime?                     @db.Timestamp(6)
+  id                        String                        @id(map: "PK_marketing_alerts") @default(dbgenerated("(gen_random_uuid())::text"))
+  type                      marketing_alert_type_enum
+  severity                  marketing_alert_severity_enum
+  status                    marketing_alert_status_enum   @default(OPEN)
+  platform                  marketing_ad_platform_enum?
+  connectionId              String?
+  campaignExternalId        String?                       @db.VarChar(255)
+  creativeAssetId           String?
+  message                   String
+  evidence                  Json                          @db.Json
+  conditionKey              String                        @db.VarChar(128)
+  lifecycle                 Int                           @default(1)
+  currencyCode              String?                       @db.VarChar(16)
+  dedupeKey                 String                        @unique(map: "UQ_marketing_alerts_dedupeKey") @db.VarChar(512)
+  triggeredAt               DateTime                      @db.Timestamp(6)
+  lastTriggeredAt           DateTime                      @db.Timestamp(6)
+  occurrenceCount           Int                           @default(1)
+  cooldownUntil             DateTime?                     @db.Timestamp(6)
+  recoveryStreak            Int                           @default(0)
+  acknowledgedAt            DateTime?                     @db.Timestamp(6)
   acknowledgedByAdminUserId String?
-  resolvedAt            DateTime?                     @db.Timestamp(6)
-  resolvedByAdminUserId String?
-  resolutionReason      String?
-  notificationId        String?
-  deliveryFailure       String?                       @db.VarChar(500)
-  createdAt             DateTime                      @default(now()) @db.Timestamp(6)
-  updatedAt             DateTime                      @default(now()) @updatedAt @db.Timestamp(6)
+  resolvedAt                DateTime?                     @db.Timestamp(6)
+  resolvedByAdminUserId     String?
+  resolutionReason          String?
+  notificationId            String?
+  deliveryFailure           String?                       @db.VarChar(500)
+  createdAt                 DateTime                      @default(now()) @db.Timestamp(6)
+  updatedAt                 DateTime                      @default(now()) @updatedAt @db.Timestamp(6)
 
-  connection      marketing_ad_platform_connections? @relation(fields: [connectionId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_alerts_connectionId")
-  creativeAsset   marketing_creative_assets?         @relation(fields: [creativeAssetId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_alerts_creativeAssetId")
-  acknowledgedByAdmin AdminUser?                      @relation("MarketingAlertAcknowledgedBy", fields: [acknowledgedByAdminUserId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_alerts_acknowledgedByAdminUserId")
-  resolvedByAdmin AdminUser?                         @relation("MarketingAlertResolvedBy", fields: [resolvedByAdminUserId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_alerts_resolvedByAdminUserId")
-  notification    Notification?                      @relation(fields: [notificationId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_alerts_notificationId")
+  connection          marketing_ad_platform_connections? @relation(fields: [connectionId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_alerts_connectionId")
+  creativeAsset       marketing_creative_assets?         @relation(fields: [creativeAssetId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_alerts_creativeAssetId")
+  acknowledgedByAdmin AdminUser?                         @relation("MarketingAlertAcknowledgedBy", fields: [acknowledgedByAdminUserId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_alerts_acknowledgedByAdminUserId")
+  resolvedByAdmin     AdminUser?                         @relation("MarketingAlertResolvedBy", fields: [resolvedByAdminUserId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_alerts_resolvedByAdminUserId")
+  notification        Notification?                      @relation(fields: [notificationId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_marketing_alerts_notificationId")
 
   @@index([status, severity, lastTriggeredAt], map: "IDX_marketing_alerts_status_severity_lastTriggeredAt")
   @@index([connectionId, status], map: "IDX_marketing_alerts_connection_status")
