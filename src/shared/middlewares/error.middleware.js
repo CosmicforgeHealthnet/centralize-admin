@@ -4,10 +4,17 @@ const logger = require("../utils/logger");
 const errorHandler = (err, req, res, next) => {
   // Known operational error
   if (err instanceof ApiError) {
+    const fallbackCode = err.statusCode === 404 ? "NOT_FOUND"
+      : err.statusCode === 403 ? "FORBIDDEN"
+        : err.statusCode === 429 ? "RATE_LIMITED"
+          : err.statusCode === 409 ? "INVALID_TRANSITION"
+            : "VALIDATION_ERROR";
     return res.status(err.statusCode).json({
       success: false,
+      code: err.code || fallbackCode,
+      retryable: Boolean(err.retryable),
       message: err.message,
-      errors: err.errors,
+      errors: logger.maskSensitive(err.errors),
     });
   }
 
@@ -28,7 +35,11 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Unknown error — log it but don't leak details to client
-  logger.error("Unhandled error:", err);
+  logger.error("Unhandled error", logger.maskSensitive({
+    name: err?.name,
+    code: err?.code,
+    message: String(err?.message || "Unhandled failure").slice(0, 500),
+  }));
 
   return res.status(500).json({
     success: false,

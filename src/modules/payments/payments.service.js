@@ -1,4 +1,4 @@
-﻿const { mainPrisma } = require("../../shared/config/mainDatabase");
+const { mainPrisma } = require("../../shared/config/mainDatabase");
 const eventBus = require("../../shared/events/eventBus");
 const EVENTS = require("../../shared/events/events");
 const {
@@ -7,6 +7,16 @@ const {
 } = require("../../shared/states/payment.states");
 const ApiError = require("../../shared/utils/ApiError");
 const logger = require("../../shared/utils/logger");
+const crypto = require("crypto");
+
+function deterministicPaymentEventId(type, transactionId) {
+  const digest = crypto
+    .createHash("sha256")
+    .update([type, transactionId].filter(Boolean).join("|"))
+    .digest("hex")
+    .slice(0, 32);
+  return `${type.toLowerCase()}:${digest}`;
+}
 
 class PaymentsService {
   constructor() {
@@ -15,11 +25,15 @@ class PaymentsService {
 
   _registerListeners() {
     eventBus.subscribe(EVENTS.PAYMENT_SUCCESS, async ({ transactionId }) => {
-      logger.info(`[Payments] Payment success received: ${transactionId}`);
+      logger.info("[Payments] Payment success received", {
+        hasTransactionId: Boolean(transactionId),
+      });
     });
 
     eventBus.subscribe(EVENTS.PAYMENT_FAILED, async ({ transactionId }) => {
-      logger.warn(`[Payments] Payment failed: ${transactionId}`);
+      logger.warn("[Payments] Payment failed", {
+        hasTransactionId: Boolean(transactionId),
+      });
     });
   }
 
@@ -114,24 +128,48 @@ class PaymentsService {
       },
     });
 
-    logger.info(`[Payments] Transaction ${id} -> ${toStatus}`);
+    logger.info("[Payments] Transaction status changed", {
+      hasTransactionId: Boolean(id),
+      status: toStatus,
+    });
 
     if (toStatus === PAYMENT_STATES.SUCCESS) {
       eventBus.publish(EVENTS.PAYMENT_SUCCESS, {
-        eventId: `payment:${id}`,
+        eventId: deterministicPaymentEventId("payment", id),
         transactionId: id,
         userId: transaction.patientId,
         serviceType: transaction.serviceType,
         serviceId: transaction.serviceId,
         amount:
           updated.usdAmount !== null && updated.usdAmount !== undefined
-            ? Number(updated.usdAmount)
-            : Number(updated.originalAmount),
+            ? String(updated.usdAmount)
+            : String(updated.originalAmount),
         currency:
           updated.usdAmount !== null && updated.usdAmount !== undefined
             ? "USD"
             : transaction.originalCurrency,
         occurredAt: updated.completedAt || new Date(),
+      });
+    }
+
+    if (toStatus === PAYMENT_STATES.REFUNDED) {
+      eventBus.publish(EVENTS.PAYMENT_REFUNDED, {
+        eventId: deterministicPaymentEventId("refund", id),
+        transactionId: id,
+        originalPaymentExternalEventId: deterministicPaymentEventId("payment", id),
+        userId: transaction.patientId,
+        serviceType: transaction.serviceType,
+        serviceId: transaction.serviceId,
+        amount:
+          updated.usdAmount !== null && updated.usdAmount !== undefined
+            ? String(updated.usdAmount)
+            : String(updated.originalAmount),
+        currency:
+          updated.usdAmount !== null && updated.usdAmount !== undefined
+            ? "USD"
+            : transaction.originalCurrency,
+        monetaryStatus: "FINALIZED",
+        occurredAt: new Date(),
       });
     }
 

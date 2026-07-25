@@ -1,5 +1,6 @@
 const { z } = require("zod");
 const { AD_PLATFORMS, PLATFORM_FILTERS } = require("./platforms");
+const { uuidSchema, calendarDateSchema, isoTimestampSchema } = require("./validation-security");
 
 // Query validation for the intelligence dashboard, following the existing
 // marketing.validator.js zod conventions.
@@ -11,25 +12,14 @@ const FUNNEL_EVENT_TYPES = [
   "USER_SIGNUP_COMPLETED",
   "USER_BECAME_ACTIVE",
   "PAYMENT_SUCCESS",
+  "PAYMENT_REFUNDED",
+  "PAYMENT_CHARGEBACK",
 ];
 
 const emptyToUndefined = (value) =>
   value === undefined || value === null || value === "" ? undefined : value;
 
-const validDateString = z
-  .string()
-  .trim()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD format")
-  .refine((value) => {
-    const [year, month, day] = value.split("-").map(Number);
-    const parsed = new Date(Date.UTC(year, month - 1, day));
-
-    return (
-      parsed.getUTCFullYear() === year &&
-      parsed.getUTCMonth() === month - 1 &&
-      parsed.getUTCDate() === day
-    );
-  }, "Use a valid calendar date");
+const validDateString = calendarDateSchema;
 
 const optionalDate = z.preprocess(emptyToUndefined, validDateString.optional());
 
@@ -59,13 +49,34 @@ const performanceQuerySchema = z
     (data) => {
       if (!data.from || !data.to) return true;
       const spanMs = new Date(data.to).getTime() - new Date(data.from).getTime();
-      return spanMs <= MAX_RANGE_DAYS * 24 * 60 * 60 * 1000;
+      return spanMs / (24 * 60 * 60 * 1000) + 1 <= MAX_RANGE_DAYS;
     },
     { message: `Date range must not exceed ${MAX_RANGE_DAYS} days`, path: ["to"] },
   );
 
 const nullableString = (max) =>
   z.preprocess(emptyToUndefined, z.string().trim().max(max).optional());
+
+const currencyCode = z.preprocess(
+  emptyToUndefined,
+  z
+    .string()
+    .trim()
+    .transform((value) => value.toUpperCase())
+    .refine((value) => /^[A-Z]{3}$/.test(value), "currency must be an ISO 4217 code")
+    .optional(),
+);
+
+const decimalAmount = z.preprocess(
+  emptyToUndefined,
+  z
+    .union([z.number(), z.string().trim()])
+    .refine((value) => {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) && parsed !== 0;
+    }, "amount must be a non-zero decimal")
+    .optional(),
+);
 
 const credentialValue = nullableString(8192);
 const credentialsSchema = z
@@ -92,7 +103,15 @@ const connectionMetadataSchema = z
     graphApiVersion: nullableString(40),
     businessAccountId: nullableString(255),
     managerAccountId: nullableString(255),
-    currency: nullableString(10),
+    currency: z.preprocess(
+      emptyToUndefined,
+      z
+        .string()
+        .trim()
+        .transform((value) => value.toUpperCase())
+        .refine((value) => value === "UNSPECIFIED" || /^[A-Z]{3}$/.test(value), "currency must be an ISO 4217 code")
+        .optional(),
+    ),
   })
   .partial()
   .strict();
@@ -102,7 +121,7 @@ const connectionIdArray = z.preprocess(
     if (value === undefined || value === null || value === "") return [];
     return Array.isArray(value) ? value : [value];
   },
-  z.array(z.string().trim().min(1).max(255)).max(50),
+  z.array(uuidSchema).max(50),
 );
 
 const platformArray = z.preprocess(
@@ -115,13 +134,7 @@ const platformArray = z.preprocess(
 
 const optionalDateTime = z.preprocess(
   emptyToUndefined,
-  z
-    .string()
-    .trim()
-    .max(40)
-    .refine((value) => /(?:Z|[+-]\d{2}:?\d{2})$/i.test(value), "Use ISO-8601 datetime with timezone")
-    .refine((value) => !Number.isNaN(new Date(value).getTime()), "Use a valid datetime")
-    .optional(),
+  isoTimestampSchema.optional(),
 );
 
 const utmParamsSchema = z
@@ -147,6 +160,9 @@ const attributionPayloadSchema = z
     userId: nullableString(255),
     source: nullableString(100),
     platform: z.preprocess(emptyToUndefined, z.enum(AD_PLATFORMS).optional()),
+    connectionId: z.preprocess(emptyToUndefined, uuidSchema.optional()),
+    accountExternalId: nullableString(255),
+    accountId: nullableString(255),
     campaignExternalId: nullableString(255),
     campaignName: nullableString(512),
     campaign_id: nullableString(255),
@@ -168,15 +184,24 @@ const funnelEventPayloadSchema = z
   .object({
     eventId: nullableString(255),
     transactionId: nullableString(255),
+    refundId: nullableString(255),
+    chargebackId: nullableString(255),
+    originalPaymentExternalEventId: nullableString(255),
+    originalPaymentEventId: nullableString(255),
     userId: nullableString(255),
     anonId: nullableString(255),
     source: nullableString(100),
     platform: z.preprocess(emptyToUndefined, z.enum(AD_PLATFORMS).optional()),
+    connectionId: z.preprocess(emptyToUndefined, uuidSchema.optional()),
+    accountExternalId: nullableString(255),
+    accountId: nullableString(255),
     campaignExternalId: nullableString(255),
     campaignName: nullableString(512),
     utmParams: utmParamsSchema.optional(),
-    amount: z.preprocess(emptyToUndefined, z.union([z.number(), z.string()]).optional()),
-    currency: nullableString(10),
+    amount: decimalAmount,
+    currency: currencyCode,
+    monetaryStatus: nullableString(40),
+    status: nullableString(40),
     serviceType: nullableString(100),
     serviceId: nullableString(255),
     activationType: nullableString(100),
@@ -216,7 +241,15 @@ const connectionUpsertSchema = z
     apiVersion: nullableString(40),
     credentials: credentialsSchema.optional(),
     connectionMetadata: connectionMetadataSchema.optional(),
-    currency: nullableString(10),
+    currency: z.preprocess(
+      emptyToUndefined,
+      z
+        .string()
+        .trim()
+        .transform((value) => value.toUpperCase())
+        .refine((value) => value === "UNSPECIFIED" || /^[A-Z]{3}$/.test(value), "currency must be an ISO 4217 code")
+        .optional(),
+    ),
     accessTokenExpiresAt: optionalDateTime,
     refreshTokenExpiresAt: optionalDateTime,
   })
@@ -240,6 +273,31 @@ const connectionTestQuerySchema = z
       return new Date(data.until) >= new Date(data.since);
     },
     { message: "since must not be later than until", path: ["since"] },
+  )
+  .refine((data) => !data.since || !data.until || (new Date(data.until) - new Date(data.since)) / 86400000 + 1 <= MAX_MANUAL_SYNC_DAYS, { message: `Connection test range must not exceed ${MAX_MANUAL_SYNC_DAYS} days`, path: ["until"] });
+
+const providerValidationEvidenceSchema = z
+  .object({
+    checkedAt: optionalDateTime,
+    connectionTestPassed: z.literal(true).optional(),
+    boundedFetchPassed: z.literal(true).optional(),
+    metricReconciled: z.literal(true).optional(),
+    paginationVerified: z.literal(true).optional(),
+    rateLimitVerified: z.literal(true).optional(),
+    tokenRefreshVerified: z.literal(true).optional(),
+  })
+  .strict()
+  .refine(
+    (data) =>
+      [
+        data.connectionTestPassed,
+        data.boundedFetchPassed,
+        data.metricReconciled,
+        data.paginationVerified,
+        data.rateLimitVerified,
+        data.tokenRefreshVerified,
+      ].some(Boolean),
+    "At least one validation check must be recorded",
   );
 
 const connectionListQuerySchema = z
@@ -256,7 +314,7 @@ const oauthStartQuerySchema = z
     adAccountUrn: nullableString(255),
     customerId: nullableString(255),
     loginCustomerId: nullableString(255),
-    connectionId: nullableString(255),
+    connectionId: z.preprocess(emptyToUndefined, uuidSchema.optional()),
     currency: nullableString(10),
   })
   .strict();
@@ -287,7 +345,7 @@ const manualSyncSchema = z
   .refine(
     (data) => {
       const spanMs = new Date(data.until).getTime() - new Date(data.since).getTime();
-      return spanMs <= MAX_MANUAL_SYNC_DAYS * 24 * 60 * 60 * 1000;
+      return spanMs / (24 * 60 * 60 * 1000) + 1 <= MAX_MANUAL_SYNC_DAYS;
     },
     {
       message: `Manual sync date range must not exceed ${MAX_MANUAL_SYNC_DAYS} days`,
@@ -302,6 +360,7 @@ module.exports = {
   connectionUpsertSchema,
   connectionBootstrapSchema,
   connectionTestQuerySchema,
+  providerValidationEvidenceSchema,
   connectionListQuerySchema,
   oauthStartQuerySchema,
   oauthCallbackQuerySchema,

@@ -72,6 +72,41 @@
       "order": 14,
       "file": "20260720_fix_marketing_intelligence_currency_width.sql",
       "sha256": "776118f4a70a6958ff7caf24e15fa11d5f229789903a084b02dff1fe47338d7e"
+    },
+    {
+      "order": 15,
+      "file": "20260721_marketing_intelligence_wp0_corrections.sql",
+      "sha256": "8ecdb89be00c2ba53b582c2383ff5c6c3fd539a488317486c0272e0b54dd41fb"
+    },
+    {
+      "order": 16,
+      "file": "20260722_marketing_intelligence_phase2_section7_schema.sql",
+      "sha256": "7c168bdb8b7ad6157e02f55f8389359d19f7a849523bda3524e09ea3b73b28f9"
+    },
+    {
+      "order": 17,
+      "file": "20260723_marketing_intelligence_phase2_section8_raw_ingestion.sql",
+      "sha256": "5d382f58e0cd0fae3fe139b5270526c85e2d2461ad56b516b319983a1add4b52"
+    },
+    {
+      "order": 18,
+      "file": "20260724_marketing_intelligence_phase2_section9_scoring_enums.sql",
+      "sha256": "e75bacc4a5fb3a766d2a71e5371369f191e7109f0d04dfabe2589ef406120aa3"
+    },
+    {
+      "order": 19,
+      "file": "20260725_marketing_intelligence_phase2_sections10_13.sql",
+      "sha256": "597c7c1a04387e0c59ccdddbaa37bb5211d6b5cdb8f93bb0a6c5a0f7d941c0e3"
+    },
+    {
+      "order": 20,
+      "file": "20260726_marketing_intelligence_sections10_13_audit_corrections.sql",
+      "sha256": "2bfd2317ceaca1373c51e78a4ba2923daef142cbe602ea99b1cc32af917daf08"
+    },
+    {
+      "order": 21,
+      "file": "20260727_marketing_intelligence_sections14_17.sql",
+      "sha256": "57f61a22127cb746846768b58b2c62273ceaa499eab1f66d9f37695e1a8929de"
     }
   ]
 }

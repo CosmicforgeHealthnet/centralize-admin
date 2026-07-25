@@ -102,6 +102,7 @@ test("groups snapshots by campaign and returns summary totals", async () => {
   assert.equal(result.summary.activeUsers, 22);
   assert.equal(result.summary.payments, 9);
   assert.equal(result.summary.revenue, 875);
+  assert.equal(result.summary.netRevenue, 875);
   assert.equal(result.summary.currency, "USD");
   assert.equal(result.summary.mixedCurrencies, false);
   assert.equal(result.summaryByCurrency.length, 1);
@@ -137,12 +138,74 @@ test("mixed currencies return summaryByCurrency without combined money totals", 
   assert.equal(result.summary.mixedCurrencies, true);
   assert.equal(result.summary.spend, null);
   assert.equal(result.summary.revenue, null);
+  assert.equal(result.summary.netRevenue, null);
   assert.equal(result.summary.cpa, null);
+  assert.equal(result.summary.roas, null);
   assert.deepEqual(
     result.summaryByCurrency.map((row) => row.currency),
     ["EUR", "USD"],
   );
   assert.equal(result.summaryByCurrency.find((row) => row.currency === "EUR").spend, 25);
+});
+
+test("net revenue and ROAS respect same-currency compatibility", async () => {
+  const prisma = createFakePrisma();
+  prisma.__state.snapshots.push(
+    {
+      id: "net-1",
+      platform: "META",
+      campaignExternalId: "camp-net",
+      campaignName: "Net Revenue",
+      date: new Date("2026-07-01T00:00:00.000Z"),
+      spend: new FakeDecimal(100),
+      currency: "USD",
+      impressions: 1000,
+      clicks: 100,
+      signups: 10,
+      activeUsers: 4,
+      payments: 2,
+      refunds: 1,
+      chargebacks: 1,
+      revenue: new FakeDecimal(150),
+      netRevenue: new FakeDecimal(110),
+      currencyCompatibility: true,
+    },
+    {
+      id: "net-2",
+      platform: "META",
+      campaignExternalId: "camp-incompatible",
+      campaignName: "Currency Mismatch",
+      date: new Date("2026-07-01T00:00:00.000Z"),
+      spend: new FakeDecimal(50),
+      currency: "USD",
+      impressions: 500,
+      clicks: 50,
+      signups: 5,
+      activeUsers: 2,
+      payments: 1,
+      refunds: 0,
+      chargebacks: 0,
+      revenue: new FakeDecimal(75),
+      netRevenue: new FakeDecimal(75),
+      currencyCompatibility: false,
+    },
+  );
+  const service = createIntelligenceService({ prisma });
+
+  const result = await service.getPerformanceDashboard({
+    from: "2026-07-01",
+    to: "2026-07-01",
+    platform: "meta",
+  });
+
+  const net = result.campaigns.find((row) => row.campaignExternalId === "camp-net");
+  const incompatible = result.campaigns.find((row) => row.campaignExternalId === "camp-incompatible");
+  assert.equal(net.netRevenue, 110);
+  assert.equal(net.roas, 1.1);
+  assert.equal(incompatible.roas, null);
+  assert.equal(result.summary.currencyCompatibility, false);
+  assert.equal(result.summary.roas, null);
+  assert.equal(result.summaryByCurrency[0].roas, null);
 });
 
 test("aggregate CPA uses total spend / total signups, never averaged dailies", async () => {

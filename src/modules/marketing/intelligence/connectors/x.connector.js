@@ -17,6 +17,7 @@ const {
   resolveStoredCredentials,
 } = require("../utils/credential-envelope");
 const logger = require("../../../../shared/utils/logger");
+const { EVENTS, logEvent } = require("../observability");
 
 const PLATFORM = "X";
 const DEFAULT_API_HOST = "https://ads-api.x.com";
@@ -335,7 +336,7 @@ async function fetchDailyCampaignInsights({ since, until, connection, httpClient
       ? await fetchSynchronousAnalytics({ client, credentials, campaignIds, since, until, campaignNames })
       : await fetchAsynchronousAnalytics({ client, credentials, campaignIds, since, until, campaignNames });
 
-  logger.info(`[MarketingIntelligence] X fetched ${rows.length} campaign/day rows for ${since}..${until}`);
+  logEvent(EVENTS.PROVIDER_FETCH_COMPLETED, { platform: PLATFORM, connectionId: connection?.id || null, operation: "CAMPAIGN_INSIGHTS", windowStart: since, windowEnd: until, rowsProcessed: rows.length, status: "SUCCEEDED" }, { log: logger });
   return rows;
 }
 

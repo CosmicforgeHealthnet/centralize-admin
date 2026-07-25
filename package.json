@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
+    "marketing:live-validate": "node scripts/marketing-intelligence/live-validate-provider.js",
     "test": "node --require ./tests/helpers/network-guard.js --test",
     "test:network-guard": "node --require ./tests/helpers/network-guard.js --test tests/network-guard.test.js",
     "test:social-operations": "node scripts/social-operations/run-focused-tests.js",

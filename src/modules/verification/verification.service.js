@@ -7,6 +7,9 @@ const {
   hashPassword,
 } = require("../../shared/utils/password.util");
 const { sendLabApprovalEmail } = require("../../shared/utils/email.util");
+const eventBus = require("../../shared/events/eventBus");
+const EVENTS = require("../../shared/events/events");
+const crypto = require("crypto");
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -27,6 +30,50 @@ function deriveRiskIndicator(req) {
   if (score >= 70) return "Low";
   if (score >= 40) return "Medium";
   return "High";
+}
+
+function deterministicSignupEventId(userId, registrationScope) {
+  const digest = crypto
+    .createHash("sha256")
+    .update(["USER_SIGNUP_COMPLETED", userId, registrationScope].filter(Boolean).join("|"))
+    .digest("hex")
+    .slice(0, 32);
+  return `signup:${digest}`;
+}
+
+function marketingAttributionFromRequest(req) {
+  const headers = req?.headers || {};
+  const body = req?.body || {};
+  return {
+    anonId:
+      body.anonId ||
+      body.anonymousId ||
+      headers["x-marketing-anon-id"] ||
+      headers["x-anonymous-id"] ||
+      headers["x-session-id"] ||
+      null,
+    sessionAttributionToken:
+      body.sessionAttributionToken || headers["x-session-attribution-token"] || null,
+    source: body.source || headers["x-marketing-source"] || null,
+    platform: body.platform || headers["x-marketing-platform"] || null,
+    connectionId: body.connectionId || headers["x-marketing-connection-id"] || null,
+    accountExternalId:
+      body.accountExternalId ||
+      body.accountId ||
+      headers["x-marketing-account-id"] ||
+      null,
+    campaignExternalId:
+      body.campaignExternalId ||
+      body.campaign_id ||
+      headers["x-marketing-campaign-id"] ||
+      null,
+    utmParams: body.utmParams || null,
+    correlationId:
+      headers["x-request-id"] ||
+      headers["x-correlation-id"] ||
+      body.correlationId ||
+      null,
+  };
 }
 
 /**
@@ -1293,29 +1340,48 @@ class VerificationService {
 
     let labUserId = existingUser?.id ?? null;
     let tempPassword = null;
+    let passwordHash = null;
+    let signupEventPayload = null;
 
-    // 4. Only create user account if it doesn't exist yet
     if (!existingUser) {
       tempPassword = generateTempPassword();
-      const passwordHash = await hashPassword(tempPassword);
-
-      const newUser = await mainPrisma.users.create({
-        data: {
-          email: lab.adminEmail,
-          fullName: lab.adminFullName,
-          passwordHash,
-          role: "lab_admin",
-          status: "active",
-          mustChangePassword: true,
-          phoneNumber: lab.adminPhone ?? null,
-        },
-      });
-
-      labUserId = newUser.id;
+      passwordHash = await hashPassword(tempPassword);
     }
 
-    // 5. Update lab + create audit log in main DB
+    // 4. Create user if needed, update lab, and audit in one main-DB
+    // transaction. Marketing signup is emitted only after this resolves.
     await mainPrisma.$transaction(async (tx) => {
+      if (!existingUser) {
+        const newUser = await tx.users.create({
+          data: {
+            email: lab.adminEmail,
+            fullName: lab.adminFullName,
+            passwordHash,
+            role: "lab_admin",
+            status: "active",
+            mustChangePassword: true,
+            phoneNumber: lab.adminPhone ?? null,
+          },
+        });
+
+        labUserId = newUser.id;
+        const attribution = marketingAttributionFromRequest(req);
+        signupEventPayload = {
+          eventId: deterministicSignupEventId(newUser.id, `lab:${id}`),
+          userId: newUser.id,
+          anonId: attribution.anonId || null,
+          sessionAttributionToken: attribution.sessionAttributionToken || null,
+          source: attribution.source || null,
+          platform: attribution.platform || null,
+          connectionId: attribution.connectionId || null,
+          accountExternalId: attribution.accountExternalId || null,
+          campaignExternalId: attribution.campaignExternalId || null,
+          utmParams: attribution.utmParams || null,
+          correlationId: attribution.correlationId || null,
+          occurredAt: now.toISOString(),
+        };
+      }
+
       await tx.lab_facilities.update({
         where: { id },
         data: {
@@ -1345,7 +1411,11 @@ class VerificationService {
       });
     });
 
-    // 6. Send approval email only if new account was created
+    if (signupEventPayload) {
+      eventBus.publish(EVENTS.USER_SIGNUP_COMPLETED, signupEventPayload);
+    }
+
+    // 5. Send approval email only if new account was created
     if (tempPassword) {
       await sendLabApprovalEmail({
         to: lab.adminEmail,
@@ -1354,7 +1424,7 @@ class VerificationService {
       });
     }
 
-    // 7. Audit log in admin DB
+    // 6. Audit log in admin DB
     await createAuditLog({
       adminUserId,
       action: "USER_UPDATED",

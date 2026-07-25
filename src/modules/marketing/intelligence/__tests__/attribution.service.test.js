@@ -2,7 +2,8 @@
 const assert = require("node:assert/strict");
 
 const { createAttributionService } = require("../attribution.service");
-const { createFunnelIngestionService } = require("../funnel-ingestion.service");
+const { createFunnelIngestionService, stableClickEventId } = require("../funnel-ingestion.service");
+const { deterministicMarketingEventId } = require("../utils/event-id");
 const { createFunnelEventListener } = require("../listeners/funnel-event.listener");
 const { createFakePrisma } = require("./helpers/fake-prisma");
 
@@ -29,7 +30,7 @@ function harness() {
 test("captures paid click attribution and records one click funnel event", async () => {
   const { prisma, ingestion } = harness();
 
-  const result = await ingestion.captureClick({
+  const payload = {
     anonId: "anon-1",
     source: "facebook",
     campaignExternalId: "meta-camp-1",
@@ -42,13 +43,15 @@ test("captures paid click attribution and records one click funnel event", async
       utm_term: null,
     },
     occurredAt: "2026-07-15T10:00:00.000Z",
-  });
+  };
+
+  const result = await ingestion.captureClick(payload);
 
   assert.equal(result.attribution.platform, "META");
   assert.equal(result.attribution.campaignExternalId, "meta-camp-1");
   assert.equal(prisma.__state.funnelEvents.length, 1);
   assert.equal(prisma.__state.funnelEvents[0].stage, "CLICK");
-  assert.equal(prisma.__state.funnelEvents[0].externalEventId, "click:anon-1:facebook:meta-camp-1:2026-07-15");
+  assert.equal(prisma.__state.funnelEvents[0].externalEventId, stableClickEventId(payload));
 });
 
 test("duplicate click capture is idempotent for the funnel event", async () => {
@@ -110,7 +113,7 @@ test("signup links anonymous attribution to the user and preserves campaign data
   assert.ok(attribution.convertedAt instanceof Date);
   assert.equal(signup.campaignExternalId, "meta-camp-1");
   assert.equal(signup.source, "facebook");
-  assert.equal(signup.externalEventId, "signup:user-1");
+  assert.equal(signup.externalEventId, deterministicMarketingEventId("signup", "user-1"));
 });
 
 test("payment attribution resolves from the linked user without checkout resending UTM", async () => {
@@ -136,5 +139,5 @@ test("payment attribution resolves from the linked user without checkout resendi
   assert.equal(payment.source, "tiktok");
   assert.equal(payment.value, 150.5);
   assert.equal(payment.currency, "USD");
-  assert.equal(payment.externalEventId, "payment:tx-1");
+  assert.equal(payment.externalEventId, deterministicMarketingEventId("payment", "tx-1"));
 });

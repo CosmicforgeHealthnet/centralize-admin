@@ -393,6 +393,14 @@ exports.Prisma.Marketing_ad_platform_connectionsScalarFieldEnum = {
   status: 'status',
   lastSyncedAt: 'lastSyncedAt',
   lastSyncError: 'lastSyncError',
+  validationStatus: 'validationStatus',
+  lastConnectionTestAt: 'lastConnectionTestAt',
+  lastSuccessfulFetchAt: 'lastSuccessfulFetchAt',
+  lastMetricReconciliationAt: 'lastMetricReconciliationAt',
+  lastPaginationVerificationAt: 'lastPaginationVerificationAt',
+  lastRateLimitVerificationAt: 'lastRateLimitVerificationAt',
+  lastTokenRefreshVerificationAt: 'lastTokenRefreshVerificationAt',
+  sanitizedValidationError: 'sanitizedValidationError',
   accessTokenExpiresAt: 'accessTokenExpiresAt',
   refreshTokenExpiresAt: 'refreshTokenExpiresAt',
   createdAt: 'createdAt',
@@ -407,6 +415,12 @@ exports.Prisma.Marketing_ad_insights_rawScalarFieldEnum = {
   campaignExternalId: 'campaignExternalId',
   date: 'date',
   rawJson: 'rawJson',
+  payloadCategory: 'payloadCategory',
+  payloadKey: 'payloadKey',
+  requestRangeStart: 'requestRangeStart',
+  requestRangeEnd: 'requestRangeEnd',
+  providerRequestId: 'providerRequestId',
+  requestMetadata: 'requestMetadata',
   fetchedAt: 'fetchedAt',
   createdAt: 'createdAt'
 };
@@ -426,8 +440,13 @@ exports.Prisma.Marketing_performance_snapshotsScalarFieldEnum = {
   signups: 'signups',
   activeUsers: 'activeUsers',
   payments: 'payments',
+  refunds: 'refunds',
+  chargebacks: 'chargebacks',
   revenue: 'revenue',
+  netRevenue: 'netRevenue',
   cpa: 'cpa',
+  roas: 'roas',
+  currencyCompatibility: 'currencyCompatibility',
   conversionRate: 'conversionRate',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -455,6 +474,8 @@ exports.Prisma.Marketing_attributionsScalarFieldEnum = {
   userId: 'userId',
   source: 'source',
   platform: 'platform',
+  connectionId: 'connectionId',
+  accountExternalId: 'accountExternalId',
   campaignExternalId: 'campaignExternalId',
   campaignName: 'campaignName',
   utmParams: 'utmParams',
@@ -471,13 +492,273 @@ exports.Prisma.Marketing_funnel_eventsScalarFieldEnum = {
   anonId: 'anonId',
   stage: 'stage',
   source: 'source',
+  platform: 'platform',
+  connectionId: 'connectionId',
+  accountExternalId: 'accountExternalId',
   campaignExternalId: 'campaignExternalId',
   utmParams: 'utmParams',
   value: 'value',
   currency: 'currency',
+  originalPaymentExternalEventId: 'originalPaymentExternalEventId',
+  monetaryStatus: 'monetaryStatus',
+  attributionStatus: 'attributionStatus',
+  unresolvedReason: 'unresolvedReason',
+  attributedClickEventId: 'attributedClickEventId',
+  attributionModel: 'attributionModel',
+  attributionWindowDays: 'attributionWindowDays',
+  attributionWindowStart: 'attributionWindowStart',
+  attributionWindowEnd: 'attributionWindowEnd',
+  resolvedAt: 'resolvedAt',
   externalEventId: 'externalEventId',
   occurredAt: 'occurredAt',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.Marketing_identity_linksScalarFieldEnum = {
+  id: 'id',
+  anonIdHash: 'anonIdHash',
+  userId: 'userId',
+  sourceSignupEventId: 'sourceSignupEventId',
+  status: 'status',
+  conflictReason: 'conflictReason',
+  linkedAt: 'linkedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_attribution_decisionsScalarFieldEnum = {
+  id: 'id',
+  conversionEventId: 'conversionEventId',
+  selectedClickEventId: 'selectedClickEventId',
+  model: 'model',
+  attributionWindowDays: 'attributionWindowDays',
+  windowStart: 'windowStart',
+  windowEnd: 'windowEnd',
+  platform: 'platform',
+  connectionId: 'connectionId',
+  accountExternalId: 'accountExternalId',
+  campaignExternalId: 'campaignExternalId',
+  status: 'status',
+  unresolvedReason: 'unresolvedReason',
+  resolvedAt: 'resolvedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_intelligence_settingsScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  scopeType: 'scopeType',
+  platform: 'platform',
+  connectionId: 'connectionId',
+  currencyCode: 'currencyCode',
+  scopeFingerprint: 'scopeFingerprint',
+  valueType: 'valueType',
+  valueJson: 'valueJson',
+  legacyValue: 'legacyValue',
+  version: 'version',
+  updatedByAdminUserId: 'updatedByAdminUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_intelligence_evaluation_runsScalarFieldEnum = {
+  id: 'id',
+  runType: 'runType',
+  status: 'status',
+  trigger: 'trigger',
+  platform: 'platform',
+  connectionId: 'connectionId',
+  accountExternalId: 'accountExternalId',
+  requestedByAdminUserId: 'requestedByAdminUserId',
+  windowStart: 'windowStart',
+  windowEnd: 'windowEnd',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  lockKeyHash: 'lockKeyHash',
+  lockOwnerHash: 'lockOwnerHash',
+  processedCount: 'processedCount',
+  createdCount: 'createdCount',
+  updatedCount: 'updatedCount',
+  succeededCount: 'succeededCount',
+  failedCount: 'failedCount',
+  skippedCount: 'skippedCount',
+  summary: 'summary',
+  errorCode: 'errorCode',
+  sanitizedError: 'sanitizedError',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_creative_assetsScalarFieldEnum = {
+  id: 'id',
+  platform: 'platform',
+  connectionId: 'connectionId',
+  accountExternalId: 'accountExternalId',
+  campaignExternalId: 'campaignExternalId',
+  adGroupExternalId: 'adGroupExternalId',
+  adExternalId: 'adExternalId',
+  creativeExternalId: 'creativeExternalId',
+  sourceKey: 'sourceKey',
+  name: 'name',
+  type: 'type',
+  status: 'status',
+  durationSeconds: 'durationSeconds',
+  hasHumanPresence: 'hasHumanPresence',
+  ctaType: 'ctaType',
+  headline: 'headline',
+  bodyText: 'bodyText',
+  sourceUrl: 'sourceUrl',
+  thumbnailUrl: 'thumbnailUrl',
+  creativeHash: 'creativeHash',
+  sourceSocialMediaAssetId: 'sourceSocialMediaAssetId',
+  nativeIdentifiers: 'nativeIdentifiers',
+  metadata: 'metadata',
+  firstSeenAt: 'firstSeenAt',
+  lastSeenAt: 'lastSeenAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_creative_performance_snapshotsScalarFieldEnum = {
+  id: 'id',
+  creativeAssetId: 'creativeAssetId',
+  platform: 'platform',
+  connectionId: 'connectionId',
+  accountExternalId: 'accountExternalId',
+  campaignExternalId: 'campaignExternalId',
+  adGroupExternalId: 'adGroupExternalId',
+  adExternalId: 'adExternalId',
+  creativeExternalId: 'creativeExternalId',
+  sourceMetricKey: 'sourceMetricKey',
+  date: 'date',
+  currencyCode: 'currencyCode',
+  spend: 'spend',
+  revenue: 'revenue',
+  impressions: 'impressions',
+  reach: 'reach',
+  clicks: 'clicks',
+  providerConversions: 'providerConversions',
+  attributedSignups: 'attributedSignups',
+  attributedPayments: 'attributedPayments',
+  ctr: 'ctr',
+  cpc: 'cpc',
+  cpm: 'cpm',
+  conversionRate: 'conversionRate',
+  cpa: 'cpa',
+  roas: 'roas',
+  rawInsightId: 'rawInsightId',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_creative_score_snapshotsScalarFieldEnum = {
+  id: 'id',
+  creativeAssetId: 'creativeAssetId',
+  analysisWindowStart: 'analysisWindowStart',
+  analysisWindowEnd: 'analysisWindowEnd',
+  comparisonWindowStart: 'comparisonWindowStart',
+  comparisonWindowEnd: 'comparisonWindowEnd',
+  score: 'score',
+  dataSufficiency: 'dataSufficiency',
+  fatigueStatus: 'fatigueStatus',
+  components: 'components',
+  evidence: 'evidence',
+  ruleVersion: 'ruleVersion',
+  settingsVersion: 'settingsVersion',
+  generatedAt: 'generatedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.Marketing_recommendationsScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  status: 'status',
+  platform: 'platform',
+  connectionId: 'connectionId',
+  targetCampaignExternalId: 'targetCampaignExternalId',
+  sourceCampaignExternalId: 'sourceCampaignExternalId',
+  destinationCampaignExternalId: 'destinationCampaignExternalId',
+  currencyCode: 'currencyCode',
+  reasoning: 'reasoning',
+  confidence: 'confidence',
+  evidence: 'evidence',
+  materialEvidenceFingerprint: 'materialEvidenceFingerprint',
+  suggestedAction: 'suggestedAction',
+  ruleCode: 'ruleCode',
+  ruleVersion: 'ruleVersion',
+  dedupeKey: 'dedupeKey',
+  analysisWindowStart: 'analysisWindowStart',
+  analysisWindowEnd: 'analysisWindowEnd',
+  generatedAt: 'generatedAt',
+  lastEvaluatedAt: 'lastEvaluatedAt',
+  expiresAt: 'expiresAt',
+  expirationReason: 'expirationReason',
+  recoveryStreak: 'recoveryStreak',
+  acceptedAt: 'acceptedAt',
+  acceptedByAdminUserId: 'acceptedByAdminUserId',
+  dismissedAt: 'dismissedAt',
+  dismissedByAdminUserId: 'dismissedByAdminUserId',
+  dismissalReason: 'dismissalReason',
+  convertedToTaskId: 'convertedToTaskId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_alertsScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  severity: 'severity',
+  status: 'status',
+  platform: 'platform',
+  connectionId: 'connectionId',
+  campaignExternalId: 'campaignExternalId',
+  creativeAssetId: 'creativeAssetId',
+  message: 'message',
+  evidence: 'evidence',
+  conditionKey: 'conditionKey',
+  lifecycle: 'lifecycle',
+  currencyCode: 'currencyCode',
+  dedupeKey: 'dedupeKey',
+  triggeredAt: 'triggeredAt',
+  lastTriggeredAt: 'lastTriggeredAt',
+  occurrenceCount: 'occurrenceCount',
+  cooldownUntil: 'cooldownUntil',
+  recoveryStreak: 'recoveryStreak',
+  acknowledgedAt: 'acknowledgedAt',
+  acknowledgedByAdminUserId: 'acknowledgedByAdminUserId',
+  resolvedAt: 'resolvedAt',
+  resolvedByAdminUserId: 'resolvedByAdminUserId',
+  resolutionReason: 'resolutionReason',
+  notificationId: 'notificationId',
+  deliveryFailure: 'deliveryFailure',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_experimentsScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  hypothesis: 'hypothesis',
+  platform: 'platform',
+  connectionId: 'connectionId',
+  campaignExternalId: 'campaignExternalId',
+  variantAConfig: 'variantAConfig',
+  variantBConfig: 'variantBConfig',
+  metric: 'metric',
+  status: 'status',
+  version: 'version',
+  result: 'result',
+  conclusion: 'conclusion',
+  startedAt: 'startedAt',
+  endedAt: 'endedAt',
+  cancelledAt: 'cancelledAt',
+  cancellationReason: 'cancellationReason',
+  createdByAdminUserId: 'createdByAdminUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.Marketing_sync_locksScalarFieldEnum = {
@@ -1413,11 +1694,162 @@ exports.marketing_ad_connection_status_enum = exports.$Enums.marketing_ad_connec
   ERROR: 'ERROR'
 };
 
+exports.marketing_provider_validation_status_enum = exports.$Enums.marketing_provider_validation_status_enum = {
+  NOT_VALIDATED: 'NOT_VALIDATED',
+  MOCK_VERIFIED: 'MOCK_VERIFIED',
+  CONNECTION_TEST_PASSED: 'CONNECTION_TEST_PASSED',
+  BOUNDED_FETCH_PASSED: 'BOUNDED_FETCH_PASSED',
+  METRIC_RECONCILED: 'METRIC_RECONCILED',
+  LIVE_VALIDATED: 'LIVE_VALIDATED',
+  CREDENTIAL_BLOCKED: 'CREDENTIAL_BLOCKED',
+  APPROVAL_BLOCKED: 'APPROVAL_BLOCKED',
+  FAILED: 'FAILED'
+};
+
 exports.marketing_funnel_stage_enum = exports.$Enums.marketing_funnel_stage_enum = {
   CLICK: 'CLICK',
   SIGNUP: 'SIGNUP',
   ACTIVE: 'ACTIVE',
-  PAYMENT: 'PAYMENT'
+  PAYMENT: 'PAYMENT',
+  REFUND: 'REFUND',
+  CHARGEBACK: 'CHARGEBACK'
+};
+
+exports.marketing_attribution_status_enum = exports.$Enums.marketing_attribution_status_enum = {
+  ATTRIBUTED: 'ATTRIBUTED',
+  UNRESOLVED: 'UNRESOLVED'
+};
+
+exports.marketing_attribution_model_enum = exports.$Enums.marketing_attribution_model_enum = {
+  LAST_TOUCH: 'LAST_TOUCH'
+};
+
+exports.marketing_intelligence_setting_scope_type_enum = exports.$Enums.marketing_intelligence_setting_scope_type_enum = {
+  GLOBAL: 'GLOBAL',
+  PLATFORM: 'PLATFORM',
+  CONNECTION: 'CONNECTION'
+};
+
+exports.marketing_intelligence_setting_value_type_enum = exports.$Enums.marketing_intelligence_setting_value_type_enum = {
+  BOOLEAN: 'BOOLEAN',
+  INTEGER: 'INTEGER',
+  DECIMAL: 'DECIMAL',
+  STRING: 'STRING',
+  JSON: 'JSON'
+};
+
+exports.marketing_intelligence_run_type_enum = exports.$Enums.marketing_intelligence_run_type_enum = {
+  SYNC: 'SYNC',
+  CONNECTION_TEST: 'CONNECTION_TEST',
+  VALIDATION: 'VALIDATION',
+  CREATIVE_SYNC: 'CREATIVE_SYNC',
+  SCORE: 'SCORE',
+  RECOMMEND: 'RECOMMEND',
+  ALERT: 'ALERT',
+  FULL_EVALUATION: 'FULL_EVALUATION'
+};
+
+exports.marketing_intelligence_run_status_enum = exports.$Enums.marketing_intelligence_run_status_enum = {
+  STARTED: 'STARTED',
+  SUCCEEDED: 'SUCCEEDED',
+  PARTIALLY_SUCCEEDED: 'PARTIALLY_SUCCEEDED',
+  FAILED: 'FAILED',
+  SKIPPED_LOCKED: 'SKIPPED_LOCKED',
+  LOCK_RENEWAL_FAILED: 'LOCK_RENEWAL_FAILED',
+  PARTIAL_SUCCESS: 'PARTIAL_SUCCESS'
+};
+
+exports.marketing_creative_type_enum = exports.$Enums.marketing_creative_type_enum = {
+  IMAGE: 'IMAGE',
+  VIDEO: 'VIDEO',
+  CAROUSEL: 'CAROUSEL',
+  TEXT: 'TEXT',
+  RESPONSIVE: 'RESPONSIVE',
+  OTHER: 'OTHER',
+  UNKNOWN: 'UNKNOWN'
+};
+
+exports.marketing_creative_data_sufficiency_enum = exports.$Enums.marketing_creative_data_sufficiency_enum = {
+  INSUFFICIENT: 'INSUFFICIENT',
+  LIMITED: 'LIMITED',
+  SUFFICIENT: 'SUFFICIENT',
+  STRONG: 'STRONG'
+};
+
+exports.marketing_creative_fatigue_status_enum = exports.$Enums.marketing_creative_fatigue_status_enum = {
+  UNKNOWN: 'UNKNOWN',
+  HEALTHY: 'HEALTHY',
+  NONE: 'NONE',
+  WATCH: 'WATCH',
+  FATIGUED: 'FATIGUED',
+  RECOVERED: 'RECOVERED'
+};
+
+exports.marketing_recommendation_type_enum = exports.$Enums.marketing_recommendation_type_enum = {
+  PAUSE: 'PAUSE',
+  SCALE: 'SCALE',
+  CREATE_CONTENT: 'CREATE_CONTENT',
+  REFRESH_CREATIVE: 'REFRESH_CREATIVE',
+  SCALE_CREATIVE: 'SCALE_CREATIVE',
+  REDUCE_SPEND: 'REDUCE_SPEND',
+  REALLOCATE_BUDGET: 'REALLOCATE_BUDGET',
+  REVIEW_CAMPAIGN: 'REVIEW_CAMPAIGN',
+  OTHER: 'OTHER'
+};
+
+exports.marketing_recommendation_status_enum = exports.$Enums.marketing_recommendation_status_enum = {
+  PENDING: 'PENDING',
+  CONVERTED_TO_TASK: 'CONVERTED_TO_TASK',
+  OPEN: 'OPEN',
+  ACCEPTED: 'ACCEPTED',
+  DISMISSED: 'DISMISSED',
+  EXPIRED: 'EXPIRED'
+};
+
+exports.marketing_alert_type_enum = exports.$Enums.marketing_alert_type_enum = {
+  CPA_TARGET_BREACH: 'CPA_TARGET_BREACH',
+  SPEND_WITHOUT_CONVERSION: 'SPEND_WITHOUT_CONVERSION',
+  CONVERSION_RATE_DROP: 'CONVERSION_RATE_DROP',
+  CREATIVE_FATIGUE: 'CREATIVE_FATIGUE',
+  SYNC_STALE: 'SYNC_STALE',
+  CAMPAIGN_PERFORMANCE_DROP: 'CAMPAIGN_PERFORMANCE_DROP',
+  HIGH_PERFORMING_CAMPAIGN: 'HIGH_PERFORMING_CAMPAIGN',
+  TOKEN_REFRESH_FAILED: 'TOKEN_REFRESH_FAILED',
+  CONNECTION_DEGRADED: 'CONNECTION_DEGRADED',
+  PLATFORM_PERMISSION_ERROR: 'PLATFORM_PERMISSION_ERROR',
+  PERFORMANCE_DROP: 'PERFORMANCE_DROP',
+  SPEND_ANOMALY: 'SPEND_ANOMALY',
+  DATA_QUALITY: 'DATA_QUALITY',
+  CONNECTION_FAILURE: 'CONNECTION_FAILURE',
+  OTHER: 'OTHER'
+};
+
+exports.marketing_alert_severity_enum = exports.$Enums.marketing_alert_severity_enum = {
+  INFO: 'INFO',
+  WARNING: 'WARNING',
+  CRITICAL: 'CRITICAL'
+};
+
+exports.marketing_alert_status_enum = exports.$Enums.marketing_alert_status_enum = {
+  OPEN: 'OPEN',
+  ACKNOWLEDGED: 'ACKNOWLEDGED',
+  RESOLVED: 'RESOLVED'
+};
+
+exports.marketing_experiment_metric_enum = exports.$Enums.marketing_experiment_metric_enum = {
+  CTR: 'CTR',
+  CPC: 'CPC',
+  CPM: 'CPM',
+  CONVERSION_RATE: 'CONVERSION_RATE',
+  CPA: 'CPA',
+  ROAS: 'ROAS'
+};
+
+exports.marketing_experiment_status_enum = exports.$Enums.marketing_experiment_status_enum = {
+  DRAFT: 'DRAFT',
+  RUNNING: 'RUNNING',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED'
 };
 
 exports.SocialProvider = exports.$Enums.SocialProvider = {
@@ -1676,6 +2108,23 @@ exports.AuditAction = exports.$Enums.AuditAction = {
   HRM_LEAVE_DENIED: 'HRM_LEAVE_DENIED',
   HRM_LEAVE_APPROVE_ALL: 'HRM_LEAVE_APPROVE_ALL',
   HRM_PAYROLL_UPDATED: 'HRM_PAYROLL_UPDATED',
+  MARKETING_INTELLIGENCE_VALIDATION_UPDATED: 'MARKETING_INTELLIGENCE_VALIDATION_UPDATED',
+  MARKETING_RECOMMENDATION_EVALUATED: 'MARKETING_RECOMMENDATION_EVALUATED',
+  MARKETING_RECOMMENDATION_ACCEPTED: 'MARKETING_RECOMMENDATION_ACCEPTED',
+  MARKETING_RECOMMENDATION_DISMISSED: 'MARKETING_RECOMMENDATION_DISMISSED',
+  MARKETING_ALERT_EVALUATED: 'MARKETING_ALERT_EVALUATED',
+  MARKETING_ALERT_ACKNOWLEDGED: 'MARKETING_ALERT_ACKNOWLEDGED',
+  MARKETING_ALERT_RESOLVED: 'MARKETING_ALERT_RESOLVED',
+  MARKETING_RECOMMENDATION_TASK_CONVERTED: 'MARKETING_RECOMMENDATION_TASK_CONVERTED',
+  MARKETING_EXPERIMENT_CREATED: 'MARKETING_EXPERIMENT_CREATED',
+  MARKETING_EXPERIMENT_UPDATED: 'MARKETING_EXPERIMENT_UPDATED',
+  MARKETING_EXPERIMENT_STARTED: 'MARKETING_EXPERIMENT_STARTED',
+  MARKETING_EXPERIMENT_COMPLETED: 'MARKETING_EXPERIMENT_COMPLETED',
+  MARKETING_EXPERIMENT_CANCELLED: 'MARKETING_EXPERIMENT_CANCELLED',
+  MARKETING_CREATIVE_SYNCED: 'MARKETING_CREATIVE_SYNCED',
+  MARKETING_CREATIVE_SCORED: 'MARKETING_CREATIVE_SCORED',
+  MARKETING_INTELLIGENCE_SYNCED: 'MARKETING_INTELLIGENCE_SYNCED',
+  MARKETING_INTELLIGENCE_SETTINGS_UPDATED: 'MARKETING_INTELLIGENCE_SETTINGS_UPDATED',
   HRM_VACANCY_CREATED: 'HRM_VACANCY_CREATED',
   HRM_VACANCY_UPDATED: 'HRM_VACANCY_UPDATED',
   HRM_VACANCY_DELETED: 'HRM_VACANCY_DELETED',
@@ -1772,6 +2221,16 @@ exports.Prisma.ModelName = {
   marketing_oauth_states: 'marketing_oauth_states',
   marketing_attributions: 'marketing_attributions',
   marketing_funnel_events: 'marketing_funnel_events',
+  marketing_identity_links: 'marketing_identity_links',
+  marketing_attribution_decisions: 'marketing_attribution_decisions',
+  marketing_intelligence_settings: 'marketing_intelligence_settings',
+  marketing_intelligence_evaluation_runs: 'marketing_intelligence_evaluation_runs',
+  marketing_creative_assets: 'marketing_creative_assets',
+  marketing_creative_performance_snapshots: 'marketing_creative_performance_snapshots',
+  marketing_creative_score_snapshots: 'marketing_creative_score_snapshots',
+  marketing_recommendations: 'marketing_recommendations',
+  marketing_alerts: 'marketing_alerts',
+  marketing_experiments: 'marketing_experiments',
   marketing_sync_locks: 'marketing_sync_locks',
   SocialAccountConnection: 'SocialAccountConnection',
   SocialPublishingIdentity: 'SocialPublishingIdentity',

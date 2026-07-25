@@ -3,6 +3,9 @@ const { Client } = require("pg");
 const {
   validateAdminDatabaseTarget,
   verifyConnectedDatabaseTarget,
+  parseDatabaseTarget,
+  queryConnectedTarget,
+  LOCAL_CI_HOSTS,
   formatTargetSummary,
 } = require("./admin-database-target");
 
@@ -168,9 +171,16 @@ async function inspectRequiredPartialIndexes(client) {
   );
 }
 
-async function runSchemaAssertions({ connectionString = process.env.DATABASE_URL } = {}) {
+async function runSchemaAssertions({ connectionString = process.env.DATABASE_URL, allowDisposableReplay = false } = {}) {
   if (!connectionString) throw new Error("DATABASE_URL is required for schema assertions");
-  const target = validateAdminDatabaseTarget({ connectionString });
+  const target = allowDisposableReplay
+    ? parseDatabaseTarget(connectionString)
+    : validateAdminDatabaseTarget({ connectionString });
+  if (allowDisposableReplay) {
+    if (!LOCAL_CI_HOSTS.has(target.host)) throw new Error("replay database host must be local");
+    if (!/^cosmicforge_social_replay_\d+$/.test(target.database)) throw new Error("invalid disposable replay database target");
+    if (target.schema !== "public") throw new Error("replay schema target must be public");
+  }
   const client = new Client({ connectionString });
   await client.connect();
   const results = {
@@ -182,7 +192,14 @@ async function runSchemaAssertions({ connectionString = process.env.DATABASE_URL
     foreignKeyTypes: {},
   };
   try {
-    results.connectedTarget = await verifyConnectedDatabaseTarget(client, target);
+    if (allowDisposableReplay) {
+      results.connectedTarget = await queryConnectedTarget(client);
+      if (results.connectedTarget.database !== target.database || results.connectedTarget.schema !== target.schema) {
+        throw new Error("connected replay database does not match configured target");
+      }
+    } else {
+      results.connectedTarget = await verifyConnectedDatabaseTarget(client, target);
+    }
     const tableRows = await client.query(
       `
       SELECT table_name

@@ -1,5 +1,8 @@
 ﻿const logger = require("../../../../shared/utils/logger");
 
+const { EVENTS, logEvent } = require("../observability");
+const { sanitizePlainText } = require("../validation-security");
+
 // Scheduled synchronization registration.
 //
 // AUDIT NOTE: the repository has no existing cron scheduler, queue, or job
@@ -56,7 +59,7 @@ function registerMarketingIntelligenceCron({
   force = false,
 } = {}) {
   if (registeredTask) {
-    logger.warn("[MarketingIntelligence] Cron already registered  skipping duplicate registration");
+    logEvent(EVENTS.SCHEDULER_STATUS, { scheduler: "SYNC", operation: "REGISTER", status: "DUPLICATE_SKIPPED" }, { log: logger, level: "warn" });
     return registeredTask;
   }
 
@@ -65,7 +68,7 @@ function registerMarketingIntelligenceCron({
   }
 
   if (!syncEnabled()) {
-    logger.info("[MarketingIntelligence] Scheduled sync disabled (MARKETING_INTELLIGENCE_SYNC_ENABLED != true)");
+    logEvent(EVENTS.SCHEDULER_STATUS, { scheduler: "SYNC", operation: "REGISTER", status: "DISABLED" }, { log: logger });
     return null;
   }
 
@@ -76,9 +79,7 @@ function registerMarketingIntelligenceCron({
 
   const expression = process.env.MARKETING_INTELLIGENCE_CRON || DEFAULT_CRON;
   if (!cron.validate(expression)) {
-    logger.error(
-      `[MarketingIntelligence] Invalid MARKETING_INTELLIGENCE_CRON expression "${expression}"  scheduled sync not started`,
-    );
+    logEvent(EVENTS.SCHEDULER_STATUS, { scheduler: "SYNC", operation: "REGISTER", status: "INVALID_CONFIGURATION", expression: sanitizePlainText(expression, 100) }, { log: logger, level: "error" });
     return null;
   }
 
@@ -88,7 +89,7 @@ function registerMarketingIntelligenceCron({
     expression,
     async () => {
       try {
-        logger.info("[MarketingIntelligence] Scheduled sync starting");
+        logEvent(EVENTS.SCHEDULER_STATUS, { scheduler: "SYNC", operation: "RUN", status: "STARTED" }, { log: logger });
         const range = await computeSyncRange({ prisma: db });
         const result = await service.syncMarketingInsights({
           ...range,
@@ -96,21 +97,19 @@ function registerMarketingIntelligenceCron({
         });
 
         if (result.skipped) {
-          logger.info("[MarketingIntelligence] Scheduled sync skipped  overlapping run detected");
+          logEvent(EVENTS.SCHEDULER_STATUS, { scheduler: "SYNC", operation: "RUN", status: "SKIPPED_LOCKED", runId: result.runId || null }, { log: logger });
         } else {
-          logger.info("[MarketingIntelligence] Scheduled sync completed");
+          logEvent(EVENTS.SCHEDULER_STATUS, { scheduler: "SYNC", operation: "RUN", status: result.status || "SUCCEEDED", runId: result.runId || null }, { log: logger });
         }
       } catch (error) {
         // A provider failure must never terminate the Node process.
-        logger.error(`[MarketingIntelligence] Scheduled sync failed: ${error.message}`);
+        logEvent(EVENTS.SCHEDULER_STATUS, { scheduler: "SYNC", operation: "RUN", status: "FAILED", errorCode: sanitizePlainText(error.code || "SYNC_FAILED", 100) }, { log: logger, level: "error" });
       }
     },
     { timezone },
   );
 
-  logger.info(
-    `[MarketingIntelligence] Scheduled sync registered (cron="${expression}", timezone=${timezone})`,
-  );
+  logEvent(EVENTS.SCHEDULER_STATUS, { scheduler: "SYNC", operation: "REGISTER", status: "REGISTERED", expression, timezone }, { log: logger });
 
   return registeredTask;
 }

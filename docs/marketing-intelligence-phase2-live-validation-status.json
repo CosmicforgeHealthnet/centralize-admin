@@ -1,0 +1,76 @@
+{
+  "generatedAt": "2026-07-19T21:30:00.000Z",
+  "phase2MasterEnabled": false,
+  "platforms": {
+    "META": {
+      "status": "CREDENTIALS_REQUIRED",
+      "connectionTest": "NOT_RUN",
+      "boundedFetch": "NOT_RUN",
+      "pagination": "NOT_RUN",
+      "rateLimit": "NOT_RUN",
+      "campaignReconciliation": "NOT_RUN",
+      "stableCreativeIds": "NOT_RUN",
+      "currency": "NOT_RUN",
+      "microUnits": "NOT_APPLICABLE",
+      "normalizedRows": "NOT_RUN",
+      "observationMode": "NOT_ENABLED",
+      "blockers": ["EXPLICIT_LIVE_PERMISSION_NOT_GRANTED", "LIVE_CREDENTIALS_NOT_VALIDATED"]
+    },
+    "TIKTOK": {
+      "status": "CREDENTIALS_REQUIRED",
+      "connectionTest": "NOT_RUN",
+      "boundedFetch": "NOT_RUN",
+      "pagination": "NOT_RUN",
+      "rateLimit": "NOT_RUN",
+      "campaignReconciliation": "NOT_RUN",
+      "stableCreativeIds": "NOT_RUN",
+      "currency": "NOT_RUN",
+      "microUnits": "NOT_APPLICABLE",
+      "normalizedRows": "NOT_RUN",
+      "observationMode": "NOT_ENABLED",
+      "blockers": ["EXPLICIT_LIVE_PERMISSION_NOT_GRANTED", "LIVE_CREDENTIALS_NOT_VALIDATED"]
+    },
+    "X": {
+      "status": "CREDENTIALS_REQUIRED",
+      "connectionTest": "NOT_RUN",
+      "boundedFetch": "NOT_RUN",
+      "pagination": "NOT_RUN",
+      "rateLimit": "NOT_RUN",
+      "campaignReconciliation": "NOT_RUN",
+      "stableCreativeIds": "NOT_RUN",
+      "currency": "NOT_RUN",
+      "microUnits": "NOT_RUN",
+      "normalizedRows": "NOT_RUN",
+      "observationMode": "NOT_ENABLED",
+      "blockers": ["EXPLICIT_LIVE_PERMISSION_NOT_GRANTED", "LIVE_CREDENTIALS_NOT_VALIDATED", "ADS_API_APPROVAL_MAY_BE_REQUIRED"]
+    },
+    "LINKEDIN": {
+      "status": "CREDENTIALS_REQUIRED",
+      "connectionTest": "NOT_RUN",
+      "boundedFetch": "NOT_RUN",
+      "pagination": "NOT_RUN",
+      "rateLimit": "NOT_RUN",
+      "campaignReconciliation": "NOT_RUN",
+      "stableCreativeIds": "NOT_RUN",
+      "currency": "NOT_RUN",
+      "microUnits": "NOT_APPLICABLE",
+      "normalizedRows": "NOT_RUN",
+      "observationMode": "NOT_ENABLED",
+      "blockers": ["EXPLICIT_LIVE_PERMISSION_NOT_GRANTED", "LIVE_CREDENTIALS_NOT_VALIDATED", "AD_ANALYTICS_PERMISSION_MAY_BE_REQUIRED"]
+    },
+    "GOOGLE_ADS": {
+      "status": "CREDENTIALS_REQUIRED",
+      "connectionTest": "NOT_RUN",
+      "boundedFetch": "NOT_RUN",
+      "pagination": "NOT_RUN",
+      "rateLimit": "NOT_RUN",
+      "campaignReconciliation": "NOT_RUN",
+      "stableCreativeIds": "NOT_RUN",
+      "currency": "NOT_RUN",
+      "microUnits": "NOT_RUN",
+      "normalizedRows": "NOT_RUN",
+      "observationMode": "NOT_ENABLED",
+      "blockers": ["EXPLICIT_LIVE_PERMISSION_NOT_GRANTED", "LIVE_CREDENTIALS_NOT_VALIDATED", "DEVELOPER_TOKEN_APPROVAL_MAY_BE_REQUIRED"]
+    }
+  }
+}
