@@ -20,6 +20,20 @@ const LEDGER_TABLE = "social_manual_migrations";
 const LOCK_KEY = "social_operations_admin_database_prepare";
 const APPROVED_ADMIN_DATABASE_MIGRATIONS = [
   "20260718_ensure_social_operations_partial_indexes.sql",
+  // The configured local Admin schema predates Marketing Intelligence Phase 2.
+  // These additive prerequisites must precede Advertising Execution foreign keys.
+  "20260721_marketing_intelligence_wp0_corrections.sql",
+  "20260722_marketing_intelligence_phase2_section7_schema.sql",
+  "20260723_marketing_intelligence_phase2_section8_raw_ingestion.sql",
+  "20260724_marketing_intelligence_phase2_section9_scoring_enums.sql",
+  "20260725_marketing_intelligence_phase2_sections10_13.sql",
+  "20260726_marketing_intelligence_sections10_13_audit_corrections.sql",
+  "20260727_marketing_intelligence_sections14_17.sql",
+  "20260728_advertising_execution_sections9_10.sql",
+  "20260729_advertising_execution_sections18_24.sql",
+  "20260730_advertising_execution_sections18_24_remediation.sql",
+  "20260731_advertising_execution_sections25_28.sql",
+  "20260801_advertising_execution_sections25_28_remediation.sql",
 ];
 
 const DUPLICATE_PRECHECKS = {

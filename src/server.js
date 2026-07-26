@@ -21,6 +21,7 @@ const {
 } = require("./modules/marketing/social-operations/config/social-operations-env.validator");
 const providerConnectionsService = require("./modules/marketing/intelligence/provider-connections.service");
 const logger = require("./shared/utils/logger");
+const { getAdvertisingExecutionApplication } = require("./modules/marketing/advertising-execution/runtime");
 
 const PORT = process.env.PORT || 4000;
 
@@ -28,6 +29,7 @@ const startServer = async () => {
   let socialWorkers = null;
   let marketingSyncCron = null;
   let intelligenceSchedulers = null;
+  let advertisingExecution = null;
   try {
     const socialConfig = validateSocialOperationsEnvironment();
     logger.info(
@@ -52,6 +54,9 @@ const startServer = async () => {
     marketingSyncCron = registerMarketingIntelligenceCron();
     intelligenceSchedulers = registerIntelligenceSchedulers();
     socialWorkers = registerSocialWorkers();
+    advertisingExecution = getAdvertisingExecutionApplication();
+    const advertisingWorkerStatus = advertisingExecution.startWorkers();
+    logger.info(`[AdvertisingExecution] Worker lifecycle initialized: ${JSON.stringify(advertisingWorkerStatus)}`);
 
     const server = http.createServer(app);
     initializeWebSocket(server);
@@ -72,6 +77,7 @@ const startServer = async () => {
         if (socialWorkers?.shutdown) {
           await socialWorkers.shutdown();
         }
+        await advertisingExecution?.shutdownWorkers();
         await intelligenceSchedulers?.stop();
         await marketingSyncCron?.stop();
         await prisma.$disconnect();

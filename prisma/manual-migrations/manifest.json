@@ -107,6 +107,31 @@
       "order": 21,
       "file": "20260727_marketing_intelligence_sections14_17.sql",
       "sha256": "57f61a22127cb746846768b58b2c62273ceaa499eab1f66d9f37695e1a8929de"
+    },
+    {
+      "order": 22,
+      "file": "20260728_advertising_execution_sections9_10.sql",
+      "sha256": "111ed3d6a9e621a72f37f1148b1b8bf837a9971f26565163d041f6641fe102ca"
+    },
+    {
+      "order": 23,
+      "file": "20260729_advertising_execution_sections18_24.sql",
+      "sha256": "0be02b080fa1d458a5c0528846c1c01b29f78dfcaeec4f469c3fc9e284826f8e"
+    },
+    {
+      "order": 24,
+      "file": "20260730_advertising_execution_sections18_24_remediation.sql",
+      "sha256": "d3273abb2c261c2c1ee43763bb87552bd2456f5ca6292fb00d805ded9acaa1f3"
+    },
+    {
+      "order": 25,
+      "file": "20260731_advertising_execution_sections25_28.sql",
+      "sha256": "9908e6d56108ffb1d11ae3e6424423f571bd49f9bc744c867f7327622d3f913b"
+    },
+    {
+      "order": 26,
+      "file": "20260801_advertising_execution_sections25_28_remediation.sql",
+      "sha256": "b9f0493629ccf4f8b340f8cd1dab2be7c0987419c47c4853b2f73ef115d7b5e6"
     }
   ]
 }

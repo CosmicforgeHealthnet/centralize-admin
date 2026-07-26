@@ -17,6 +17,7 @@ const {
   notFound,
 } = require("./shared/middlewares/error.middleware");
 const logger = require("./shared/utils/logger");
+const { requestContext } = require("./shared/middlewares/request-context.middleware");
 
 function loadRoutes() {
   return {
@@ -43,6 +44,7 @@ function loadRoutes() {
     socialOperationsRoutes: require("./modules/marketing/social-operations").router,
     marketingIntelligenceInternalRoutes: require("./modules/marketing/intelligence/internal.routes"),
     marketingIntelligenceRoutes: require("./modules/marketing/intelligence").router,
+    advertisingExecutionRoutes: require("./modules/marketing/advertising-execution").router,
     hrmRoutes: require("./modules/hrm").router,
   };
 }
@@ -67,6 +69,7 @@ function createApp({
   app.locals.cloudinary = cloudinaryStatus;
 
   app.use(helmet());
+  app.use(requestContext);
   app.set("trust proxy", 1);
 
   const allowedOrigins = env.CORS_ORIGINS
@@ -82,7 +85,7 @@ function createApp({
         callback(new Error("Not allowed by CORS"));
       },
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization"],
+      allowedHeaders: ["Content-Type", "Authorization", "X-Request-ID"],
       credentials: true,
       optionsSuccessStatus: 200,
     }),
@@ -179,6 +182,10 @@ function createApp({
     routes.marketingIntelligenceInternalRoutes,
   );
   app.use("/api/v1/marketing/intelligence", routes.marketingIntelligenceRoutes);
+  app.use(
+    "/api/v1/marketing/advertising-execution",
+    routes.advertisingExecutionRoutes,
+  );
   app.use("/api/hrm", routes.hrmRoutes);
 
   app.use("/{*splat}", notFound);

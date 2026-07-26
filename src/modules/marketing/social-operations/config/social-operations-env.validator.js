@@ -400,6 +400,11 @@ function safeSyntheticEnv(mode) {
     ADMIN_APP_BASE_URL: `https://admin.${mode}.example.test`,
     SOCIAL_API_BASE_URL: `https://admin-api.${mode}.example.test/api/v1/marketing/social`,
     ADMIN_BACKEND_PUBLIC_URL: `https://admin-api.${mode}.example.test`,
+    // Optional Admin Google login is disabled in synthetic validation so a
+    // developer's local OAuth callback cannot contaminate staging/production checks.
+    GOOGLE_CLIENT_ID: "",
+    GOOGLE_CLIENT_SECRET: "",
+    GOOGLE_CALLBACK_URL: "",
     SOCIAL_OAUTH_REDIRECT_URIS: `https://admin-api.${mode}.example.test/api/v1/marketing/social/oauth/META/callback`,
     SOCIAL_MEDIA_STORAGE_PROVIDER: "cloudinary",
     CLOUDINARY_CLOUD_NAME: "synthetic-cloud",

@@ -81,7 +81,7 @@ function runPrisma(args, env) {
 function writeCommittedBaselineSchema() {
   let schema;
   try {
-    schema = execFileSync("git", ["show", "HEAD:prisma/schema.prisma"], {
+    schema = execFileSync("git", ["show", "HEAD^:prisma/schema.prisma"], {
       cwd: ROOT,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
@@ -233,6 +233,7 @@ if (require.main === module) {
 }
 
 module.exports = {
+  dropDatabase,
   replayCreateTypeSafely,
   replayVerify,
 };

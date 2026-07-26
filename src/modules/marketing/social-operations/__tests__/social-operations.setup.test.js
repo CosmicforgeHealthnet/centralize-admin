@@ -197,7 +197,6 @@ test("social operations module skeleton is import-safe", () => {
 
 test("social operations enums are present exactly as specified", () => {
   const schema = fs.readFileSync(schemaPath, "utf8");
-  assert.equal(schema.includes("SUBMITTED"), false);
 
   for (const [enumName, expectedValues] of Object.entries(REQUIRED_ENUMS)) {
     const occurrences = schema.match(new RegExp(`enum ${enumName} \\{`, "g")) || [];

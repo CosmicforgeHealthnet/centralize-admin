@@ -24,12 +24,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 7.8.0
- * Query Engine version: 3c6e192761c0362d496ed980de936e2f3cebcd3a
+ * Prisma Client JS version: 7.9.0
+ * Query Engine version: e922089b7d7502aff4249d5da3420f6fa55fc6ad
  */
 Prisma.prismaVersion = {
-  client: "7.8.0",
-  engine: "3c6e192761c0362d496ed980de936e2f3cebcd3a"
+  client: "7.9.0",
+  engine: "e922089b7d7502aff4249d5da3420f6fa55fc6ad"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -765,6 +765,430 @@ exports.Prisma.Marketing_sync_locksScalarFieldEnum = {
   key: 'key',
   owner: 'owner',
   expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingExecutionPlanScalarFieldEnum = {
+  id: 'id',
+  planNumber: 'planNumber',
+  sourceType: 'sourceType',
+  sourceRecommendationId: 'sourceRecommendationId',
+  platform: 'platform',
+  connectionId: 'connectionId',
+  accountExternalId: 'accountExternalId',
+  name: 'name',
+  description: 'description',
+  status: 'status',
+  version: 'version',
+  currencyCode: 'currencyCode',
+  desiredState: 'desiredState',
+  validationFingerprint: 'validationFingerprint',
+  validatedAt: 'validatedAt',
+  expiresAt: 'expiresAt',
+  createdByAdminUserId: 'createdByAdminUserId',
+  updatedByAdminUserId: 'updatedByAdminUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingExecutionPlanItemScalarFieldEnum = {
+  id: 'id',
+  planId: 'planId',
+  sequence: 'sequence',
+  operationType: 'operationType',
+  resourceType: 'resourceType',
+  providerResourceId: 'providerResourceId',
+  clientReference: 'clientReference',
+  dependsOnItemIds: 'dependsOnItemIds',
+  intent: 'intent',
+  beforeState: 'beforeState',
+  materialHash: 'materialHash',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingExecutionApprovalScalarFieldEnum = {
+  id: 'id',
+  planId: 'planId',
+  planVersion: 'planVersion',
+  validationFingerprint: 'validationFingerprint',
+  decision: 'decision',
+  approverAdminUserId: 'approverAdminUserId',
+  reason: 'reason',
+  approvalScope: 'approvalScope',
+  decidedAt: 'decidedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MarketingExecutionApprovalEventScalarFieldEnum = {
+  id: 'id',
+  approvalId: 'approvalId',
+  decision: 'decision',
+  reason: 'reason',
+  decidedAt: 'decidedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MarketingExecutionRunScalarFieldEnum = {
+  id: 'id',
+  planId: 'planId',
+  submissionKey: 'submissionKey',
+  status: 'status',
+  trigger: 'trigger',
+  approvalFingerprint: 'approvalFingerprint',
+  approvedPlanVersion: 'approvedPlanVersion',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  summary: 'summary',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingExecutionJobScalarFieldEnum = {
+  id: 'id',
+  runId: 'runId',
+  connectionId: 'connectionId',
+  platform: 'platform',
+  accountExternalId: 'accountExternalId',
+  status: 'status',
+  leaseOwner: 'leaseOwner',
+  leaseExpiresAt: 'leaseExpiresAt',
+  nextAttemptAt: 'nextAttemptAt',
+  attemptCount: 'attemptCount',
+  priority: 'priority',
+  submissionIdentity: 'submissionIdentity',
+  recoveryReason: 'recoveryReason',
+  previousLeaseOwner: 'previousLeaseOwner',
+  recoveredAt: 'recoveredAt',
+  recoveryOutcome: 'recoveryOutcome',
+  reconciliationRequired: 'reconciliationRequired',
+  cancellationRequestedAt: 'cancellationRequestedAt',
+  cancellationRequestedByAdminUserId: 'cancellationRequestedByAdminUserId',
+  cancellationReason: 'cancellationReason',
+  cancellationObservedAt: 'cancellationObservedAt',
+  cancellationOutcome: 'cancellationOutcome',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingProviderOperationScalarFieldEnum = {
+  id: 'id',
+  runId: 'runId',
+  itemId: 'itemId',
+  providerOperationKey: 'providerOperationKey',
+  providerRequestId: 'providerRequestId',
+  nativeResourceId: 'nativeResourceId',
+  nativeResourceName: 'nativeResourceName',
+  status: 'status',
+  safeToRetry: 'safeToRetry',
+  outcomeCertainty: 'outcomeCertainty',
+  normalizedResult: 'normalizedResult',
+  idempotencyIdentity: 'idempotencyIdentity',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingProviderOperationAttemptScalarFieldEnum = {
+  id: 'id',
+  operationId: 'operationId',
+  number: 'number',
+  errorCode: 'errorCode',
+  errorCategory: 'errorCategory',
+  retryAfterAt: 'retryAfterAt',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  normalizedError: 'normalizedError',
+  retryDecision: 'retryDecision',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MarketingExecutionStateSnapshotScalarFieldEnum = {
+  id: 'id',
+  operationId: 'operationId',
+  kind: 'kind',
+  sequence: 'sequence',
+  normalizedState: 'normalizedState',
+  hash: 'hash',
+  capturedAt: 'capturedAt'
+};
+
+exports.Prisma.MarketingExecutionValidationIssueScalarFieldEnum = {
+  id: 'id',
+  planId: 'planId',
+  itemId: 'itemId',
+  planVersion: 'planVersion',
+  validationFingerprint: 'validationFingerprint',
+  severity: 'severity',
+  code: 'code',
+  fieldPath: 'fieldPath',
+  message: 'message',
+  providerCode: 'providerCode',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MarketingExecutionReconciliationScalarFieldEnum = {
+  id: 'id',
+  runId: 'runId',
+  operationId: 'operationId',
+  status: 'status',
+  differences: 'differences',
+  previousVerifiedHash: 'previousVerifiedHash',
+  currentHash: 'currentHash',
+  providerVersion: 'providerVersion',
+  externalActor: 'externalActor',
+  checkedAt: 'checkedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MarketingExecutionPolicyScalarFieldEnum = {
+  id: 'id',
+  scope: 'scope',
+  platform: 'platform',
+  connectionId: 'connectionId',
+  key: 'key',
+  valueType: 'valueType',
+  value: 'value',
+  enabled: 'enabled',
+  version: 'version',
+  createdByAdminUserId: 'createdByAdminUserId',
+  updatedByAdminUserId: 'updatedByAdminUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingCreativePublicationScalarFieldEnum = {
+  id: 'id',
+  creativeAssetId: 'creativeAssetId',
+  revision: 'revision',
+  platform: 'platform',
+  connectionId: 'connectionId',
+  accountExternalId: 'accountExternalId',
+  apiVersion: 'apiVersion',
+  creativeFormat: 'creativeFormat',
+  identityReference: 'identityReference',
+  instagramIdentityReference: 'instagramIdentityReference',
+  campaignExternalId: 'campaignExternalId',
+  groupExternalId: 'groupExternalId',
+  providerMediaId: 'providerMediaId',
+  providerCreativeId: 'providerCreativeId',
+  providerAdId: 'providerAdId',
+  reviewStatus: 'reviewStatus',
+  reviewCode: 'reviewCode',
+  reviewMessage: 'reviewMessage',
+  reviewCheckedAt: 'reviewCheckedAt',
+  reviewProviderVersion: 'reviewProviderVersion',
+  contentHash: 'contentHash',
+  contentProjection: 'contentProjection',
+  reuseClassification: 'reuseClassification',
+  sourceMediaChecksum: 'sourceMediaChecksum',
+  malwareStatus: 'malwareStatus',
+  createdByAdminUserId: 'createdByAdminUserId',
+  publicationMetadata: 'publicationMetadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingCreativeMediaValidationEvidenceScalarFieldEnum = {
+  id: 'id',
+  creativeAssetId: 'creativeAssetId',
+  publicationId: 'publicationId',
+  checksumSha256: 'checksumSha256',
+  detectedMime: 'detectedMime',
+  byteSize: 'byteSize',
+  width: 'width',
+  height: 'height',
+  durationMs: 'durationMs',
+  frameCount: 'frameCount',
+  codec: 'codec',
+  container: 'container',
+  hasAudio: 'hasAudio',
+  hasTransparency: 'hasTransparency',
+  malwareStatus: 'malwareStatus',
+  scannerEvidence: 'scannerEvidence',
+  validatedAt: 'validatedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MarketingCreativePublicationReviewEventScalarFieldEnum = {
+  id: 'id',
+  publicationId: 'publicationId',
+  previousStatus: 'previousStatus',
+  status: 'status',
+  providerCode: 'providerCode',
+  providerMessage: 'providerMessage',
+  providerVersion: 'providerVersion',
+  checkedAt: 'checkedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MarketingTargetingDiscoveryScalarFieldEnum = {
+  id: 'id',
+  platform: 'platform',
+  apiVersion: 'apiVersion',
+  connectionId: 'connectionId',
+  accountExternalId: 'accountExternalId',
+  targetingType: 'targetingType',
+  normalizedIdentifier: 'normalizedIdentifier',
+  nativeIdentifier: 'nativeIdentifier',
+  displayName: 'displayName',
+  parentIdentifier: 'parentIdentifier',
+  metadata: 'metadata',
+  availability: 'availability',
+  contentHash: 'contentHash',
+  resolvedAt: 'resolvedAt',
+  expiresAt: 'expiresAt',
+  lastValidatedAt: 'lastValidatedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingExecutionAccountLockScalarFieldEnum = {
+  key: 'key',
+  platform: 'platform',
+  connectionId: 'connectionId',
+  accountExternalId: 'accountExternalId',
+  owner: 'owner',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingExecutionDeadLetterReviewScalarFieldEnum = {
+  id: 'id',
+  jobId: 'jobId',
+  status: 'status',
+  reviewerAdminUserId: 'reviewerAdminUserId',
+  reason: 'reason',
+  decision: 'decision',
+  actionJobId: 'actionJobId',
+  reviewedAt: 'reviewedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingExecutionPolicyHistoryScalarFieldEnum = {
+  id: 'id',
+  policyId: 'policyId',
+  version: 'version',
+  valueType: 'valueType',
+  value: 'value',
+  enabled: 'enabled',
+  previousVersion: 'previousVersion',
+  previousValue: 'previousValue',
+  previousEnabled: 'previousEnabled',
+  newVersion: 'newVersion',
+  newValue: 'newValue',
+  newEnabled: 'newEnabled',
+  correlationId: 'correlationId',
+  effectiveScope: 'effectiveScope',
+  behaviorChanged: 'behaviorChanged',
+  reason: 'reason',
+  changedFields: 'changedFields',
+  changedByAdminUserId: 'changedByAdminUserId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MarketingExecutionValidationPacketScalarFieldEnum = {
+  id: 'id',
+  planId: 'planId',
+  planVersion: 'planVersion',
+  validationFingerprint: 'validationFingerprint',
+  valid: 'valid',
+  providerApiVersion: 'providerApiVersion',
+  beforeStateHash: 'beforeStateHash',
+  beforeStateSummary: 'beforeStateSummary',
+  capabilitySummary: 'capabilitySummary',
+  budgetExposure: 'budgetExposure',
+  activationExposure: 'activationExposure',
+  issueCount: 'issueCount',
+  warningCount: 'warningCount',
+  expiresAt: 'expiresAt',
+  validatedByAdminUserId: 'validatedByAdminUserId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MarketingExecutionDriftAcknowledgmentScalarFieldEnum = {
+  id: 'id',
+  reconciliationId: 'reconciliationId',
+  acknowledgedByAdminUserId: 'acknowledgedByAdminUserId',
+  reason: 'reason',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MarketingExecutionRetryReviewScalarFieldEnum = {
+  id: 'id',
+  operationId: 'operationId',
+  reviewedByAdminUserId: 'reviewedByAdminUserId',
+  reason: 'reason',
+  decision: 'decision',
+  idempotencyKey: 'idempotencyKey',
+  actionJobId: 'actionJobId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MarketingExecutionEmergencyOverrideScalarFieldEnum = {
+  id: 'id',
+  scopeType: 'scopeType',
+  platform: 'platform',
+  connectionId: 'connectionId',
+  accountExternalId: 'accountExternalId',
+  planId: 'planId',
+  runId: 'runId',
+  operationId: 'operationId',
+  allowedControls: 'allowedControls',
+  nonOverridableControls: 'nonOverridableControls',
+  reason: 'reason',
+  requestedByAdminUserId: 'requestedByAdminUserId',
+  approvedByAdminUserId: 'approvedByAdminUserId',
+  mfaEvidenceReference: 'mfaEvidenceReference',
+  startsAt: 'startsAt',
+  expiresAt: 'expiresAt',
+  revokedAt: 'revokedAt',
+  status: 'status',
+  useCount: 'useCount',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MarketingExecutionReconciliationJobScalarFieldEnum = {
+  id: 'id',
+  operationId: 'operationId',
+  runId: 'runId',
+  planId: 'planId',
+  reason: 'reason',
+  status: 'status',
+  priority: 'priority',
+  attemptCount: 'attemptCount',
+  nextAttemptAt: 'nextAttemptAt',
+  leaseOwner: 'leaseOwner',
+  leaseExpiresAt: 'leaseExpiresAt',
+  lastErrorCategory: 'lastErrorCategory',
+  providerIdentity: 'providerIdentity',
+  escalatedAt: 'escalatedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingExecutionCompensationLinkScalarFieldEnum = {
+  id: 'id',
+  originalPlanId: 'originalPlanId',
+  originalRunId: 'originalRunId',
+  originalOperationId: 'originalOperationId',
+  compensationPlanId: 'compensationPlanId',
+  compensationRunId: 'compensationRunId',
+  compensationOperationId: 'compensationOperationId',
+  reconciliationId: 'reconciliationId',
+  authoredByAdminUserId: 'authoredByAdminUserId',
+  reason: 'reason',
+  currentProviderState: 'currentProviderState',
+  proposedSafeState: 'proposedSafeState',
+  irreversibleWarning: 'irreversibleWarning',
+  spendAlreadyIncurred: 'spendAlreadyIncurred',
+  verifiedSafeStateHash: 'verifiedSafeStateHash',
+  compensatedAt: 'compensatedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -1852,6 +2276,213 @@ exports.marketing_experiment_status_enum = exports.$Enums.marketing_experiment_s
   CANCELLED: 'CANCELLED'
 };
 
+exports.MarketingExecutionSourceType = exports.$Enums.MarketingExecutionSourceType = {
+  MANUAL: 'MANUAL',
+  RECOMMENDATION: 'RECOMMENDATION',
+  TEMPLATE: 'TEMPLATE',
+  ROLLBACK: 'ROLLBACK'
+};
+
+exports.MarketingExecutionPlanStatus = exports.$Enums.MarketingExecutionPlanStatus = {
+  DRAFT: 'DRAFT',
+  VALIDATING: 'VALIDATING',
+  VALIDATED: 'VALIDATED',
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
+  APPROVED: 'APPROVED',
+  QUEUED: 'QUEUED',
+  EXECUTING: 'EXECUTING',
+  PARTIAL_SUCCESS: 'PARTIAL_SUCCESS',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+  ROLLBACK_PENDING: 'ROLLBACK_PENDING',
+  ROLLED_BACK: 'ROLLED_BACK',
+  ROLLBACK_FAILED: 'ROLLBACK_FAILED',
+  CANCELLED: 'CANCELLED',
+  EXPIRED: 'EXPIRED'
+};
+
+exports.MarketingExecutionOperationType = exports.$Enums.MarketingExecutionOperationType = {
+  CREATE: 'CREATE',
+  UPDATE: 'UPDATE',
+  PAUSE: 'PAUSE',
+  RESUME: 'RESUME',
+  ARCHIVE: 'ARCHIVE',
+  REMOVE_LINK: 'REMOVE_LINK'
+};
+
+exports.MarketingExecutionResourceType = exports.$Enums.MarketingExecutionResourceType = {
+  BUDGET: 'BUDGET',
+  CAMPAIGN: 'CAMPAIGN',
+  GROUP: 'GROUP',
+  TARGETING: 'TARGETING',
+  CREATIVE: 'CREATIVE',
+  AD: 'AD',
+  ASSET_LINK: 'ASSET_LINK'
+};
+
+exports.MarketingExecutionOperationStatus = exports.$Enums.MarketingExecutionOperationStatus = {
+  PENDING: 'PENDING',
+  VALIDATED: 'VALIDATED',
+  READY: 'READY',
+  EXECUTING: 'EXECUTING',
+  SUCCEEDED: 'SUCCEEDED',
+  VERIFYING: 'VERIFYING',
+  VERIFIED: 'VERIFIED',
+  FAILED: 'FAILED',
+  UNKNOWN: 'UNKNOWN',
+  RETRY_SCHEDULED: 'RETRY_SCHEDULED',
+  DRIFTED: 'DRIFTED'
+};
+
+exports.MarketingExecutionApprovalDecision = exports.$Enums.MarketingExecutionApprovalDecision = {
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  REVOKED: 'REVOKED'
+};
+
+exports.MarketingExecutionRunStatus = exports.$Enums.MarketingExecutionRunStatus = {
+  QUEUED: 'QUEUED',
+  RUNNING: 'RUNNING',
+  PARTIAL_SUCCESS: 'PARTIAL_SUCCESS',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+  RECONCILING: 'RECONCILING',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.MarketingExecutionRunTrigger = exports.$Enums.MarketingExecutionRunTrigger = {
+  MANUAL: 'MANUAL',
+  SCHEDULED: 'SCHEDULED',
+  RETRY: 'RETRY',
+  COMPENSATION: 'COMPENSATION'
+};
+
+exports.MarketingExecutionJobStatus = exports.$Enums.MarketingExecutionJobStatus = {
+  PENDING: 'PENDING',
+  CLAIMED: 'CLAIMED',
+  RUNNING: 'RUNNING',
+  RETRY_SCHEDULED: 'RETRY_SCHEDULED',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+  DEAD_LETTER: 'DEAD_LETTER',
+  RECONCILING: 'RECONCILING',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.MarketingExecutionRecoveryOutcome = exports.$Enums.MarketingExecutionRecoveryOutcome = {
+  SAFE_TO_RETRY: 'SAFE_TO_RETRY',
+  RECONCILIATION_REQUIRED: 'RECONCILIATION_REQUIRED',
+  NON_RETRYABLE: 'NON_RETRYABLE',
+  ATTEMPTS_EXHAUSTED: 'ATTEMPTS_EXHAUSTED'
+};
+
+exports.MarketingExecutionOutcomeCertainty = exports.$Enums.MarketingExecutionOutcomeCertainty = {
+  KNOWN_SUCCESS: 'KNOWN_SUCCESS',
+  KNOWN_FAILURE: 'KNOWN_FAILURE',
+  UNKNOWN: 'UNKNOWN'
+};
+
+exports.MarketingExecutionSnapshotKind = exports.$Enums.MarketingExecutionSnapshotKind = {
+  BEFORE: 'BEFORE',
+  DESIRED: 'DESIRED',
+  AFTER: 'AFTER'
+};
+
+exports.MarketingExecutionValidationSeverity = exports.$Enums.MarketingExecutionValidationSeverity = {
+  ERROR: 'ERROR',
+  WARNING: 'WARNING'
+};
+
+exports.MarketingExecutionReconciliationStatus = exports.$Enums.MarketingExecutionReconciliationStatus = {
+  VERIFIED: 'VERIFIED',
+  DRIFTED: 'DRIFTED',
+  UNKNOWN: 'UNKNOWN',
+  EXTERNAL_CHANGE: 'EXTERNAL_CHANGE',
+  COMPENSATED: 'COMPENSATED'
+};
+
+exports.MarketingExecutionPolicyScope = exports.$Enums.MarketingExecutionPolicyScope = {
+  GLOBAL: 'GLOBAL',
+  PLATFORM: 'PLATFORM',
+  CONNECTION: 'CONNECTION'
+};
+
+exports.MarketingExecutionPolicyValueType = exports.$Enums.MarketingExecutionPolicyValueType = {
+  BOOLEAN: 'BOOLEAN',
+  INTEGER: 'INTEGER',
+  DECIMAL: 'DECIMAL',
+  STRING: 'STRING',
+  JSON: 'JSON'
+};
+
+exports.MarketingCreativePublicationReviewStatus = exports.$Enums.MarketingCreativePublicationReviewStatus = {
+  DRAFT: 'DRAFT',
+  PENDING_REVIEW: 'PENDING_REVIEW',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  LIMITED: 'LIMITED',
+  UNKNOWN: 'UNKNOWN',
+  PUBLISHED: 'PUBLISHED',
+  FAILED: 'FAILED'
+};
+
+exports.MarketingCreativeReuseClassification = exports.$Enums.MarketingCreativeReuseClassification = {
+  ACCOUNT_REUSABLE: 'ACCOUNT_REUSABLE',
+  IDENTITY_SCOPED: 'IDENTITY_SCOPED',
+  CAMPAIGN_SCOPED: 'CAMPAIGN_SCOPED',
+  GROUP_SCOPED: 'GROUP_SCOPED',
+  MUST_RECREATE: 'MUST_RECREATE',
+  BLOCKED_REVIEW: 'BLOCKED_REVIEW',
+  BLOCKED_EXPIRED: 'BLOCKED_EXPIRED',
+  BLOCKED_IDENTITY_CHANGED: 'BLOCKED_IDENTITY_CHANGED'
+};
+
+exports.MarketingMalwareScanStatus = exports.$Enums.MarketingMalwareScanStatus = {
+  NOT_CONFIGURED: 'NOT_CONFIGURED',
+  PENDING: 'PENDING',
+  CLEAN: 'CLEAN',
+  INFECTED: 'INFECTED',
+  ERROR: 'ERROR',
+  UNKNOWN: 'UNKNOWN'
+};
+
+exports.MarketingTargetingAvailability = exports.$Enums.MarketingTargetingAvailability = {
+  AVAILABLE: 'AVAILABLE',
+  UNAVAILABLE: 'UNAVAILABLE',
+  EXPIRED: 'EXPIRED',
+  UNKNOWN: 'UNKNOWN'
+};
+
+exports.MarketingDeadLetterReviewStatus = exports.$Enums.MarketingDeadLetterReviewStatus = {
+  PENDING_REVIEW: 'PENDING_REVIEW',
+  REVIEWED: 'REVIEWED'
+};
+
+exports.MarketingDeadLetterDecision = exports.$Enums.MarketingDeadLetterDecision = {
+  KEEP_DEAD_LETTER: 'KEEP_DEAD_LETTER',
+  CREATE_RETRY_JOB: 'CREATE_RETRY_JOB',
+  CREATE_COMPENSATION_DRAFT: 'CREATE_COMPENSATION_DRAFT',
+  MARK_RECONCILIATION_ONLY: 'MARK_RECONCILIATION_ONLY'
+};
+
+exports.MarketingReconciliationReason = exports.$Enums.MarketingReconciliationReason = {
+  UNKNOWN_PROVIDER_OUTCOME: 'UNKNOWN_PROVIDER_OUTCOME',
+  PROVIDER_SUCCESS_LOCAL_PERSISTENCE_FAILED: 'PROVIDER_SUCCESS_LOCAL_PERSISTENCE_FAILED',
+  POST_WRITE_VERIFICATION: 'POST_WRITE_VERIFICATION',
+  EXTERNAL_CHANGE_CHECK: 'EXTERNAL_CHANGE_CHECK',
+  COMPENSATION_VERIFICATION: 'COMPENSATION_VERIFICATION'
+};
+
+exports.MarketingReconciliationJobStatus = exports.$Enums.MarketingReconciliationJobStatus = {
+  PENDING: 'PENDING',
+  CLAIMED: 'CLAIMED',
+  RUNNING: 'RUNNING',
+  RETRY_SCHEDULED: 'RETRY_SCHEDULED',
+  SUCCEEDED: 'SUCCEEDED',
+  ESCALATED: 'ESCALATED',
+  FAILED: 'FAILED'
+};
+
 exports.SocialProvider = exports.$Enums.SocialProvider = {
   META: 'META',
   TIKTOK: 'TIKTOK',
@@ -2133,7 +2764,39 @@ exports.AuditAction = exports.$Enums.AuditAction = {
   HRM_EVENT_CREATED: 'HRM_EVENT_CREATED',
   SECTION_GRANT_CREATED: 'SECTION_GRANT_CREATED',
   SECTION_GRANT_REVOKED: 'SECTION_GRANT_REVOKED',
-  EMERGENCY_OVERRIDE_USED: 'EMERGENCY_OVERRIDE_USED'
+  EMERGENCY_OVERRIDE_USED: 'EMERGENCY_OVERRIDE_USED',
+  MARKETING_CREATIVE_REVISION_CREATED: 'MARKETING_CREATIVE_REVISION_CREATED',
+  MARKETING_CREATIVE_REVISION_REUSED: 'MARKETING_CREATIVE_REVISION_REUSED',
+  MARKETING_CREATIVE_REVIEW_CHANGED: 'MARKETING_CREATIVE_REVIEW_CHANGED',
+  MARKETING_RECOMMENDATION_EXECUTION_DRAFT_CREATED: 'MARKETING_RECOMMENDATION_EXECUTION_DRAFT_CREATED',
+  MARKETING_EXECUTION_QUEUED: 'MARKETING_EXECUTION_QUEUED',
+  MARKETING_EXECUTION_LEASE_RECOVERED: 'MARKETING_EXECUTION_LEASE_RECOVERED',
+  MARKETING_EXECUTION_DEAD_LETTER_REVIEWED: 'MARKETING_EXECUTION_DEAD_LETTER_REVIEWED',
+  MARKETING_EXECUTION_POLICY_UPDATED: 'MARKETING_EXECUTION_POLICY_UPDATED',
+  MARKETING_EXECUTION_KILL_SWITCH_CHANGED: 'MARKETING_EXECUTION_KILL_SWITCH_CHANGED',
+  MARKETING_RECONCILIATION_VERIFIED: 'MARKETING_RECONCILIATION_VERIFIED',
+  MARKETING_RECONCILIATION_EXTERNAL_CHANGE: 'MARKETING_RECONCILIATION_EXTERNAL_CHANGE',
+  MARKETING_RECONCILIATION_DRIFTED: 'MARKETING_RECONCILIATION_DRIFTED',
+  MARKETING_RECONCILIATION_UNKNOWN: 'MARKETING_RECONCILIATION_UNKNOWN',
+  MARKETING_RECONCILIATION_FAILED: 'MARKETING_RECONCILIATION_FAILED',
+  MARKETING_RECONCILIATION_COMPENSATED: 'MARKETING_RECONCILIATION_COMPENSATED',
+  MARKETING_COMPENSATION_DRAFT_CREATED: 'MARKETING_COMPENSATION_DRAFT_CREATED',
+  EXECUTION_PLAN_CREATED: 'EXECUTION_PLAN_CREATED',
+  EXECUTION_PLAN_UPDATED: 'EXECUTION_PLAN_UPDATED',
+  EXECUTION_PLAN_VALIDATED: 'EXECUTION_PLAN_VALIDATED',
+  EXECUTION_PLAN_SUBMITTED: 'EXECUTION_PLAN_SUBMITTED',
+  EXECUTION_APPROVED: 'EXECUTION_APPROVED',
+  EXECUTION_REJECTED: 'EXECUTION_REJECTED',
+  EXECUTION_REVOKED: 'EXECUTION_REVOKED',
+  EXECUTION_QUEUED: 'EXECUTION_QUEUED',
+  EXECUTION_STARTED: 'EXECUTION_STARTED',
+  EXECUTION_COMPLETED: 'EXECUTION_COMPLETED',
+  PROVIDER_OPERATION_ATTEMPTED: 'PROVIDER_OPERATION_ATTEMPTED',
+  EXECUTION_DRIFT_DETECTED: 'EXECUTION_DRIFT_DETECTED',
+  EXECUTION_COMPENSATION_CREATED: 'EXECUTION_COMPENSATION_CREATED',
+  EXECUTION_OVERRIDE_USED: 'EXECUTION_OVERRIDE_USED',
+  EXECUTION_DRIFT_ACKNOWLEDGED: 'EXECUTION_DRIFT_ACKNOWLEDGED',
+  EXECUTION_OPERATION_RETRY_REVIEWED: 'EXECUTION_OPERATION_RETRY_REVIEWED'
 };
 
 exports.SectionAccessMode = exports.$Enums.SectionAccessMode = {
@@ -2232,6 +2895,31 @@ exports.Prisma.ModelName = {
   marketing_alerts: 'marketing_alerts',
   marketing_experiments: 'marketing_experiments',
   marketing_sync_locks: 'marketing_sync_locks',
+  MarketingExecutionPlan: 'MarketingExecutionPlan',
+  MarketingExecutionPlanItem: 'MarketingExecutionPlanItem',
+  MarketingExecutionApproval: 'MarketingExecutionApproval',
+  MarketingExecutionApprovalEvent: 'MarketingExecutionApprovalEvent',
+  MarketingExecutionRun: 'MarketingExecutionRun',
+  MarketingExecutionJob: 'MarketingExecutionJob',
+  MarketingProviderOperation: 'MarketingProviderOperation',
+  MarketingProviderOperationAttempt: 'MarketingProviderOperationAttempt',
+  MarketingExecutionStateSnapshot: 'MarketingExecutionStateSnapshot',
+  MarketingExecutionValidationIssue: 'MarketingExecutionValidationIssue',
+  MarketingExecutionReconciliation: 'MarketingExecutionReconciliation',
+  MarketingExecutionPolicy: 'MarketingExecutionPolicy',
+  MarketingCreativePublication: 'MarketingCreativePublication',
+  MarketingCreativeMediaValidationEvidence: 'MarketingCreativeMediaValidationEvidence',
+  MarketingCreativePublicationReviewEvent: 'MarketingCreativePublicationReviewEvent',
+  MarketingTargetingDiscovery: 'MarketingTargetingDiscovery',
+  MarketingExecutionAccountLock: 'MarketingExecutionAccountLock',
+  MarketingExecutionDeadLetterReview: 'MarketingExecutionDeadLetterReview',
+  MarketingExecutionPolicyHistory: 'MarketingExecutionPolicyHistory',
+  MarketingExecutionValidationPacket: 'MarketingExecutionValidationPacket',
+  MarketingExecutionDriftAcknowledgment: 'MarketingExecutionDriftAcknowledgment',
+  MarketingExecutionRetryReview: 'MarketingExecutionRetryReview',
+  MarketingExecutionEmergencyOverride: 'MarketingExecutionEmergencyOverride',
+  MarketingExecutionReconciliationJob: 'MarketingExecutionReconciliationJob',
+  MarketingExecutionCompensationLink: 'MarketingExecutionCompensationLink',
   SocialAccountConnection: 'SocialAccountConnection',
   SocialPublishingIdentity: 'SocialPublishingIdentity',
   SocialOAuthState: 'SocialOAuthState',

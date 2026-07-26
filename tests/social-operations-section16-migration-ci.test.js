@@ -26,7 +26,7 @@ function nodeScript(script) {
 test("manual migration manifest protects order and checksums", () => {
   const result = verifyMigrationManifest();
   assert.equal(result.failures.length, 0);
-  assert.equal(result.count, 21);
+  assert.equal(result.count, 26);
   assert.equal(
     result.manifest.migrations.some(
       (entry) => entry.file === "20260716_add_social_operations_section_5.sql",
@@ -36,6 +36,12 @@ test("manual migration manifest protects order and checksums", () => {
   assert.equal(
     result.manifest.migrations.some(
       (entry) => entry.file === "20260721_marketing_intelligence_wp0_corrections.sql",
+    ),
+    true,
+  );
+  assert.equal(
+    result.manifest.migrations.some(
+      (entry) => entry.file === "20260801_advertising_execution_sections25_28_remediation.sql",
     ),
     true,
   );
@@ -66,6 +72,25 @@ test("manual migration manifest protects order and checksums", () => {
   assert.equal(
     result.manifest.migrations.some(
       (entry) => entry.file === "20260727_marketing_intelligence_sections14_17.sql",
+    ),
+    true,
+  );
+  assert.equal(
+    result.manifest.migrations.some(
+      (entry) => entry.file === "20260728_advertising_execution_sections9_10.sql",
+    ),
+    true,
+  );
+  assert.equal(
+    result.manifest.migrations.some(
+      (entry) => entry.file === "20260729_advertising_execution_sections18_24.sql",
+    ),
+    true,
+  );
+  assert.equal(result.manifest.migrations.some((entry) => entry.file === "20260730_advertising_execution_sections18_24_remediation.sql"), true);
+  assert.equal(
+    result.manifest.migrations.some(
+      (entry) => entry.file === "20260731_advertising_execution_sections25_28.sql",
     ),
     true,
   );

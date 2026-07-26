@@ -16,5 +16,6 @@ dist/
 build/
 backups/
 reports/social-operations/
+artifacts/
 local-social-media/
 local-media/

@@ -43,6 +43,36 @@ const SOCIAL_TABLES = [
   "social_operations_settings",
 ];
 
+const ADVERTISING_EXECUTION_TABLES = [
+  "marketing_execution_plans", "marketing_execution_plan_items", "marketing_execution_approvals",
+  "marketing_execution_approval_events", "marketing_execution_runs", "marketing_execution_jobs",
+  "marketing_provider_operations", "marketing_provider_operation_attempts", "marketing_execution_state_snapshots",
+  "marketing_execution_validation_issues", "marketing_execution_policies", "marketing_creative_publications",
+  "marketing_creative_media_validation_evidence", "marketing_creative_publication_review_events",
+  "marketing_targeting_discovery", "marketing_execution_account_locks", "marketing_execution_dead_letter_reviews",
+  "marketing_execution_reconciliations", "marketing_execution_reconciliation_jobs", "marketing_execution_compensation_links",
+  "marketing_execution_policy_history", "marketing_execution_validation_packets",
+  "marketing_execution_drift_acknowledgments", "marketing_execution_retry_reviews",
+  "marketing_execution_emergency_overrides",
+];
+const ADVERTISING_EXECUTION_INDEXES = [
+  "IDX_marketing_execution_jobs_claim", "IDX_marketing_execution_jobs_expired_lease",
+  "UQ_marketing_execution_jobs_submission_identity", "UQ_marketing_execution_jobs_active_account",
+  "UQ_marketing_provider_operations_key", "UQ_marketing_creative_publications_revision",
+  "UQ_marketing_execution_plans_active_source_recommendation", "IDX_marketing_reconciliation_jobs_claim",
+  "IDX_marketing_reconciliation_jobs_lease", "IDX_marketing_compensation_links_original",
+  "IDX_marketing_compensation_links_reconciliation", "IDX_marketing_targeting_discovery_lookup",
+  "UQ_marketing_execution_policy_history_version", "UQ_marketing_execution_validation_packets_identity",
+  "IDX_marketing_execution_drift_ack_timeline", "UQ_marketing_execution_retry_reviews_key",
+  "IDX_marketing_execution_plans_provider_account_status", "IDX_marketing_creative_publications_list",
+  "IDX_marketing_execution_jobs_cancellation_request", "IDX_marketing_execution_overrides_active",
+];
+const ADVERTISING_EXECUTION_ENUMS = [
+  "MarketingExecutionPlanStatus", "MarketingExecutionJobStatus", "MarketingExecutionOperationStatus",
+  "MarketingCreativePublicationReviewStatus", "MarketingCreativeReuseClassification",
+  "MarketingReconciliationJobStatus", "MarketingReconciliationReason",
+];
+
 const REQUIRED_PARTIAL_INDEXES = {
   social_webhook_subscription_connection_event_unique: {
     schema: "public",
@@ -190,6 +220,7 @@ async function runSchemaAssertions({ connectionString = process.env.DATABASE_URL
     partialIndexes: {},
     taskAssigneeNullable: null,
     foreignKeyTypes: {},
+    advertisingExecution: null,
   };
   try {
     if (allowDisposableReplay) {
@@ -215,6 +246,17 @@ async function runSchemaAssertions({ connectionString = process.env.DATABASE_URL
       expected: SOCIAL_TABLES.length,
       present: present.size,
       missing,
+    };
+    const executionTableRows = await client.query(`SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name = ANY($1)`, [ADVERTISING_EXECUTION_TABLES]);
+    const executionIndexRows = await client.query(`SELECT indexname FROM pg_indexes WHERE schemaname='public' AND indexname = ANY($1)`, [ADVERTISING_EXECUTION_INDEXES]);
+    const executionEnumRows = await client.query(`SELECT typname FROM pg_type WHERE typname = ANY($1)`, [ADVERTISING_EXECUTION_ENUMS]);
+    const executionTables = new Set(executionTableRows.rows.map((row) => row.table_name));
+    const executionIndexes = new Set(executionIndexRows.rows.map((row) => row.indexname));
+    const executionEnums = new Set(executionEnumRows.rows.map((row) => row.typname));
+    results.advertisingExecution = {
+      tables: { expected: ADVERTISING_EXECUTION_TABLES.length, present: executionTables.size, missing: ADVERTISING_EXECUTION_TABLES.filter((name) => !executionTables.has(name)) },
+      indexes: { expected: ADVERTISING_EXECUTION_INDEXES.length, present: executionIndexes.size, missing: ADVERTISING_EXECUTION_INDEXES.filter((name) => !executionIndexes.has(name)) },
+      enums: { expected: ADVERTISING_EXECUTION_ENUMS.length, present: executionEnums.size, missing: ADVERTISING_EXECUTION_ENUMS.filter((name) => !executionEnums.has(name)) },
     };
 
     results.partialIndexes = await inspectRequiredPartialIndexes(client);
@@ -283,6 +325,9 @@ async function runSchemaAssertions({ connectionString = process.env.DATABASE_URL
   if (results.socialTables.missing.length) {
     failures.push(`missing social tables: ${results.socialTables.missing.join(",")}`);
   }
+  if (results.advertisingExecution.tables.missing.length) failures.push(`missing advertising execution tables: ${results.advertisingExecution.tables.missing.join(",")}`);
+  if (results.advertisingExecution.indexes.missing.length) failures.push(`missing advertising execution indexes: ${results.advertisingExecution.indexes.missing.join(",")}`);
+  if (results.advertisingExecution.enums.missing.length) failures.push(`missing advertising execution enums: ${results.advertisingExecution.enums.missing.join(",")}`);
   for (const [name, index] of Object.entries(results.partialIndexes)) {
     if (index.status !== "OK") failures.push(`partial index invalid: ${name}:${index.status}`);
   }
@@ -309,6 +354,7 @@ async function main() {
       `db-schema-assert social_tables=${results.socialTables.present}/${results.socialTables.expected} partial_indexes=ok task_assignee_nullable=${results.taskAssigneeNullable}`,
     );
     console.log(`db-schema-assert fk_types=${JSON.stringify(results.foreignKeyTypes)}`);
+    console.log(`db-schema-assert advertising_execution_tables=${results.advertisingExecution.tables.present}/${results.advertisingExecution.tables.expected} indexes=${results.advertisingExecution.indexes.present}/${results.advertisingExecution.indexes.expected} enums=${results.advertisingExecution.enums.present}/${results.advertisingExecution.enums.expected}`);
   } catch (error) {
     console.log(`db-schema-assert status=failed failures=${(error.failures || [error.message]).join(";")}`);
     process.exit(1);
@@ -321,6 +367,9 @@ if (require.main === module) {
 
 module.exports = {
   SOCIAL_TABLES,
+  ADVERTISING_EXECUTION_TABLES,
+  ADVERTISING_EXECUTION_INDEXES,
+  ADVERTISING_EXECUTION_ENUMS,
   REQUIRED_INDEXES,
   REQUIRED_PARTIAL_INDEXES,
   normalizePredicate,

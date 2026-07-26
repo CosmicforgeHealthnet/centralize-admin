@@ -139,21 +139,34 @@ test("predicate normalization accepts harmless PostgreSQL formatting only", () =
   assert.notEqual(normalizePredicate("identity_id IS NULL"), normalizePredicate("identity_id IS NOT NULL"));
 });
 
-test("Admin preparation applies only the corrective same-database migration", () => {
+test("Admin preparation applies only the explicitly approved same-database migrations", () => {
   assert.deepEqual(APPROVED_ADMIN_DATABASE_MIGRATIONS, [
     "20260718_ensure_social_operations_partial_indexes.sql",
+    "20260721_marketing_intelligence_wp0_corrections.sql",
+    "20260722_marketing_intelligence_phase2_section7_schema.sql",
+    "20260723_marketing_intelligence_phase2_section8_raw_ingestion.sql",
+    "20260724_marketing_intelligence_phase2_section9_scoring_enums.sql",
+    "20260725_marketing_intelligence_phase2_sections10_13.sql",
+    "20260726_marketing_intelligence_sections10_13_audit_corrections.sql",
+    "20260727_marketing_intelligence_sections14_17.sql",
+    "20260728_advertising_execution_sections9_10.sql",
+    "20260729_advertising_execution_sections18_24.sql",
+    "20260730_advertising_execution_sections18_24_remediation.sql",
+    "20260731_advertising_execution_sections25_28.sql",
+    "20260801_advertising_execution_sections25_28_remediation.sql",
   ]);
-  const migration = fs.readFileSync(
-    path.join(__dirname, "..", "prisma", "manual-migrations", APPROVED_ADMIN_DATABASE_MIGRATIONS[0]),
-    "utf8",
-  );
-  assert.doesNotMatch(migration, /\bCREATE\s+DATABASE\b/i);
-  assert.doesNotMatch(migration, /\bDROP\s+DATABASE\b/i);
-  assert.doesNotMatch(migration, /\bDROP\s+TABLE\b/i);
-  assert.doesNotMatch(migration, /\bTRUNCATE\b/i);
-  assert.match(migration, /CREATE UNIQUE INDEX IF NOT EXISTS social_webhook_subscription_connection_event_unique/);
-  assert.match(migration, /CREATE UNIQUE INDEX IF NOT EXISTS social_webhook_subscription_identity_event_unique/);
-  assert.match(migration, /CREATE UNIQUE INDEX IF NOT EXISTS social_posts_legacy_source_id_unique/);
+  const migrations = APPROVED_ADMIN_DATABASE_MIGRATIONS.map((file) => fs.readFileSync(
+    path.join(__dirname, "..", "prisma", "manual-migrations", file), "utf8",
+  ));
+  for (const migration of migrations) {
+    assert.doesNotMatch(migration, /\bCREATE\s+DATABASE\b/i);
+    assert.doesNotMatch(migration, /\bDROP\s+DATABASE\b/i);
+    assert.doesNotMatch(migration, /\bDROP\s+TABLE\b/i);
+    assert.doesNotMatch(migration, /\bTRUNCATE\b/i);
+  }
+  assert.match(migrations[0], /CREATE UNIQUE INDEX IF NOT EXISTS social_webhook_subscription_connection_event_unique/);
+  assert.match(migrations[0], /CREATE UNIQUE INDEX IF NOT EXISTS social_webhook_subscription_identity_event_unique/);
+  assert.match(migrations[0], /CREATE UNIQUE INDEX IF NOT EXISTS social_posts_legacy_source_id_unique/);
 });
 
 test("duplicate-data prechecks are aggregate-only and cover all required partial indexes", () => {
@@ -183,7 +196,7 @@ test("Admin database preparation is idempotent on the approved local Admin datab
   assert.equal(first.connectedTarget.database, "cosmicforge_admin");
   assert.equal(second.connectedTarget.database, "cosmicforge_admin");
   assert.equal(second.applied.length, 0);
-  assert.equal(second.skipped.length, 1);
+  assert.equal(second.skipped.length, APPROVED_ADMIN_DATABASE_MIGRATIONS.length);
   const assertion = await runSchemaAssertions({ connectionString: databaseUrl });
   assert.equal(assertion.connectedTarget.database, "cosmicforge_admin");
   assert.equal(assertion.connectedTarget.schema, "public");

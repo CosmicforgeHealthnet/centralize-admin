@@ -8,6 +8,9 @@ const {
   MarketingIntelligenceSchedulerConfigError,
   validateIntelligenceSchedulerEnvironment,
 } = require("../../src/modules/marketing/intelligence/scheduling/scheduler-config");
+const {
+  readExecutionConfig,
+} = require("../../src/modules/marketing/advertising-execution/execution.config");
 
 function argValue(name) {
   const prefix = `--${name}=`;
@@ -38,17 +41,19 @@ function main() {
       complianceReady: hasFlag("synthetic-compliance-ready"),
     });
     const scheduler = validateIntelligenceSchedulerEnvironment({ env });
+    const advertisingExecution = readExecutionConfig(env);
     console.log(
-      `config-validate mode=${result.mode} status=ok storage=${result.storageProvider} providers_enabled=${result.enabledProviders.length} phase2_master=${scheduler.phase2.enabled} recommendation_scheduler=${scheduler.recommendation.enabled} alert_health_scheduler=${scheduler.alertHealth.enabled} alert_performance_scheduler=${scheduler.alertPerformance.enabled}`,
+      `config-validate mode=${result.mode} status=ok storage=${result.storageProvider} providers_enabled=${result.enabledProviders.length} phase2_master=${scheduler.phase2.enabled} recommendation_scheduler=${scheduler.recommendation.enabled} alert_health_scheduler=${scheduler.alertHealth.enabled} alert_performance_scheduler=${scheduler.alertPerformance.enabled} ad_execution=${advertisingExecution.enabled} ad_execution_dry_run=${advertisingExecution.dryRun} ad_execution_worker=${advertisingExecution.workerEnabled}`,
     );
     if (expectFail) {
       console.error("config-validate expected failure but passed");
       process.exit(1);
     }
   } catch (error) {
-    if (!(error instanceof SocialOperationsConfigError) && !(error instanceof MarketingIntelligenceSchedulerConfigError)) throw error;
-    console.log(`config-validate mode=${mode} status=failed issues=${error.issues.length}`);
-    for (const item of error.issues) {
+    if (!(error instanceof SocialOperationsConfigError) && !(error instanceof MarketingIntelligenceSchedulerConfigError) && error.code !== "INVALID_EXECUTION_CONFIG") throw error;
+    const issues = error.issues || error.errors?.[0]?.issues || [];
+    console.log(`config-validate mode=${mode} status=failed issues=${issues.length}`);
+    for (const item of issues) {
       console.log(`${item.variable}:${item.reasonCode}`);
     }
     if (!expectFail) process.exit(1);
