@@ -158,6 +158,7 @@ async function prepareAdminDatabase({ connectionString = process.env.DATABASE_UR
   const entries = manifestEntryByFile(manifestResult.manifest);
   const client = new Client({ connectionString });
   await client.connect();
+  await client.query('CREATE EXTENSION IF NOT EXISTS "pgcrypto"');
   let locked = false;
   const result = {
     target,
