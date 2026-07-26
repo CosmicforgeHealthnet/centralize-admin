@@ -78,14 +78,52 @@ function runPrisma(args, env) {
   });
 }
 
-function writeCommittedBaselineSchema() {
-  let schema;
-  try {
-    schema = execFileSync("git", ["show", "HEAD^:prisma/schema.prisma"], {
+const ADVERTISING_EXECUTION_BASELINE_MIGRATION =
+  "prisma/manual-migrations/20260728_advertising_execution_sections9_10.sql";
+
+function resolveReplayBaselineRef() {
+  const commits = execFileSync(
+    "git",
+    [
+      "log",
+      "--diff-filter=A",
+      "--format=%H",
+      "--reverse",
+      "--",
+      ADVERTISING_EXECUTION_BASELINE_MIGRATION,
+    ],
+    {
       cwd: ROOT,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
-    });
+    },
+  )
+    .trim()
+    .split(/\r?\n/)
+    .filter(Boolean);
+
+  if (commits.length === 0) {
+    throw new Error(
+      `unable to locate introducing commit for ${ADVERTISING_EXECUTION_BASELINE_MIGRATION}`,
+    );
+  }
+
+  return `${commits[0]}^`;
+}
+
+function writeCommittedBaselineSchema() {
+  let schema;
+  try {
+    const baselineRef = resolveReplayBaselineRef();
+    schema = execFileSync(
+      "git",
+      ["show", `${baselineRef}:prisma/schema.prisma`],
+      {
+        cwd: ROOT,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      },
+    );
   } catch (error) {
     throw new Error(`unable to read committed staging schema for replay: ${error.message}`);
   }

@@ -36,6 +36,90 @@ const APPROVED_ADMIN_DATABASE_MIGRATIONS = [
   "20260801_advertising_execution_sections25_28_remediation.sql",
 ];
 
+function requiredSqlRange(sql, startMarker, endMarker = null) {
+  const start = sql.indexOf(startMarker);
+  if (start === -1) {
+    throw new Error(`unable to locate PostgreSQL-only artifact marker: ${startMarker}`);
+  }
+
+  const end = endMarker ? sql.indexOf(endMarker, start) : sql.length;
+  if (endMarker && end === -1) {
+    throw new Error(`unable to locate PostgreSQL-only artifact end marker: ${endMarker}`);
+  }
+
+  return sql.slice(start, end).trim();
+}
+
+function requiredSqlMatch(sql, pattern, label) {
+  const match = sql.match(pattern);
+  if (!match) {
+    throw new Error(`unable to extract PostgreSQL-only artifact: ${label}`);
+  }
+  return match[0].trim();
+}
+
+function postPrismaArtifactSql(file, migrationSql) {
+  const sql = migrationSql.replace(/\r\n/g, "\n");
+
+  switch (file) {
+    case "20260728_advertising_execution_sections9_10.sql":
+      return requiredSqlRange(
+        sql,
+        "-- Prisma cannot represent PostgreSQL partial unique indexes.",
+        "-- AddForeignKey",
+      );
+
+    case "20260729_advertising_execution_sections18_24.sql":
+      return requiredSqlMatch(
+        sql,
+        /ALTER TABLE "marketing_execution_jobs"\s+ADD CONSTRAINT "CHK_marketing_execution_jobs_account_external_id"\s+CHECK \(length\(btrim\("account_external_id"\)\) BETWEEN 1 AND 255\);/,
+        "Sections 18-24 account identifier check",
+      );
+
+    case "20260730_advertising_execution_sections18_24_remediation.sql":
+      return [
+        requiredSqlMatch(
+          sql,
+          /DROP INDEX IF EXISTS "UQ_marketing_execution_plans_source_recommendation";\s*CREATE UNIQUE INDEX "UQ_marketing_execution_plans_active_source_recommendation"[\s\S]*?;/,
+          "active recommendation-plan partial index",
+        ),
+        requiredSqlMatch(
+          sql,
+          /DROP INDEX IF EXISTS "UQ_marketing_execution_jobs_active_connection";\s*CREATE UNIQUE INDEX "UQ_marketing_execution_jobs_active_account"[\s\S]*?;/,
+          "active provider-account partial index",
+        ),
+      ].join("\n\n");
+
+    case "20260731_advertising_execution_sections25_28.sql":
+      return requiredSqlRange(
+        sql,
+        "CREATE OR REPLACE FUNCTION prevent_marketing_execution_evidence_mutation()",
+      );
+
+    case "20260801_advertising_execution_sections25_28_remediation.sql":
+      return [
+        `
+ALTER TABLE "marketing_execution_emergency_overrides"
+  ADD CONSTRAINT "CHK_marketing_execution_overrides_duration"
+    CHECK ("expires_at" > "starts_at" AND "expires_at" <= "starts_at" + INTERVAL '2 hours'),
+  ADD CONSTRAINT "CHK_marketing_execution_overrides_scope"
+    CHECK ("scope_type" IN ('CONNECTION','ACCOUNT','PLAN','RUN','OPERATION')),
+  ADD CONSTRAINT "CHK_marketing_execution_overrides_status"
+    CHECK ("status" IN ('ACTIVE','EXPIRED','REVOKED')),
+  ADD CONSTRAINT "CHK_marketing_execution_overrides_use_count"
+    CHECK ("use_count" >= 0);
+        `.trim(),
+        requiredSqlRange(
+          sql,
+          "-- The shared application exposes AuditLog insertion and reads only.",
+        ),
+      ].join("\n\n");
+
+    default:
+      return migrationSql;
+  }
+}
+
 const DUPLICATE_PRECHECKS = {
   social_webhook_subscription_connection_event_unique: `
     SELECT COUNT(*)::int AS duplicate_groups
@@ -137,7 +221,8 @@ function manifestEntryByFile(manifest) {
 }
 
 async function applyMigration(client, entry) {
-  const sql = fs.readFileSync(path.join(MIGRATION_DIR, entry.file), "utf8");
+  const migrationSql = fs.readFileSync(path.join(MIGRATION_DIR, entry.file), "utf8");
+  const sql = postPrismaArtifactSql(entry.file, migrationSql);
   await client.query("BEGIN");
   try {
     await client.query(sql);
@@ -229,6 +314,7 @@ module.exports = {
   LEDGER_TABLE,
   LOCK_KEY,
   APPROVED_ADMIN_DATABASE_MIGRATIONS,
+  postPrismaArtifactSql,
   DUPLICATE_PRECHECKS,
   ensureLedger,
   getLedgerEntry,
