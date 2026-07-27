@@ -1,4 +1,4 @@
-﻿-- CreateEnum
+-- CreateEnum
 CREATE TYPE "SectionAccessMode" AS ENUM ('VIEW', 'EDIT');
 
 -- AlterEnum

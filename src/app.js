@@ -72,24 +72,29 @@ function createApp({
   app.use(requestContext);
   app.set("trust proxy", 1);
 
-  const allowedOrigins = env.CORS_ORIGINS
-    ? env.CORS_ORIGINS.split(",").map((origin) => origin.trim())
-    : ["http://localhost:3000"];
+ const allowedOrigins = env.CORS_ORIGINS
+  ? env.CORS_ORIGINS.split(",").map((origin) => origin.trim())
+  : ["http://localhost:3000"];
 
-  app.use(
-    cors({
-      origin: (origin, callback) => {
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) return callback(null, true);
-        appLogger.warn(`Blocked CORS request from: ${origin}`);
-        callback(new Error("Not allowed by CORS"));
-      },
-      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization", "X-Request-ID"],
-      credentials: true,
-      optionsSuccessStatus: 200,
-    }),
-  );
+// Match any Vercel preview deploy for this project, since preview URLs
+// change on every deploy (e.g. centralize-admin-<hash>-cosmicforgedevteamgmailcoms-projects.vercel.app)
+const vercelPreviewPattern = /^https:\/\/centralize-admin-[a-z0-9]+-cosmicforgedevteamgmailcoms-projects\.vercel\.app$/;
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      if (vercelPreviewPattern.test(origin)) return callback(null, true);
+      appLogger.warn(`Blocked CORS request from: ${origin}`);
+      callback(new Error("Not allowed by CORS"));
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Request-ID"],
+    credentials: true,
+    optionsSuccessStatus: 200,
+  }),
+);
 
   app.options("/{*splat}", cors());
 
