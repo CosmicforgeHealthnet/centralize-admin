@@ -25,6 +25,89 @@ const { getAdvertisingExecutionApplication } = require("./modules/marketing/adve
 
 const PORT = process.env.PORT || 4000;
 
+// How long to wait between background reconnect attempts after the
+// initial connection attempt fails (main DB down/unreachable/slow).
+const MAIN_DB_RECONNECT_INTERVAL_MS =
+  Number(process.env.MAIN_DB_RECONNECT_INTERVAL_MS) || 30000;
+
+let mainDbConnected = false;
+let mainDbReconnectTimer = null;
+
+/**
+ * Runs the bootstrap step that depends on the main DB.
+ */
+async function runMainDbDependentBootstrap() {
+  logger.info(
+    `[MarketingIntelligence] Provider env summary: ${JSON.stringify(providerConnectionsService.configuredEnvStatus())}`,
+  );
+
+  if (
+    String(
+      process.env.MARKETING_INTELLIGENCE_BOOTSTRAP_CONNECTIONS,
+    ).toLowerCase() === "true"
+  ) {
+    try {
+      const summary = await providerConnectionsService.bootstrapAllFromEnv();
+      logger.info(
+        `[MarketingIntelligence] Provider bootstrap checked: ${JSON.stringify(summary)}`,
+      );
+    } catch (error) {
+      logger.error(
+        `[MarketingIntelligence] Provider bootstrap failed: ${error.message}`,
+      );
+    }
+  }
+}
+
+/**
+ * Attempts to connect the main DB in the background, on a fixed interval,
+ * until it succeeds. Never throws — failures are logged and retried.
+ */
+function scheduleMainDbReconnect() {
+  if (mainDbReconnectTimer) return;
+
+  mainDbReconnectTimer = setInterval(async () => {
+    if (mainDbConnected) {
+      clearInterval(mainDbReconnectTimer);
+      mainDbReconnectTimer = null;
+      return;
+    }
+    try {
+      await connectMainDatabase();
+      mainDbConnected = true;
+      clearInterval(mainDbReconnectTimer);
+      mainDbReconnectTimer = null;
+      logger.info("[MainDB] Reconnected successfully in the background");
+      await runMainDbDependentBootstrap();
+    } catch (error) {
+      logger.error(
+        `[MainDB] Background reconnect attempt failed: ${error.message}`,
+      );
+    }
+  }, MAIN_DB_RECONNECT_INTERVAL_MS);
+}
+
+/**
+ * Kicks off the main DB connection without blocking server startup.
+ * Whether it resolves or rejects, the HTTP server keeps running.
+ */
+function connectMainDbInBackground() {
+  connectMainDatabase()
+    .then(async () => {
+      mainDbConnected = true;
+      logger.info("[MainDB] Connected");
+      await runMainDbDependentBootstrap();
+    })
+    .catch((error) => {
+      logger.error(
+        `[MainDB] Failed to connect: ${error.message}. ` +
+          "Server keeps running; main-DB-dependent features are " +
+          "degraded until a connection succeeds. Retrying in the background.",
+      );
+      scheduleMainDbReconnect();
+    });
+}
+
 const startServer = async () => {
   let socialWorkers = null;
   let marketingSyncCron = null;
@@ -41,15 +124,14 @@ const startServer = async () => {
         inboxEnabled: socialConfig.inboxEnabled,
       })}`,
     );
+
+    // Secondary DB — still required for startup.
     await connectDatabase();
-    await connectMainDatabase();
-    logger.info(
-      `[MarketingIntelligence] Provider env summary: ${JSON.stringify(providerConnectionsService.configuredEnvStatus())}`,
-    );
-    if (String(process.env.MARKETING_INTELLIGENCE_BOOTSTRAP_CONNECTIONS).toLowerCase() === "true") {
-      const summary = await providerConnectionsService.bootstrapAllFromEnv();
-      logger.info(`[MarketingIntelligence] Provider bootstrap checked: ${JSON.stringify(summary)}`);
-    }
+
+    // Main DB — NOT awaited. Server starts listening immediately;
+    // this connects (and keeps retrying) in the background.
+    connectMainDbInBackground();
+
     bootstrap();
     marketingSyncCron = registerMarketingIntelligenceCron();
     intelligenceSchedulers = registerIntelligenceSchedulers();
@@ -63,14 +145,18 @@ const startServer = async () => {
 
     server.listen(PORT, () => {
       logger.info(
-        `Admin server running on port ${PORT} [${process.env.NODE_ENV}]`,
+        `Admin server running on port ${PORT} [${process.env.NODE_ENV}]` +
+          (mainDbConnected ? "" : " (main DB connecting in background)"),
       );
     });
-
 
     // everything below stays exactly the same...
     const shutdown = async (signal) => {
       logger.info(`${signal} received - shutting down gracefully`);
+      if (mainDbReconnectTimer) {
+        clearInterval(mainDbReconnectTimer);
+        mainDbReconnectTimer = null;
+      }
       server.close(async () => {
         const { prisma } = require("./shared/config/database");
         const { mainPrisma } = require("./shared/config/mainDatabase");
@@ -81,7 +167,9 @@ const startServer = async () => {
         await intelligenceSchedulers?.stop();
         await marketingSyncCron?.stop();
         await prisma.$disconnect();
-        await mainPrisma.$disconnect();
+        if (mainDbConnected) {
+          await mainPrisma.$disconnect();
+        }
         logger.info("Databases disconnected");
         process.exit(0);
       });

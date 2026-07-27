@@ -1,8 +1,74 @@
 ﻿├── .github
 │   └── workflows
 │       ├── production.yml
+│       ├── social-operations-ci.yml
 │       └── staging.yml
+├── docs
+│   ├── CosmicForge_Marketing_Intelligence_Phase2_Complete_Architecture.docx
+│   ├── CosmicForge_Marketing_Intelligence_Phase2_Complete_Architecture.md
+│   ├── CosmicForge_Marketing_Intelligence_Phase2_Final_Acceptance_Checklist.md
+│   ├── CosmicForge_Marketing_Intelligence_Phase2_Live_Validation_Matrix.md
+│   ├── CosmicForge_Marketing_Intelligence_Phase2_Release_Runbook.md
+│   ├── CosmicForge_Social_Media_Ops_Backend_Implementation_v3.1.docx
+│   ├── marketing-intelligence-frontend-handoff.md
+│   ├── marketing-intelligence-phase-1.md
+│   ├── marketing-intelligence-phase-2.md
+│   ├── marketing-intelligence-phase2-live-validation-status.json
+│   ├── social-operations-access-and-dependency-matrix.md
+│   ├── social-operations-alerting-runbook.md
+│   ├── social-operations-ci.md
+│   ├── social-operations-ci-network-guard.md
+│   ├── social-operations-data-subject-procedure.md
+│   ├── social-operations-dependency-risk-register.md
+│   ├── social-operations-environment-matrix.md
+│   ├── social-operations-environment-validation.md
+│   ├── social-operations-final-readiness-report.md
+│   ├── social-operations-frontend-integration.md
+│   ├── social-operations-key-rotation-runbook.md
+│   ├── social-operations-legacy-migration-reconciliation.md
+│   ├── social-operations-live-sandbox-results.md
+│   ├── social-operations-media-storage.md
+│   ├── social-operations-migration-replay.md
+│   ├── social-operations-observability.md
+│   ├── social-operations-official-source-verification.md
+│   ├── social-operations-platform-acceptance-checklist.md
+│   ├── social-operations-production-go-live-checklist.md
+│   ├── social-operations-provider-readiness.md
+│   ├── social-operations-provider-url-registration.md
+│   ├── social-operations-release-governance.md
+│   ├── social-operations-sections-10-11.md
+│   ├── social-operations-sections-12-13.md
+│   ├── social-operations-sections-14-15.md
+│   ├── social-operations-sections-6-7.md
+│   ├── social-operations-sections-8-9.md
+│   ├── social-operations-staging-deployment.md
+│   ├── social-operations-step-1.md
+│   ├── social-operations-testing-matrix.md
+│   └── social-operations-worker-deployment.md
 ├── prisma
+│   ├── manual-migrations
+│   │   ├── 20260705_add_marketing_campaigns_content.sql
+│   │   ├── 20260705_add_marketing_email_templates_social.sql
+│   │   ├── 20260705_add_marketing_promotions_banners_analytics.sql
+│   │   ├── 20260714_add_marketing_intelligence_phase1.sql
+│   │   ├── 20260715_add_marketing_connection_token_expiry.sql
+│   │   ├── 20260716_add_marketing_attributions_phase1.sql
+│   │   ├── 20260716_add_social_operations_section_5.sql
+│   │   ├── 20260717_212000_migrate_legacy_marketing_social_records.sql
+│   │   ├── 20260717_extend_marketing_ad_platforms.sql
+│   │   ├── 20260717_make_task_assignee_nullable_for_safety.sql
+│   │   ├── 20260718_add_marketing_connection_credentials_currency.sql
+│   │   ├── 20260718_ensure_social_operations_partial_indexes.sql
+│   │   ├── 20260719_finalize_marketing_intelligence_connections.sql
+│   │   ├── 20260720_fix_marketing_intelligence_currency_width.sql
+│   │   ├── 20260721_marketing_intelligence_wp0_corrections.sql
+│   │   ├── 20260722_marketing_intelligence_phase2_section7_schema.sql
+│   │   ├── 20260723_marketing_intelligence_phase2_section8_raw_ingestion.sql
+│   │   ├── 20260724_marketing_intelligence_phase2_section9_scoring_enums.sql
+│   │   ├── 20260725_marketing_intelligence_phase2_sections10_13.sql
+│   │   ├── 20260726_marketing_intelligence_sections10_13_audit_corrections.sql
+│   │   ├── 20260727_marketing_intelligence_sections14_17.sql
+│   │   └── manifest.json
 │   ├── migrations
 │   │   ├── 0_init
 │   │   │   └── migration.sql
@@ -17,6 +83,28 @@
 │   ├── main.schema.prisma
 │   └── schema.prisma
 ├── scripts
+│   ├── marketing-intelligence
+│   │   ├── build-phase2-architecture-docx.py
+│   │   └── live-validate-provider.js
+│   ├── security
+│   │   ├── check-npm-audit-policy.js
+│   │   ├── check-test-network-safety.js
+│   │   ├── generate-sbom.js
+│   │   └── npm-audit-risk-baseline.json
+│   ├── social-operations
+│   │   ├── admin-database-target.js
+│   │   ├── db-replay-verify.js
+│   │   ├── legacy-social-backfill.js
+│   │   ├── migration-manifest.js
+│   │   ├── migration-safety-check.js
+│   │   ├── prepare-admin-database.js
+│   │   ├── run-ci-parity.js
+│   │   ├── run-focused-tests.js
+│   │   ├── run-linux-ci-parity.ps1
+│   │   ├── schema-assertions.js
+│   │   ├── secret-scan.js
+│   │   ├── static-code-safety-check.js
+│   │   └── validate-config.js
 │   └── testMainBackend.js
 ├── src
 │   ├── generated
@@ -210,6 +298,270 @@
 │   │   │   ├── logistics.controller.js
 │   │   │   ├── logistics.routes.js
 │   │   │   └── logistics.service.js
+│   │   ├── marketing
+│   │   │   ├── intelligence
+│   │   │   │   ├── __tests__
+│   │   │   │   │   ├── helpers
+│   │   │   │   │   │   └── fake-prisma.js
+│   │   │   │   │   ├── aggregation.cron.test.js
+│   │   │   │   │   ├── aggregation.service.test.js
+│   │   │   │   │   ├── alert-engine.test.js
+│   │   │   │   │   ├── attribution.service.test.js
+│   │   │   │   │   ├── connectors.test.js
+│   │   │   │   │   ├── creative-ingestion.test.js
+│   │   │   │   │   ├── creative-provider-connectors.test.js
+│   │   │   │   │   ├── creative-scoring.test.js
+│   │   │   │   │   ├── credential-encryption.test.js
+│   │   │   │   │   ├── event-bus.redaction.test.js
+│   │   │   │   │   ├── expanded-connectors.test.js
+│   │   │   │   │   ├── experiment-tracking.test.js
+│   │   │   │   │   ├── funnel-event.listener.test.js
+│   │   │   │   │   ├── intelligence.endpoint-authz.test.js
+│   │   │   │   │   ├── intelligence.internal-routes.test.js
+│   │   │   │   │   ├── intelligence.routes.test.js
+│   │   │   │   │   ├── intelligence.service.test.js
+│   │   │   │   │   ├── intelligence.validator.test.js
+│   │   │   │   │   ├── intelligence-scheduler.test.js
+│   │   │   │   │   ├── oauth.service.test.js
+│   │   │   │   │   ├── provider-connections.test.js
+│   │   │   │   │   ├── recommendation-engine.test.js
+│   │   │   │   │   ├── recommendation-task.test.js
+│   │   │   │   │   ├── revenue-adjustments.test.js
+│   │   │   │   │   ├── route-inventory.test.js
+│   │   │   │   │   ├── section7-schema.test.js
+│   │   │   │   │   ├── sections14-17.test.js
+│   │   │   │   │   ├── sections18-21.test.js
+│   │   │   │   │   ├── sections22-26.test.js
+│   │   │   │   │   ├── signup-producer.test.js
+│   │   │   │   │   ├── sync-lock.test.js
+│   │   │   │   │   ├── tiktok-refresh.test.js
+│   │   │   │   │   └── wp0.attribution.test.js
+│   │   │   │   ├── aggregation
+│   │   │   │   │   ├── aggregation.cron.js
+│   │   │   │   │   ├── aggregation.service.js
+│   │   │   │   │   └── sync-lock.js
+│   │   │   │   ├── alerts
+│   │   │   │   │   ├── alert.repository.js
+│   │   │   │   │   ├── alert.validator.js
+│   │   │   │   │   ├── alert-evaluation.service.js
+│   │   │   │   │   ├── alert-lifecycle.service.js
+│   │   │   │   │   ├── alert-notification.adapter.js
+│   │   │   │   │   ├── alert-query.service.js
+│   │   │   │   │   ├── alert-rules.js
+│   │   │   │   │   └── alert-settings.service.js
+│   │   │   │   ├── connectors
+│   │   │   │   │   ├── connector.interface.js
+│   │   │   │   │   ├── googleads.connector.js
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── linkedin.connector.js
+│   │   │   │   │   ├── meta.connector.js
+│   │   │   │   │   ├── provider-http.js
+│   │   │   │   │   ├── tiktok.connector.js
+│   │   │   │   │   └── x.connector.js
+│   │   │   │   ├── creative
+│   │   │   │   │   ├── creative.connector.interface.js
+│   │   │   │   │   ├── creative.registry.js
+│   │   │   │   │   ├── creative.repository.js
+│   │   │   │   │   ├── creative.validator.js
+│   │   │   │   │   ├── creative-fatigue.service.js
+│   │   │   │   │   ├── creative-metrics.service.js
+│   │   │   │   │   ├── creative-query.service.js
+│   │   │   │   │   ├── creative-scoring.rules.js
+│   │   │   │   │   ├── creative-scoring.service.js
+│   │   │   │   │   ├── creative-settings.service.js
+│   │   │   │   │   ├── creative-sync.service.js
+│   │   │   │   │   └── provider-creative-connectors.js
+│   │   │   │   ├── experiments
+│   │   │   │   │   ├── experiment.service.js
+│   │   │   │   │   └── experiment.validator.js
+│   │   │   │   ├── listeners
+│   │   │   │   │   └── funnel-event.listener.js
+│   │   │   │   ├── recommendations
+│   │   │   │   │   ├── recommendation.repository.js
+│   │   │   │   │   ├── recommendation.validator.js
+│   │   │   │   │   ├── recommendation-confidence.js
+│   │   │   │   │   ├── recommendation-evaluation.service.js
+│   │   │   │   │   ├── recommendation-expiry.service.js
+│   │   │   │   │   ├── recommendation-input.service.js
+│   │   │   │   │   ├── recommendation-lifecycle.service.js
+│   │   │   │   │   ├── recommendation-query.service.js
+│   │   │   │   │   ├── recommendation-rules.js
+│   │   │   │   │   ├── recommendation-settings.service.js
+│   │   │   │   │   └── recommendation-task.adapter.js
+│   │   │   │   ├── scheduling
+│   │   │   │   │   ├── alert.scheduler.js
+│   │   │   │   │   ├── evaluation.scheduler.js
+│   │   │   │   │   ├── intelligence-scheduler.registry.js
+│   │   │   │   │   ├── recommendation.scheduler.js
+│   │   │   │   │   └── scheduler-config.js
+│   │   │   │   ├── utils
+│   │   │   │   │   ├── credential-encryption.js
+│   │   │   │   │   ├── credential-envelope.js
+│   │   │   │   │   ├── currency.js
+│   │   │   │   │   └── event-id.js
+│   │   │   │   ├── actor-validation.js
+│   │   │   │   ├── attribution.service.js
+│   │   │   │   ├── errors.js
+│   │   │   │   ├── full-evaluation.service.js
+│   │   │   │   ├── funnel-ingestion.service.js
+│   │   │   │   ├── index.js
+│   │   │   │   ├── intelligence.controller.js
+│   │   │   │   ├── intelligence.routes.js
+│   │   │   │   ├── intelligence.service.js
+│   │   │   │   ├── intelligence.validator.js
+│   │   │   │   ├── internal.routes.js
+│   │   │   │   ├── oauth.service.js
+│   │   │   │   ├── observability.js
+│   │   │   │   ├── phase2-feature.js
+│   │   │   │   ├── platforms.js
+│   │   │   │   ├── provider-connections.service.js
+│   │   │   │   ├── response-serializer.js
+│   │   │   │   ├── run.validator.js
+│   │   │   │   ├── run-ledger.service.js
+│   │   │   │   ├── run-query.service.js
+│   │   │   │   ├── setting-registry.js
+│   │   │   │   ├── settings.service.js
+│   │   │   │   ├── settings.validator.js
+│   │   │   │   └── validation-security.js
+│   │   │   ├── social-operations
+│   │   │   │   ├── __tests__
+│   │   │   │   │   ├── connector-capabilities.test.js
+│   │   │   │   │   ├── connector-contract.test.js
+│   │   │   │   │   ├── connector-normalization.test.js
+│   │   │   │   │   ├── governance-policies.test.js
+│   │   │   │   │   ├── job-execution-policy.test.js
+│   │   │   │   │   ├── social-operations.section5.db.test.js
+│   │   │   │   │   ├── social-operations.section5.schema.test.js
+│   │   │   │   │   ├── social-operations.setup.test.js
+│   │   │   │   │   └── social-operations-rbac.test.js
+│   │   │   │   ├── accounts
+│   │   │   │   │   └── .gitkeep
+│   │   │   │   ├── actions
+│   │   │   │   │   └── .gitkeep
+│   │   │   │   ├── analytics
+│   │   │   │   │   └── .gitkeep
+│   │   │   │   ├── approvals
+│   │   │   │   │   └── .gitkeep
+│   │   │   │   ├── community
+│   │   │   │   │   └── .gitkeep
+│   │   │   │   ├── config
+│   │   │   │   │   └── social-operations-env.validator.js
+│   │   │   │   ├── connectors
+│   │   │   │   │   ├── .gitkeep
+│   │   │   │   │   ├── connector.constants.js
+│   │   │   │   │   ├── connector.contract.js
+│   │   │   │   │   ├── connector.errors.js
+│   │   │   │   │   ├── connector.registry.js
+│   │   │   │   │   ├── connector.validators.js
+│   │   │   │   │   ├── connector-capability.service.js
+│   │   │   │   │   ├── linkedin-publishing.connector.js
+│   │   │   │   │   ├── meta-publishing.connector.js
+│   │   │   │   │   ├── publish-result.mapper.js
+│   │   │   │   │   ├── tiktok-publishing.connector.js
+│   │   │   │   │   ├── tiktok-publish-result.mapper.js
+│   │   │   │   │   └── x-publishing.connector.js
+│   │   │   │   ├── content
+│   │   │   │   │   └── .gitkeep
+│   │   │   │   ├── controllers
+│   │   │   │   │   └── social.controller.js
+│   │   │   │   ├── governance
+│   │   │   │   │   ├── approval-governance.service.js
+│   │   │   │   │   ├── emergency-publish-governance.service.js
+│   │   │   │   │   ├── governance-settings.service.js
+│   │   │   │   │   ├── job-execution.policy.js
+│   │   │   │   │   ├── provider-write-audit.service.js
+│   │   │   │   │   ├── restricted-visibility.policy.js
+│   │   │   │   │   ├── social-operations.rbac.js
+│   │   │   │   │   └── social-operations.sections.js
+│   │   │   │   ├── inbox
+│   │   │   │   │   └── .gitkeep
+│   │   │   │   ├── media
+│   │   │   │   │   ├── storage
+│   │   │   │   │   │   ├── cloudinary-media-storage.adapter.js
+│   │   │   │   │   │   ├── local-media-storage.adapter.js
+│   │   │   │   │   │   ├── media-storage.config.js
+│   │   │   │   │   │   ├── media-storage.errors.js
+│   │   │   │   │   │   ├── media-storage.factory.js
+│   │   │   │   │   │   └── media-storage.interface.js
+│   │   │   │   │   └── .gitkeep
+│   │   │   │   ├── migration
+│   │   │   │   │   └── legacy-social-backfill.mapper.js
+│   │   │   │   ├── oauth
+│   │   │   │   │   └── .gitkeep
+│   │   │   │   ├── observability
+│   │   │   │   │   ├── operations-health.service.js
+│   │   │   │   │   └── worker-metrics.registry.js
+│   │   │   │   ├── privacy
+│   │   │   │   │   ├── content-redaction.service.js
+│   │   │   │   │   ├── export-privacy.policy.js
+│   │   │   │   │   ├── phase-d-compliance-gate.service.js
+│   │   │   │   │   ├── redaction-worker.js
+│   │   │   │   │   ├── restricted-content-query.policy.js
+│   │   │   │   │   └── retention-settings.service.js
+│   │   │   │   ├── publishing
+│   │   │   │   │   └── .gitkeep
+│   │   │   │   ├── routes
+│   │   │   │   │   └── social.routes.js
+│   │   │   │   ├── safety
+│   │   │   │   │   ├── escalation.service.js
+│   │   │   │   │   ├── escalation-assignment.service.js
+│   │   │   │   │   ├── inbound-classification.service.js
+│   │   │   │   │   ├── moderation-justification.policy.js
+│   │   │   │   │   └── safety-template.service.js
+│   │   │   │   ├── scheduling
+│   │   │   │   │   └── .gitkeep
+│   │   │   │   ├── security
+│   │   │   │   │   ├── content-hash.service.js
+│   │   │   │   │   ├── credential-rotation.service.js
+│   │   │   │   │   ├── encryption.service.js
+│   │   │   │   │   ├── encryption-keyring.service.js
+│   │   │   │   │   ├── log-redaction.service.js
+│   │   │   │   │   ├── oauth-state.service.js
+│   │   │   │   │   ├── pkce.service.js
+│   │   │   │   │   ├── redirect-uri.policy.js
+│   │   │   │   │   ├── secret-safe-serializer.js
+│   │   │   │   │   ├── sensitive-payload.validator.js
+│   │   │   │   │   ├── social-audit.service.js
+│   │   │   │   │   └── ssrf-safe-fetch.service.js
+│   │   │   │   ├── services
+│   │   │   │   │   ├── action-execution.service.js
+│   │   │   │   │   ├── publication-execution.service.js
+│   │   │   │   │   ├── publication-status-transition.service.js
+│   │   │   │   │   ├── reconciliation.service.js
+│   │   │   │   │   ├── sanitization.service.js
+│   │   │   │   │   ├── scheduling.service.js
+│   │   │   │   │   ├── social-api.service.js
+│   │   │   │   │   ├── social-authorization.service.js
+│   │   │   │   │   ├── social-domain-events.service.js
+│   │   │   │   │   ├── webhook-crypto.service.js
+│   │   │   │   │   ├── webhook-ingestion.service.js
+│   │   │   │   │   ├── webhook-processing.service.js
+│   │   │   │   │   ├── webhook-verification.service.js
+│   │   │   │   │   └── worker-execution-utils.js
+│   │   │   │   ├── settings
+│   │   │   │   │   └── .gitkeep
+│   │   │   │   ├── utils
+│   │   │   │   │   └── timeout.js
+│   │   │   │   ├── validators
+│   │   │   │   │   └── social.validator.js
+│   │   │   │   ├── webhooks
+│   │   │   │   │   └── .gitkeep
+│   │   │   │   ├── workers
+│   │   │   │   │   ├── action.worker.js
+│   │   │   │   │   ├── lease.service.js
+│   │   │   │   │   ├── publishing.worker.js
+│   │   │   │   │   ├── retry-policy.js
+│   │   │   │   │   ├── social-worker-runner.js
+│   │   │   │   │   ├── worker-heartbeat.service.js
+│   │   │   │   │   └── worker-shutdown.service.js
+│   │   │   │   ├── index.js
+│   │   │   │   └── README.md
+│   │   │   ├── index.js
+│   │   │   ├── legacy-social-transition.policy.js
+│   │   │   ├── marketing.controller.js
+│   │   │   ├── marketing.routes.js
+│   │   │   ├── marketing.service.js
+│   │   │   └── marketing.validator.js
 │   │   ├── notifications
 │   │   │   ├── index.js
 │   │   │   ├── notifications.controller.js
@@ -295,7 +647,52 @@
 │   │   └── supportChat.socket.js
 │   ├── app.js
 │   └── server.js
+├── tests
+│   ├── helpers
+│   │   ├── network-guard.js
+│   │   └── server-close.js
+│   ├── marketing-legacy-social-freeze.test.js
+│   ├── network-guard.test.js
+│   ├── social-operations-admin-database-prepare.test.js
+│   ├── social-operations-migration-manifest.test.js
+│   ├── social-operations-section10-action-worker.test.js
+│   ├── social-operations-section10-closure-corrections.test.js
+│   ├── social-operations-section10-leasing.test.js
+│   ├── social-operations-section10-publishing-worker.test.js
+│   ├── social-operations-section10-retry-policy.test.js
+│   ├── social-operations-section10-scheduling.test.js
+│   ├── social-operations-section10-worker-startup.test.js
+│   ├── social-operations-section11-provider-notes.test.js
+│   ├── social-operations-section12-redaction-retention.test.js
+│   ├── social-operations-section12-security.test.js
+│   ├── social-operations-section12-webhook-ssrf.test.js
+│   ├── social-operations-section13-classification.test.js
+│   ├── social-operations-section13-escalation.test.js
+│   ├── social-operations-section13-restricted-phase-gate.test.js
+│   ├── social-operations-section13-static-security.test.js
+│   ├── social-operations-section14-backfill.test.js
+│   ├── social-operations-section15-database-constraints.test.js
+│   ├── social-operations-section15-provider-acceptance.test.js
+│   ├── social-operations-section16-config.test.js
+│   ├── social-operations-section16-focused-runner.test.js
+│   ├── social-operations-section16-google-oauth-import-safety.test.js
+│   ├── social-operations-section16-media-storage.test.js
+│   ├── social-operations-section16-migration-ci.test.js
+│   ├── social-operations-section16-observability.test.js
+│   ├── social-operations-section16-timeout-utils.test.js
+│   ├── social-operations-section8-governance.test.js
+│   ├── social-operations-section8-rbac.test.js
+│   ├── social-operations-section8-routes.test.js
+│   ├── social-operations-section8-sanitization.test.js
+│   ├── social-operations-section9-idempotency.test.js
+│   ├── social-operations-section9-reconciliation.test.js
+│   ├── social-operations-section9-webhooks.test.js
+│   ├── task-assignee-nullability.test.js
+│   └── task-assignee-nullability-static.test.js
+├── .env.example
+├── .gitattributes
 ├── .gitignore
+├── docker-compose.social-ci-parity.yml
 ├── Dockerfile
 ├── drop.sql
 ├── folder-structure.txt

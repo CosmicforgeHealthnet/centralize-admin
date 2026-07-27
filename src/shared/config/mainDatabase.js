@@ -48,7 +48,12 @@ const connectMainDatabase = async () => {
 
       if (i === retries - 1) {
         logger.error("All connection attempts failed");
-        process.exit(1);
+        // Do NOT process.exit here — let the caller decide whether a
+        // failed main-DB connection should be fatal. server.js treats
+        // this as non-fatal and retries in the background.
+        throw new Error(
+          `Main DB connection failed after ${retries} attempts: ${error.message}`,
+        );
       }
 
       logger.info(`Retrying in ${delay}ms...`);
