@@ -719,6 +719,214 @@ class VerificationService {
    * GET /api/verification/pharmacies
    * Paginated list of pharmacy verification requests.
    */
+
+  /**
+   * GET /api/verification/stuck-doctors
+   * Returns doctors stuck in pending_doctor_verification with no verification request
+   */
+  async getStuckDoctors({ page = 1, limit = 20 }) {
+    const skip = (Number(page) - 1) * Number(limit);
+
+    // Get all doctors with pending_doctor_verification status
+    const doctors = await mainPrisma.users.findMany({
+      where: {
+        role: "doctor",
+        status: "pending_doctor_verification",
+      },
+      include: {
+        doctor_profiles: true,
+        verification_requests_verification_requests_doctorIdTousers: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Filter: doctors with NO verification request
+    const stuckDoctors = doctors.filter(
+      (d) =>
+        d.verification_requests_verification_requests_doctorIdTousers.length ===
+        0,
+    );
+
+    // Separate into: no profile vs has profile
+    const noProfile = stuckDoctors.filter((d) => !d.doctor_profiles);
+    const hasProfile = stuckDoctors.filter((d) => d.doctor_profiles);
+
+    // Paginate
+    const total = stuckDoctors.length;
+    const paginated = stuckDoctors.slice(skip, skip + Number(limit));
+
+    // Shape the response
+    const shaped = paginated.map((d) => ({
+      id: d.id,
+      fullName: d.fullName,
+      email: d.email,
+      phoneNumber: d.phoneNumber,
+      createdAt: d.createdAt,
+      hasProfile: !!d.doctor_profiles,
+      profileCompletedAt: d.doctor_profiles?.updatedAt || null,
+      daysStuck: Math.floor(
+        (Date.now() - new Date(d.createdAt).getTime()) / (1000 * 60 * 60 * 24),
+      ),
+    }));
+
+    return {
+      stats: {
+        totalStuck: total,
+        noProfile: noProfile.length,
+        hasProfile: hasProfile.length,
+      },
+      doctors: shaped,
+      pagination: {
+        currentPage: Number(page),
+        totalPages: Math.ceil(total / Number(limit)),
+        totalItems: total,
+        itemsPerPage: Number(limit),
+      },
+    };
+  }
+
+  // Add this method to the VerificationService class
+
+  /**
+   * GET /api/verification/stuck-doctors/:id
+   * Get a single stuck doctor by ID
+   */
+  async getStuckDoctorById(id) {
+    const doctor = await mainPrisma.users.findUnique({
+      where: {
+        id,
+        role: "doctor",
+        status: "pending_doctor_verification",
+      },
+      include: {
+        doctor_profiles: true,
+        verification_requests_verification_requests_doctorIdTousers: true,
+      },
+    });
+
+    if (!doctor) {
+      throw new ApiError(404, "Doctor not found");
+    }
+
+    const hasVerification =
+      doctor.verification_requests_verification_requests_doctorIdTousers
+        .length > 0;
+
+    if (hasVerification) {
+      throw new ApiError(400, "Doctor already has a verification request");
+    }
+
+    return {
+      id: doctor.id,
+      fullName: doctor.fullName,
+      email: doctor.email,
+      phoneNumber: doctor.phoneNumber,
+      status: doctor.status,
+      createdAt: doctor.createdAt,
+      hasProfile: !!doctor.doctor_profiles,
+      profileCompletedAt: doctor.doctor_profiles?.updatedAt || null,
+      daysStuck: Math.floor(
+        (Date.now() - new Date(doctor.createdAt).getTime()) /
+          (1000 * 60 * 60 * 24),
+      ),
+      doctor_profiles: doctor.doctor_profiles
+        ? {
+            gender: doctor.doctor_profiles.gender,
+            dateOfBirth: doctor.doctor_profiles.dateOfBirth,
+            nationality: doctor.doctor_profiles.nationality,
+            contactNumber: doctor.doctor_profiles.contactNumber,
+            residentialAddress: doctor.doctor_profiles.residentialAddress,
+            profilePhoto: doctor.doctor_profiles.profilePhoto,
+          }
+        : null,
+    };
+  }
+
+  /**
+   * POST /api/verification/stuck-doctors/:id/fix
+   * Create a verification request for a stuck doctor
+   */
+  async fixStuckDoctor({ id, adminUserId, req }) {
+    const doctor = await mainPrisma.users.findUnique({
+      where: {
+        id,
+        role: "doctor",
+        status: "pending_doctor_verification",
+      },
+      include: {
+        verification_requests_verification_requests_doctorIdTousers: true,
+        doctor_profiles: true,
+      },
+    });
+
+    if (!doctor) {
+      throw new ApiError(404, "Doctor not found");
+    }
+
+    const hasVerification =
+      doctor.verification_requests_verification_requests_doctorIdTousers
+        .length > 0;
+
+    if (hasVerification) {
+      throw new ApiError(400, "Doctor already has a verification request");
+    }
+
+    const adminUser = await prisma.adminUser.findUnique({
+      where: { id: adminUserId },
+      select: { mainAppUserId: true },
+    });
+
+    const now = new Date();
+
+    // Create verification request
+    const verificationRequest = await mainPrisma.verification_requests.create({
+      data: {
+        doctorId: id,
+        licenseNumber: "PENDING_" + id.slice(0, 8),
+        countryCode: "NG",
+        issuingAuthority: "Pending",
+        status: "pending",
+        submittedAt: now,
+        createdBy: adminUser?.mainAppUserId || null,
+        confidenceScore: 0,
+      },
+    });
+
+    // Create status history entry
+    await mainPrisma.verification_status_history.create({
+      data: {
+        verificationRequestId: verificationRequest.id,
+        fromStatus: null,
+        toStatus: "pending",
+        changedBy: adminUser?.mainAppUserId || id,
+        changeReason: "Auto-created from stuck doctor fix",
+        automatedChange: true,
+        changedAt: now,
+      },
+    });
+
+    // Create audit log in admin DB
+    await createAuditLog({
+      adminUserId,
+      action: "USER_UPDATED",
+      targetId: id,
+      targetType: "stuck_doctor",
+      metadata: {
+        action: "fixed",
+        verificationRequestId: verificationRequest.id,
+        doctorId: id,
+        doctorEmail: doctor.email,
+      },
+      req,
+    });
+
+    return {
+      id: verificationRequest.id,
+      doctorId: id,
+      status: "Pending",
+    };
+  }
+
   async getPharmacyVerifications({
     page = 1,
     limit = 10,
@@ -973,12 +1181,6 @@ class VerificationService {
 
   // ── APPROVE / REJECT PHARMACY ────────────────────────────────────────────────
 
-  /**
-   * PATCH /api/verification/pharmacies/:id/approve
-   */
-  /**
-   * PATCH /api/verification/pharmacies/:id/approve
-   */
   async approvePharmacy({ id, adminUserId, reviewNotes, req }) {
     const pvr = await mainPrisma.pharmacy_verification_requests.findUnique({
       where: { id },

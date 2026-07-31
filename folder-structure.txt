@@ -4,6 +4,22 @@
 │       ├── social-operations-ci.yml
 │       └── staging.yml
 ├── docs
+│   ├── advertising-execution-api-handoff.md
+│   ├── advertising-execution-architecture.md
+│   ├── advertising-execution-audit-events.md
+│   ├── advertising-execution-error-codes.md
+│   ├── advertising-execution-live-validation-matrix.md
+│   ├── advertising-execution-metrics-health.md
+│   ├── advertising-execution-migration-map.md
+│   ├── advertising-execution-operations-runbook.md
+│   ├── advertising-execution-provider-access-blockers.md
+│   ├── advertising-execution-provider-baseline.md
+│   ├── advertising-execution-rbac-matrix.md
+│   ├── advertising-execution-section29-report.md
+│   ├── advertising-execution-section29-test-traceability.md
+│   ├── advertising-execution-sections11-17-report.md
+│   ├── advertising-execution-sections18-24-report.md
+│   ├── advertising-execution-sections25-28-report.md
 │   ├── CosmicForge_Marketing_Intelligence_Phase2_Complete_Architecture.docx
 │   ├── CosmicForge_Marketing_Intelligence_Phase2_Complete_Architecture.md
 │   ├── CosmicForge_Marketing_Intelligence_Phase2_Final_Acceptance_Checklist.md
@@ -68,6 +84,11 @@
 │   │   ├── 20260725_marketing_intelligence_phase2_sections10_13.sql
 │   │   ├── 20260726_marketing_intelligence_sections10_13_audit_corrections.sql
 │   │   ├── 20260727_marketing_intelligence_sections14_17.sql
+│   │   ├── 20260728_advertising_execution_sections9_10.sql
+│   │   ├── 20260729_advertising_execution_sections18_24.sql
+│   │   ├── 20260730_advertising_execution_sections18_24_remediation.sql
+│   │   ├── 20260731_advertising_execution_sections25_28.sql
+│   │   ├── 20260801_advertising_execution_sections25_28_remediation.sql
 │   │   └── manifest.json
 │   ├── migrations
 │   │   ├── 0_init
@@ -83,6 +104,10 @@
 │   ├── main.schema.prisma
 │   └── schema.prisma
 ├── scripts
+│   ├── advertising-execution
+│   │   ├── live-validate.js
+│   │   ├── live-validation-gates.js
+│   │   └── live-validation-harness.js
 │   ├── marketing-intelligence
 │   │   ├── build-phase2-architecture-docx.py
 │   │   └── live-validate-provider.js
@@ -299,6 +324,155 @@
 │   │   │   ├── logistics.routes.js
 │   │   │   └── logistics.service.js
 │   │   ├── marketing
+│   │   │   ├── advertising-execution
+│   │   │   │   ├── __tests__
+│   │   │   │   │   ├── helpers
+│   │   │   │   │   │   └── fake-provider-transports.js
+│   │   │   │   │   ├── execution.routes.test.js
+│   │   │   │   │   ├── section11.google-ads.test.js
+│   │   │   │   │   ├── section12.meta.test.js
+│   │   │   │   │   ├── section13.tiktok.test.js
+│   │   │   │   │   ├── section14.linkedin.test.js
+│   │   │   │   │   ├── section15.x.test.js
+│   │   │   │   │   ├── section18.creatives.test.js
+│   │   │   │   │   ├── section29.approvals.test.js
+│   │   │   │   │   ├── section29.creatives.test.js
+│   │   │   │   │   ├── section29.docs-migrations.test.js
+│   │   │   │   │   ├── section29.google-ads.test.js
+│   │   │   │   │   ├── section29.idempotency.test.js
+│   │   │   │   │   ├── section29.linkedin.test.js
+│   │   │   │   │   ├── section29.meta.test.js
+│   │   │   │   │   ├── section29.plans.test.js
+│   │   │   │   │   ├── section29.policies.test.js
+│   │   │   │   │   ├── section29.queue-leases.test.js
+│   │   │   │   │   ├── section29.reconciliation.test.js
+│   │   │   │   │   ├── section29.security.test.js
+│   │   │   │   │   ├── section29.tiktok.test.js
+│   │   │   │   │   ├── section29.x.test.js
+│   │   │   │   │   ├── sections11-17.config.test.js
+│   │   │   │   │   ├── sections16-17.shared.test.js
+│   │   │   │   │   ├── sections18-24.schema.test.js
+│   │   │   │   │   ├── sections19-24.execution.test.js
+│   │   │   │   │   ├── sections25-28.api-security-observability.test.js
+│   │   │   │   │   ├── sections25-28.remediation.test.js
+│   │   │   │   │   ├── sections6-8.test.js
+│   │   │   │   │   ├── sections9-10.contract.test.js
+│   │   │   │   │   ├── sections9-10.repositories.test.js
+│   │   │   │   │   └── sections9-10.schema.test.js
+│   │   │   │   ├── adapters
+│   │   │   │   │   ├── google-ads
+│   │   │   │   │   │   ├── google-ads.auth.js
+│   │   │   │   │   │   └── google-ads.preflight.js
+│   │   │   │   │   ├── execution-adapter.interface.js
+│   │   │   │   │   ├── execution-adapter.registry.js
+│   │   │   │   │   ├── execution-contract.service.js
+│   │   │   │   │   ├── google-ads.execution-adapter.js
+│   │   │   │   │   ├── linkedin.execution-adapter.js
+│   │   │   │   │   ├── meta.execution-adapter.js
+│   │   │   │   │   ├── provider-definitions.js
+│   │   │   │   │   ├── provider-error-normalizer.js
+│   │   │   │   │   ├── provider-execution-adapter.factory.js
+│   │   │   │   │   ├── provider-network.policy.js
+│   │   │   │   │   ├── tiktok.execution-adapter.js
+│   │   │   │   │   └── x.execution-adapter.js
+│   │   │   │   ├── approvals
+│   │   │   │   │   ├── approval.repository.js
+│   │   │   │   │   ├── approval.service.js
+│   │   │   │   │   └── approval.validator.js
+│   │   │   │   ├── budgets
+│   │   │   │   │   ├── money.js
+│   │   │   │   │   └── provider-budget-units.js
+│   │   │   │   ├── campaigns
+│   │   │   │   │   ├── campaign.validator.js
+│   │   │   │   │   ├── hierarchy.validator.js
+│   │   │   │   │   ├── immutable-field-policy.js
+│   │   │   │   │   ├── replacement-plan.service.js
+│   │   │   │   │   └── status-operation.service.js
+│   │   │   │   ├── capabilities
+│   │   │   │   │   ├── capability-discovery.service.js
+│   │   │   │   │   └── capability-result.js
+│   │   │   │   ├── creatives
+│   │   │   │   │   ├── creative-hash.service.js
+│   │   │   │   │   ├── creative-publication.repository.js
+│   │   │   │   │   ├── creative-publication.response.js
+│   │   │   │   │   ├── creative-publication.service.js
+│   │   │   │   │   ├── creative-publication.validator.js
+│   │   │   │   │   ├── destination-url.policy.js
+│   │   │   │   │   ├── malware-scanner.adapter.js
+│   │   │   │   │   ├── media.validator.js
+│   │   │   │   │   ├── provider-creative-rules.registry.js
+│   │   │   │   │   ├── provider-review-sync.service.js
+│   │   │   │   │   └── validated-publication.dto.js
+│   │   │   │   ├── integrations
+│   │   │   │   │   ├── audit.adapter.js
+│   │   │   │   │   └── execution-events.adapter.js
+│   │   │   │   ├── jobs
+│   │   │   │   │   ├── account-lock.repository.js
+│   │   │   │   │   ├── dead-letter-review.service.js
+│   │   │   │   │   ├── execution-job.repository.js
+│   │   │   │   │   ├── execution-queue.service.js
+│   │   │   │   │   ├── execution-worker.js
+│   │   │   │   │   └── reconciliation-worker.js
+│   │   │   │   ├── operations
+│   │   │   │   │   ├── idempotency.service.js
+│   │   │   │   │   ├── normalized-result.js
+│   │   │   │   │   ├── operation.repository.js
+│   │   │   │   │   ├── operation.service.js
+│   │   │   │   │   ├── operation-result.js
+│   │   │   │   │   ├── operation-runner.service.js
+│   │   │   │   │   ├── retry-policy.service.js
+│   │   │   │   │   └── retry-review.service.js
+│   │   │   │   ├── plans
+│   │   │   │   │   ├── plan.repository.js
+│   │   │   │   │   ├── plan.service.js
+│   │   │   │   │   ├── plan.validator.js
+│   │   │   │   │   └── plan-fingerprint.js
+│   │   │   │   ├── policy
+│   │   │   │   │   ├── budget-guard.service.js
+│   │   │   │   │   ├── capability-policy.service.js
+│   │   │   │   │   ├── emergency-override.service.js
+│   │   │   │   │   ├── execution-policy.service.js
+│   │   │   │   │   ├── kill-switch.service.js
+│   │   │   │   │   ├── policy.repository.js
+│   │   │   │   │   ├── policy.service.js
+│   │   │   │   │   └── policy.validator.js
+│   │   │   │   ├── recommendations
+│   │   │   │   │   └── recommendation-execution-bridge.service.js
+│   │   │   │   ├── reconciliation
+│   │   │   │   │   ├── reconciliation.repository.js
+│   │   │   │   │   └── reconciliation.service.js
+│   │   │   │   ├── runs
+│   │   │   │   │   └── execution-run.repository.js
+│   │   │   │   ├── security
+│   │   │   │   │   └── execution-input-sanitizer.js
+│   │   │   │   ├── targeting
+│   │   │   │   │   ├── delivery-rules.validator.js
+│   │   │   │   │   ├── provider-delivery-rules.registry.js
+│   │   │   │   │   ├── provider-read-adapter.registry.js
+│   │   │   │   │   ├── targeting.validator.js
+│   │   │   │   │   ├── targeting-discovery.repository.js
+│   │   │   │   │   └── targeting-discovery.service.js
+│   │   │   │   ├── validation
+│   │   │   │   │   ├── approval-integrity.service.js
+│   │   │   │   │   ├── execution-validation-pipeline.js
+│   │   │   │   │   ├── final-mutation-gate.service.js
+│   │   │   │   │   └── production-validation.service.js
+│   │   │   │   ├── application.js
+│   │   │   │   ├── execution.authorization.js
+│   │   │   │   ├── execution.config.js
+│   │   │   │   ├── execution.constants.js
+│   │   │   │   ├── execution.controller.js
+│   │   │   │   ├── execution.errors.js
+│   │   │   │   ├── execution.health.js
+│   │   │   │   ├── execution.observability.js
+│   │   │   │   ├── execution.query-validator.js
+│   │   │   │   ├── execution.response.js
+│   │   │   │   ├── execution.routes.js
+│   │   │   │   ├── execution.service.js
+│   │   │   │   ├── execution-json.validator.js
+│   │   │   │   ├── execution-schema-assertion.service.js
+│   │   │   │   ├── index.js
+│   │   │   │   └── runtime.js
 │   │   │   ├── intelligence
 │   │   │   │   ├── __tests__
 │   │   │   │   │   ├── helpers
@@ -627,7 +801,8 @@
 │   │   │   ├── error.middleware.js
 │   │   │   ├── index.js
 │   │   │   ├── rateLimiter.middleware.js
-│   │   │   └── rbac.middleware.js
+│   │   │   ├── rbac.middleware.js
+│   │   │   └── request-context.middleware.js
 │   │   ├── states
 │   │   │   ├── consultation.states.js
 │   │   │   ├── payment.states.js
@@ -651,6 +826,10 @@
 │   ├── helpers
 │   │   ├── network-guard.js
 │   │   └── server-close.js
+│   ├── advertising-execution-section29-live-harness.test.js
+│   ├── advertising-execution-sections18-24-postgres.test.js
+│   ├── advertising-execution-sections25-28-http.test.js
+│   ├── advertising-execution-sections25-28-postgres.test.js
 │   ├── marketing-legacy-social-freeze.test.js
 │   ├── network-guard.test.js
 │   ├── social-operations-admin-database-prepare.test.js

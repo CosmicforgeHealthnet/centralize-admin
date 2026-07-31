@@ -1460,8 +1460,6 @@ model lab_facilities {
   updatedAt                  DateTime                          @default(now()) @db.Timestamp(6)
   adminUserId                String?                           @db.Uuid
   approvedById               String?                           @db.Uuid
-  users_lab_facilities_adminUserIdTousers   users?  @relation("lab_facilities_adminUserIdTousers", fields: [adminUserId], references: [id])
-  users_lab_facilities_approvedByIdTousers  users?  @relation("lab_facilities_approvedByIdTousers", fields: [approvedById], references: [id])
   registrationStep           Int                               @default(1)
   registrationCompleted      Boolean                           @default(false)
   registrationTokenHash      String?                           @db.VarChar(255)
@@ -1542,7 +1540,7 @@ model lab_orders {
   baseAmount               Decimal?            @db.Decimal(10, 2)
   homeVisitFee             Decimal?            @db.Decimal(10, 2)
   urgentFee                Decimal?            @db.Decimal(10, 2)
-  currency                 String              @default("USD") @db.VarChar(3)
+  currency                 String              @default("NGN") @db.VarChar(3)
   invoiceSentAt            DateTime?           @db.Timestamp(6)
   paidAt                   DateTime?           @db.Timestamp(6)
   resultsFileUrl           String?             @db.VarChar(500)
@@ -2367,6 +2365,7 @@ model prescriptions {
   dispatchedAt                                    DateTime?                             @db.Timestamp(6)
   driverId                                        String?                               @db.Uuid
   invoices                                        invoices[]
+  pharmacy_sessions                               pharmacy_sessions[]
   users_prescriptions_assignedPharmacistIdTousers users?                                @relation("prescriptions_assignedPharmacistIdTousers", fields: [assignedPharmacistId], references: [id], onUpdate: NoAction, map: "FK_2345a2f6eb9dee50970bfcb4bbd")
   users_prescriptions_doctorIdTousers             users                                 @relation("prescriptions_doctorIdTousers", fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_42c70415fad4505386e6d7e9dc4")
   users_prescriptions_patientIdTousers            users                                 @relation("prescriptions_patientIdTousers", fields: [patientId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_51f48335657278b20348dde416c")
@@ -2863,67 +2862,69 @@ model user_referrals {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model users {
-  id                                                                              String                           @id(map: "PK_a3ffb1c0c8416b9fc6f907b7433") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  email                                                                           String                           @unique(map: "UQ_users_email") @db.VarChar
-  passwordHash                                                                    String?                          @db.VarChar
-  role                                                                            users_role_enum                  @default(patient)
-  status                                                                          users_status_enum                @default(pending_email_verification)
-  provider                                                                        users_provider_enum              @default(local)
-  providerId                                                                      String?                          @db.VarChar
+  id                                                                              String                            @id(map: "PK_a3ffb1c0c8416b9fc6f907b7433") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email                                                                           String                            @db.VarChar
+  passwordHash                                                                    String?                           @db.VarChar
+  role                                                                            users_role_enum                   @default(patient)
+  status                                                                          users_status_enum                 @default(pending_email_verification)
+  provider                                                                        users_provider_enum               @default(local)
+  providerId                                                                      String?                           @db.VarChar
   profileImageUrl                                                                 String?
-  mfaEnabled                                                                      Boolean                          @default(false)
-  mfaSecret                                                                       String?                          @db.VarChar
-  createdAt                                                                       DateTime                         @default(now()) @db.Timestamp(6)
-  updatedAt                                                                       DateTime                         @default(now()) @db.Timestamp(6)
-  fullName                                                                        String                           @db.VarChar
-  tier                                                                            users_tier_enum                  @default(free)
-  isOnline                                                                        Boolean                          @default(false)
-  referralCode                                                                    String?                          @unique(map: "UQ_users_referralCode") @db.VarChar(50)
-  totalReferrals                                                                  Int                              @default(0)
-  referredBy                                                                      String?                          @db.Uuid
-  username                                                                        String?                          @unique(map: "UQ_users_username") @db.VarChar
-  bannerUrl                                                                       String?                          @db.VarChar
-  timezone                                                                        String?                          @db.VarChar(100)
-  lastDetectedTimezone                                                            String?                          @db.VarChar(100)
-  timezoneUpdatedAt                                                               DateTime?                        @db.Timestamp(6)
-  phoneNumber                                                                     String?                          @db.VarChar
-  departmentSpecialty                                                             String?                          @db.VarChar
-  averageRating                                                                   Decimal                          @default(0) @db.Decimal(2, 1)
-  totalRatings                                                                    Int                              @default(0)
-  country                                                                         String?                          @db.VarChar(100)
-  pharmacyId                                                                      String?                          @db.Uuid
-  refreshTokenHash                                                                String?                          @db.VarChar
-  resetPasswordOTP                                                                String?                          @db.VarChar
-  resetPasswordOTPExpires                                                         DateTime?                        @db.Timestamp(6)
-  mustChangePassword                                                              Boolean                          @default(false)
-  passwordChangedAt                                                               DateTime?                        @db.Timestamp(6)
-  lastLoginAt                                                                     DateTime?                        @db.Timestamp(6)
-  loginAttempts                                                                   Int                              @default(0)
-  lockedUntil                                                                     DateTime?                        @db.Timestamp(6)
+  mfaEnabled                                                                      Boolean                           @default(false)
+  mfaSecret                                                                       String?                           @db.VarChar
+  createdAt                                                                       DateTime                          @default(now()) @db.Timestamp(6)
+  updatedAt                                                                       DateTime                          @default(now()) @db.Timestamp(6)
+  fullName                                                                        String                            @db.VarChar
+  tier                                                                            users_tier_enum                   @default(free)
+  isOnline                                                                        Boolean                           @default(false)
+  referralCode                                                                    String?                           @unique(map: "UQ_users_referralCode") @db.VarChar(50)
+  totalReferrals                                                                  Int                               @default(0)
+  referredBy                                                                      String?                           @db.Uuid
+  username                                                                        String?                           @unique(map: "UQ_users_username") @db.VarChar
+  bannerUrl                                                                       String?                           @db.VarChar
+  timezone                                                                        String?                           @db.VarChar(100)
+  lastDetectedTimezone                                                            String?                           @db.VarChar(100)
+  timezoneUpdatedAt                                                               DateTime?                         @db.Timestamp(6)
+  phoneNumber                                                                     String?                           @db.VarChar
+  departmentSpecialty                                                             String?                           @db.VarChar
+  averageRating                                                                   Decimal                           @default(0) @db.Decimal(2, 1)
+  totalRatings                                                                    Int                               @default(0)
+  country                                                                         String?                           @db.VarChar(100)
+  pharmacyId                                                                      String?                           @db.Uuid
+  refreshTokenHash                                                                String?                           @db.VarChar
+  resetPasswordOTP                                                                String?                           @db.VarChar
+  resetPasswordOTPExpires                                                         DateTime?                         @db.Timestamp(6)
+  mustChangePassword                                                              Boolean                           @default(false)
+  passwordChangedAt                                                               DateTime?                         @db.Timestamp(6)
+  lastLoginAt                                                                     DateTime?                         @db.Timestamp(6)
+  loginAttempts                                                                   Int                               @default(0)
+  lockedUntil                                                                     DateTime?                         @db.Timestamp(6)
   account_support                                                                 account_support[]
   admin_settings                                                                  admin_settings[]
   admin_settings_history                                                          admin_settings_history[]
-  appointment_chats_appointment_chats_doctorIdTousers                             appointment_chats[]              @relation("appointment_chats_doctorIdTousers")
-  appointment_chats_appointment_chats_patientIdTousers                            appointment_chats[]              @relation("appointment_chats_patientIdTousers")
-  appointments_appointments_doctorIdTousers                                       appointments[]                   @relation("appointments_doctorIdTousers")
-  appointments_appointments_patientIdTousers                                      appointments[]                   @relation("appointments_patientIdTousers")
+  ai_support_sessions_ai_support_sessions_agentIdTousers                          ai_support_sessions[]             @relation("ai_support_sessions_agentIdTousers")
+  ai_support_sessions_ai_support_sessions_userIdTousers                           ai_support_sessions[]             @relation("ai_support_sessions_userIdTousers")
+  appointment_chats_appointment_chats_doctorIdTousers                             appointment_chats[]               @relation("appointment_chats_doctorIdTousers")
+  appointment_chats_appointment_chats_patientIdTousers                            appointment_chats[]               @relation("appointment_chats_patientIdTousers")
+  appointments_appointments_doctorIdTousers                                       appointments[]                    @relation("appointments_doctorIdTousers")
+  appointments_appointments_patientIdTousers                                      appointments[]                    @relation("appointments_patientIdTousers")
   audit_logs                                                                      audit_logs[]
   auth_events                                                                     auth_events[]
   chat_file_attachments                                                           chat_file_attachments[]
   chat_message_reactions                                                          chat_message_reactions[]
   chat_messages                                                                   chat_messages[]
-  chat_participants_chat_participants_addedByIdTousers                            chat_participants[]              @relation("chat_participants_addedByIdTousers")
-  chat_participants_chat_participants_userIdTousers                               chat_participants[]              @relation("chat_participants_userIdTousers")
+  chat_participants_chat_participants_addedByIdTousers                            chat_participants[]               @relation("chat_participants_addedByIdTousers")
+  chat_participants_chat_participants_userIdTousers                               chat_participants[]               @relation("chat_participants_userIdTousers")
   chat_rooms                                                                      chat_rooms[]
   chatbot_messages                                                                chatbot_messages[]
   chatbot_sessions                                                                chatbot_sessions[]
   comprehensive_audit_logs                                                        comprehensive_audit_logs[]
   consent_access_logs                                                             consent_access_logs[]
-  data_governance_policies_data_governance_policies_approved_byTousers            data_governance_policies[]       @relation("data_governance_policies_approved_byTousers")
-  data_governance_policies_data_governance_policies_policy_ownerTousers           data_governance_policies[]       @relation("data_governance_policies_policy_ownerTousers")
+  data_governance_policies_data_governance_policies_approved_byTousers            data_governance_policies[]        @relation("data_governance_policies_approved_byTousers")
+  data_governance_policies_data_governance_policies_policy_ownerTousers           data_governance_policies[]        @relation("data_governance_policies_policy_ownerTousers")
   data_lineage                                                                    data_lineage[]
-  disputes_disputes_doctorIdTousers                                               disputes[]                       @relation("disputes_doctorIdTousers")
-  disputes_disputes_patientIdTousers                                              disputes[]                       @relation("disputes_patientIdTousers")
+  disputes_disputes_doctorIdTousers                                               disputes[]                        @relation("disputes_doctorIdTousers")
+  disputes_disputes_patientIdTousers                                              disputes[]                        @relation("disputes_patientIdTousers")
   disputes_support                                                                disputes_support[]
   doctor_availability                                                             doctor_availability[]
   doctor_pricing                                                                  doctor_pricing[]
@@ -2936,8 +2937,8 @@ model users {
   encryption_keys                                                                 encryption_keys[]
   faq_analytics                                                                   faq_analytics[]
   faq_votes                                                                       faq_votes[]
-  faqs_faqs_createdByTousers                                                      faqs[]                           @relation("faqs_createdByTousers")
-  faqs_faqs_updatedByTousers                                                      faqs[]                           @relation("faqs_updatedByTousers")
+  faqs_faqs_createdByTousers                                                      faqs[]                            @relation("faqs_createdByTousers")
+  faqs_faqs_updatedByTousers                                                      faqs[]                            @relation("faqs_updatedByTousers")
   fhir_search_logs                                                                fhir_search_logs[]
   file_access_logs                                                                file_access_logs[]
   files                                                                           files[]
@@ -2945,30 +2946,32 @@ model users {
   insurance_support                                                               insurance_support[]
   invoices                                                                        invoices[]
   lab_orders                                                                      lab_orders[]
-  lab_test_requests_lab_test_requests_doctorIdTousers                             lab_test_requests[]              @relation("lab_test_requests_doctorIdTousers")
-  lab_test_requests_lab_test_requests_patientIdTousers                            lab_test_requests[]              @relation("lab_test_requests_patientIdTousers")
+  lab_test_requests_lab_test_requests_doctorIdTousers                             lab_test_requests[]               @relation("lab_test_requests_doctorIdTousers")
+  lab_test_requests_lab_test_requests_patientIdTousers                            lab_test_requests[]               @relation("lab_test_requests_patientIdTousers")
   lab_wallet_topups                                                               lab_wallet_topups[]
   lab_wallet_transactions                                                         lab_wallet_transactions[]
   lab_wallets                                                                     lab_wallets[]
-  lab_facilities_lab_facilities_adminUserIdTousers   lab_facilities[]  @relation("lab_facilities_adminUserIdTousers")
-  lab_facilities_lab_facilities_approvedByIdTousers  lab_facilities[]  @relation("lab_facilities_approvedByIdTousers")  magic_link_tokens                                                               magic_link_tokens[]
+  magic_link_tokens                                                               magic_link_tokens[]
+  marketing_campaign_team_members                                                 marketing_campaign_team_members[]
+  marketing_content_items                                                         marketing_content_items[]
   notification                                                                    notification[]
   password_reset_tokens                                                           password_reset_tokens[]
   patient_access_logs                                                             patient_access_logs[]
-  patient_consents_patient_consents_witnessTousers                                patient_consents[]               @relation("patient_consents_witnessTousers")
-  patient_consents_patient_consents_grantorTousers                                patient_consents[]               @relation("patient_consents_grantorTousers")
-  patient_consents_patient_consents_withdrawn_byTousers                           patient_consents[]               @relation("patient_consents_withdrawn_byTousers")
+  patient_consents_patient_consents_witnessTousers                                patient_consents[]                @relation("patient_consents_witnessTousers")
+  patient_consents_patient_consents_grantorTousers                                patient_consents[]                @relation("patient_consents_grantorTousers")
+  patient_consents_patient_consents_withdrawn_byTousers                           patient_consents[]                @relation("patient_consents_withdrawn_byTousers")
   patient_profiles                                                                patient_profiles?
   patient_wallets                                                                 patient_wallets?
   pharmacy_branches                                                               pharmacy_branches[]
   pharmacy_documents                                                              pharmacy_documents[]
   pharmacy_profiles                                                               pharmacy_profiles?
-  pharmacy_verification_requests_pharmacy_verification_requests_reviewedByTousers pharmacy_verification_requests[] @relation("pharmacy_verification_requests_reviewedByTousers")
-  pharmacy_verification_requests_pharmacy_verification_requests_assignedToTousers pharmacy_verification_requests[] @relation("pharmacy_verification_requests_assignedToTousers")
-  prescriptions_prescriptions_assignedPharmacistIdTousers                         prescriptions[]                  @relation("prescriptions_assignedPharmacistIdTousers")
-  prescriptions_prescriptions_doctorIdTousers                                     prescriptions[]                  @relation("prescriptions_doctorIdTousers")
-  prescriptions_prescriptions_patientIdTousers                                    prescriptions[]                  @relation("prescriptions_patientIdTousers")
-  prescriptions_prescriptions_driverIdTousers                                     prescriptions[]                  @relation("prescriptions_driverIdTousers")
+  pharmacy_sessions                                                               pharmacy_sessions[]
+  pharmacy_verification_requests_pharmacy_verification_requests_reviewedByTousers pharmacy_verification_requests[]  @relation("pharmacy_verification_requests_reviewedByTousers")
+  pharmacy_verification_requests_pharmacy_verification_requests_assignedToTousers pharmacy_verification_requests[]  @relation("pharmacy_verification_requests_assignedToTousers")
+  prescriptions_prescriptions_assignedPharmacistIdTousers                         prescriptions[]                   @relation("prescriptions_assignedPharmacistIdTousers")
+  prescriptions_prescriptions_doctorIdTousers                                     prescriptions[]                   @relation("prescriptions_doctorIdTousers")
+  prescriptions_prescriptions_patientIdTousers                                    prescriptions[]                   @relation("prescriptions_patientIdTousers")
+  prescriptions_prescriptions_driverIdTousers                                     prescriptions[]                   @relation("prescriptions_driverIdTousers")
   referral_draw_stats                                                             referral_draw_stats[]
   referral_draws                                                                  referral_draws[]
   refresh_tokens                                                                  refresh_tokens[]
@@ -2982,20 +2985,22 @@ model users {
   support_disputes                                                                support_disputes[]
   support_insurance                                                               support_insurance[]
   support_report                                                                  support_report[]
-  transactions_transactions_doctorIdTousers                                       transactions[]                   @relation("transactions_doctorIdTousers")
-  transactions_transactions_patientIdTousers                                      transactions[]                   @relation("transactions_patientIdTousers")
+  transactions_transactions_doctorIdTousers                                       transactions[]                    @relation("transactions_doctorIdTousers")
+  transactions_transactions_patientIdTousers                                      transactions[]                    @relation("transactions_patientIdTousers")
   user_payment_methods                                                            user_payment_methods[]
   user_ratings                                                                    user_ratings[]
-  user_referrals_user_referrals_referredUserIdTousers                             user_referrals[]                 @relation("user_referrals_referredUserIdTousers")
-  user_referrals_user_referrals_referrerIdTousers                                 user_referrals[]                 @relation("user_referrals_referrerIdTousers")
+  user_referrals_user_referrals_referredUserIdTousers                             user_referrals[]                  @relation("user_referrals_referredUserIdTousers")
+  user_referrals_user_referrals_referrerIdTousers                                 user_referrals[]                  @relation("user_referrals_referrerIdTousers")
+  vendor_orders                                                                   vendor_orders[]
   verification_documents                                                          verification_documents[]
-  verification_requests_verification_requests_assignedReviewerIdTousers           verification_requests[]          @relation("verification_requests_assignedReviewerIdTousers")
-  verification_requests_verification_requests_doctorIdTousers                     verification_requests[]          @relation("verification_requests_doctorIdTousers")
-  verification_review_queue_verification_review_queue_escalatedToTousers          verification_review_queue[]      @relation("verification_review_queue_escalatedToTousers")
-  verification_review_queue_verification_review_queue_assignedToTousers           verification_review_queue[]      @relation("verification_review_queue_assignedToTousers")
+  verification_requests_verification_requests_assignedReviewerIdTousers           verification_requests[]           @relation("verification_requests_assignedReviewerIdTousers")
+  verification_requests_verification_requests_doctorIdTousers                     verification_requests[]           @relation("verification_requests_doctorIdTousers")
+  verification_review_queue_verification_review_queue_escalatedToTousers          verification_review_queue[]       @relation("verification_review_queue_escalatedToTousers")
+  verification_review_queue_verification_review_queue_assignedToTousers           verification_review_queue[]       @relation("verification_review_queue_assignedToTousers")
   verification_status_history                                                     verification_status_history[]
   wallet_withdrawals                                                              wallet_withdrawals[]
 
+  @@unique([email, role], map: "users_email_role_unique")
   @@index([createdAt], map: "IDX_204e9b624861ff4a5b26819210")
   @@index([status], map: "IDX_3676155292d72c67cd4e090514")
   @@index([provider], map: "IDX_4305aedaa7aed08419da6a29ec")
@@ -3015,7 +3020,6 @@ model users {
   @@index([status], map: "IDX_users_status")
   @@index([username], map: "IDX_users_username")
   @@index([lockedUntil], map: "IDX_users_lockedUntil")
-  
 }
 
 model verification_api_logs {
@@ -3078,38 +3082,46 @@ model verification_documents {
 }
 
 model verification_requests {
-  id                                                    String                             @id(map: "PK_c5d405ea25e8abd5b0b096a4f6f") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  doctorId                                              String                             @db.Uuid
-  licenseNumber                                         String                             @db.VarChar
-  countryCode                                           String                             @db.VarChar(2)
-  issuingAuthority                                      String                             @db.VarChar
-  licenseType                                           String?                            @db.VarChar
-  issueDate                                             DateTime?                          @db.Date
-  expiryDate                                            DateTime?                          @db.Date
-  status                                                verification_requests_status_enum  @default(pending)
+  id                                                    String                                           @id(map: "PK_c5d405ea25e8abd5b0b096a4f6f") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  doctorId                                              String                                           @db.Uuid
+  licenseNumber                                         String                                           @db.VarChar
+  countryCode                                           String                                           @db.VarChar(2)
+  issuingAuthority                                      String                                           @db.VarChar
+  licenseType                                           String?                                          @db.VarChar
+  issueDate                                             DateTime?                                        @db.Date
+  expiryDate                                            DateTime?                                        @db.Date
+  status                                                verification_requests_status_enum                @default(pending)
   method                                                verification_requests_method_enum?
   tier                                                  verification_requests_tier_enum?
-  confidenceScore                                       Int                                @default(0)
+  confidenceScore                                       Int                                              @default(0)
   apiVerificationData                                   Json?
-  apiVerifiedAt                                         DateTime?                          @db.Timestamp(6)
+  apiVerifiedAt                                         DateTime?                                        @db.Timestamp(6)
   apiErrors                                             String?
-  assignedReviewerId                                    String?                            @db.Uuid
-  reviewStartedAt                                       DateTime?                          @db.Timestamp(6)
-  reviewCompletedAt                                     DateTime?                          @db.Timestamp(6)
+  assignedReviewerId                                    String?                                          @db.Uuid
+  reviewStartedAt                                       DateTime?                                        @db.Timestamp(6)
+  reviewCompletedAt                                     DateTime?                                        @db.Timestamp(6)
   reviewNotes                                           String?
   rejectionReason                                       String?
-  submittedAt                                           DateTime                           @default(now()) @db.Timestamp(6)
-  approvedAt                                            DateTime?                          @db.Timestamp(6)
-  rejectedAt                                            DateTime?                          @db.Timestamp(6)
-  expiresAt                                             DateTime?                          @db.Timestamp(6)
-  createdAt                                             DateTime                           @default(now()) @db.Timestamp(6)
-  updatedAt                                             DateTime                           @default(now()) @db.Timestamp(6)
-  createdBy                                             String?                            @db.Uuid
-  updatedBy                                             String?                            @db.Uuid
+  submittedAt                                           DateTime                                         @default(now()) @db.Timestamp(6)
+  approvedAt                                            DateTime?                                        @db.Timestamp(6)
+  rejectedAt                                            DateTime?                                        @db.Timestamp(6)
+  expiresAt                                             DateTime?                                        @db.Timestamp(6)
+  createdAt                                             DateTime                                         @default(now()) @db.Timestamp(6)
+  updatedAt                                             DateTime                                         @default(now()) @db.Timestamp(6)
+  createdBy                                             String?                                          @db.Uuid
+  updatedBy                                             String?                                          @db.Uuid
+  ninEncrypted                                          String?
+  ninEncryptionKey                                      String?                                          @db.VarChar
+  ninLast4                                              String?                                          @db.VarChar(4)
+  ninVerificationStatus                                 verification_requests_ninverificationstatus_enum @default(not_submitted)
+  ninVerifiedData                                       Json?
+  ninNameMatchScore                                     Int?
+  ninSubmittedAt                                        DateTime?                                        @db.Timestamp(6)
+  ninVerifiedAt                                         DateTime?                                        @db.Timestamp(6)
   verification_api_logs                                 verification_api_logs[]
   verification_documents                                verification_documents[]
-  users_verification_requests_assignedReviewerIdTousers users?                             @relation("verification_requests_assignedReviewerIdTousers", fields: [assignedReviewerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_0a9afbc975b680f23f5ae8e03dc")
-  users_verification_requests_doctorIdTousers           users                              @relation("verification_requests_doctorIdTousers", fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_34402df7434d02ccfdd5e297812")
+  users_verification_requests_assignedReviewerIdTousers users?                                           @relation("verification_requests_assignedReviewerIdTousers", fields: [assignedReviewerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_0a9afbc975b680f23f5ae8e03dc")
+  users_verification_requests_doctorIdTousers           users                                            @relation("verification_requests_doctorIdTousers", fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_34402df7434d02ccfdd5e297812")
   verification_review_queue                             verification_review_queue?
   verification_status_history                           verification_status_history[]
 
@@ -3257,6 +3269,8 @@ model carts {
   cancelledBy    String?           @db.VarChar
   createdAt      DateTime          @default(now()) @db.Timestamp(6)
   updatedAt      DateTime          @default(now()) @db.Timestamp(6)
+  prescriptionId String?           @db.Uuid
+  paidAt         DateTime?         @db.Timestamp(6)
   cart_items     cart_items[]
 
   @@index([patientId], map: "IDX_carts_patientId")
@@ -3278,23 +3292,24 @@ model product_media {
 }
 
 model products {
-  id                 String                    @id(map: "PK_products") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  vendorId           String                    @db.Uuid
-  title              String                    @db.VarChar
-  description        String
-  price              Decimal                   @db.Decimal(12, 2)
-  stockQuantity      Int                       @default(0)
-  category           products_category_enum
-  subcategory        products_subcategory_enum
-  status             products_status_enum      @default(pending)
-  rejectionReason    String?
-  isActive           Boolean                   @default(true)
-  createdAt          DateTime                  @default(now()) @db.Timestamp(6)
-  updatedAt          DateTime                  @default(now()) @db.Timestamp(6)
-  cart_items         cart_items[]
-  product_media      product_media[]
-  vendor_profiles    vendor_profiles           @relation(fields: [vendorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_products_vendor")
-  promotion_products promotion_products[]
+  id                   String                    @id(map: "PK_products") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  vendorId             String                    @db.Uuid
+  title                String                    @db.VarChar
+  description          String
+  price                Decimal                   @db.Decimal(12, 2)
+  stockQuantity        Int                       @default(0)
+  category             products_category_enum
+  subcategory          products_subcategory_enum
+  status               products_status_enum      @default(pending)
+  rejectionReason      String?
+  isActive             Boolean                   @default(true)
+  createdAt            DateTime                  @default(now()) @db.Timestamp(6)
+  updatedAt            DateTime                  @default(now()) @db.Timestamp(6)
+  prescriptionRequired Boolean                   @default(false)
+  cart_items           cart_items[]
+  product_media        product_media[]
+  vendor_profiles      vendor_profiles           @relation(fields: [vendorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_products_vendor")
+  promotion_products   promotion_products[]
 
   @@index([category], map: "IDX_products_category")
   @@index([isActive], map: "IDX_products_isActive")
@@ -3377,7 +3392,9 @@ model vendor_profiles {
   products                     products[]
   promotions                   promotions[]
   vendor_documents             vendor_documents[]
+  vendor_orders                vendor_orders[]
   vendor_verification_requests vendor_verification_requests[]
+  vendor_wallets               vendor_wallets?
 
   @@index([businessCategory], map: "IDX_vendor_profiles_businessCategory")
   @@index([isHybridPharmacy], map: "IDX_vendor_profiles_isHybridPharmacy")
@@ -3403,6 +3420,488 @@ model vendor_verification_requests {
   createdAt       DateTime                                      @default(now()) @db.Timestamp(6)
   updatedAt       DateTime                                      @default(now()) @db.Timestamp(6)
   vendor_profiles vendor_profiles                               @relation(fields: [vendorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_vendor_verification_requests_vendor")
+}
+
+model ai_support_messages {
+  id                  String                              @id(map: "PK_ai_support_messages") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  sessionId           String                              @db.Uuid
+  senderId            String                              @db.Uuid
+  senderType          ai_support_message_sender_type_enum
+  content             String
+  metadata            Json?
+  createdAt           DateTime                            @default(now()) @db.Timestamp(6)
+  ai_support_sessions ai_support_sessions                 @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_ai_support_messages_session")
+
+  @@index([sessionId, createdAt], map: "IDX_ai_support_messages_session")
+  @@index([senderType], map: "IDX_ai_support_messages_type")
+}
+
+model ai_support_sessions {
+  id                                       String                         @id(map: "PK_ai_support_sessions") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId                                   String                         @db.Uuid
+  userRole                                 String                         @db.VarChar(50)
+  status                                   ai_support_session_status_enum @default(active)
+  escalationReason                         String?
+  agentId                                  String?                        @db.Uuid
+  messageCount                             Int                            @default(0)
+  lastActivityAt                           DateTime                       @default(now()) @db.Timestamp(6)
+  closedAt                                 DateTime?                      @db.Timestamp(6)
+  createdAt                                DateTime                       @default(now()) @db.Timestamp(6)
+  updatedAt                                DateTime                       @default(now()) @db.Timestamp(6)
+  ai_support_messages                      ai_support_messages[]
+  users_ai_support_sessions_agentIdTousers users?                         @relation("ai_support_sessions_agentIdTousers", fields: [agentId], references: [id], onUpdate: NoAction, map: "FK_ai_support_sessions_agent")
+  users_ai_support_sessions_userIdTousers  users                          @relation("ai_support_sessions_userIdTousers", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_ai_support_sessions_user")
+
+  @@index([agentId], map: "IDX_ai_support_sessions_agent")
+  @@index([status], map: "IDX_ai_support_sessions_status")
+  @@index([userId], map: "IDX_ai_support_sessions_user")
+}
+
+model marketing_analytics_snapshots {
+  id                   String   @id(map: "PK_marketing_analytics_snapshots") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  overviewStats        Json?    @db.Json
+  socialStats          Json?    @db.Json
+  adsPerformance       Json?    @db.Json
+  locations            Json?    @db.Json
+  audienceBreakdown    Json?    @db.Json
+  conversionFunnel     Json?    @db.Json
+  weeklyEngagement     Json?    @db.Json
+  performanceData      Json?    @db.Json
+  platformIntegrations Json?    @db.Json
+  createdAt            DateTime @default(now()) @db.Timestamp(6)
+  updatedAt            DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([createdAt], map: "IDX_marketing_analytics_snapshots_createdAt")
+}
+
+model marketing_banners {
+  id                String                       @id(map: "PK_marketing_banners") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  mediaType         String                       @db.VarChar(100)
+  fileName          String?                      @db.VarChar(255)
+  fileUrl           String?                      @db.VarChar(1000)
+  imageUrl          String?                      @db.VarChar(1000)
+  cloudinaryId      String?                      @db.VarChar(255)
+  title             String                       @db.VarChar(255)
+  description       String
+  display           Json?                        @db.Json
+  placement         Json?                        @db.Json
+  externalLink      String                       @db.VarChar(1000)
+  startDate         DateTime                     @db.Date
+  endDate           DateTime                     @db.Date
+  status            marketing_banner_status_enum @default(Inactive)
+  totalImpressions  Int                          @default(0)
+  impressionsChange Decimal                      @default(0) @db.Decimal(8, 2)
+  clicks            Int                          @default(0)
+  clicksChange      Decimal                      @default(0) @db.Decimal(8, 2)
+  signup            Int                          @default(0)
+  signupChange      Decimal                      @default(0) @db.Decimal(8, 2)
+  createdAt         DateTime                     @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime                     @default(now()) @db.Timestamp(6)
+
+  @@index([createdAt], map: "IDX_marketing_banners_createdAt")
+  @@index([endDate], map: "IDX_marketing_banners_endDate")
+  @@index([startDate], map: "IDX_marketing_banners_startDate")
+  @@index([status], map: "IDX_marketing_banners_status")
+}
+
+model marketing_campaign_performance {
+  id                  String              @id(map: "PK_marketing_campaign_performance") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  campaignId          String              @unique(map: "UQ_marketing_campaign_performance_campaignId") @db.Uuid
+  opens               Int                 @default(0)
+  clicks              Int                 @default(0)
+  conversions         Int                 @default(0)
+  totalReach          Int                 @default(0)
+  engagementRate      Decimal             @default(0) @db.Decimal(8, 2)
+  conversionRate      Decimal             @default(0) @db.Decimal(8, 2)
+  costPerClick        Decimal             @default(0) @db.Decimal(10, 2)
+  createdAt           DateTime            @default(now()) @db.Timestamp(6)
+  updatedAt           DateTime            @default(now()) @db.Timestamp(6)
+  marketing_campaigns marketing_campaigns @relation(fields: [campaignId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_marketing_campaign_performance_campaignId")
+
+  @@index([campaignId], map: "IDX_marketing_campaign_performance_campaignId")
+}
+
+model marketing_campaign_team_members {
+  id                  String              @id(map: "PK_marketing_campaign_team_members") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  campaignId          String              @db.Uuid
+  adminUserId         String?             @db.Uuid
+  role                String              @db.VarChar(150)
+  createdAt           DateTime            @default(now()) @db.Timestamp(6)
+  updatedAt           DateTime            @default(now()) @db.Timestamp(6)
+  users               users?              @relation(fields: [adminUserId], references: [id], onUpdate: NoAction, map: "FK_marketing_campaign_team_members_adminUserId")
+  marketing_campaigns marketing_campaigns @relation(fields: [campaignId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_marketing_campaign_team_members_campaignId")
+
+  @@index([adminUserId], map: "IDX_marketing_campaign_team_members_adminUserId")
+  @@index([campaignId], map: "IDX_marketing_campaign_team_members_campaignId")
+}
+
+model marketing_campaign_timeline {
+  id                  String              @id(map: "PK_marketing_campaign_timeline") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  campaignId          String              @db.Uuid
+  label               String              @db.VarChar(255)
+  date                DateTime            @db.Date
+  done                Boolean             @default(false)
+  sortOrder           Int                 @default(0)
+  createdAt           DateTime            @default(now()) @db.Timestamp(6)
+  updatedAt           DateTime            @default(now()) @db.Timestamp(6)
+  marketing_campaigns marketing_campaigns @relation(fields: [campaignId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_marketing_campaign_timeline_campaignId")
+
+  @@index([campaignId], map: "IDX_marketing_campaign_timeline_campaignId")
+  @@index([sortOrder, date], map: "IDX_marketing_campaign_timeline_order")
+}
+
+model marketing_campaigns {
+  id                              String                            @id(map: "PK_marketing_campaigns") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  title                           String                            @db.VarChar(255)
+  type                            marketing_campaign_type_enum
+  status                          marketing_campaign_status_enum    @default(Drafts)
+  description                     String?
+  budget                          Decimal?                          @db.Decimal(12, 2)
+  progress                        Int                               @default(0)
+  launchDate                      DateTime?                         @db.Date
+  estCompletion                   DateTime?                         @db.Date
+  targetAudience                  String?
+  duration                        String?                           @db.VarChar(100)
+  channels                        Json?                             @db.Json
+  overview                        String?
+  createdAt                       DateTime                          @default(now()) @db.Timestamp(6)
+  updatedAt                       DateTime                          @default(now()) @db.Timestamp(6)
+  marketing_campaign_performance  marketing_campaign_performance?
+  marketing_campaign_team_members marketing_campaign_team_members[]
+  marketing_campaign_timeline     marketing_campaign_timeline[]
+
+  @@index([createdAt], map: "IDX_marketing_campaigns_createdAt")
+  @@index([launchDate], map: "IDX_marketing_campaigns_launchDate")
+  @@index([status], map: "IDX_marketing_campaigns_status")
+  @@index([type], map: "IDX_marketing_campaigns_type")
+}
+
+model marketing_content_items {
+  id                                    String                                  @id(map: "PK_marketing_content_items") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  title                                 String                                  @db.VarChar(255)
+  type                                  String                                  @db.VarChar(100)
+  authorId                              String?                                 @db.Uuid
+  authorName                            String?                                 @db.VarChar(255)
+  link                                  String?                                 @db.VarChar(1000)
+  description                           String?
+  status                                marketing_content_status_enum           @default(Draft)
+  performance                           Int                                     @default(0)
+  createdAt                             DateTime                                @default(now()) @db.Timestamp(6)
+  updatedAt                             DateTime                                @default(now()) @db.Timestamp(6)
+  users                                 users?                                  @relation(fields: [authorId], references: [id], onUpdate: NoAction, map: "FK_marketing_content_items_authorId")
+  marketing_content_monthly_performance marketing_content_monthly_performance[]
+
+  @@index([authorId], map: "IDX_marketing_content_items_authorId")
+  @@index([status], map: "IDX_marketing_content_items_status")
+  @@index([updatedAt], map: "IDX_marketing_content_items_updatedAt")
+}
+
+model marketing_content_monthly_performance {
+  id                      String                  @id(map: "PK_marketing_content_monthly_performance") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  contentId               String                  @db.Uuid
+  month                   String                  @db.VarChar(20)
+  value                   Int                     @default(0)
+  sortOrder               Int                     @default(0)
+  createdAt               DateTime                @default(now()) @db.Timestamp(6)
+  updatedAt               DateTime                @default(now()) @db.Timestamp(6)
+  marketing_content_items marketing_content_items @relation(fields: [contentId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_marketing_content_monthly_performance_contentId")
+
+  @@index([contentId], map: "IDX_marketing_content_monthly_performance_contentId")
+  @@index([sortOrder], map: "IDX_marketing_content_monthly_performance_sortOrder")
+}
+
+model marketing_email_templates {
+  id                            String                        @id(map: "PK_marketing_email_templates") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  eventId                       String                        @db.Uuid
+  validFrom                     DateTime                      @db.Date
+  validTo                       DateTime                      @db.Date
+  language                      String                        @db.VarChar(20)
+  status                        String                        @default("Active") @db.VarChar(100)
+  createdAt                     DateTime                      @default(now()) @db.Timestamp(6)
+  updatedAt                     DateTime                      @default(now()) @db.Timestamp(6)
+  marketing_notification_events marketing_notification_events @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_marketing_email_templates_eventId")
+
+  @@index([createdAt], map: "IDX_marketing_email_templates_createdAt")
+  @@index([eventId], map: "IDX_marketing_email_templates_eventId")
+  @@index([validTo], map: "IDX_marketing_email_templates_validTo")
+}
+
+model marketing_notification_events {
+  id                        String                      @id(map: "PK_marketing_notification_events") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  eventCode                 String                      @unique(map: "UQ_marketing_notification_events_eventCode") @db.VarChar(20)
+  event                     String                      @db.VarChar(255)
+  notifyEnabled             Boolean                     @default(true)
+  emailEnabled              Boolean                     @default(true)
+  whatsappEnabled           Boolean                     @default(true)
+  smsEnabled                Boolean                     @default(true)
+  recipients                Json?                       @db.Json
+  validToDate               DateTime?                   @db.Date
+  customerFullName          String?                     @db.VarChar(255)
+  customerEmail             String?                     @db.VarChar(255)
+  customerPhone             String?                     @db.VarChar(50)
+  customerCountry           String?                     @db.VarChar(100)
+  emailContent              Json?                       @db.Json
+  conditionalBlock          Json?                       @db.Json
+  whatsappContent           Json?                       @db.Json
+  createdAt                 DateTime                    @default(now()) @db.Timestamp(6)
+  updatedAt                 DateTime                    @default(now()) @db.Timestamp(6)
+  marketing_email_templates marketing_email_templates[]
+
+  @@index([createdAt], map: "IDX_marketing_notification_events_createdAt")
+  @@index([event], map: "IDX_marketing_notification_events_event")
+  @@index([validToDate], map: "IDX_marketing_notification_events_validToDate")
+}
+
+model marketing_promotions {
+  id           String                          @id(map: "PK_marketing_promotions") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  title        String                          @db.VarChar(255)
+  discountType String                          @db.VarChar(255)
+  startDate    DateTime                        @db.Date
+  endDate      DateTime                        @db.Date
+  grossSales   Int                             @default(0)
+  averageRate  Decimal                         @default(0) @db.Decimal(8, 2)
+  grossRevenue Decimal                         @default(0) @db.Decimal(12, 2)
+  status       marketing_promotion_status_enum @default(Upcoming)
+  createdAt    DateTime                        @default(now()) @db.Timestamp(6)
+  updatedAt    DateTime                        @default(now()) @db.Timestamp(6)
+
+  @@index([createdAt], map: "IDX_marketing_promotions_createdAt")
+  @@index([endDate], map: "IDX_marketing_promotions_endDate")
+  @@index([startDate], map: "IDX_marketing_promotions_startDate")
+  @@index([status], map: "IDX_marketing_promotions_status")
+}
+
+model marketing_social_accounts {
+  id                String                         @id(map: "PK_marketing_social_accounts") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  platform          marketing_social_platform_enum
+  username          String                         @db.VarChar(255)
+  connected         Boolean                        @default(true)
+  encryptedPassword String?
+  credentialsSaved  Boolean                        @default(false)
+  createdAt         DateTime                       @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime                       @default(now()) @db.Timestamp(6)
+
+  @@unique([platform, username], map: "UQ_marketing_social_accounts_platform_username")
+  @@index([connected], map: "IDX_marketing_social_accounts_connected")
+  @@index([platform], map: "IDX_marketing_social_accounts_platform")
+}
+
+model marketing_social_analytics_snapshots {
+  id                    String   @id(map: "PK_marketing_social_analytics_snapshots") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  stats                 Json?    @db.Json
+  locations             Json?    @db.Json
+  audience              Json?    @db.Json
+  recentUpload          Json?    @db.Json
+  weeklyEngagement      Json?    @db.Json
+  totalEngagementChange String?  @db.VarChar(50)
+  createdAt             DateTime @default(now()) @db.Timestamp(6)
+  updatedAt             DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([createdAt], map: "IDX_marketing_social_analytics_snapshots_createdAt")
+}
+
+model marketing_social_posts {
+  id             String                            @id(map: "PK_marketing_social_posts") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  platform       marketing_social_platform_enum
+  caption        String
+  description    String?
+  excerpt        String?
+  attachmentUrl  String?                           @db.VarChar(1000)
+  attachmentUrls Json?                             @db.Json
+  thumbnailUrl   String?                           @db.VarChar(1000)
+  imageUrl       String?                           @db.VarChar(1000)
+  postedAt       DateTime?                         @db.Timestamp(6)
+  scheduledFor   DateTime?                         @db.Timestamp(6)
+  status         marketing_social_post_status_enum @default(Draft)
+  followers      Int                               @default(0)
+  views          Int                               @default(0)
+  totalLikes     Int                               @default(0)
+  comments       Int                               @default(0)
+  locations      Json?                             @db.Json
+  performance    Json?                             @db.Json
+  createdAt      DateTime                          @default(now()) @db.Timestamp(6)
+  updatedAt      DateTime                          @default(now()) @db.Timestamp(6)
+
+  @@index([createdAt], map: "IDX_marketing_social_posts_createdAt")
+  @@index([platform], map: "IDX_marketing_social_posts_platform")
+  @@index([postedAt], map: "IDX_marketing_social_posts_postedAt")
+  @@index([scheduledFor], map: "IDX_marketing_social_posts_scheduledFor")
+  @@index([status], map: "IDX_marketing_social_posts_status")
+}
+
+model pharmacy_sessions {
+  id                 String                        @id(map: "PK_pharmacy_sessions") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  prescriptionId     String                        @db.Uuid
+  pharmacyId         String                        @db.Uuid
+  patientId          String                        @db.Uuid
+  status             pharmacy_sessions_status_enum @default(active)
+  expiresAt          DateTime                      @db.Timestamp(6)
+  createdAt          DateTime                      @default(now()) @db.Timestamp(6)
+  updatedAt          DateTime                      @default(now()) @db.Timestamp(6)
+  users              users                         @relation(fields: [patientId], references: [id], onUpdate: NoAction, map: "FK_pharmacy_sessions_patient")
+  prescriptions      prescriptions                 @relation(fields: [prescriptionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_pharmacy_sessions_prescription")
+  prescription_carts prescription_carts?
+
+  @@index([expiresAt], map: "IDX_pharmacy_sessions_expiresAt")
+  @@index([patientId], map: "IDX_pharmacy_sessions_patientId")
+  @@index([pharmacyId], map: "IDX_pharmacy_sessions_pharmacyId")
+  @@index([prescriptionId], map: "IDX_pharmacy_sessions_prescriptionId")
+  @@index([status], map: "IDX_pharmacy_sessions_status")
+}
+
+model prescription_cart_items {
+  id                 String             @id(map: "PK_prescription_cart_items") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  cartId             String             @db.Uuid
+  productName        String             @db.VarChar
+  quantity           Int                @default(1)
+  unitPriceNgn       Decimal            @db.Decimal(14, 4)
+  totalPriceNgn      Decimal            @db.Decimal(14, 4)
+  note               String?
+  isSubstitute       Boolean            @default(false)
+  createdAt          DateTime           @default(now()) @db.Timestamp(6)
+  updatedAt          DateTime           @default(now()) @db.Timestamp(6)
+  prescription_carts prescription_carts @relation(fields: [cartId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_prescription_cart_items_cart")
+
+  @@index([cartId], map: "IDX_prescription_cart_items_cartId")
+}
+
+model prescription_carts {
+  id                      String                                @id(map: "PK_prescription_carts") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  sessionId               String                                @unique(map: "UQ_prescription_carts_sessionId") @db.Uuid
+  prescriptionId          String                                @db.Uuid
+  pharmacyId              String                                @db.Uuid
+  patientId               String                                @db.Uuid
+  status                  prescription_carts_status_enum        @default(building)
+  totalAmountNgn          Decimal?                              @db.Decimal(14, 4)
+  platformFeeNgn          Decimal?                              @db.Decimal(14, 4)
+  pharmacyAmountNgn       Decimal?                              @db.Decimal(14, 4)
+  currency                String                                @default("NGN") @db.VarChar(10)
+  totalAmountUsd          Decimal?                              @db.Decimal(14, 6)
+  platformFeeUsd          Decimal?                              @db.Decimal(14, 6)
+  pharmacyAmountUsd       Decimal?                              @db.Decimal(14, 6)
+  exchangeRateToUsd       Decimal?                              @db.Decimal(14, 6)
+  paymentStatus           prescription_carts_paymentstatus_enum @default(unpaid)
+  paymentReference        String?                               @db.VarChar
+  paymentProvider         String?                               @db.VarChar
+  paymentAuthUrl          String?                               @db.VarChar
+  paidAt                  DateTime?                             @db.Timestamp(6)
+  pharmacyNote            String?
+  createdAt               DateTime                              @default(now()) @db.Timestamp(6)
+  updatedAt               DateTime                              @default(now()) @db.Timestamp(6)
+  prescription_cart_items prescription_cart_items[]
+  pharmacy_sessions       pharmacy_sessions                     @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_prescription_carts_session")
+
+  @@index([patientId], map: "IDX_prescription_carts_patientId")
+  @@index([paymentStatus], map: "IDX_prescription_carts_paymentStatus")
+  @@index([pharmacyId], map: "IDX_prescription_carts_pharmacyId")
+  @@index([prescriptionId], map: "IDX_prescription_carts_prescriptionId")
+  @@index([sessionId], map: "IDX_prescription_carts_sessionId")
+}
+
+model shipments {
+  id                  String                        @id(map: "PK_shipments") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  orderId             String                        @unique(map: "UQ_shipments_orderId") @db.Uuid
+  vendorId            String                        @db.Uuid
+  patientId           String                        @db.Uuid
+  status              shipments_status_enum         @default(pending)
+  deliveryMethod      shipments_deliverymethod_enum
+  deliveryAddress     String?
+  trackingNumber      String?                       @db.VarChar
+  logisticsProvider   String?                       @db.VarChar
+  estimatedDeliveryAt DateTime?                     @db.Timestamp(6)
+  dispatchedAt        DateTime?                     @db.Timestamp(6)
+  deliveredAt         DateTime?                     @db.Timestamp(6)
+  vendorNotes         String?
+  createdAt           DateTime                      @default(now()) @db.Timestamp(6)
+  updatedAt           DateTime                      @default(now()) @db.Timestamp(6)
+  vendor_orders       vendor_orders                 @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_shipments_order")
+
+  @@index([orderId], map: "IDX_shipments_orderId")
+  @@index([patientId], map: "IDX_shipments_patientId")
+  @@index([status], map: "IDX_shipments_status")
+  @@index([trackingNumber], map: "IDX_shipments_trackingNumber")
+  @@index([vendorId], map: "IDX_shipments_vendorId")
+}
+
+model vendor_orders {
+  id                String                           @id(map: "PK_vendor_orders") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  orderNumber       String                           @unique(map: "UQ_vendor_orders_orderNumber") @db.VarChar(50)
+  cartId            String                           @unique(map: "UQ_vendor_orders_cartId") @db.Uuid
+  vendorId          String                           @db.Uuid
+  patientId         String                           @db.Uuid
+  status            vendor_orders_status_enum        @default(pending)
+  paymentStatus     vendor_orders_paymentstatus_enum @default(unpaid)
+  subtotal          Decimal                          @db.Decimal(14, 4)
+  platformFeeAmount Decimal                          @db.Decimal(14, 4)
+  vendorAmount      Decimal                          @db.Decimal(14, 4)
+  currency          String                           @default("NGN") @db.VarChar(10)
+  paymentReference  String?                          @db.VarChar
+  paymentProvider   String?                          @db.VarChar
+  paymentAuthUrl    String?                          @db.VarChar
+  patientNote       String?
+  vendorNote        String?
+  deliveryMethod    String?                          @db.VarChar(20)
+  deliveryAddress   String?
+  cancelledBy       String?                          @db.VarChar(20)
+  cancelledAt       DateTime?                        @db.Timestamp(6)
+  completedAt       DateTime?                        @db.Timestamp(6)
+  paidAt            DateTime?                        @db.Timestamp(6)
+  createdAt         DateTime                         @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime                         @default(now()) @db.Timestamp(6)
+  grossAmount       Decimal                          @default(0) @db.Decimal(14, 4)
+  commissionRate    Decimal                          @default(0) @db.Decimal(5, 4)
+  commissionAmount  Decimal                          @default(0) @db.Decimal(14, 4)
+  shipments         shipments?
+  users             users                            @relation(fields: [patientId], references: [id], onUpdate: NoAction, map: "FK_vendor_orders_patient")
+  vendor_profiles   vendor_profiles                  @relation(fields: [vendorId], references: [id], onUpdate: NoAction, map: "FK_vendor_orders_vendor")
+
+  @@index([cartId], map: "IDX_vendor_orders_cartId")
+  @@index([createdAt], map: "IDX_vendor_orders_createdAt")
+  @@index([patientId], map: "IDX_vendor_orders_patientId")
+  @@index([paymentStatus], map: "IDX_vendor_orders_paymentStatus")
+  @@index([status], map: "IDX_vendor_orders_status")
+  @@index([vendorId], map: "IDX_vendor_orders_vendorId")
+}
+
+model vendor_wallet_transactions {
+  id              String                                   @id(map: "PK_vendor_wallet_transactions") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  walletId        String                                   @db.Uuid
+  vendorId        String                                   @db.Uuid
+  type            vendor_wallet_transactions_type_enum
+  category        vendor_wallet_transactions_category_enum
+  status          vendor_wallet_transactions_status_enum   @default(completed)
+  amountNgn       Decimal                                  @db.Decimal(14, 4)
+  balanceAfterNgn Decimal                                  @db.Decimal(14, 4)
+  orderId         String?                                  @db.Uuid
+  reference       String?                                  @db.VarChar
+  description     String
+  createdAt       DateTime                                 @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime                                 @default(now()) @db.Timestamp(6)
+  vendor_wallets  vendor_wallets                           @relation(fields: [walletId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_vendor_wallet_transactions_wallet")
+
+  @@index([category], map: "IDX_vendor_wallet_txn_category")
+  @@index([createdAt], map: "IDX_vendor_wallet_txn_createdAt")
+  @@index([orderId], map: "IDX_vendor_wallet_txn_orderId")
+  @@index([vendorId], map: "IDX_vendor_wallet_txn_vendorId")
+  @@index([walletId], map: "IDX_vendor_wallet_txn_walletId")
+}
+
+model vendor_wallets {
+  id                         String                       @id(map: "PK_vendor_wallets") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  vendorId                   String                       @unique(map: "UQ_vendor_wallets_vendorId") @db.Uuid
+  availableBalanceNgn        Decimal                      @default(0) @db.Decimal(14, 4)
+  pendingClearanceNgn        Decimal                      @default(0) @db.Decimal(14, 4)
+  totalEarningsNgn           Decimal                      @default(0) @db.Decimal(14, 4)
+  isActive                   Boolean                      @default(true)
+  isFrozen                   Boolean                      @default(false)
+  frozenReason               String?
+  lastPayoutAt               DateTime?                    @db.Timestamp(6)
+  createdAt                  DateTime                     @default(now()) @db.Timestamp(6)
+  updatedAt                  DateTime                     @default(now()) @db.Timestamp(6)
+  vendor_wallet_transactions vendor_wallet_transactions[]
+  vendor_profiles            vendor_profiles              @relation(fields: [vendorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_vendor_wallets_vendor")
+
+  @@index([vendorId], map: "IDX_vendor_wallets_vendorId")
 }
 
 enum account_support_issuetype_enum {
@@ -4576,6 +5075,7 @@ enum carts_status_enum {
   submitted
   confirmed
   cancelled
+  paid
 }
 
 enum product_media_mediatype_enum {
@@ -4706,4 +5206,138 @@ enum vendor_verification_requests_status_enum {
   approved
   rejected
   requires_changes
+}
+
+enum ai_support_message_sender_type_enum {
+  user
+  ai
+  agent
+}
+
+enum ai_support_session_status_enum {
+  active
+  escalated
+  agent_joined
+  closed
+}
+
+enum marketing_banner_status_enum {
+  Active
+  Inactive
+  Expired
+}
+
+enum marketing_campaign_status_enum {
+  Active
+  Drafts
+  Completed
+  Paused
+  Archived
+}
+
+enum marketing_campaign_type_enum {
+  Email
+  Social
+  Events
+  Ads
+}
+
+enum marketing_content_status_enum {
+  Published
+  Draft
+}
+
+enum marketing_promotion_status_enum {
+  Upcoming
+  Active
+  Completed
+  Ended
+}
+
+enum marketing_social_platform_enum {
+  Facebook
+  Instagram
+  Youtube
+  Twitter
+  Tiktok
+  LinkedIn
+}
+
+enum marketing_social_post_status_enum {
+  Published
+  Scheduled
+  Draft
+  Deleted
+}
+
+enum pharmacy_sessions_status_enum {
+  active
+  cart_ready
+  approved
+  expired
+  cancelled
+}
+
+enum prescription_carts_paymentstatus_enum {
+  unpaid
+  paid
+  refunded
+}
+
+enum prescription_carts_status_enum {
+  building
+  ready
+  approved
+}
+
+enum shipments_deliverymethod_enum {
+  pickup
+  delivery
+}
+
+enum shipments_status_enum {
+  pending
+  dispatched
+  in_transit
+  delivered
+  failed
+}
+
+enum vendor_orders_paymentstatus_enum {
+  unpaid
+  paid
+  refunded
+}
+
+enum vendor_orders_status_enum {
+  pending
+  processing
+  completed
+  cancelled
+}
+
+enum vendor_wallet_transactions_category_enum {
+  order_payment
+  payout
+  refund
+  adjustment
+}
+
+enum vendor_wallet_transactions_status_enum {
+  completed
+  pending
+  failed
+}
+
+enum vendor_wallet_transactions_type_enum {
+  credit
+  debit
+}
+
+enum verification_requests_ninverificationstatus_enum {
+  not_submitted
+  pending
+  verified
+  mismatch
+  failed
 }

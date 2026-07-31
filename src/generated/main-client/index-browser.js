@@ -24,12 +24,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 7.6.0
- * Query Engine version: 75cbdc1eb7150937890ad5465d861175c6624711
+ * Prisma Client JS version: 7.9.0
+ * Query Engine version: e922089b7d7502aff4249d5da3420f6fa55fc6ad
  */
 Prisma.prismaVersion = {
-  client: "7.6.0",
-  engine: "75cbdc1eb7150937890ad5465d861175c6624711"
+  client: "7.9.0",
+  engine: "e922089b7d7502aff4249d5da3420f6fa55fc6ad"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -1534,214 +1534,6 @@ exports.Prisma.Marketing_user_spin_historyScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.Marketing_campaignsScalarFieldEnum = {
-  id: 'id',
-  title: 'title',
-  type: 'type',
-  status: 'status',
-  description: 'description',
-  budget: 'budget',
-  progress: 'progress',
-  launchDate: 'launchDate',
-  estCompletion: 'estCompletion',
-  targetAudience: 'targetAudience',
-  duration: 'duration',
-  channels: 'channels',
-  overview: 'overview',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.Marketing_campaign_performanceScalarFieldEnum = {
-  id: 'id',
-  campaignId: 'campaignId',
-  opens: 'opens',
-  clicks: 'clicks',
-  conversions: 'conversions',
-  totalReach: 'totalReach',
-  engagementRate: 'engagementRate',
-  conversionRate: 'conversionRate',
-  costPerClick: 'costPerClick',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.Marketing_campaign_timelineScalarFieldEnum = {
-  id: 'id',
-  campaignId: 'campaignId',
-  label: 'label',
-  date: 'date',
-  done: 'done',
-  sortOrder: 'sortOrder',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.Marketing_campaign_team_membersScalarFieldEnum = {
-  id: 'id',
-  campaignId: 'campaignId',
-  adminUserId: 'adminUserId',
-  role: 'role',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.Marketing_content_itemsScalarFieldEnum = {
-  id: 'id',
-  title: 'title',
-  type: 'type',
-  authorId: 'authorId',
-  authorName: 'authorName',
-  link: 'link',
-  description: 'description',
-  status: 'status',
-  performance: 'performance',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.Marketing_content_monthly_performanceScalarFieldEnum = {
-  id: 'id',
-  contentId: 'contentId',
-  month: 'month',
-  value: 'value',
-  sortOrder: 'sortOrder',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.Marketing_notification_eventsScalarFieldEnum = {
-  id: 'id',
-  eventCode: 'eventCode',
-  event: 'event',
-  notifyEnabled: 'notifyEnabled',
-  emailEnabled: 'emailEnabled',
-  whatsappEnabled: 'whatsappEnabled',
-  smsEnabled: 'smsEnabled',
-  recipients: 'recipients',
-  validToDate: 'validToDate',
-  customerFullName: 'customerFullName',
-  customerEmail: 'customerEmail',
-  customerPhone: 'customerPhone',
-  customerCountry: 'customerCountry',
-  emailContent: 'emailContent',
-  conditionalBlock: 'conditionalBlock',
-  whatsappContent: 'whatsappContent',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.Marketing_email_templatesScalarFieldEnum = {
-  id: 'id',
-  eventId: 'eventId',
-  validFrom: 'validFrom',
-  validTo: 'validTo',
-  language: 'language',
-  status: 'status',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.Marketing_social_accountsScalarFieldEnum = {
-  id: 'id',
-  platform: 'platform',
-  username: 'username',
-  connected: 'connected',
-  encryptedPassword: 'encryptedPassword',
-  credentialsSaved: 'credentialsSaved',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.Marketing_social_postsScalarFieldEnum = {
-  id: 'id',
-  platform: 'platform',
-  caption: 'caption',
-  description: 'description',
-  excerpt: 'excerpt',
-  attachmentUrl: 'attachmentUrl',
-  attachmentUrls: 'attachmentUrls',
-  thumbnailUrl: 'thumbnailUrl',
-  imageUrl: 'imageUrl',
-  postedAt: 'postedAt',
-  scheduledFor: 'scheduledFor',
-  status: 'status',
-  followers: 'followers',
-  views: 'views',
-  totalLikes: 'totalLikes',
-  comments: 'comments',
-  locations: 'locations',
-  performance: 'performance',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.Marketing_social_analytics_snapshotsScalarFieldEnum = {
-  id: 'id',
-  stats: 'stats',
-  locations: 'locations',
-  audience: 'audience',
-  recentUpload: 'recentUpload',
-  weeklyEngagement: 'weeklyEngagement',
-  totalEngagementChange: 'totalEngagementChange',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.Marketing_promotionsScalarFieldEnum = {
-  id: 'id',
-  title: 'title',
-  discountType: 'discountType',
-  startDate: 'startDate',
-  endDate: 'endDate',
-  grossSales: 'grossSales',
-  averageRate: 'averageRate',
-  grossRevenue: 'grossRevenue',
-  status: 'status',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.Marketing_bannersScalarFieldEnum = {
-  id: 'id',
-  mediaType: 'mediaType',
-  fileName: 'fileName',
-  fileUrl: 'fileUrl',
-  imageUrl: 'imageUrl',
-  cloudinaryId: 'cloudinaryId',
-  title: 'title',
-  description: 'description',
-  display: 'display',
-  placement: 'placement',
-  externalLink: 'externalLink',
-  startDate: 'startDate',
-  endDate: 'endDate',
-  status: 'status',
-  totalImpressions: 'totalImpressions',
-  impressionsChange: 'impressionsChange',
-  clicks: 'clicks',
-  clicksChange: 'clicksChange',
-  signup: 'signup',
-  signupChange: 'signupChange',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.Marketing_analytics_snapshotsScalarFieldEnum = {
-  id: 'id',
-  overviewStats: 'overviewStats',
-  socialStats: 'socialStats',
-  adsPerformance: 'adsPerformance',
-  locations: 'locations',
-  audienceBreakdown: 'audienceBreakdown',
-  conversionFunnel: 'conversionFunnel',
-  weeklyEngagement: 'weeklyEngagement',
-  performanceData: 'performanceData',
-  platformIntegrations: 'platformIntegrations',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
 exports.Prisma.Medical_conditionsScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -2599,7 +2391,15 @@ exports.Prisma.Verification_requestsScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   createdBy: 'createdBy',
-  updatedBy: 'updatedBy'
+  updatedBy: 'updatedBy',
+  ninEncrypted: 'ninEncrypted',
+  ninEncryptionKey: 'ninEncryptionKey',
+  ninLast4: 'ninLast4',
+  ninVerificationStatus: 'ninVerificationStatus',
+  ninVerifiedData: 'ninVerifiedData',
+  ninNameMatchScore: 'ninNameMatchScore',
+  ninSubmittedAt: 'ninSubmittedAt',
+  ninVerifiedAt: 'ninVerifiedAt'
 };
 
 exports.Prisma.Verification_review_queueScalarFieldEnum = {
@@ -2710,7 +2510,9 @@ exports.Prisma.CartsScalarFieldEnum = {
   cancelledAt: 'cancelledAt',
   cancelledBy: 'cancelledBy',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  prescriptionId: 'prescriptionId',
+  paidAt: 'paidAt'
 };
 
 exports.Prisma.Product_mediaScalarFieldEnum = {
@@ -2735,7 +2537,8 @@ exports.Prisma.ProductsScalarFieldEnum = {
   rejectionReason: 'rejectionReason',
   isActive: 'isActive',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  prescriptionRequired: 'prescriptionRequired'
 };
 
 exports.Prisma.Promotion_productsScalarFieldEnum = {
@@ -2817,6 +2620,365 @@ exports.Prisma.Vendor_verification_requestsScalarFieldEnum = {
   assignedAt: 'assignedAt',
   reviewedAt: 'reviewedAt',
   completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Ai_support_messagesScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  senderId: 'senderId',
+  senderType: 'senderType',
+  content: 'content',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.Ai_support_sessionsScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  userRole: 'userRole',
+  status: 'status',
+  escalationReason: 'escalationReason',
+  agentId: 'agentId',
+  messageCount: 'messageCount',
+  lastActivityAt: 'lastActivityAt',
+  closedAt: 'closedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_analytics_snapshotsScalarFieldEnum = {
+  id: 'id',
+  overviewStats: 'overviewStats',
+  socialStats: 'socialStats',
+  adsPerformance: 'adsPerformance',
+  locations: 'locations',
+  audienceBreakdown: 'audienceBreakdown',
+  conversionFunnel: 'conversionFunnel',
+  weeklyEngagement: 'weeklyEngagement',
+  performanceData: 'performanceData',
+  platformIntegrations: 'platformIntegrations',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_bannersScalarFieldEnum = {
+  id: 'id',
+  mediaType: 'mediaType',
+  fileName: 'fileName',
+  fileUrl: 'fileUrl',
+  imageUrl: 'imageUrl',
+  cloudinaryId: 'cloudinaryId',
+  title: 'title',
+  description: 'description',
+  display: 'display',
+  placement: 'placement',
+  externalLink: 'externalLink',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  status: 'status',
+  totalImpressions: 'totalImpressions',
+  impressionsChange: 'impressionsChange',
+  clicks: 'clicks',
+  clicksChange: 'clicksChange',
+  signup: 'signup',
+  signupChange: 'signupChange',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_campaign_performanceScalarFieldEnum = {
+  id: 'id',
+  campaignId: 'campaignId',
+  opens: 'opens',
+  clicks: 'clicks',
+  conversions: 'conversions',
+  totalReach: 'totalReach',
+  engagementRate: 'engagementRate',
+  conversionRate: 'conversionRate',
+  costPerClick: 'costPerClick',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_campaign_team_membersScalarFieldEnum = {
+  id: 'id',
+  campaignId: 'campaignId',
+  adminUserId: 'adminUserId',
+  role: 'role',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_campaign_timelineScalarFieldEnum = {
+  id: 'id',
+  campaignId: 'campaignId',
+  label: 'label',
+  date: 'date',
+  done: 'done',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_campaignsScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  type: 'type',
+  status: 'status',
+  description: 'description',
+  budget: 'budget',
+  progress: 'progress',
+  launchDate: 'launchDate',
+  estCompletion: 'estCompletion',
+  targetAudience: 'targetAudience',
+  duration: 'duration',
+  channels: 'channels',
+  overview: 'overview',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_content_itemsScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  type: 'type',
+  authorId: 'authorId',
+  authorName: 'authorName',
+  link: 'link',
+  description: 'description',
+  status: 'status',
+  performance: 'performance',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_content_monthly_performanceScalarFieldEnum = {
+  id: 'id',
+  contentId: 'contentId',
+  month: 'month',
+  value: 'value',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_email_templatesScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  validFrom: 'validFrom',
+  validTo: 'validTo',
+  language: 'language',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_notification_eventsScalarFieldEnum = {
+  id: 'id',
+  eventCode: 'eventCode',
+  event: 'event',
+  notifyEnabled: 'notifyEnabled',
+  emailEnabled: 'emailEnabled',
+  whatsappEnabled: 'whatsappEnabled',
+  smsEnabled: 'smsEnabled',
+  recipients: 'recipients',
+  validToDate: 'validToDate',
+  customerFullName: 'customerFullName',
+  customerEmail: 'customerEmail',
+  customerPhone: 'customerPhone',
+  customerCountry: 'customerCountry',
+  emailContent: 'emailContent',
+  conditionalBlock: 'conditionalBlock',
+  whatsappContent: 'whatsappContent',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_promotionsScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  discountType: 'discountType',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  grossSales: 'grossSales',
+  averageRate: 'averageRate',
+  grossRevenue: 'grossRevenue',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_social_accountsScalarFieldEnum = {
+  id: 'id',
+  platform: 'platform',
+  username: 'username',
+  connected: 'connected',
+  encryptedPassword: 'encryptedPassword',
+  credentialsSaved: 'credentialsSaved',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_social_analytics_snapshotsScalarFieldEnum = {
+  id: 'id',
+  stats: 'stats',
+  locations: 'locations',
+  audience: 'audience',
+  recentUpload: 'recentUpload',
+  weeklyEngagement: 'weeklyEngagement',
+  totalEngagementChange: 'totalEngagementChange',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Marketing_social_postsScalarFieldEnum = {
+  id: 'id',
+  platform: 'platform',
+  caption: 'caption',
+  description: 'description',
+  excerpt: 'excerpt',
+  attachmentUrl: 'attachmentUrl',
+  attachmentUrls: 'attachmentUrls',
+  thumbnailUrl: 'thumbnailUrl',
+  imageUrl: 'imageUrl',
+  postedAt: 'postedAt',
+  scheduledFor: 'scheduledFor',
+  status: 'status',
+  followers: 'followers',
+  views: 'views',
+  totalLikes: 'totalLikes',
+  comments: 'comments',
+  locations: 'locations',
+  performance: 'performance',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Pharmacy_sessionsScalarFieldEnum = {
+  id: 'id',
+  prescriptionId: 'prescriptionId',
+  pharmacyId: 'pharmacyId',
+  patientId: 'patientId',
+  status: 'status',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Prescription_cart_itemsScalarFieldEnum = {
+  id: 'id',
+  cartId: 'cartId',
+  productName: 'productName',
+  quantity: 'quantity',
+  unitPriceNgn: 'unitPriceNgn',
+  totalPriceNgn: 'totalPriceNgn',
+  note: 'note',
+  isSubstitute: 'isSubstitute',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Prescription_cartsScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  prescriptionId: 'prescriptionId',
+  pharmacyId: 'pharmacyId',
+  patientId: 'patientId',
+  status: 'status',
+  totalAmountNgn: 'totalAmountNgn',
+  platformFeeNgn: 'platformFeeNgn',
+  pharmacyAmountNgn: 'pharmacyAmountNgn',
+  currency: 'currency',
+  totalAmountUsd: 'totalAmountUsd',
+  platformFeeUsd: 'platformFeeUsd',
+  pharmacyAmountUsd: 'pharmacyAmountUsd',
+  exchangeRateToUsd: 'exchangeRateToUsd',
+  paymentStatus: 'paymentStatus',
+  paymentReference: 'paymentReference',
+  paymentProvider: 'paymentProvider',
+  paymentAuthUrl: 'paymentAuthUrl',
+  paidAt: 'paidAt',
+  pharmacyNote: 'pharmacyNote',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ShipmentsScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  vendorId: 'vendorId',
+  patientId: 'patientId',
+  status: 'status',
+  deliveryMethod: 'deliveryMethod',
+  deliveryAddress: 'deliveryAddress',
+  trackingNumber: 'trackingNumber',
+  logisticsProvider: 'logisticsProvider',
+  estimatedDeliveryAt: 'estimatedDeliveryAt',
+  dispatchedAt: 'dispatchedAt',
+  deliveredAt: 'deliveredAt',
+  vendorNotes: 'vendorNotes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Vendor_ordersScalarFieldEnum = {
+  id: 'id',
+  orderNumber: 'orderNumber',
+  cartId: 'cartId',
+  vendorId: 'vendorId',
+  patientId: 'patientId',
+  status: 'status',
+  paymentStatus: 'paymentStatus',
+  subtotal: 'subtotal',
+  platformFeeAmount: 'platformFeeAmount',
+  vendorAmount: 'vendorAmount',
+  currency: 'currency',
+  paymentReference: 'paymentReference',
+  paymentProvider: 'paymentProvider',
+  paymentAuthUrl: 'paymentAuthUrl',
+  patientNote: 'patientNote',
+  vendorNote: 'vendorNote',
+  deliveryMethod: 'deliveryMethod',
+  deliveryAddress: 'deliveryAddress',
+  cancelledBy: 'cancelledBy',
+  cancelledAt: 'cancelledAt',
+  completedAt: 'completedAt',
+  paidAt: 'paidAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  grossAmount: 'grossAmount',
+  commissionRate: 'commissionRate',
+  commissionAmount: 'commissionAmount'
+};
+
+exports.Prisma.Vendor_wallet_transactionsScalarFieldEnum = {
+  id: 'id',
+  walletId: 'walletId',
+  vendorId: 'vendorId',
+  type: 'type',
+  category: 'category',
+  status: 'status',
+  amountNgn: 'amountNgn',
+  balanceAfterNgn: 'balanceAfterNgn',
+  orderId: 'orderId',
+  reference: 'reference',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Vendor_walletsScalarFieldEnum = {
+  id: 'id',
+  vendorId: 'vendorId',
+  availableBalanceNgn: 'availableBalanceNgn',
+  pendingClearanceNgn: 'pendingClearanceNgn',
+  totalEarningsNgn: 'totalEarningsNgn',
+  isActive: 'isActive',
+  isFrozen: 'isFrozen',
+  frozenReason: 'frozenReason',
+  lastPayoutAt: 'lastPayoutAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -3375,55 +3537,6 @@ exports.lab_waitlist_status_enum = exports.$Enums.lab_waitlist_status_enum = {
   contacted: 'contacted',
   registered: 'registered',
   declined: 'declined'
-};
-
-exports.marketing_campaign_type_enum = exports.$Enums.marketing_campaign_type_enum = {
-  Email: 'Email',
-  Social: 'Social',
-  Events: 'Events',
-  Ads: 'Ads'
-};
-
-exports.marketing_campaign_status_enum = exports.$Enums.marketing_campaign_status_enum = {
-  Active: 'Active',
-  Drafts: 'Drafts',
-  Completed: 'Completed',
-  Paused: 'Paused',
-  Archived: 'Archived'
-};
-
-exports.marketing_content_status_enum = exports.$Enums.marketing_content_status_enum = {
-  Published: 'Published',
-  Draft: 'Draft'
-};
-
-exports.marketing_social_platform_enum = exports.$Enums.marketing_social_platform_enum = {
-  Facebook: 'Facebook',
-  Instagram: 'Instagram',
-  Youtube: 'Youtube',
-  Twitter: 'Twitter',
-  Tiktok: 'Tiktok',
-  LinkedIn: 'LinkedIn'
-};
-
-exports.marketing_social_post_status_enum = exports.$Enums.marketing_social_post_status_enum = {
-  Published: 'Published',
-  Scheduled: 'Scheduled',
-  Draft: 'Draft',
-  Deleted: 'Deleted'
-};
-
-exports.marketing_promotion_status_enum = exports.$Enums.marketing_promotion_status_enum = {
-  Upcoming: 'Upcoming',
-  Active: 'Active',
-  Completed: 'Completed',
-  Ended: 'Ended'
-};
-
-exports.marketing_banner_status_enum = exports.$Enums.marketing_banner_status_enum = {
-  Active: 'Active',
-  Inactive: 'Inactive',
-  Expired: 'Expired'
 };
 
 exports.patient_access_logs_access_type_enum = exports.$Enums.patient_access_logs_access_type_enum = {
@@ -4011,6 +4124,14 @@ exports.verification_requests_tier_enum = exports.$Enums.verification_requests_t
   tier_3: 'tier_3'
 };
 
+exports.verification_requests_ninverificationstatus_enum = exports.$Enums.verification_requests_ninverificationstatus_enum = {
+  not_submitted: 'not_submitted',
+  pending: 'pending',
+  verified: 'verified',
+  mismatch: 'mismatch',
+  failed: 'failed'
+};
+
 exports.verification_review_queue_priority_enum = exports.$Enums.verification_review_queue_priority_enum = {
   low: 'low',
   normal: 'normal',
@@ -4041,7 +4162,8 @@ exports.carts_status_enum = exports.$Enums.carts_status_enum = {
   draft: 'draft',
   submitted: 'submitted',
   confirmed: 'confirmed',
-  cancelled: 'cancelled'
+  cancelled: 'cancelled',
+  paid: 'paid'
 };
 
 exports.product_media_mediatype_enum = exports.$Enums.product_media_mediatype_enum = {
@@ -4174,6 +4296,132 @@ exports.vendor_verification_requests_priority_enum = exports.$Enums.vendor_verif
   urgent: 'urgent'
 };
 
+exports.ai_support_message_sender_type_enum = exports.$Enums.ai_support_message_sender_type_enum = {
+  user: 'user',
+  ai: 'ai',
+  agent: 'agent'
+};
+
+exports.ai_support_session_status_enum = exports.$Enums.ai_support_session_status_enum = {
+  active: 'active',
+  escalated: 'escalated',
+  agent_joined: 'agent_joined',
+  closed: 'closed'
+};
+
+exports.marketing_banner_status_enum = exports.$Enums.marketing_banner_status_enum = {
+  Active: 'Active',
+  Inactive: 'Inactive',
+  Expired: 'Expired'
+};
+
+exports.marketing_campaign_type_enum = exports.$Enums.marketing_campaign_type_enum = {
+  Email: 'Email',
+  Social: 'Social',
+  Events: 'Events',
+  Ads: 'Ads'
+};
+
+exports.marketing_campaign_status_enum = exports.$Enums.marketing_campaign_status_enum = {
+  Active: 'Active',
+  Drafts: 'Drafts',
+  Completed: 'Completed',
+  Paused: 'Paused',
+  Archived: 'Archived'
+};
+
+exports.marketing_content_status_enum = exports.$Enums.marketing_content_status_enum = {
+  Published: 'Published',
+  Draft: 'Draft'
+};
+
+exports.marketing_promotion_status_enum = exports.$Enums.marketing_promotion_status_enum = {
+  Upcoming: 'Upcoming',
+  Active: 'Active',
+  Completed: 'Completed',
+  Ended: 'Ended'
+};
+
+exports.marketing_social_platform_enum = exports.$Enums.marketing_social_platform_enum = {
+  Facebook: 'Facebook',
+  Instagram: 'Instagram',
+  Youtube: 'Youtube',
+  Twitter: 'Twitter',
+  Tiktok: 'Tiktok',
+  LinkedIn: 'LinkedIn'
+};
+
+exports.marketing_social_post_status_enum = exports.$Enums.marketing_social_post_status_enum = {
+  Published: 'Published',
+  Scheduled: 'Scheduled',
+  Draft: 'Draft',
+  Deleted: 'Deleted'
+};
+
+exports.pharmacy_sessions_status_enum = exports.$Enums.pharmacy_sessions_status_enum = {
+  active: 'active',
+  cart_ready: 'cart_ready',
+  approved: 'approved',
+  expired: 'expired',
+  cancelled: 'cancelled'
+};
+
+exports.prescription_carts_status_enum = exports.$Enums.prescription_carts_status_enum = {
+  building: 'building',
+  ready: 'ready',
+  approved: 'approved'
+};
+
+exports.prescription_carts_paymentstatus_enum = exports.$Enums.prescription_carts_paymentstatus_enum = {
+  unpaid: 'unpaid',
+  paid: 'paid',
+  refunded: 'refunded'
+};
+
+exports.shipments_status_enum = exports.$Enums.shipments_status_enum = {
+  pending: 'pending',
+  dispatched: 'dispatched',
+  in_transit: 'in_transit',
+  delivered: 'delivered',
+  failed: 'failed'
+};
+
+exports.shipments_deliverymethod_enum = exports.$Enums.shipments_deliverymethod_enum = {
+  pickup: 'pickup',
+  delivery: 'delivery'
+};
+
+exports.vendor_orders_status_enum = exports.$Enums.vendor_orders_status_enum = {
+  pending: 'pending',
+  processing: 'processing',
+  completed: 'completed',
+  cancelled: 'cancelled'
+};
+
+exports.vendor_orders_paymentstatus_enum = exports.$Enums.vendor_orders_paymentstatus_enum = {
+  unpaid: 'unpaid',
+  paid: 'paid',
+  refunded: 'refunded'
+};
+
+exports.vendor_wallet_transactions_type_enum = exports.$Enums.vendor_wallet_transactions_type_enum = {
+  credit: 'credit',
+  debit: 'debit'
+};
+
+exports.vendor_wallet_transactions_category_enum = exports.$Enums.vendor_wallet_transactions_category_enum = {
+  order_payment: 'order_payment',
+  payout: 'payout',
+  refund: 'refund',
+  adjustment: 'adjustment'
+};
+
+exports.vendor_wallet_transactions_status_enum = exports.$Enums.vendor_wallet_transactions_status_enum = {
+  completed: 'completed',
+  pending: 'pending',
+  failed: 'failed'
+};
+
 exports.Prisma.ModelName = {
   account_support: 'account_support',
   admin_ops_dead_letter_jobs: 'admin_ops_dead_letter_jobs',
@@ -4257,20 +4505,6 @@ exports.Prisma.ModelName = {
   magic_link_tokens: 'magic_link_tokens',
   marketing_spin_rewards: 'marketing_spin_rewards',
   marketing_user_spin_history: 'marketing_user_spin_history',
-  marketing_campaigns: 'marketing_campaigns',
-  marketing_campaign_performance: 'marketing_campaign_performance',
-  marketing_campaign_timeline: 'marketing_campaign_timeline',
-  marketing_campaign_team_members: 'marketing_campaign_team_members',
-  marketing_content_items: 'marketing_content_items',
-  marketing_content_monthly_performance: 'marketing_content_monthly_performance',
-  marketing_notification_events: 'marketing_notification_events',
-  marketing_email_templates: 'marketing_email_templates',
-  marketing_social_accounts: 'marketing_social_accounts',
-  marketing_social_posts: 'marketing_social_posts',
-  marketing_social_analytics_snapshots: 'marketing_social_analytics_snapshots',
-  marketing_promotions: 'marketing_promotions',
-  marketing_banners: 'marketing_banners',
-  marketing_analytics_snapshots: 'marketing_analytics_snapshots',
   medical_conditions: 'medical_conditions',
   medications: 'medications',
   migrations: 'migrations',
@@ -4334,7 +4568,30 @@ exports.Prisma.ModelName = {
   promotions: 'promotions',
   vendor_documents: 'vendor_documents',
   vendor_profiles: 'vendor_profiles',
-  vendor_verification_requests: 'vendor_verification_requests'
+  vendor_verification_requests: 'vendor_verification_requests',
+  ai_support_messages: 'ai_support_messages',
+  ai_support_sessions: 'ai_support_sessions',
+  marketing_analytics_snapshots: 'marketing_analytics_snapshots',
+  marketing_banners: 'marketing_banners',
+  marketing_campaign_performance: 'marketing_campaign_performance',
+  marketing_campaign_team_members: 'marketing_campaign_team_members',
+  marketing_campaign_timeline: 'marketing_campaign_timeline',
+  marketing_campaigns: 'marketing_campaigns',
+  marketing_content_items: 'marketing_content_items',
+  marketing_content_monthly_performance: 'marketing_content_monthly_performance',
+  marketing_email_templates: 'marketing_email_templates',
+  marketing_notification_events: 'marketing_notification_events',
+  marketing_promotions: 'marketing_promotions',
+  marketing_social_accounts: 'marketing_social_accounts',
+  marketing_social_analytics_snapshots: 'marketing_social_analytics_snapshots',
+  marketing_social_posts: 'marketing_social_posts',
+  pharmacy_sessions: 'pharmacy_sessions',
+  prescription_cart_items: 'prescription_cart_items',
+  prescription_carts: 'prescription_carts',
+  shipments: 'shipments',
+  vendor_orders: 'vendor_orders',
+  vendor_wallet_transactions: 'vendor_wallet_transactions',
+  vendor_wallets: 'vendor_wallets'
 };
 
 /**

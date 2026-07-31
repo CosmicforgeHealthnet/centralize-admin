@@ -193,7 +193,48 @@ const getAllCombined = asyncHandler(async (req, res) => {
     data,
   );
 });
-// Add this to verification.controller.js
+
+// ── Stuck Doctors ─────────────────────────────────────────────────────────────
+
+/**
+ * GET /api/verification/stuck-doctors
+ * Returns doctors stuck in pending_doctor_verification with no verification request
+ */
+const getStuckDoctors = asyncHandler(async (req, res) => {
+  const { page, limit } = req.query;
+  const data = await verificationService.getStuckDoctors({ page, limit });
+  return ApiResponse.success(
+    res,
+    200,
+    "Stuck doctors retrieved successfully",
+    data
+  );
+});
+// ─── Stuck Doctor Detail ──────────────────────────────────────────────────────
+
+/**
+ * GET /api/verification/stuck-doctors/:id
+ * Get a single stuck doctor by ID
+ */
+const getStuckDoctorById = asyncHandler(async (req, res) => {
+  const data = await verificationService.getStuckDoctorById(req.params.id);
+  return ApiResponse.success(res, 200, "Stuck doctor retrieved", data);
+});
+
+/**
+ * POST /api/verification/stuck-doctors/:id/fix
+ * Create a verification request for a stuck doctor
+ */
+const fixStuckDoctor = asyncHandler(async (req, res) => {
+  const data = await verificationService.fixStuckDoctor({
+    id: req.params.id,
+    adminUserId: req.adminUser.id,
+    req
+  });
+  return ApiResponse.success(res, 200, "Verification request created successfully", data);
+});
+
+
 const healthCheck = asyncHandler(async (req, res) => {
   try {
     // Test database connection
@@ -236,4 +277,7 @@ module.exports = {
   // Combined
   getAllCombined,
   healthCheck,
+  getStuckDoctors,
+  getStuckDoctorById,
+  fixStuckDoctor, 
 };

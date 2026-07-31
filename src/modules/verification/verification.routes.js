@@ -32,6 +32,19 @@ router.use(authenticate);
 
 router.get("/all", controller.getAllCombined);
 
+// ── Stuck Doctors ─────────────────────────────────────────────────────────────
+router.get("/stuck-doctors", requireTier("ADMIN"), controller.getStuckDoctors);
+router.get(
+  "/stuck-doctors/:id",
+  requireTier("ADMIN"),
+  controller.getStuckDoctorById,
+);
+router.post(
+  "/stuck-doctors/:id/fix",
+  requireTier("ADMIN"),
+  controller.fixStuckDoctor,
+);
+
 router.get("/doctors", controller.getAll);
 router.get("/doctors/:id", controller.getById);
 router.patch(
