@@ -6,6 +6,7 @@ on:
     branches:
       - fix/marketing-admin-db-target
       - staging
+      - main
 
 jobs:
   verify:
