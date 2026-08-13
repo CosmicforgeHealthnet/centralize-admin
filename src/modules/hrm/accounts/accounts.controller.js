@@ -135,7 +135,6 @@ module.exports = {
   resendInvite,
   updateAccount,
   updateStatus,
-  // Grants
   getUserGrants,
   addGrant,
   syncGrants,
