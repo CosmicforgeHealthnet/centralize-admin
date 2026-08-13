@@ -1,9 +1,14 @@
 const { prisma } = require("../../../shared/config/database");
 const ApiError = require("../../../shared/utils/ApiError");
 const logger = require("../../../shared/utils/logger");
-const { generateTempPassword, hashPassword } = require("../../../shared/utils/password.util");
+const {
+  generateTempPassword,
+  hashPassword,
+} = require("../../../shared/utils/password.util");
 const { sendEmail } = require("../../../shared/utils/email.util");
-const { createAuditLog } = require("../../../shared/middlewares/audit.middleware");
+const {
+  createAuditLog,
+} = require("../../../shared/middlewares/audit.middleware");
 const {
   assertUuid,
   buildMeta,
@@ -25,6 +30,7 @@ const ACCOUNT_SELECT = {
   isTeamLead: true,
   avatarUrl: true,
   workPhone: true,
+  homePhone: true,
   personalPhone: true,
   createdAt: true,
   employmentType: true,
@@ -43,7 +49,22 @@ const ACCOUNT_UPDATE_FIELDS = [
   "employmentType",
   "employmentCategory",
   "location",
+  "workPhone",
+  "homePhone",
+  "personalPhone",
 ];
+
+const GRANT_SELECT = {
+  id: true,
+  module: true,
+  section: true,
+  mode: true,
+  grantedBy: true,
+  reason: true,
+  expiresAt: true,
+  createdAt: true,
+  revokedAt: true,
+};
 
 function mapAccountListItem(user) {
   return {
@@ -68,6 +89,9 @@ function mapAccountDetail(user) {
     name: user.name,
     email: user.email,
     phone: user.personalPhone || user.workPhone || null,
+    workPhone: user.workPhone,
+    homePhone: user.homePhone,
+    personalPhone: user.personalPhone,
     employmentDate: user.createdAt,
     position: user.position,
     jobTitle: user.position,
@@ -93,7 +117,9 @@ function buildAccountWhere(query = {}) {
   const search = String(query.search || "").trim();
   if (!search) return where;
 
-  const filterBy = String(query.filterBy || "").trim().toLowerCase();
+  const filterBy = String(query.filterBy || "")
+    .trim()
+    .toLowerCase();
   const contains = { contains: search, mode: "insensitive" };
 
   if (filterBy === "department") {
@@ -105,7 +131,11 @@ function buildAccountWhere(query = {}) {
   } else if (filterBy === "designation" || filterBy === "position") {
     where.position = contains;
   } else {
-    where.OR = [{ name: contains }, { email: contains }, { position: contains }];
+    where.OR = [
+      { name: contains },
+      { email: contains },
+      { position: contains },
+    ];
   }
 
   return where;
@@ -129,6 +159,8 @@ async function sendInviteEmail({ user, tempPassword }) {
 }
 
 class AccountsService {
+  // ─── Account Methods ────────────────────────────────────────────────────
+
   async listAccounts(query = {}) {
     const { page, limit, skip } = paginate(query, 10, 100);
     const where = buildAccountWhere(query);
@@ -161,6 +193,26 @@ class AccountsService {
     return mapAccountDetail(user);
   }
 
+  async getAccountWithGrants(id) {
+    const accountId = assertUuid(id, "account id");
+    const user = await prisma.adminUser.findUnique({
+      where: { id: accountId },
+      select: {
+        ...ACCOUNT_SELECT,
+        sectionGrants: {
+          where: { revokedAt: null },
+          select: GRANT_SELECT,
+          orderBy: { createdAt: "asc" },
+        },
+      },
+    });
+
+    if (!user) throw new ApiError(404, "Account not found");
+    const account = mapAccountDetail(user);
+    account.sectionGrants = user.sectionGrants;
+    return account;
+  }
+
   async createAccount({ data, actor, req }) {
     if (["SUPER", "EXECUTIVE"].includes(data.tier) && actor.tier !== "SUPER") {
       throw new ApiError(
@@ -187,8 +239,9 @@ class AccountsService {
     const existing = await prisma.adminUser.findUnique({
       where: { email: data.email },
     });
-    if (existing)
+    if (existing) {
       throw new ApiError(409, "A user with this email already exists");
+    }
 
     const tempPassword = generateTempPassword();
     const password = await hashPassword(tempPassword);
@@ -276,8 +329,9 @@ class AccountsService {
 
   async deleteAccount({ id, actor, req }) {
     const accountId = assertUuid(id, "account id");
-    if (accountId === actor.id)
+    if (accountId === actor.id) {
       throw new ApiError(400, "You cannot delete your own account");
+    }
 
     const existing = await prisma.adminUser.findUnique({
       where: { id: accountId },
@@ -285,6 +339,11 @@ class AccountsService {
     if (!existing) throw new ApiError(404, "Account not found");
 
     await prisma.$transaction(async (tx) => {
+      // Delete all grants first
+      await tx.adminSectionGrant.deleteMany({
+        where: { adminUserId: accountId },
+      });
+
       await tx.task.deleteMany({
         where: { OR: [{ assigneeId: accountId }, { assignerId: accountId }] },
       });
@@ -407,6 +466,249 @@ class AccountsService {
       metadata: { reason: "hrm_invite_resend" },
       req,
     });
+  }
+
+  // ─── Grant Methods ──────────────────────────────────────────────────────
+
+  async getUserGrants(userId) {
+    const accountId = assertUuid(userId, "user id");
+
+    const user = await prisma.adminUser.findUnique({
+      where: { id: accountId },
+      select: { id: true },
+    });
+    if (!user) throw new ApiError(404, "User not found");
+
+    const grants = await prisma.adminSectionGrant.findMany({
+      where: {
+        adminUserId: accountId,
+        revokedAt: null,
+      },
+      select: GRANT_SELECT,
+      orderBy: { createdAt: "asc" },
+    });
+
+    return grants;
+  }
+
+  async addGrant({ userId, data, actor, req }) {
+    const accountId = assertUuid(userId, "user id");
+
+    // Check if user exists
+    const user = await prisma.adminUser.findUnique({
+      where: { id: accountId },
+      select: { id: true },
+    });
+    if (!user) throw new ApiError(404, "User not found");
+
+    // Check if grant already exists (not revoked)
+    const existing = await prisma.adminSectionGrant.findFirst({
+      where: {
+        adminUserId: accountId,
+        module: data.module,
+        section: data.section,
+        revokedAt: null,
+      },
+    });
+
+    if (existing) {
+      throw new ApiError(
+        409,
+        `Grant for ${data.module}/${data.section} already exists`,
+      );
+    }
+
+    const grant = await prisma.adminSectionGrant.create({
+      data: {
+        adminUserId: accountId,
+        module: data.module,
+        section: data.section,
+        mode: data.mode,
+        reason: data.reason || `Granted by ${actor.id}`,
+        grantedBy: actor.id,
+        expiresAt: data.expiresAt ? new Date(data.expiresAt) : null,
+      },
+      select: GRANT_SELECT,
+    });
+
+    await createAuditLog({
+      adminUserId: actor.id,
+      action: "SECTION_GRANT_CREATED",
+      targetId: accountId,
+      targetType: "admin_user",
+      metadata: {
+        module: data.module,
+        section: data.section,
+        mode: data.mode,
+        grantId: grant.id,
+      },
+      req,
+    });
+
+    return grant;
+  }
+
+  async syncGrants({ userId, grants, actor, req }) {
+    const accountId = assertUuid(userId, "user id");
+
+    // Check if user exists
+    const user = await prisma.adminUser.findUnique({
+      where: { id: accountId },
+      select: { id: true },
+    });
+    if (!user) throw new ApiError(404, "User not found");
+
+    // Use transaction to atomically replace all grants
+    const result = await prisma.$transaction(async (tx) => {
+      // Soft delete all existing grants (revoke them)
+      await tx.adminSectionGrant.updateMany({
+        where: {
+          adminUserId: accountId,
+          revokedAt: null,
+        },
+        data: { revokedAt: new Date() },
+      });
+
+      // Create new grants if any
+      if (grants.length > 0) {
+        await tx.adminSectionGrant.createMany({
+          data: grants.map((g) => ({
+            adminUserId: accountId,
+            module: g.module,
+            section: g.section,
+            mode: g.mode,
+            reason: g.reason || `Synced by ${actor.id}`,
+            grantedBy: actor.id,
+            expiresAt: g.expiresAt ? new Date(g.expiresAt) : null,
+          })),
+        });
+      }
+
+      // Return the new grants
+      return tx.adminSectionGrant.findMany({
+        where: {
+          adminUserId: accountId,
+          revokedAt: null,
+        },
+        select: GRANT_SELECT,
+        orderBy: { createdAt: "asc" },
+      });
+    });
+
+    await createAuditLog({
+      adminUserId: actor.id,
+      action: "SECTION_GRANT_CREATED",
+      targetId: accountId,
+      targetType: "admin_user",
+      metadata: {
+        synced: true,
+        grantCount: grants.length,
+      },
+      req,
+    });
+
+    return result;
+  }
+
+  async updateGrant({ grantId, data, actor, req }) {
+    const id = assertUuid(grantId, "grant id");
+
+    const grant = await prisma.adminSectionGrant.findUnique({
+      where: { id },
+    });
+    if (!grant) throw new ApiError(404, "Grant not found");
+
+    if (grant.revokedAt) {
+      throw new ApiError(400, "Cannot update a revoked grant");
+    }
+
+    const update = pickDefined(data, ["mode", "reason", "expiresAt"]);
+    if (update.expiresAt !== undefined) {
+      update.expiresAt = update.expiresAt ? new Date(update.expiresAt) : null;
+    }
+
+    const updated = await prisma.adminSectionGrant.update({
+      where: { id },
+      data: update,
+      select: GRANT_SELECT,
+    });
+
+    await createAuditLog({
+      adminUserId: actor.id,
+      action: "SECTION_GRANT_CREATED",
+      targetId: grant.adminUserId,
+      targetType: "admin_user",
+      metadata: {
+        updated: true,
+        grantId: id,
+        changes: update,
+      },
+      req,
+    });
+
+    return updated;
+  }
+
+  async removeGrant({ grantId, actor, req }) {
+    const id = assertUuid(grantId, "grant id");
+
+    const grant = await prisma.adminSectionGrant.findUnique({
+      where: { id },
+    });
+    if (!grant) throw new ApiError(404, "Grant not found");
+
+    if (grant.revokedAt) {
+      throw new ApiError(400, "Grant already revoked");
+    }
+
+    await prisma.adminSectionGrant.update({
+      where: { id },
+      data: { revokedAt: new Date() },
+    });
+
+    await createAuditLog({
+      adminUserId: actor.id,
+      action: "SECTION_GRANT_REVOKED",
+      targetId: grant.adminUserId,
+      targetType: "admin_user",
+      metadata: {
+        grantId: id,
+        module: grant.module,
+        section: grant.section,
+      },
+      req,
+    });
+  }
+
+  async getAvailableModules() {
+    // Return available modules and their sections
+    const modules = {
+      hrm: [
+        "accounts",
+        "payroll",
+        "employees",
+        "attendance",
+        "leaves",
+        "departments",
+        "hiring",
+      ],
+      marketing: [
+        "campaigns",
+        "analytics",
+        "social",
+        "content",
+        "banners",
+        "promotions",
+        "intelligence",
+        "advertising",
+      ],
+      finance: ["payments", "invoices", "reports", "transactions"],
+      verification: ["doctors", "patients", "pharmacy", "labs", "vendors"],
+      operations: ["dispatch", "logistics", "delivery"],
+      rtc: ["sessions", "calls", "recordings"],
+      telemedicine: ["consultations", "prescriptions", "records"],
+    };
+    return modules;
   }
 }
 
