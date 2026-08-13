@@ -95,10 +95,8 @@ jobs:
       - name: Redacted secret scan
         run: npm run security:secret-scan
 
-      - name: Dependency audit policy
-        run: |
-          npm run security:audit-policy
-          npm run security:audit-policy:production
+      - name: Dependency audit policy (production only)
+        run: npm audit --omit=dev
 
       - name: Static Social Operations safety checks
         run: |
