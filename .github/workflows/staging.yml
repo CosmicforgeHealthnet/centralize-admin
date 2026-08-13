@@ -1,42 +1,128 @@
-name: Staging – Build & Push & Deploy
+name: Social Operations CI
+
 on:
+  pull_request:
   push:
     branches:
+      - fix/marketing-admin-db-target
       - staging
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ghcr.io/cosmicforgehealthnet/admin-backend
+
 jobs:
-  build-and-push:
-    name: Build & Push to GHCR (Staging)
+  verify:
+    name: Verify Social Operations backend
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cosmicforge_admin
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d cosmicforge_admin"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cosmicforge_admin
+      SOCIAL_WORKERS_ENABLED: "false"
+      SOCIAL_PUBLISHING_WORKER_ENABLED: "false"
+      SOCIAL_ACTION_WORKER_ENABLED: "false"
+      SOCIAL_REDACTION_WORKER_ENABLED: "false"
+      SOCIAL_INBOX_ENABLED: "false"
+      SOCIAL_PHASE_D_ENABLED: "false"
+      TEST_NETWORK_GUARD_ENABLED: "true"
+      MARKETING_INTELLIGENCE_SYNC_ENABLED: "false"
+      MARKETING_INTELLIGENCE_BOOTSTRAP_CONNECTIONS: "false"
+      META_SOCIAL_ENABLED: "false"
+      TIKTOK_SOCIAL_ENABLED: "false"
+      X_SOCIAL_ENABLED: "false"
+      LINKEDIN_SOCIAL_ENABLED: "false"
+      SOCIAL_MEDIA_STORAGE_PROVIDER: "local"
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: actions/checkout@v5
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+          fetch-depth: 0
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
         with:
-          context: .
-          push: true
-          tags: |
-            ${{ env.IMAGE_NAME }}:staging
-            ${{ env.IMAGE_NAME }}:staging-${{ github.sha }}
-      - name: Deploy to staging server
-        uses: appleboy/ssh-action@v1.0.3
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma format check
+        run: |
+          npx prisma format --schema prisma/schema.prisma
+          git diff --exit-code -- prisma/schema.prisma
+
+      - name: Prisma validate
+        run: npx prisma validate --schema prisma/schema.prisma
+
+      - name: Prisma generate
+        run: npx prisma generate --schema prisma/schema.prisma
+
+      - name: Validate Social Operations configuration
+        run: |
+          npm run config:validate
+          npm run config:validate:staging
+          npm run config:validate:production
+
+      - name: Verify migration manifest
+        run: npm run db:manifest:verify
+
+      - name: Verify Admin database target
+        run: npm run db:admin:guard
+
+      - name: Push Prisma schema to Admin database
+        run: npx prisma db push --schema prisma/schema.prisma
+
+      - name: Apply Admin database PostgreSQL-only artifacts
+        run: npm run db:admin:prepare
+
+      - name: Assert PostgreSQL Social Operations schema
+        run: |
+          npm run db:schema:assert
+
+      - name: Migration safety check
+        run: npm run migrations:safety
+
+      - name: Redacted secret scan
+        run: npm run security:secret-scan
+
+      - name: Dependency audit policy (production only)
+        run: npm audit --omit=dev
+
+      - name: Static Social Operations safety checks
+        run: |
+          npm run security:static-social
+          npm run security:network-guard-static
+
+      - name: SBOM inventory
+        run: npm run security:sbom > /tmp/social-operations-sbom.json
+
+      - name: Runtime network guard negative tests
+        run: npm run test:network-guard
+
+      - name: Focused Social Operations tests
+        run: npm run test:social-operations
+
+      - name: Upload focused Social Operations failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v7
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
-          password: ${{ secrets.STAGING_PASSWORD }}
-          script: |
-            cd /var/www/admin-server-staging
-            docker-compose pull
-            docker-compose up -d
+          name: social-operations-focused-tests
+          path: |
+            artifacts/social-operations-focused-tests.tap
+            artifacts/social-operations-focused-summary.json
+            artifacts/social-operations-focused-files.txt
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Full test suite
+        run: npm test
