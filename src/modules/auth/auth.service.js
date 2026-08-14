@@ -249,7 +249,7 @@ class AuthService {
   }
 
   // ─────────────────────────────────────────────────────────────
-  // CHANGE PASSWORD
+  // CHANGE PASSWORD - ✅ UPDATED
   // ─────────────────────────────────────────────────────────────
   async changePassword({ adminUserId, currentPassword, newPassword, req }) {
     const user = await prisma.adminUser.findUnique({
@@ -275,6 +275,8 @@ class AuthService {
         password: hashed,
         mustChangePassword: false,
         passwordChangedAt: new Date(),
+        // ✅ FIX: Activate user if they were PENDING
+        status: user.status === "PENDING" ? "ACTIVE" : user.status,
       },
     });
 
@@ -372,11 +374,17 @@ class AuthService {
     if (!user) return;
 
     if (user.name.toLowerCase() !== name.toLowerCase()) {
-      throw new ApiError(400, "The details you provided do not match our records");
+      throw new ApiError(
+        400,
+        "The details you provided do not match our records",
+      );
     }
 
     if (position && user.position?.toLowerCase() !== position.toLowerCase()) {
-      throw new ApiError(400, "The details you provided do not match our records");
+      throw new ApiError(
+        400,
+        "The details you provided do not match our records",
+      );
     }
 
     const rawToken = crypto.randomBytes(32).toString("hex");
@@ -407,8 +415,8 @@ class AuthService {
           icon: "alert",
           title: "Password Reset Request",
           subtitle: `${user.name} (${user.position || "Staff"}) has requested a password reset. Review and approve in the admin panel.`,
-        })
-      )
+        }),
+      ),
     );
 
     await createAuditLog({
@@ -443,7 +451,10 @@ class AuthService {
     if (!user) throw new ApiError(404, "User not found");
 
     if (!user.passwordResetToken || !user.passwordResetExpires) {
-      throw new ApiError(400, "No pending password reset request for this user");
+      throw new ApiError(
+        400,
+        "No pending password reset request for this user",
+      );
     }
 
     if (user.passwordResetExpires < new Date()) {
