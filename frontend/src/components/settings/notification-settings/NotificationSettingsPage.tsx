@@ -247,7 +247,7 @@ export default function NotificationSettingsPage() {
     setSecurityAlerts( maybeToggle(get(n, "security_alerts"))       ?? defaultToggle());
 
     const gw = get(n, "payment_gateway");
-    if (gw?.enabled !== undefined) setPaymentsGateway(Boolean(gw.enabled));
+    if (gw && typeof gw === "object" && "enabled" in gw) setPaymentsGateway(Boolean(gw.enabled));
 
     // Localization
     const cur = get(l, "default_currency");

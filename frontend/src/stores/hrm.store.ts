@@ -20,6 +20,7 @@ import {
   AttendanceRecord,
   AttendanceStats,
   AttendanceStatus,
+  AttendancePeriod,
   CreateAccountPayload,
   Department,
   DepartmentEmployee,
@@ -225,7 +226,7 @@ interface HrmStore {
   setAttendancePage: (page: number) => void;
 
   fetchEmployeeAttendanceOverview: (employeeId: string, year?: number) => Promise<void>;
-  fetchEmployeeAttendanceLogs: (employeeId: string, period?: string) => Promise<void>;
+  fetchEmployeeAttendanceLogs: (employeeId: string, period?: AttendancePeriod) => Promise<void>;
   clearSelectedAttendanceEmployee: () => void;
 
   accounts: AccountListItem[];

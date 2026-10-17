@@ -613,7 +613,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
           settingConflict: {
             key: payload.key,
             serverValue: (() => { const value = inspectHttpError(err).responseData?.serverValue; return typeof value === "string" || typeof value === "number" || typeof value === "boolean" ? value : null; })(),
-            serverVersion: typeof inspectHttpError(err).responseData?.serverVersion === "number" ? inspectHttpError(err).responseData.serverVersion as number : payload.expectedVersion + 1,
+            serverVersion: (() => { const version = inspectHttpError(err).responseData?.serverVersion; return typeof version === "number" ? version : payload.expectedVersion + 1; })(),
             draftValue: payload.value,
           },
         });
