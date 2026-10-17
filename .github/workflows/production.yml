@@ -38,7 +38,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: services/centralize-admin
+          context: services/main-admin
           push: true
           tags: |
             ${{ env.IMAGE_NAME }}:${{ inputs.imageTag }}

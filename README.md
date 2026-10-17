@@ -1,18 +1,22 @@
-# ADMIN-Backend
+# Centralize Admin
 
-Multi-service admin backend repository.
+Full-stack admin monorepo (migration in progress).
 
-## Services
+## Backend services
 
-- `services/centralize-admin/`: existing admin backend, relocated without business-logic changes.
-- `services/karrygo-admin/`: placeholder for a future independent backend.
+- `services/main-admin/` — existing admin backend, moved without business-logic changes.
+- `services/karrygo-admin/` — placeholder for a future service.
 
-Run the existing application from its service directory:
+## Frontend
+
+- `web/main-admin-frontend/` — destination for the existing Next.js frontend from the separate `CosmicforgeHealthnet/centralize-admin` repository. Import pending.
+
+## Running existing backend
 
 ```bash
-cd services/centralize-admin
+cd services/main-admin
 npm ci
 npm run dev
 ```
 
-Each service has its own deployment directory under `deploy/`. Existing CI and production deployment configuration should be validated before merging this restructuring branch.
+The repository rename, frontend import, CI validation, and staging merge remain pending.

@@ -1,11 +1,12 @@
 {
-  "name": "admin-backend-monorepo",
+  "name": "centralize-admin-monorepo",
   "private": true,
   "workspaces": [
-    "services/*"
+    "services/*",
+    "web/*"
   ],
   "scripts": {
-    "dev:centralize": "npm --prefix services/centralize-admin run dev",
-    "test:centralize": "npm --prefix services/centralize-admin test"
+    "dev:main-admin": "npm --prefix services/main-admin run dev",
+    "test:main-admin": "npm --prefix services/main-admin test"
   }
 }
