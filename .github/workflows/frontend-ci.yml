@@ -1,0 +1,61 @@
+name: Centralized Admin Frontend CI
+
+on:
+  pull_request:
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-frontend-ci
+  cancel-in-progress: false
+
+jobs:
+  frontend:
+    name: Lint and build Next.js admin
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Lint frontend
+        id: lint
+        continue-on-error: true
+        run: npm run lint
+      - name: Check all frontend TypeScript diagnostics
+        id: typecheck
+        continue-on-error: true
+        run: npx tsc --noEmit --pretty false
+      - name: Build frontend
+        id: build
+        run: npm run build
+      - name: Enforce successful typecheck
+        if: always() && steps.typecheck.outcome == 'failure'
+        run: |
+          echo "Frontend TypeScript errors remain; see diagnostics step output."
+          exit 1
+      - name: Enforce successful lint
+        if: always() && steps.lint.outcome == 'failure'
+        run: |
+          echo "Frontend lint errors remain; see lint step output."
+          exit 1
