@@ -1,0 +1,485 @@
+﻿├── app
+│   ├── account-type
+│   │   └── page.tsx
+│   ├── auth
+│   │   └── google
+│   │       └── callback
+│   │           └── page.tsx
+│   ├── dashboard
+│   │   ├── analytics
+│   │   │   └── page.tsx
+│   │   ├── finance
+│   │   │   └── page.tsx
+│   │   ├── healthnet
+│   │   │   └── page.tsx
+│   │   ├── help
+│   │   │   ├── email
+│   │   │   │   ├── channel
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── live-chat
+│   │   │   │   └── page.tsx
+│   │   │   ├── tickets
+│   │   │   │   ├── [id]
+│   │   │   │   └── page.tsx
+│   │   │   └── page.tsx
+│   │   ├── hr
+│   │   │   └── page.tsx
+│   │   ├── it
+│   │   │   └── page.tsx
+│   │   ├── marketing
+│   │   │   └── page.tsx
+│   │   ├── profile
+│   │   │   └── page.tsx
+│   │   ├── settings
+│   │   │   └── page.tsx
+│   │   ├── users
+│   │   │   └── page.tsx
+│   │   ├── verification
+│   │   │   ├── [id]
+│   │   │   └── page.tsx
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── signup
+│   │   └── page.tsx
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
+├── components
+│   ├── account-type
+│   │   └── AccountTypePage.tsx
+│   ├── dashboard
+│   │   ├── MembershipActivityChart.tsx
+│   │   ├── Navbar.tsx
+│   │   ├── PlatformUsageChart.tsx
+│   │   ├── RevenueTracking.tsx
+│   │   ├── Sidebar.tsx
+│   │   ├── StatCards.tsx
+│   │   └── UserActivityChart.tsx
+│   ├── healthnet
+│   │   ├── analytics
+│   │   │   ├── AnalyticsAreaChart.tsx
+│   │   │   ├── AnalyticsBarChart.tsx
+│   │   │   ├── AnalyticsDoctorsChart.tsx
+│   │   │   ├── AnalyticsPage.tsx
+│   │   │   ├── AnalyticsPatientsStatChart.tsx
+│   │   │   └── AnalyticsStatCards.tsx
+│   │   ├── appointments
+│   │   │   ├── AppointmentsCalendar.tsx
+│   │   │   ├── AppointmentsDateStrip.tsx
+│   │   │   ├── AppointmentsPage.tsx
+│   │   │   └── AppointmentsSearchBar.tsx
+│   │   ├── dashboard
+│   │   │   ├── DoctorsChart.tsx
+│   │   │   ├── HealthnetRevenueTracking.tsx
+│   │   │   ├── HealthnetStatCards.tsx
+│   │   │   └── PatientsStatisticsChart.tsx
+│   │   ├── doctors
+│   │   │   ├── DoctorAppointmentsTab.tsx
+│   │   │   ├── DoctorCertificationsTab.tsx
+│   │   │   ├── DoctorProfileDetail.tsx
+│   │   │   ├── DoctorRatingsTab.tsx
+│   │   │   ├── doctors.mock.ts
+│   │   │   └── DoctorsPage.tsx
+│   │   ├── finance
+│   │   │   ├── FinanceAppointmentsTable.tsx
+│   │   │   ├── FinancePage.tsx
+│   │   │   ├── FinancePerformanceOverview.tsx
+│   │   │   ├── FinanceRevenueChart.tsx
+│   │   │   ├── FinanceSalesHistoryTable.tsx
+│   │   │   └── FinanceStatCards.tsx
+│   │   ├── labs
+│   │   │   ├── LabDocumentsTab.tsx
+│   │   │   ├── LabOtherInfoTab.tsx
+│   │   │   ├── LabProfileDetail.tsx
+│   │   │   ├── labs.mock.ts
+│   │   │   └── LabsPage.tsx
+│   │   ├── patients
+│   │   │   ├── PatientAppointmentsTab.tsx
+│   │   │   ├── PatientMedicalHistoryTab.tsx
+│   │   │   ├── PatientProfileDetail.tsx
+│   │   │   ├── PatientRecordsTab.tsx
+│   │   │   ├── patients.mock.ts
+│   │   │   └── PatientsPage.tsx
+│   │   ├── pharmacy
+│   │   │   ├── pharmacy.mock.ts
+│   │   │   ├── PharmacyDocumentsTab.tsx
+│   │   │   ├── PharmacyOtherInfoTab.tsx
+│   │   │   ├── PharmacyPage.tsx
+│   │   │   └── PharmacyProfileDetail.tsx
+│   │   ├── vendors
+│   │   │   ├── VendorDocumentsTab.tsx
+│   │   │   ├── VendorOtherInfoTab.tsx
+│   │   │   ├── VendorProfileDetail.tsx
+│   │   │   └── VendorsPage.tsx
+│   │   ├── HealthnetPage.tsx
+│   │   └── HealthnetSubNav.tsx
+│   ├── help
+│   │   ├── HelpPage.tsx
+│   │   ├── HelpStatCards.tsx
+│   │   ├── HelpSubNav.tsx
+│   │   ├── OpenTicketsPerAgent.tsx
+│   │   ├── RecentTickets.tsx
+│   │   ├── StaffActivity.tsx
+│   │   ├── SupportRequestsChart.tsx
+│   │   ├── TicketTypeChart.tsx
+│   │   └── UserTrafficChart.tsx
+│   ├── hr
+│   │   ├── accounts
+│   │   │   ├── AccountsPage.tsx
+│   │   │   ├── AddGrantModal.tsx
+│   │   │   ├── CreateAccountForm.tsx
+│   │   │   ├── PermissionChip.tsx
+│   │   │   ├── PermissionGrid.tsx
+│   │   │   ├── SectionGrantManager.tsx
+│   │   │   └── ViewAccount.tsx
+│   │   ├── attendance
+│   │   │   ├── AttendanceDetail.tsx
+│   │   │   └── AttendancePage.tsx
+│   │   ├── departments
+│   │   │   └── DepartmentsPage.tsx
+│   │   ├── documents
+│   │   │   ├── DocumentsPage.tsx
+│   │   │   ├── EmployeeDocuments.tsx
+│   │   │   └── UploadDocumentModal.tsx
+│   │   ├── employees
+│   │   │   ├── AllEmployeesPage.tsx
+│   │   │   ├── EmployeeGrid.tsx
+│   │   │   ├── EmployeeProfileDetail.tsx
+│   │   │   └── EmployeeTable.tsx
+│   │   ├── hiring
+│   │   │   ├── ApplicantReview.tsx
+│   │   │   ├── ApplicationList.tsx
+│   │   │   ├── CreateJobForm.tsx
+│   │   │   ├── HiringPage.tsx
+│   │   │   └── JobPreview.tsx
+│   │   ├── leaves
+│   │   │   ├── LeaveHistory.tsx
+│   │   │   ├── LeaveMonitor.tsx
+│   │   │   ├── LeaveRequestDetail.tsx
+│   │   │   └── LeavesPage.tsx
+│   │   ├── overview
+│   │   │   ├── HREmployeeList.tsx
+│   │   │   ├── HROverviewPage.tsx
+│   │   │   ├── HRPerformanceChart.tsx
+│   │   │   ├── HRSalaryChart.tsx
+│   │   │   └── HRStatCards.tsx
+│   │   ├── payroll
+│   │   │   ├── PayrollEmployeeDetail.tsx
+│   │   │   ├── PayrollPage.tsx
+│   │   │   └── PayslipModal.tsx
+│   │   ├── performance
+│   │   │   ├── PerformanceOverview.tsx
+│   │   │   ├── PerformancePage.tsx
+│   │   │   └── PerformanceSubNav.tsx
+│   │   ├── HRPage.tsx
+│   │   └── HRSubNav.tsx
+│   ├── it
+│   │   ├── AlertsTable.tsx
+│   │   ├── AuditLogTable.tsx
+│   │   ├── ConsultationTable.tsx
+│   │   ├── DeadLettersTable.tsx
+│   │   ├── DeliveryTable.tsx
+│   │   ├── EnvConfigsTable.tsx
+│   │   ├── FeatureFlagsTable.tsx
+│   │   ├── HealthHistoryTable.tsx
+│   │   ├── IncidentsTable.tsx
+│   │   ├── ITStatCards.tsx
+│   │   ├── ITSubNav.tsx
+│   │   ├── JobMonitoringTable.tsx
+│   │   ├── NotificationsTable.tsx
+│   │   ├── RTCSessionTable.tsx
+│   │   ├── ServiceRegistryTable.tsx
+│   │   ├── table.utils.tsx
+│   │   ├── TransactionsTable.tsx
+│   │   ├── WebhookLogsTable.tsx
+│   │   └── WebhooksTable.tsx
+│   ├── login
+│   │   ├── LoginCarousel.tsx
+│   │   └── LoginPage.tsx
+│   ├── marketing
+│   │   ├── advertising-execution
+│   │   │   ├── AdvertisingExecutionPage.tsx
+│   │   │   ├── AdvertisingExecutionSubNav.tsx
+│   │   │   ├── ApprovalCentrePage.tsx
+│   │   │   ├── ApprovalPacketDetailPage.tsx
+│   │   │   ├── BudgetConfigPanel.tsx
+│   │   │   ├── CompensationPlanPage.tsx
+│   │   │   ├── CreatePlanContextPage.tsx
+│   │   │   ├── CreatePublicationRevisionModal.tsx
+│   │   │   ├── CreativePublicationsListPage.tsx
+│   │   │   ├── CreativeSelectionPanel.tsx
+│   │   │   ├── DriftIncidentListPage.tsx
+│   │   │   ├── EmergencyOverridePage.tsx
+│   │   │   ├── ExecutionRunsPage.tsx
+│   │   │   ├── IncidentDetailPage.tsx
+│   │   │   ├── OperationDetailPage.tsx
+│   │   │   ├── OverviewPage.tsx
+│   │   │   ├── PlanBuilderPage.tsx
+│   │   │   ├── PlanCancellationModal.tsx
+│   │   │   ├── PlanDetailPage.tsx
+│   │   │   ├── PlansListPage.tsx
+│   │   │   ├── PolicyAdministrationPage.tsx
+│   │   │   ├── ProviderReadinessPage.tsx
+│   │   │   ├── QueueConfirmationModal.tsx
+│   │   │   ├── RecommendationConversionPage.tsx
+│   │   │   ├── RunDetailPage.tsx
+│   │   │   ├── SafeRetryReviewModal.tsx
+│   │   │   ├── SubmitForApprovalModal.tsx
+│   │   │   ├── SystemHealthPage.tsx
+│   │   │   ├── TargetingConfigPanel.tsx
+│   │   │   └── ValidationWorkspacePage.tsx
+│   │   ├── ai-marketing-intelligence
+│   │   │   ├── AIMarketingIntelligencePage.tsx
+│   │   │   ├── AIMarketingIntelligenceSubNav.tsx
+│   │   │   ├── AlertDetailPage.tsx
+│   │   │   ├── AlertsPage.tsx
+│   │   │   ├── ConvertToTaskModal.tsx
+│   │   │   ├── CreativeDetailPage.tsx
+│   │   │   ├── CreativeLibraryPage.tsx
+│   │   │   ├── EvaluationRunDetailPage.tsx
+│   │   │   ├── EvaluationRunsPage.tsx
+│   │   │   ├── ExperimentDetailPage.tsx
+│   │   │   ├── ExperimentFormModal.tsx
+│   │   │   ├── ExperimentsPage.tsx
+│   │   │   ├── ManualOperationsModal.tsx
+│   │   │   ├── OverviewPage.tsx
+│   │   │   ├── ProviderConnectionsPage.tsx
+│   │   │   ├── ProviderValidationPage.tsx
+│   │   │   ├── RecommendationDetailPage.tsx
+│   │   │   ├── RecommendationsPage.tsx
+│   │   │   └── SettingsControlsPage.tsx
+│   │   ├── banners-promotion
+│   │   │   ├── BannerDetail.tsx
+│   │   │   ├── BannersPromotionPage.tsx
+│   │   │   ├── CreatePromotionModal.tsx
+│   │   │   ├── EditPromotionModal.tsx
+│   │   │   └── NewBannerPage.tsx
+│   │   ├── campaigns
+│   │   │   ├── CampaignCard.tsx
+│   │   │   ├── CampaignDetail.tsx
+│   │   │   ├── CampaignsPage.tsx
+│   │   │   ├── CreateCampaignModal.tsx
+│   │   │   └── EditCampaignModal.tsx
+│   │   ├── content-manager
+│   │   │   ├── ContentDetail.tsx
+│   │   │   ├── ContentManagerPage.tsx
+│   │   │   └── CreateContentModal.tsx
+│   │   ├── email-template
+│   │   │   ├── CreateEmailTemplateModal.tsx
+│   │   │   ├── EmailTemplatePage.tsx
+│   │   │   └── EventView.tsx
+│   │   ├── marketing-intelligence
+│   │   │   ├── ConnectionsPage.tsx
+│   │   │   ├── MarketingIntelligencePage.tsx
+│   │   │   ├── MarketingIntelligenceSubNav.tsx
+│   │   │   ├── PerformanceDashboardPage.tsx
+│   │   │   └── SyncHealthPage.tsx
+│   │   ├── overview
+│   │   │   ├── AdsPerformanceCharts.tsx
+│   │   │   ├── ConversionFunnel.tsx
+│   │   │   ├── MarketingOverviewPage.tsx
+│   │   │   ├── MarketingStatCards.tsx
+│   │   │   ├── PlatformIntegration.tsx
+│   │   │   └── QuickActions.tsx
+│   │   ├── performance-dashboard
+│   │   │   └── PerformanceDashboardPage.tsx
+│   │   ├── shared
+│   │   │   ├── CapabilityPill.tsx
+│   │   │   ├── DataSufficiencyBadge.tsx
+│   │   │   ├── DataTable.tsx
+│   │   │   ├── EmptyState.tsx
+│   │   │   ├── EnvironmentPhaseBanner.tsx
+│   │   │   ├── EvidencePanel.tsx
+│   │   │   ├── FatigueBadge.tsx
+│   │   │   ├── FilterBar.tsx
+│   │   │   ├── MetricCard.tsx
+│   │   │   ├── NativeOnlyCard.tsx
+│   │   │   ├── PartialSuccessSummary.tsx
+│   │   │   ├── PermissionGate.tsx
+│   │   │   ├── ProviderBadge.tsx
+│   │   │   ├── ProviderResultCard.tsx
+│   │   │   ├── RunStatusBadge.tsx
+│   │   │   ├── ScoreGauge.tsx
+│   │   │   ├── SensitiveContentBanner.tsx
+│   │   │   ├── StatusChip.tsx
+│   │   │   ├── Timeline.tsx
+│   │   │   ├── useSocialPermissions.tsx
+│   │   │   └── ValidationStatusBadge.tsx
+│   │   ├── social-media
+│   │   │   ├── AddNewPostModal.tsx
+│   │   │   ├── AddSocialAccountModal.tsx
+│   │   │   ├── EngagementChart.tsx
+│   │   │   ├── PostDetail.tsx
+│   │   │   ├── SocialMediaOverview.tsx
+│   │   │   ├── SocialMediaPage.tsx
+│   │   │   └── WorldMapDots.tsx
+│   │   ├── social-operations
+│   │   │   ├── accounts
+│   │   │   │   ├── IdentityDetailPage.tsx
+│   │   │   │   └── SocialConnectionsPage.tsx
+│   │   │   ├── analytics
+│   │   │   │   └── OrganicAnalyticsPage.tsx
+│   │   │   ├── content
+│   │   │   │   ├── ApprovalQueuePage.tsx
+│   │   │   │   ├── ContentCalendarPage.tsx
+│   │   │   │   ├── MediaLibraryPage.tsx
+│   │   │   │   ├── PostComposerPage.tsx
+│   │   │   │   ├── ProviderContentPage.tsx
+│   │   │   │   └── PublicationDetailPage.tsx
+│   │   │   ├── inbox
+│   │   │   │   ├── CommentsQueuePage.tsx
+│   │   │   │   ├── EscalationQueuePage.tsx
+│   │   │   │   └── UnifiedInboxPage.tsx
+│   │   │   ├── operations
+│   │   │   │   └── OperationsMonitorPage.tsx
+│   │   │   ├── overview
+│   │   │   │   └── SocialOperationsOverviewPage.tsx
+│   │   │   ├── settings
+│   │   │   │   └── SocialOperationsSettingsPage.tsx
+│   │   │   ├── SocialOperationsPage.tsx
+│   │   │   └── SocialOperationsSubNav.tsx
+│   │   ├── MarketingPage.tsx
+│   │   └── MarketingSubNav.tsx
+│   ├── profile
+│   │   ├── activity-logs
+│   │   │   └── ActivityLogs.tsx
+│   │   ├── notification
+│   │   │   └── NotificationTab.tsx
+│   │   ├── profile-info
+│   │   │   ├── DocumentsTab.tsx
+│   │   │   ├── EditContactInfoModal.tsx
+│   │   │   ├── EditEducationModal.tsx
+│   │   │   ├── EditEmergencyContactModal.tsx
+│   │   │   ├── EditPersonalInfoModal.tsx
+│   │   │   ├── EditSocialModal.tsx
+│   │   │   ├── EmploymentDetailsTab.tsx
+│   │   │   ├── PerformanceTab.tsx
+│   │   │   ├── PersonalInfoTab.tsx
+│   │   │   ├── ProfileCard.tsx
+│   │   │   └── ReportsTab.tsx
+│   │   ├── projects
+│   │   │   ├── ProjectDetail.tsx
+│   │   │   ├── ProjectsList.tsx
+│   │   │   └── ProjectsPage.tsx
+│   │   ├── tasks
+│   │   │   ├── TaskDetail.tsx
+│   │   │   └── TasksList.tsx
+│   │   ├── teams
+│   │   │   └── TeamsList.tsx
+│   │   ├── ProfilePage.tsx
+│   │   └── ProfileSubNav.tsx
+│   ├── settings
+│   │   ├── account-security
+│   │   │   └── AccountSecurityPage.tsx
+│   │   ├── notification-settings
+│   │   │   └── NotificationSettingsPage.tsx
+│   │   ├── security-settings
+│   │   │   └── SecuritySettingsPage.tsx
+│   │   ├── system-behavior
+│   │   │   └── SystemBehaviorPage.tsx
+│   │   ├── system-limits
+│   │   │   └── SystemLimitsPage.tsx
+│   │   ├── SettingsPage.tsx
+│   │   └── SettingsSubNav.tsx
+│   ├── shared
+│   │   └── loader.tsx
+│   ├── signup
+│   │   ├── SignupCarousel.tsx
+│   │   └── SignupPage.tsx
+│   ├── ui
+│   │   ├── button.tsx
+│   │   ├── checkbox.tsx
+│   │   ├── dialog.tsx
+│   │   ├── drawer.tsx
+│   │   ├── input.tsx
+│   │   ├── label.tsx
+│   │   ├── radio-group.tsx
+│   │   └── skeleton.tsx
+│   ├── users
+│   │   ├── AnalyticsStatCards.tsx
+│   │   ├── AnalyticsVisitorsTable.tsx
+│   │   ├── AnalyticsWaitlistTable.tsx
+│   │   ├── SignUpTrendsChart.tsx
+│   │   ├── UserDetailDrawer.tsx
+│   │   ├── UserGrowthChart.tsx
+│   │   ├── UsersStatCards.tsx
+│   │   ├── UsersSubNav.tsx
+│   │   └── UsersTable.tsx
+│   └── verification
+│       ├── DispatchDetail.tsx
+│       ├── VerificationDetail.tsx
+│       ├── VerificationFilters.tsx
+│       ├── VerificationPage.tsx
+│       ├── VerificationStatCards.tsx
+│       ├── VerificationSubNav.tsx
+│       └── VerificationTable.tsx
+├── lib
+│   ├── admin-ops.service.ts
+│   ├── admin-settings.service.ts
+│   ├── advertising-execution.mock.ts
+│   ├── advertising-execution.service.ts
+│   ├── ai-marketing-intelligence.mock.ts
+│   ├── ai-marketing-intelligence.service.ts
+│   ├── api.ts
+│   ├── audit.service.ts
+│   ├── dashboard.service.ts
+│   ├── healthnet.service.ts
+│   ├── hrm.service.ts
+│   ├── it.service.ts
+│   ├── marketing.service.ts
+│   ├── marketing-intelligence.mock.ts
+│   ├── marketing-intelligence.service.ts
+│   ├── notification.service.ts
+│   ├── profile.service.ts
+│   ├── social-operations.mock.ts
+│   ├── social-operations.service.ts
+│   ├── support.service.ts
+│   ├── tickets.service.ts
+│   ├── users.service.ts
+│   ├── utils.ts
+│   └── verification.service.ts
+├── providers
+│   └── query-provider.tsx
+├── stores
+│   ├── admin-ops.store.ts
+│   ├── admin-settings.store.ts
+│   ├── advertising-execution.store.ts
+│   ├── ai-marketing-intelligence.store.ts
+│   ├── audit.store.ts
+│   ├── auth.store.ts
+│   ├── dashboard.store.ts
+│   ├── healthnet.store.ts
+│   ├── hrm.store.ts
+│   ├── it.store.ts
+│   ├── marketing.store.ts
+│   ├── marketing-intelligence.store.ts
+│   ├── notification.store.ts
+│   ├── profile.store.ts
+│   ├── social-operations.store.ts
+│   ├── support.store.ts
+│   ├── tickets.store.ts
+│   ├── users.store.ts
+│   ├── useStuckDoctorsStore.ts
+│   └── verification.store.ts
+├── types
+│   ├── admin-ops.types.ts
+│   ├── admin-settings.types.ts
+│   ├── advertising-execution.types.ts
+│   ├── ai-marketing-intelligence.types.ts
+│   ├── audit.types.ts
+│   ├── dashboard.types.ts
+│   ├── healthnet.types.ts
+│   ├── hrm.types.ts
+│   ├── it.types.ts
+│   ├── marketing.types.ts
+│   ├── marketing-intelligence.types.ts
+│   ├── notification.types.ts
+│   ├── profile.types.ts
+│   ├── social-operations.types.ts
+│   ├── support.types.ts
+│   ├── tickets.types.ts
+│   ├── users.types.ts
+│   └── verification.types.ts
+├── folder-structure.txt
+└── middleware.ts
