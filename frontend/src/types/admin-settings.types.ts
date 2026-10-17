@@ -4,7 +4,7 @@ export interface AdminSetting {
   id: string;
   category: string;
   key: string;
-  value: any;
+  value: unknown;
   updatedBy: string | null;
   createdAt: string;
   updatedAt: string;
@@ -17,7 +17,7 @@ export interface AdminSettingsGrouped {
 export interface UpdateSettingPayload {
   category: string;
   key: string;
-  value: any;
+  value: unknown;
 }
 
 // ─── Value Shapes (for type safety) ──────────────────────────────────────────
@@ -55,8 +55,8 @@ export interface SettingHistory {
   settingId: string;
   category: string;
   key: string;
-  oldValue: any;
-  newValue: any;
+  oldValue: unknown;
+  newValue: unknown;
   changedBy: string;
   changedAt: string;
 }

@@ -4,8 +4,9 @@
 import { useState } from "react";
 import { ChevronDown, X, Eye, EyeOff } from "lucide-react";
 import { useMarketingStore } from "@/stores/marketing.store";
+import type { SocialPlatform } from "@/types/marketing.types";
 
-const SOCIAL_PLATFORMS = [
+const SOCIAL_PLATFORMS: Array<{ value: SocialPlatform; label: string; color: string }> = [
   { value: "Facebook", label: "Facebook", color: "#1877F2" },
   { value: "Instagram", label: "Instagram", color: "linear-gradient(45deg,#f09433,#dc2743,#bc1888)" },
   { value: "Twitter", label: "Twitter", color: "#000000" },
@@ -19,7 +20,7 @@ interface Props {
 }
 
 export default function AddSocialAccountModal({ onClose }: Props) {
-  const [platform, setPlatform] = useState("");
+  const [platform, setPlatform] = useState<SocialPlatform | "">("");
   const [platformOpen, setPlatformOpen] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -35,7 +36,7 @@ export default function AddSocialAccountModal({ onClose }: Props) {
     setIsSubmitting(true);
     try {
       await createSocialAccount({
-        platform: platform as any,
+        platform: platform,
         username,
         password,
         saveCredentials,

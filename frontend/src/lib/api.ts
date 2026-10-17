@@ -15,9 +15,9 @@ api.interceptors.request.use((config) => {
 
 // On 401, try to silently refresh, then retry the original request once
 let isRefreshing = false;
-let failedQueue: Array<{ resolve: (v: any) => void; reject: (e: any) => void }> = [];
+let failedQueue: Array<{ resolve: (v: string | null) => void; reject: (e: unknown) => void }> = [];
 
-const flushQueue = (error: any, token: string | null = null) => {
+const flushQueue = (error: unknown, token: string | null = null) => {
   failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve(token)));
   failedQueue = [];
 };

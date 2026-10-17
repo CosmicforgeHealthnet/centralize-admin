@@ -43,7 +43,7 @@ export default function CampaignsPage() {
 
   // Handle archive - pass Archived status
   const handleArchive = (id: string) => {
-    updateCampaignStatus(id, "Archived" as any);
+    updateCampaignStatus(id, "Archived");
   };
 
   if (selectedId) {

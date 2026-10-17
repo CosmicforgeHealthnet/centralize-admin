@@ -85,7 +85,7 @@ export default function BannersPromotionPage() {
     if (newTab === "Ad Banners") {
       setBannerFilters({ page: 1 });
     } else {
-      setPromotionFilters({ tab: newTab as any, page: 1 });
+      setPromotionFilters({ tab: newTab, page: 1 });
     }
   };
 

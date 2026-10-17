@@ -237,7 +237,7 @@ function OverviewContentSkeleton() {
   );
 }
 
-function OverviewContent({ emp, payroll, chartData }: { emp: PayrollDisplayEmployee; payroll: EmployeePayroll["payroll"]; chartData: EmployeePayroll["chartData"] }) {
+function OverviewContent({ emp, payroll, chartData }: { emp: PayrollDisplayEmployee | undefined; payroll: EmployeePayroll["payroll"]; chartData: EmployeePayroll["chartData"] }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="bg-card rounded-xl border border-border p-4">
@@ -428,7 +428,7 @@ function LeftPanel({
   activeAction,
   onActionChange,
 }: {
-  emp: PayrollDisplayEmployee;
+  emp: PayrollDisplayEmployee | undefined;
   activeAction: QuickAction;
   onActionChange: (a: QuickAction) => void;
 }) {

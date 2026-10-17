@@ -1,4 +1,5 @@
 "use client";
+import { readHttpErrorMessage } from "@/lib/error-messages";
 
 import { useEffect, useState, useRef } from "react";
 import { ArrowLeft, Loader2, CheckCircle, AlertCircle, XCircle } from "lucide-react";
@@ -393,8 +394,8 @@ export default function CreateAccountForm({ mode = "create", accountId, onBack, 
           onSave?.();
         }, 3500);
       }
-    } catch (err: any) {
-      const errorMsg = err?.response?.data?.message || err?.message || "Failed to save account";
+    } catch (err: unknown) {
+      const errorMsg = readHttpErrorMessage(err) || (err instanceof Error ? err.message : undefined) || "Failed to save account";
       setFormError(errorMsg);
       setTimeout(() => setFormError(null), 6000);
     } finally {

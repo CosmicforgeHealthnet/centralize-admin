@@ -25,7 +25,7 @@ export interface Ticket {
   updatedAt: string;
   user: TicketUser | null;
   ticketCategory?: TicketCategory; // added by getAllTicketsMerged
-  [key: string]: any; // allow extra fields from each ticket type
+  [key: string]: unknown; // allow extra fields from each ticket type
 }
 
 export interface Dispute {
@@ -35,7 +35,7 @@ export interface Dispute {
   createdAt: string;
   updatedAt: string;
   user: TicketUser | null;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface InsuranceTicket {
@@ -44,7 +44,7 @@ export interface InsuranceTicket {
   createdAt: string;
   updatedAt: string;
   user: TicketUser | null;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface Report {
@@ -53,7 +53,7 @@ export interface Report {
   createdAt: string;
   updatedAt: string;
   user: TicketUser | null;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface SupportStats {

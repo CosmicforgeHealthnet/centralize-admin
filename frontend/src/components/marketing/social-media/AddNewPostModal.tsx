@@ -4,15 +4,16 @@
 import { useState } from "react";
 import { ChevronDown, X, Smile, Paperclip } from "lucide-react";
 import { useMarketingStore } from "@/stores/marketing.store";
+import type { SocialPlatform } from "@/types/marketing.types";
 
-const PLATFORMS = ["Facebook", "Instagram", "Twitter", "Tiktok", "LinkedIn", "Youtube"];
+const PLATFORMS: SocialPlatform[] = ["Facebook", "Instagram", "Twitter", "Tiktok", "LinkedIn", "Youtube"];
 
 interface Props {
   onClose: () => void;
 }
 
 export default function AddNewPostModal({ onClose }: Props) {
-  const [platform, setPlatform] = useState("");
+  const [platform, setPlatform] = useState<SocialPlatform | "">("");
   const [platformOpen, setPlatformOpen] = useState(false);
   const [caption, setCaption] = useState("");
   const [attachment, setAttachment] = useState("");
@@ -26,7 +27,7 @@ export default function AddNewPostModal({ onClose }: Props) {
     setIsSubmitting(true);
     try {
       await createSocialPost({
-        platform: platform as any,
+        platform: platform,
         caption,
         attachmentUrl: attachment || undefined,
       });

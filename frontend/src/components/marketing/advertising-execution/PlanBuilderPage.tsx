@@ -72,7 +72,7 @@ export default function PlanBuilderPage({ id, onDone, onBack }: PlanBuilderPageP
   };
 
   const getOrCreateBudgetExposure = (item: AEPlanItem): AEBudgetExposure => {
-    const existing = budgetExposure.find((b) => (item.intent as any)?.__exposureRef === b);
+    const existing = budgetExposure.find((b) => item.intent?.__exposureRef === b);
     if (existing) return existing;
     return {
       currency: plan?.currency ?? "USD",

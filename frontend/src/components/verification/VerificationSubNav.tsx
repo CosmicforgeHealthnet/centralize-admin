@@ -60,7 +60,7 @@ export default function VerificationSubNav() {
             key={role}
             label={label}
             active={activeRole === role}
-            onClick={() => setActiveRole(role as any)}
+            onClick={() => setActiveRole(role)}
           />
         ))}
       </div>
@@ -73,7 +73,7 @@ export default function VerificationSubNav() {
           {NAV_ITEMS.map(({ label, role }) => (
             <button
               key={role}
-              onClick={() => setActiveRole(role as any)}
+              onClick={() => setActiveRole(role)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] whitespace-nowrap shrink-0 transition-all duration-150 text-[12px] font-poppins border ${
                 activeRole === role
                   ? "bg-primary text-white border-primary font-semibold"

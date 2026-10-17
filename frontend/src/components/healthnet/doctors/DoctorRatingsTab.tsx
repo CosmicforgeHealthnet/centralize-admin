@@ -35,7 +35,7 @@ export default function DoctorRatingsTab({ doctorId }: { doctorId: string }) {
 
   return (
     <div className="flex flex-col gap-3 pb-4">
-      {(doctorRatings.ratings as any[]).map((rating) => (
+      {doctorRatings.ratings.map((rating) => (
         <div key={rating.id}
           className="flex items-start gap-3 p-4 rounded-[10px] border border-border bg-card shadow-[0_1px_6px_0_rgba(0,0,0,0.04)] dark:shadow-[0_1px_6px_0_rgba(0,0,0,0.2)] hover:shadow-[0_2px_12px_0_rgba(0,0,0,0.08)] transition-shadow">
           <div className="w-9 h-9 rounded-full bg-muted overflow-hidden shrink-0">

@@ -101,7 +101,7 @@ export default function ServiceRegistryTable() {
             <div key={key} className="flex flex-col gap-1">
               <label className="text-[11px] font-poppins text-muted-foreground">{label}</label>
               <input
-                value={(form as any)[key]}
+                value={form[key as keyof typeof form] ?? ""}
                 onChange={(e) => setForm((p) => ({ ...p, [key]: e.target.value }))}
                 placeholder={placeholder}
                 className="h-[36px] px-3 bg-background border border-border rounded-lg text-[13px] font-poppins text-foreground outline-none focus:border-primary transition-colors"

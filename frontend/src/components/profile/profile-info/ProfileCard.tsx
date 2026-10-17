@@ -46,8 +46,8 @@ export default function ProfileCard() {
     try {
       await updateAvatar(file);
       showSuccess("Profile picture updated successfully!");
-    } catch (error: any) {
-      showError(error?.message || "Failed to upload avatar. Please try again.");
+    } catch (error: unknown) {
+      showError(error instanceof Error ? error.message : "Failed to upload avatar. Please try again.");
     }
     e.target.value = "";
   };
