@@ -22,7 +22,6 @@ import type {
 } from "@/types/verification.types";
 import DispatchDetail from "./DispatchDetail";
 import api from "@/lib/api";
-import { readHttpErrorMessage } from "@/lib/error-messages";
 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
