@@ -380,6 +380,7 @@ export interface SocialLocationStat {
 export interface SocialAudienceBreakdownItem {
   platform: string;
   value: number;
+  color?: string;
   change: string;
   up: boolean;
 }

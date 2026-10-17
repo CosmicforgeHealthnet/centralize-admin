@@ -1,5 +1,5 @@
 name: Admin frontend typed lint repair
-# Preserve Next.js client directives after leading file comments
+# Add optional chart display color to audience breakdown type
 # Re-run after syntax correction to migration script
 
 on:
