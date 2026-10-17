@@ -34,7 +34,7 @@ const inference=[
 ];
 for(const rel of inference){
   const file=path.join(root,rel);const before=fs.readFileSync(file,"utf8");
-  const after=before.replace(/\.map\(\(([a-zA-Z_$][\w$]*):\s*any(?=\s*[,)]))/g,".map(($1");
+  const after=before.replace(/\.map\(\(([a-zA-Z_$][\w$]*):\s*any\b/g,".map(($1");
   if(before!==after){fs.writeFileSync(file,after);changed++;}
 }
 console.log("Typed chart tooltips and contextually inferred map items in",changed,"files");
