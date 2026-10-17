@@ -29,7 +29,6 @@ for(const rel of tooltip) {
   }
 }
 const inference=[
-"components/marketing/performance-dashboard/PerformanceDashboardPage.tsx",
 "components/marketing/social-media/EngagementChart.tsx",
 "components/verification/VerificationDetail.tsx"
 ];

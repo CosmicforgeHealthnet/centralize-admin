@@ -1,5 +1,5 @@
 name: Admin frontend typed lint repair
-# Infer callback elements only for verified typed source arrays
+# Skip non-schema audience callbacks during typed migration
 # Re-run after syntax correction to migration script
 
 on:
