@@ -30,7 +30,6 @@ for(const rel of tooltip) {
 }
 const inference=[
 "components/marketing/social-media/EngagementChart.tsx",
-"components/verification/VerificationDetail.tsx"
 ];
 for(const rel of inference){
   const file=path.join(root,rel);const before=fs.readFileSync(file,"utf8");

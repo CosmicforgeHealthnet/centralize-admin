@@ -1,5 +1,5 @@
 name: Admin frontend typed lint repair
-# Skip non-schema audience callbacks during typed migration
+# Skip nullable verification entries pending validated narrowing
 # Re-run after syntax correction to migration script
 
 on:
