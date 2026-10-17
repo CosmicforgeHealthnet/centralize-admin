@@ -26,6 +26,7 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Apply nonbreaking npm audit fixes to manifest and lock
         run: |
+          npm install --package-lock-only --ignore-scripts --no-fund
           npm audit fix --package-lock-only --ignore-scripts || echo "::warning::npm audit fix reported remaining issues; review the following audit"
       - name: Commit changed dependency versions to review branch
         run: |
