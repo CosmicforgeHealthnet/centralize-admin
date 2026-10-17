@@ -56,9 +56,13 @@ export default function DriftIncidentListPage({ onOpenIncident }: DriftIncidentL
     onlyUnresolved: true,
   });
 
+  const updateFilters: typeof setFilters = (updater) => {
+    setLoading(true);
+    setFilters(updater);
+  };
+
   useEffect(() => {
     let mounted = true;
-    setLoading(true);
     fetchAEIncidents(filters).then((res) => {
       if (mounted) {
         setIncidents(res);
@@ -77,7 +81,7 @@ export default function DriftIncidentListPage({ onOpenIncident }: DriftIncidentL
       <div className="flex flex-wrap items-center gap-2">
         <select
           value={filters.classification}
-          onChange={(e) => setFilters((f) => ({ ...f, classification: e.target.value as AEIncidentClassification | "all" }))}
+          onChange={(e) => updateFilters((f) => ({ ...f, classification: e.target.value as AEIncidentClassification | "all" }))}
           className="rounded-[8px] border border-border px-2.5 py-1.5 font-poppins text-[12px] bg-card"
         >
           {CLASSIFICATION_OPTIONS.map((c) => (
@@ -86,7 +90,7 @@ export default function DriftIncidentListPage({ onOpenIncident }: DriftIncidentL
         </select>
         <select
           value={filters.severity}
-          onChange={(e) => setFilters((f) => ({ ...f, severity: e.target.value as AEIncidentSeverity | "all" }))}
+          onChange={(e) => updateFilters((f) => ({ ...f, severity: e.target.value as AEIncidentSeverity | "all" }))}
           className="rounded-[8px] border border-border px-2.5 py-1.5 font-poppins text-[12px] bg-card"
         >
           {SEVERITY_OPTIONS.map((s) => (
@@ -95,7 +99,7 @@ export default function DriftIncidentListPage({ onOpenIncident }: DriftIncidentL
         </select>
         <select
           value={filters.provider}
-          onChange={(e) => setFilters((f) => ({ ...f, provider: e.target.value as AEProvider | "all" }))}
+          onChange={(e) => updateFilters((f) => ({ ...f, provider: e.target.value as AEProvider | "all" }))}
           className="rounded-[8px] border border-border px-2.5 py-1.5 font-poppins text-[12px] bg-card"
         >
           {PROVIDER_OPTIONS.map((p) => (
@@ -106,7 +110,7 @@ export default function DriftIncidentListPage({ onOpenIncident }: DriftIncidentL
           <input
             type="checkbox"
             checked={filters.onlyUnresolved}
-            onChange={(e) => setFilters((f) => ({ ...f, onlyUnresolved: e.target.checked }))}
+            onChange={(e) => updateFilters((f) => ({ ...f, onlyUnresolved: e.target.checked }))}
           />
           Only unresolved
         </label>

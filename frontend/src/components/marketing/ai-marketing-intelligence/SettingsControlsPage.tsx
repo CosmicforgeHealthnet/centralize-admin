@@ -184,15 +184,11 @@ interface SettingsControlsPageProps {
 export default function SettingsControlsPage({ isAdmin = false }: SettingsControlsPageProps) {
   const { settings, isLoadingSettings, error, settingConflict, fetchSettings, updateSetting } =
     useAIMarketingIntelligenceStore();
-  const [showConflictModal, setShowConflictModal] = useState(false);
+  const clearSettingConflict = useAIMarketingIntelligenceStore((s) => s.clearSettingConflict);
 
   useEffect(() => {
     fetchSettings();
   }, [fetchSettings]);
-
-  useEffect(() => {
-    if (settingConflict) setShowConflictModal(true);
-  }, [settingConflict]);
 
   const findRow = (key: AMISettingKey) => settings.find((s) => s.key === key);
 
@@ -264,7 +260,7 @@ export default function SettingsControlsPage({ isAdmin = false }: SettingsContro
         </div>
       )}
 
-      {showConflictModal && <VersionConflictModal onClose={() => setShowConflictModal(false)} />}
+      {settingConflict && <VersionConflictModal onClose={clearSettingConflict} />}
     </div>
   );
 }

@@ -14,6 +14,27 @@ const defaultData = {
 const inputClass =
   "w-full border border-border rounded-md px-4 py-2.5 text-[12px] text-foreground placeholder:text-muted-foreground outline-none focus:border-primary transition-colors bg-card disabled:bg-muted disabled:text-muted-foreground";
 
+const StepBadge = ({ n }: { n: number }) => (
+  <span className="w-5 h-5 rounded-full bg-accent text-accent-foreground text-[10px] font-bold flex items-center justify-center shrink-0">
+    {n}
+  </span>
+);
+
+const Toggle = ({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) => (
+  <button
+    onClick={onToggle}
+    className={`relative shrink-0 w-11 h-6 rounded-full transition-colors duration-200 ${
+      enabled ? "bg-primary" : "bg-input"
+    }`}
+  >
+    <span
+      className={`absolute top-0.5 w-5 h-5 bg-primary-foreground rounded-full shadow transition-all duration-200 ${
+        enabled ? "left-[22px]" : "left-0.5"
+      }`}
+    />
+  </button>
+);
+
 export default function SupportChannelPage() {
   const [enabled, setEnabled]                   = useState(true);
   const [senderName, setSenderName]             = useState(enabled ? defaultData.senderName : "");
@@ -49,26 +70,6 @@ export default function SupportChannelPage() {
     setForwardingEmails(forwardingEmails.filter((e) => e !== email));
   };
 
-  const StepBadge = ({ n }: { n: number }) => (
-    <span className="w-5 h-5 rounded-full bg-accent text-accent-foreground text-[10px] font-bold flex items-center justify-center shrink-0">
-      {n}
-    </span>
-  );
-
-  const Toggle = () => (
-    <button
-      onClick={handleToggle}
-      className={`relative shrink-0 w-11 h-6 rounded-full transition-colors duration-200 ${
-        enabled ? "bg-primary" : "bg-input"
-      }`}
-    >
-      <span
-        className={`absolute top-0.5 w-5 h-5 bg-primary-foreground rounded-full shadow transition-all duration-200 ${
-          enabled ? "left-[22px]" : "left-0.5"
-        }`}
-      />
-    </button>
-  );
 
   return (
     <div className="flex gap-4">
@@ -219,7 +220,7 @@ export default function SupportChannelPage() {
               <p className="text-[10px] font-semibold text-foreground">
                 Enable Custom Email Templates
               </p>
-              <Toggle />
+              <Toggle enabled={enabled} onToggle={handleToggle} />
             </div>
 
             {/* Illustration */}
@@ -244,7 +245,7 @@ export default function SupportChannelPage() {
             <p className="text-[10px] font-semibold text-foreground">
               Enable Custom Email Templates
             </p>
-            <Toggle />
+            <Toggle enabled={enabled} onToggle={handleToggle} />
           </div>
         </div>
 

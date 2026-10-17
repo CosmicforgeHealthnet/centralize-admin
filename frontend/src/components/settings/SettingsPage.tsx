@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SettingsSubNav, { type SettingsSection } from "@/components/settings/SettingsSubNav";
 import AccountSecurityPage from "@/components/settings/account-security/AccountSecurityPage";
@@ -30,23 +29,13 @@ export default function SettingsPage() {
   const searchParams = useSearchParams();
 
   const tabParam = searchParams.get("tab");
-  const initialSection: SettingsSection =
+  const activeSection: SettingsSection =
     tabParam && TAB_TO_SECTION[tabParam] ? TAB_TO_SECTION[tabParam] : "account-security";
 
-  const [activeSection, setActiveSection] = useState<SettingsSection>(initialSection);
-
   const handleChange = (section: SettingsSection) => {
-    setActiveSection(section);
     const tab = SECTION_TO_TAB[section];
     router.replace(`/dashboard/settings?tab=${encodeURIComponent(tab)}`, { scroll: false });
   };
-
-  useEffect(() => {
-    const tab = searchParams.get("tab");
-    if (tab && TAB_TO_SECTION[tab]) {
-      setActiveSection(TAB_TO_SECTION[tab]);
-    }
-  }, [searchParams]);
 
   return (
     <div className="flex gap-4">

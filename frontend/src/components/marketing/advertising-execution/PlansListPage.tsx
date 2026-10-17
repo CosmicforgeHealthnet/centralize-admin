@@ -54,9 +54,13 @@ export default function PlansListPage({ onOpenPlan, onCreatePlan }: PlansListPag
     search: "",
   });
 
+  const updateFilters: typeof setFilters = (updater) => {
+    setLoading(true);
+    setFilters(updater);
+  };
+
   useEffect(() => {
     let mounted = true;
-    setLoading(true);
     fetchAEPlans(filters).then((res) => {
       if (mounted) {
         setPlans(res);
@@ -86,14 +90,14 @@ export default function PlansListPage({ onOpenPlan, onCreatePlan }: PlansListPag
           <Search className="w-3.5 h-3.5 text-muted-foreground" />
           <input
             value={filters.search ?? ""}
-            onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
+            onChange={(e) => updateFilters((f) => ({ ...f, search: e.target.value }))}
             placeholder="Search plans..."
             className="font-poppins text-[12px] bg-transparent outline-none w-40"
           />
         </div>
         <select
           value={filters.provider}
-          onChange={(e) => setFilters((f) => ({ ...f, provider: e.target.value as AEProvider | "all" }))}
+          onChange={(e) => updateFilters((f) => ({ ...f, provider: e.target.value as AEProvider | "all" }))}
           className="rounded-[8px] border border-border px-2.5 py-1.5 font-poppins text-[12px] bg-card"
         >
           {PROVIDER_OPTIONS.map((p) => (
@@ -102,7 +106,7 @@ export default function PlansListPage({ onOpenPlan, onCreatePlan }: PlansListPag
         </select>
         <select
           value={filters.status}
-          onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value as AEPlanStatus | "all" }))}
+          onChange={(e) => updateFilters((f) => ({ ...f, status: e.target.value as AEPlanStatus | "all" }))}
           className="rounded-[8px] border border-border px-2.5 py-1.5 font-poppins text-[12px] bg-card"
         >
           {STATUS_OPTIONS.map((s) => (
@@ -111,7 +115,7 @@ export default function PlansListPage({ onOpenPlan, onCreatePlan }: PlansListPag
         </select>
         <select
           value={filters.source}
-          onChange={(e) => setFilters((f) => ({ ...f, source: e.target.value as AESource | "all" }))}
+          onChange={(e) => updateFilters((f) => ({ ...f, source: e.target.value as AESource | "all" }))}
           className="rounded-[8px] border border-border px-2.5 py-1.5 font-poppins text-[12px] bg-card"
         >
           {SOURCE_OPTIONS.map((s) => (

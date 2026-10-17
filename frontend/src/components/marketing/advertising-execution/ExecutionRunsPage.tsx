@@ -44,9 +44,13 @@ export default function ExecutionRunsPage({ onOpenRun }: ExecutionRunsPageProps)
     onlyReconciliationPending: false,
   });
 
+  const updateFilters: typeof setFilters = (updater) => {
+    setLoading(true);
+    setFilters(updater);
+  };
+
   useEffect(() => {
     let mounted = true;
-    setLoading(true);
     fetchAERuns(filters).then((res) => {
       if (mounted) {
         setRuns(res);
@@ -65,7 +69,7 @@ export default function ExecutionRunsPage({ onOpenRun }: ExecutionRunsPageProps)
       <div className="flex flex-wrap items-center gap-2">
         <select
           value={filters.provider}
-          onChange={(e) => setFilters((f) => ({ ...f, provider: e.target.value as AEProvider | "all" }))}
+          onChange={(e) => updateFilters((f) => ({ ...f, provider: e.target.value as AEProvider | "all" }))}
           className="rounded-[8px] border border-border px-2.5 py-1.5 font-poppins text-[12px] bg-card"
         >
           {PROVIDER_OPTIONS.map((p) => (
@@ -74,7 +78,7 @@ export default function ExecutionRunsPage({ onOpenRun }: ExecutionRunsPageProps)
         </select>
         <select
           value={filters.jobStatus}
-          onChange={(e) => setFilters((f) => ({ ...f, jobStatus: e.target.value as AEJobStatus | "all" }))}
+          onChange={(e) => updateFilters((f) => ({ ...f, jobStatus: e.target.value as AEJobStatus | "all" }))}
           className="rounded-[8px] border border-border px-2.5 py-1.5 font-poppins text-[12px] bg-card"
         >
           {JOB_STATUS_OPTIONS.map((s) => (
@@ -85,7 +89,7 @@ export default function ExecutionRunsPage({ onOpenRun }: ExecutionRunsPageProps)
           <input
             type="checkbox"
             checked={filters.onlyIncidents}
-            onChange={(e) => setFilters((f) => ({ ...f, onlyIncidents: e.target.checked }))}
+            onChange={(e) => updateFilters((f) => ({ ...f, onlyIncidents: e.target.checked }))}
           />
           Only incidents
         </label>
