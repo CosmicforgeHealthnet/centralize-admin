@@ -218,8 +218,10 @@ export default function NotificationSettingsPage() {
   /* ── Hydrate local state from allSettings ── */
   useEffect(() => {
     if (!allSettings) return;
-
-    const n = allSettings["notification"] ?? [];
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      const n = allSettings["notification"] ?? [];
     const l = allSettings["localization"] ?? [];
 
     const get = (arr: typeof n, key: string) => arr.find((s) => s.key === key)?.value;
@@ -251,6 +253,8 @@ export default function NotificationSettingsPage() {
     if (cur)  setCurrency(String(cur));
     if (lang) setLanguage(String(lang));
     if (tz)   setTimezone(String(tz));
+    });
+    return () => { cancelled = true; };
   }, [allSettings]);
 
   /* ── Bubble store errors to toast ── */
@@ -292,7 +296,7 @@ export default function NotificationSettingsPage() {
     userAccount, globalSys, newUser, telemedicine, consultations,
     logisticsOrders, logisticsAll, payments, paymentsGateway, paymentFailed,
     lab, prescriptions, sysMaintenance, securityAlerts,
-    currency, language, timezone,
+    currency, language, timezone, toastSuccess,
   ]);
 
   if (isLoading && !allSettings) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, Suspense } from "react";
+import { useState, useRef, useEffect, useSyncExternalStore, Suspense } from "react";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { Bell, Menu, Search, X, Maximize2, Check, AlertCircle, XCircle, Settings, Bell as BellIcon, Sun, Moon } from "lucide-react";
 import Image from "next/image";
@@ -221,12 +221,18 @@ function NotificationPanel({ onClose, onExpand }: { onClose: () => void; onExpan
   );
 }
 
-function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false);
+function subscribeToThemeChange(onStoreChange: () => void) {
+  const observer = new MutationObserver(onStoreChange);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+  return () => observer.disconnect();
+}
 
-  useEffect(() => {
-    setIsDark(document.documentElement.classList.contains("dark"));
-  }, []);
+function getThemeSnapshot() {
+  return document.documentElement.classList.contains("dark");
+}
+
+function ThemeToggle() {
+  const isDark = useSyncExternalStore(subscribeToThemeChange, getThemeSnapshot, () => false);
 
   const toggle = (dark: boolean) => {
     if (dark) {
@@ -234,7 +240,6 @@ function ThemeToggle() {
     } else {
       document.documentElement.classList.remove("dark");
     }
-    setIsDark(dark);
   };
 
   return (

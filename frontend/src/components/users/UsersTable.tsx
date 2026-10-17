@@ -140,18 +140,24 @@ export default function UsersTable() {
 
   const [searchDraft, setSearchDraft]   = useState(filters.search);
   const [showFilters, setShowFilters]   = useState(false);
-  const [selectedIds, setSelectedIds]   = useState<Set<string>>(new Set());
+  // Scope selections to the current list, without effect-driven state resets.
+  const userListKey = users.map((user) => user.id).join("\u0000");
+  const [selection, setSelection] = useState<{ key: string; ids: Set<string> }>({ key: "", ids: new Set() });
+  const selectedIds = selection.key === userListKey ? selection.ids : new Set<string>();
+  const setSelectedIds = (update: Set<string> | ((ids: Set<string>) => Set<string>)) => {
+    setSelection((current) => {
+      const previous = current.key === userListKey ? current.ids : new Set<string>();
+      return { key: userListKey, ids: typeof update === "function" ? update(previous) : update };
+    });
+  };
 
   // Re-fetch whenever filters change
   useEffect(() => { fetch(); }, [filters.page, filters.role, filters.status, filters.tier, filters.sortBy, filters.sortOrder]);
 
-  // Clear selection when users list changes
-  useEffect(() => { setSelectedIds(new Set()); }, [users]);
-
   const handleSearch = useCallback(() => {
     setFilters({ search: searchDraft, page: 1 });
     fetch();
-  }, [searchDraft]);
+  }, [searchDraft, setFilters, fetch]);
 
   const handleSort = (field: string) => {
     const newOrder = filters.sortBy === field && filters.sortOrder === "desc" ? "asc" : "desc";

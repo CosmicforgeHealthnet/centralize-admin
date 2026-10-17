@@ -456,10 +456,14 @@ export default function UserDetailDrawer() {
   const [confirmReset, setConfirmReset]   = useState(false);
   const [resetDone, setResetDone]         = useState(false);
 
-  // Reset tab when new user opens
-  useEffect(() => {
-    if (selectedUser) { setActiveTab("overview"); setResetDone(false); }
-  }, [selectedUser?.id]);
+  // Reset local details whenever a different user is selected.
+  // A guarded render-phase update avoids stale tabs and effect-driven rerenders.
+  const [previousUserId, setPreviousUserId] = useState<string | null>(selectedUser?.id ?? null);
+  if ((selectedUser?.id ?? null) !== previousUserId) {
+    setPreviousUserId(selectedUser?.id ?? null);
+    setActiveTab("overview");
+    setResetDone(false);
+  }
 
   if (!selectedUser && !isLoadingUser) return null;
 

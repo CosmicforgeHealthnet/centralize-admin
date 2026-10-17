@@ -487,7 +487,7 @@ export const hiringService = {
   },
 
   async updateVacancy(id: string, payload: UpdateVacancyPayload) {
-    const { data } = await api.put<ApiEnvelope<{}>>(`${HIRING_BASE}/vacancies/${id}`, payload);
+    const { data } = await api.put<ApiEnvelope<Record<string, unknown>>>(`${HIRING_BASE}/vacancies/${id}`, payload);
     return data.data;
   },
 

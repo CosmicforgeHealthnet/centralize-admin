@@ -260,7 +260,8 @@ export default function VendorProfileDetail({
 
   // Simulate API fetch - replace with your actual data fetching
   useEffect(() => {
-    setLoading(true);
+    let active = true;
+    queueMicrotask(() => { if (active) setLoading(true); });
     const timer = setTimeout(() => {
       const vendor = MOCK_VENDOR_DATA[id];
       if (vendor) {
@@ -272,7 +273,7 @@ export default function VendorProfileDetail({
       setLoading(false);
     }, 500);
 
-    return () => clearTimeout(timer);
+    return () => { active = false; clearTimeout(timer); };
   }, [id]);
 
   if (error) {
