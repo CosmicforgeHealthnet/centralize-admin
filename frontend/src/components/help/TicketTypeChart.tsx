@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, type PieLabelRenderProps } from "recharts";
 import { useSupportStore } from "@/stores/support.store";
 
 const COLORS = {
@@ -15,11 +15,11 @@ const RADIAN = Math.PI / 180;
 
 const renderCustomizedLabel = ({
   cx, cy, midAngle, outerRadius, name, value,
-}: any) => {
+}: PieLabelRenderProps) => {
   if (value === 0) return null;
-  const radius = outerRadius + 18;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  const radius = Number(outerRadius) + 18;
+  const x = Number(cx) + radius * Math.cos(-Number(midAngle) * RADIAN);
+  const y = Number(cy) + radius * Math.sin(-Number(midAngle) * RADIAN);
 
   return (
     <text

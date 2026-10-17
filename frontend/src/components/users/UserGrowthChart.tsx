@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import { Download } from "lucide-react";
 import { useUsersStore } from "@/stores/users.store";
+import type { GrowthChartItem } from "@/types/users.types";
 
 const SERIES = [
   { key: "total",    label: "Total",    color: "#272EA7", gradientId: "gradTotal"    },
@@ -15,7 +16,7 @@ const SERIES = [
   { key: "others",   label: "Others",   color: "#8F90A4", gradientId: "gradOthers"   },
 ];
 
-function downloadCSV(data: any[]) {
+function downloadCSV(data: GrowthChartItem[]) {
   const headers = ["Month", "Total", "Doctors", "Patients", "Others"];
   const rows = data.map((m) => [m.month, m.total, m.doctors, m.patients, m.others]);
   const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");

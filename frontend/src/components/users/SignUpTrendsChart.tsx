@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import { Download } from "lucide-react";
 import { useUsersStore } from "@/stores/users.store";
+import type { SignUpTrendItem } from "@/types/users.types";
 
 const SERIES = [
   { key: "Doctors",    label: "Doctors",    color: "#272EA7" },
@@ -15,7 +16,7 @@ const SERIES = [
   { key: "Labs",       label: "Labs",       color: "#8F90A4" },
 ];
 
-function downloadCSV(data: any[]) {
+function downloadCSV(data: SignUpTrendItem[]) {
   const headers = ["Month", "Doctors", "Patients", "Pharmacies", "Labs"];
   const rows = data.map((m) => [m.month, m.Doctors, m.Patients, m.Pharmacies, m.Labs]);
   const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");

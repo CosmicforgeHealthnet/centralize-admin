@@ -1,4 +1,5 @@
 "use client";
+import { readHttpErrorMessage } from "@/lib/error-messages";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
@@ -763,9 +764,9 @@ export default function VerificationDetail({ id }: Props) {
   try {
     const response = await api.get(`/api/verification/stuck-doctors/${id}`);
     setStuckDetail(response.data.data);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Failed to fetch stuck doctor:", err);
-    setToast({ type: "error", message: err.response?.data?.message || "Failed to load stuck doctor details" });
+    setToast({ type: "error", message: readHttpErrorMessage(err) || "Failed to load stuck doctor details" });
   } finally {
     setIsLoadingStuck(false);
   }
@@ -1033,8 +1034,7 @@ export default function VerificationDetail({ id }: Props) {
                           by: "Admin",
                         },
                       ]
-                        .filter(Boolean)
-                        .map((entry: any, i) => (
+                        .map((entry, i) => entry && (
                           <div key={i} className="bg-card rounded-xl border border-border px-4 py-3">
                             <div className="flex items-center gap-1.5 mb-0.5">
                               <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
@@ -1042,7 +1042,7 @@ export default function VerificationDetail({ id }: Props) {
                                 {entry.label}
                               </span>
                             </div>
-                            {entry.reason && (
+                            {"reason" in entry && entry.reason && (
                               <p className="font-poppins text-[11px] text-foreground">{entry.reason}</p>
                             )}
                             <p className="font-poppins text-[10px] text-muted-foreground mt-0.5">

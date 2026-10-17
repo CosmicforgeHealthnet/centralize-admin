@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create, type StoreApi } from "zustand";
 import {
   fetchHealthnetMetrics,
   fetchActivityChart,
@@ -383,21 +383,21 @@ interface HealthnetState {
   fetchVendorStats: (id: string) => Promise<void>;
 }
 
-function makeSlice<T>(
+function makeSlice<TArgs extends unknown[], T>(
   key: string,
-  fetcher: (...args: any[]) => Promise<T>,
-  set: (fn: (s: any) => any) => void,
+  fetcher: (...args: TArgs) => Promise<T>,
+  set: StoreApi<HealthnetState>["setState"],
 ) {
-  return async (...args: any[]) => {
-    set(() => ({ [`${key}Loading`]: true, [`${key}Error`]: null }));
+  return async (...args: TArgs) => {
+    set(() => ({ [`${key}Loading`]: true, [`${key}Error`]: null } as Partial<HealthnetState>));
     try {
       const result = await fetcher(...args);
-      set(() => ({ [key]: result, [`${key}Loading`]: false }));
+      set(() => ({ [key]: result, [`${key}Loading`]: false } as Partial<HealthnetState>));
     } catch (err) {
       set(() => ({
         [`${key}Error`]: err instanceof Error ? err.message : `Failed to load ${key}`,
         [`${key}Loading`]: false,
-      }));
+      } as Partial<HealthnetState>));
     }
   };
 }
