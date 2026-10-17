@@ -328,7 +328,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
         campaignPagination: buildPagination(res.meta),
         isLoadingCampaigns: false,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch campaigns"), isLoadingCampaigns: false });
     }
   },
@@ -347,7 +347,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
         campaignTeam: team.team,
         isLoadingCampaignDetail: false,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch campaign"), isLoadingCampaignDetail: false });
     }
   },
@@ -357,7 +357,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
       await createCampaign(payload);
       await get().fetchCampaigns();
       set({ actionLoading: null });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to create campaign"), actionLoading: null });
     }
   },
@@ -367,7 +367,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
       await updateCampaign(id, payload);
       await get().fetchCampaigns();
       set({ actionLoading: null });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to update campaign"), actionLoading: null });
     }
   },
@@ -376,7 +376,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       await deleteCampaign(id);
       set((s) => ({ campaigns: s.campaigns.filter((c) => c.id !== id), actionLoading: null }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to delete campaign"), actionLoading: null });
     }
   },
@@ -392,7 +392,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
             : s.selectedCampaign,
         actionLoading: null,
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to update campaign status"), actionLoading: null });
     }
   },
@@ -402,7 +402,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
       await duplicateCampaign(id);
       await get().fetchCampaigns();
       set({ actionLoading: null });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to duplicate campaign"), actionLoading: null });
     }
   },
@@ -424,7 +424,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
         contentPagination: buildPagination(res.meta),
         isLoadingContent: false,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch content"), isLoadingContent: false });
     }
   },
@@ -441,7 +441,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
         contentPerformance: performance.chartData,
         isLoadingContentDetail: false,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch content item"), isLoadingContentDetail: false });
     }
   },
@@ -451,7 +451,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
       await createContent(payload);
       await get().fetchContentItems();
       set({ actionLoading: null });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to create content"), actionLoading: null });
     }
   },
@@ -461,7 +461,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
       await updateContent(id, payload);
       await get().fetchContentItems();
       set({ actionLoading: null });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to update content"), actionLoading: null });
     }
   },
@@ -470,7 +470,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       await deleteContent(id);
       set((s) => ({ contentItems: s.contentItems.filter((c) => c.id !== id), actionLoading: null }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to delete content"), actionLoading: null });
     }
   },
@@ -480,7 +480,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
       const result = await fetchContentReport(id, { format });
       downloadBlob(result.blob, result.filename);
       set({ actionLoading: null });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to download report"), actionLoading: null });
     }
   },
@@ -496,7 +496,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
         emailTemplatePagination: buildPagination(res.meta),
         isLoadingEmailTemplates: false,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch email templates"), isLoadingEmailTemplates: false });
     }
   },
@@ -506,7 +506,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       const detail = await fetchEmailTemplateById(id);
       set({ selectedEmailTemplate: detail, isLoadingEmailTemplateDetail: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch email template"), isLoadingEmailTemplateDetail: false });
     }
   },
@@ -516,7 +516,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
       await createEmailTemplate(payload);
       await get().fetchEmailTemplates();
       set({ actionLoading: null });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to create email template"), actionLoading: null });
     }
   },
@@ -526,7 +526,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
       await updateEmailTemplate(id, payload);
       await get().fetchEmailTemplates();
       set({ actionLoading: null });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to update email template"), actionLoading: null });
     }
   },
@@ -535,7 +535,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       await deleteEmailTemplate(id);
       set((s) => ({ emailTemplates: s.emailTemplates.filter((e) => e.id !== id), actionLoading: null }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to delete email template"), actionLoading: null });
     }
   },
@@ -550,7 +550,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
             : s.selectedEmailTemplate,
         actionLoading: null,
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to update notification setting"), actionLoading: null });
     }
   },
@@ -560,7 +560,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
       await updateEmailTemplateRecipients(id, payload);
       await get().fetchEmailTemplateDetail(id);
       set({ actionLoading: null });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to update recipients"), actionLoading: null });
     }
   },
@@ -570,7 +570,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
       await updateEmailTemplateContent(id, payload);
       await get().fetchEmailTemplateDetail(id);
       set({ actionLoading: null });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to save template content"), actionLoading: null });
     }
   },
@@ -581,7 +581,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       const overview = await fetchSocialOverview();
       set({ socialOverview: overview, isLoadingSocialOverview: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch social overview"), isLoadingSocialOverview: false });
     }
   },
@@ -590,7 +590,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       const res = await fetchSocialAccounts();
       set({ socialAccounts: res.data, isLoadingSocialAccounts: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch social accounts"), isLoadingSocialAccounts: false });
     }
   },
@@ -600,7 +600,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
       await createSocialAccount(payload);
       await get().fetchSocialAccounts();
       set({ actionLoading: null });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to link account"), actionLoading: null });
     }
   },
@@ -609,7 +609,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       await deleteSocialAccount(id);
       set((s) => ({ socialAccounts: s.socialAccounts.filter((a) => a.id !== id), actionLoading: null }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to unlink account"), actionLoading: null });
     }
   },
@@ -619,7 +619,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       const res = await fetchSocialPosts({ platform: f.platform, page: f.page, limit: f.limit });
       set({ socialPosts: res.data, isLoadingSocialPosts: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch posts"), isLoadingSocialPosts: false });
     }
   },
@@ -630,7 +630,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
       await createSocialPost(payload);
       await get().fetchSocialPosts();
       set({ actionLoading: null });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to send post"), actionLoading: null });
     }
   },
@@ -639,7 +639,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       const detail = await fetchSocialPostById(id);
       set({ selectedSocialPost: detail, isLoadingSocialPostDetail: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch post"), isLoadingSocialPostDetail: false });
     }
   },
@@ -649,7 +649,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
       await updateSocialPost(id, payload);
       await get().fetchSocialPosts();
       set({ actionLoading: null });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to update post"), actionLoading: null });
     }
   },
@@ -658,7 +658,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       await deleteSocialPost(id);
       set((s) => ({ socialPosts: s.socialPosts.filter((p) => p.id !== id), actionLoading: null }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to delete post"), actionLoading: null });
     }
   },
@@ -668,7 +668,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       const schedule = await fetchSocialSchedule(q);
       set({ socialSchedule: schedule, isLoadingSocialSchedule: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch schedule"), isLoadingSocialSchedule: false });
     }
   },
@@ -679,7 +679,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
       await createSocialSchedule(payload);
       await get().fetchSocialSchedule();
       set({ actionLoading: null });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to schedule post"), actionLoading: null });
     }
   },
@@ -689,7 +689,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       const res = await fetchSocialInsights(q);
       set({ socialInsights: res.data, isLoadingSocialInsights: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch insights"), isLoadingSocialInsights: false });
     }
   },
@@ -707,7 +707,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
         promotionPagination: buildPagination(res.meta),
         isLoadingPromotions: false,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch promotions"), isLoadingPromotions: false });
     }
   },
@@ -718,7 +718,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
       await createPromotion(payload);
       await get().fetchPromotions();
       set({ actionLoading: null });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to create promotion"), actionLoading: null });
     }
   },
@@ -728,7 +728,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
       await updatePromotion(id, payload);
       await get().fetchPromotions();
       set({ actionLoading: null });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to update promotion"), actionLoading: null });
     }
   },
@@ -737,7 +737,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       await deletePromotion(id);
       set((s) => ({ promotions: s.promotions.filter((p) => p.id !== id), actionLoading: null }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to delete promotion"), actionLoading: null });
     }
   },
@@ -749,7 +749,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       const res = await fetchBanners({ search: f.search || undefined, page: f.page, limit: f.limit });
       set({ banners: res.data, bannerPagination: buildPagination(res.meta), isLoadingBanners: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch banners"), isLoadingBanners: false });
     }
   },
@@ -759,7 +759,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       const detail = await fetchBannerById(id);
       set({ selectedBanner: detail, isLoadingBannerDetail: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch banner"), isLoadingBannerDetail: false });
     }
   },
@@ -769,7 +769,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
       await createBanner(payload);
       await get().fetchBanners();
       set({ actionLoading: null });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to create banner"), actionLoading: null });
     }
   },
@@ -779,7 +779,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
       await updateBanner(id, payload);
       await get().fetchBanners();
       set({ actionLoading: null });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to update banner"), actionLoading: null });
     }
   },
@@ -788,7 +788,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       await deleteBanner(id);
       set((s) => ({ banners: s.banners.filter((b) => b.id !== id), actionLoading: null }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to delete banner"), actionLoading: null });
     }
   },
@@ -800,7 +800,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
         banners: s.banners.map((b) => (b.id === id ? { ...b, status } : b)),
         actionLoading: null,
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to update banner status"), actionLoading: null });
     }
   },
@@ -813,7 +813,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       const stats = await fetchAnalyticsOverviewStats(analyticsDateRange);
       set({ analyticsOverviewStats: stats, isLoadingAnalytics: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch overview stats"), isLoadingAnalytics: false });
     }
   },
@@ -823,7 +823,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       const stats = await fetchAnalyticsSocialStats(analyticsDateRange);
       set({ analyticsSocialStats: stats, isLoadingAnalytics: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch social stats"), isLoadingAnalytics: false });
     }
   },
@@ -833,7 +833,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       const perf = await fetchAnalyticsAdsPerformance(analyticsDateRange);
       set({ analyticsAdsPerformance: perf, isLoadingAnalytics: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch ads performance"), isLoadingAnalytics: false });
     }
   },
@@ -843,7 +843,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       const res = await fetchAnalyticsLocation(analyticsDateRange);
       set({ analyticsLocation: res.data, isLoadingAnalytics: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch location analytics"), isLoadingAnalytics: false });
     }
   },
@@ -853,7 +853,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       const breakdown = await fetchAnalyticsAudienceBreakdown(analyticsDateRange);
       set({ analyticsAudienceBreakdown: breakdown, isLoadingAnalytics: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch audience breakdown"), isLoadingAnalytics: false });
     }
   },
@@ -863,7 +863,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       const funnel = await fetchAnalyticsConversionFunnel(analyticsDateRange);
       set({ analyticsConversionFunnel: funnel, isLoadingAnalytics: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch conversion funnel"), isLoadingAnalytics: false });
     }
   },
@@ -873,7 +873,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       const engagement = await fetchAnalyticsWeeklyEngagement(analyticsDateRange);
       set({ analyticsWeeklyEngagement: engagement, isLoadingAnalytics: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch weekly engagement"), isLoadingAnalytics: false });
     }
   },
@@ -883,7 +883,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       const perf = await fetchAnalyticsPerformanceData(analyticsDateRange);
       set({ analyticsPerformanceData: perf, isLoadingAnalytics: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch performance data"), isLoadingAnalytics: false });
     }
   },
@@ -893,7 +893,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
     try {
       const res = await fetchAnalyticsPlatformIntegrations(analyticsDateRange);
       set({ analyticsPlatformIntegrations: res.data, isLoadingAnalytics: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch platform integrations"), isLoadingAnalytics: false });
     }
   },
@@ -926,7 +926,7 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
         analyticsPlatformIntegrations: integrations.data,
         isLoadingAnalytics: false,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: extractErrorMessage(err, "Failed to fetch analytics"), isLoadingAnalytics: false });
     }
   },

@@ -286,7 +286,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
     try {
       const overview = await fetchAMIOverview();
       set({ overview, isLoadingOverview: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to fetch overview"), isLoadingOverview: false });
     }
   },
@@ -297,7 +297,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
     try {
       const providerValidation = await fetchAMIProviderValidation();
       set({ providerValidation, isLoadingProviderValidation: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to fetch provider validation"), isLoadingProviderValidation: false });
     }
   },
@@ -309,7 +309,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
       const { creativeFilters } = get();
       const creatives = await fetchAMICreatives(creativeFilters);
       set({ creatives, isLoadingCreatives: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to fetch creatives"), isLoadingCreatives: false });
     }
   },
@@ -322,7 +322,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
     try {
       const creativeDetail = await fetchAMICreativeDetail(id);
       set({ creativeDetail, isLoadingCreativeDetail: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to fetch creative detail"), isLoadingCreativeDetail: false });
     }
   },
@@ -334,7 +334,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
       const { recommendationFilters } = get();
       const recommendations = await fetchAMIRecommendations(recommendationFilters);
       set({ recommendations, isLoadingRecommendations: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to fetch recommendations"), isLoadingRecommendations: false });
     }
   },
@@ -347,7 +347,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
     try {
       const recommendationDetail = await fetchAMIRecommendationDetail(id);
       set({ recommendationDetail, isLoadingRecommendationDetail: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to fetch recommendation detail"), isLoadingRecommendationDetail: false });
     }
   },
@@ -360,7 +360,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
         recommendations: s.recommendations.map((r) => (r.id === id ? { ...r, status: "ACCEPTED" } : r)),
         actionLoading: null,
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to accept recommendation"), actionLoading: null });
     }
   },
@@ -373,7 +373,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
         recommendations: s.recommendations.map((r) => (r.id === id ? { ...r, status: "DISMISSED" } : r)),
         actionLoading: null,
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to dismiss recommendation"), actionLoading: null });
     }
   },
@@ -381,7 +381,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
     try {
       const eligibleAssignees = await fetchAMIEligibleAssignees();
       set({ eligibleAssignees });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to load eligible assignees") });
     }
   },
@@ -416,7 +416,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
       const { alertFilters } = get();
       const alerts = await fetchAMIAlerts(alertFilters);
       set({ alerts, isLoadingAlerts: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to fetch alerts"), isLoadingAlerts: false });
     }
   },
@@ -429,7 +429,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
     try {
       const alertDetail = await fetchAMIAlertDetail(id);
       set({ alertDetail, isLoadingAlertDetail: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to fetch alert detail"), isLoadingAlertDetail: false });
     }
   },
@@ -442,7 +442,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
         alerts: s.alerts.map((a) => (a.id === id ? { ...a, status: "ACKNOWLEDGED" } : a)),
         actionLoading: null,
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to acknowledge alert"), actionLoading: null });
     }
   },
@@ -455,7 +455,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
         alerts: s.alerts.map((a) => (a.id === id ? { ...a, status: "RESOLVED" } : a)),
         actionLoading: null,
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to resolve alert"), actionLoading: null });
     }
   },
@@ -467,7 +467,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
       const { experimentFilters } = get();
       const experiments = await fetchAMIExperiments(experimentFilters);
       set({ experiments, isLoadingExperiments: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to fetch experiments"), isLoadingExperiments: false });
     }
   },
@@ -480,7 +480,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
     try {
       const experimentDetail = await fetchAMIExperimentDetail(id);
       set({ experimentDetail, isLoadingExperimentDetail: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to fetch experiment detail"), isLoadingExperimentDetail: false });
     }
   },
@@ -491,7 +491,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
       await get().fetchExperiments();
       set({ actionLoading: null });
       return created;
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to create experiment"), actionLoading: null });
       return null;
     }
@@ -501,7 +501,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
     try {
       const updated = await updateAMIExperiment(id, payload);
       set((s) => ({ experimentDetail: s.experimentDetail?.id === id ? updated : s.experimentDetail, actionLoading: null }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to update experiment"), actionLoading: null });
     }
   },
@@ -514,7 +514,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
         experiments: s.experiments.map((e) => (e.id === id ? { ...e, status: "RUNNING" } : e)),
         actionLoading: null,
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to start experiment"), actionLoading: null });
     }
   },
@@ -527,7 +527,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
         experiments: s.experiments.map((e) => (e.id === id ? { ...e, status: "COMPLETED" } : e)),
         actionLoading: null,
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to complete experiment"), actionLoading: null });
     }
   },
@@ -540,7 +540,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
         experiments: s.experiments.map((e) => (e.id === id ? { ...e, status: "CANCELLED" } : e)),
         actionLoading: null,
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to cancel experiment"), actionLoading: null });
     }
   },
@@ -552,7 +552,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
       const { runFilters } = get();
       const evaluationRuns = await fetchAMIEvaluationRuns(runFilters);
       set({ evaluationRuns, isLoadingRuns: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to fetch evaluation runs"), isLoadingRuns: false });
     }
   },
@@ -565,7 +565,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
     try {
       const runDetail = await fetchAMIEvaluationRunDetail(id);
       set({ runDetail, isLoadingRunDetail: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to fetch run detail"), isLoadingRunDetail: false });
     }
   },
@@ -577,7 +577,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
       const result = await runAMIManualOperation(payload);
       set({ lastOperationResult: result, isRunningOperation: false });
       await get().fetchEvaluationRuns();
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Manual operation failed"), isRunningOperation: false });
     }
   },
@@ -588,7 +588,7 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
     try {
       const settings = await fetchAMISettings();
       set({ settings, isLoadingSettings: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to fetch settings"), isLoadingSettings: false });
     }
   },

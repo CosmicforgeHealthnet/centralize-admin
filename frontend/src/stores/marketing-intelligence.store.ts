@@ -213,7 +213,7 @@ testConnection: async (id) => {
     try {
       const performance = await fetchMIPerformance({ from: f.from, to: f.to, platform: f.platform });
       set({ performance, isLoadingPerformance: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({ error: resolveErrorMessage(err, "Failed to fetch performance"), isLoadingPerformance: false });
     }
   },

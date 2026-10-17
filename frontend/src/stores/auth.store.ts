@@ -113,7 +113,7 @@ export const useAuthStore = create<AuthState>()(
 
           const { fetchProfile } = useProfileStore.getState();
           await fetchProfile();
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({
             error: extractErrorMessage(err, "Invalid email or password"),
             isLoading: false,
@@ -166,7 +166,7 @@ export const useAuthStore = create<AuthState>()(
             confirmPassword,
           });
           set({ isLoading: false, mustChangePassword: false });
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({
             error: extractErrorMessage(err, "Failed to change password"),
             isLoading: false,
@@ -190,7 +190,7 @@ export const useAuthStore = create<AuthState>()(
             resetRequestLoading: false,
             resetRequestSuccess: res.data.message,
           });
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({
             resetRequestError: extractErrorMessage(err, "Failed to submit reset request"),
             resetRequestLoading: false,
@@ -210,7 +210,7 @@ export const useAuthStore = create<AuthState>()(
             pendingResetRequests: res.data.data,
             pendingResetLoading: false,
           });
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({ pendingResetLoading: false });
         }
       },
@@ -228,7 +228,7 @@ export const useAuthStore = create<AuthState>()(
             ),
             isLoading: false,
           }));
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({
             error: extractErrorMessage(err, "Failed to approve password reset"),
             isLoading: false,
@@ -250,7 +250,7 @@ export const useAuthStore = create<AuthState>()(
             ),
             isLoading: false,
           }));
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({
             error: extractErrorMessage(err, "Failed to reject password reset"),
             isLoading: false,
