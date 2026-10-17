@@ -22,12 +22,12 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-      - name: Install locked dependencies
-        run: npm ci --ignore-scripts
-      - name: Apply nonbreaking npm audit fixes to manifest and lock
+      - name: Synchronize dependency lock and apply audit fixes
         run: |
           npm install --package-lock-only --ignore-scripts --no-fund
           npm audit fix --package-lock-only --ignore-scripts || echo "::warning::npm audit fix reported remaining issues; review the following audit"
+      - name: Verify locked dependency installation
+        run: npm ci --ignore-scripts
       - name: Commit changed dependency versions to review branch
         run: |
           git diff --check
