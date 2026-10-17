@@ -1,4 +1,5 @@
 "use client";
+import type { AdminChartTooltipProps } from "@/types/chart-tooltip.types";
 
 import { useState } from "react";
 import {
@@ -123,7 +124,7 @@ function TotalOrdersCard() {
 
 // ── Custom Tooltip ────────────────────────────────────────────────────────────
 
-function ChartTooltip({ active, payload, label }: any) {
+function ChartTooltip({ active, payload, label }: AdminChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-card border border-border rounded-[8px] px-3 py-2 shadow-md">

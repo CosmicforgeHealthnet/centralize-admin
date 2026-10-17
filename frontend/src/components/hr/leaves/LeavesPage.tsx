@@ -1,4 +1,5 @@
 "use client";
+import type { AdminChartTooltipProps } from "@/types/chart-tooltip.types";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
@@ -13,7 +14,7 @@ import { LeaveStatus } from "@/types/hrm.types";
 
 // ─── Custom Tooltip ───────────────────────────────────────────────────────────
 
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload, label }: AdminChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-card border border-border rounded-lg px-3 py-2 shadow-md">

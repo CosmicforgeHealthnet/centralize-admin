@@ -1,5 +1,6 @@
 // src/components/marketing/social-media/EngagementChart.tsx
 "use client";
+import type { AdminChartTooltipProps } from "@/types/chart-tooltip.types";
 
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip,
@@ -9,7 +10,7 @@ import { useMarketingStore } from "@/stores/marketing.store";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect } from "react";
 
-function ChartTooltip({ active, payload, label }: any) {
+function ChartTooltip({ active, payload, label }: AdminChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-card border border-border rounded-lg px-3 py-2 shadow-md">
@@ -66,7 +67,7 @@ export default function EngagementChart() {
             <YAxis hide />
             <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(39,46,167,0.04)" }} />
             <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-              {data.map((d: any, i: number) => (
+              {data.map((d, i: number) => (
                 <Cell key={i} fill={i === peakIndex ? "#272EA7" : "rgba(39,46,167,0.18)"} />
               ))}
             </Bar>

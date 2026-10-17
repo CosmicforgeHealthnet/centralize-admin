@@ -1,4 +1,5 @@
 "use client";
+import type { AdminChartTooltipProps } from "@/types/chart-tooltip.types";
 
 import React, { useEffect, useState } from "react";
 import {
@@ -13,7 +14,7 @@ const MONTHS = [
   "July","August","September","October","November","December",
 ];
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: AdminChartTooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-card border border-border rounded-lg px-3 py-2 shadow-md">

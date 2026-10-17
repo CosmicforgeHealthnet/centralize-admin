@@ -1,5 +1,6 @@
 // src/components/marketing/content-manager/ContentDetail.tsx
 "use client";
+import type { AdminChartTooltipProps } from "@/types/chart-tooltip.types";
 
 import { useState, useEffect } from "react";
 import { ArrowLeft, Edit2, ChevronDown, Download } from "lucide-react";
@@ -9,7 +10,7 @@ import {
 import { useMarketingStore } from "@/stores/marketing.store";
 import { Skeleton } from "@/components/ui/skeleton";
 
-function ChartTooltip({ active, payload, label }: any) {
+function ChartTooltip({ active, payload, label }: AdminChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-card border border-border rounded-lg px-3 py-2 shadow-md">

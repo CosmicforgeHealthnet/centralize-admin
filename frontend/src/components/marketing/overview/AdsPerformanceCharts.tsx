@@ -1,5 +1,6 @@
 // src/components/marketing/overview/AdsPerformanceCharts.tsx
 "use client";
+import type { AdminChartTooltipProps } from "@/types/chart-tooltip.types";
 
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -9,12 +10,12 @@ import { useMarketingStore } from "@/stores/marketing.store";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect } from "react";
 
-function ChartTooltip({ active, payload, label }: any) {
+function ChartTooltip({ active, payload, label }: AdminChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-card border border-border rounded-lg px-3 py-2 shadow-md">
       <p className="font-poppins text-[11px] text-muted-foreground mb-1">{label}</p>
-      {payload.map((p: any) => (
+      {payload.map((p) => (
         <div key={p.dataKey} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p.color ?? p.fill }} />
           <span className="font-poppins text-[11px] text-foreground">{p.value.toLocaleString()}</span>

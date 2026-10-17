@@ -1,4 +1,5 @@
 "use client";
+import type { AdminChartTooltipProps } from "@/types/chart-tooltip.types";
 
 import { useEffect } from "react";
 import {
@@ -16,12 +17,12 @@ const PERIOD_OPTIONS = ["Last Month", "Last Quarter", "This Year"];
 
 // ─── Custom Tooltip ───────────────────────────────────────────────────────────
 
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload, label }: AdminChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-card border border-border rounded-lg px-3 py-2 shadow-md min-w-[140px]">
       <p className="font-poppins text-[11px] text-muted-foreground mb-1">{label}</p>
-      {payload.map((p: any) => (
+      {payload.map((p) => (
         <div key={p.dataKey} className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p.color }} />

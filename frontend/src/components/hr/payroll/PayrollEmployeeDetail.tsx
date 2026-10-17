@@ -1,4 +1,5 @@
 "use client";
+import type { AdminChartTooltipProps } from "@/types/chart-tooltip.types";
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -15,12 +16,12 @@ type QuickAction = "overview" | "invoice" | "deductions" | "receipts" | "payslip
 const STATUS_PAID_STYLE = { bg: "rgba(13,165,63,0.12)", text: "#0DA53F" };
 const STATUS_OK_STYLE = { bg: "rgba(13,165,63,0.12)", text: "#0DA53F" };
 
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload, label }: AdminChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-card border border-border rounded-lg px-3 py-2 shadow-md">
       <p className="font-poppins text-[11px] text-muted-foreground mb-1">{label}</p>
-      {payload.map((p: any) => (
+      {payload.map((p) => (
         <div key={p.dataKey} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p.fill }} />
           <span className="font-poppins text-[11px] text-foreground">{p.name}: {p.value}%</span>

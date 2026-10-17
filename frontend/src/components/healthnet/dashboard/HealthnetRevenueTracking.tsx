@@ -1,4 +1,5 @@
 "use client";
+import type { AdminChartTooltipProps } from "@/types/chart-tooltip.types";
 
 import React, { useEffect } from "react";
 import {
@@ -8,12 +9,12 @@ import {
 import { Download } from "lucide-react";
 import { useHealthnetStore } from "@/stores/healthnet.store";
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: AdminChartTooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-card border border-border rounded-lg px-3 py-2 shadow-md">
         <p className="text-[12px] font-poppins font-semibold text-foreground mb-1">{label}</p>
-        {payload.map((p: any) => (
+        {payload.map((p) => (
           <div key={p.dataKey} className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.fill }} />
             <span className="text-[11px] font-poppins text-muted-foreground capitalize">
