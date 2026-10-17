@@ -42,9 +42,18 @@ jobs:
         id: lint
         continue-on-error: true
         run: npm run lint
+      - name: Check all frontend TypeScript diagnostics
+        id: typecheck
+        continue-on-error: true
+        run: npx tsc --noEmit --pretty false
       - name: Build frontend
         id: build
         run: npm run build
+      - name: Enforce successful typecheck
+        if: always() && steps.typecheck.outcome == 'failure'
+        run: |
+          echo "Frontend TypeScript errors remain; see diagnostics step output."
+          exit 1
       - name: Enforce successful lint
         if: always() && steps.lint.outcome == 'failure'
         run: |
