@@ -74,7 +74,7 @@ const LABEL: Record<LimitsSettingKey, string> = {
 
 function toPlainNumber(raw: unknown): { enabled: boolean; value: number } {
   if (raw && typeof raw === "object" && "value" in raw) {
-    return { enabled: typeof raw.enabled === "boolean" ? raw.enabled : true, value: Number(raw.value) || 0 };
+    return { enabled: "enabled" in raw && typeof raw.enabled === "boolean" ? raw.enabled : true, value: Number(raw.value) || 0 };
   }
   return { enabled: true, value: 0 };
 }

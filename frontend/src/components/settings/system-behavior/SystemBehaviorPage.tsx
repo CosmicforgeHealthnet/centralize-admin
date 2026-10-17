@@ -69,21 +69,21 @@ function Toaster({ toasts, dismiss }: { toasts: ToastItem[]; dismiss: (id: strin
 /* ─── Helpers ─────────────────────────────────────────────── */
 function toNumUnit(raw: unknown, defaultUnit: Unit = "Seconds"): { enabled: boolean; value: number; unit: Unit } {
   if (raw && typeof raw === "object" && "value" in raw) {
-    return { enabled: typeof raw.enabled === "boolean" ? raw.enabled : true, value: Number(raw.value) || 0, unit: (raw.unit as Unit) ?? defaultUnit };
+    return { enabled: "enabled" in raw && typeof raw.enabled === "boolean" ? raw.enabled : true, value: Number(raw.value) || 0, unit: ("unit" in raw ? raw.unit as Unit : undefined) ?? defaultUnit };
   }
   return { enabled: true, value: 0, unit: defaultUnit };
 }
 
 function toTagList(raw: unknown): { enabled: boolean; tags: string[] } {
   if (raw && typeof raw === "object" && "tags" in raw) {
-    return { enabled: typeof raw.enabled === "boolean" ? raw.enabled : true, tags: Array.isArray(raw.tags) ? raw.tags.filter((tag): tag is string => typeof tag === "string") : [] };
+    return { enabled: "enabled" in raw && typeof raw.enabled === "boolean" ? raw.enabled : true, tags: Array.isArray(raw.tags) ? raw.tags.filter((tag): tag is string => typeof tag === "string") : [] };
   }
   return { enabled: true, tags: [] };
 }
 
 function toPlain(raw: unknown): { enabled: boolean; value: number } {
   if (raw && typeof raw === "object" && "value" in raw) {
-    return { enabled: typeof raw.enabled === "boolean" ? raw.enabled : true, value: Number(raw.value) || 0 };
+    return { enabled: "enabled" in raw && typeof raw.enabled === "boolean" ? raw.enabled : true, value: Number(raw.value) || 0 };
   }
   return { enabled: true, value: 0 };
 }

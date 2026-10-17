@@ -138,9 +138,9 @@ const LABEL: Record<SecuritySettingKey, string> = {
 function toNumericUnit(raw: unknown): { enabled: boolean; value: number; unit: Unit } {
   if (raw && typeof raw === "object" && "value" in raw) {
     return {
-      enabled: typeof raw.enabled === "boolean" ? raw.enabled : true,
+      enabled: "enabled" in raw && typeof raw.enabled === "boolean" ? raw.enabled : true,
       value: Number(raw.value) || 60,
-      unit: (raw.unit as Unit) || "Seconds",
+      unit: ("unit" in raw ? raw.unit as Unit : undefined) || "Seconds",
     };
   }
   return { enabled: true, value: 60, unit: "Seconds" };
