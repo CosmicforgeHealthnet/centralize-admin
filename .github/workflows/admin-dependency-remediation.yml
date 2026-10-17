@@ -1,0 +1,39 @@
+name: One-time admin dependency remediation
+
+on:
+  push:
+    branches:
+      - feature/import-main-admin-frontend
+    paths:
+      - ".github/workflows/admin-dependency-remediation.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  repair-lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/import-main-admin-frontend
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Apply nonbreaking npm audit fixes to manifest and lock
+        run: |
+          npm audit fix --package-lock-only --ignore-scripts || echo "::warning::npm audit fix reported remaining issues; review the following audit"
+      - name: Commit changed dependency versions to review branch
+        run: |
+          git diff --check
+          git add package.json package-lock.json
+          if ! git diff --cached --quiet; then
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "fix(admin): update vulnerable npm dependencies"
+            git push origin HEAD:feature/import-main-admin-frontend
+          fi
+      - name: Re-evaluate production dependency vulnerabilities
+        run: npm audit --omit=dev

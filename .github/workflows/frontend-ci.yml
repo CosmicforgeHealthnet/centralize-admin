@@ -39,6 +39,14 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
       - name: Lint frontend
+        id: lint
+        continue-on-error: true
         run: npm run lint
       - name: Build frontend
+        id: build
         run: npm run build
+      - name: Enforce successful lint
+        if: always() && steps.lint.outcome == 'failure'
+        run: |
+          echo "Frontend lint errors remain; see lint step output."
+          exit 1
