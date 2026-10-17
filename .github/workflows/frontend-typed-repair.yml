@@ -1,5 +1,5 @@
 name: Admin frontend typed lint repair
-# Preserve Next.js client directives during type migration
+# Preserve Next.js client directives after leading file comments
 # Re-run after syntax correction to migration script
 
 on:
