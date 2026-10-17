@@ -59,7 +59,8 @@ function processFile(filepath) {
   let output = input;
   for(const change of replacements.sort((a,b)=>b.start-a.start))
     output = output.slice(0,change.start)+change.after+output.slice(change.end);
-  fs.writeFileSync(filepath, output);
+  // Remove existing whitespace-only lines in touched files to keep git diff --check clean.
+  fs.writeFileSync(filepath, output.replace(/^[ \\t]+$/gm, ""));
   changedFiles++;
 }
 function walk(dir) {
