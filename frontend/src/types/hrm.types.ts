@@ -942,7 +942,7 @@ export interface PayslipDetail {
   basicSalary: number;
   allowance: number;
   bonus: number;
-  deductions: Record<string, any>;
+  deductions: Record<string, unknown>;
   netPay: number;
 }
 

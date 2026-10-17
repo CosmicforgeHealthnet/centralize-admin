@@ -67,7 +67,7 @@ export interface AuditLog {
   action: string;
   actorUserId: string | null;
   actorRole: string | null;
-  metadata: Record<string, any> | null;
+  metadata: Record<string, unknown> | null;
   createdAt: string;
 }
 

@@ -29,7 +29,7 @@ export interface ActivityLog {
   userAvatar: string | null;
   action: AuditAction;
   description: string;
-  metadata: Record<string, any> | null;
+  metadata: Record<string, unknown> | null;
   ipAddress: string | null;
   createdAt: string;
   time: string;

@@ -43,7 +43,7 @@ export interface ServiceRegistry {
   status: ServiceStatus;
   version: string | null;
   tags: string[] | null;
-  metadata: Record<string, any> | null;
+  metadata: Record<string, unknown> | null;
   lastCheckedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -57,7 +57,7 @@ export interface RegisterServicePayload {
   healthEndpoint?: string;
   version?: string;
   tags?: string[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // ─── Job Monitoring ───────────────────────────────────────────────────────────
@@ -70,8 +70,8 @@ export interface JobExecution {
   startedAt: string | null;
   completedAt: string | null;
   durationMs: number | null;
-  input: Record<string, any> | null;
-  output: Record<string, any> | null;
+  input: Record<string, unknown> | null;
+  output: Record<string, unknown> | null;
   error: string | null;
   attempts: number;
   scheduledAt: string | null;
@@ -85,8 +85,8 @@ export interface TrackJobPayload {
   startedAt?: string;
   completedAt?: string;
   durationMs?: number;
-  input?: Record<string, any>;
-  output?: Record<string, any>;
+  input?: Record<string, unknown>;
+  output?: Record<string, unknown>;
   error?: string;
   attempts?: number;
 }
@@ -97,7 +97,7 @@ export interface DeadLetterJob {
   id: string;
   jobExecutionId: string | null;
   jobName: string;
-  payload: Record<string, any> | null;
+  payload: Record<string, unknown> | null;
   errorMessage: string | null;
   failedAt: string;
   retryCount: number;
@@ -141,7 +141,7 @@ export interface WebhookDeliveryLog {
   id: string;
   webhookEndpointId: string | null;
   event: string;
-  payload: Record<string, any> | null;
+  payload: Record<string, unknown> | null;
   statusCode: number | null;
   responseBody: string | null;
   attempt: number;
@@ -164,7 +164,7 @@ export interface Incident {
   resolvedAt: string | null;
   resolvedBy: string | null;
   createdBy: string | null;
-  metadata: Record<string, any> | null;
+  metadata: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -174,7 +174,7 @@ export interface IncidentPayload {
   description?: string;
   severity: IncidentSeverity;
   affectedServices?: string[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // ─── System Alerts ────────────────────────────────────────────────────────────
@@ -184,7 +184,7 @@ export interface SystemAlert {
   type: AlertType;
   severity: AlertSeverity;
   message: string;
-  details: Record<string, any> | null;
+  details: Record<string, unknown> | null;
   source: string | null;
   isRead: boolean;
   isResolved: boolean;
@@ -196,7 +196,7 @@ export interface AlertPayload {
   type: AlertType;
   severity: AlertSeverity;
   message: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   source?: string;
 }
 
@@ -211,7 +211,7 @@ export interface FeatureFlag {
   enabledFor: string[] | null;
   rolloutPercentage: number | null;
   environment: string;
-  metadata: Record<string, any> | null;
+  metadata: Record<string, unknown> | null;
   createdBy: string | null;
   updatedBy: string | null;
   createdAt: string;
@@ -226,7 +226,7 @@ export interface FeatureFlagPayload {
   enabledFor?: string[];
   rolloutPercentage?: number;
   environment?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface FlagCheckResult {
@@ -244,7 +244,7 @@ export interface HealthCheckRecord {
   version: string | null;
   environment: string | null;
   uptime: number | null;
-  details: Record<string, any> | null;
+  details: Record<string, unknown> | null;
   responseTimeMs: number | null;
   checkedAt: string;
   createdAt: string;
