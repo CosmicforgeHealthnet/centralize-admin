@@ -133,11 +133,16 @@ export default function EditEducationModal({ open, onClose }: EditEducationModal
   const [entries, setEntries] = useState<EducationEntry[]>(buildEntries);
 
   useEffect(() => {
-    if (open) {
+    if (!open) return;
+    // Defer hydration outside the effect's synchronous render phase.
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
       setEntries(buildEntries());
       clearError();
       setToast(null);
-    }
+    });
+    return () => { active = false; };
   }, [open, profile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {

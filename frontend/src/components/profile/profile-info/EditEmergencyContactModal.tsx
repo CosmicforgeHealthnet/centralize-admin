@@ -188,11 +188,16 @@ export default function EditEmergencyContactModal({ open, onClose }: EditEmergen
   const [form, setForm] = useState<FormState>(buildForm);
 
   useEffect(() => {
-    if (open) {
+    if (!open) return;
+    // Defer hydration outside the effect's synchronous render phase.
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
       setForm(buildForm());
       clearError();
       setToast(null);
-    }
+    });
+    return () => { active = false; };
   }, [open, profile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
