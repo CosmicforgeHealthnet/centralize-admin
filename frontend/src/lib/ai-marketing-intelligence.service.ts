@@ -105,7 +105,7 @@ export const fetchAMICreativeScoreHistory = async (id: string) => {
     await delay();
     return mockAMICreativeDetail(id).scoreHistory;
   }
-  const { data } = await api.get<AMIApiEnvelope<any>>(`${BASE}/creatives/${id}/scores`);
+  const { data } = await api.get<AMIApiEnvelope<AMICreativeDetail["scoreHistory"]>>(`${BASE}/creatives/${id}/scores`);
   return data.data;
 };
 

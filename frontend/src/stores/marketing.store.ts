@@ -1,3 +1,4 @@
+import { inspectHttpError } from "@/lib/error-messages";
 import { create } from "zustand";
 import type {
   CampaignListItem,
@@ -79,12 +80,9 @@ import {
 } from "@/lib/marketing.service";
 
 // ── Shared error extraction helper ──────────────────────────────────────────
-function extractErrorMessage(err: any, fallback: string): string {
-  const data = err.response?.data;
-  if (data?.errors?.length) {
-    return data.errors.map((e: any) => e.message).join(", ");
-  }
-  return data?.message || fallback;
+function extractErrorMessage(err: unknown, fallback: string): string {
+  const detail = inspectHttpError(err);
+  return detail.fieldErrors.length ? detail.fieldErrors.join(", ") : detail.message || fallback;
 }
 
 // Backend already computes totalPages, so this just reshapes the field names.

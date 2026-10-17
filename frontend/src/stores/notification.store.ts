@@ -1,3 +1,4 @@
+import { inspectHttpError } from "@/lib/error-messages";
 import { create } from "zustand";
 import notificationService from "@/lib/notification.service";
 import type { Notification, NotificationGroup } from "@/types/notification.types";
@@ -64,9 +65,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         groupedNotifications,
         isLoading: false,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       set({
-        error: error.response?.data?.message || "Failed to fetch notifications",
+        error: inspectHttpError(error).message || "Failed to fetch notifications",
         isLoading: false,
       });
     }
@@ -76,7 +77,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     try {
       const unreadCount = await notificationService.getUnreadCount();
       set({ unreadCount });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to fetch unread count:", error);
     }
   },
@@ -101,9 +102,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         unreadCount: newUnreadCount,
         isUpdating: false,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       set({
-        error: error.response?.data?.message || "Failed to mark notification as read",
+        error: inspectHttpError(error).message || "Failed to mark notification as read",
         isUpdating: false,
       });
       throw error;
@@ -129,9 +130,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         unreadCount: 0,
         isUpdating: false,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       set({
-        error: error.response?.data?.message || "Failed to mark all notifications as read",
+        error: inspectHttpError(error).message || "Failed to mark all notifications as read",
         isUpdating: false,
       });
       throw error;
@@ -153,9 +154,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         unreadCount: wasUnread ? Math.max(0, get().unreadCount - 1) : get().unreadCount,
         isUpdating: false,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       set({
-        error: error.response?.data?.message || "Failed to delete notification",
+        error: inspectHttpError(error).message || "Failed to delete notification",
         isUpdating: false,
       });
       throw error;

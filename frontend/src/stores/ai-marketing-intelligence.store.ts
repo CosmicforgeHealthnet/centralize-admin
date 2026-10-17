@@ -1,3 +1,4 @@
+import { inspectHttpError } from "@/lib/error-messages";
 import { create } from "zustand";
 import type {
   AMIOverviewResponse,
@@ -56,15 +57,14 @@ import {
 } from "@/lib/ai-marketing-intelligence.service";
 
 // Maps HTTP status/code to actionable message — same pattern as Phase 1 MI store.
-function resolveErrorMessage(err: any, fallback: string): string {
-  const status = err?.response?.status;
-  const code = err?.response?.data?.code;
-  if (status === 401) return "Your session has expired. Please sign in again.";
-  if (status === 403) return "You don't have permission for this action (requires marketing/intelligence access).";
-  if (code === "MARKETING_INTELLIGENCE_PHASE2_DISABLED") return "Phase 2 is installed in this environment but operational evaluation is disabled.";
-  if (code === "MARKETING_ASSIGNEE_UNAVAILABLE") return "No eligible Marketing administrator is available for assignment.";
-  if (code === "LOCK_CONFLICT") return "This operation is already running. View the active run for status.";
-  return err?.response?.data?.message || fallback;
+function resolveErrorMessage(err: unknown, fallback: string): string {
+  const detail = inspectHttpError(err);
+  if (detail.status === 401) return "Your session has expired. Please sign in again.";
+  if (detail.status === 403) return "You don't have permission for this action (requires marketing/intelligence access).";
+  if (detail.responseCode === "MARKETING_INTELLIGENCE_PHASE2_DISABLED") return "Phase 2 is installed in this environment but operational evaluation is disabled.";
+  if (detail.responseCode === "MARKETING_ASSIGNEE_UNAVAILABLE") return "No eligible Marketing administrator is available for assignment.";
+  if (detail.responseCode === "LOCK_CONFLICT") return "This operation is already running. View the active run for status.";
+  return detail.message || fallback;
 }
 
 const today = new Date().toISOString().slice(0, 10);
@@ -398,8 +398,8 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
         isConvertingToTask: false,
       }));
       return { success: true };
-    } catch (err: any) {
-      const code = err?.response?.data?.code;
+    } catch (err: unknown) {
+      const code = inspectHttpError(err).responseCode;
       if (code === "MARKETING_ASSIGNEE_UNAVAILABLE") {
         set({ isConvertingToTask: false, error: resolveErrorMessage(err, "No eligible assignee available") });
         return { success: false, needsAssignee: true };
@@ -605,15 +605,15 @@ export const useAIMarketingIntelligenceStore = create<AIMarketingIntelligenceSta
         actionLoading: null,
       }));
       return { success: true };
-    } catch (err: any) {
-      const code = err?.response?.data?.code;
+    } catch (err: unknown) {
+      const code = inspectHttpError(err).responseCode;
       if (code === "STALE_VERSION" || code === "SETTING_VERSION_CONFLICT") {
         set({
           actionLoading: null,
           settingConflict: {
             key: payload.key,
-            serverValue: err?.response?.data?.serverValue ?? null,
-            serverVersion: err?.response?.data?.serverVersion ?? payload.expectedVersion + 1,
+            serverValue: (() => { const value = inspectHttpError(err).responseData?.serverValue; return typeof value === "string" || typeof value === "number" || typeof value === "boolean" ? value : null; })(),
+            serverVersion: typeof inspectHttpError(err).responseData?.serverVersion === "number" ? inspectHttpError(err).responseData.serverVersion as number : payload.expectedVersion + 1,
             draftValue: payload.value,
           },
         });

@@ -1,3 +1,4 @@
+import { inspectHttpError } from "@/lib/error-messages";
 import { create } from "zustand";
 import {
   accountsService,
@@ -91,26 +92,10 @@ import {
   CreateSectionGrantPayload,
 } from "@/types/hrm.types";
 
-function extractErrorMessage(err: any, fallback: string): string {
-  const data = err.response?.data;
-  
-  if (data?.errors?.length) {
-    return data.errors.map((e: any) => e.message).join(", ");
-  }
-  
-  if (data?.message) {
-    return data.message;
-  }
-  
-  if (data?.error) {
-    return data.error;
-  }
-  
-  if (err instanceof Error) {
-    return err.message;
-  }
-  
-  return fallback;
+function extractErrorMessage(err: unknown, fallback: string): string {
+  const detail = inspectHttpError(err);
+  if (detail.fieldErrors.length) return detail.fieldErrors.join(", ");
+  return detail.message || detail.responseError || (err instanceof Error ? err.message : fallback);
 }
 
 interface AttendanceFilters {
@@ -677,7 +662,7 @@ export const useHrmStore = create<HrmStore>((set, get) => ({
     try {
       const attendanceLogs = await attendanceService.getEmployeeLogs(
         employeeId,
-        period ? { period: period as any } : {},
+        period ? { period } : {},
       );
       set({ attendanceLogs, isLoadingAttendanceLogs: false });
     } catch (err) {

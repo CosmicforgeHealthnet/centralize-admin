@@ -28,7 +28,7 @@ export const fetchSetting = async (category: string, key: string): Promise<Admin
   return data.data;
 };
 
-export const updateSetting = async (category: string, key: string, value: any): Promise<AdminSetting> => {
+export const updateSetting = async (category: string, key: string, value: unknown): Promise<AdminSetting> => {
   const { data } = await api.put(`${BASE}/${category}/${key}`, { value });
   return data.data;
 };
@@ -41,7 +41,7 @@ export const batchUpdateSettings = async (updates: UpdateSettingPayload[]): Prom
 // ─── History / Audit ──────────────────────────────────────────────────────────
 
 export const fetchSettingsHistory = async (params: SettingHistoryFilters): Promise<SettingsListResponse<SettingHistory>> => {
-  const queryParams: Record<string, any> = {};
+  const queryParams: Record<string, unknown> = {};
   if (params.category) queryParams.category = params.category;
   if (params.key) queryParams.key = params.key;
   if (params.changedBy) queryParams.changedBy = params.changedBy;

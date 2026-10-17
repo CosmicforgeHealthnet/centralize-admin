@@ -23,7 +23,7 @@ import {
   runMISync,
   fetchMIProviderValidation,
 } from "@/lib/marketing-intelligence.service";
-import { readHttpErrorMessage } from "@/lib/error-messages";
+import { readHttpErrorMessage, inspectHttpError } from "@/lib/error-messages";
 
 
 const today = new Date().toISOString().slice(0, 10);
@@ -39,11 +39,11 @@ const defaultDashboardFilters: MIDashboardFilters = {
 
 // Maps HTTP status to a distinct, actionable message — 401/403 need different
 // recovery paths than a generic server error (§9 error-category handling).
-function resolveErrorMessage(err: any, fallback: string): string {
-  const status = err?.response?.status;
-  if (status === 401) return "Your session has expired. Please sign in again.";
-  if (status === 403) return "You don't have permission for this action (requires marketing/intelligence access).";
-  return err?.response?.data?.message || fallback;
+function resolveErrorMessage(err: unknown, fallback: string): string {
+  const detail = inspectHttpError(err);
+  if (detail.status === 401) return "Your session has expired. Please sign in again.";
+  if (detail.status === 403) return "You don't have permission for this action (requires marketing/intelligence access).";
+  return detail.message || fallback;
 }
 
 const defaultConnectionFilters: MIConnectionFilters = { platform: "all", status: "" };

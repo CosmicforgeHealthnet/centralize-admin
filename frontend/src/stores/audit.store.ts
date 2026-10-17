@@ -1,3 +1,4 @@
+import { inspectHttpError } from "@/lib/error-messages";
 import { create } from "zustand";
 import auditService from "@/lib/audit.service";
 import type { ActivityLog, LogGroup, PaginationInfo } from "@/types/audit.types";
@@ -60,9 +61,9 @@ export const useAuditStore = create<AuditState>((set, get) => ({
         pagination: result.pagination,
         isLoading: false,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       set({
-        error: error.response?.data?.message || "Failed to fetch activity logs",
+        error: inspectHttpError(error).message || "Failed to fetch activity logs",
         isLoading: false,
       });
     }
@@ -79,9 +80,9 @@ export const useAuditStore = create<AuditState>((set, get) => ({
         pagination: result.pagination,
         isLoading: false,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       set({
-        error: error.response?.data?.message || "Failed to fetch all activity logs",
+        error: inspectHttpError(error).message || "Failed to fetch all activity logs",
         isLoading: false,
       });
     }

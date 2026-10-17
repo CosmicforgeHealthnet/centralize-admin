@@ -1,3 +1,4 @@
+import { inspectHttpError } from "@/lib/error-messages";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import api from "@/lib/api";
@@ -60,25 +61,19 @@ function clearTokenCookie() {
   document.cookie = `${TOKEN_COOKIE}=; path=/; max-age=0`;
 }
 
-function extractErrorMessage(err: any, fallback: string): string {
-  if (err.code === "ERR_NETWORK" || err.message === "Network Error") {
+function extractErrorMessage(err: unknown, fallback: string): string {
+  const detail = inspectHttpError(err);
+  if (detail.transportCode === "ERR_NETWORK" || detail.originalMessage === "Network Error") {
     return "Unable to connect to server. Please check your connection and try again.";
   }
-  if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
+  if (detail.transportCode === "ECONNABORTED" || detail.originalMessage?.includes("timeout")) {
     return "Request timed out. Please try again.";
   }
-  if (err.response) {
-    const fieldErrors = err.response?.data?.errors;
-    if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
-      return fieldErrors
-        .map((e: { field: string; message: string }) => e.message)
-        .join(" ");
-    }
-    return err.response?.data?.message || fallback;
+  if (detail.hasResponse) {
+    if (detail.fieldErrors.length) return detail.fieldErrors.join(" ");
+    return detail.message || fallback;
   }
-  if (err.request) {
-    return "Server is not responding. Please try again later.";
-  }
+  if (detail.hasRequest) return "Server is not responding. Please try again later.";
   return fallback;
 }
 

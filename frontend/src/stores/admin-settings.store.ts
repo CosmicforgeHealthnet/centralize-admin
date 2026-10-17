@@ -39,7 +39,7 @@ interface AdminSettingsState {
   loadAllSettings: () => Promise<void>;
   loadSettingsByCategory: (category: string) => Promise<void>;
   loadSetting: (category: string, key: string) => Promise<void>;
-  saveSetting: (category: string, key: string, value: any) => Promise<void>;
+  saveSetting: (category: string, key: string, value: unknown) => Promise<void>;
   saveMultipleSettings: (updates: UpdateSettingPayload[]) => Promise<void>;
   loadHistory: (filters?: SettingHistoryFilters) => Promise<void>;
   clearError: () => void;
@@ -90,7 +90,7 @@ export const useAdminSettingsStore = create<AdminSettingsState>((set, get) => ({
     }
   },
 
-  saveSetting: async (category: string, key: string, value: any) => {
+  saveSetting: async (category: string, key: string, value: unknown) => {
     set({ isSaving: true, error: null });
     try {
       const updated = await updateSetting(category, key, value);
