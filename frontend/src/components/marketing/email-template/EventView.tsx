@@ -7,6 +7,7 @@ import {
   AlignJustify, Bold, Italic, Underline, List, Paperclip, Link2, Save, PlusCircle,
 } from "lucide-react";
 import { useMarketingStore } from "@/stores/marketing.store";
+import type { EmailRecipient } from "@/types/marketing.types";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
@@ -41,7 +42,7 @@ export default function EventView({ templateId, onBack }: Props) {
   const [emailEnabled, setEmailEnabled] = useState(true);
   const [whatsappEnabled, setWhatsappEnabled] = useState(true);
   const [smsEnabled, setSmsEnabled] = useState(true);
-  const [recipients, setRecipients] = useState<string[]>([]);
+  const [recipients, setRecipients] = useState<EmailRecipient[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   const {
@@ -68,7 +69,7 @@ export default function EventView({ templateId, onBack }: Props) {
     }
   }, [error, clearError]);
 
-  function toggleRecipient(r: string) {
+  function toggleRecipient(r: EmailRecipient) {
     setRecipients((prev) => (prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]));
   }
 
@@ -82,7 +83,7 @@ export default function EventView({ templateId, onBack }: Props) {
           whatsapp: whatsappEnabled,
           sms: smsEnabled,
         },
-        recipients: recipients as any[], // Type cast needed
+        recipients,
       });
       // Content update would go here with proper payload
       setIsSaving(false);
@@ -164,7 +165,7 @@ export default function EventView({ templateId, onBack }: Props) {
         </div>
 
         <div className="bg-primary/8 rounded-lg p-4 flex flex-col gap-2.5">
-          {["Customer", "Recipients", "Admin"].map((r) => (
+          {(["Customer", "Recipients", "Admin"] as EmailRecipient[]).map((r) => (
             <label key={r} className="flex items-center gap-2.5 cursor-pointer w-fit">
               <input
                 type="checkbox"

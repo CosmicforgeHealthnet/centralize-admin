@@ -72,9 +72,9 @@ const LABEL: Record<LimitsSettingKey, string> = {
   log_retention_days:                   "Retention period for logs",
 };
 
-function toPlainNumber(raw: any): { enabled: boolean; value: number } {
+function toPlainNumber(raw: unknown): { enabled: boolean; value: number } {
   if (raw && typeof raw === "object" && "value" in raw) {
-    return { enabled: raw.enabled ?? true, value: Number(raw.value) || 0 };
+    return { enabled: typeof raw.enabled === "boolean" ? raw.enabled : true, value: Number(raw.value) || 0 };
   }
   return { enabled: true, value: 0 };
 }

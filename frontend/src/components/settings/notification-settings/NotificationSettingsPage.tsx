@@ -226,8 +226,11 @@ export default function NotificationSettingsPage() {
 
     const get = (arr: typeof n, key: string) => arr.find((s) => s.key === key)?.value;
 
-    const maybeToggle = (v: any): ToggleState | null =>
-      v && typeof v === "object" && "email" in v ? v : null;
+    const maybeToggle = (v: unknown): ToggleState | null => {
+      if (!v || typeof v !== "object" || !("email" in v) || !("sms" in v) || !("inApp" in v)) return null;
+      if (typeof v.email !== "boolean" || typeof v.sms !== "boolean" || typeof v.inApp !== "boolean") return null;
+      return { email: v.email, sms: v.sms, inApp: v.inApp };
+    };
 
     setUserAccount(    maybeToggle(get(n, "user_account"))          ?? defaultToggle());
     setGlobalSys(      maybeToggle(get(n, "global_system"))         ?? defaultToggle());

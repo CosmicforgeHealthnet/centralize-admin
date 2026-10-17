@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ArrowLeft, PlusCircle, Search, ChevronDown, SlidersHorizontal } from "lucide-react";
 import AddSocialAccountModal from "./AddSocialAccountModal";
 import { useMarketingStore } from "@/stores/marketing.store";
+import type { SocialPostListPlatform } from "@/types/marketing.types";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { SocialPostListItem, SocialPostDetail } from "@/types/marketing.types";
 
@@ -42,7 +43,7 @@ export default function PostDetail({ platform, onBack }: Props) {
   useEffect(() => {
     // Update filters and fetch
     const platformValue = activeTab === "All" ? "All" : activeTab;
-    setSocialPostFilters({ platform: platformValue as any, page: 1 });
+    setSocialPostFilters({ platform: platformValue as SocialPostListPlatform, page: 1 });
     fetchSocialPosts();
   }, [activeTab, setSocialPostFilters, fetchSocialPosts]);
 

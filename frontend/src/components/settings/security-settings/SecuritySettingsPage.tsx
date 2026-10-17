@@ -135,10 +135,10 @@ const LABEL: Record<SecuritySettingKey, string> = {
   two_step_verification: "Two-step verification for admin actions",
 };
 
-function toNumericUnit(raw: any): { enabled: boolean; value: number; unit: Unit } {
+function toNumericUnit(raw: unknown): { enabled: boolean; value: number; unit: Unit } {
   if (raw && typeof raw === "object" && "value" in raw) {
     return {
-      enabled: raw.enabled ?? true,
+      enabled: typeof raw.enabled === "boolean" ? raw.enabled : true,
       value: Number(raw.value) || 60,
       unit: (raw.unit as Unit) || "Seconds",
     };
@@ -146,7 +146,7 @@ function toNumericUnit(raw: any): { enabled: boolean; value: number; unit: Unit 
   return { enabled: true, value: 60, unit: "Seconds" };
 }
 
-function toBoolean(raw: any): boolean {
+function toBoolean(raw: unknown): boolean {
   if (raw && typeof raw === "object" && "enabled" in raw) return Boolean(raw.enabled);
   return Boolean(raw);
 }

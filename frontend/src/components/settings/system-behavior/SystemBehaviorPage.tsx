@@ -67,23 +67,23 @@ function Toaster({ toasts, dismiss }: { toasts: ToastItem[]; dismiss: (id: strin
 }
 
 /* ─── Helpers ─────────────────────────────────────────────── */
-function toNumUnit(raw: any, defaultUnit: Unit = "Seconds"): { enabled: boolean; value: number; unit: Unit } {
+function toNumUnit(raw: unknown, defaultUnit: Unit = "Seconds"): { enabled: boolean; value: number; unit: Unit } {
   if (raw && typeof raw === "object" && "value" in raw) {
-    return { enabled: raw.enabled ?? true, value: Number(raw.value) || 0, unit: (raw.unit as Unit) ?? defaultUnit };
+    return { enabled: typeof raw.enabled === "boolean" ? raw.enabled : true, value: Number(raw.value) || 0, unit: (raw.unit as Unit) ?? defaultUnit };
   }
   return { enabled: true, value: 0, unit: defaultUnit };
 }
 
-function toTagList(raw: any): { enabled: boolean; tags: string[] } {
+function toTagList(raw: unknown): { enabled: boolean; tags: string[] } {
   if (raw && typeof raw === "object" && "tags" in raw) {
-    return { enabled: raw.enabled ?? true, tags: Array.isArray(raw.tags) ? raw.tags : [] };
+    return { enabled: typeof raw.enabled === "boolean" ? raw.enabled : true, tags: Array.isArray(raw.tags) ? raw.tags.filter((tag): tag is string => typeof tag === "string") : [] };
   }
   return { enabled: true, tags: [] };
 }
 
-function toPlain(raw: any): { enabled: boolean; value: number } {
+function toPlain(raw: unknown): { enabled: boolean; value: number } {
   if (raw && typeof raw === "object" && "value" in raw) {
-    return { enabled: raw.enabled ?? true, value: Number(raw.value) || 0 };
+    return { enabled: typeof raw.enabled === "boolean" ? raw.enabled : true, value: Number(raw.value) || 0 };
   }
   return { enabled: true, value: 0 };
 }
@@ -260,7 +260,7 @@ function TelemedicineTab({
   settings, save, savingKey,
 }: {
   settings: ReturnType<typeof useAdminSettingsStore.getState>["categorySettings"];
-  save: (key: TelemedicineSettingKey, value: any) => Promise<void>;
+  save: (key: TelemedicineSettingKey, value: unknown) => Promise<void>;
   savingKey: string | null;
 }) {
   const get = (k: TelemedicineSettingKey) => settings.find((s) => s.key === k);
@@ -339,7 +339,7 @@ function RTCTab({
   settings, save, savingKey,
 }: {
   settings: ReturnType<typeof useAdminSettingsStore.getState>["categorySettings"];
-  save: (key: RTCSettingKey, value: any) => Promise<void>;
+  save: (key: RTCSettingKey, value: unknown) => Promise<void>;
   savingKey: string | null;
 }) {
   const get = (k: RTCSettingKey) => settings.find((s) => s.key === k);
@@ -408,7 +408,7 @@ function LogisticsTab({
   settings, save, savingKey,
 }: {
   settings: ReturnType<typeof useAdminSettingsStore.getState>["categorySettings"];
-  save: (key: LogisticsSettingKey, value: any) => Promise<void>;
+  save: (key: LogisticsSettingKey, value: unknown) => Promise<void>;
   savingKey: string | null;
 }) {
   const get = (k: LogisticsSettingKey) => settings.find((s) => s.key === k);
@@ -498,7 +498,7 @@ export default function SystemBehaviorPage() {
 
   /* ── Generic save helper ── */
   const save = useCallback(
-    async (key: string, value: any) => {
+    async (key: string, value: unknown) => {
       const cat = TABS.find((t) => t.value === activeTab)!.category;
       setSavingKey(key);
       try {

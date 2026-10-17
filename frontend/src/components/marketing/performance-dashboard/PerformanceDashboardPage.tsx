@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect } from "react";
+import type { AdminChartTooltipProps } from "@/types/chart-tooltip.types";
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
@@ -9,12 +10,12 @@ import WorldMapDots from "../social-media/WorldMapDots";
 import { useMarketingStore } from "@/stores/marketing.store";
 import { Skeleton } from "@/components/ui/skeleton";
 
-function ChartTooltip({ active, payload, label }: any) {
+function ChartTooltip({ active, payload, label }: AdminChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-card border border-border rounded-lg px-3 py-2 shadow-md">
       <p className="font-poppins text-[11px] text-muted-foreground mb-1">{label}</p>
-      {payload.map((p: any) => (
+      {payload.map((p) => (
         <div key={p.dataKey} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p.color ?? p.fill }} />
           <span className="font-poppins text-[11px] text-foreground">{p.value.toLocaleString()}</span>
@@ -289,12 +290,12 @@ export default function PerformanceDashboardPage() {
           {audienceBreakdown.length > 0 && (
             <>
               <div className="flex w-full h-2 rounded-full overflow-hidden">
-                {audienceBreakdown.map((a: any) => (
+                {audienceBreakdown.map((a) => (
                   <div key={a.platform} style={{ backgroundColor: a.color || "#3B82F6", flex: 1 }} />
                 ))}
               </div>
               <div className="flex flex-col gap-2.5">
-                {audienceBreakdown.map((a: any) => (
+                {audienceBreakdown.map((a) => (
                   <div key={a.platform} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full" style={{ backgroundColor: a.color || "#3B82F6" }} />

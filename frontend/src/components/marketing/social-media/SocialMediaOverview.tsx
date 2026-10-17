@@ -12,8 +12,9 @@ import AddSocialAccountModal from "./AddSocialAccountModal";
 import AddNewPostModal from "./AddNewPostModal";
 import { useMarketingStore } from "@/stores/marketing.store";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { SocialPostListPlatform } from "@/types/marketing.types";
 
-const PLATFORM_TABS = [
+const PLATFORM_TABS: Array<{ key: SocialPostListPlatform; label: string }> = [
   { key: "All", label: "All" },
   { key: "Youtube", label: "Youtube" },
   { key: "Twitter", label: "Twitter" },
@@ -150,10 +151,10 @@ export default function SocialMediaOverview({ onViewDetail }: Props) {
     }
   }, [error, clearError]);
 
-  const handleTabChange = (tab: string) => {
+  const handleTabChange = (tab: SocialPostListPlatform) => {
     setActiveTab(tab);
     const platformValue = tab === "All" ? "All" : tab;
-    setSocialPostFilters({ platform: platformValue as any, page: 1 });
+    setSocialPostFilters({ platform: platformValue, page: 1 });
     fetchSocialPosts();
   };
 
@@ -203,9 +204,9 @@ export default function SocialMediaOverview({ onViewDetail }: Props) {
 
   // Handle locations - check if they have flag property or not
   const rawLocations = socialOverview?.locations || [];
-  const locations = rawLocations.map((loc: any) => ({
-    country: loc.country || loc.name || "Unknown",
-    flag: loc.flag || getCountryFlag(loc.country || loc.name || ""),
+  const locations = rawLocations.map((loc) => ({
+    country: loc.country || "Unknown",
+    flag: getCountryFlag(loc.country || ""),
     value: loc.value || 0,
     change: loc.change || "0%",
     up: loc.up ?? true,
@@ -384,12 +385,12 @@ export default function SocialMediaOverview({ onViewDetail }: Props) {
           ) : (
             <>
               <div className="flex w-full h-2 rounded-full overflow-hidden">
-                {audienceBreakdown.map((a: any) => (
+                {audienceBreakdown.map((a) => (
                   <div key={a.platform} style={{ backgroundColor: a.color || "#3B82F6", flex: 1 }} />
                 ))}
               </div>
               <div className="flex flex-col gap-2.5">
-                {audienceBreakdown.map((a: any) => (
+                {audienceBreakdown.map((a) => (
                   <div key={a.platform} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full" style={{ backgroundColor: a.color || "#3B82F6" }} />
@@ -510,11 +511,11 @@ export default function SocialMediaOverview({ onViewDetail }: Props) {
                 No posts scheduled
               </div>
             ) : (
-              scheduleSlots.map((slot: any, idx: number) => (
+              scheduleSlots.map((slot, idx: number) => (
                 <div key={idx}>
                   <span className="font-poppins text-[11px] text-muted-foreground">{slot.time}</span>
                   <div className={`grid grid-cols-1 ${slot.posts.length > 1 ? 'sm:grid-cols-2' : ''} gap-2.5 mt-1.5`}>
-                    {slot.posts.map((post: any, pi: number) => (
+                    {slot.posts.map((post, pi: number) => (
                       <div key={pi} className="bg-muted/40 rounded-lg p-3 flex flex-col gap-2 border border-border">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
