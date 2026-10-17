@@ -32,6 +32,8 @@ jobs:
         run: node frontend/scripts/escape-jsx-text.mjs
       - name: Type safely-forwarded error catches as unknown
         run: node frontend/scripts/type-safe-error-catches.mjs
+      - name: Replace direct HTTP error property access with checked access
+        run: node frontend/scripts/type-http-error-catches.mjs
       - name: Commit changed dependency versions to review branch
         run: |
           git diff --check
