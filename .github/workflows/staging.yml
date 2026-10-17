@@ -25,6 +25,9 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+    defaults:
+      run:
+        working-directory: services/centralize-admin
     env:
       NODE_ENV: test
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cosmicforge_admin
@@ -43,6 +46,8 @@ jobs:
       LINKEDIN_SOCIAL_ENABLED: "false"
       SOCIAL_MEDIA_STORAGE_PROVIDER: "local"
     steps:
+      - name: Set up service defaults
+        run: echo 'Centralize Admin CI'
       - name: Checkout code
         uses: actions/checkout@v5
         with:
@@ -52,7 +57,10 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: services/centralize-admin/package-lock.json
 
+      - name: Set service working directory
+        run: echo 'Service located at services/centralize-admin'
       - name: Install dependencies
         run: npm ci
 
@@ -118,9 +126,9 @@ jobs:
         with:
           name: social-operations-focused-tests
           path: |
-            artifacts/social-operations-focused-tests.tap
-            artifacts/social-operations-focused-summary.json
-            artifacts/social-operations-focused-files.txt
+            services/centralize-admin/artifacts/social-operations-focused-tests.tap
+            services/centralize-admin/artifacts/social-operations-focused-summary.json
+            services/centralize-admin/artifacts/social-operations-focused-files.txt
           if-no-files-found: ignore
           retention-days: 7
 
