@@ -10,6 +10,9 @@ import {
 } from "recharts";
 import PayslipModal from "./PayslipModal";
 import { useHrmStore } from "@/stores/hrm.store";
+import type { PayslipRecord, ReceiptRecord, DeductionRecord, InvoiceRecord, EmployeePayroll } from "@/types/hrm.types";
+
+type PayrollDisplayEmployee = EmployeePayroll["employee"] & { employmentCategory?: string; employmentDate?: string; phone?: string; position?: string; location?: string; headOfDepartment?: string };
 
 type QuickAction = "overview" | "invoice" | "deductions" | "receipts" | "payslips";
 
@@ -47,7 +50,7 @@ function TableWrapper({ title, downloadLabel, children }: { title: string; downl
   );
 }
 
-function PayslipsTable({ payslips, onViewSlip }: { payslips: any[]; onViewSlip: (id: string) => void }) {
+function PayslipsTable({ payslips, onViewSlip }: { payslips: Array<PayslipRecord & { status?: string }>; onViewSlip: (id: string) => void }) {
   return (
     <TableWrapper title="Payslips History" downloadLabel="Download Payslips Report">
       <table className="w-full min-w-[700px]">
@@ -82,7 +85,7 @@ function PayslipsTable({ payslips, onViewSlip }: { payslips: any[]; onViewSlip: 
   );
 }
 
-function ReceiptsTable({ receipts }: { receipts: any[] }) {
+function ReceiptsTable({ receipts }: { receipts: ReceiptRecord[] }) {
   return (
     <TableWrapper title="Receipt History" downloadLabel="Download Receipt Report">
       <table className="w-full min-w-[900px]">
@@ -119,7 +122,7 @@ function ReceiptsTable({ receipts }: { receipts: any[] }) {
   );
 }
 
-function DeductionsTable({ deductions }: { deductions: any[] }) {
+function DeductionsTable({ deductions }: { deductions: DeductionRecord[] }) {
   return (
     <TableWrapper title="Deduction History" downloadLabel="Download Deduction Report">
       <table className="w-full min-w-[800px]">
@@ -155,7 +158,7 @@ function DeductionsTable({ deductions }: { deductions: any[] }) {
   );
 }
 
-function InvoiceTable({ invoices }: { invoices: any[] }) {
+function InvoiceTable({ invoices }: { invoices: InvoiceRecord[] }) {
   return (
     <TableWrapper title="Invoice History" downloadLabel="Download Invoice Report">
       <table className="w-full min-w-[800px]">
@@ -234,7 +237,7 @@ function OverviewContentSkeleton() {
   );
 }
 
-function OverviewContent({ emp, payroll, chartData }: any) {
+function OverviewContent({ emp, payroll, chartData }: { emp: PayrollDisplayEmployee; payroll: EmployeePayroll["payroll"]; chartData: EmployeePayroll["chartData"] }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="bg-card rounded-xl border border-border p-4">
@@ -425,7 +428,7 @@ function LeftPanel({
   activeAction,
   onActionChange,
 }: {
-  emp: any;
+  emp: PayrollDisplayEmployee;
   activeAction: QuickAction;
   onActionChange: (a: QuickAction) => void;
 }) {

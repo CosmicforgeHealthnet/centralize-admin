@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown } from "lucide-react";
 import PayrollEmployeeDetail from "./PayrollEmployeeDetail";
 import { useHrmStore } from "@/stores/hrm.store";
-import { PayrollStatus } from "@/types/hrm.types";
+import type { PayrollStatus, PayslipRecord, ReceiptRecord, DeductionRecord, InvoiceRecord } from "@/types/hrm.types";
 
 type PayrollTab = "overview" | "payslips" | "receipts" | "deductions" | "invoice";
 
@@ -25,7 +25,7 @@ function StatCardSkeleton() {
   );
 }
 
-function StatCard({ card, isLoading }: { card: any; isLoading: boolean }) {
+function StatCard({ card, isLoading }: { card: { trend: string; icon: string; label: string; value: string | number; change: string; subtitle: string }; isLoading: boolean }) {
   const isUp = card.trend === "up";
   return (
     <div className="bg-card rounded-xl border border-border p-4 shadow-[0px_1px_2px_rgba(16,24,40,0.05)] flex items-center gap-3">
@@ -303,14 +303,14 @@ export default function PayrollPage() {
     );
   };
 
-  const renderHistoryTable = (
-    data: any[],
-    meta: any,
+  const renderHistoryTable = <T extends PayslipRecord | ReceiptRecord | DeductionRecord | InvoiceRecord>(
+    data: T[],
+    meta: { page?: number; totalPages?: number } | null,
     isLoading: boolean,
     setPage: (page: number) => void,
     title: string,
     headers: string[],
-    rowRenderer: (item: any, index: number) => React.ReactNode
+    rowRenderer: (item: T, index: number) => React.ReactNode
   ) => {
     const currentPage = meta?.page || 1;
     const totalPages = meta?.totalPages || 1;
@@ -377,8 +377,8 @@ export default function PayrollPage() {
     (page) => setPayslipsFilters({ page }),
     "Payslips History",
     ["EMPLOYEE NAME", "EMPLOYEE ID", "EARNINGS", "ALLOWANCE", "NET PAY", "DATE", "STATUS", "ACTION"],
-    (row: any, i) => {
-      const st = STATUS_STYLES[row.status] || STATUS_STYLES["PAID"];
+    (row, i) => {
+      const st = STATUS_STYLES[("status" in row && typeof row.status === "string" ? row.status : "PAID") as PayrollStatus] || STATUS_STYLES["PAID"];
       return (
         <tr key={row.id} className={`border-b border-border/50 hover:bg-muted/20 transition-colors ${i % 2 === 0 ? "bg-muted/10" : ""}`}>
           <td className="py-3 px-4 font-poppins text-[12px] text-foreground">{row.name || "Unknown"}</td>
@@ -388,7 +388,7 @@ export default function PayrollPage() {
           <td className="py-3 px-4 font-poppins text-[12px] text-foreground">${row.netPay?.toFixed(2) || "0.00"}</td>
           <td className="py-3 px-4 font-poppins text-[12px] text-foreground whitespace-nowrap">{row.paymentDate || "—"}</td>
           <td className="py-3 px-4">
-            <span className="font-poppins text-[11px] font-semibold" style={{ color: st.text }}>{row.status}</span>
+            <span className="font-poppins text-[11px] font-semibold" style={{ color: st.text }}>{"status" in row && typeof row.status === "string" ? row.status : "PAID"}</span>
           </td>
           <td className="py-3 px-4">
             <button className="text-muted-foreground hover:text-foreground transition-colors">
@@ -409,7 +409,7 @@ export default function PayrollPage() {
     (page) => setReceiptsFilters({ page }),
     "Receipt History",
     ["EMPLOYEE NAME", "EMPLOYEE ID", "AMOUNT", "DESCRIPTION", "DATE", "ACTION"],
-    (row: any, i) => (
+    (row, i) => (
       <tr key={row.id} className={`border-b border-border/50 hover:bg-muted/20 transition-colors ${i % 2 === 0 ? "bg-muted/10" : ""}`}>
         <td className="py-3 px-4 font-poppins text-[12px] text-foreground">{row.name || "Unknown"}</td>
         <td className="py-3 px-4 font-poppins text-[12px] text-foreground whitespace-nowrap">{row.adminUserId || "—"}</td>
@@ -434,7 +434,7 @@ export default function PayrollPage() {
     (page) => setDeductionsFilters({ page }),
     "Deduction History",
     ["EMPLOYEE NAME", "EMPLOYEE ID", "DEDUCTION NAME", "AMOUNT", "MONTH/YEAR", "ACTION"],
-    (row: any, i) => (
+    (row, i) => (
       <tr key={row.id} className={`border-b border-border/50 hover:bg-muted/20 transition-colors ${i % 2 === 0 ? "bg-muted/10" : ""}`}>
         <td className="py-3 px-4 font-poppins text-[12px] text-foreground">{row.name || "Unknown"}</td>
         <td className="py-3 px-4 font-poppins text-[12px] text-foreground whitespace-nowrap">{row.adminUserId || "—"}</td>
@@ -459,7 +459,7 @@ export default function PayrollPage() {
     (page) => setInvoicesFilters({ page }),
     "Invoice History",
     ["EMPLOYEE NAME", "EMPLOYEE ID", "AMOUNT", "DESCRIPTION", "DUE DATE", "STATUS", "ACTION"],
-    (row: any, i) => {
+    (row, i) => {
       const st = STATUS_STYLES[row.status] || STATUS_STYLES["PAID"];
       return (
         <tr key={row.id} className={`border-b border-border/50 hover:bg-muted/20 transition-colors ${i % 2 === 0 ? "bg-muted/10" : ""}`}>
