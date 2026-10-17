@@ -245,7 +245,7 @@ export default function SocialMediaOverview({ onViewDetail }: Props) {
         <div>
           <h2 className="font-poppins text-[16px] font-semibold text-foreground">Overview</h2>
           <p className="font-poppins text-[12px] text-muted-foreground mt-0.5">
-            Let's see an overview of your social media
+            Let&apos;s see an overview of your social media
           </p>
         </div>
         <div className="flex items-center gap-3">

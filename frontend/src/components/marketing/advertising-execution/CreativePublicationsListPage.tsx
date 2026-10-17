@@ -52,7 +52,7 @@ export default function CreativePublicationsListPage() {
 
       {publications.length === 0 ? (
         <p className="font-poppins text-[12px] text-muted-foreground">
-          No provider publication revisions yet. Publications are created from within a plan's creative selection step.
+          No provider publication revisions yet. Publications are created from within a plan&apos;s creative selection step.
         </p>
       ) : (
         <div className="flex flex-col gap-3">
@@ -74,7 +74,7 @@ export default function CreativePublicationsListPage() {
               {pub.reviewStatus === "REJECTED" && (
                 <div className="w-full">
                   <p className="font-poppins text-[11px] text-red-600">
-                    Rejected revisions cannot be edited in place. Create a new human-reviewed revision from the plan's
+                    Rejected revisions cannot be edited in place. Create a new human-reviewed revision from the plan&apos;s
                     creative selection step.
                   </p>
                 </div>

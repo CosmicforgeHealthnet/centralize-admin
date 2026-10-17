@@ -14,7 +14,7 @@ export default function NativeOnlyCard({ actionLabel, reason, providerUrl }: Nat
       <div className="flex items-start gap-2">
         <Info className="w-3.5 h-3.5 text-purple-500 mt-0.5 shrink-0" />
         <div>
-          <p className="font-poppins text-[12px] font-medium text-foreground">{actionLabel} isn't available here</p>
+          <p className="font-poppins text-[12px] font-medium text-foreground">{actionLabel} isn&apos;t available here</p>
           <p className="font-poppins text-[11px] text-muted-foreground mt-0.5">
             {reason ?? "This provider doesn't expose this action through the approved API."}
           </p>

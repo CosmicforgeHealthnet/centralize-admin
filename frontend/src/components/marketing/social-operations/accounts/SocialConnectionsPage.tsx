@@ -97,7 +97,7 @@ export default function SocialConnectionsPage() {
       <div className="bg-card rounded-xl border border-border p-4">
         <p className="font-poppins text-[13px] font-semibold text-foreground mb-3">Publishing identities</p>
         {identities.length === 0 ? (
-          <p className="font-poppins text-[12px] text-muted-foreground">Run "Discover identities" on a connection to populate this list.</p>
+          <p className="font-poppins text-[12px] text-muted-foreground">Run &quot;Discover identities&quot; on a connection to populate this list.</p>
         ) : (
           <div className="flex flex-col gap-2">
             {identities.map((identity) => (

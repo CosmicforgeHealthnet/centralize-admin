@@ -50,7 +50,7 @@ export default function EngagementChart() {
   return (
     <div className="bg-card rounded-xl border border-border p-4 h-full flex flex-col">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-poppins text-[13px] font-semibold text-foreground">This Week's Engagement</h3>
+        <h3 className="font-poppins text-[13px] font-semibold text-foreground">This Week&apos;s Engagement</h3>
         {analyticsWeeklyEngagement?.change && (
           <span className="font-poppins text-[12px] font-semibold text-green-500">+{analyticsWeeklyEngagement.change}</span>
         )}

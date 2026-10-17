@@ -149,7 +149,7 @@ export default function PerformanceDashboardPage({ onNavigateToConnections }: Pe
       {performance?.partial && performance.platformErrors.length > 0 && (
         <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3">
           <p className="font-poppins text-[12px] font-medium text-foreground">
-            Some providers didn't return data — figures below reflect what's available.
+            Some providers didn&apos;t return data — figures below reflect what&apos;s available.
           </p>
           <div className="flex flex-col gap-1 mt-1.5">
             {performance.platformErrors.map((pe) => (

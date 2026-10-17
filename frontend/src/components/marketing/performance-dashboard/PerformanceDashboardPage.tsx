@@ -321,7 +321,7 @@ export default function PerformanceDashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-4">
         <div className="bg-card rounded-xl border border-border p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-poppins text-[13px] font-semibold text-foreground">This Week's Engagement</h3>
+            <h3 className="font-poppins text-[13px] font-semibold text-foreground">This Week&apos;s Engagement</h3>
             {weeklyEngagement?.change && (
               <span className="font-poppins text-[12px] font-semibold text-green-500">+{weeklyEngagement.change}</span>
             )}

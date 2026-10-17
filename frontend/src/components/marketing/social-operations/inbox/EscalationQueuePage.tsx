@@ -25,7 +25,7 @@ export default function EscalationQueuePage() {
     return (
       <div className="bg-card rounded-xl border border-border p-6 text-center">
         <p className="font-poppins text-[12px] text-muted-foreground">
-          You don't have access to restricted escalations.
+          You don&apos;t have access to restricted escalations.
         </p>
       </div>
     );

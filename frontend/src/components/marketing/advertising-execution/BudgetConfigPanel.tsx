@@ -89,7 +89,7 @@ export default function BudgetConfigPanel({ exposure, onChange, readOnly }: Budg
       )}
 
       <p className="font-poppins text-[10px] text-muted-foreground">
-        No FX conversion is performed. All values remain in the account's original currency.
+        No FX conversion is performed. All values remain in the account&apos;s original currency.
       </p>
     </div>
   );

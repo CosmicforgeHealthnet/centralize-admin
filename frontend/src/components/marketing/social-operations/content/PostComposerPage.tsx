@@ -133,7 +133,7 @@ export default function PostComposerPage({ postId, onSaved }: PostComposerPagePr
             ))}
             {media.some((m) => m.status !== "READY") && (
               <span className="font-poppins text-[10px] text-muted-foreground">
-                Some assets are still processing and can't be attached yet.
+                Some assets are still processing and can&apos;t be attached yet.
               </span>
             )}
           </div>

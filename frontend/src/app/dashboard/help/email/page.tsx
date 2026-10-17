@@ -40,7 +40,7 @@ export default function EmailSupportPage() {
               <div className="flex items-start justify-between gap-4 pt-4">
                 <div>
                   <p className="text-priority text-foreground">
-                    Priority emails to customers with agent's nickname
+                    Priority emails to customers with agent&apos;s nickname
                   </p>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
                     Agent nicknames will be used in all email conversations with customers.
@@ -74,7 +74,7 @@ export default function EmailSupportPage() {
                 You can use the Support Channel medium to handle Email Issues.
               </p>
               <p className="text-[11px] text-muted-foreground mb-4">
-                An email support channel let's you customize your email replies to your customers.
+                An email support channel let&apos;s you customize your email replies to your customers.
               </p>
 
               {/* Channel rows */}

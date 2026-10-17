@@ -101,7 +101,7 @@ export default function NotificationTab() {
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Bell size={48} className="text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold text-foreground mb-2">No notifications</h3>
-          <p className="text-sm text-muted-foreground">You're all caught up! No new notifications to display.</p>
+          <p className="text-sm text-muted-foreground">You&apos;re all caught up! No new notifications to display.</p>
         </div>
       ) : (
         groupedNotifications.map((group) => (

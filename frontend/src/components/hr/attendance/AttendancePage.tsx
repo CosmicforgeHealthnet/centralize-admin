@@ -107,7 +107,7 @@ function StatCardError({ icon, label, sub, onRetry }: { icon: string; label: str
           <span className="font-poppins text-[10px] text-muted-foreground leading-tight">{sub}</span>
         </div>
       </div>
-      <span className="font-poppins text-[13px] font-semibold text-destructive">Couldn't load</span>
+      <span className="font-poppins text-[13px] font-semibold text-destructive">Couldn&apos;t load</span>
       <button
         onClick={onRetry}
         className="font-poppins text-[10px] font-semibold text-primary hover:underline text-left"
