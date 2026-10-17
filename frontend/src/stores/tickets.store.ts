@@ -25,6 +25,8 @@ import type {
   SupportStats,
   TicketsFilters,
 } from "@/types/tickets.types";
+import { readHttpErrorMessage } from "@/lib/error-messages";
+
 
 interface TicketsState {
   // ── Data ──────────────────────────────────────────────
@@ -87,8 +89,8 @@ export const useTicketsStore = create<TicketsState>((set, get) => ({
     try {
       const tickets = await fetchAllTickets(filters ?? get().filters);
       set({ tickets, isLoading: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch tickets", isLoading: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch tickets", isLoading: false });
     }
   },
 
@@ -97,8 +99,8 @@ export const useTicketsStore = create<TicketsState>((set, get) => ({
     try {
       const mergedTickets = await fetchAllTicketsMerged(filters ?? get().filters);
       set({ mergedTickets, isLoading: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch tickets", isLoading: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch tickets", isLoading: false });
     }
   },
 
@@ -107,8 +109,8 @@ export const useTicketsStore = create<TicketsState>((set, get) => ({
     try {
       const selectedTicket = await fetchTicketById(id);
       set({ selectedTicket, isLoading: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch ticket", isLoading: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch ticket", isLoading: false });
     }
   },
 
@@ -117,8 +119,8 @@ export const useTicketsStore = create<TicketsState>((set, get) => ({
     try {
       const disputes = await fetchAllDisputes(filters);
       set({ disputes, isLoading: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch disputes", isLoading: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch disputes", isLoading: false });
     }
   },
 
@@ -127,8 +129,8 @@ export const useTicketsStore = create<TicketsState>((set, get) => ({
     try {
       const selectedDispute = await fetchDisputeById(id);
       set({ selectedDispute, isLoading: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch dispute", isLoading: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch dispute", isLoading: false });
     }
   },
 
@@ -137,8 +139,8 @@ export const useTicketsStore = create<TicketsState>((set, get) => ({
     try {
       const insuranceTickets = await fetchAllInsuranceTickets(filters);
       set({ insuranceTickets, isLoading: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch insurance tickets", isLoading: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch insurance tickets", isLoading: false });
     }
   },
 
@@ -147,8 +149,8 @@ export const useTicketsStore = create<TicketsState>((set, get) => ({
     try {
       const reports = await fetchAllReports(filters);
       set({ reports, isLoading: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch reports", isLoading: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch reports", isLoading: false });
     }
   },
 
@@ -157,8 +159,8 @@ export const useTicketsStore = create<TicketsState>((set, get) => ({
     try {
       const stats = await fetchSupportStats();
       set({ stats, isLoading: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch support stats", isLoading: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch support stats", isLoading: false });
     }
   },
 
@@ -174,8 +176,8 @@ export const useTicketsStore = create<TicketsState>((set, get) => ({
         selectedTicket: state.selectedTicket?.id === id ? updated : state.selectedTicket,
         isActionLoading: false,
       }));
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to assign ticket", isActionLoading: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to assign ticket", isActionLoading: false });
     }
   },
 
@@ -191,8 +193,8 @@ export const useTicketsStore = create<TicketsState>((set, get) => ({
       }));
       // Refresh stats after resolve so HelpStatCards updates
       get().fetchStats();
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to resolve ticket", isActionLoading: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to resolve ticket", isActionLoading: false });
     }
   },
 
@@ -205,8 +207,8 @@ export const useTicketsStore = create<TicketsState>((set, get) => ({
         mergedTickets: state.mergedTickets.map((t) => (t.id === id ? updated : t)),
         isActionLoading: false,
       }));
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to update ticket", isActionLoading: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to update ticket", isActionLoading: false });
     }
   },
 
@@ -218,8 +220,8 @@ export const useTicketsStore = create<TicketsState>((set, get) => ({
         disputes: state.disputes.map((d) => (d.id === id ? updated : d)),
         isActionLoading: false,
       }));
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to update dispute", isActionLoading: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to update dispute", isActionLoading: false });
     }
   },
 
@@ -231,8 +233,8 @@ export const useTicketsStore = create<TicketsState>((set, get) => ({
         insuranceTickets: state.insuranceTickets.map((t) => (t.id === id ? updated : t)),
         isActionLoading: false,
       }));
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to update insurance ticket", isActionLoading: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to update insurance ticket", isActionLoading: false });
     }
   },
 
@@ -244,8 +246,8 @@ export const useTicketsStore = create<TicketsState>((set, get) => ({
         reports: state.reports.map((r) => (r.id === id ? updated : r)),
         isActionLoading: false,
       }));
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to update report", isActionLoading: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to update report", isActionLoading: false });
     }
   },
 

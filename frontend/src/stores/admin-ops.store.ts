@@ -32,6 +32,8 @@ import {
   fetchHealthHistory, fetchLatestHealthCheck,
   fetchEnvConfigs, createEnvConfig, updateEnvConfig, deleteEnvConfig,
 } from "@/lib/admin-ops.service";
+import { readHttpErrorMessage } from "@/lib/error-messages";
+
 
 const defaultFilters: AdminOpsFilters = { search: "", status: "", page: 1, limit: 20 };
 
@@ -194,8 +196,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
     try {
       const res = await fetchServices({ status: f.status || undefined, page: f.page, limit: f.limit });
       set({ services: res.data, servicePagination: buildPagination(res), isLoadingServices: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch services", isLoadingServices: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch services", isLoadingServices: false });
     }
   },
   setServiceFilters: (f) => set((s) => ({ serviceFilters: { ...s.serviceFilters, ...f } })),
@@ -204,8 +206,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
     try {
       const updated = await pingService(id);
       set((s) => ({ services: s.services.map((sv) => sv.id === id ? { ...sv, ...updated } : sv), actionLoading: null }));
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Ping failed", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Ping failed", actionLoading: null });
     }
   },
   registerService: async (payload) => {
@@ -214,8 +216,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
       await registerService(payload);
       await get().fetchServices();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to register service", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to register service", actionLoading: null });
     }
   },
   updateService: async (id, payload) => {
@@ -224,8 +226,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
       await updateService(id, payload);
       await get().fetchServices();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to update service", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to update service", actionLoading: null });
     }
   },
   deregisterService: async (id) => {
@@ -233,8 +235,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
     try {
       await deregisterService(id);
       set((s) => ({ services: s.services.filter((sv) => sv.id !== id), actionLoading: null }));
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to deregister service", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to deregister service", actionLoading: null });
     }
   },
 
@@ -245,8 +247,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
     try {
       const res = await fetchJobs({ status: f.status || undefined, page: f.page, limit: f.limit });
       set({ jobs: res.data, jobPagination: buildPagination(res), isLoadingJobs: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch jobs", isLoadingJobs: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch jobs", isLoadingJobs: false });
     }
   },
   setJobFilters: (f) => set((s) => ({ jobFilters: { ...s.jobFilters, ...f } })),
@@ -256,8 +258,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
       await trackJob(payload);
       await get().fetchJobs();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to track job", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to track job", actionLoading: null });
     }
   },
 
@@ -268,8 +270,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
     try {
       const res = await fetchDeadLetters({ status: f.status || undefined, page: f.page, limit: f.limit });
       set({ deadLetters: res.data, deadLetterPagination: buildPagination(res), isLoadingDeadLetters: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch dead letters", isLoadingDeadLetters: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch dead letters", isLoadingDeadLetters: false });
     }
   },
   setDeadLetterFilters: (f) => set((s) => ({ deadLetterFilters: { ...s.deadLetterFilters, ...f } })),
@@ -278,8 +280,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
     try {
       const updated = await resolveDeadLetter(id);
       set((s) => ({ deadLetters: s.deadLetters.map((d) => d.id === id ? updated : d), actionLoading: null }));
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to resolve dead letter", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to resolve dead letter", actionLoading: null });
     }
   },
 
@@ -290,8 +292,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
     try {
       const res = await fetchWebhooks({ page: f.page, limit: f.limit });
       set({ webhooks: res.data, webhookPagination: buildPagination(res), isLoadingWebhooks: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch webhooks", isLoadingWebhooks: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch webhooks", isLoadingWebhooks: false });
     }
   },
   setWebhookFilters: (f) => set((s) => ({ webhookFilters: { ...s.webhookFilters, ...f } })),
@@ -301,8 +303,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
       await createWebhook(payload);
       await get().fetchWebhooks();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to create webhook", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to create webhook", actionLoading: null });
     }
   },
   updateWebhook: async (id, payload) => {
@@ -311,8 +313,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
       await updateWebhook(id, payload);
       await get().fetchWebhooks();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to update webhook", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to update webhook", actionLoading: null });
     }
   },
   deleteWebhook: async (id) => {
@@ -320,8 +322,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
     try {
       await deleteWebhook(id);
       set((s) => ({ webhooks: s.webhooks.filter((w) => w.id !== id), actionLoading: null }));
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to delete webhook", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to delete webhook", actionLoading: null });
     }
   },
 
@@ -332,8 +334,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
     try {
       const res = await fetchWebhookLogs({ status: f.status || undefined, page: f.page, limit: f.limit });
       set({ webhookLogs: res.data, webhookLogPagination: buildPagination(res), isLoadingWebhookLogs: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch webhook logs", isLoadingWebhookLogs: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch webhook logs", isLoadingWebhookLogs: false });
     }
   },
   setWebhookLogFilters: (f) => set((s) => ({ webhookLogFilters: { ...s.webhookLogFilters, ...f } })),
@@ -345,8 +347,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
     try {
       const res = await fetchIncidents({ status: f.status || undefined, page: f.page, limit: f.limit });
       set({ incidents: res.data, incidentPagination: buildPagination(res), isLoadingIncidents: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch incidents", isLoadingIncidents: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch incidents", isLoadingIncidents: false });
     }
   },
   setIncidentFilters: (f) => set((s) => ({ incidentFilters: { ...s.incidentFilters, ...f } })),
@@ -356,8 +358,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
       await createIncident(payload);
       await get().fetchIncidents();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to create incident", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to create incident", actionLoading: null });
     }
   },
   updateIncident: async (id, payload) => {
@@ -366,8 +368,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
       await updateIncident(id, payload);
       await get().fetchIncidents();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to update incident", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to update incident", actionLoading: null });
     }
   },
   resolveIncident: async (id) => {
@@ -375,8 +377,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
     try {
       const updated = await resolveIncident(id);
       set((s) => ({ incidents: s.incidents.map((i) => i.id === id ? updated : i), actionLoading: null }));
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to resolve incident", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to resolve incident", actionLoading: null });
     }
   },
 
@@ -388,8 +390,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
       const res = await fetchAlerts({ isResolved: f.status === "resolved" ? true : f.status === "active" ? false : undefined, page: f.page, limit: f.limit });
       const unread = res.data.filter((a) => !a.isRead).length;
       set({ alerts: res.data, alertPagination: buildPagination(res), unreadAlertCount: unread, isLoadingAlerts: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch alerts", isLoadingAlerts: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch alerts", isLoadingAlerts: false });
     }
   },
   setAlertFilters: (f) => set((s) => ({ alertFilters: { ...s.alertFilters, ...f } })),
@@ -399,8 +401,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
       await createAlert(payload);
       await get().fetchAlerts();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to create alert", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to create alert", actionLoading: null });
     }
   },
   markAlertRead: async (id) => {
@@ -408,8 +410,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
     try {
       const updated = await markAlertRead(id);
       set((s) => ({ alerts: s.alerts.map((a) => a.id === id ? updated : a), actionLoading: null }));
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to mark alert as read", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to mark alert as read", actionLoading: null });
     }
   },
   resolveAlert: async (id) => {
@@ -417,8 +419,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
     try {
       const updated = await resolveAlert(id);
       set((s) => ({ alerts: s.alerts.map((a) => a.id === id ? updated : a), actionLoading: null }));
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to resolve alert", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to resolve alert", actionLoading: null });
     }
   },
 
@@ -429,8 +431,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
     try {
       const res = await fetchFlags({ page: f.page, limit: f.limit });
       set({ flags: res.data, flagPagination: buildPagination(res), isLoadingFlags: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch flags", isLoadingFlags: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch flags", isLoadingFlags: false });
     }
   },
   setFlagFilters: (f) => set((s) => ({ flagFilters: { ...s.flagFilters, ...f } })),
@@ -440,8 +442,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
       await createFlag(payload);
       await get().fetchFlags();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to create flag", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to create flag", actionLoading: null });
     }
   },
   updateFlag: async (key, payload) => {
@@ -450,8 +452,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
       await updateFlag(key, payload);
       await get().fetchFlags();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to update flag", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to update flag", actionLoading: null });
     }
   },
   deleteFlag: async (key) => {
@@ -459,8 +461,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
     try {
       await deleteFlag(key);
       set((s) => ({ flags: s.flags.filter((fl) => fl.key !== key), actionLoading: null }));
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to delete flag", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to delete flag", actionLoading: null });
     }
   },
   toggleFlag: async (key, isEnabled) => {
@@ -468,8 +470,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
     try {
       const updated = await updateFlag(key, { isEnabled });
       set((s) => ({ flags: s.flags.map((fl) => fl.key === key ? updated : fl), actionLoading: null }));
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to toggle flag", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to toggle flag", actionLoading: null });
     }
   },
 
@@ -480,8 +482,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
     try {
       const res = await fetchHealthHistory({ page: f.page, limit: f.limit });
       set({ healthHistory: res.data, healthPagination: buildPagination(res), isLoadingHealth: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch health history", isLoadingHealth: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch health history", isLoadingHealth: false });
     }
   },
   setHealthFilters: (f) => set((s) => ({ healthFilters: { ...s.healthFilters, ...f } })),
@@ -490,8 +492,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
     try {
       const latest = await fetchLatestHealthCheck();
       set({ latestHealth: latest, isLoadingHealth: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch latest health", isLoadingHealth: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch latest health", isLoadingHealth: false });
     }
   },
 
@@ -502,8 +504,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
     try {
       const res = await fetchEnvConfigs({ page: f.page, limit: f.limit });
       set({ envConfigs: res.data, envConfigPagination: buildPagination(res), isLoadingEnvConfigs: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch env configs", isLoadingEnvConfigs: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch env configs", isLoadingEnvConfigs: false });
     }
   },
   setEnvConfigFilters: (f) => set((s) => ({ envConfigFilters: { ...s.envConfigFilters, ...f } })),
@@ -513,8 +515,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
       await createEnvConfig(payload);
       await get().fetchEnvConfigs();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to create config", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to create config", actionLoading: null });
     }
   },
   updateEnvConfig: async (id, payload) => {
@@ -523,8 +525,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
       await updateEnvConfig(id, payload);
       await get().fetchEnvConfigs();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to update config", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to update config", actionLoading: null });
     }
   },
   deleteEnvConfig: async (id) => {
@@ -532,8 +534,8 @@ export const useAdminOpsStore = create<AdminOpsState>((set, get) => ({
     try {
       await deleteEnvConfig(id);
       set((s) => ({ envConfigs: s.envConfigs.filter((c) => c.id !== id), actionLoading: null }));
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to delete config", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to delete config", actionLoading: null });
     }
   },
 

@@ -15,6 +15,8 @@ import type {
   TaskDetail,
   TeamItem,
 } from "@/types/profile.types";
+import { readHttpErrorMessage } from "@/lib/error-messages";
+
 
 interface ProfileState {
   profile: Profile | null;
@@ -108,9 +110,9 @@ export const useProfileStore = create<ProfileState>()(
         try {
           const projects = await profileService.getMyProjects();
           set({ projects, isLoadingProjects: false });
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({
-            error: err.response?.data?.message || "Failed to load projects",
+            error: readHttpErrorMessage(err) || "Failed to load projects",
             isLoadingProjects: false,
           });
         }
@@ -124,9 +126,9 @@ export const useProfileStore = create<ProfileState>()(
             projectDetail,
             isLoadingProjectDetail: false,
           });
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({
-            error: err.response?.data?.message || "Failed to load project",
+            error: readHttpErrorMessage(err) || "Failed to load project",
             isLoadingProjectDetail: false,
           });
         }
@@ -140,9 +142,9 @@ export const useProfileStore = create<ProfileState>()(
             tasks,
             isLoadingTasks: false,
           });
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({
-            error: err.response?.data?.message || "Failed to load tasks",
+            error: readHttpErrorMessage(err) || "Failed to load tasks",
             isLoadingTasks: false,
           });
         }
@@ -156,9 +158,9 @@ export const useProfileStore = create<ProfileState>()(
             taskDetail,
             isLoadingTaskDetail: false,
           });
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({
-            error: err.response?.data?.message || "Failed to load task",
+            error: readHttpErrorMessage(err) || "Failed to load task",
             isLoadingTaskDetail: false,
           });
         }
@@ -172,9 +174,9 @@ export const useProfileStore = create<ProfileState>()(
             teams,
             isLoadingTeams: false,
           });
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({
-            error: err.response?.data?.message || "Failed to load teams",
+            error: readHttpErrorMessage(err) || "Failed to load teams",
             isLoadingTeams: false,
           });
         }
@@ -186,9 +188,9 @@ export const useProfileStore = create<ProfileState>()(
         try {
           const profile = await profileService.getMyProfile();
           set({ profile, isLoading: false });
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({
-            error: err.response?.data?.message || "Failed to load profile",
+            error: readHttpErrorMessage(err) || "Failed to load profile",
             isLoading: false,
           });
         }
@@ -205,9 +207,9 @@ export const useProfileStore = create<ProfileState>()(
               : state.profile,
             isUpdatingAvatar: false,
           }));
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({
-            error: err.response?.data?.message || "Failed to update avatar",
+            error: readHttpErrorMessage(err) || "Failed to update avatar",
             isUpdatingAvatar: false,
           });
           throw err;
@@ -225,9 +227,9 @@ export const useProfileStore = create<ProfileState>()(
               : state.profile,
             isUpdatingProfile: false,
           }));
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({
-            error: err.response?.data?.message || "Failed to update personal info",
+            error: readHttpErrorMessage(err) || "Failed to update personal info",
             isUpdatingProfile: false,
           });
           throw err;
@@ -245,9 +247,9 @@ export const useProfileStore = create<ProfileState>()(
               : state.profile,
             isUpdatingProfile: false,
           }));
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({
-            error: err.response?.data?.message || "Failed to update contact info",
+            error: readHttpErrorMessage(err) || "Failed to update contact info",
             isUpdatingProfile: false,
           });
           throw err;
@@ -265,9 +267,9 @@ export const useProfileStore = create<ProfileState>()(
               : state.profile,
             isUpdatingProfile: false,
           }));
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({
-            error: err.response?.data?.message || "Failed to update emergency contact",
+            error: readHttpErrorMessage(err) || "Failed to update emergency contact",
             isUpdatingProfile: false,
           });
           throw err;
@@ -285,9 +287,9 @@ export const useProfileStore = create<ProfileState>()(
               : state.profile,
             isUpdatingProfile: false,
           }));
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({
-            error: err.response?.data?.message || "Failed to update social links",
+            error: readHttpErrorMessage(err) || "Failed to update social links",
             isUpdatingProfile: false,
           });
           throw err;
@@ -305,9 +307,9 @@ export const useProfileStore = create<ProfileState>()(
               : state.profile,
             isUpdatingProfile: false,
           }));
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({
-            error: err.response?.data?.message || "Failed to update education",
+            error: readHttpErrorMessage(err) || "Failed to update education",
             isUpdatingProfile: false,
           });
           throw err;
@@ -319,9 +321,9 @@ export const useProfileStore = create<ProfileState>()(
         try {
           const result = await profileService.getDocumentDownloadUrl(documentId);
           return result.url;
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({
-            error: err.response?.data?.message || "Failed to get download URL",
+            error: readHttpErrorMessage(err) || "Failed to get download URL",
           });
           throw err;
         }
@@ -338,9 +340,9 @@ export const useProfileStore = create<ProfileState>()(
               : state.profile,
             isUpdatingReports: false,
           }));
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({
-            error: err.response?.data?.message || "Failed to add report",
+            error: readHttpErrorMessage(err) || "Failed to add report",
             isUpdatingReports: false,
           });
           throw err;
@@ -351,8 +353,8 @@ export const useProfileStore = create<ProfileState>()(
         try {
           const result = await profileService.getReportDownloadUrl(reportId);
           return result.url;
-        } catch (err: any) {
-          set({ error: err.response?.data?.message || "Failed to get download URL" });
+        } catch (err: unknown) {
+          set({ error: readHttpErrorMessage(err) || "Failed to get download URL" });
           throw err;
         }
       },
@@ -372,8 +374,8 @@ export const useProfileStore = create<ProfileState>()(
               : state.profile,
             isUpdatingReports: false,
           }));
-        } catch (err: any) {
-          set({ error: err.response?.data?.message || "Failed to update report", isUpdatingReports: false });
+        } catch (err: unknown) {
+          set({ error: readHttpErrorMessage(err) || "Failed to update report", isUpdatingReports: false });
           throw err;
         }
       },
@@ -391,15 +393,15 @@ export const useProfileStore = create<ProfileState>()(
               : state.profile,
             isUpdatingReports: false,
           }));
-        } catch (err: any) {
-          set({ error: err.response?.data?.message || "Failed to delete report", isUpdatingReports: false });
+        } catch (err: unknown) {
+          set({ error: readHttpErrorMessage(err) || "Failed to delete report", isUpdatingReports: false });
           throw err;
         }
       },
 
       // Utilities
       clearError: () => set({ error: null }),
-      
+
       clearProfile: () =>
         set({
           profile: null,

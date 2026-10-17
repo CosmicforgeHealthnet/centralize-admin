@@ -9,6 +9,8 @@ import type {
   RevenueChartItem,
   PlatformUsageItem,
 } from "@/types/dashboard.types";
+import { readHttpErrorMessage } from "@/lib/error-messages";
+
 
 interface DashboardState {
   // ── Data ─────────────────────────────────────────────
@@ -46,9 +48,9 @@ export const useDashboardStore = create<DashboardState>((set) => ({
     try {
       const overview = await fetchDashboardOverview();
       set({ overview, isLoadingOverview: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to fetch dashboard overview",
+        error: readHttpErrorMessage(err) || "Failed to fetch dashboard overview",
         isLoadingOverview: false,
       });
     }
@@ -59,9 +61,9 @@ export const useDashboardStore = create<DashboardState>((set) => ({
     try {
       const revenueChart = await fetchRevenueChart();
       set({ revenueChart, isLoadingRevenue: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to fetch revenue data",
+        error: readHttpErrorMessage(err) || "Failed to fetch revenue data",
         isLoadingRevenue: false,
       });
     }
@@ -72,9 +74,9 @@ export const useDashboardStore = create<DashboardState>((set) => ({
     try {
       const platformUsage = await fetchPlatformUsage();
       set({ platformUsage, isLoadingPlatform: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to fetch platform usage",
+        error: readHttpErrorMessage(err) || "Failed to fetch platform usage",
         isLoadingPlatform: false,
       });
     }
@@ -102,9 +104,9 @@ export const useDashboardStore = create<DashboardState>((set) => ({
         isLoadingRevenue: false,
         isLoadingPlatform: false,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to fetch dashboard data",
+        error: readHttpErrorMessage(err) || "Failed to fetch dashboard data",
         isLoadingOverview: false,
         isLoadingRevenue: false,
         isLoadingPlatform: false,

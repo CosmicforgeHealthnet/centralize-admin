@@ -20,7 +20,9 @@ import type {
   VerificationStatus,
 } from "@/types/verification.types";
 import DispatchDetail from "./DispatchDetail";
-import api from "@/lib/api";  
+import api from "@/lib/api";
+import { readHttpErrorMessage } from "@/lib/error-messages";
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -131,7 +133,7 @@ function LeftPanel({
 }) {
   const ss = STATUS_STYLES[status] ?? STATUS_STYLES["Pending"];
   const [contactOpen, setContactOpen] = useState(false);
-  
+
   const getInitials = (name: string) => {
     if (!name) return "?";
     return name
@@ -754,7 +756,7 @@ export default function VerificationDetail({ id }: Props) {
 
   useEffect(() => {
     setActiveRole(role);
-    
+
     if (isStuck) {
   const fetchStuckDetail = async () => {
   setIsLoadingStuck(true);
@@ -808,8 +810,8 @@ export default function VerificationDetail({ id }: Props) {
     setTimeout(() => {
       router.push(`/dashboard/verification/${response.data.data.id}?role=Doctors`);
     }, 1500);
-  } catch (err: any) {
-    setToast({ type: "error", message: err.response?.data?.message || "Failed to create verification." });
+  } catch (err: unknown) {
+    setToast({ type: "error", message: readHttpErrorMessage(err) || "Failed to create verification." });
   } finally {
     setIsFixing(false);
   }

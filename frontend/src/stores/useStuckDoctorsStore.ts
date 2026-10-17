@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { fetchStuckDoctors } from "@/lib/verification.service";
 import type { StuckDoctor, StuckDoctorStats, VerificationPagination } from "@/types/verification.types";
+import { readHttpErrorMessage } from "@/lib/error-messages";
+
 
 interface StuckDoctorsState {
   doctors: StuckDoctor[];
@@ -42,9 +44,9 @@ export const useStuckDoctorsStore = create<StuckDoctorsState>((set, get) => ({
         pagination: result.pagination,
         isLoading: false,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to fetch stuck doctors",
+        error: readHttpErrorMessage(err) || "Failed to fetch stuck doctors",
         isLoading: false,
       });
     }

@@ -34,6 +34,8 @@ import {
   fetchAnalyticsVisitors,
   fetchAnalyticsWaitlist,
 } from "@/lib/users.service";
+import { readHttpErrorMessage } from "@/lib/error-messages";
+
 
 interface UserDetailPagination {
   currentPage: number;
@@ -170,8 +172,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
     try {
       const stats = await fetchUserStats();
       set({ stats, isLoadingStats: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message ?? "Failed to fetch stats", isLoadingStats: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) ?? "Failed to fetch stats", isLoadingStats: false });
     }
   },
 
@@ -184,8 +186,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
         fetchSignUpTrends(),
       ]);
       set({ growthChart, signUpTrends, isLoadingCharts: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message ?? "Failed to fetch charts", isLoadingCharts: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) ?? "Failed to fetch charts", isLoadingCharts: false });
     }
   },
 
@@ -215,8 +217,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
         },
         isLoadingUsers: false,
       });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message ?? "Failed to fetch users", isLoadingUsers: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) ?? "Failed to fetch users", isLoadingUsers: false });
     }
   },
 
@@ -226,8 +228,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
     try {
       const user = await fetchUser(id);
       set({ selectedUser: user, isLoadingUser: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message ?? "Failed to fetch user", isLoadingUser: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) ?? "Failed to fetch user", isLoadingUser: false });
     }
   },
 
@@ -236,8 +238,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
     try {
       const userActivity = await fetchUserActivity(id);
       set({ userActivity, isLoadingActivity: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message ?? "Failed to fetch activity", isLoadingActivity: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) ?? "Failed to fetch activity", isLoadingActivity: false });
     }
   },
 
@@ -254,8 +256,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
         },
         isLoadingTransactions: false,
       });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message ?? "Failed to fetch transactions", isLoadingTransactions: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) ?? "Failed to fetch transactions", isLoadingTransactions: false });
     }
   },
 
@@ -272,8 +274,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
         },
         isLoadingAppointments: false,
       });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message ?? "Failed to fetch appointments", isLoadingAppointments: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) ?? "Failed to fetch appointments", isLoadingAppointments: false });
     }
   },
 
@@ -282,8 +284,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
     try {
       const userSubscriptions = await fetchUserSubscriptions(id);
       set({ userSubscriptions, isLoadingSubscriptions: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message ?? "Failed to fetch subscriptions", isLoadingSubscriptions: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) ?? "Failed to fetch subscriptions", isLoadingSubscriptions: false });
     }
   },
 
@@ -295,8 +297,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
       await get().fetchUsers();
       if (get().selectedUser?.id === id) await get().fetchUser(id);
       set({ isUpdatingStatus: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message ?? "Failed to update status", isUpdatingStatus: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) ?? "Failed to update status", isUpdatingStatus: false });
     }
   },
 
@@ -307,8 +309,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
       await get().fetchUsers();
       set({ isBulkUpdating: false });
       return result;
-    } catch (err: any) {
-      set({ error: err.response?.data?.message ?? "Failed to bulk update", isBulkUpdating: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) ?? "Failed to bulk update", isBulkUpdating: false });
       throw err;
     }
   },
@@ -321,8 +323,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
       await get().fetchUsers();
       if (get().selectedUser?.id === id) get().clearSelectedUser();
       set({ isDeleting: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message ?? "Failed to delete user", isDeleting: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) ?? "Failed to delete user", isDeleting: false });
       throw err;
     }
   },
@@ -330,8 +332,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
   forcePasswordReset: async (id) => {
     try {
       await forcePasswordReset(id);
-    } catch (err: any) {
-      set({ error: err.response?.data?.message ?? "Failed to force password reset" });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) ?? "Failed to force password reset" });
       throw err;
     }
   },
@@ -364,8 +366,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
     try {
       const analyticsStats = await fetchAnalyticsStats(params);
       set({ analyticsStats, isLoadingAnalyticsStats: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message ?? "Failed to fetch analytics stats", isLoadingAnalyticsStats: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) ?? "Failed to fetch analytics stats", isLoadingAnalyticsStats: false });
     }
   },
 
@@ -378,8 +380,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
         analyticsVisitorsPagination: { total: res.total, page: res.page, limit: res.limit },
         isLoadingAnalyticsVisitors: false,
       });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message ?? "Failed to fetch visitors", isLoadingAnalyticsVisitors: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) ?? "Failed to fetch visitors", isLoadingAnalyticsVisitors: false });
     }
   },
 
@@ -392,8 +394,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
         analyticsWaitlistPagination: { total: res.total, page: res.page, limit: res.limit },
         isLoadingAnalyticsWaitlist: false,
       });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message ?? "Failed to fetch waitlist", isLoadingAnalyticsWaitlist: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) ?? "Failed to fetch waitlist", isLoadingAnalyticsWaitlist: false });
     }
   },
 }));

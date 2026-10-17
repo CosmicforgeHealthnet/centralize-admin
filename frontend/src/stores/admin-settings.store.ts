@@ -14,6 +14,8 @@ import {
   batchUpdateSettings,
   fetchSettingsHistory,
 } from "@/lib/admin-settings.service";
+import { readHttpErrorMessage } from "@/lib/error-messages";
+
 
 interface AdminSettingsState {
   // Settings data
@@ -21,18 +23,18 @@ interface AdminSettingsState {
   currentCategory: string | null;
   categorySettings: AdminSetting[];
   currentSetting: AdminSetting | null;
-  
+
   // History
   history: SettingHistory[];
   historyTotal: number;
   historyPage: number;
   historyLimit: number;
-  
+
   // UI State
   isLoading: boolean;
   isSaving: boolean;
   error: string | null;
-  
+
   // Actions
   loadAllSettings: () => Promise<void>;
   loadSettingsByCategory: (category: string) => Promise<void>;
@@ -63,8 +65,8 @@ export const useAdminSettingsStore = create<AdminSettingsState>((set, get) => ({
     try {
       const data = await fetchAllSettings();
       set({ allSettings: data, isLoading: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to load settings", isLoading: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to load settings", isLoading: false });
     }
   },
 
@@ -73,8 +75,8 @@ export const useAdminSettingsStore = create<AdminSettingsState>((set, get) => ({
     try {
       const data = await fetchSettingsByCategory(category);
       set({ categorySettings: data, isLoading: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || `Failed to load ${category} settings`, isLoading: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || `Failed to load ${category} settings`, isLoading: false });
     }
   },
 
@@ -83,8 +85,8 @@ export const useAdminSettingsStore = create<AdminSettingsState>((set, get) => ({
     try {
       const data = await fetchSetting(category, key);
       set({ currentSetting: data, isLoading: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to load setting", isLoading: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to load setting", isLoading: false });
     }
   },
 
@@ -92,7 +94,7 @@ export const useAdminSettingsStore = create<AdminSettingsState>((set, get) => ({
     set({ isSaving: true, error: null });
     try {
       const updated = await updateSetting(category, key, value);
-      
+
       // Update local cache
       set((state) => {
         // Update in allSettings
@@ -103,14 +105,14 @@ export const useAdminSettingsStore = create<AdminSettingsState>((set, get) => ({
             newAllSettings[category][index] = updated;
           }
         }
-        
+
         // Update in categorySettings
         const newCategorySettings = [...state.categorySettings];
         const catIndex = newCategorySettings.findIndex(s => s.key === key);
         if (catIndex !== -1) {
           newCategorySettings[catIndex] = updated;
         }
-        
+
         return {
           allSettings: newAllSettings,
           categorySettings: newCategorySettings,
@@ -118,8 +120,8 @@ export const useAdminSettingsStore = create<AdminSettingsState>((set, get) => ({
           isSaving: false,
         };
       });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to save setting", isSaving: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to save setting", isSaving: false });
     }
   },
 
@@ -127,16 +129,16 @@ export const useAdminSettingsStore = create<AdminSettingsState>((set, get) => ({
     set({ isSaving: true, error: null });
     try {
       const updated = await batchUpdateSettings(updates);
-      
+
       // Refresh current category settings if needed
       const { currentCategory } = get();
       if (currentCategory) {
         await get().loadSettingsByCategory(currentCategory);
       }
-      
+
       set({ isSaving: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to save settings", isSaving: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to save settings", isSaving: false });
     }
   },
 
@@ -151,13 +153,13 @@ export const useAdminSettingsStore = create<AdminSettingsState>((set, get) => ({
         historyLimit: result.limit,
         isLoading: false 
       });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to load history", isLoading: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to load history", isLoading: false });
     }
   },
 
   clearError: () => set({ error: null }),
-  
+
   reset: () => set({
     allSettings: null,
     currentCategory: null,

@@ -17,6 +17,8 @@ import type {
   SupportChat,
   ChatMessageWithSender,
 } from "@/types/support.types";
+import { readHttpErrorMessage } from "@/lib/error-messages";
+
 
 interface SupportState {
   // ── Data ──────────────────────────────────────────────
@@ -75,9 +77,9 @@ export const useSupportStore = create<SupportState>((set) => ({
     try {
       const stats = await fetchSupportStats();
       set({ stats, isLoadingStats: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to fetch support stats",
+        error: readHttpErrorMessage(err) || "Failed to fetch support stats",
         isLoadingStats: false,
       });
     }
@@ -88,9 +90,9 @@ export const useSupportStore = create<SupportState>((set) => ({
     try {
       const { tickets, pagination } = await fetchSupportTickets(query);
       set({ tickets, ticketPagination: pagination, isLoadingTickets: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to fetch tickets",
+        error: readHttpErrorMessage(err) || "Failed to fetch tickets",
         isLoadingTickets: false,
       });
     }
@@ -101,9 +103,9 @@ export const useSupportStore = create<SupportState>((set) => ({
     try {
       const userTraffic = await fetchUserTraffic();
       set({ userTraffic, isLoadingTraffic: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to fetch user traffic",
+        error: readHttpErrorMessage(err) || "Failed to fetch user traffic",
         isLoadingTraffic: false,
       });
     }
@@ -114,9 +116,9 @@ export const useSupportStore = create<SupportState>((set) => ({
     try {
       const chats = await fetchSupportChats();
       set({ chats, isLoadingChats: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to fetch support chats",
+        error: readHttpErrorMessage(err) || "Failed to fetch support chats",
         isLoadingChats: false,
       });
     }
@@ -127,9 +129,9 @@ export const useSupportStore = create<SupportState>((set) => ({
     try {
       const activeChatMessages = await fetchChatMessages(roomId);
       set({ activeChatMessages, activeChatRoomId: roomId, isLoadingMessages: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to fetch messages",
+        error: readHttpErrorMessage(err) || "Failed to fetch messages",
         isLoadingMessages: false,
       });
     }
@@ -142,9 +144,9 @@ export const useSupportStore = create<SupportState>((set) => ({
       // Refresh chats so isClaimed reflects the update
       const chats = await fetchSupportChats();
       set({ chats, isClaimingChat: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to claim chat",
+        error: readHttpErrorMessage(err) || "Failed to claim chat",
         isClaimingChat: false,
       });
     }
@@ -159,9 +161,9 @@ export const useSupportStore = create<SupportState>((set) => ({
         activeChatMessages: [...state.activeChatMessages, newMessage],
         isSendingMessage: false,
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to send message",
+        error: readHttpErrorMessage(err) || "Failed to send message",
         isSendingMessage: false,
       });
     }
@@ -196,9 +198,9 @@ export const useSupportStore = create<SupportState>((set) => ({
         isLoadingTraffic: false,
         isLoadingChats: false,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to fetch support data",
+        error: readHttpErrorMessage(err) || "Failed to fetch support data",
         isLoadingStats: false,
         isLoadingTickets: false,
         isLoadingTraffic: false,

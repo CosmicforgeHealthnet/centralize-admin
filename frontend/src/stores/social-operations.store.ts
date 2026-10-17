@@ -27,6 +27,8 @@ import {
   fetchSOJobs, retrySOJob, cancelSOJob,
   fetchSOSettings, updateSOSettings,
 } from "@/lib/social-operations.service";
+import { readHttpErrorMessage } from "@/lib/error-messages";
+
 
 interface SocialOperationsState {
   // ── Connections & identities ─────────────────────────────────────────────
@@ -157,8 +159,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
     try {
       const connections = await fetchSOConnections();
       set({ connections, isLoadingConnections: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch connections", isLoadingConnections: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch connections", isLoadingConnections: false });
     }
   },
   testConnection: async (id) => {
@@ -166,8 +168,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
     try {
       await testSOConnection(id);
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Connection test failed", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Connection test failed", actionLoading: null });
     }
   },
   reauthorizeConnection: async (id) => {
@@ -176,8 +178,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await reauthorizeSOConnection(id);
       await get().fetchConnections();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to reauthorize connection", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to reauthorize connection", actionLoading: null });
     }
   },
   disableConnection: async (id) => {
@@ -186,8 +188,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await disableSOConnection(id);
       await get().fetchConnections();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to disable connection", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to disable connection", actionLoading: null });
     }
   },
   enableConnection: async (id) => {
@@ -196,8 +198,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await enableSOConnection(id);
       await get().fetchConnections();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to enable connection", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to enable connection", actionLoading: null });
     }
   },
   discoverIdentities: async (connectionId) => {
@@ -206,8 +208,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await discoverSOIdentities(connectionId);
       await get().fetchIdentities();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to discover identities", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to discover identities", actionLoading: null });
     }
   },
   fetchIdentities: async () => {
@@ -215,8 +217,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
     try {
       const identities = await fetchSOIdentities();
       set({ identities, isLoadingIdentities: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch identities", isLoadingIdentities: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch identities", isLoadingIdentities: false });
     }
   },
   refreshIdentityCapabilities: async (id) => {
@@ -227,8 +229,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
         identities: s.identities.map((i) => (i.id === id ? identity : i)),
         actionLoading: null,
       }));
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to refresh capabilities", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to refresh capabilities", actionLoading: null });
     }
   },
 
@@ -238,8 +240,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
     try {
       const posts = await fetchSOPosts();
       set({ posts, isLoadingPosts: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch posts", isLoadingPosts: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch posts", isLoadingPosts: false });
     }
   },
   fetchPostDetail: async (id) => {
@@ -247,8 +249,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
     try {
       const post = await fetchSOPost(id);
       set({ selectedPost: post, isLoadingPostDetail: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch post", isLoadingPostDetail: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch post", isLoadingPostDetail: false });
     }
   },
   createPost: async (payload) => {
@@ -257,8 +259,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await createSOPost(payload);
       await get().fetchPosts();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to create post", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to create post", actionLoading: null });
     }
   },
   updatePost: async (id, payload) => {
@@ -267,8 +269,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await updateSOPost(id, payload);
       await get().fetchPosts();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to update post", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to update post", actionLoading: null });
     }
   },
   submitPostForReview: async (id) => {
@@ -277,8 +279,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await submitSOPostForReview(id);
       await get().fetchPosts();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to submit post", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to submit post", actionLoading: null });
     }
   },
   approvePost: async (id) => {
@@ -287,8 +289,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await approveSOPost(id);
       await get().fetchApprovalQueue();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to approve post", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to approve post", actionLoading: null });
     }
   },
   rejectPost: async (id, reason) => {
@@ -297,8 +299,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await rejectSOPost(id, reason);
       await get().fetchApprovalQueue();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to reject post", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to reject post", actionLoading: null });
     }
   },
   requestPostChanges: async (id, reason) => {
@@ -307,8 +309,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await requestSOPostChanges(id, reason);
       await get().fetchApprovalQueue();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to request changes", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to request changes", actionLoading: null });
     }
   },
   fetchApprovalQueue: async () => {
@@ -316,8 +318,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
     try {
       const approvalQueue = await fetchSOApprovalQueue();
       set({ approvalQueue, isLoadingApprovalQueue: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch approval queue", isLoadingApprovalQueue: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch approval queue", isLoadingApprovalQueue: false });
     }
   },
   fetchMedia: async () => {
@@ -325,8 +327,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
     try {
       const media = await fetchSOMedia();
       set({ media, isLoadingMedia: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch media", isLoadingMedia: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch media", isLoadingMedia: false });
     }
   },
   deleteMedia: async (id) => {
@@ -334,8 +336,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
     try {
       await deleteSOMedia(id);
       set((s) => ({ media: s.media.filter((m) => m.id !== id), actionLoading: null }));
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to delete media", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to delete media", actionLoading: null });
     }
   },
 
@@ -345,8 +347,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
     try {
       const publications = await fetchSOPublications();
       set({ publications, isLoadingPublications: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch publications", isLoadingPublications: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch publications", isLoadingPublications: false });
     }
   },
   publishPostNow: async (postId) => {
@@ -355,8 +357,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await publishSOPostNow(postId);
       await get().fetchPublications();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to publish post", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to publish post", actionLoading: null });
     }
   },
   schedulePost: async (postId, scheduledFor) => {
@@ -365,8 +367,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await scheduleSOPost(postId, scheduledFor);
       await get().fetchPosts();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to schedule post", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to schedule post", actionLoading: null });
     }
   },
   retryPublication: async (id) => {
@@ -375,8 +377,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await retrySOPublication(id);
       await get().fetchPublications();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to retry publication", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to retry publication", actionLoading: null });
     }
   },
   cancelPublication: async (id) => {
@@ -385,8 +387,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await cancelSOPublication(id);
       await get().fetchPublications();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to cancel publication", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to cancel publication", actionLoading: null });
     }
   },
 
@@ -396,8 +398,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
     try {
       const contentItems = await fetchSOContentItems();
       set({ contentItems, isLoadingContentItems: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch content", isLoadingContentItems: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch content", isLoadingContentItems: false });
     }
   },
   syncIdentityContent: async (identityId) => {
@@ -406,8 +408,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await syncSOIdentityContent(identityId);
       await get().fetchContentItems();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to sync content", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to sync content", actionLoading: null });
     }
   },
 
@@ -417,8 +419,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
     try {
       const conversations = await fetchSOConversations();
       set({ conversations, isLoadingConversations: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch conversations", isLoadingConversations: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch conversations", isLoadingConversations: false });
     }
   },
   replyConversation: async (id, text) => {
@@ -427,8 +429,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await replySOConversation(id, text);
       await get().fetchConversations();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to send reply", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to send reply", actionLoading: null });
     }
   },
   resolveConversation: async (id) => {
@@ -437,8 +439,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await resolveSOConversation(id);
       await get().fetchConversations();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to resolve conversation", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to resolve conversation", actionLoading: null });
     }
   },
   fetchComments: async () => {
@@ -446,8 +448,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
     try {
       const comments = await fetchSOComments();
       set({ comments, isLoadingComments: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch comments", isLoadingComments: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch comments", isLoadingComments: false });
     }
   },
   hideComment: async (id) => {
@@ -456,8 +458,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await hideSOComment(id);
       await get().fetchComments();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to hide comment", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to hide comment", actionLoading: null });
     }
   },
   escalateComment: async (id, classification) => {
@@ -466,8 +468,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await escalateSOComment(id, classification);
       await get().fetchComments();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to escalate comment", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to escalate comment", actionLoading: null });
     }
   },
   fetchEscalations: async () => {
@@ -475,8 +477,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
     try {
       const escalations = await fetchSOEscalations();
       set({ escalations, isLoadingEscalations: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch escalations", isLoadingEscalations: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch escalations", isLoadingEscalations: false });
     }
   },
 
@@ -486,8 +488,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
     try {
       const jobs = await fetchSOJobs();
       set({ jobs, isLoadingJobs: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch jobs", isLoadingJobs: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch jobs", isLoadingJobs: false });
     }
   },
   retryJob: async (id) => {
@@ -496,8 +498,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await retrySOJob(id);
       await get().fetchJobs();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to retry job", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to retry job", actionLoading: null });
     }
   },
   cancelJob: async (id) => {
@@ -506,8 +508,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
       await cancelSOJob(id);
       await get().fetchJobs();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to cancel job", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to cancel job", actionLoading: null });
     }
   },
 
@@ -517,8 +519,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
     try {
       const settings = await fetchSOSettings();
       set({ settings, isLoadingSettings: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch settings", isLoadingSettings: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch settings", isLoadingSettings: false });
     }
   },
   updateSettings: async (payload) => {
@@ -526,8 +528,8 @@ export const useSocialOperationsStore = create<SocialOperationsState>((set, get)
     try {
       const settings = await updateSOSettings(payload);
       set({ settings, actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to update settings", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to update settings", actionLoading: null });
     }
   },
 

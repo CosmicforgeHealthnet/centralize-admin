@@ -23,6 +23,8 @@ import {
   runMISync,
   fetchMIProviderValidation,
 } from "@/lib/marketing-intelligence.service";
+import { readHttpErrorMessage } from "@/lib/error-messages";
+
 
 const today = new Date().toISOString().slice(0, 10);
 const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
@@ -121,8 +123,8 @@ export const useMarketingIntelligenceStore = create<MarketingIntelligenceState>(
         return true;
       });
       set({ connections: filtered, isLoadingConnections: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch connections", isLoadingConnections: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch connections", isLoadingConnections: false });
     }
   },
   setConnectionFilters: (f) => {
@@ -135,8 +137,8 @@ export const useMarketingIntelligenceStore = create<MarketingIntelligenceState>(
       await createMIConnection(payload);
       await get().fetchConnections();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to create connection", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to create connection", actionLoading: null });
     }
   },
   updateConnection: async (id, payload) => {
@@ -145,8 +147,8 @@ export const useMarketingIntelligenceStore = create<MarketingIntelligenceState>(
       await updateMIConnection(id, payload);
       await get().fetchConnections();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to update connection", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to update connection", actionLoading: null });
     }
   },
 testConnection: async (id) => {
@@ -158,8 +160,8 @@ testConnection: async (id) => {
       connectionTestResult: { ...s.connectionTestResult, [id]: mappedStatus },
       actionLoading: null,
     }));
-  } catch (err: any) {
-    set({ error: err.response?.data?.message || "Connection test failed", actionLoading: null });
+  } catch (err: unknown) {
+    set({ error: readHttpErrorMessage(err) || "Connection test failed", actionLoading: null });
   }
 },
   disableConnection: async (id) => {
@@ -168,8 +170,8 @@ testConnection: async (id) => {
       await disableMIConnection(id);
       await get().fetchConnections();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to disable connection", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to disable connection", actionLoading: null });
     }
   },
   enableConnection: async (id) => {
@@ -178,8 +180,8 @@ testConnection: async (id) => {
       await enableMIConnection(id);
       await get().fetchConnections();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to enable connection", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to enable connection", actionLoading: null });
     }
   },
   deleteConnection: async (id) => {
@@ -187,8 +189,8 @@ testConnection: async (id) => {
     try {
       await deleteMIConnection(id);
       set((s) => ({ connections: s.connections.filter((c) => c.id !== id), actionLoading: null }));
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to delete connection", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to delete connection", actionLoading: null });
     }
   },
   bootstrapConnections: async () => {
@@ -197,8 +199,8 @@ testConnection: async (id) => {
       await bootstrapMIConnections();
       await get().fetchConnections();
       set({ actionLoading: null });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to bootstrap connections", actionLoading: null });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to bootstrap connections", actionLoading: null });
     }
   },
 
@@ -224,8 +226,8 @@ testConnection: async (id) => {
     try {
       const result = await runMISync(payload);
       set({ lastSyncResult: result, isSyncing: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Sync failed", isSyncing: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Sync failed", isSyncing: false });
     }
   },
 
@@ -235,8 +237,8 @@ testConnection: async (id) => {
     try {
       const rows = await fetchMIProviderValidation();
       set({ providerValidation: rows, isLoadingProviderValidation: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch provider validation", isLoadingProviderValidation: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch provider validation", isLoadingProviderValidation: false });
     }
   },
 

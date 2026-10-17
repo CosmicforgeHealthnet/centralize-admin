@@ -31,6 +31,8 @@ import type {
   VerificationFilters,
   VerificationRole,
 } from "@/types/verification.types";
+import { readHttpErrorMessage } from "@/lib/error-messages";
+
 
 interface VerificationState {
   // ── List data ─────────────────────────────────────────
@@ -145,9 +147,9 @@ export const useVerificationStore = create<VerificationState>((set, get) => ({
         stats: "stats" in result ? (result as { stats: VerificationStats }).stats : get().stats,
         isLoadingList: false,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to fetch verification requests",
+        error: readHttpErrorMessage(err) || "Failed to fetch verification requests",
         isLoadingList: false,
       });
     }
@@ -173,9 +175,9 @@ export const useVerificationStore = create<VerificationState>((set, get) => ({
       }
 
       set({ currentDetail: detail, isLoadingDetail: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to fetch verification detail",
+        error: readHttpErrorMessage(err) || "Failed to fetch verification detail",
         isLoadingDetail: false,
       });
     }
@@ -208,9 +210,9 @@ export const useVerificationStore = create<VerificationState>((set, get) => ({
             : state.currentDetail,
         isActioning: false,
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to approve verification",
+        error: readHttpErrorMessage(err) || "Failed to approve verification",
         isActioning: false,
       });
       throw err;
@@ -242,9 +244,9 @@ export const useVerificationStore = create<VerificationState>((set, get) => ({
             : state.currentDetail,
         isActioning: false,
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to reject verification",
+        error: readHttpErrorMessage(err) || "Failed to reject verification",
         isActioning: false,
       });
       throw err;
@@ -260,9 +262,9 @@ export const useVerificationStore = create<VerificationState>((set, get) => ({
       // Refresh detail to get updated step statuses
       await get().fetchDetail(id);
       set({ isActioning: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to approve step",
+        error: readHttpErrorMessage(err) || "Failed to approve step",
         isActioning: false,
       });
       throw err;
@@ -275,9 +277,9 @@ export const useVerificationStore = create<VerificationState>((set, get) => ({
       await rejectDispatchStep(id, step, reason);
       await get().fetchDetail(id);
       set({ isActioning: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to reject step",
+        error: readHttpErrorMessage(err) || "Failed to reject step",
         isActioning: false,
       });
       throw err;
@@ -298,9 +300,9 @@ export const useVerificationStore = create<VerificationState>((set, get) => ({
             : state.currentDetail,
         isActioning: false,
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to suspend provider",
+        error: readHttpErrorMessage(err) || "Failed to suspend provider",
         isActioning: false,
       });
       throw err;
@@ -321,9 +323,9 @@ export const useVerificationStore = create<VerificationState>((set, get) => ({
             : state.currentDetail,
         isActioning: false,
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
-        error: err.response?.data?.message || "Failed to unsuspend provider",
+        error: readHttpErrorMessage(err) || "Failed to unsuspend provider",
         isActioning: false,
       });
       throw err;

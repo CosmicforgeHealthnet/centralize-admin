@@ -24,6 +24,8 @@ import {
   fetchAuditLogs,
   fetchUserNotifications,
 } from "@/lib/it.service";
+import { readHttpErrorMessage } from "@/lib/error-messages";
+
 
 interface PaginationState {
   currentPage: number;
@@ -144,8 +146,8 @@ export const useITStore = create<ITState>((set, get) => ({
     try {
       const stats = await fetchITStats();
       set({ stats, isLoadingStats: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch stats", isLoadingStats: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch stats", isLoadingStats: false });
     }
   },
 
@@ -155,8 +157,8 @@ export const useITStore = create<ITState>((set, get) => ({
     try {
       const res = await fetchConsultations({ status: f.status || undefined, page: f.page, limit: f.limit });
       set({ consultations: res.data, consultationPagination: buildPagination(res), isLoadingConsultations: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch consultations", isLoadingConsultations: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch consultations", isLoadingConsultations: false });
     }
   },
 
@@ -166,8 +168,8 @@ export const useITStore = create<ITState>((set, get) => ({
     try {
       await transitionConsultation(id, status);
       await get().fetchConsultations();
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to update consultation" });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to update consultation" });
     }
   },
 
@@ -177,8 +179,8 @@ export const useITStore = create<ITState>((set, get) => ({
     try {
       const res = await fetchRTCSessions({ status: f.status || undefined, page: f.page, limit: f.limit });
       set({ rtcSessions: res.data, rtcPagination: buildPagination(res), isLoadingRTC: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch RTC sessions", isLoadingRTC: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch RTC sessions", isLoadingRTC: false });
     }
   },
 
@@ -188,8 +190,8 @@ export const useITStore = create<ITState>((set, get) => ({
     try {
       await transitionRTCSession(id, status);
       await get().fetchRTCSessions();
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to update RTC session" });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to update RTC session" });
     }
   },
 
@@ -199,8 +201,8 @@ export const useITStore = create<ITState>((set, get) => ({
     try {
       const res = await fetchDeliveries({ status: f.status || undefined, page: f.page, limit: f.limit });
       set({ deliveries: res.data, deliveryPagination: buildPagination(res), isLoadingDeliveries: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch deliveries", isLoadingDeliveries: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch deliveries", isLoadingDeliveries: false });
     }
   },
 
@@ -210,8 +212,8 @@ export const useITStore = create<ITState>((set, get) => ({
     try {
       await transitionDelivery(id, status);
       await get().fetchDeliveries();
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to update delivery" });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to update delivery" });
     }
   },
 
@@ -219,8 +221,8 @@ export const useITStore = create<ITState>((set, get) => ({
     try {
       await retryDelivery(id);
       await get().fetchDeliveries();
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to retry delivery" });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to retry delivery" });
     }
   },
 
@@ -230,8 +232,8 @@ export const useITStore = create<ITState>((set, get) => ({
     try {
       const res = await fetchTransactions({ status: f.status || undefined, page: f.page, limit: f.limit });
       set({ transactions: res.data, transactionPagination: buildPagination(res), isLoadingTransactions: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch transactions", isLoadingTransactions: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch transactions", isLoadingTransactions: false });
     }
   },
 
@@ -241,8 +243,8 @@ export const useITStore = create<ITState>((set, get) => ({
     try {
       await transitionPayment(id, status);
       await get().fetchTransactions();
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to update payment" });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to update payment" });
     }
   },
 
@@ -250,8 +252,8 @@ export const useITStore = create<ITState>((set, get) => ({
     try {
       await flagTransaction(id, reason);
       await get().fetchTransactions();
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to flag transaction" });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to flag transaction" });
     }
   },
 
@@ -261,8 +263,8 @@ export const useITStore = create<ITState>((set, get) => ({
     try {
       const res = await fetchAuditLogs({ page: f.page, limit: f.limit });
       set({ auditLogs: res.data, auditPagination: buildPagination(res), isLoadingAudit: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch audit logs", isLoadingAudit: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch audit logs", isLoadingAudit: false });
     }
   },
 
@@ -274,8 +276,8 @@ export const useITStore = create<ITState>((set, get) => ({
     try {
       const res = await fetchUserNotifications(userId, { page: f.page, limit: f.limit });
       set({ notifications: res.data, notificationPagination: buildPagination(res), isLoadingNotifications: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || "Failed to fetch notifications", isLoadingNotifications: false });
+    } catch (err: unknown) {
+      set({ error: readHttpErrorMessage(err) || "Failed to fetch notifications", isLoadingNotifications: false });
     }
   },
 
