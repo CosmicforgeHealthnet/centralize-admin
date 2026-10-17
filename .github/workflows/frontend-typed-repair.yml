@@ -1,5 +1,5 @@
 name: Admin frontend typed lint repair
-# Add optional chart display color to audience breakdown type
+# Infer callback elements only for verified typed source arrays
 # Re-run after syntax correction to migration script
 
 on:

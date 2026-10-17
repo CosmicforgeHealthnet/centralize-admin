@@ -13,7 +13,6 @@ const tooltip = [
 "components/hr/performance/PerformanceOverview.tsx",
 "components/marketing/content-manager/ContentDetail.tsx",
 "components/marketing/overview/AdsPerformanceCharts.tsx",
-"components/marketing/performance-dashboard/PerformanceDashboardPage.tsx",
 "components/marketing/social-media/EngagementChart.tsx",
 ];
 let changed=0;
@@ -32,7 +31,6 @@ for(const rel of tooltip) {
 const inference=[
 "components/marketing/performance-dashboard/PerformanceDashboardPage.tsx",
 "components/marketing/social-media/EngagementChart.tsx",
-"components/marketing/social-media/SocialMediaOverview.tsx",
 "components/verification/VerificationDetail.tsx"
 ];
 for(const rel of inference){
