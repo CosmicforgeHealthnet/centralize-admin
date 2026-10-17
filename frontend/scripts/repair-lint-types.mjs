@@ -22,7 +22,10 @@ for(const rel of tooltip) {
   let after=before.replace(/(\{\s*active,\s*payload,\s*label\s*\}:\s*)any\b/g,"$1AdminChartTooltipProps");
   after=after.replace(/payload\.map\(\(p:\s*any\)/g,"payload.map((p)");
   if(after!==before) {
-    after='import type { AdminChartTooltipProps } from "@/types/chart-tooltip.types";\n'+after;
+    const typeImport='import type { AdminChartTooltipProps } from "@/types/chart-tooltip.types";\n';
+    after=after.startsWith('"use client";')
+      ? after.replace(/^("use client";\r?\n)/, "$1"+typeImport)
+      : typeImport+after;
     fs.writeFileSync(file,after);changed++;
   }
 }
