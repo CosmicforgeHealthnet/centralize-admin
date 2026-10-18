@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.resolve(__dirname, "..", "..");
+const REPOSITORY_ROOT = path.resolve(ROOT, "..", "..");
 
 function read(file) {
   return fs.readFileSync(path.join(ROOT, file), "utf8");
@@ -20,8 +21,8 @@ function main() {
   const localAdapter = read("src/modules/marketing/social-operations/media/storage/local-media-storage.adapter.js");
   const cloudinaryAdapter = read("src/modules/marketing/social-operations/media/storage/cloudinary-media-storage.adapter.js");
   const configValidator = read("src/modules/marketing/social-operations/config/social-operations-env.validator.js");
-  const productionWorkflow = read(".github/workflows/production.yml");
-  const socialCi = read(".github/workflows/social-operations-ci.yml");
+  const productionWorkflow = fs.readFileSync(path.join(REPOSITORY_ROOT, ".github/workflows/production.yml"), "utf8");
+  const socialCi = fs.readFileSync(path.join(REPOSITORY_ROOT, ".github/workflows/social-operations-ci.yml"), "utf8");
   const packageJson = read("package.json");
   const gitignore = read(".gitignore");
 
