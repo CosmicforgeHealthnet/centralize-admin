@@ -11,6 +11,9 @@ jobs:
   verify:
     name: Verify Social Operations backend
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/central-admin-api
     services:
       postgres:
         image: postgres:16
@@ -52,6 +55,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: services/central-admin-api/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -118,9 +122,9 @@ jobs:
         with:
           name: social-operations-focused-tests
           path: |
-            artifacts/social-operations-focused-tests.tap
-            artifacts/social-operations-focused-summary.json
-            artifacts/social-operations-focused-files.txt
+            services/central-admin-api/artifacts/social-operations-focused-tests.tap
+            services/central-admin-api/artifacts/social-operations-focused-summary.json
+            services/central-admin-api/artifacts/social-operations-focused-files.txt
           if-no-files-found: ignore
           retention-days: 7
 

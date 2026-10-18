@@ -3,13 +3,14 @@ name: Centralized Admin Frontend CI
 on:
   pull_request:
     paths:
-      - "frontend/**"
+      - "apps/central-admin-web/**"
       - ".github/workflows/frontend-ci.yml"
   push:
     branches:
       - main
+      - staging
     paths:
-      - "frontend/**"
+      - "apps/central-admin-web/**"
       - ".github/workflows/frontend-ci.yml"
   workflow_dispatch:
 
@@ -26,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: frontend
+        working-directory: apps/central-admin-web
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -35,7 +36,7 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: apps/central-admin-web/package-lock.json
       - name: Install frontend dependencies
         run: npm ci
       - name: Lint frontend

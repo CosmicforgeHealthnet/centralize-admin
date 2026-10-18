@@ -1,21 +1,11 @@
 FROM node:20-alpine
-
-# Required by Prisma on alpine
 RUN apk add --no-cache openssl
-
 WORKDIR /app
-
-# Install dependencies
-COPY package*.json ./
-RUN npm ci --only=production
-
-# Copy prisma schema and generate client
-COPY prisma ./prisma
+COPY services/central-admin-api/package*.json ./
+RUN npm ci --omit=dev
+COPY services/central-admin-api/prisma ./prisma
+COPY services/central-admin-api/prisma*.ts ./
 RUN npx prisma generate
-
-# Copy the rest of the source code
-COPY . .
-
+COPY services/central-admin-api/ ./
 EXPOSE 4000
-
 CMD ["node", "src/server.js"]
