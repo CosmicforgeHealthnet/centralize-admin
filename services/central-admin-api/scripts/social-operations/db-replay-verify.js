@@ -198,7 +198,7 @@ async function replayVerify({ keep = false } = {}) {
   if (manifestResult.failures.length) {
     throw new Error(`migration manifest failed: ${manifestResult.failures.join(",")}`);
   }
-  const dbName = `cosmicforge_social_replay_${Date.now()}_${randomBytes(4).toString("hex")}`;
+  const dbName = `cosmicforge_social_replay_${Date.now()}${randomBytes(4).readUInt32BE(0).toString().padStart(10, "0")}`;
   const replayUrl = withDatabaseName(sourceUrl, dbName);
   let postgresVersion = null;
   let driftExitCode = 0;
