@@ -59,7 +59,7 @@ test("cancellation is direct only for PENDING and RETRY_SCHEDULED jobs", () => {
 
 test("DST ambiguity is documented for UI reconfirmation", () => {
   const doc = require("node:fs").readFileSync(
-    require("node:path").resolve(__dirname, "../docs/social-operations-sections-10-11.md"),
+    require("node:path").resolve(__dirname, "../../../docs/social-operations-sections-10-11.md"),
     "utf8",
   );
   assert.match(doc, /DST/i);

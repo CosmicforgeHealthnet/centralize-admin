@@ -15,6 +15,7 @@ const {
 } = require("../scripts/security/check-npm-audit-policy");
 
 const ROOT = path.resolve(__dirname, "..");
+const REPOSITORY_ROOT = path.resolve(ROOT, "..", "..");
 
 function nodeScript(script) {
   return execFileSync(process.execPath, [script], {
@@ -120,7 +121,7 @@ test("migration safety and static Social Operations checks pass", () => {
 
 test("CI uses the Admin database, prepares PostgreSQL artifacts before assertions, and keeps live providers disabled", () => {
   const source = fs.readFileSync(
-    path.join(ROOT, ".github", "workflows", "social-operations-ci.yml"),
+    path.join(REPOSITORY_ROOT, ".github", "workflows", "social-operations-ci.yml"),
     "utf8",
   );
   assert.match(source, /postgres:16/);
@@ -148,7 +149,7 @@ test("CI uses the Admin database, prepares PostgreSQL artifacts before assertion
 
 test("production deployment is manual and protected, not push-to-main", () => {
   const source = fs.readFileSync(
-    path.join(ROOT, ".github", "workflows", "production.yml"),
+    path.join(REPOSITORY_ROOT, ".github", "workflows", "production.yml"),
     "utf8",
   );
   assert.match(source, /workflow_dispatch:/);
