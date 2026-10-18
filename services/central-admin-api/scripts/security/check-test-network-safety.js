@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.resolve(__dirname, "..", "..");
+const REPOSITORY_ROOT = path.resolve(ROOT, "..", "..");
 const GUARD_PATH_PATTERN = /--require\s+\.\/tests\/helpers\/network-guard\.js/;
 const PROHIBITED_SHELL_NETWORK = /\b(curl|wget|Invoke-WebRequest|Invoke-RestMethod)\b/i;
 
@@ -46,7 +47,7 @@ function main() {
   const packageJson = JSON.parse(read("package.json"));
   const scripts = packageJson.scripts || {};
   const focusedRunner = read("scripts/social-operations/run-focused-tests.js");
-  const workflow = read(".github/workflows/social-operations-ci.yml");
+  const workflow = fs.readFileSync(path.join(REPOSITORY_ROOT, ".github/workflows/social-operations-ci.yml"), "utf8");
   const guard = read("tests/helpers/network-guard.js");
 
   assert(GUARD_PATH_PATTERN.test(scripts.test || ""), "NPM_TEST_GUARD_MISSING");
