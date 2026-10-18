@@ -14,6 +14,7 @@ const {
 } = require("./schema-assertions");
 
 const ROOT = path.resolve(__dirname, "..", "..");
+const REPOSITORY_ROOT = path.resolve(ROOT, "..", "..");
 
 function npxBin() {
   return process.platform === "win32" ? "npx.cmd" : "npx";
@@ -94,7 +95,7 @@ function resolveReplayBaselineRef() {
       ADVERTISING_EXECUTION_BASELINE_MIGRATION,
     ],
     {
-      cwd: ROOT,
+      cwd: REPOSITORY_ROOT,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     },
@@ -120,7 +121,7 @@ function writeCommittedBaselineSchema() {
       "git",
       ["show", `${baselineRef}:prisma/schema.prisma`],
       {
-        cwd: ROOT,
+        cwd: REPOSITORY_ROOT,
         encoding: "utf8",
         stdio: ["ignore", "pipe", "pipe"],
       },
