@@ -35,6 +35,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Root Dockerfile builds the moved API from services/central-admin-api.
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
