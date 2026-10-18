@@ -29,7 +29,7 @@ const {
 } = require("../../../../../scripts/marketing-intelligence/live-validate-provider");
 
 const ROOT = path.resolve(__dirname, "../../../../..");
-const DOCS = path.join(ROOT, "docs");
+const DOCS = path.join(ROOT, "..", "..", "docs");
 const UUID = "11111111-1111-4111-8111-111111111111";
 
 function fakeCron() {

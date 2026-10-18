@@ -1,6 +1,7 @@
 const { execFileSync, execSync } = require("child_process");
 require("dotenv").config();
 const fs = require("fs");
+const { randomBytes } = require("node:crypto");
 const os = require("os");
 const path = require("path");
 const { Client } = require("pg");
@@ -196,7 +197,7 @@ async function replayVerify({ keep = false } = {}) {
   if (manifestResult.failures.length) {
     throw new Error(`migration manifest failed: ${manifestResult.failures.join(",")}`);
   }
-  const dbName = `cosmicforge_social_replay_${Date.now()}`;
+  const dbName = `cosmicforge_social_replay_${Date.now()}_${randomBytes(4).toString("hex")}`;
   const replayUrl = withDatabaseName(sourceUrl, dbName);
   let postgresVersion = null;
   let driftExitCode = 0;

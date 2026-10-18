@@ -16,6 +16,7 @@ const { verifyManifest, calculateMigrationChecksum, loadMigrationManifest } = re
 
 const ROOT = path.join(__dirname, "..", "..", "..", "..", "..");
 const MIGRATION_DIR = path.join(ROOT, "prisma", "manual-migrations");
+const REPOSITORY_DOCS = path.join(ROOT, "..", "..", "docs");
 
 const EXPECTED_BUSINESS_ROUTES = [
   "GET /capabilities", "GET /policies", "PATCH /policies", "POST /overrides",
@@ -149,20 +150,20 @@ test("29-DOCS advertising-execution migrations are additive and ordered for empt
 });
 
 test("29-DOCS documentation inventory: error codes, endpoints and the live-validation matrix stay current", () => {
-  const errorDocs = fs.readFileSync(path.join(ROOT, "docs", "advertising-execution-error-codes.md"), "utf8");
+  const errorDocs = fs.readFileSync(path.join(REPOSITORY_DOCS, "advertising-execution-error-codes.md"), "utf8");
   const { STABLE_ERROR_DEFINITIONS } = require("../execution.errors");
   for (const [code, definition] of Object.entries(STABLE_ERROR_DEFINITIONS)) {
     assert.ok(errorDocs.includes(code), `error code ${code} must be documented`);
     assert.ok(errorDocs.includes(`| ${definition.status} |`) || errorDocs.includes(`${definition.status}`), `status for ${code} documented`);
   }
-  const handoff = fs.readFileSync(path.join(ROOT, "docs", "advertising-execution-api-handoff.md"), "utf8");
+  const handoff = fs.readFileSync(path.join(REPOSITORY_DOCS, "advertising-execution-api-handoff.md"), "utf8");
   assert.ok(handoff.includes("/api/v1/marketing/advertising-execution"));
   // The live-validation matrix keeps every provider row NOT_LIVE_VALIDATED.
-  const matrix = fs.readFileSync(path.join(ROOT, "docs", "advertising-execution-live-validation-matrix.md"), "utf8");
+  const matrix = fs.readFileSync(path.join(REPOSITORY_DOCS, "advertising-execution-live-validation-matrix.md"), "utf8");
   assert.match(matrix, /NOT_LIVE_VALIDATED/);
   assert.doesNotMatch(matrix, /\|\s*LIVE_VALIDATED\s*\|/, "no provider row may claim LIVE_VALIDATED");
   // The runbook documents the Section 29 test commands.
-  const runbook = fs.readFileSync(path.join(ROOT, "docs", "advertising-execution-operations-runbook.md"), "utf8");
+  const runbook = fs.readFileSync(path.join(REPOSITORY_DOCS, "advertising-execution-operations-runbook.md"), "utf8");
   assert.ok(runbook.includes("test:advertising-execution:section29"), "runbook documents the Section 29 suite command");
   assert.ok(runbook.includes("NOT_LIVE_VALIDATED"), "runbook states the live status");
 });

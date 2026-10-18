@@ -323,7 +323,7 @@ test("live scripts are excluded from CI, npm test, focused suites and hooks", ()
       assert.doesNotMatch(command, /\blive:/, `script ${name} must not chain live commands`);
     }
   }
-  const workflowDir = path.join(__dirname, "..", ".github", "workflows");
+  const workflowDir = path.join(__dirname, "..", "..", "..", ".github", "workflows");
   for (const workflow of fs.readdirSync(workflowDir)) {
     const content = fs.readFileSync(path.join(workflowDir, workflow), "utf8");
     assert.doesNotMatch(content, /live-validate\.js|live:validate|live:read/, `${workflow} must not run live validation`);
@@ -336,7 +336,7 @@ test("live scripts are excluded from CI, npm test, focused suites and hooks", ()
 
 test("live provider status remains NOT_LIVE_VALIDATED until an explicit successful live run", () => {
   // 29.2 completion standard: the matrix stays NOT_LIVE_VALIDATED.
-  const matrix = fs.readFileSync(path.join(__dirname, "..", "docs", "advertising-execution-live-validation-matrix.md"), "utf8");
+  const matrix = fs.readFileSync(path.join(__dirname, "..", "..", "..", "docs", "advertising-execution-live-validation-matrix.md"), "utf8");
   assert.match(matrix, /NOT_LIVE_VALIDATED/);
   assert.doesNotMatch(matrix, /\|\s*LIVE_VALIDATED/);
   for (const provider of ["Google Ads", "Meta", "TikTok", "LinkedIn", "X"]) {

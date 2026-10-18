@@ -135,7 +135,7 @@ test("Sections 10-13 scheduling is independently registered while Phase 1 sync r
   const server = fs.readFileSync(path.join(__dirname, "../../../../server.js"), "utf8");
   assert.match(server, /registerMarketingIntelligenceCron/);
   assert.match(server, /registerIntelligenceSchedulers/);
-  const docs = fs.readFileSync(path.join(__dirname, "../../../../../docs/marketing-intelligence-phase-2.md"), "utf8");
+  const docs = fs.readFileSync(path.join(__dirname, "../../../../../../../docs/marketing-intelligence-phase-2.md"), "utf8");
   assert.match(docs, /MARKETING_RECOMMENDATION_SCHEDULER_ENABLED/);
   assert.match(docs, /MARKETING_ALERT_SCHEDULER_ENABLED/);
 });
