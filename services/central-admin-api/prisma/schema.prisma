@@ -4174,7 +4174,8 @@ model MailThread {
   hasInbound            Boolean                 @default(false) @map("has_inbound")
   hasOutbound           Boolean                 @default(false) @map("has_outbound")
   messageCount          Int                     @default(0) @map("message_count")
-  snippet               String                  @default("") @db.VarChar(280)
+  // Encrypted preview (AES-256-GCM, purpose mail-snippet); never plaintext body.
+  encryptedSnippet      Bytes?                  @map("encrypted_snippet")
   lastMessageAt         DateTime                @default(now()) @map("last_message_at") @db.Timestamptz(6)
   lastInboundAt         DateTime?               @map("last_inbound_at") @db.Timestamptz(6)
   participants          Json?
@@ -4207,39 +4208,41 @@ model MailThread {
 }
 
 model MailMessage {
-  id                String               @id @default(uuid()) @db.Uuid
-  mailboxId         String               @map("mailbox_id") @db.Uuid
-  threadId          String               @map("thread_id") @db.Uuid
-  direction         MailMessageDirection
-  status            MailMessageStatus
-  rfcMessageId      String               @map("rfc_message_id") @db.VarChar(998)
-  inReplyTo         String?              @map("in_reply_to") @db.VarChar(998)
-  references        String[]             @default([])
-  subject           String               @default("") @db.VarChar(998)
-  snippet           String               @default("") @db.VarChar(280)
-  fromAddress       String               @map("from_address") @db.VarChar(320)
-  fromName          String?              @map("from_name") @db.VarChar(320)
-  replyTo           String?              @map("reply_to") @db.VarChar(320)
-  senderAddressId   String?              @map("sender_address_id") @db.Uuid
-  sentByAdminUserId String?              @map("sent_by_admin_user_id")
-  envelopeRecipient String?              @map("envelope_recipient") @db.VarChar(320)
-  hasAttachments    Boolean              @default(false) @map("has_attachments")
-  sizeBytes         Int                  @default(0) @map("size_bytes")
-  contentObjectKey  String?              @map("content_object_key") @db.VarChar(512)
-  contentSha256     String?              @map("content_sha256") @db.Char(64)
-  rawMimeObjectKey  String?              @map("raw_mime_object_key") @db.VarChar(512)
-  searchText        String               @default("") @map("search_text")
-  providerMessageId String?              @map("provider_message_id") @db.VarChar(255)
-  idempotencyKey    String?              @unique(map: "UQ_mail_messages_idempotency_key") @map("idempotency_key") @db.VarChar(128)
-  authResults       Json?                @map("auth_results")
-  spamVerdict       String?              @map("spam_verdict") @db.VarChar(32)
-  quarantineReason  String?              @map("quarantine_reason") @db.VarChar(255)
-  lastStatusAt      DateTime?            @map("last_status_at") @db.Timestamptz(6)
-  sentAt            DateTime?            @map("sent_at") @db.Timestamptz(6)
-  receivedAt        DateTime?            @map("received_at") @db.Timestamptz(6)
-  deletedAt         DateTime?            @map("deleted_at") @db.Timestamptz(6)
-  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                 String               @id @default(uuid()) @db.Uuid
+  mailboxId          String               @map("mailbox_id") @db.Uuid
+  threadId           String               @map("thread_id") @db.Uuid
+  direction          MailMessageDirection
+  status             MailMessageStatus
+  rfcMessageId       String               @map("rfc_message_id") @db.VarChar(998)
+  inReplyTo          String?              @map("in_reply_to") @db.VarChar(998)
+  references         String[]             @default([])
+  subject            String               @default("") @db.VarChar(998)
+  // Encrypted preview (AES-256-GCM, purpose mail-snippet); never plaintext body.
+  encryptedSnippet   Bytes?               @map("encrypted_snippet")
+  fromAddress        String               @map("from_address") @db.VarChar(320)
+  fromName           String?              @map("from_name") @db.VarChar(320)
+  replyTo            String?              @map("reply_to") @db.VarChar(320)
+  senderAddressId    String?              @map("sender_address_id") @db.Uuid
+  sentByAdminUserId  String?              @map("sent_by_admin_user_id")
+  envelopeRecipient  String?              @map("envelope_recipient") @db.VarChar(320)
+  hasAttachments     Boolean              @default(false) @map("has_attachments")
+  sizeBytes          Int                  @default(0) @map("size_bytes")
+  contentObjectKey   String?              @map("content_object_key") @db.VarChar(512)
+  contentSha256      String?              @map("content_sha256") @db.Char(64)
+  rawMimeObjectKey   String?              @map("raw_mime_object_key") @db.VarChar(512)
+  // Metadata only (subject, sender, non-BCC recipients). Never message bodies.
+  metadataSearchText String               @default("") @map("metadata_search_text")
+  providerMessageId  String?              @map("provider_message_id") @db.VarChar(255)
+  idempotencyKey     String?              @unique(map: "UQ_mail_messages_idempotency_key") @map("idempotency_key") @db.VarChar(128)
+  authResults        Json?                @map("auth_results")
+  spamVerdict        String?              @map("spam_verdict") @db.VarChar(32)
+  quarantineReason   String?              @map("quarantine_reason") @db.VarChar(255)
+  lastStatusAt       DateTime?            @map("last_status_at") @db.Timestamptz(6)
+  sentAt             DateTime?            @map("sent_at") @db.Timestamptz(6)
+  receivedAt         DateTime?            @map("received_at") @db.Timestamptz(6)
+  deletedAt          DateTime?            @map("deleted_at") @db.Timestamptz(6)
+  createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   mailbox        MailMailbox            @relation(fields: [mailboxId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_messages_mailbox")
   thread         MailThread             @relation(fields: [threadId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_messages_thread")
@@ -4399,7 +4402,7 @@ model MailInternalNote {
   id                String    @id @default(uuid()) @db.Uuid
   threadId          String    @map("thread_id") @db.Uuid
   authorAdminUserId String    @map("author_admin_user_id")
-  body              String
+  encryptedBody     Bytes     @map("encrypted_body")
   mentions          String[]  @default([])
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   deletedAt         DateTime? @map("deleted_at") @db.Timestamptz(6)

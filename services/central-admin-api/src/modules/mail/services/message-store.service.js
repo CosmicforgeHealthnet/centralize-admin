@@ -9,6 +9,7 @@ const { normalizeSubject, sanitizeSubject, normalizeMessageId } = require("../se
 const { snippetOf, htmlToText } = require("../security/html-sanitizer");
 
 const BODY_PURPOSE = "mail-body";
+const SNIPPET_PURPOSE = "mail-snippet";
 const ATTACHMENT_PURPOSE = "mail-attachment";
 
 function generateMessageId(domain) {
@@ -16,13 +17,32 @@ function generateMessageId(domain) {
   return `<${crypto.randomUUID()}.${Date.now().toString(36)}@${safeDomain}>`;
 }
 
-function buildSearchText({ subject, from, recipients = [], text, indexBodies }) {
+// Metadata-only search text: subject, sender and visible (non-BCC)
+// recipients. Message bodies are NEVER included: bodies live only in
+// encrypted private storage, so there is deliberately no body search.
+function buildMetadataSearchText({ subject, from, recipients = [] }) {
   const parts = [subject || "", from?.address || "", from?.name || "", ...recipients.filter((r) => r.type !== "BCC").map((r) => `${r.address} ${r.name || ""}`)];
-  if (indexBodies && text) parts.push(String(text).slice(0, 20000));
   return parts.join(" ").replace(/\s+/g, " ").trim();
 }
 
-function createMessageStore({ client, storage, config }) {
+function createMessageStore({ client, storage, config, encryption }) {
+  // Previews are body-derived, so they are stored only as AES-256-GCM
+  // ciphertext in the row and decrypted in-process for authorized readers.
+  function encryptSnippet(text) {
+    const snippet = snippetOf(text);
+    if (!snippet) return null;
+    return encryption.encrypt(Buffer.from(snippet, "utf8"), SNIPPET_PURPOSE);
+  }
+
+  function decryptSnippet(envelope) {
+    if (!envelope || !encryption?.available) return "";
+    try {
+      return encryption.decrypt(envelope, SNIPPET_PURPOSE).toString("utf8");
+    } catch {
+      return "";
+    }
+  }
+
   async function storeBody({ html, text }) {
     const plainText = text || (html ? htmlToText(html) : "");
     const stored = await storage.put("body", Buffer.from(JSON.stringify({ html: html || null, text: plainText || null })), { purpose: BODY_PURPOSE });
@@ -110,7 +130,7 @@ function createMessageStore({ client, storage, config }) {
         inReplyTo: input.inReplyTo || null,
         references: input.references || [],
         subject,
-        snippet: snippetOf(input.text),
+        encryptedSnippet: encryptSnippet(input.text),
         fromAddress: input.from.address,
         fromName: input.from.name || null,
         replyTo: input.replyTo || null,
@@ -121,7 +141,7 @@ function createMessageStore({ client, storage, config }) {
         sizeBytes: input.sizeBytes || 0,
         contentObjectKey: input.body?.key || null,
         contentSha256: input.body?.sha256 || null,
-        searchText: buildSearchText({ subject, from: input.from, recipients, text: input.text, indexBodies: config.search.indexBodies }),
+        metadataSearchText: buildMetadataSearchText({ subject, from: input.from, recipients }),
         providerMessageId: input.providerMessageId || null,
         idempotencyKey: input.idempotencyKey || null,
         authResults: input.authResults || undefined,
@@ -139,7 +159,7 @@ function createMessageStore({ client, storage, config }) {
       data: {
         messageCount: { increment: 1 },
         lastMessageAt: at,
-        snippet: snippetOf(input.text),
+        encryptedSnippet: encryptSnippet(input.text),
         hasInbound: inbound ? true : undefined,
         hasOutbound: inbound ? undefined : true,
         lastInboundAt: inbound ? at : undefined,
@@ -155,7 +175,7 @@ function createMessageStore({ client, storage, config }) {
     return { message, thread, duplicate: false };
   }
 
-  return { storeBody, readBody, storeAttachmentContent, readAttachmentContent, createMessage, resolveThread, findThreadForReferences, generateMessageId, BODY_PURPOSE, ATTACHMENT_PURPOSE };
+  return { encryptSnippet, decryptSnippet, storeBody, readBody, storeAttachmentContent, readAttachmentContent, createMessage, resolveThread, findThreadForReferences, generateMessageId, BODY_PURPOSE, ATTACHMENT_PURPOSE };
 }
 
-module.exports = { createMessageStore, generateMessageId, buildSearchText };
+module.exports = { createMessageStore, generateMessageId, buildMetadataSearchText, SNIPPET_PURPOSE };

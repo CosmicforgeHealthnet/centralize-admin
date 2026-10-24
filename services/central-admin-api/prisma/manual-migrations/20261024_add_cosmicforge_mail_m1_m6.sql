@@ -246,7 +246,7 @@ CREATE TABLE "mail_threads" (
     "has_inbound" BOOLEAN NOT NULL DEFAULT false,
     "has_outbound" BOOLEAN NOT NULL DEFAULT false,
     "message_count" INTEGER NOT NULL DEFAULT 0,
-    "snippet" VARCHAR(280) NOT NULL DEFAULT '',
+    "encrypted_snippet" BYTEA,
     "last_message_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "last_inbound_at" TIMESTAMPTZ(6),
     "participants" JSONB,
@@ -277,7 +277,7 @@ CREATE TABLE "mail_messages" (
     "in_reply_to" VARCHAR(998),
     "references" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "subject" VARCHAR(998) NOT NULL DEFAULT '',
-    "snippet" VARCHAR(280) NOT NULL DEFAULT '',
+    "encrypted_snippet" BYTEA,
     "from_address" VARCHAR(320) NOT NULL,
     "from_name" VARCHAR(320),
     "reply_to" VARCHAR(320),
@@ -289,7 +289,7 @@ CREATE TABLE "mail_messages" (
     "content_object_key" VARCHAR(512),
     "content_sha256" CHAR(64),
     "raw_mime_object_key" VARCHAR(512),
-    "search_text" TEXT NOT NULL DEFAULT '',
+    "metadata_search_text" TEXT NOT NULL DEFAULT '',
     "provider_message_id" VARCHAR(255),
     "idempotency_key" VARCHAR(128),
     "auth_results" JSONB,
@@ -422,7 +422,7 @@ CREATE TABLE "mail_internal_notes" (
     "id" UUID NOT NULL,
     "thread_id" UUID NOT NULL,
     "author_admin_user_id" TEXT NOT NULL,
-    "body" TEXT NOT NULL,
+    "encrypted_body" BYTEA NOT NULL,
     "mentions" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMPTZ(6),
@@ -1200,9 +1200,11 @@ ALTER TABLE "marketing_email_campaign_approvals"
   ADD CONSTRAINT "CHK_marketing_campaign_approvals_step_up"
     CHECK ("decision" <> 'APPROVED' OR "step_up_id" IS NOT NULL);
 
--- Mailbox-scoped full-text search (membership is enforced in the query).
-CREATE INDEX "IDX_mail_messages_search_fts"
-  ON "mail_messages" USING GIN (to_tsvector('simple', "search_text"));
+-- Mailbox-scoped METADATA full-text search (subject, sender, non-BCC
+-- recipients). Message bodies are never indexed or stored in plaintext;
+-- membership is enforced in the query.
+CREATE INDEX "IDX_mail_messages_metadata_search_fts"
+  ON "mail_messages" USING GIN (to_tsvector('simple', "metadata_search_text"));
 
 -- Append-only evidence: Mail audit events, campaign snapshots and template
 -- versions can never be updated or deleted by the application.

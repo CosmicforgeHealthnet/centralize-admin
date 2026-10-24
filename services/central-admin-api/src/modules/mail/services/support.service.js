@@ -12,7 +12,22 @@ const { iso } = require("./serializers");
 const STATUSES = new Set(["OPEN", "PENDING", "RESOLVED", "CLOSED"]);
 const LOCK_MS = 2 * 60 * 1000;
 
-function createSupportService({ client, mailboxService, audit, notifications, clock = () => new Date() }) {
+const NOTE_PURPOSE = "mail-internal-note";
+
+function createSupportService({ client, mailboxService, audit, notifications, encryption, clock = () => new Date() }) {
+  // Internal notes can quote customer mail, so they are encrypted at rest.
+  function encryptNote(text) {
+    if (!encryption?.available) throw mailError("MAIL_STORAGE_UNAVAILABLE");
+    return encryption.encrypt(Buffer.from(text, "utf8"), NOTE_PURPOSE);
+  }
+  function decryptNote(envelope) {
+    try {
+      return encryption.decrypt(envelope, NOTE_PURPOSE).toString("utf8");
+    } catch {
+      return null;
+    }
+  }
+
   async function requireShared(user, threadId, capability = "TRIAGE") {
     const access = await policy.requireThreadAccess(client, user, threadId, capability);
     if (access.mailbox.type !== "SHARED") throw mailError("MAIL_INVALID_TRANSITION", { reason: "SHARED_MAILBOX_ONLY" });
@@ -108,7 +123,7 @@ function createSupportService({ client, mailboxService, audit, notifications, cl
     const notes = await client.mailInternalNote.findMany({ where: { threadId, deletedAt: null }, orderBy: { createdAt: "asc" }, take: 500 });
     const authors = await client.adminUser.findMany({ where: { id: { in: [...new Set(notes.map((note) => note.authorAdminUserId))] } }, select: { id: true, name: true } });
     const byId = new Map(authors.map((author) => [author.id, author]));
-    return notes.map((note) => ({ id: note.id, body: note.body, author: byId.get(note.authorAdminUserId) || { id: note.authorAdminUserId, name: "Former staff" }, mentions: note.mentions, createdAt: iso(note.createdAt) }));
+    return notes.map((note) => ({ id: note.id, body: decryptNote(note.encryptedBody), contentUnavailable: decryptNote(note.encryptedBody) === null, author: byId.get(note.authorAdminUserId) || { id: note.authorAdminUserId, name: "Former staff" }, mentions: note.mentions, createdAt: iso(note.createdAt) }));
   }
 
   async function addNote(user, threadId, { body, mentions }, context) {
@@ -119,7 +134,7 @@ function createSupportService({ client, mailboxService, audit, notifications, cl
     const requested = [...new Set((Array.isArray(mentions) ? mentions : []).map(String))].slice(0, 20);
     const members = requested.length ? await client.mailMembership.findMany({ where: { mailboxId: mailbox.id, adminUserId: { in: requested }, revokedAt: null }, select: { adminUserId: true } }) : [];
     const valid = members.map((member) => member.adminUserId);
-    const note = await client.mailInternalNote.create({ data: { threadId: thread.id, authorAdminUserId: user.id, body: text, mentions: valid } });
+    const note = await client.mailInternalNote.create({ data: { threadId: thread.id, authorAdminUserId: user.id, encryptedBody: encryptNote(text), mentions: valid } });
     await audit.record({ actorAdminUserId: user.id, action: "MAIL_INTERNAL_NOTE_ADDED", targetType: "thread", targetId: thread.id, mailboxId: mailbox.id, metadata: { mentions: valid.length } }, context);
     if (valid.length) await notifications.notifyUsers(valid.filter((id) => id !== user.id), { icon: "bell", title: `You were mentioned in ${mailbox.name}`, subtitle: "Internal note" });
     return { id: note.id, createdAt: iso(note.createdAt), mentions: valid };

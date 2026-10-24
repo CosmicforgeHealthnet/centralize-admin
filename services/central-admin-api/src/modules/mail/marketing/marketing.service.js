@@ -681,6 +681,10 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     const senderOk = Boolean(sender && sender.organizationId === campaign.organizationId && sender.status === "ACTIVE" && ["SHARED", "SYSTEM", "ALIAS"].includes(sender.kind));
     add("sender_identity", senderOk, sender ? (senderOk ? sender.address : "Sender must be an active brand (non-personal) address") : "Select an approved sender identity");
     add("sender_domain_verified", Boolean(sender && sender.domain.status === "VERIFIED" && sender.domain.sendingStatus === "VERIFIED"), sender ? `${sender.domain.domain}: ${sender.domain.status}/${sender.domain.sendingStatus}` : "No sender");
+    // Approval requires the same allowlist the dispatch gate enforces (M7
+    // dispatch does not exist yet; this keeps approvals honest).
+    const allowlisted = Boolean(sender && config.domainAllowlist.length && config.domainAllowlist.includes(sender.domain.domain));
+    add("sender_domain_allowlisted", allowlisted, !config.domainAllowlist.length ? "MAIL_DOMAIN_ALLOWLIST is empty" : sender ? (allowlisted ? sender.domain.domain : `${sender.domain.domain} is not in MAIL_DOMAIN_ALLOWLIST`) : "No sender");
     let replyOk = true;
     let replyDetail = "Replies go to the sender address";
     if (campaign.replyTo) {

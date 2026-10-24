@@ -71,7 +71,11 @@ function loadMailConfig(env = process.env) {
       csvImportMaxRows: intInRange(env.MAIL_MARKETING_CSV_MAX_ROWS, 5000, 1, 50000),
     },
     search: {
-      indexBodies: flag(env.MAIL_SEARCH_INDEX_BODIES ?? "true"),
+      // Body search is intentionally unavailable: bodies are stored only as
+      // ciphertext. There is no flag that turns plaintext body indexing on;
+      // a legacy MAIL_SEARCH_INDEX_BODIES=true is refused and reported.
+      bodies: false,
+      bodyIndexingRequestRefused: flag(env.MAIL_SEARCH_INDEX_BODIES),
     },
     archive: {
       storeRawMime: flag(env.MAIL_ARCHIVE_RAW_MIME),
@@ -115,6 +119,7 @@ function publicStatus(config) {
     storageProvider: config.storage.provider,
     scannerProvider: config.scanning.provider,
     unknownRecipientPolicy: config.unknownRecipientPolicy,
+    search: { metadataOnly: true, bodySearch: "disabled", bodyIndexingRequestRefused: config.search.bodyIndexingRequestRefused },
   };
 }
 

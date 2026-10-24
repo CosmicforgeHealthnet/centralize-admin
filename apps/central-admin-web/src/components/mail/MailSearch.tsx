@@ -50,12 +50,15 @@ export default function MailSearch() {
       <div className="flex items-center gap-2 rounded-md border border-border bg-card px-2 py-1.5 focus-within:border-primary">
         <Search className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
         <label htmlFor="mail-search" className="sr-only">Search mail</label>
+        <span id="mail-search-scope" className="sr-only">Searches subject, sender and recipients. Message bodies are not indexed.</span>
         <input
           id="mail-search"
           ref={inputRef}
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search mail ( / )"
+          placeholder="Search subject, sender, recipients ( / )"
+          title="Search covers subject, sender and recipients. Message bodies are not indexed."
+          aria-describedby="mail-search-scope"
           className="min-w-0 flex-1 bg-transparent text-[12px] outline-none"
         />
         {(q || params.get("q")) && (

@@ -17,10 +17,11 @@ const { sanitizeSubject, assertHeaderSafe } = require("../security/header-safety
 const { sanitizeEmailHtml, htmlToText, escapeHtml } = require("../security/html-sanitizer");
 const { evaluateAttachment } = require("../scanning/attachment-scanner");
 const { serializeAttachment, iso } = require("./serializers");
+const { externalSendBlockReason, SEND_BLOCK_REASONS } = require("../authz/sending-gate");
 
 const DRAFT_PURPOSE = "mail-draft";
 
-function createComposeService({ client, config, store, encryption, scanner, jobs, audit, notifications, clock = () => new Date() }) {
+function createComposeService({ client, config, store, encryption, scanner, jobs, audit, notifications, providerReady = () => false, clock = () => new Date() }) {
   function encryptDraftBody(html, text) {
     if (!encryption.available) throw mailError("MAIL_STORAGE_UNAVAILABLE");
     return encryption.encryptJson({ html, text }, DRAFT_PURPOSE);
@@ -260,14 +261,11 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
     const internalByAddress = new Map(internalRows.map((row) => [row.address, row]));
     const externalRecipients = all.filter((party) => !internalByAddress.has(party.address));
     if (externalRecipients.length) {
-      if (!config.sendingEnabled) throw mailError("MAIL_SENDING_DISABLED");
       const senderAddress = await client.mailAddress.findUnique({ where: { id: identity.addressId }, include: { domain: true } });
-      if (senderAddress.domain.status !== "VERIFIED" || senderAddress.domain.sendingStatus !== "VERIFIED") {
-        throw mailError("MAIL_SENDER_NOT_AUTHORIZED", { reason: "SENDER_DOMAIN_NOT_VERIFIED" });
-      }
-      if (config.domainAllowlist.length && !config.domainAllowlist.includes(senderAddress.domain.domain)) {
-        throw mailError("MAIL_SENDER_NOT_AUTHORIZED", { reason: "SENDER_DOMAIN_NOT_ALLOWLISTED" });
-      }
+      const blocked = externalSendBlockReason({ config, providerReady, domain: senderAddress?.domain });
+      if (blocked === SEND_BLOCK_REASONS.SENDING_DISABLED) throw mailError("MAIL_SENDING_DISABLED");
+      if (blocked === SEND_BLOCK_REASONS.PROVIDER_NOT_CONFIGURED) throw mailError("MAIL_PROVIDER_UNAVAILABLE", { reason: blocked });
+      if (blocked) throw mailError("MAIL_SENDER_NOT_AUTHORIZED", { reason: blocked });
     }
     await enforceQuota(user, mailbox);
 

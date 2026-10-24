@@ -33,14 +33,15 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const resolvedScanner = createAttachmentScanner({ config, scanner });
   const audit = createMailAudit({ client });
   const notifications = createMailNotifications({ client, logger });
-  const store = createMessageStore({ client, storage, config });
+  const store = createMessageStore({ client, storage, config, encryption: resolvedEncryption });
   const jobs = createMailJobRepository({ client, clock });
   const stepUp = createStepUpService({ client, config, clock, audit });
   const breakGlass = createBreakGlassService({ client, stepUp, audit, clock });
   const mailbox = createMailboxService({ client, config, store, audit });
-  const compose = createComposeService({ client, config, store, encryption: resolvedEncryption, scanner: resolvedScanner, jobs, audit, notifications, clock });
+  const providerReady = () => resolvedAdapter.name !== "unconfigured";
+  const compose = createComposeService({ client, config, store, encryption: resolvedEncryption, scanner: resolvedScanner, jobs, audit, notifications, providerReady, clock });
   const admin = createMailAdminService({ client, config, adapter: resolvedAdapter, audit, notifications, clock });
-  const support = createSupportService({ client, mailboxService: mailbox, audit, notifications, clock });
+  const support = createSupportService({ client, mailboxService: mailbox, audit, notifications, encryption: resolvedEncryption, clock });
   const marketing = createMarketingService({ client, config, audit, stepUp, clock });
 
   const inbound = createInboundProcessor({ client, config, adapter: resolvedAdapter, store, scanner: resolvedScanner, audit, notifications, clock });

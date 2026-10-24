@@ -171797,7 +171797,7 @@ export namespace Prisma {
     hasInbound: boolean | null
     hasOutbound: boolean | null
     messageCount: number | null
-    snippet: string | null
+    encryptedSnippet: Bytes | null
     lastMessageAt: Date | null
     lastInboundAt: Date | null
     conversationStatus: $Enums.MailConversationStatus | null
@@ -171824,7 +171824,7 @@ export namespace Prisma {
     hasInbound: boolean | null
     hasOutbound: boolean | null
     messageCount: number | null
-    snippet: string | null
+    encryptedSnippet: Bytes | null
     lastMessageAt: Date | null
     lastInboundAt: Date | null
     conversationStatus: $Enums.MailConversationStatus | null
@@ -171851,7 +171851,7 @@ export namespace Prisma {
     hasInbound: number
     hasOutbound: number
     messageCount: number
-    snippet: number
+    encryptedSnippet: number
     lastMessageAt: number
     lastInboundAt: number
     participants: number
@@ -171891,7 +171891,7 @@ export namespace Prisma {
     hasInbound?: true
     hasOutbound?: true
     messageCount?: true
-    snippet?: true
+    encryptedSnippet?: true
     lastMessageAt?: true
     lastInboundAt?: true
     conversationStatus?: true
@@ -171918,7 +171918,7 @@ export namespace Prisma {
     hasInbound?: true
     hasOutbound?: true
     messageCount?: true
-    snippet?: true
+    encryptedSnippet?: true
     lastMessageAt?: true
     lastInboundAt?: true
     conversationStatus?: true
@@ -171945,7 +171945,7 @@ export namespace Prisma {
     hasInbound?: true
     hasOutbound?: true
     messageCount?: true
-    snippet?: true
+    encryptedSnippet?: true
     lastMessageAt?: true
     lastInboundAt?: true
     participants?: true
@@ -172060,7 +172060,7 @@ export namespace Prisma {
     hasInbound: boolean
     hasOutbound: boolean
     messageCount: number
-    snippet: string
+    encryptedSnippet: Bytes | null
     lastMessageAt: Date
     lastInboundAt: Date | null
     participants: JsonValue | null
@@ -172107,7 +172107,7 @@ export namespace Prisma {
     hasInbound?: boolean
     hasOutbound?: boolean
     messageCount?: boolean
-    snippet?: boolean
+    encryptedSnippet?: boolean
     lastMessageAt?: boolean
     lastInboundAt?: boolean
     participants?: boolean
@@ -172142,7 +172142,7 @@ export namespace Prisma {
     hasInbound?: boolean
     hasOutbound?: boolean
     messageCount?: boolean
-    snippet?: boolean
+    encryptedSnippet?: boolean
     lastMessageAt?: boolean
     lastInboundAt?: boolean
     participants?: boolean
@@ -172171,7 +172171,7 @@ export namespace Prisma {
     hasInbound?: boolean
     hasOutbound?: boolean
     messageCount?: boolean
-    snippet?: boolean
+    encryptedSnippet?: boolean
     lastMessageAt?: boolean
     lastInboundAt?: boolean
     participants?: boolean
@@ -172200,7 +172200,7 @@ export namespace Prisma {
     hasInbound?: boolean
     hasOutbound?: boolean
     messageCount?: boolean
-    snippet?: boolean
+    encryptedSnippet?: boolean
     lastMessageAt?: boolean
     lastInboundAt?: boolean
     participants?: boolean
@@ -172218,7 +172218,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type MailThreadOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "mailboxId" | "subject" | "normalizedSubject" | "rootRfcMessageId" | "folder" | "hasInbound" | "hasOutbound" | "messageCount" | "snippet" | "lastMessageAt" | "lastInboundAt" | "participants" | "conversationStatus" | "assignedToAdminUserId" | "assignedAt" | "slaDueAt" | "firstResponseAt" | "lockedByAdminUserId" | "lockExpiresAt" | "supportTicketRef" | "revision" | "deletedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["mailThread"]>
+  export type MailThreadOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "mailboxId" | "subject" | "normalizedSubject" | "rootRfcMessageId" | "folder" | "hasInbound" | "hasOutbound" | "messageCount" | "encryptedSnippet" | "lastMessageAt" | "lastInboundAt" | "participants" | "conversationStatus" | "assignedToAdminUserId" | "assignedAt" | "slaDueAt" | "firstResponseAt" | "lockedByAdminUserId" | "lockExpiresAt" | "supportTicketRef" | "revision" | "deletedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["mailThread"]>
   export type MailThreadInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     mailbox?: boolean | MailMailboxDefaultArgs<ExtArgs>
     messages?: boolean | MailThread$messagesArgs<ExtArgs>
@@ -172255,7 +172255,7 @@ export namespace Prisma {
       hasInbound: boolean
       hasOutbound: boolean
       messageCount: number
-      snippet: string
+      encryptedSnippet: Prisma.Bytes | null
       lastMessageAt: Date
       lastInboundAt: Date | null
       participants: Prisma.JsonValue | null
@@ -172709,7 +172709,7 @@ export namespace Prisma {
     readonly hasInbound: FieldRef<"MailThread", 'Boolean'>
     readonly hasOutbound: FieldRef<"MailThread", 'Boolean'>
     readonly messageCount: FieldRef<"MailThread", 'Int'>
-    readonly snippet: FieldRef<"MailThread", 'String'>
+    readonly encryptedSnippet: FieldRef<"MailThread", 'Bytes'>
     readonly lastMessageAt: FieldRef<"MailThread", 'DateTime'>
     readonly lastInboundAt: FieldRef<"MailThread", 'DateTime'>
     readonly participants: FieldRef<"MailThread", 'Json'>
@@ -173293,7 +173293,7 @@ export namespace Prisma {
     rfcMessageId: string | null
     inReplyTo: string | null
     subject: string | null
-    snippet: string | null
+    encryptedSnippet: Bytes | null
     fromAddress: string | null
     fromName: string | null
     replyTo: string | null
@@ -173305,7 +173305,7 @@ export namespace Prisma {
     contentObjectKey: string | null
     contentSha256: string | null
     rawMimeObjectKey: string | null
-    searchText: string | null
+    metadataSearchText: string | null
     providerMessageId: string | null
     idempotencyKey: string | null
     spamVerdict: string | null
@@ -173327,7 +173327,7 @@ export namespace Prisma {
     rfcMessageId: string | null
     inReplyTo: string | null
     subject: string | null
-    snippet: string | null
+    encryptedSnippet: Bytes | null
     fromAddress: string | null
     fromName: string | null
     replyTo: string | null
@@ -173339,7 +173339,7 @@ export namespace Prisma {
     contentObjectKey: string | null
     contentSha256: string | null
     rawMimeObjectKey: string | null
-    searchText: string | null
+    metadataSearchText: string | null
     providerMessageId: string | null
     idempotencyKey: string | null
     spamVerdict: string | null
@@ -173362,7 +173362,7 @@ export namespace Prisma {
     inReplyTo: number
     references: number
     subject: number
-    snippet: number
+    encryptedSnippet: number
     fromAddress: number
     fromName: number
     replyTo: number
@@ -173374,7 +173374,7 @@ export namespace Prisma {
     contentObjectKey: number
     contentSha256: number
     rawMimeObjectKey: number
-    searchText: number
+    metadataSearchText: number
     providerMessageId: number
     idempotencyKey: number
     authResults: number
@@ -173407,7 +173407,7 @@ export namespace Prisma {
     rfcMessageId?: true
     inReplyTo?: true
     subject?: true
-    snippet?: true
+    encryptedSnippet?: true
     fromAddress?: true
     fromName?: true
     replyTo?: true
@@ -173419,7 +173419,7 @@ export namespace Prisma {
     contentObjectKey?: true
     contentSha256?: true
     rawMimeObjectKey?: true
-    searchText?: true
+    metadataSearchText?: true
     providerMessageId?: true
     idempotencyKey?: true
     spamVerdict?: true
@@ -173441,7 +173441,7 @@ export namespace Prisma {
     rfcMessageId?: true
     inReplyTo?: true
     subject?: true
-    snippet?: true
+    encryptedSnippet?: true
     fromAddress?: true
     fromName?: true
     replyTo?: true
@@ -173453,7 +173453,7 @@ export namespace Prisma {
     contentObjectKey?: true
     contentSha256?: true
     rawMimeObjectKey?: true
-    searchText?: true
+    metadataSearchText?: true
     providerMessageId?: true
     idempotencyKey?: true
     spamVerdict?: true
@@ -173476,7 +173476,7 @@ export namespace Prisma {
     inReplyTo?: true
     references?: true
     subject?: true
-    snippet?: true
+    encryptedSnippet?: true
     fromAddress?: true
     fromName?: true
     replyTo?: true
@@ -173488,7 +173488,7 @@ export namespace Prisma {
     contentObjectKey?: true
     contentSha256?: true
     rawMimeObjectKey?: true
-    searchText?: true
+    metadataSearchText?: true
     providerMessageId?: true
     idempotencyKey?: true
     authResults?: true
@@ -173599,7 +173599,7 @@ export namespace Prisma {
     inReplyTo: string | null
     references: string[]
     subject: string
-    snippet: string
+    encryptedSnippet: Bytes | null
     fromAddress: string
     fromName: string | null
     replyTo: string | null
@@ -173611,7 +173611,7 @@ export namespace Prisma {
     contentObjectKey: string | null
     contentSha256: string | null
     rawMimeObjectKey: string | null
-    searchText: string
+    metadataSearchText: string
     providerMessageId: string | null
     idempotencyKey: string | null
     authResults: JsonValue | null
@@ -173654,7 +173654,7 @@ export namespace Prisma {
     inReplyTo?: boolean
     references?: boolean
     subject?: boolean
-    snippet?: boolean
+    encryptedSnippet?: boolean
     fromAddress?: boolean
     fromName?: boolean
     replyTo?: boolean
@@ -173666,7 +173666,7 @@ export namespace Prisma {
     contentObjectKey?: boolean
     contentSha256?: boolean
     rawMimeObjectKey?: boolean
-    searchText?: boolean
+    metadataSearchText?: boolean
     providerMessageId?: boolean
     idempotencyKey?: boolean
     authResults?: boolean
@@ -173697,7 +173697,7 @@ export namespace Prisma {
     inReplyTo?: boolean
     references?: boolean
     subject?: boolean
-    snippet?: boolean
+    encryptedSnippet?: boolean
     fromAddress?: boolean
     fromName?: boolean
     replyTo?: boolean
@@ -173709,7 +173709,7 @@ export namespace Prisma {
     contentObjectKey?: boolean
     contentSha256?: boolean
     rawMimeObjectKey?: boolean
-    searchText?: boolean
+    metadataSearchText?: boolean
     providerMessageId?: boolean
     idempotencyKey?: boolean
     authResults?: boolean
@@ -173735,7 +173735,7 @@ export namespace Prisma {
     inReplyTo?: boolean
     references?: boolean
     subject?: boolean
-    snippet?: boolean
+    encryptedSnippet?: boolean
     fromAddress?: boolean
     fromName?: boolean
     replyTo?: boolean
@@ -173747,7 +173747,7 @@ export namespace Prisma {
     contentObjectKey?: boolean
     contentSha256?: boolean
     rawMimeObjectKey?: boolean
-    searchText?: boolean
+    metadataSearchText?: boolean
     providerMessageId?: boolean
     idempotencyKey?: boolean
     authResults?: boolean
@@ -173773,7 +173773,7 @@ export namespace Prisma {
     inReplyTo?: boolean
     references?: boolean
     subject?: boolean
-    snippet?: boolean
+    encryptedSnippet?: boolean
     fromAddress?: boolean
     fromName?: boolean
     replyTo?: boolean
@@ -173785,7 +173785,7 @@ export namespace Prisma {
     contentObjectKey?: boolean
     contentSha256?: boolean
     rawMimeObjectKey?: boolean
-    searchText?: boolean
+    metadataSearchText?: boolean
     providerMessageId?: boolean
     idempotencyKey?: boolean
     authResults?: boolean
@@ -173799,7 +173799,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type MailMessageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "mailboxId" | "threadId" | "direction" | "status" | "rfcMessageId" | "inReplyTo" | "references" | "subject" | "snippet" | "fromAddress" | "fromName" | "replyTo" | "senderAddressId" | "sentByAdminUserId" | "envelopeRecipient" | "hasAttachments" | "sizeBytes" | "contentObjectKey" | "contentSha256" | "rawMimeObjectKey" | "searchText" | "providerMessageId" | "idempotencyKey" | "authResults" | "spamVerdict" | "quarantineReason" | "lastStatusAt" | "sentAt" | "receivedAt" | "deletedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["mailMessage"]>
+  export type MailMessageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "mailboxId" | "threadId" | "direction" | "status" | "rfcMessageId" | "inReplyTo" | "references" | "subject" | "encryptedSnippet" | "fromAddress" | "fromName" | "replyTo" | "senderAddressId" | "sentByAdminUserId" | "envelopeRecipient" | "hasAttachments" | "sizeBytes" | "contentObjectKey" | "contentSha256" | "rawMimeObjectKey" | "metadataSearchText" | "providerMessageId" | "idempotencyKey" | "authResults" | "spamVerdict" | "quarantineReason" | "lastStatusAt" | "sentAt" | "receivedAt" | "deletedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["mailMessage"]>
   export type MailMessageInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     mailbox?: boolean | MailMailboxDefaultArgs<ExtArgs>
     thread?: boolean | MailThreadDefaultArgs<ExtArgs>
@@ -173838,7 +173838,7 @@ export namespace Prisma {
       inReplyTo: string | null
       references: string[]
       subject: string
-      snippet: string
+      encryptedSnippet: Prisma.Bytes | null
       fromAddress: string
       fromName: string | null
       replyTo: string | null
@@ -173850,7 +173850,7 @@ export namespace Prisma {
       contentObjectKey: string | null
       contentSha256: string | null
       rawMimeObjectKey: string | null
-      searchText: string
+      metadataSearchText: string
       providerMessageId: string | null
       idempotencyKey: string | null
       authResults: Prisma.JsonValue | null
@@ -174300,7 +174300,7 @@ export namespace Prisma {
     readonly inReplyTo: FieldRef<"MailMessage", 'String'>
     readonly references: FieldRef<"MailMessage", 'String[]'>
     readonly subject: FieldRef<"MailMessage", 'String'>
-    readonly snippet: FieldRef<"MailMessage", 'String'>
+    readonly encryptedSnippet: FieldRef<"MailMessage", 'Bytes'>
     readonly fromAddress: FieldRef<"MailMessage", 'String'>
     readonly fromName: FieldRef<"MailMessage", 'String'>
     readonly replyTo: FieldRef<"MailMessage", 'String'>
@@ -174312,7 +174312,7 @@ export namespace Prisma {
     readonly contentObjectKey: FieldRef<"MailMessage", 'String'>
     readonly contentSha256: FieldRef<"MailMessage", 'String'>
     readonly rawMimeObjectKey: FieldRef<"MailMessage", 'String'>
-    readonly searchText: FieldRef<"MailMessage", 'String'>
+    readonly metadataSearchText: FieldRef<"MailMessage", 'String'>
     readonly providerMessageId: FieldRef<"MailMessage", 'String'>
     readonly idempotencyKey: FieldRef<"MailMessage", 'String'>
     readonly authResults: FieldRef<"MailMessage", 'Json'>
@@ -182996,7 +182996,7 @@ export namespace Prisma {
     id: string | null
     threadId: string | null
     authorAdminUserId: string | null
-    body: string | null
+    encryptedBody: Bytes | null
     createdAt: Date | null
     deletedAt: Date | null
   }
@@ -183005,7 +183005,7 @@ export namespace Prisma {
     id: string | null
     threadId: string | null
     authorAdminUserId: string | null
-    body: string | null
+    encryptedBody: Bytes | null
     createdAt: Date | null
     deletedAt: Date | null
   }
@@ -183014,7 +183014,7 @@ export namespace Prisma {
     id: number
     threadId: number
     authorAdminUserId: number
-    body: number
+    encryptedBody: number
     mentions: number
     createdAt: number
     deletedAt: number
@@ -183026,7 +183026,7 @@ export namespace Prisma {
     id?: true
     threadId?: true
     authorAdminUserId?: true
-    body?: true
+    encryptedBody?: true
     createdAt?: true
     deletedAt?: true
   }
@@ -183035,7 +183035,7 @@ export namespace Prisma {
     id?: true
     threadId?: true
     authorAdminUserId?: true
-    body?: true
+    encryptedBody?: true
     createdAt?: true
     deletedAt?: true
   }
@@ -183044,7 +183044,7 @@ export namespace Prisma {
     id?: true
     threadId?: true
     authorAdminUserId?: true
-    body?: true
+    encryptedBody?: true
     mentions?: true
     createdAt?: true
     deletedAt?: true
@@ -183127,7 +183127,7 @@ export namespace Prisma {
     id: string
     threadId: string
     authorAdminUserId: string
-    body: string
+    encryptedBody: Bytes
     mentions: string[]
     createdAt: Date
     deletedAt: Date | null
@@ -183154,7 +183154,7 @@ export namespace Prisma {
     id?: boolean
     threadId?: boolean
     authorAdminUserId?: boolean
-    body?: boolean
+    encryptedBody?: boolean
     mentions?: boolean
     createdAt?: boolean
     deletedAt?: boolean
@@ -183165,7 +183165,7 @@ export namespace Prisma {
     id?: boolean
     threadId?: boolean
     authorAdminUserId?: boolean
-    body?: boolean
+    encryptedBody?: boolean
     mentions?: boolean
     createdAt?: boolean
     deletedAt?: boolean
@@ -183176,7 +183176,7 @@ export namespace Prisma {
     id?: boolean
     threadId?: boolean
     authorAdminUserId?: boolean
-    body?: boolean
+    encryptedBody?: boolean
     mentions?: boolean
     createdAt?: boolean
     deletedAt?: boolean
@@ -183187,13 +183187,13 @@ export namespace Prisma {
     id?: boolean
     threadId?: boolean
     authorAdminUserId?: boolean
-    body?: boolean
+    encryptedBody?: boolean
     mentions?: boolean
     createdAt?: boolean
     deletedAt?: boolean
   }
 
-  export type MailInternalNoteOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "threadId" | "authorAdminUserId" | "body" | "mentions" | "createdAt" | "deletedAt", ExtArgs["result"]["mailInternalNote"]>
+  export type MailInternalNoteOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "threadId" | "authorAdminUserId" | "encryptedBody" | "mentions" | "createdAt" | "deletedAt", ExtArgs["result"]["mailInternalNote"]>
   export type MailInternalNoteInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     thread?: boolean | MailThreadDefaultArgs<ExtArgs>
   }
@@ -183213,7 +183213,7 @@ export namespace Prisma {
       id: string
       threadId: string
       authorAdminUserId: string
-      body: string
+      encryptedBody: Prisma.Bytes
       mentions: string[]
       createdAt: Date
       deletedAt: Date | null
@@ -183644,7 +183644,7 @@ export namespace Prisma {
     readonly id: FieldRef<"MailInternalNote", 'String'>
     readonly threadId: FieldRef<"MailInternalNote", 'String'>
     readonly authorAdminUserId: FieldRef<"MailInternalNote", 'String'>
-    readonly body: FieldRef<"MailInternalNote", 'String'>
+    readonly encryptedBody: FieldRef<"MailInternalNote", 'Bytes'>
     readonly mentions: FieldRef<"MailInternalNote", 'String[]'>
     readonly createdAt: FieldRef<"MailInternalNote", 'DateTime'>
     readonly deletedAt: FieldRef<"MailInternalNote", 'DateTime'>
@@ -208971,7 +208971,7 @@ export namespace Prisma {
     hasInbound: 'hasInbound',
     hasOutbound: 'hasOutbound',
     messageCount: 'messageCount',
-    snippet: 'snippet',
+    encryptedSnippet: 'encryptedSnippet',
     lastMessageAt: 'lastMessageAt',
     lastInboundAt: 'lastInboundAt',
     participants: 'participants',
@@ -209002,7 +209002,7 @@ export namespace Prisma {
     inReplyTo: 'inReplyTo',
     references: 'references',
     subject: 'subject',
-    snippet: 'snippet',
+    encryptedSnippet: 'encryptedSnippet',
     fromAddress: 'fromAddress',
     fromName: 'fromName',
     replyTo: 'replyTo',
@@ -209014,7 +209014,7 @@ export namespace Prisma {
     contentObjectKey: 'contentObjectKey',
     contentSha256: 'contentSha256',
     rawMimeObjectKey: 'rawMimeObjectKey',
-    searchText: 'searchText',
+    metadataSearchText: 'metadataSearchText',
     providerMessageId: 'providerMessageId',
     idempotencyKey: 'idempotencyKey',
     authResults: 'authResults',
@@ -209147,7 +209147,7 @@ export namespace Prisma {
     id: 'id',
     threadId: 'threadId',
     authorAdminUserId: 'authorAdminUserId',
-    body: 'body',
+    encryptedBody: 'encryptedBody',
     mentions: 'mentions',
     createdAt: 'createdAt',
     deletedAt: 'deletedAt'
@@ -224202,7 +224202,7 @@ export namespace Prisma {
     hasInbound?: BoolFilter<"MailThread"> | boolean
     hasOutbound?: BoolFilter<"MailThread"> | boolean
     messageCount?: IntFilter<"MailThread"> | number
-    snippet?: StringFilter<"MailThread"> | string
+    encryptedSnippet?: BytesNullableFilter<"MailThread"> | Bytes | null
     lastMessageAt?: DateTimeFilter<"MailThread"> | Date | string
     lastInboundAt?: DateTimeNullableFilter<"MailThread"> | Date | string | null
     participants?: JsonNullableFilter<"MailThread">
@@ -224236,7 +224236,7 @@ export namespace Prisma {
     hasInbound?: SortOrder
     hasOutbound?: SortOrder
     messageCount?: SortOrder
-    snippet?: SortOrder
+    encryptedSnippet?: SortOrderInput | SortOrder
     lastMessageAt?: SortOrder
     lastInboundAt?: SortOrderInput | SortOrder
     participants?: SortOrderInput | SortOrder
@@ -224273,7 +224273,7 @@ export namespace Prisma {
     hasInbound?: BoolFilter<"MailThread"> | boolean
     hasOutbound?: BoolFilter<"MailThread"> | boolean
     messageCount?: IntFilter<"MailThread"> | number
-    snippet?: StringFilter<"MailThread"> | string
+    encryptedSnippet?: BytesNullableFilter<"MailThread"> | Bytes | null
     lastMessageAt?: DateTimeFilter<"MailThread"> | Date | string
     lastInboundAt?: DateTimeNullableFilter<"MailThread"> | Date | string | null
     participants?: JsonNullableFilter<"MailThread">
@@ -224307,7 +224307,7 @@ export namespace Prisma {
     hasInbound?: SortOrder
     hasOutbound?: SortOrder
     messageCount?: SortOrder
-    snippet?: SortOrder
+    encryptedSnippet?: SortOrderInput | SortOrder
     lastMessageAt?: SortOrder
     lastInboundAt?: SortOrderInput | SortOrder
     participants?: SortOrderInput | SortOrder
@@ -224343,7 +224343,7 @@ export namespace Prisma {
     hasInbound?: BoolWithAggregatesFilter<"MailThread"> | boolean
     hasOutbound?: BoolWithAggregatesFilter<"MailThread"> | boolean
     messageCount?: IntWithAggregatesFilter<"MailThread"> | number
-    snippet?: StringWithAggregatesFilter<"MailThread"> | string
+    encryptedSnippet?: BytesNullableWithAggregatesFilter<"MailThread"> | Bytes | null
     lastMessageAt?: DateTimeWithAggregatesFilter<"MailThread"> | Date | string
     lastInboundAt?: DateTimeNullableWithAggregatesFilter<"MailThread"> | Date | string | null
     participants?: JsonNullableWithAggregatesFilter<"MailThread">
@@ -224374,7 +224374,7 @@ export namespace Prisma {
     inReplyTo?: StringNullableFilter<"MailMessage"> | string | null
     references?: StringNullableListFilter<"MailMessage">
     subject?: StringFilter<"MailMessage"> | string
-    snippet?: StringFilter<"MailMessage"> | string
+    encryptedSnippet?: BytesNullableFilter<"MailMessage"> | Bytes | null
     fromAddress?: StringFilter<"MailMessage"> | string
     fromName?: StringNullableFilter<"MailMessage"> | string | null
     replyTo?: StringNullableFilter<"MailMessage"> | string | null
@@ -224386,7 +224386,7 @@ export namespace Prisma {
     contentObjectKey?: StringNullableFilter<"MailMessage"> | string | null
     contentSha256?: StringNullableFilter<"MailMessage"> | string | null
     rawMimeObjectKey?: StringNullableFilter<"MailMessage"> | string | null
-    searchText?: StringFilter<"MailMessage"> | string
+    metadataSearchText?: StringFilter<"MailMessage"> | string
     providerMessageId?: StringNullableFilter<"MailMessage"> | string | null
     idempotencyKey?: StringNullableFilter<"MailMessage"> | string | null
     authResults?: JsonNullableFilter<"MailMessage">
@@ -224416,7 +224416,7 @@ export namespace Prisma {
     inReplyTo?: SortOrderInput | SortOrder
     references?: SortOrder
     subject?: SortOrder
-    snippet?: SortOrder
+    encryptedSnippet?: SortOrderInput | SortOrder
     fromAddress?: SortOrder
     fromName?: SortOrderInput | SortOrder
     replyTo?: SortOrderInput | SortOrder
@@ -224428,7 +224428,7 @@ export namespace Prisma {
     contentObjectKey?: SortOrderInput | SortOrder
     contentSha256?: SortOrderInput | SortOrder
     rawMimeObjectKey?: SortOrderInput | SortOrder
-    searchText?: SortOrder
+    metadataSearchText?: SortOrder
     providerMessageId?: SortOrderInput | SortOrder
     idempotencyKey?: SortOrderInput | SortOrder
     authResults?: SortOrderInput | SortOrder
@@ -224463,7 +224463,7 @@ export namespace Prisma {
     inReplyTo?: StringNullableFilter<"MailMessage"> | string | null
     references?: StringNullableListFilter<"MailMessage">
     subject?: StringFilter<"MailMessage"> | string
-    snippet?: StringFilter<"MailMessage"> | string
+    encryptedSnippet?: BytesNullableFilter<"MailMessage"> | Bytes | null
     fromAddress?: StringFilter<"MailMessage"> | string
     fromName?: StringNullableFilter<"MailMessage"> | string | null
     replyTo?: StringNullableFilter<"MailMessage"> | string | null
@@ -224475,7 +224475,7 @@ export namespace Prisma {
     contentObjectKey?: StringNullableFilter<"MailMessage"> | string | null
     contentSha256?: StringNullableFilter<"MailMessage"> | string | null
     rawMimeObjectKey?: StringNullableFilter<"MailMessage"> | string | null
-    searchText?: StringFilter<"MailMessage"> | string
+    metadataSearchText?: StringFilter<"MailMessage"> | string
     providerMessageId?: StringNullableFilter<"MailMessage"> | string | null
     authResults?: JsonNullableFilter<"MailMessage">
     spamVerdict?: StringNullableFilter<"MailMessage"> | string | null
@@ -224504,7 +224504,7 @@ export namespace Prisma {
     inReplyTo?: SortOrderInput | SortOrder
     references?: SortOrder
     subject?: SortOrder
-    snippet?: SortOrder
+    encryptedSnippet?: SortOrderInput | SortOrder
     fromAddress?: SortOrder
     fromName?: SortOrderInput | SortOrder
     replyTo?: SortOrderInput | SortOrder
@@ -224516,7 +224516,7 @@ export namespace Prisma {
     contentObjectKey?: SortOrderInput | SortOrder
     contentSha256?: SortOrderInput | SortOrder
     rawMimeObjectKey?: SortOrderInput | SortOrder
-    searchText?: SortOrder
+    metadataSearchText?: SortOrder
     providerMessageId?: SortOrderInput | SortOrder
     idempotencyKey?: SortOrderInput | SortOrder
     authResults?: SortOrderInput | SortOrder
@@ -224548,7 +224548,7 @@ export namespace Prisma {
     inReplyTo?: StringNullableWithAggregatesFilter<"MailMessage"> | string | null
     references?: StringNullableListFilter<"MailMessage">
     subject?: StringWithAggregatesFilter<"MailMessage"> | string
-    snippet?: StringWithAggregatesFilter<"MailMessage"> | string
+    encryptedSnippet?: BytesNullableWithAggregatesFilter<"MailMessage"> | Bytes | null
     fromAddress?: StringWithAggregatesFilter<"MailMessage"> | string
     fromName?: StringNullableWithAggregatesFilter<"MailMessage"> | string | null
     replyTo?: StringNullableWithAggregatesFilter<"MailMessage"> | string | null
@@ -224560,7 +224560,7 @@ export namespace Prisma {
     contentObjectKey?: StringNullableWithAggregatesFilter<"MailMessage"> | string | null
     contentSha256?: StringNullableWithAggregatesFilter<"MailMessage"> | string | null
     rawMimeObjectKey?: StringNullableWithAggregatesFilter<"MailMessage"> | string | null
-    searchText?: StringWithAggregatesFilter<"MailMessage"> | string
+    metadataSearchText?: StringWithAggregatesFilter<"MailMessage"> | string
     providerMessageId?: StringNullableWithAggregatesFilter<"MailMessage"> | string | null
     idempotencyKey?: StringNullableWithAggregatesFilter<"MailMessage"> | string | null
     authResults?: JsonNullableWithAggregatesFilter<"MailMessage">
@@ -225175,7 +225175,7 @@ export namespace Prisma {
     id?: UuidFilter<"MailInternalNote"> | string
     threadId?: UuidFilter<"MailInternalNote"> | string
     authorAdminUserId?: StringFilter<"MailInternalNote"> | string
-    body?: StringFilter<"MailInternalNote"> | string
+    encryptedBody?: BytesFilter<"MailInternalNote"> | Bytes
     mentions?: StringNullableListFilter<"MailInternalNote">
     createdAt?: DateTimeFilter<"MailInternalNote"> | Date | string
     deletedAt?: DateTimeNullableFilter<"MailInternalNote"> | Date | string | null
@@ -225186,7 +225186,7 @@ export namespace Prisma {
     id?: SortOrder
     threadId?: SortOrder
     authorAdminUserId?: SortOrder
-    body?: SortOrder
+    encryptedBody?: SortOrder
     mentions?: SortOrder
     createdAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
@@ -225200,7 +225200,7 @@ export namespace Prisma {
     NOT?: MailInternalNoteWhereInput | MailInternalNoteWhereInput[]
     threadId?: UuidFilter<"MailInternalNote"> | string
     authorAdminUserId?: StringFilter<"MailInternalNote"> | string
-    body?: StringFilter<"MailInternalNote"> | string
+    encryptedBody?: BytesFilter<"MailInternalNote"> | Bytes
     mentions?: StringNullableListFilter<"MailInternalNote">
     createdAt?: DateTimeFilter<"MailInternalNote"> | Date | string
     deletedAt?: DateTimeNullableFilter<"MailInternalNote"> | Date | string | null
@@ -225211,7 +225211,7 @@ export namespace Prisma {
     id?: SortOrder
     threadId?: SortOrder
     authorAdminUserId?: SortOrder
-    body?: SortOrder
+    encryptedBody?: SortOrder
     mentions?: SortOrder
     createdAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
@@ -225227,7 +225227,7 @@ export namespace Prisma {
     id?: UuidWithAggregatesFilter<"MailInternalNote"> | string
     threadId?: UuidWithAggregatesFilter<"MailInternalNote"> | string
     authorAdminUserId?: StringWithAggregatesFilter<"MailInternalNote"> | string
-    body?: StringWithAggregatesFilter<"MailInternalNote"> | string
+    encryptedBody?: BytesWithAggregatesFilter<"MailInternalNote"> | Bytes
     mentions?: StringNullableListFilter<"MailInternalNote">
     createdAt?: DateTimeWithAggregatesFilter<"MailInternalNote"> | Date | string
     deletedAt?: DateTimeNullableWithAggregatesFilter<"MailInternalNote"> | Date | string | null
@@ -241564,7 +241564,7 @@ export namespace Prisma {
     hasInbound?: boolean
     hasOutbound?: boolean
     messageCount?: number
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     lastMessageAt?: Date | string
     lastInboundAt?: Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -241598,7 +241598,7 @@ export namespace Prisma {
     hasInbound?: boolean
     hasOutbound?: boolean
     messageCount?: number
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     lastMessageAt?: Date | string
     lastInboundAt?: Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -241630,7 +241630,7 @@ export namespace Prisma {
     hasInbound?: BoolFieldUpdateOperationsInput | boolean
     hasOutbound?: BoolFieldUpdateOperationsInput | boolean
     messageCount?: IntFieldUpdateOperationsInput | number
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -241664,7 +241664,7 @@ export namespace Prisma {
     hasInbound?: BoolFieldUpdateOperationsInput | boolean
     hasOutbound?: BoolFieldUpdateOperationsInput | boolean
     messageCount?: IntFieldUpdateOperationsInput | number
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -241697,7 +241697,7 @@ export namespace Prisma {
     hasInbound?: boolean
     hasOutbound?: boolean
     messageCount?: number
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     lastMessageAt?: Date | string
     lastInboundAt?: Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -241724,7 +241724,7 @@ export namespace Prisma {
     hasInbound?: BoolFieldUpdateOperationsInput | boolean
     hasOutbound?: BoolFieldUpdateOperationsInput | boolean
     messageCount?: IntFieldUpdateOperationsInput | number
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -241752,7 +241752,7 @@ export namespace Prisma {
     hasInbound?: BoolFieldUpdateOperationsInput | boolean
     hasOutbound?: BoolFieldUpdateOperationsInput | boolean
     messageCount?: IntFieldUpdateOperationsInput | number
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -241778,7 +241778,7 @@ export namespace Prisma {
     inReplyTo?: string | null
     references?: MailMessageCreatereferencesInput | string[]
     subject?: string
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     fromAddress: string
     fromName?: string | null
     replyTo?: string | null
@@ -241790,7 +241790,7 @@ export namespace Prisma {
     contentObjectKey?: string | null
     contentSha256?: string | null
     rawMimeObjectKey?: string | null
-    searchText?: string
+    metadataSearchText?: string
     providerMessageId?: string | null
     idempotencyKey?: string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -241820,7 +241820,7 @@ export namespace Prisma {
     inReplyTo?: string | null
     references?: MailMessageCreatereferencesInput | string[]
     subject?: string
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     fromAddress: string
     fromName?: string | null
     replyTo?: string | null
@@ -241832,7 +241832,7 @@ export namespace Prisma {
     contentObjectKey?: string | null
     contentSha256?: string | null
     rawMimeObjectKey?: string | null
-    searchText?: string
+    metadataSearchText?: string
     providerMessageId?: string | null
     idempotencyKey?: string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -241858,7 +241858,7 @@ export namespace Prisma {
     inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
     references?: MailMessageUpdatereferencesInput | string[]
     subject?: StringFieldUpdateOperationsInput | string
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     fromAddress?: StringFieldUpdateOperationsInput | string
     fromName?: NullableStringFieldUpdateOperationsInput | string | null
     replyTo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -241870,7 +241870,7 @@ export namespace Prisma {
     contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
     contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
     rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
-    searchText?: StringFieldUpdateOperationsInput | string
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
     providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -241900,7 +241900,7 @@ export namespace Prisma {
     inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
     references?: MailMessageUpdatereferencesInput | string[]
     subject?: StringFieldUpdateOperationsInput | string
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     fromAddress?: StringFieldUpdateOperationsInput | string
     fromName?: NullableStringFieldUpdateOperationsInput | string | null
     replyTo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -241912,7 +241912,7 @@ export namespace Prisma {
     contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
     contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
     rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
-    searchText?: StringFieldUpdateOperationsInput | string
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
     providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -241940,7 +241940,7 @@ export namespace Prisma {
     inReplyTo?: string | null
     references?: MailMessageCreatereferencesInput | string[]
     subject?: string
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     fromAddress: string
     fromName?: string | null
     replyTo?: string | null
@@ -241952,7 +241952,7 @@ export namespace Prisma {
     contentObjectKey?: string | null
     contentSha256?: string | null
     rawMimeObjectKey?: string | null
-    searchText?: string
+    metadataSearchText?: string
     providerMessageId?: string | null
     idempotencyKey?: string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -241974,7 +241974,7 @@ export namespace Prisma {
     inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
     references?: MailMessageUpdatereferencesInput | string[]
     subject?: StringFieldUpdateOperationsInput | string
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     fromAddress?: StringFieldUpdateOperationsInput | string
     fromName?: NullableStringFieldUpdateOperationsInput | string | null
     replyTo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -241986,7 +241986,7 @@ export namespace Prisma {
     contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
     contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
     rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
-    searchText?: StringFieldUpdateOperationsInput | string
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
     providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -242010,7 +242010,7 @@ export namespace Prisma {
     inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
     references?: MailMessageUpdatereferencesInput | string[]
     subject?: StringFieldUpdateOperationsInput | string
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     fromAddress?: StringFieldUpdateOperationsInput | string
     fromName?: NullableStringFieldUpdateOperationsInput | string | null
     replyTo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -242022,7 +242022,7 @@ export namespace Prisma {
     contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
     contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
     rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
-    searchText?: StringFieldUpdateOperationsInput | string
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
     providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -242671,7 +242671,7 @@ export namespace Prisma {
   export type MailInternalNoteCreateInput = {
     id?: string
     authorAdminUserId: string
-    body: string
+    encryptedBody: Bytes
     mentions?: MailInternalNoteCreatementionsInput | string[]
     createdAt?: Date | string
     deletedAt?: Date | string | null
@@ -242682,7 +242682,7 @@ export namespace Prisma {
     id?: string
     threadId: string
     authorAdminUserId: string
-    body: string
+    encryptedBody: Bytes
     mentions?: MailInternalNoteCreatementionsInput | string[]
     createdAt?: Date | string
     deletedAt?: Date | string | null
@@ -242691,7 +242691,7 @@ export namespace Prisma {
   export type MailInternalNoteUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     authorAdminUserId?: StringFieldUpdateOperationsInput | string
-    body?: StringFieldUpdateOperationsInput | string
+    encryptedBody?: BytesFieldUpdateOperationsInput | Bytes
     mentions?: MailInternalNoteUpdatementionsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -242702,7 +242702,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     threadId?: StringFieldUpdateOperationsInput | string
     authorAdminUserId?: StringFieldUpdateOperationsInput | string
-    body?: StringFieldUpdateOperationsInput | string
+    encryptedBody?: BytesFieldUpdateOperationsInput | Bytes
     mentions?: MailInternalNoteUpdatementionsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -242712,7 +242712,7 @@ export namespace Prisma {
     id?: string
     threadId: string
     authorAdminUserId: string
-    body: string
+    encryptedBody: Bytes
     mentions?: MailInternalNoteCreatementionsInput | string[]
     createdAt?: Date | string
     deletedAt?: Date | string | null
@@ -242721,7 +242721,7 @@ export namespace Prisma {
   export type MailInternalNoteUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     authorAdminUserId?: StringFieldUpdateOperationsInput | string
-    body?: StringFieldUpdateOperationsInput | string
+    encryptedBody?: BytesFieldUpdateOperationsInput | Bytes
     mentions?: MailInternalNoteUpdatementionsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -242731,7 +242731,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     threadId?: StringFieldUpdateOperationsInput | string
     authorAdminUserId?: StringFieldUpdateOperationsInput | string
-    body?: StringFieldUpdateOperationsInput | string
+    encryptedBody?: BytesFieldUpdateOperationsInput | Bytes
     mentions?: MailInternalNoteUpdatementionsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -255209,7 +255209,7 @@ export namespace Prisma {
     hasInbound?: SortOrder
     hasOutbound?: SortOrder
     messageCount?: SortOrder
-    snippet?: SortOrder
+    encryptedSnippet?: SortOrder
     lastMessageAt?: SortOrder
     lastInboundAt?: SortOrder
     participants?: SortOrder
@@ -255242,7 +255242,7 @@ export namespace Prisma {
     hasInbound?: SortOrder
     hasOutbound?: SortOrder
     messageCount?: SortOrder
-    snippet?: SortOrder
+    encryptedSnippet?: SortOrder
     lastMessageAt?: SortOrder
     lastInboundAt?: SortOrder
     conversationStatus?: SortOrder
@@ -255269,7 +255269,7 @@ export namespace Prisma {
     hasInbound?: SortOrder
     hasOutbound?: SortOrder
     messageCount?: SortOrder
-    snippet?: SortOrder
+    encryptedSnippet?: SortOrder
     lastMessageAt?: SortOrder
     lastInboundAt?: SortOrder
     conversationStatus?: SortOrder
@@ -255375,7 +255375,7 @@ export namespace Prisma {
     inReplyTo?: SortOrder
     references?: SortOrder
     subject?: SortOrder
-    snippet?: SortOrder
+    encryptedSnippet?: SortOrder
     fromAddress?: SortOrder
     fromName?: SortOrder
     replyTo?: SortOrder
@@ -255387,7 +255387,7 @@ export namespace Prisma {
     contentObjectKey?: SortOrder
     contentSha256?: SortOrder
     rawMimeObjectKey?: SortOrder
-    searchText?: SortOrder
+    metadataSearchText?: SortOrder
     providerMessageId?: SortOrder
     idempotencyKey?: SortOrder
     authResults?: SortOrder
@@ -255414,7 +255414,7 @@ export namespace Prisma {
     rfcMessageId?: SortOrder
     inReplyTo?: SortOrder
     subject?: SortOrder
-    snippet?: SortOrder
+    encryptedSnippet?: SortOrder
     fromAddress?: SortOrder
     fromName?: SortOrder
     replyTo?: SortOrder
@@ -255426,7 +255426,7 @@ export namespace Prisma {
     contentObjectKey?: SortOrder
     contentSha256?: SortOrder
     rawMimeObjectKey?: SortOrder
-    searchText?: SortOrder
+    metadataSearchText?: SortOrder
     providerMessageId?: SortOrder
     idempotencyKey?: SortOrder
     spamVerdict?: SortOrder
@@ -255448,7 +255448,7 @@ export namespace Prisma {
     rfcMessageId?: SortOrder
     inReplyTo?: SortOrder
     subject?: SortOrder
-    snippet?: SortOrder
+    encryptedSnippet?: SortOrder
     fromAddress?: SortOrder
     fromName?: SortOrder
     replyTo?: SortOrder
@@ -255460,7 +255460,7 @@ export namespace Prisma {
     contentObjectKey?: SortOrder
     contentSha256?: SortOrder
     rawMimeObjectKey?: SortOrder
-    searchText?: SortOrder
+    metadataSearchText?: SortOrder
     providerMessageId?: SortOrder
     idempotencyKey?: SortOrder
     spamVerdict?: SortOrder
@@ -255919,7 +255919,7 @@ export namespace Prisma {
     id?: SortOrder
     threadId?: SortOrder
     authorAdminUserId?: SortOrder
-    body?: SortOrder
+    encryptedBody?: SortOrder
     mentions?: SortOrder
     createdAt?: SortOrder
     deletedAt?: SortOrder
@@ -255929,7 +255929,7 @@ export namespace Prisma {
     id?: SortOrder
     threadId?: SortOrder
     authorAdminUserId?: SortOrder
-    body?: SortOrder
+    encryptedBody?: SortOrder
     createdAt?: SortOrder
     deletedAt?: SortOrder
   }
@@ -255938,7 +255938,7 @@ export namespace Prisma {
     id?: SortOrder
     threadId?: SortOrder
     authorAdminUserId?: SortOrder
-    body?: SortOrder
+    encryptedBody?: SortOrder
     createdAt?: SortOrder
     deletedAt?: SortOrder
   }
@@ -335584,7 +335584,7 @@ export namespace Prisma {
     hasInbound?: boolean
     hasOutbound?: boolean
     messageCount?: number
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     lastMessageAt?: Date | string
     lastInboundAt?: Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -335616,7 +335616,7 @@ export namespace Prisma {
     hasInbound?: boolean
     hasOutbound?: boolean
     messageCount?: number
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     lastMessageAt?: Date | string
     lastInboundAt?: Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -335657,7 +335657,7 @@ export namespace Prisma {
     inReplyTo?: string | null
     references?: MailMessageCreatereferencesInput | string[]
     subject?: string
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     fromAddress: string
     fromName?: string | null
     replyTo?: string | null
@@ -335669,7 +335669,7 @@ export namespace Prisma {
     contentObjectKey?: string | null
     contentSha256?: string | null
     rawMimeObjectKey?: string | null
-    searchText?: string
+    metadataSearchText?: string
     providerMessageId?: string | null
     idempotencyKey?: string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -335697,7 +335697,7 @@ export namespace Prisma {
     inReplyTo?: string | null
     references?: MailMessageCreatereferencesInput | string[]
     subject?: string
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     fromAddress: string
     fromName?: string | null
     replyTo?: string | null
@@ -335709,7 +335709,7 @@ export namespace Prisma {
     contentObjectKey?: string | null
     contentSha256?: string | null
     rawMimeObjectKey?: string | null
-    searchText?: string
+    metadataSearchText?: string
     providerMessageId?: string | null
     idempotencyKey?: string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -336386,7 +336386,7 @@ export namespace Prisma {
     hasInbound?: BoolFilter<"MailThread"> | boolean
     hasOutbound?: BoolFilter<"MailThread"> | boolean
     messageCount?: IntFilter<"MailThread"> | number
-    snippet?: StringFilter<"MailThread"> | string
+    encryptedSnippet?: BytesNullableFilter<"MailThread"> | Bytes | null
     lastMessageAt?: DateTimeFilter<"MailThread"> | Date | string
     lastInboundAt?: DateTimeNullableFilter<"MailThread"> | Date | string | null
     participants?: JsonNullableFilter<"MailThread">
@@ -336433,7 +336433,7 @@ export namespace Prisma {
     inReplyTo?: StringNullableFilter<"MailMessage"> | string | null
     references?: StringNullableListFilter<"MailMessage">
     subject?: StringFilter<"MailMessage"> | string
-    snippet?: StringFilter<"MailMessage"> | string
+    encryptedSnippet?: BytesNullableFilter<"MailMessage"> | Bytes | null
     fromAddress?: StringFilter<"MailMessage"> | string
     fromName?: StringNullableFilter<"MailMessage"> | string | null
     replyTo?: StringNullableFilter<"MailMessage"> | string | null
@@ -336445,7 +336445,7 @@ export namespace Prisma {
     contentObjectKey?: StringNullableFilter<"MailMessage"> | string | null
     contentSha256?: StringNullableFilter<"MailMessage"> | string | null
     rawMimeObjectKey?: StringNullableFilter<"MailMessage"> | string | null
-    searchText?: StringFilter<"MailMessage"> | string
+    metadataSearchText?: StringFilter<"MailMessage"> | string
     providerMessageId?: StringNullableFilter<"MailMessage"> | string | null
     idempotencyKey?: StringNullableFilter<"MailMessage"> | string | null
     authResults?: JsonNullableFilter<"MailMessage">
@@ -338685,7 +338685,7 @@ export namespace Prisma {
     inReplyTo?: string | null
     references?: MailMessageCreatereferencesInput | string[]
     subject?: string
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     fromAddress: string
     fromName?: string | null
     replyTo?: string | null
@@ -338697,7 +338697,7 @@ export namespace Prisma {
     contentObjectKey?: string | null
     contentSha256?: string | null
     rawMimeObjectKey?: string | null
-    searchText?: string
+    metadataSearchText?: string
     providerMessageId?: string | null
     idempotencyKey?: string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -338725,7 +338725,7 @@ export namespace Prisma {
     inReplyTo?: string | null
     references?: MailMessageCreatereferencesInput | string[]
     subject?: string
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     fromAddress: string
     fromName?: string | null
     replyTo?: string | null
@@ -338737,7 +338737,7 @@ export namespace Prisma {
     contentObjectKey?: string | null
     contentSha256?: string | null
     rawMimeObjectKey?: string | null
-    searchText?: string
+    metadataSearchText?: string
     providerMessageId?: string | null
     idempotencyKey?: string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -338866,7 +338866,7 @@ export namespace Prisma {
   export type MailInternalNoteCreateWithoutThreadInput = {
     id?: string
     authorAdminUserId: string
-    body: string
+    encryptedBody: Bytes
     mentions?: MailInternalNoteCreatementionsInput | string[]
     createdAt?: Date | string
     deletedAt?: Date | string | null
@@ -338875,7 +338875,7 @@ export namespace Prisma {
   export type MailInternalNoteUncheckedCreateWithoutThreadInput = {
     id?: string
     authorAdminUserId: string
-    body: string
+    encryptedBody: Bytes
     mentions?: MailInternalNoteCreatementionsInput | string[]
     createdAt?: Date | string
     deletedAt?: Date | string | null
@@ -339058,7 +339058,7 @@ export namespace Prisma {
     id?: UuidFilter<"MailInternalNote"> | string
     threadId?: UuidFilter<"MailInternalNote"> | string
     authorAdminUserId?: StringFilter<"MailInternalNote"> | string
-    body?: StringFilter<"MailInternalNote"> | string
+    encryptedBody?: BytesFilter<"MailInternalNote"> | Bytes
     mentions?: StringNullableListFilter<"MailInternalNote">
     createdAt?: DateTimeFilter<"MailInternalNote"> | Date | string
     deletedAt?: DateTimeNullableFilter<"MailInternalNote"> | Date | string | null
@@ -339138,7 +339138,7 @@ export namespace Prisma {
     hasInbound?: boolean
     hasOutbound?: boolean
     messageCount?: number
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     lastMessageAt?: Date | string
     lastInboundAt?: Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -339171,7 +339171,7 @@ export namespace Prisma {
     hasInbound?: boolean
     hasOutbound?: boolean
     messageCount?: number
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     lastMessageAt?: Date | string
     lastInboundAt?: Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -339455,7 +339455,7 @@ export namespace Prisma {
     hasInbound?: BoolFieldUpdateOperationsInput | boolean
     hasOutbound?: BoolFieldUpdateOperationsInput | boolean
     messageCount?: IntFieldUpdateOperationsInput | number
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -339488,7 +339488,7 @@ export namespace Prisma {
     hasInbound?: BoolFieldUpdateOperationsInput | boolean
     hasOutbound?: BoolFieldUpdateOperationsInput | boolean
     messageCount?: IntFieldUpdateOperationsInput | number
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -339638,7 +339638,7 @@ export namespace Prisma {
     inReplyTo?: string | null
     references?: MailMessageCreatereferencesInput | string[]
     subject?: string
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     fromAddress: string
     fromName?: string | null
     replyTo?: string | null
@@ -339650,7 +339650,7 @@ export namespace Prisma {
     contentObjectKey?: string | null
     contentSha256?: string | null
     rawMimeObjectKey?: string | null
-    searchText?: string
+    metadataSearchText?: string
     providerMessageId?: string | null
     idempotencyKey?: string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -339679,7 +339679,7 @@ export namespace Prisma {
     inReplyTo?: string | null
     references?: MailMessageCreatereferencesInput | string[]
     subject?: string
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     fromAddress: string
     fromName?: string | null
     replyTo?: string | null
@@ -339691,7 +339691,7 @@ export namespace Prisma {
     contentObjectKey?: string | null
     contentSha256?: string | null
     rawMimeObjectKey?: string | null
-    searchText?: string
+    metadataSearchText?: string
     providerMessageId?: string | null
     idempotencyKey?: string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -339732,7 +339732,7 @@ export namespace Prisma {
     inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
     references?: MailMessageUpdatereferencesInput | string[]
     subject?: StringFieldUpdateOperationsInput | string
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     fromAddress?: StringFieldUpdateOperationsInput | string
     fromName?: NullableStringFieldUpdateOperationsInput | string | null
     replyTo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -339744,7 +339744,7 @@ export namespace Prisma {
     contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
     contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
     rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
-    searchText?: StringFieldUpdateOperationsInput | string
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
     providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -339773,7 +339773,7 @@ export namespace Prisma {
     inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
     references?: MailMessageUpdatereferencesInput | string[]
     subject?: StringFieldUpdateOperationsInput | string
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     fromAddress?: StringFieldUpdateOperationsInput | string
     fromName?: NullableStringFieldUpdateOperationsInput | string | null
     replyTo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -339785,7 +339785,7 @@ export namespace Prisma {
     contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
     contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
     rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
-    searchText?: StringFieldUpdateOperationsInput | string
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
     providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -339811,7 +339811,7 @@ export namespace Prisma {
     hasInbound?: boolean
     hasOutbound?: boolean
     messageCount?: number
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     lastMessageAt?: Date | string
     lastInboundAt?: Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -339844,7 +339844,7 @@ export namespace Prisma {
     hasInbound?: boolean
     hasOutbound?: boolean
     messageCount?: number
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     lastMessageAt?: Date | string
     lastInboundAt?: Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -340138,7 +340138,7 @@ export namespace Prisma {
     hasInbound?: BoolFieldUpdateOperationsInput | boolean
     hasOutbound?: BoolFieldUpdateOperationsInput | boolean
     messageCount?: IntFieldUpdateOperationsInput | number
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -340171,7 +340171,7 @@ export namespace Prisma {
     hasInbound?: BoolFieldUpdateOperationsInput | boolean
     hasOutbound?: BoolFieldUpdateOperationsInput | boolean
     messageCount?: IntFieldUpdateOperationsInput | number
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -340767,7 +340767,7 @@ export namespace Prisma {
     hasInbound?: boolean
     hasOutbound?: boolean
     messageCount?: number
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     lastMessageAt?: Date | string
     lastInboundAt?: Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -340800,7 +340800,7 @@ export namespace Prisma {
     hasInbound?: boolean
     hasOutbound?: boolean
     messageCount?: number
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     lastMessageAt?: Date | string
     lastInboundAt?: Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -341219,7 +341219,7 @@ export namespace Prisma {
     hasInbound?: BoolFieldUpdateOperationsInput | boolean
     hasOutbound?: BoolFieldUpdateOperationsInput | boolean
     messageCount?: IntFieldUpdateOperationsInput | number
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -341252,7 +341252,7 @@ export namespace Prisma {
     hasInbound?: BoolFieldUpdateOperationsInput | boolean
     hasOutbound?: BoolFieldUpdateOperationsInput | boolean
     messageCount?: IntFieldUpdateOperationsInput | number
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -341471,7 +341471,7 @@ export namespace Prisma {
     hasInbound?: boolean
     hasOutbound?: boolean
     messageCount?: number
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     lastMessageAt?: Date | string
     lastInboundAt?: Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -341504,7 +341504,7 @@ export namespace Prisma {
     hasInbound?: boolean
     hasOutbound?: boolean
     messageCount?: number
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     lastMessageAt?: Date | string
     lastInboundAt?: Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -341574,7 +341574,7 @@ export namespace Prisma {
     hasInbound?: BoolFieldUpdateOperationsInput | boolean
     hasOutbound?: BoolFieldUpdateOperationsInput | boolean
     messageCount?: IntFieldUpdateOperationsInput | number
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -341607,7 +341607,7 @@ export namespace Prisma {
     hasInbound?: BoolFieldUpdateOperationsInput | boolean
     hasOutbound?: BoolFieldUpdateOperationsInput | boolean
     messageCount?: IntFieldUpdateOperationsInput | number
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -341867,7 +341867,7 @@ export namespace Prisma {
     inReplyTo?: string | null
     references?: MailMessageCreatereferencesInput | string[]
     subject?: string
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     fromAddress: string
     fromName?: string | null
     replyTo?: string | null
@@ -341879,7 +341879,7 @@ export namespace Prisma {
     contentObjectKey?: string | null
     contentSha256?: string | null
     rawMimeObjectKey?: string | null
-    searchText?: string
+    metadataSearchText?: string
     providerMessageId?: string | null
     idempotencyKey?: string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -341908,7 +341908,7 @@ export namespace Prisma {
     inReplyTo?: string | null
     references?: MailMessageCreatereferencesInput | string[]
     subject?: string
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     fromAddress: string
     fromName?: string | null
     replyTo?: string | null
@@ -341920,7 +341920,7 @@ export namespace Prisma {
     contentObjectKey?: string | null
     contentSha256?: string | null
     rawMimeObjectKey?: string | null
-    searchText?: string
+    metadataSearchText?: string
     providerMessageId?: string | null
     idempotencyKey?: string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -342077,7 +342077,7 @@ export namespace Prisma {
     inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
     references?: MailMessageUpdatereferencesInput | string[]
     subject?: StringFieldUpdateOperationsInput | string
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     fromAddress?: StringFieldUpdateOperationsInput | string
     fromName?: NullableStringFieldUpdateOperationsInput | string | null
     replyTo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -342089,7 +342089,7 @@ export namespace Prisma {
     contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
     contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
     rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
-    searchText?: StringFieldUpdateOperationsInput | string
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
     providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -342118,7 +342118,7 @@ export namespace Prisma {
     inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
     references?: MailMessageUpdatereferencesInput | string[]
     subject?: StringFieldUpdateOperationsInput | string
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     fromAddress?: StringFieldUpdateOperationsInput | string
     fromName?: NullableStringFieldUpdateOperationsInput | string | null
     replyTo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -342130,7 +342130,7 @@ export namespace Prisma {
     contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
     contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
     rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
-    searchText?: StringFieldUpdateOperationsInput | string
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
     providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -342207,7 +342207,7 @@ export namespace Prisma {
     hasInbound?: boolean
     hasOutbound?: boolean
     messageCount?: number
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     lastMessageAt?: Date | string
     lastInboundAt?: Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -342240,7 +342240,7 @@ export namespace Prisma {
     hasInbound?: boolean
     hasOutbound?: boolean
     messageCount?: number
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     lastMessageAt?: Date | string
     lastInboundAt?: Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -342287,7 +342287,7 @@ export namespace Prisma {
     hasInbound?: BoolFieldUpdateOperationsInput | boolean
     hasOutbound?: BoolFieldUpdateOperationsInput | boolean
     messageCount?: IntFieldUpdateOperationsInput | number
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -342320,7 +342320,7 @@ export namespace Prisma {
     hasInbound?: BoolFieldUpdateOperationsInput | boolean
     hasOutbound?: BoolFieldUpdateOperationsInput | boolean
     messageCount?: IntFieldUpdateOperationsInput | number
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -342350,7 +342350,7 @@ export namespace Prisma {
     inReplyTo?: string | null
     references?: MailMessageCreatereferencesInput | string[]
     subject?: string
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     fromAddress: string
     fromName?: string | null
     replyTo?: string | null
@@ -342362,7 +342362,7 @@ export namespace Prisma {
     contentObjectKey?: string | null
     contentSha256?: string | null
     rawMimeObjectKey?: string | null
-    searchText?: string
+    metadataSearchText?: string
     providerMessageId?: string | null
     idempotencyKey?: string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -342391,7 +342391,7 @@ export namespace Prisma {
     inReplyTo?: string | null
     references?: MailMessageCreatereferencesInput | string[]
     subject?: string
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     fromAddress: string
     fromName?: string | null
     replyTo?: string | null
@@ -342403,7 +342403,7 @@ export namespace Prisma {
     contentObjectKey?: string | null
     contentSha256?: string | null
     rawMimeObjectKey?: string | null
-    searchText?: string
+    metadataSearchText?: string
     providerMessageId?: string | null
     idempotencyKey?: string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -342479,7 +342479,7 @@ export namespace Prisma {
     inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
     references?: MailMessageUpdatereferencesInput | string[]
     subject?: StringFieldUpdateOperationsInput | string
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     fromAddress?: StringFieldUpdateOperationsInput | string
     fromName?: NullableStringFieldUpdateOperationsInput | string | null
     replyTo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -342491,7 +342491,7 @@ export namespace Prisma {
     contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
     contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
     rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
-    searchText?: StringFieldUpdateOperationsInput | string
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
     providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -342520,7 +342520,7 @@ export namespace Prisma {
     inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
     references?: MailMessageUpdatereferencesInput | string[]
     subject?: StringFieldUpdateOperationsInput | string
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     fromAddress?: StringFieldUpdateOperationsInput | string
     fromName?: NullableStringFieldUpdateOperationsInput | string | null
     replyTo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -342532,7 +342532,7 @@ export namespace Prisma {
     contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
     contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
     rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
-    searchText?: StringFieldUpdateOperationsInput | string
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
     providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -342714,7 +342714,7 @@ export namespace Prisma {
     inReplyTo?: string | null
     references?: MailMessageCreatereferencesInput | string[]
     subject?: string
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     fromAddress: string
     fromName?: string | null
     replyTo?: string | null
@@ -342726,7 +342726,7 @@ export namespace Prisma {
     contentObjectKey?: string | null
     contentSha256?: string | null
     rawMimeObjectKey?: string | null
-    searchText?: string
+    metadataSearchText?: string
     providerMessageId?: string | null
     idempotencyKey?: string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -342755,7 +342755,7 @@ export namespace Prisma {
     inReplyTo?: string | null
     references?: MailMessageCreatereferencesInput | string[]
     subject?: string
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     fromAddress: string
     fromName?: string | null
     replyTo?: string | null
@@ -342767,7 +342767,7 @@ export namespace Prisma {
     contentObjectKey?: string | null
     contentSha256?: string | null
     rawMimeObjectKey?: string | null
-    searchText?: string
+    metadataSearchText?: string
     providerMessageId?: string | null
     idempotencyKey?: string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -342843,7 +342843,7 @@ export namespace Prisma {
     inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
     references?: MailMessageUpdatereferencesInput | string[]
     subject?: StringFieldUpdateOperationsInput | string
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     fromAddress?: StringFieldUpdateOperationsInput | string
     fromName?: NullableStringFieldUpdateOperationsInput | string | null
     replyTo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -342855,7 +342855,7 @@ export namespace Prisma {
     contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
     contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
     rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
-    searchText?: StringFieldUpdateOperationsInput | string
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
     providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -342884,7 +342884,7 @@ export namespace Prisma {
     inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
     references?: MailMessageUpdatereferencesInput | string[]
     subject?: StringFieldUpdateOperationsInput | string
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     fromAddress?: StringFieldUpdateOperationsInput | string
     fromName?: NullableStringFieldUpdateOperationsInput | string | null
     replyTo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -342896,7 +342896,7 @@ export namespace Prisma {
     contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
     contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
     rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
-    searchText?: StringFieldUpdateOperationsInput | string
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
     providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -359250,7 +359250,7 @@ export namespace Prisma {
     hasInbound?: boolean
     hasOutbound?: boolean
     messageCount?: number
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     lastMessageAt?: Date | string
     lastInboundAt?: Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -359277,7 +359277,7 @@ export namespace Prisma {
     inReplyTo?: string | null
     references?: MailMessageCreatereferencesInput | string[]
     subject?: string
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     fromAddress: string
     fromName?: string | null
     replyTo?: string | null
@@ -359289,7 +359289,7 @@ export namespace Prisma {
     contentObjectKey?: string | null
     contentSha256?: string | null
     rawMimeObjectKey?: string | null
-    searchText?: string
+    metadataSearchText?: string
     providerMessageId?: string | null
     idempotencyKey?: string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -359533,7 +359533,7 @@ export namespace Prisma {
     hasInbound?: BoolFieldUpdateOperationsInput | boolean
     hasOutbound?: BoolFieldUpdateOperationsInput | boolean
     messageCount?: IntFieldUpdateOperationsInput | number
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -359565,7 +359565,7 @@ export namespace Prisma {
     hasInbound?: BoolFieldUpdateOperationsInput | boolean
     hasOutbound?: BoolFieldUpdateOperationsInput | boolean
     messageCount?: IntFieldUpdateOperationsInput | number
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -359597,7 +359597,7 @@ export namespace Prisma {
     hasInbound?: BoolFieldUpdateOperationsInput | boolean
     hasOutbound?: BoolFieldUpdateOperationsInput | boolean
     messageCount?: IntFieldUpdateOperationsInput | number
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participants?: NullableJsonNullValueInput | InputJsonValue
@@ -359623,7 +359623,7 @@ export namespace Prisma {
     inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
     references?: MailMessageUpdatereferencesInput | string[]
     subject?: StringFieldUpdateOperationsInput | string
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     fromAddress?: StringFieldUpdateOperationsInput | string
     fromName?: NullableStringFieldUpdateOperationsInput | string | null
     replyTo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -359635,7 +359635,7 @@ export namespace Prisma {
     contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
     contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
     rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
-    searchText?: StringFieldUpdateOperationsInput | string
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
     providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -359663,7 +359663,7 @@ export namespace Prisma {
     inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
     references?: MailMessageUpdatereferencesInput | string[]
     subject?: StringFieldUpdateOperationsInput | string
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     fromAddress?: StringFieldUpdateOperationsInput | string
     fromName?: NullableStringFieldUpdateOperationsInput | string | null
     replyTo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -359675,7 +359675,7 @@ export namespace Prisma {
     contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
     contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
     rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
-    searchText?: StringFieldUpdateOperationsInput | string
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
     providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -359702,7 +359702,7 @@ export namespace Prisma {
     inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
     references?: MailMessageUpdatereferencesInput | string[]
     subject?: StringFieldUpdateOperationsInput | string
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     fromAddress?: StringFieldUpdateOperationsInput | string
     fromName?: NullableStringFieldUpdateOperationsInput | string | null
     replyTo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -359714,7 +359714,7 @@ export namespace Prisma {
     contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
     contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
     rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
-    searchText?: StringFieldUpdateOperationsInput | string
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
     providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -360144,7 +360144,7 @@ export namespace Prisma {
     inReplyTo?: string | null
     references?: MailMessageCreatereferencesInput | string[]
     subject?: string
-    snippet?: string
+    encryptedSnippet?: Bytes | null
     fromAddress: string
     fromName?: string | null
     replyTo?: string | null
@@ -360156,7 +360156,7 @@ export namespace Prisma {
     contentObjectKey?: string | null
     contentSha256?: string | null
     rawMimeObjectKey?: string | null
-    searchText?: string
+    metadataSearchText?: string
     providerMessageId?: string | null
     idempotencyKey?: string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -360206,7 +360206,7 @@ export namespace Prisma {
   export type MailInternalNoteCreateManyThreadInput = {
     id?: string
     authorAdminUserId: string
-    body: string
+    encryptedBody: Bytes
     mentions?: MailInternalNoteCreatementionsInput | string[]
     createdAt?: Date | string
     deletedAt?: Date | string | null
@@ -360220,7 +360220,7 @@ export namespace Prisma {
     inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
     references?: MailMessageUpdatereferencesInput | string[]
     subject?: StringFieldUpdateOperationsInput | string
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     fromAddress?: StringFieldUpdateOperationsInput | string
     fromName?: NullableStringFieldUpdateOperationsInput | string | null
     replyTo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -360232,7 +360232,7 @@ export namespace Prisma {
     contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
     contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
     rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
-    searchText?: StringFieldUpdateOperationsInput | string
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
     providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -360260,7 +360260,7 @@ export namespace Prisma {
     inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
     references?: MailMessageUpdatereferencesInput | string[]
     subject?: StringFieldUpdateOperationsInput | string
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     fromAddress?: StringFieldUpdateOperationsInput | string
     fromName?: NullableStringFieldUpdateOperationsInput | string | null
     replyTo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -360272,7 +360272,7 @@ export namespace Prisma {
     contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
     contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
     rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
-    searchText?: StringFieldUpdateOperationsInput | string
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
     providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -360299,7 +360299,7 @@ export namespace Prisma {
     inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
     references?: MailMessageUpdatereferencesInput | string[]
     subject?: StringFieldUpdateOperationsInput | string
-    snippet?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
     fromAddress?: StringFieldUpdateOperationsInput | string
     fromName?: NullableStringFieldUpdateOperationsInput | string | null
     replyTo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -360311,7 +360311,7 @@ export namespace Prisma {
     contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
     contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
     rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
-    searchText?: StringFieldUpdateOperationsInput | string
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
     providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     authResults?: NullableJsonNullValueInput | InputJsonValue
@@ -360429,7 +360429,7 @@ export namespace Prisma {
   export type MailInternalNoteUpdateWithoutThreadInput = {
     id?: StringFieldUpdateOperationsInput | string
     authorAdminUserId?: StringFieldUpdateOperationsInput | string
-    body?: StringFieldUpdateOperationsInput | string
+    encryptedBody?: BytesFieldUpdateOperationsInput | Bytes
     mentions?: MailInternalNoteUpdatementionsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -360438,7 +360438,7 @@ export namespace Prisma {
   export type MailInternalNoteUncheckedUpdateWithoutThreadInput = {
     id?: StringFieldUpdateOperationsInput | string
     authorAdminUserId?: StringFieldUpdateOperationsInput | string
-    body?: StringFieldUpdateOperationsInput | string
+    encryptedBody?: BytesFieldUpdateOperationsInput | Bytes
     mentions?: MailInternalNoteUpdatementionsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -360447,7 +360447,7 @@ export namespace Prisma {
   export type MailInternalNoteUncheckedUpdateManyWithoutThreadInput = {
     id?: StringFieldUpdateOperationsInput | string
     authorAdminUserId?: StringFieldUpdateOperationsInput | string
-    body?: StringFieldUpdateOperationsInput | string
+    encryptedBody?: BytesFieldUpdateOperationsInput | Bytes
     mentions?: MailInternalNoteUpdatementionsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null

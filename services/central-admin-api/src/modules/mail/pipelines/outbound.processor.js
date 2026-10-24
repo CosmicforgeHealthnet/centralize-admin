@@ -35,6 +35,7 @@
 const { MailProviderError } = require("../adapters/mail-provider.contract");
 const { PipelineError } = require("./inbound.processor");
 const policy = require("../authz/mail.policy");
+const { externalSendBlockReason, SEND_BLOCK_REASONS } = require("../authz/sending-gate");
 
 function party(recipient) {
   return { address: recipient.address, name: recipient.name };
@@ -72,8 +73,10 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
     if (!identities.some((identity) => identity.addressId === message.senderAddressId)) throw new DispatchBlockedError("SENDER_IDENTITY_REVOKED");
     const address = await client.mailAddress.findUnique({ where: { id: message.senderAddressId }, include: { domain: true } });
     if (!address || address.status !== "ACTIVE") throw new DispatchBlockedError("SENDER_ADDRESS_NOT_ACTIVE");
-    if (address.domain.status !== "VERIFIED" || address.domain.sendingStatus !== "VERIFIED") throw new DispatchBlockedError("SENDER_DOMAIN_SENDING_DISABLED");
-    if (config.domainAllowlist.length && !config.domainAllowlist.includes(address.domain.domain)) throw new DispatchBlockedError("SENDER_DOMAIN_NOT_ALLOWLISTED");
+    // Same gate as enqueue time: empty/changed allowlist, unconfigured
+    // provider or a disabled/suspended domain cancel queued external mail.
+    const blocked = externalSendBlockReason({ config, providerReady: () => adapter.name !== "unconfigured", domain: address.domain });
+    if (blocked && blocked !== SEND_BLOCK_REASONS.SENDING_DISABLED) throw new DispatchBlockedError(blocked);
   }
 
   async function savePlan(job, plan) {

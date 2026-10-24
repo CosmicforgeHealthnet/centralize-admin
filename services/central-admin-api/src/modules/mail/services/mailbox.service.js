@@ -99,6 +99,7 @@ function createMailboxService({ client, config, store, audit }) {
         locker: assigneeBy.get(thread.lockedByAdminUserId) || null,
         hasAttachments: withAttachments.has(thread.id),
         lastDeliveryStatus: lastStatus.get(thread.id) || null,
+        snippet: store.decryptSnippet(thread.encryptedSnippet),
       }),
     );
   }
@@ -293,7 +294,7 @@ function createMailboxService({ client, config, store, audit }) {
     const position = decodeCursor(cursor);
     const conditions = [Prisma.sql`m."mailbox_id"::text IN (${Prisma.join(mailboxIds)})`, Prisma.sql`m."deleted_at" IS NULL`, Prisma.sql`t."deleted_at" IS NULL`];
     const query = String(q || "").trim().slice(0, 200);
-    if (query) conditions.push(Prisma.sql`to_tsvector('simple', m."search_text") @@ plainto_tsquery('simple', ${query})`);
+    if (query) conditions.push(Prisma.sql`to_tsvector('simple', m."metadata_search_text") @@ plainto_tsquery('simple', ${query})`);
     if (from) conditions.push(Prisma.sql`(m."from_address" ILIKE ${`%${String(from).slice(0, 120)}%`} OR m."from_name" ILIKE ${`%${String(from).slice(0, 120)}%`})`);
     if (subject) conditions.push(Prisma.sql`m."subject" ILIKE ${`%${String(subject).slice(0, 200)}%`}`);
     if (to) conditions.push(Prisma.sql`EXISTS (SELECT 1 FROM "mail_message_recipients" r WHERE r."message_id" = m."id" AND r."type" <> 'BCC' AND r."address" ILIKE ${`%${String(to).slice(0, 120)}%`})`);

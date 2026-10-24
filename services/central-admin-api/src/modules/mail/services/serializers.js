@@ -24,12 +24,12 @@ function pageLimit(value, fallback = 25, max = 100) {
   return Math.min(Math.max(Number.parseInt(value, 10) || fallback, 1), max);
 }
 
-function serializeThread(thread, { userState, labels = [], assignee = null, locker = null, hasAttachments = false, lastDeliveryStatus = null } = {}) {
+function serializeThread(thread, { userState, labels = [], assignee = null, locker = null, hasAttachments = false, lastDeliveryStatus = null, snippet = "" } = {}) {
   return {
     id: thread.id,
     mailboxId: thread.mailboxId,
     subject: thread.subject,
-    snippet: thread.snippet,
+    snippet,
     folder: thread.folder,
     lastMessageAt: iso(thread.lastMessageAt),
     messageCount: thread.messageCount,

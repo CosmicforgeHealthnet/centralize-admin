@@ -238,3 +238,30 @@ test("sanitizer escapes attribute values so quotes cannot inject event handlers"
     assert.ok(!/<script|<svg/i.test(html), html);
   }
 });
+
+test("external send gate denies every unsafe configuration and allows only the fully-configured case", () => {
+  const { externalSendBlockReason, SEND_BLOCK_REASONS: R } = require("../authz/sending-gate");
+  const ok = loadMailConfig({ MAIL_ENABLED: "true", MAIL_SENDING_ENABLED: "true", MAIL_DOMAIN_ALLOWLIST: "cosmicforge.example" });
+  const domain = { domain: "cosmicforge.example", status: "VERIFIED", sendingStatus: "VERIFIED" };
+  const gate = (overrides = {}) => externalSendBlockReason({ config: ok, providerReady: () => true, domain, ...overrides });
+  assert.equal(gate(), null);
+  assert.equal(gate({ config: loadMailConfig({ MAIL_ENABLED: "true", MAIL_DOMAIN_ALLOWLIST: "cosmicforge.example" }) }), R.SENDING_DISABLED);
+  assert.equal(gate({ config: loadMailConfig({ MAIL_SENDING_ENABLED: "true", MAIL_DOMAIN_ALLOWLIST: "cosmicforge.example" }) }), R.SENDING_DISABLED);
+  assert.equal(gate({ providerReady: () => false }), R.PROVIDER_NOT_CONFIGURED);
+  assert.equal(gate({ config: loadMailConfig({ MAIL_ENABLED: "true", MAIL_SENDING_ENABLED: "true" }) }), R.ALLOWLIST_EMPTY);
+  assert.equal(gate({ config: loadMailConfig({ MAIL_ENABLED: "true", MAIL_SENDING_ENABLED: "true", MAIL_DOMAIN_ALLOWLIST: " , " }) }), R.ALLOWLIST_EMPTY);
+  assert.equal(gate({ domain: { ...domain, domain: "unrelated.example" } }), R.NOT_ALLOWLISTED);
+  assert.equal(gate({ domain: { ...domain, domain: "sub.cosmicforge.example" } }), R.NOT_ALLOWLISTED, "no implicit subdomain match");
+  assert.equal(gate({ domain: null }), R.NOT_ALLOWLISTED);
+  assert.equal(gate({ domain: { ...domain, status: "SUSPENDED" } }), R.SENDING_SUSPENDED);
+  assert.equal(gate({ domain: { ...domain, sendingStatus: "DISABLED" } }), R.SENDING_SUSPENDED);
+  assert.equal(gate({ domain: { ...domain, status: "PENDING_VERIFICATION" } }), R.NOT_VERIFIED);
+  assert.equal(gate({ domain: { ...domain, sendingStatus: "PENDING" } }), R.NOT_VERIFIED);
+});
+
+test("body search indexing cannot be enabled by configuration", () => {
+  const config = loadMailConfig({ MAIL_SEARCH_INDEX_BODIES: "true" });
+  assert.equal(config.search.bodies, false);
+  assert.equal(config.search.bodyIndexingRequestRefused, true);
+  assert.equal(loadMailConfig({}).search.bodyIndexingRequestRefused, false);
+});

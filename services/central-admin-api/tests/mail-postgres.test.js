@@ -70,12 +70,20 @@ function createHarness(client) {
   let offsetMs = 0;
   const clock = () => new Date(Date.now() + offsetMs);
   const adapter = createFakeAdapter();
-  const config = loadMailConfig({
+  const baseEnv = {
     MAIL_ENABLED: "true", MAIL_SENDING_ENABLED: "true", MAIL_RECEIVING_ENABLED: "true", MAIL_MARKETING_ENABLED: "true", MAIL_WORKER_ENABLED: "true",
     MAIL_PROVIDER: "fake", RESEND_WEBHOOK_SECRET: WEBHOOK_SECRET, MAIL_ENCRYPTION_KEYS: `v1:${crypto.randomBytes(32).toString("base64")}`,
     MAIL_WORKER_MAX_ATTEMPTS: "4", MAIL_UNKNOWN_RECIPIENT_POLICY: "reject",
-  });
-  const mail = createMailApplication({ client, config, adapter, storageBackend: memoryBackend(), scanner: signatureScanner(), logger: { info() {}, warn() {}, error() {} }, clock });
+    MAIL_DOMAIN_ALLOWLIST: "cosmicforge.example,karryam.example",
+    // Legacy flag: must be refused, never re-enabling plaintext body indexing.
+    MAIL_SEARCH_INDEX_BODIES: "true",
+  };
+  const config = loadMailConfig(baseEnv);
+  const backend = memoryBackend();
+  const mail = createMailApplication({ client, config, adapter, storageBackend: backend, scanner: signatureScanner(), logger: { info() {}, warn() {}, error() {} }, clock });
+  // Another app instance over the same DB/storage/keys with different config
+  // (e.g. a worker deployed with a changed allowlist).
+  const variant = (overrides, extra = {}) => createMailApplication({ client, config: loadMailConfig({ ...baseEnv, ...overrides }), adapter: extra.adapter || adapter, storageBackend: backend, encryption: mail.encryption, scanner: signatureScanner(), logger: { info() {}, warn() {}, error() {} }, clock });
   const authenticate = async (req, res, next) => {
     try {
       const id = req.get("x-test-user");
@@ -98,7 +106,7 @@ function createHarness(client) {
   app.use("/api/mail/v1", createMailRouter({ mail, authenticate, rateLimitMax: 10000 }));
   app.use(errorHandler);
   const worker = mail.createWorker();
-  return { mail, app, adapter, worker, clock, advance: (ms) => { offsetMs += ms; } };
+  return { mail, app, adapter, worker, clock, backend, variant, authenticate, advance: (ms) => { offsetMs += ms; } };
 }
 
 async function listen(app) {
@@ -681,6 +689,159 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       assert.equal((await client.mailOutboxJob.findUnique({ where: { id: job.id } })).status, "DEAD_LETTER");
       assert.equal((await call("alice", "GET", `/messages/${crash.messageId}/status`)).body.data.status, "OUTCOME_UNKNOWN", "a crash during an attempted send is unknown, not failed or sent");
       assert.equal(await countFor(crash.messageId), 0);
+    });
+
+    await t.test("Confidentiality: message bodies, previews and notes are never stored in plaintext in the Mail database", async () => {
+      const tag = crypto.randomBytes(8).toString("hex");
+      const canaries = {
+        outbound: `cfbodyout${tag}`,
+        inbound: `cfbodyin${tag}`,
+        attachment: `cfattach${tag}`,
+        note: `cfnote${tag}`,
+        draft: `cfdraft${tag}`,
+      };
+      assert.equal(harness.mail.config.search.bodies, false, "body indexing cannot be enabled");
+      assert.equal(harness.mail.config.search.bodyIndexingRequestRefused, true, "legacy MAIL_SEARCH_INDEX_BODIES=true is refused and reported");
+
+      const draft = await call("alice", "POST", `/mailboxes/${state.aliceBox}/drafts`, { to: ["bob@cosmicforge.example", "canary-ext@partner.example"], bcc: ["canary-bcc@partner.example"], subject: "Canary metadata subject", html: `<p>Confidential ${canaries.outbound} figures</p>` });
+      const sent = await call("alice", "POST", `/drafts/${draft.body.data.id}/send`, { revision: 1 });
+      assert.equal(sent.status, 202, sent.text);
+      harness.adapter.addInbound("canary_in", { from: { address: "patient@client.example", name: "Patient" }, to: [{ address: "support@cosmicforge.example", name: null }], cc: [], envelopeRecipients: [], subject: "Canary inbound subject", html: `<p>My record ${canaries.inbound}</p>`, text: `My record ${canaries.inbound}`, rfcMessageId: `<canary-${tag}@client.example>`, inReplyTo: null, references: [], receivedAt: harness.clock() }, [{ filename: "notes.txt", contentType: "text/plain", content: Buffer.from(`attachment ${canaries.attachment}`) }]);
+      await webhook("email.received", { email_id: "canary_in", to: ["support@cosmicforge.example"] });
+      await drain();
+      const queue = await call("carol", "GET", `/mailboxes/${state.supportBox}/threads?view=all`);
+      const supportThread = queue.body.data.find((thread) => thread.subject === "Canary inbound subject");
+      assert.ok(supportThread);
+      assert.equal((await call("carol", "POST", `/threads/${supportThread.id}/notes`, { body: `Callback ${canaries.note}` })).status, 201);
+      const keptDraft = await call("alice", "POST", `/mailboxes/${state.aliceBox}/drafts`, { to: ["x@partner.example"], subject: "Draft subject", html: `<p>${canaries.draft}</p>` });
+      assert.equal(keptDraft.status, 201);
+
+      // Positive control: authorized readers still get decrypted content and previews.
+      assert.match(supportThread.snippet, new RegExp(canaries.inbound), "preview is decrypted for authorized readers");
+      const messages = await call("carol", "GET", `/threads/${supportThread.id}/messages`);
+      assert.match(messages.body.data[0].html, new RegExp(canaries.inbound));
+      const notes = await call("carol", "GET", `/threads/${supportThread.id}/notes`);
+      assert.equal(notes.body.data.at(-1).body, `Callback ${canaries.note}`);
+      assert.match((await call("alice", "GET", `/drafts/${keptDraft.body.data.id}`)).body.data.html, new RegExp(canaries.draft));
+
+      // Scan every text-like and binary column of every Mail / Marketing Email table.
+      const columns = await client.$queryRawUnsafe(`
+        SELECT table_name, column_name, data_type FROM information_schema.columns
+        WHERE table_schema = 'public' AND (table_name LIKE 'mail\\_%' OR table_name LIKE 'marketing\\_email\\_%' OR table_name IN ('notifications', 'admin_audit_logs'))
+          AND data_type IN ('text', 'character varying', 'character', 'json', 'jsonb', 'ARRAY', 'bytea', 'USER-DEFINED')`);
+      assert.ok(columns.length > 100, `scanned ${columns.length} columns`);
+      const hits = [];
+      for (const canary of Object.values(canaries)) {
+        for (const column of columns) {
+          const ident = `"${column.table_name}"."${column.column_name}"`;
+          const predicate = column.data_type === "bytea" ? `position(convert_to($1, 'UTF8') in ${ident}) > 0` : `${ident}::text ILIKE '%' || $1 || '%'`;
+          const [row] = await client.$queryRawUnsafe(`SELECT count(*)::int AS n FROM "${column.table_name}" WHERE ${predicate}`, canary);
+          if (row.n) hits.push(`${column.table_name}.${column.column_name} contains ${canary}`);
+        }
+      }
+      assert.deepEqual(hits, [], "no plaintext body/preview/note/draft canary in any Mail column, index source or audit row");
+      const [fts] = await client.$queryRawUnsafe(`SELECT count(*)::int AS n FROM mail_messages WHERE to_tsvector('simple', metadata_search_text) @@ plainto_tsquery('simple', $1)`, canaries.inbound);
+      assert.equal(fts.n, 0, "full-text index has no body terms");
+      assert.deepEqual((await call("carol", "GET", `/search?q=${canaries.inbound}`)).body.data, [], "body search is not available");
+      assert.ok((await call("carol", "GET", "/search?q=Canary")).body.data.length >= 1, "metadata (subject) search still works");
+      for (const object of harness.backend.objects.values()) {
+        for (const canary of Object.values(canaries)) assert.ok(!object.includes(Buffer.from(canary)), "private storage holds ciphertext only");
+      }
+      // BCC never reaches searchable metadata.
+      const [bcc] = await client.$queryRawUnsafe(`SELECT count(*)::int AS n FROM mail_messages WHERE metadata_search_text ILIKE '%canary-bcc@partner.example%'`);
+      assert.equal(bcc.n, 0);
+    });
+
+    await t.test("Hardening: external delivery requires a configured provider and a non-empty sender-domain allowlist, at enqueue and at dispatch", async () => {
+      const alice = await client.adminUser.findUnique({ where: { id: ids.alice } });
+      const newDraft = async (body = {}) => (await call("alice", "POST", `/mailboxes/${state.aliceBox}/drafts`, { to: ["gate@partner.example"], subject: "Gate", text: "x", ...body })).body.data;
+      const reasonOf = (error) => error.errors?.[0]?.reason;
+      const providerCalls = async (messageId) => {
+        const { rfcMessageId } = await client.mailMessage.findUnique({ where: { id: messageId } });
+        return harness.adapter.state.sent.filter((request) => request.headers["Message-ID"] === rfcMessageId).length;
+      };
+
+      // Enqueue-time denials (nothing is queued).
+      const emptyAllowlist = harness.variant({ MAIL_DOMAIN_ALLOWLIST: "" });
+      let draft = await newDraft();
+      await assert.rejects(emptyAllowlist.services.compose.sendDraft(alice, draft.id, { revision: 1 }), (error) => error.code === "MAIL_SENDER_NOT_AUTHORIZED" && reasonOf(error) === "SENDER_DOMAIN_ALLOWLIST_EMPTY");
+      const internalOnly = await newDraft({ to: ["bob@cosmicforge.example"] });
+      assert.equal((await emptyAllowlist.services.compose.sendDraft(alice, internalOnly.id, { revision: 1 })).status, "DELIVERED", "internal delivery is not governed by the external allowlist");
+      const disabled = harness.variant({ MAIL_SENDING_ENABLED: "false" });
+      await assert.rejects(disabled.services.compose.sendDraft(alice, draft.id, { revision: 1 }), (error) => error.code === "MAIL_SENDING_DISABLED");
+      const { notConfiguredAdapter } = require("../src/modules/mail/adapters");
+      const noProvider = harness.variant({}, { adapter: notConfiguredAdapter("no credentials") });
+      await assert.rejects(noProvider.services.compose.sendDraft(alice, draft.id, { revision: 1 }), (error) => error.code === "MAIL_PROVIDER_UNAVAILABLE" && reasonOf(error) === "MAIL_PROVIDER_NOT_CONFIGURED");
+      assert.equal(await client.mailMessage.count({ where: { subject: "Gate", sentByAdminUserId: ids.alice, direction: "OUTBOUND", status: { not: "DELIVERED" } } }), 0, "denied sends never create queued messages");
+
+      // A verified but non-allowlisted domain is refused (HTTP contract).
+      // Registered while an operator had it on a wider allowlist; the running config no longer lists it.
+      const wider = harness.variant({ MAIL_DOMAIN_ALLOWLIST: "cosmicforge.example,unrelated-verified.example" });
+      const mailAdminUser = await client.adminUser.findUnique({ where: { id: ids.mailAdmin } });
+      const other = await wider.services.admin.createDomain(mailAdminUser, { organizationId: state.orgId, domain: "unrelated-verified.example", providerDomainId: "dom_other" }, {});
+      harness.adapter.state.domains.set("dom_other", { status: "VERIFIED", sendingStatus: "VERIFIED", receivingStatus: "VERIFIED", records: [] });
+      assert.equal((await call("mailAdmin", "POST", `/admin/domains/${other.id}/verify`)).body.data.status, "VERIFIED");
+      assert.equal((await call("mailAdmin", "POST", "/admin/domains", { organizationId: state.orgId, domain: "another-unlisted.example" })).status, 400, "registration also honours the allowlist");
+      const alias = await call("mailAdmin", "POST", "/admin/addresses", { domainId: other.id, localPart: "alice", kind: "ALIAS", mailboxId: state.aliceBox, aliasOfAddressId: state.addr.alice.id });
+      assert.equal(alias.status, 201, alias.text);
+      draft = await newDraft({ senderAddressId: alias.body.data.id });
+      const refused = await call("alice", "POST", `/drafts/${draft.id}/send`, { revision: 1 });
+      assert.equal(refused.status, 403);
+      assert.equal(refused.body.code, "MAIL_SENDER_NOT_AUTHORIZED");
+      assert.equal(refused.body.errors[0].reason, "SENDER_DOMAIN_NOT_ALLOWLISTED");
+
+      // Dispatch-time denials for mail queued while everything was allowed.
+      const queue = async () => {
+        const d = await newDraft();
+        const result = await call("alice", "POST", `/drafts/${d.id}/send`, { revision: 1 });
+        assert.equal(result.status, 202, result.text);
+        return result.body.data;
+      };
+      const cases = [
+        { name: "allowlist changed", worker: () => harness.variant({ MAIL_DOMAIN_ALLOWLIST: "unrelated-verified.example" }).createWorker(), reason: "SENDER_DOMAIN_NOT_ALLOWLISTED" },
+        { name: "allowlist emptied", worker: () => harness.variant({ MAIL_DOMAIN_ALLOWLIST: "" }).createWorker(), reason: "SENDER_DOMAIN_ALLOWLIST_EMPTY" },
+        { name: "provider credentials removed", worker: () => harness.variant({}, { adapter: notConfiguredAdapter("removed") }).createWorker(), reason: "MAIL_PROVIDER_NOT_CONFIGURED" },
+        {
+          name: "domain suspended",
+          before: () => client.mailDomain.update({ where: { id: state.domainId }, data: { status: "SUSPENDED" } }),
+          after: () => client.mailDomain.update({ where: { id: state.domainId }, data: { status: "VERIFIED" } }),
+          worker: () => harness.worker,
+          reason: "SENDER_DOMAIN_SENDING_DISABLED",
+        },
+      ];
+      for (const entry of cases) {
+        const queued = await queue();
+        await entry.before?.();
+        await entry.worker().drain();
+        await entry.after?.();
+        const message = await client.mailMessage.findUnique({ where: { id: queued.messageId }, include: { recipients: true } });
+        assert.equal(message.status, "FAILED", entry.name);
+        assert.equal(message.recipients[0].lastEventDetail, entry.reason, entry.name);
+        assert.equal(await providerCalls(queued.messageId), 0, `${entry.name}: provider never called`);
+        assert.ok(await client.mailAuditEvent.count({ where: { action: "MAIL_SEND_BLOCKED_AT_DISPATCH", targetId: queued.messageId } }), `${entry.name}: audited`);
+      }
+      // Control: with the original configuration the same path still sends.
+      const control = await queue();
+      await drain();
+      assert.equal(await providerCalls(control.messageId), 1);
+    });
+
+    await t.test("Hardening: unknown provider outcomes are never presented as delivered", async () => {
+      const draft = await call("alice", "POST", `/mailboxes/${state.aliceBox}/drafts`, { to: ["unknown-outcome@partner.example"], subject: "Unknown outcome", text: "x" });
+      const sent = (await call("alice", "POST", `/drafts/${draft.body.data.id}/send`, { revision: 1 })).body.data;
+      harness.adapter.failNext("sendMessage", "IDEMPOTENCY_CONFLICT", "RESEND_IDEMPOTENCY_CONFLICT");
+      await drain();
+      const status = (await call("alice", "GET", `/messages/${sent.messageId}/status`)).body.data;
+      assert.equal(status.status, "OUTCOME_UNKNOWN");
+      assert.ok(status.recipients.every((recipient) => recipient.status !== "DELIVERED"));
+      const thread = (await call("alice", "GET", `/threads/${sent.threadId}`)).body.data;
+      assert.equal(thread.lastDeliveryStatus, "OUTCOME_UNKNOWN");
+      // An unrelated provider event cannot resolve it.
+      await webhook("email.delivered", { email_id: "some-other-provider-id", to: ["unknown-outcome@partner.example"] });
+      await drain();
+      assert.equal((await call("alice", "GET", `/messages/${sent.messageId}/status`)).body.data.status, "OUTCOME_UNKNOWN");
+      const job = await client.mailOutboxJob.findUnique({ where: { id: sent.jobId } });
+      assert.notEqual(job.status, "RETRY_SCHEDULED", "unknown outcomes are never retried automatically");
     });
 
     await t.test("M3: legal holds, immutable audit trail and offboarding retain history", async () => {
