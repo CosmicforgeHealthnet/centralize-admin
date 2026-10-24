@@ -3,7 +3,6 @@
 import React, { useEffect } from "react";
 import { Calendar, Stethoscope, Users, Wallet } from "lucide-react";
 import { useHealthnetStore } from "@/stores/healthnet.store";
-import ServiceDataState from "@/components/shared/ServiceDataState";
 
 function SkeletonCard() {
   return (
@@ -51,7 +50,25 @@ export default function HealthnetStatCards() {
     fetchMetrics();
   }, [fetchMetrics]);
 
-  if (metricsError && !metricsLoading) return <ServiceDataState title="HealthNet statistics unavailable" message={metricsError} retry={() => void fetchMetrics()} />;
+  if (metricsError && !metricsLoading) {
+    const labels = [
+      { label: "Appointments", icon: Calendar, color: "#272EA7" },
+      { label: "Doctors", icon: Stethoscope, color: "#272EA7" },
+      { label: "Patients", icon: Users, color: "#E8B600" },
+      { label: "Balance", icon: Wallet, color: "#0DA53F" },
+    ];
+    return (
+      <div>
+        <div role="alert" className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 py-2">
+          <span className="text-xs text-muted-foreground">HealthNet statistics unavailable</span>
+          <button type="button" onClick={() => void fetchMetrics()} className="text-xs font-semibold text-primary hover:underline">Retry</button>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "12px" }}>
+          {labels.map(item => <StatCard key={item.label} {...item} value="—" />)}
+        </div>
+      </div>
+    );
+  }
 
   if (metricsLoading || !metrics) {
     return (

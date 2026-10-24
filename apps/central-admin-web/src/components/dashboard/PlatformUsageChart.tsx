@@ -70,8 +70,7 @@ export default function PlatformUsageChart() {
   };
 
   if (isLoadingPlatform || platformStatus === "idle") return <PlatformUsageSkeleton />;
-  if (platformError) return <ServiceDataState title="HealthNet platform usage unavailable" message={platformError} retry={() => void fetchPlatformUsage()} />;
-  if (!platformUsage.length) return <ServiceDataState title="No platform usage records" empty />;
+  const hasChartData = !platformError && platformUsage.length > 0;
 
   const maxValue = Math.max(
     ...platformUsage.flatMap((m) => [m.AI, m.Lab, m.Pharmacy, m.Consultation]),
@@ -112,6 +111,8 @@ export default function PlatformUsageChart() {
           {/* Desktop button */}
           <Button
             onClick={handleDownload}
+            disabled={!hasChartData}
+            title={!hasChartData ? "Report unavailable until data loads" : undefined}
             className="hidden sm:flex h-[28px] text-[11px] font-poppins gap-1 shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 border-none px-3"
           >
             Download Report 
@@ -121,6 +122,8 @@ export default function PlatformUsageChart() {
           <div className="relative sm:hidden">
             <button
               onClick={handleDownload}
+              disabled={!hasChartData}
+              aria-label="Download platform usage report"
               onMouseDown={handlePressStart}
               onMouseUp={handlePressEnd}
               onTouchStart={handlePressStart}
@@ -139,7 +142,13 @@ export default function PlatformUsageChart() {
         </div>
       </div>
 
-      {/* Chart */}
+      {/* Keep the normal dashboard card, header, legend and report control visible even if HealthNet is offline. */}
+      {platformError ? (
+        <ServiceDataState embedded title="Usage data unavailable" message={platformError}
+          retry={() => void fetchPlatformUsage()} />
+      ) : !platformUsage.length ? (
+        <ServiceDataState embedded empty title="No platform usage records" />
+      ) : (
       <ResponsiveContainer width="100%" height={220}>
         <AreaChart data={normalizedData} margin={{ top: 10, right: 5, left: -10, bottom: 0 }}>
           <defs>
@@ -189,6 +198,7 @@ export default function PlatformUsageChart() {
           ))}
         </AreaChart>
       </ResponsiveContainer>
+      )}
     </div>
   );
 }

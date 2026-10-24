@@ -49,19 +49,19 @@ export default function HealthnetRevenueTracking() {
     fetchRevenueChart();
   }, [fetchRevenueChart]);
 
-  if (revenueChartError && !revenueChartLoading) return <ServiceDataState title="HealthNet revenue unavailable" message={revenueChartError} retry={() => void fetchRevenueChart()} />;
-  if (revenueChartLoading || !revenueChart) {
+  if ((revenueChartLoading || !revenueChart) && !revenueChartError) {
     return <SkeletonCard />;
   }
 
   // Use USD figures for the chart; format month labels from the data
-  const chartData = revenueChart.data.map((d) => ({
+  const chartData = (revenueChart?.data ?? []).map((d) => ({
     month: d.month,
     incomeUsd: d.incomeUsd,
     expenseUsd: d.expenseUsd,
   }));
 
   const handleDownload = () => {
+    if (!revenueChart || revenueChartError) return;
     const csv = [
       ["Month", "Income (USD)", "Income (NGN)", "Expense (USD)", "Expense (NGN)"],
       ...revenueChart.data.map((d) => [
@@ -94,6 +94,7 @@ export default function HealthnetRevenueTracking() {
         </div>
         <button
           onClick={handleDownload}
+          disabled={!revenueChart || Boolean(revenueChartError)}
           className="flex items-center gap-2 px-3 py-1.5 rounded-[8px] border border-border bg-card text-[12px] font-poppins text-foreground hover:bg-muted transition-colors"
         >
           <Download className="w-3.5 h-3.5 text-muted-foreground" />
@@ -113,7 +114,11 @@ export default function HealthnetRevenueTracking() {
         </div>
       </div>
 
-      {/* Chart */}
+      {/* Never fabricate revenue; keep chart panel and download control visible. */}
+      {revenueChartError ? (
+        <ServiceDataState embedded title="Revenue data unavailable" message={revenueChartError}
+          retry={() => void fetchRevenueChart()} />
+      ) : (
       <div className="h-[260px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
@@ -141,6 +146,7 @@ export default function HealthnetRevenueTracking() {
           </BarChart>
         </ResponsiveContainer>
       </div>
+      )}
     </div>
   );
 }

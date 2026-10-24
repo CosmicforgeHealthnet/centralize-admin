@@ -46,12 +46,11 @@ export default function PatientsStatisticsChart() {
     fetchPatientsChart(month);
   }, [month, fetchPatientsChart]);
 
-  if (patientsChartError && !patientsChartLoading) return <ServiceDataState title="HealthNet patient statistics unavailable" message={patientsChartError} retry={() => void fetchPatientsChart(month)} />;
-  if (patientsChartLoading || !patientsChart) {
+  if ((patientsChartLoading || !patientsChart) && !patientsChartError) {
     return <SkeletonCard />;
   }
 
-  const selectedShort = patientsChart.selectedMonth.slice(0, 3);
+  const selectedShort = patientsChart?.selectedMonth.slice(0, 3) ?? "";
 
   return (
     <div className="bg-card rounded-lg border border-border p-5 flex flex-col w-full">
@@ -94,11 +93,15 @@ export default function PatientsStatisticsChart() {
         </div>
       </div>
 
-      {/* Chart */}
+      {/* Chart: preserve the header and month filter while the owner service is offline. */}
+      {patientsChartError ? (
+        <ServiceDataState embedded title="Patient statistics unavailable" message={patientsChartError}
+          retry={() => void fetchPatientsChart(month)} />
+      ) : (
       <div className="h-[220px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={patientsChart.data}
+            data={patientsChart?.data ?? []}
             margin={{ top: 4, right: 4, left: -24, bottom: 0 }}
             barSize={16}
           >
@@ -123,7 +126,7 @@ export default function PatientsStatisticsChart() {
             />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: "var(--muted)", radius: 4 }} />
             <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-              {patientsChart.data.map((entry) => (
+              {(patientsChart?.data ?? []).map((entry) => (
                 <Cell
                   key={entry.month}
                   fill="#8B1A1A"
@@ -134,6 +137,7 @@ export default function PatientsStatisticsChart() {
           </BarChart>
         </ResponsiveContainer>
       </div>
+      )}
     </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { useDashboardStore } from "@/stores/dashboard.store";
-import ServiceDataState from "@/components/shared/ServiceDataState";
 import type { StatCards as StatCardsType } from "@/types/dashboard.types";
 
 const STAT_CONFIG = [
@@ -70,15 +69,42 @@ export default function StatCards() {
     fetchOverview();
   }, [fetchOverview]);
 
-  if (overviewError && !isLoadingOverview) {
-    return <div className="col-span-2 sm:col-span-6 min-[1014px]:col-span-5"><ServiceDataState title="HealthNet statistics unavailable" message={overviewError} retry={() => void fetchOverview()} compact /></div>;
-  }
 
   if (isLoadingOverview || !overview) {
     return (
       <>
         {STAT_CONFIG.map((_, i) => (
           <StatCardSkeleton key={i} index={i} />
+        ))}
+      </>
+    );
+  }
+
+  if (overviewError) {
+    return (
+      <>
+        {STAT_CONFIG.map((config, i) => (
+          <div
+            key={config.key}
+            className={`bg-card rounded-lg border border-border p-3 md:p-4 flex flex-col justify-between items-center text-center min-h-[90px] md:min-h-[110px] ${getColSpan(i)}`}
+          >
+            <div>
+              <p className="text-[11px] md:text-[12px] font-poppins font-semibold text-foreground leading-tight">
+                {config.title}
+              </p>
+              <p className="text-[10px] md:text-[11px] font-poppins text-muted-foreground leading-tight mt-0.5">
+                {config.subtitle}
+              </p>
+            </div>
+            <span aria-label={`${config.title} data unavailable`} className="text-[18px] md:text-[22px] font-bold text-muted-foreground leading-tight my-1">
+              —
+            </span>
+            {i === 0 ? (
+              <button type="button" onClick={() => void fetchOverview()}
+                className="text-[10px] font-semibold text-primary hover:underline focus-visible:outline-2"
+                aria-label="Retry loading dashboard statistics">Retry data</button>
+            ) : <span className="text-[10px] text-muted-foreground">Unavailable</span>}
+          </div>
         ))}
       </>
     );
