@@ -62,7 +62,7 @@
     "studio": "prisma studio --config prisma.config.ts",
     "studio:main:dev": "cross-env MAIN_DB_ENV=dev prisma studio --config prisma.main.config.ts",
     "studio:main:prod": "cross-env MAIN_DB_ENV=prod prisma studio --config prisma.main.config.ts",
-    "test:mail": "node --require ./tests/helpers/network-guard.js --test \"src/modules/mail/__tests__/*.test.js\" tests/mail-*.test.js"
+    "test:mail": "node --require ./tests/helpers/network-guard.js --test src/modules/mail/__tests__/mail-security.unit.test.js tests/mail-app-wiring.test.js tests/mail-postgres.test.js"
   },
   "keywords": [],
   "author": "",
