@@ -76,8 +76,7 @@ export default function RevenueTracking() {
   };
 
   if (isLoadingRevenue || revenueStatus === "idle") return <RevenueTrackingSkeleton />;
-  if (revenueError) return <ServiceDataState title="HealthNet revenue unavailable" message={revenueError} retry={() => void fetchRevenueChart()} />;
-  if (!revenueChart.length) return <ServiceDataState title="No revenue records" empty />;
+  const hasRevenueData = !revenueError && revenueChart.length > 0;
 
   // ── Totals ─────────────────────────────────────────────────────────────
   const totalRevenue = revenueChart.reduce(
@@ -155,6 +154,8 @@ export default function RevenueTracking() {
           {/* Desktop button */}
           <Button
             onClick={handleDownload}
+            disabled={!hasRevenueData}
+            title={!hasRevenueData ? "Report unavailable until data loads" : undefined}
             className="hidden sm:flex h-[28px] text-[11px] font-poppins gap-1 shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 border-none px-3"
           >
             Download Report
@@ -164,6 +165,8 @@ export default function RevenueTracking() {
           <div className="relative sm:hidden">
             <button
               onClick={handleDownload}
+              disabled={!hasRevenueData}
+              aria-label="Download revenue report"
               onMouseDown={handlePressStart}
               onMouseUp={handlePressEnd}
               onTouchStart={handlePressStart}
@@ -182,7 +185,13 @@ export default function RevenueTracking() {
         </div>
       </div>
 
-      {/* Body */}
+      {/* Preserve original revenue header/legend and controls while keeping missing financial values honest. */}
+      {revenueError ? (
+        <ServiceDataState embedded title="Revenue data unavailable" message={revenueError}
+          retry={() => void fetchRevenueChart()} />
+      ) : !revenueChart.length ? (
+        <ServiceDataState embedded empty title="No revenue records" />
+      ) : (
       <div className="flex flex-col sm:flex-row gap-4 md:gap-6">
         {/* Left: Total Revenue + Area Chart */}
         <div className="w-full sm:w-[200px] md:w-[240px] shrink-0">
@@ -327,6 +336,7 @@ export default function RevenueTracking() {
           </ResponsiveContainer>
         </div>
       </div>
+      )}
     </div>
   );
 }
