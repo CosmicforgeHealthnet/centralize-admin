@@ -16,7 +16,7 @@ A push to GitHub branch `staging` triggers `.github/workflows/staging.yml`:
 In GitHub, open repository **Settings → Environments → staging**. Configure these environment secrets:
 
 - `STAGING_HOST`: the Contabo SSH host/IP for the *existing staging VPS*.
-- `STAGING_USER`: an SSH principal authorized to run Docker on the staging host (ideally a dedicated deploy principal).
+- `STAGING_USER`: a dedicated non-root SSH principal such as `cf-staging-deploy`, authorized for Docker access on the staging host. Docker group access is effectively root-level on a shared VPS; prefer a dedicated staging-only host/runner or a tightly restricted command policy for stronger production isolation.
 - `STAGING_SSH_KEY`: its **private** SSH key. Configure the matching **public** key in that SSH account's `authorized_keys`.
 
 Create the SSH key on a trusted admin machine. Never commit it, post it in chat, or store it in repo files. If environment rules require manual approval, GitHub will hold deployments pending that approval. GHCR push/read authentication uses GitHub Actions' ephemeral `GITHUB_TOKEN`; no long-lived registry token needs to be stored on Contabo.
@@ -32,7 +32,7 @@ After adding the three secrets, open **Actions → Social Operations CI → Run 
 - Nginx API hostname: `https://stagingca.cosmicforge-healthnet.com`
 - Staging Compose DB: `admin-server-staging-db-1` — left running; no migration is performed automatically.
 - Production directory: `/var/www/admin-server` — never accessed by the workflow.
-- Additional override written by deployment: `docker-compose.github-staging.yml`. The older manual override `docker-compose.staging-local.yml` is not used by the GitHub deployment; avoid combining them.
+- Additional override written by deployment: `$HOME/docker-compose.github-staging.yml` in the dedicated SSH user's home. The older manual override `docker-compose.staging-local.yml` is not used by the GitHub deployment; avoid combining them.
 - Rollback image is retained locally under `cf-admin-api:staging-rollback-<run-id>`.
 
 ## Known blockers and next checks
