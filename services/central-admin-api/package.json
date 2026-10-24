@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
+    "mail:worker": "node src/mail-worker.js",
     "marketing:live-validate": "node scripts/marketing-intelligence/live-validate-provider.js",
     "test": "node --require ./tests/helpers/network-guard.js --test",
     "test:network-guard": "node --require ./tests/helpers/network-guard.js --test tests/network-guard.test.js",
@@ -60,7 +61,8 @@
     "db:seed": "node prisma/seeds/admin.seed.js",
     "studio": "prisma studio --config prisma.config.ts",
     "studio:main:dev": "cross-env MAIN_DB_ENV=dev prisma studio --config prisma.main.config.ts",
-    "studio:main:prod": "cross-env MAIN_DB_ENV=prod prisma studio --config prisma.main.config.ts"
+    "studio:main:prod": "cross-env MAIN_DB_ENV=prod prisma studio --config prisma.main.config.ts",
+    "test:mail": "node --require ./tests/helpers/network-guard.js --test \"src/modules/mail/__tests__/*.test.js\" tests/mail-*.test.js"
   },
   "keywords": [],
   "author": "",

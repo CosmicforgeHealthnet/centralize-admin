@@ -19,6 +19,15 @@ const {
 } = require("./shared/middlewares/error.middleware");
 const logger = require("./shared/utils/logger");
 const { requestContext } = require("./shared/middlewares/request-context.middleware");
+const { authenticate } = require("./shared/middlewares/auth.middleware");
+
+const MAIL_API_PREFIX = "/api/mail/v1";
+const MAIL_WEBHOOK_PATH = `${MAIL_API_PREFIX}/webhooks/resend`;
+
+function isMailPath(url) {
+  const path = String(url || "").split("?")[0];
+  return path === MAIL_API_PREFIX || path.startsWith(`${MAIL_API_PREFIX}/`);
+}
 
 function loadRoutes() {
   return {
@@ -56,6 +65,7 @@ function createApp({
   appLogger = logger,
   googleStrategyRegistrar = passport.configureGoogleStrategy,
   cloudinaryConfigurator = cloudinary.configureCloudinary,
+  mailHttpFactory = (options) => require("./modules/mail").createMailHttp(options),
 } = {}) {
   const googleOAuth = googleStrategyRegistrar({
     passport: passportInstance,
@@ -64,10 +74,12 @@ function createApp({
   });
   const cloudinaryStatus = cloudinaryConfigurator({ env, logger: appLogger });
   const routes = loadRoutes();
+  const mailHttp = mailHttpFactory({ env, authenticate });
   const app = express();
 
   app.locals.googleOAuth = googleOAuth;
   app.locals.cloudinary = cloudinaryStatus;
+  app.locals.mail = mailHttp.application;
 
   app.use(helmet());
   app.use(requestContext);
@@ -93,8 +105,28 @@ app.use(
 
   const jsonBodyParser = express.json({ limit: "10kb" });
   const socialWebhookRawParser = express.raw({ type: "*/*", limit: "10kb" });
+  // Mail: provider webhooks need the exact raw bytes for signature checks;
+  // mail bodies need a larger (bounded) JSON limit than the 10kb default.
+  const mailWebhookRawParser = express.raw({ type: "*/*", limit: "256kb" });
+  const mailJsonParser = express.json({ limit: "1mb" });
 
   app.use((req, res, next) => {
+    if (req.method === "POST" && String(req.originalUrl || "").split("?")[0] === MAIL_WEBHOOK_PATH) {
+      return mailWebhookRawParser(req, res, (error) => {
+        if (error) return next(error);
+        req.rawBody = Buffer.isBuffer(req.body) ? Buffer.from(req.body) : Buffer.alloc(0);
+        req.body = {};
+        return next();
+      });
+    }
+    if (isMailPath(req.originalUrl)) {
+      return mailJsonParser(req, res, (error) => {
+        if (error?.type === "entity.too.large") {
+          return res.status(413).json({ success: false, code: "MAIL_PAYLOAD_TOO_LARGE", message: "Request body is too large" });
+        }
+        return next(error);
+      });
+    }
     if (
       req.method === "POST" &&
       req.originalUrl?.startsWith("/api/v1/marketing/social/webhooks/")
@@ -124,6 +156,9 @@ app.use(
   ]);
 
   app.use((req, res, next) => {
+    // Mail performs its own context-aware sanitization (email HTML allowlist,
+    // header-injection guards); global escaping would corrupt message bodies.
+    if (isMailPath(req.originalUrl)) return next();
     if (req.body && typeof req.body === "object") {
       const sanitize = (obj) => {
         for (const key in obj) {
@@ -185,6 +220,8 @@ app.use(
     routes.advertisingExecutionRoutes,
   );
   app.use("/api/hrm", routes.hrmRoutes);
+  app.post(MAIL_WEBHOOK_PATH, mailHttp.webhookHandler);
+  app.use(MAIL_API_PREFIX, mailHttp.router);
 
   app.use("/{*splat}", notFound);
   app.use(errorHandler);

@@ -27,7 +27,13 @@ function nodeScript(script) {
 test("manual migration manifest protects order and checksums", () => {
   const result = verifyMigrationManifest();
   assert.equal(result.failures.length, 0);
-  assert.equal(result.count, 26);
+  assert.equal(result.count, 27);
+  assert.equal(
+    result.manifest.migrations.some(
+      (entry) => entry.file === "20261024_add_cosmicforge_mail_m1_m6.sql",
+    ),
+    true,
+  );
   assert.equal(
     result.manifest.migrations.some(
       (entry) => entry.file === "20260716_add_social_operations_section_5.sql",

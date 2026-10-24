@@ -137,6 +137,15 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+      - name: Focused CosmicForge Mail tests (offline provider, disposable PostgreSQL replay)
+        env:
+          MAIL_ENABLED: "false"
+          MAIL_SENDING_ENABLED: "false"
+          MAIL_RECEIVING_ENABLED: "false"
+          MAIL_MARKETING_ENABLED: "false"
+          MAIL_WORKER_ENABLED: "false"
+        run: npm run test:mail
+
       - name: Full test suite
         run: npm test
 
