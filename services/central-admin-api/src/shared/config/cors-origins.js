@@ -6,6 +6,8 @@
 const CANONICAL_ADMIN_ORIGINS = Object.freeze([
   "https://centralize-admin.vercel.app",
   "https://centralize-admin.cosmiforgegroup.cloud",
+  "https://centralize-admin-staging.vercel.app",
+  "https://centralize-admin-staging-cosmicforgedevteamgmailcoms-projects.vercel.app",
 ]);
 
 // Existing project-scoped Vercel preview domain pattern, not any Vercel tenant.

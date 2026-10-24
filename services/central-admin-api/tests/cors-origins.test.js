@@ -7,6 +7,8 @@ test("canonical admin frontend remains allowed when CORS_ORIGINS is set", () => 
   const allow = createOriginPolicy({ CORS_ORIGINS: "https://other-owned.example" });
   assert.equal(allow("https://centralize-admin.vercel.app"), true);
   assert.equal(allow("https://centralize-admin.cosmiforgegroup.cloud"), true);
+  assert.equal(allow("https://centralize-admin-staging.vercel.app"), true);
+  assert.equal(allow("https://centralize-admin-staging-cosmicforgedevteamgmailcoms-projects.vercel.app"), true);
   assert.equal(allow("https://other-owned.example"), true);
 });
 
