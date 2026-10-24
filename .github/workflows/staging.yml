@@ -239,7 +239,9 @@ jobs:
             rm -rf "$auth_dir"
             unset DOCKER_CONFIG GHCR_TOKEN
 
-            override="docker-compose.github-staging.yml"
+            # Store override in the deploy user home; no write access to
+            # the root-owned deployment directory is required.
+            override="$HOME/docker-compose.github-staging.yml"
             deploy_app() {
               docker compose -f docker-compose.yml -f "$override" up -d --no-deps --no-build --pull never --force-recreate app
             }
