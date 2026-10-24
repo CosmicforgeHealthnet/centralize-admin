@@ -45,13 +45,12 @@ export default function DoctorsChart() {
     fetchActivityChart(month);
   }, [month, fetchActivityChart]);
 
-  if (activityChartError && !activityChartLoading) return <ServiceDataState title="HealthNet activity unavailable" message={activityChartError} retry={() => void fetchActivityChart(month)} />;
-  if (activityChartLoading || !activityChart) return <SkeletonCard />;
+  if ((activityChartLoading || !activityChart) && !activityChartError) return <SkeletonCard />;
 
   const raw = {
-    newDoctors:      activityChart.newDoctors,
-    appointments:    activityChart.appointments,
-    productPurchase: activityChart.productPurchase,
+    newDoctors:      activityChart?.newDoctors ?? 0,
+    appointments:    activityChart?.appointments ?? 0,
+    productPurchase: activityChart?.productPurchase ?? 0,
   };
 
   // Rings are purely visual — relative fill so chart isn't all empty or all full
@@ -67,7 +66,7 @@ export default function DoctorsChart() {
           <p className="text-[11px] text-muted-foreground font-medium mt-0.5 font-poppins">
             Total Doctors:{" "}
             <span className="text-primary font-semibold">
-              {activityChart.totalDoctors.toLocaleString()}
+              {activityChartError ? "—" : activityChart?.totalDoctors.toLocaleString() ?? "—"}
             </span>
           </p>
         </div>
@@ -102,6 +101,11 @@ export default function DoctorsChart() {
         </div>
       </div>
 
+      {activityChartError ? (
+        <ServiceDataState embedded title="Activity data unavailable" message={activityChartError}
+          retry={() => void fetchActivityChart(month)} />
+      ) : (
+      <>
       {/* Multi-Ring Chart */}
       <div className="relative h-[200px] w-full">
         <ResponsiveContainer width="100%" height="100%">
@@ -147,6 +151,8 @@ export default function DoctorsChart() {
           </div>
         ))}
       </div>
+      </>
+      )}
     </div>
   );
 }
