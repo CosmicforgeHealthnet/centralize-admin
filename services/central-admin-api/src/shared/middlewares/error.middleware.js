@@ -13,13 +13,15 @@ function boundedRetryAfter(value) {
 const errorHandler = (err, req, res, next) => {
   // Known operational error
   if (err instanceof ApiError) {
-    const fallbackCode = err.statusCode === 404 ? "NOT_FOUND"
+    const fallbackCode = err.statusCode === 503 ? "DEPENDENCY_UNAVAILABLE"
+      : err.statusCode === 404 ? "NOT_FOUND"
       : err.statusCode === 403 ? "FORBIDDEN"
         : err.statusCode === 429 ? "RATE_LIMITED"
           : err.statusCode === 409 ? "INVALID_TRANSITION"
             : "VALIDATION_ERROR";
     const retryEvidence = err.retryAfterAt || err.errors?.find((item) => item?.retryAfterAt != null || item?.retryAfter != null);
-    const retryAfter = err.statusCode === 429 ? boundedRetryAfter(retryEvidence?.retryAfterAt || retryEvidence?.retryAfter || retryEvidence) : null;
+    const retryAfter = (err.statusCode === 429 || err.statusCode === 503)
+      ? boundedRetryAfter(retryEvidence?.retryAfterAt || retryEvidence?.retryAfter || retryEvidence) : null;
     if (retryAfter) res.setHeader("Retry-After", retryAfter);
     return res.status(err.statusCode).json({
       success: false,
