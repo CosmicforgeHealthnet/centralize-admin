@@ -9,22 +9,58 @@ import type {
   RevenueChartItem,
   PlatformUsageItem,
 } from "@/types/dashboard.types";
-import { readHttpErrorMessage } from "@/lib/error-messages";
+import { describeServiceError, isTemporaryDependencyError } from "@/lib/service-errors";
 
+type DataStatus = "idle" | "loading" | "success" | "error";
+
+
+// Bounded per-widget recovery for temporary dependency/network failures.
+// Never automatically retry authorization or application errors.
+type DashboardSource = "overview" | "revenue" | "platform";
+const retryAttempts: Record<DashboardSource, number> = { overview: 0, revenue: 0, platform: 0 };
+const retryTimers: Partial<Record<DashboardSource, ReturnType<typeof setTimeout>>> = {};
+const MAX_AUTO_RETRIES = 5;
+const RETRY_DELAY_MS = 60_000;
+
+function clearRecovery(source: DashboardSource): void {
+  if (retryTimers[source]) clearTimeout(retryTimers[source]);
+  delete retryTimers[source];
+  retryAttempts[source] = 0;
+}
+
+function maybeScheduleRecovery(source: DashboardSource, error: unknown, retry: () => Promise<void>): void {
+  if (typeof window === "undefined") return;
+  if (!isTemporaryDependencyError(error) || retryTimers[source] || retryAttempts[source] >= MAX_AUTO_RETRIES) return;
+
+  retryTimers[source] = setTimeout(() => {
+    delete retryTimers[source];
+    if (document.visibilityState === "hidden" || !navigator.onLine) {
+      // Do not flood an offline service while the dashboard is backgrounded.
+      maybeScheduleRecovery(source, error, retry);
+      return;
+    }
+    retryAttempts[source] += 1;
+    void retry();
+  }, RETRY_DELAY_MS);
+}
 
 interface DashboardState {
-  // ── Data ─────────────────────────────────────────────
   overview: DashboardOverview | null;
   revenueChart: RevenueChartItem[];
   platformUsage: PlatformUsageItem[];
 
-  // ── UI State ──────────────────────────────────────────
   isLoadingOverview: boolean;
   isLoadingRevenue: boolean;
   isLoadingPlatform: boolean;
+  overviewStatus: DataStatus;
+  revenueStatus: DataStatus;
+  platformStatus: DataStatus;
+  overviewError: string | null;
+  revenueError: string | null;
+  platformError: string | null;
+  // Maintained for consumers still reading the historical aggregate error.
   error: string | null;
 
-  // ── Actions ───────────────────────────────────────────
   fetchOverview: () => Promise<void>;
   fetchRevenueChart: () => Promise<void>;
   fetchPlatformUsage: () => Promise<void>;
@@ -32,87 +68,73 @@ interface DashboardState {
   clearError: () => void;
 }
 
-export const useDashboardStore = create<DashboardState>((set) => ({
-  // ── Initial State ─────────────────────────────────────
+export const useDashboardStore = create<DashboardState>((set, get) => ({
   overview: null,
   revenueChart: [],
   platformUsage: [],
   isLoadingOverview: false,
   isLoadingRevenue: false,
   isLoadingPlatform: false,
+  overviewStatus: "idle",
+  revenueStatus: "idle",
+  platformStatus: "idle",
+  overviewError: null,
+  revenueError: null,
+  platformError: null,
   error: null,
 
-  // ── Actions ───────────────────────────────────────────
   fetchOverview: async () => {
-    set({ isLoadingOverview: true, error: null });
+    if (get().isLoadingOverview) return;
+    set({ isLoadingOverview: true, overviewStatus: "loading", overviewError: null });
     try {
       const overview = await fetchDashboardOverview();
-      set({ overview, isLoadingOverview: false });
+      clearRecovery("overview");
+      set({ overview, isLoadingOverview: false, overviewStatus: "success", overviewError: null });
     } catch (err: unknown) {
-      set({
-        error: readHttpErrorMessage(err) || "Failed to fetch dashboard overview",
-        isLoadingOverview: false,
-      });
+      const message = describeServiceError(err, "HealthNet");
+      // Never present cached financial/user figures as live after a failed refresh.
+      set({ overview: null, overviewError: message, error: message, overviewStatus: "error", isLoadingOverview: false });
+      maybeScheduleRecovery("overview", err, () => get().fetchOverview());
     }
   },
 
   fetchRevenueChart: async () => {
-    set({ isLoadingRevenue: true, error: null });
+    if (get().isLoadingRevenue) return;
+    set({ isLoadingRevenue: true, revenueStatus: "loading", revenueError: null });
     try {
       const revenueChart = await fetchRevenueChart();
-      set({ revenueChart, isLoadingRevenue: false });
+      clearRecovery("revenue");
+      set({ revenueChart, isLoadingRevenue: false, revenueStatus: "success", revenueError: null });
     } catch (err: unknown) {
-      set({
-        error: readHttpErrorMessage(err) || "Failed to fetch revenue data",
-        isLoadingRevenue: false,
-      });
+      const message = describeServiceError(err, "HealthNet");
+      set({ revenueChart: [], revenueError: message, error: message, revenueStatus: "error", isLoadingRevenue: false });
+      maybeScheduleRecovery("revenue", err, () => get().fetchRevenueChart());
     }
   },
 
   fetchPlatformUsage: async () => {
-    set({ isLoadingPlatform: true, error: null });
+    if (get().isLoadingPlatform) return;
+    set({ isLoadingPlatform: true, platformStatus: "loading", platformError: null });
     try {
       const platformUsage = await fetchPlatformUsage();
-      set({ platformUsage, isLoadingPlatform: false });
+      clearRecovery("platform");
+      set({ platformUsage, isLoadingPlatform: false, platformStatus: "success", platformError: null });
     } catch (err: unknown) {
-      set({
-        error: readHttpErrorMessage(err) || "Failed to fetch platform usage",
-        isLoadingPlatform: false,
-      });
+      const message = describeServiceError(err, "HealthNet");
+      set({ platformUsage: [], platformError: message, error: message, platformStatus: "error", isLoadingPlatform: false });
+      maybeScheduleRecovery("platform", err, () => get().fetchPlatformUsage());
     }
   },
 
-  // Fires all three in parallel — use this on dashboard page mount
+  // Independent settlement: one failed product request does not discard
+  // healthy dashboard responses. Individual actions handle their own errors.
   fetchAll: async () => {
-    set({
-      isLoadingOverview: true,
-      isLoadingRevenue: true,
-      isLoadingPlatform: true,
-      error: null,
-    });
-    try {
-      const [overview, revenueChart, platformUsage] = await Promise.all([
-        fetchDashboardOverview(),
-        fetchRevenueChart(),
-        fetchPlatformUsage(),
-      ]);
-      set({
-        overview,
-        revenueChart,
-        platformUsage,
-        isLoadingOverview: false,
-        isLoadingRevenue: false,
-        isLoadingPlatform: false,
-      });
-    } catch (err: unknown) {
-      set({
-        error: readHttpErrorMessage(err) || "Failed to fetch dashboard data",
-        isLoadingOverview: false,
-        isLoadingRevenue: false,
-        isLoadingPlatform: false,
-      });
-    }
+    await Promise.all([
+      get().fetchOverview(),
+      get().fetchRevenueChart(),
+      get().fetchPlatformUsage(),
+    ]);
   },
 
-  clearError: () => set({ error: null }),
+  clearError: () => set({ error: null, overviewError: null, revenueError: null, platformError: null }),
 }));

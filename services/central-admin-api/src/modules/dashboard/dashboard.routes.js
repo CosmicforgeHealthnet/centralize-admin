@@ -2,6 +2,7 @@ const router = require("express").Router();
 const rateLimit = require("express-rate-limit");
 const { authenticate } = require("../../shared/middlewares/auth.middleware");
 const { requireTier } = require("../../shared/middlewares/rbac.middleware");
+const { mainDbBoundary } = require("../../shared/middlewares/dependency-boundary.middleware");
 const {
   getOverview,
   getRevenueChart,
@@ -20,9 +21,12 @@ const dashboardLimiter = rateLimit({
 router.use(authenticate);
 router.use(requireTier("ADMIN")); // ADMIN, EXECUTIVE, SUPER only
 router.use(dashboardLimiter);
+router.use(mainDbBoundary.gate);
 
 router.get("/overview", getOverview);
 router.get("/revenue-chart", getRevenueChart);
 router.get("/platform-usage", getPlatformUsageChart);
+
+router.use(mainDbBoundary.handleError);
 
 module.exports = router;

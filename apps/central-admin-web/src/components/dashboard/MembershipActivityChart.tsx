@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { useDashboardStore } from "@/stores/dashboard.store";
+import ServiceDataState from "@/components/shared/ServiceDataState";
 
 const MEMBERSHIP_CONFIG = [
   { key: "doctorPercentage" as const, countKey: "doctorCount" as const, name: "Doctors Membership", color: "#272EA7" },
@@ -24,12 +25,13 @@ function MembershipSkeleton() {
 }
 
 export default function MembershipActivityChart() {
-  const { overview, isLoadingOverview, fetchOverview } = useDashboardStore();
+  const { overview, isLoadingOverview, overviewError, fetchOverview } = useDashboardStore();
 
   useEffect(() => {
     fetchOverview();
   }, [fetchOverview]);
 
+  if (overviewError && !isLoadingOverview) return <ServiceDataState title="HealthNet memberships unavailable" message={overviewError} retry={() => void fetchOverview()} compact />;
   if (isLoadingOverview || !overview) return <MembershipSkeleton />;
 
   const { membershipActivity } = overview;

@@ -8,6 +8,7 @@ import {
 } from "recharts";
 import { ChevronDown } from "lucide-react";
 import { useHealthnetStore } from "@/stores/healthnet.store";
+import ServiceDataState from "@/components/shared/ServiceDataState";
 
 const MONTHS = [
   "January","February","March","April","May","June",
@@ -39,12 +40,13 @@ export default function PatientsStatisticsChart() {
   const [month, setMonth] = useState("March");
   const [open, setOpen] = useState(false);
 
-  const { patientsChart, patientsChartLoading, fetchPatientsChart } = useHealthnetStore();
+  const { patientsChart, patientsChartLoading, patientsChartError, fetchPatientsChart } = useHealthnetStore();
 
   useEffect(() => {
     fetchPatientsChart(month);
   }, [month, fetchPatientsChart]);
 
+  if (patientsChartError && !patientsChartLoading) return <ServiceDataState title="HealthNet patient statistics unavailable" message={patientsChartError} retry={() => void fetchPatientsChart(month)} />;
   if (patientsChartLoading || !patientsChart) {
     return <SkeletonCard />;
   }

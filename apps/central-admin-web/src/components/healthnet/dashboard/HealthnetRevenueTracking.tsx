@@ -8,6 +8,7 @@ import {
 } from "recharts";
 import { Download } from "lucide-react";
 import { useHealthnetStore } from "@/stores/healthnet.store";
+import ServiceDataState from "@/components/shared/ServiceDataState";
 
 const CustomTooltip = ({ active, payload, label }: AdminChartTooltipProps) => {
   if (active && payload && payload.length) {
@@ -42,12 +43,13 @@ function SkeletonCard() {
 }
 
 export default function HealthnetRevenueTracking() {
-  const { revenueChart, revenueChartLoading, fetchRevenueChart } = useHealthnetStore();
+  const { revenueChart, revenueChartLoading, revenueChartError, fetchRevenueChart } = useHealthnetStore();
 
   useEffect(() => {
     fetchRevenueChart();
   }, [fetchRevenueChart]);
 
+  if (revenueChartError && !revenueChartLoading) return <ServiceDataState title="HealthNet revenue unavailable" message={revenueChartError} retry={() => void fetchRevenueChart()} />;
   if (revenueChartLoading || !revenueChart) {
     return <SkeletonCard />;
   }

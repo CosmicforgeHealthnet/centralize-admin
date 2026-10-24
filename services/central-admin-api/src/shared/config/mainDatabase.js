@@ -18,7 +18,8 @@ const adapter = new PrismaPg({
   connectionString: getConnectionString(),
   max: 2,
   idleTimeoutMillis: 300000,
-  connectionTimeoutMillis: 30000,
+  // Keep optional HealthNet dependency outages from holding API workers for 30s.
+  connectionTimeoutMillis: 7000,
 });
 
 const mainPrisma = new PrismaClient({
@@ -27,40 +28,19 @@ const mainPrisma = new PrismaClient({
   errorFormat: "pretty",
 });
 
-const connectMainDatabase = async () => {
-  let retries = 5;
-  let delay = 3000;
-
-  for (let i = 0; i < retries; i++) {
-    try {
-      await mainPrisma.$connect();
-      logger.info("Main database connected");
-
-      const userCount = await mainPrisma.users.count();
-      logger.info(`Main DB connection verified — users count: ${userCount}`);
-
-      return;
-    } catch (error) {
-      logger.error(
-        `Database connection attempt ${i + 1} failed:`,
-        error.message,
-      );
-
-      if (i === retries - 1) {
-        logger.error("All connection attempts failed");
-        // Do NOT process.exit here — let the caller decide whether a
-        // failed main-DB connection should be fatal. server.js treats
-        // this as non-fatal and retries in the background.
-        throw new Error(
-          `Main DB connection failed after ${retries} attempts: ${error.message}`,
-        );
-      }
-
-      logger.info(`Retrying in ${delay}ms...`);
-      await new Promise((resolve) => setTimeout(resolve, delay));
-      delay *= 2;
-    }
-  }
+// Single-flight connect: only one attempt per retry tick, not five overlapping
+// connections with exponential waits. The server owns the retry schedule.
+let connectionInFlight = null;
+const connectMainDatabase = () => {
+  if (connectionInFlight) return connectionInFlight;
+  connectionInFlight = (async () => {
+    await mainPrisma.$connect();
+    const userCount = await mainPrisma.users.count();
+    logger.info(`Main DB connection verified — users count: ${userCount}`);
+  })().finally(() => {
+    connectionInFlight = null;
+  });
+  return connectionInFlight;
 };
 
 let keepAliveInterval;

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useDashboardStore } from "@/stores/dashboard.store";
+import ServiceDataState from "@/components/shared/ServiceDataState";
 import type { StatCards as StatCardsType } from "@/types/dashboard.types";
 
 const STAT_CONFIG = [
@@ -63,11 +64,15 @@ function StatCardSkeleton({ index }: { index: number }) {
 }
 
 export default function StatCards() {
-  const { overview, isLoadingOverview, fetchOverview } = useDashboardStore();
+  const { overview, isLoadingOverview, overviewError, fetchOverview } = useDashboardStore();
 
   useEffect(() => {
     fetchOverview();
   }, [fetchOverview]);
+
+  if (overviewError && !isLoadingOverview) {
+    return <div className="col-span-2 sm:col-span-6 min-[1014px]:col-span-5"><ServiceDataState title="HealthNet statistics unavailable" message={overviewError} retry={() => void fetchOverview()} compact /></div>;
+  }
 
   if (isLoadingOverview || !overview) {
     return (
