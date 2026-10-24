@@ -1,8 +1,8 @@
 name: Staging Admin API Connectivity
 
+# Run manually for independent verification; the staging deployment job
+# already performs this check AFTER publishing and restarting the API.
 on:
-  push:
-    branches: [staging]
   workflow_dispatch:
 
 permissions:
