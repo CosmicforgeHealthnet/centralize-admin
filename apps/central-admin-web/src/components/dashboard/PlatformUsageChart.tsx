@@ -8,6 +8,7 @@ import {
 import { ChevronDown, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDashboardStore } from "@/stores/dashboard.store";
+import ServiceDataState from "@/components/shared/ServiceDataState";
 import type { PlatformUsageItem } from "@/types/dashboard.types";
 
 const LEGEND_ITEMS = [
@@ -46,7 +47,7 @@ function PlatformUsageSkeleton() {
 }
 
 export default function PlatformUsageChart() {
-  const { platformUsage, isLoadingPlatform, fetchPlatformUsage } = useDashboardStore();
+  const { platformUsage, isLoadingPlatform, platformError, platformStatus, fetchPlatformUsage } = useDashboardStore();
   const [showTooltip, setShowTooltip] = useState(false);
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -68,7 +69,9 @@ export default function PlatformUsageChart() {
     downloadCSV(platformUsage, filename);
   };
 
-  if (isLoadingPlatform || !platformUsage.length) return <PlatformUsageSkeleton />;
+  if (isLoadingPlatform || platformStatus === "idle") return <PlatformUsageSkeleton />;
+  if (platformError) return <ServiceDataState title="HealthNet platform usage unavailable" message={platformError} retry={() => void fetchPlatformUsage()} />;
+  if (!platformUsage.length) return <ServiceDataState title="No platform usage records" empty />;
 
   const maxValue = Math.max(
     ...platformUsage.flatMap((m) => [m.AI, m.Lab, m.Pharmacy, m.Consultation]),
