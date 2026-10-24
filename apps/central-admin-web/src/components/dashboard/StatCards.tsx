@@ -70,7 +70,7 @@ export default function StatCards() {
   }, [fetchOverview]);
 
 
-  if ((isLoadingOverview || !overview) && !overviewError) {
+  if (isLoadingOverview || !overview) {
     return (
       <>
         {STAT_CONFIG.map((_, i) => (
