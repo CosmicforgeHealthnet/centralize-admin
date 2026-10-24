@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const rateLimit = require("express-rate-limit");
 const { authenticate } = require("../../shared/middlewares/auth.middleware");
+const { mainDbBoundary } = require("../../shared/middlewares/dependency-boundary.middleware");
 const {
   requireTier,
   requireSection,
@@ -26,15 +27,18 @@ router.use(limiter);
 
 router.get(
   "/stats",
-  requireSection("rtc", "sessions", "VIEW"),
+  requireSection("rtc", "sessions", "VIEW"), mainDbBoundary.gate,
   getSessionStats,
 );
-router.get("/", requireSection("rtc", "sessions", "VIEW"), listSessions);
-router.get("/:id", requireSection("rtc", "sessions", "VIEW"), getSession);
+router.get("/", requireSection("rtc", "sessions", "VIEW"), mainDbBoundary.gate, listSessions);
+router.get("/:id", requireSection("rtc", "sessions", "VIEW"), mainDbBoundary.gate, getSession);
 router.patch(
   "/:id/status",
   requireSection("rtc", "sessions", "EDIT"),
+  mainDbBoundary.gate,
   transitionSession,
 );
+
+router.use(mainDbBoundary.handleError);
 
 module.exports = router;
