@@ -217,6 +217,12 @@ jobs:
             container="admin-server-staging-app-1"
             test "$(docker inspect -f '{{index .Config.Labels "com.docker.compose.service"}}' "$container")" = "app"
             test "$(docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' "$container")" = "admin-server-staging"
+            # Production main database access is forbidden for this staging rollout.
+            db_env="$(docker exec "$container" node -p 'process.env.MAIN_DB_ENV || "dev"')"
+            if [ "$db_env" != "dev" ]; then
+              echo "Refusing deployment: staging MAIN_DB_ENV is not dev."
+              exit 1
+            fi
             old_id="$(docker inspect -f '{{.Image}}' "$container")"
             rollback_image="cf-admin-api:staging-rollback-$DEPLOY_RUN_ID"
             docker image tag "$old_id" "$rollback_image"
@@ -225,6 +231,7 @@ jobs:
             # GitHub Actions token or Docker registry credentials on the VPS.
             auth_dir="$(mktemp -d)"
             export DOCKER_CONFIG="$auth_dir"
+            trap 'rm -rf "$auth_dir"' EXIT
             printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$GHCR_USER" --password-stdin >/dev/null
             docker pull "$IMAGE_TAG"
             docker logout ghcr.io >/dev/null 2>&1 || true
