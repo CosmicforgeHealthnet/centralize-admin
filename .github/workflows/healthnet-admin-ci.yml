@@ -1,0 +1,47 @@
+name: HealthNet Admin Service CI
+
+on:
+  pull_request:
+    paths:
+      - "services/healthnet-admin/**"
+      - ".github/workflows/healthnet-admin-ci.yml"
+  push:
+    branches: [staging]
+    paths:
+      - "services/healthnet-admin/**"
+      - ".github/workflows/healthnet-admin-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Test and build isolated HealthNet Admin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Static syntax validation
+        working-directory: services/healthnet-admin
+        run: npm run check
+      - name: Outage, security, and privacy regression tests
+        working-directory: services/healthnet-admin
+        run: npm test
+      - name: Build independent HealthNet Admin image
+        run: docker build -f services/healthnet-admin/Dockerfile -t healthnet-admin:ci services/healthnet-admin
+      - name: Verify container without HealthNet DB or HQ service
+        run: |
+          docker run -d --name healthnet-admin-smoke -e HEALTHNET_INTERNAL_JWT_SECRET=ci-only-long-random-demo-not-for-production-2345678 -p 127.0.0.1:14100:4100 healthnet-admin:ci
+          for i in $(seq 1 20); do
+            if curl -fsS http://127.0.0.1:14100/health/live; then break; fi
+            sleep 1
+          done
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:14100/health/live)" = 200
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:14100/health/ready)" = 503
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:14100/v1/dashboard/metrics)" = 401
+          docker rm -f healthnet-admin-smoke
