@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import { Calendar, Stethoscope, Users, Wallet } from "lucide-react";
 import { useHealthnetStore } from "@/stores/healthnet.store";
+import ServiceDataState from "@/components/shared/ServiceDataState";
 
 function SkeletonCard() {
   return (
@@ -44,11 +45,13 @@ function StatCard({
 }
 
 export default function HealthnetStatCards() {
-  const { metrics, metricsLoading, fetchMetrics } = useHealthnetStore();
+  const { metrics, metricsLoading, metricsError, fetchMetrics } = useHealthnetStore();
 
   useEffect(() => {
     fetchMetrics();
   }, [fetchMetrics]);
+
+  if (metricsError && !metricsLoading) return <ServiceDataState title="HealthNet statistics unavailable" message="The HealthNet data source could not be reached." retry={() => void fetchMetrics()} />;
 
   if (metricsLoading || !metrics) {
     return (
