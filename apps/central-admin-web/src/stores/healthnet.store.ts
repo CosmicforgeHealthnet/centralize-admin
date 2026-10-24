@@ -1,4 +1,5 @@
 import { create, type StoreApi } from "zustand";
+import { describeServiceError } from "@/lib/service-errors";
 import {
   fetchHealthnetMetrics,
   fetchActivityChart,
@@ -395,7 +396,7 @@ function makeSlice<TArgs extends unknown[], T>(
       set(() => ({ [key]: result, [`${key}Loading`]: false } as Partial<HealthnetState>));
     } catch (err) {
       set(() => ({
-        [`${key}Error`]: err instanceof Error ? err.message : `Failed to load ${key}`,
+        [`${key}Error`]: describeServiceError(err, "HealthNet"),
         [`${key}Loading`]: false,
       } as Partial<HealthnetState>));
     }
