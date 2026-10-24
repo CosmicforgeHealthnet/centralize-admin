@@ -263,23 +263,37 @@ jobs:
             echo "::error::Set STAGING_SSH_KEY in the staging GitHub environment. Production secrets are intentionally not used."
             exit 1
           fi
-      - name: Pull and deploy only the staging app, with automatic rollback
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Deploy staging with verified OpenSSH host identity
+        shell: bash
         env:
+          STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
           IMAGE_TAG: ${{ needs.build-staging-image.outputs.image }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEPLOY_RUN_ID: ${{ github.run_id }}
-        with:
-          host: 173.249.30.55
-          username: cf-staging-deploy
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          fingerprint: SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ
-          port: 22
-          envs: IMAGE_TAG,GHCR_USER,GHCR_TOKEN,DEPLOY_RUN_ID
-          command_timeout: 15m
-          script_stop: true
-          script: |
+        run: |
+          set -euo pipefail
+          umask 077
+          private_key="$(mktemp)"
+          host_keys="$(mktemp)"
+          trap 'rm -f "$private_key" "$host_keys"' EXIT
+          printf '%s\n' "$STAGING_SSH_KEY" > "$private_key"
+          ssh-keygen -y -P '' -f "$private_key" >/dev/null
+          ssh-keyscan -T 10 -t ed25519 173.249.30.55 2>/dev/null > "$host_keys"
+          test -s "$host_keys"
+          fingerprint="$(ssh-keygen -l -E sha256 -f "$host_keys" | awk '{print $2}')"
+          if [[ "$fingerprint" != "SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ" ]]; then
+            echo "::error::Staging VPS SSH host identity changed. Refusing deployment."
+            exit 1
+          fi
+          # Send the short-lived registry token exclusively inside the
+          # encrypted SSH stdin stream, never on a remote command line.
+          {
+            printf 'IMAGE_TAG=%q\n' "$IMAGE_TAG"
+            printf 'GHCR_USER=%q\n' "$GHCR_USER"
+            printf 'GHCR_TOKEN=%q\n' "$GHCR_TOKEN"
+            printf 'DEPLOY_RUN_ID=%q\n' "$DEPLOY_RUN_ID"
+            cat <<'STAGING_REMOTE_SCRIPT'
             set -eu
             cd /var/www/admin-server-staging
             test -f docker-compose.yml
@@ -288,7 +302,7 @@ jobs:
               ghcr.io/cosmicforgehealthnet/admin-backend:staging-*) ;;
               *) echo "Unexpected image repository/tag"; exit 1 ;;
             esac
-
+            
             # Never operate on /var/www/admin-server or production Compose.
             container="admin-server-staging-app-1"
             test "$(docker inspect -f '{{index .Config.Labels "com.docker.compose.service"}}' "$container")" = "app"
@@ -302,7 +316,7 @@ jobs:
             old_id="$(docker inspect -f '{{.Image}}' "$container")"
             rollback_image="cf-admin-api:staging-rollback-$DEPLOY_RUN_ID"
             docker image tag "$old_id" "$rollback_image"
-
+            
             # Use a disposable Docker auth configuration. Never persist the
             # GitHub Actions token or Docker registry credentials on the VPS.
             auth_dir="$(mktemp -d)"
@@ -313,7 +327,7 @@ jobs:
             docker logout ghcr.io >/dev/null 2>&1 || true
             rm -rf "$auth_dir"
             unset DOCKER_CONFIG GHCR_TOKEN
-
+            
             # Store override in the deploy user home; no write access to
             # the root-owned deployment directory is required.
             override="$HOME/docker-compose.github-staging.yml"
@@ -327,12 +341,12 @@ jobs:
               echo "Rollback initiated. Production and staging database untouched."
             }
             printf 'services:\n  app:\n    image: %s\n    pull_policy: never\n' "$IMAGE_TAG" > "$override"
-
+            
             if ! deploy_app; then
               rollback
               exit 1
             fi
-
+            
             ok=0
             for i in $(seq 1 30); do
               if curl -fsS --max-time 4 http://127.0.0.1:4001/health >/dev/null 2>&1; then
@@ -346,7 +360,7 @@ jobs:
               rollback
               exit 1
             fi
-
+            
             # Verify login's database, not merely the /health liveness route.
             if ! docker exec "$container" node -e '
               const { prisma } = require("./src/shared/config/database");
@@ -357,7 +371,7 @@ jobs:
               rollback
               exit 1
             fi
-
+            
             headers="$(mktemp)"
             status="$(curl -sS --max-time 15 -D "$headers" -o /dev/null -w '%{http_code}' -X OPTIONS               -H 'Origin: https://centralize-admin-staging.vercel.app'               -H 'Access-Control-Request-Method: POST'               -H 'Access-Control-Request-Headers: Content-Type'               https://stagingca.cosmicforge-healthnet.com/api/auth/login)" || status="000"
             if [ "$status" != "200" ] ||                ! grep -qi '^access-control-allow-origin: https://centralize-admin-staging\.vercel\.app' "$headers" ||                ! grep -qi '^access-control-allow-credentials: true' "$headers"; then
@@ -367,7 +381,7 @@ jobs:
               exit 1
             fi
             rm -f "$headers"
-
+            
             # Main DB has shown timeouts on this VPS. Report degraded status
             # without confusing it with the admin_users login database.
             if ! timeout 45 docker exec "$container" node -e '
@@ -379,3 +393,7 @@ jobs:
               echo "WARNING: Main DEV DB query failed; dashboard/Main DB functions remain degraded."
             fi
             echo "SUCCESS: staging API, admin_users query and HTTPS login CORS verified."
+            STAGING_REMOTE_SCRIPT
+          } | ssh -T -i "$private_key" -o IdentitiesOnly=yes -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$host_keys" \
+            -o ConnectTimeout=20 cf-staging-deploy@173.249.30.55 bash -se
