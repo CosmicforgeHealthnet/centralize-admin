@@ -63,7 +63,7 @@ test("internal endpoints reject anonymous, forged, expired, wrong-audience and m
   assert.equal((await request(handler, "/v1/dashboard/metrics", sign({ aud: "other" }))).status, 401);
   assert.equal((await request(handler, "/v1/dashboard/metrics", sign({ exp: Math.floor(Date.now() / 1000) - 1 }))).status, 401);
   assert.equal((await request(handler, "/v1/dashboard/metrics", sign({ scopes: [] }))).status, 401);
-  const tampered = sign().replace(/.$/, "x");
+  const tampered = sign() + "x";
   assert.equal((await request(handler, "/v1/dashboard/metrics", tampered)).status, 401);
 });
 
