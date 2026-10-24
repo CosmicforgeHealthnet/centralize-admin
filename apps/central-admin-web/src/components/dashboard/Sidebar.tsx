@@ -21,9 +21,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Verified,
+  Mail,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import { useProfileStore } from "@/stores/profile.store";
+import { useEntitlements } from "@/components/mail/hooks";
+
+const MAIL_NAV_ITEM = { label: "Mail", icon: Mail, href: "/dashboard/mail" };
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
@@ -60,6 +64,15 @@ export default function Sidebar({
   const router = useRouter();
   const { logout, user } = useAuthStore();
   const { profile } = useProfileStore();
+  // Mail is shown only when the backend says this employee may use it.
+  const mailEntitlements = useEntitlements();
+  const mail = mailEntitlements.data;
+  const showMail =
+    !!mail?.mailEnabled &&
+    (mail.mailboxes.length > 0 || mail.canManageDomains || mail.canApproveProvisioning || mail.canProvision);
+  const visibleNavItems = showMail
+    ? [navItems[0], MAIL_NAV_ITEM, ...navItems.slice(1)]
+    : navItems;
 
   const handleLogout = async () => {
     await logout();
@@ -224,9 +237,12 @@ export default function Sidebar({
           >
             {/* Nav Items */}
             <nav className="flex flex-col gap-1 mt-8 px-3">
-              {navItems.map((item) => {
+              {visibleNavItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = pathname === item.href;
+                const isActive =
+                  item.href === MAIL_NAV_ITEM.href
+                    ? pathname === item.href || pathname.startsWith(`${item.href}/`)
+                    : pathname === item.href;
                 return (
                   <Link
                     key={item.href}

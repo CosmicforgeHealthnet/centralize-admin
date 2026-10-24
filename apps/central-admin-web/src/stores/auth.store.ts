@@ -104,6 +104,10 @@ export const useAuthStore = create<AuthState>()(
           localStorage.setItem("accessToken", accessToken);
           setTokenCookie(accessToken);
 
+          // A new identity must never see another identity's cached mail.
+          const { clearMailQueries } = await import("@/lib/query-client-registry");
+          clearMailQueries();
+
           set({ user, accessToken, mustChangePassword, isLoading: false });
 
           const { fetchProfile } = useProfileStore.getState();
@@ -133,6 +137,10 @@ export const useAuthStore = create<AuthState>()(
 
         const { useProfileStore } = await import("@/stores/profile.store");
         useProfileStore.getState().clearProfile();
+
+        // Purge any cached private mailbox content held in memory.
+        const { clearMailQueries } = await import("@/lib/query-client-registry");
+        clearMailQueries();
 
         // ✅ Reset all state
         set({ 
