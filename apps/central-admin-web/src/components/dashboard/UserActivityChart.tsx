@@ -36,7 +36,29 @@ export default function UserActivityChart() {
     fetchOverview();
   }, [fetchOverview]);
 
-  if (overviewError && !isLoadingOverview) return <ServiceDataState title="HealthNet user activity unavailable" message={overviewError} retry={() => void fetchOverview()} />;
+  if (overviewError && !isLoadingOverview) {
+    return (
+      <div className="bg-card rounded-lg border border-border p-5 flex flex-col w-full">
+        <div className="mb-4">
+          <h2 className="text-[15px] font-bold text-foreground">User Activity</h2>
+          <p className="text-[11px] text-muted-foreground mt-1">Period unavailable</p>
+        </div>
+        <ServiceDataState embedded title="Activity data unavailable" message={overviewError}
+          retry={() => void fetchOverview()} />
+        <div className="flex flex-col gap-3 mt-4">
+          {RING_CONFIG.map(item => (
+            <div className="flex items-center justify-between" key={item.key}>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                <span className="text-[13px] font-medium text-muted-foreground">{item.label}</span>
+              </div>
+              <span className="text-[13px] font-bold text-muted-foreground" aria-label="Unavailable">—</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
   if (isLoadingOverview || !overview) return <UserActivitySkeleton />;
 
   const { userActivity } = overview;
