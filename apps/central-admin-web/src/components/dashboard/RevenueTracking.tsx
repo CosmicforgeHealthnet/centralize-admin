@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { useDashboardStore } from "@/stores/dashboard.store";
+import ServiceDataState from "@/components/shared/ServiceDataState";
 import type { RevenueChartItem } from "@/types/dashboard.types";
 
 function downloadCSV(data: RevenueChartItem[], filename: string) {
@@ -52,7 +53,7 @@ function RevenueTrackingSkeleton() {
 }
 
 export default function RevenueTracking() {
-  const { revenueChart, isLoadingRevenue, fetchRevenueChart } = useDashboardStore();
+  const { revenueChart, isLoadingRevenue, revenueError, revenueStatus, fetchRevenueChart } = useDashboardStore();
   const [showTooltip, setShowTooltip] = useState(false);
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -74,7 +75,9 @@ export default function RevenueTracking() {
     downloadCSV(revenueChart, filename);
   };
 
-  if (isLoadingRevenue || !revenueChart.length) return <RevenueTrackingSkeleton />;
+  if (isLoadingRevenue || revenueStatus === "idle") return <RevenueTrackingSkeleton />;
+  if (revenueError) return <ServiceDataState title="HealthNet revenue unavailable" message={revenueError} retry={() => void fetchRevenueChart()} />;
+  if (!revenueChart.length) return <ServiceDataState title="No revenue records" empty />;
 
   // ── Totals ─────────────────────────────────────────────────────────────
   const totalRevenue = revenueChart.reduce(
