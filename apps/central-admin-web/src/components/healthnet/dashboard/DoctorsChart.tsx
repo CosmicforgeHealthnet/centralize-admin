@@ -45,7 +45,7 @@ export default function DoctorsChart() {
     fetchActivityChart(month);
   }, [month, fetchActivityChart]);
 
-  if (activityChartError && !activityChartLoading) return <ServiceDataState title="HealthNet activity unavailable" message="The HealthNet data source could not be reached." retry={() => void fetchActivityChart(month)} />;
+  if (activityChartError && !activityChartLoading) return <ServiceDataState title="HealthNet activity unavailable" message={activityChartError} retry={() => void fetchActivityChart(month)} />;
   if (activityChartLoading || !activityChart) return <SkeletonCard />;
 
   const raw = {
