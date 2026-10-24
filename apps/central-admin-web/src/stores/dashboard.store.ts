@@ -9,22 +9,41 @@ import type {
   RevenueChartItem,
   PlatformUsageItem,
 } from "@/types/dashboard.types";
-import { readHttpErrorMessage } from "@/lib/error-messages";
+import { inspectHttpError } from "@/lib/error-messages";
 
+type DataStatus = "idle" | "loading" | "success" | "error";
+
+function dashboardError(error: unknown): string {
+  const details = inspectHttpError(error);
+  if (details.responseCode === "DEPENDENCY_UNAVAILABLE" || details.status === 503) {
+    return "HealthNet data is temporarily unavailable. Other Admin services remain operational.";
+  }
+  if (details.status === 502 || details.status === 504 || (!details.hasResponse && details.hasRequest)) {
+    return "The data service is not responding. Check its availability and retry.";
+  }
+  if (details.status === 401 || details.status === 403) {
+    return "You do not have access to this data. Please check your session and permissions.";
+  }
+  return "This dashboard section could not be loaded. Please retry or contact support.";
+}
 
 interface DashboardState {
-  // ── Data ─────────────────────────────────────────────
   overview: DashboardOverview | null;
   revenueChart: RevenueChartItem[];
   platformUsage: PlatformUsageItem[];
 
-  // ── UI State ──────────────────────────────────────────
   isLoadingOverview: boolean;
   isLoadingRevenue: boolean;
   isLoadingPlatform: boolean;
+  overviewStatus: DataStatus;
+  revenueStatus: DataStatus;
+  platformStatus: DataStatus;
+  overviewError: string | null;
+  revenueError: string | null;
+  platformError: string | null;
+  // Maintained for consumers still reading the historical aggregate error.
   error: string | null;
 
-  // ── Actions ───────────────────────────────────────────
   fetchOverview: () => Promise<void>;
   fetchRevenueChart: () => Promise<void>;
   fetchPlatformUsage: () => Promise<void>;
@@ -32,87 +51,67 @@ interface DashboardState {
   clearError: () => void;
 }
 
-export const useDashboardStore = create<DashboardState>((set) => ({
-  // ── Initial State ─────────────────────────────────────
+export const useDashboardStore = create<DashboardState>((set, get) => ({
   overview: null,
   revenueChart: [],
   platformUsage: [],
   isLoadingOverview: false,
   isLoadingRevenue: false,
   isLoadingPlatform: false,
+  overviewStatus: "idle",
+  revenueStatus: "idle",
+  platformStatus: "idle",
+  overviewError: null,
+  revenueError: null,
+  platformError: null,
   error: null,
 
-  // ── Actions ───────────────────────────────────────────
   fetchOverview: async () => {
-    set({ isLoadingOverview: true, error: null });
+    if (get().isLoadingOverview) return;
+    set({ isLoadingOverview: true, overviewStatus: "loading", overviewError: null });
     try {
       const overview = await fetchDashboardOverview();
-      set({ overview, isLoadingOverview: false });
+      set({ overview, isLoadingOverview: false, overviewStatus: "success", overviewError: null });
     } catch (err: unknown) {
-      set({
-        error: readHttpErrorMessage(err) || "Failed to fetch dashboard overview",
-        isLoadingOverview: false,
-      });
+      const message = dashboardError(err);
+      // Never present cached financial/user figures as live after a failed refresh.
+      set({ overview: null, overviewError: message, error: message, overviewStatus: "error", isLoadingOverview: false });
     }
   },
 
   fetchRevenueChart: async () => {
-    set({ isLoadingRevenue: true, error: null });
+    if (get().isLoadingRevenue) return;
+    set({ isLoadingRevenue: true, revenueStatus: "loading", revenueError: null });
     try {
       const revenueChart = await fetchRevenueChart();
-      set({ revenueChart, isLoadingRevenue: false });
+      set({ revenueChart, isLoadingRevenue: false, revenueStatus: "success", revenueError: null });
     } catch (err: unknown) {
-      set({
-        error: readHttpErrorMessage(err) || "Failed to fetch revenue data",
-        isLoadingRevenue: false,
-      });
+      const message = dashboardError(err);
+      set({ revenueChart: [], revenueError: message, error: message, revenueStatus: "error", isLoadingRevenue: false });
     }
   },
 
   fetchPlatformUsage: async () => {
-    set({ isLoadingPlatform: true, error: null });
+    if (get().isLoadingPlatform) return;
+    set({ isLoadingPlatform: true, platformStatus: "loading", platformError: null });
     try {
       const platformUsage = await fetchPlatformUsage();
-      set({ platformUsage, isLoadingPlatform: false });
+      set({ platformUsage, isLoadingPlatform: false, platformStatus: "success", platformError: null });
     } catch (err: unknown) {
-      set({
-        error: readHttpErrorMessage(err) || "Failed to fetch platform usage",
-        isLoadingPlatform: false,
-      });
+      const message = dashboardError(err);
+      set({ platformUsage: [], platformError: message, error: message, platformStatus: "error", isLoadingPlatform: false });
     }
   },
 
-  // Fires all three in parallel — use this on dashboard page mount
+  // Independent settlement: one failed product request does not discard
+  // healthy dashboard responses. Individual actions handle their own errors.
   fetchAll: async () => {
-    set({
-      isLoadingOverview: true,
-      isLoadingRevenue: true,
-      isLoadingPlatform: true,
-      error: null,
-    });
-    try {
-      const [overview, revenueChart, platformUsage] = await Promise.all([
-        fetchDashboardOverview(),
-        fetchRevenueChart(),
-        fetchPlatformUsage(),
-      ]);
-      set({
-        overview,
-        revenueChart,
-        platformUsage,
-        isLoadingOverview: false,
-        isLoadingRevenue: false,
-        isLoadingPlatform: false,
-      });
-    } catch (err: unknown) {
-      set({
-        error: readHttpErrorMessage(err) || "Failed to fetch dashboard data",
-        isLoadingOverview: false,
-        isLoadingRevenue: false,
-        isLoadingPlatform: false,
-      });
-    }
+    await Promise.all([
+      get().fetchOverview(),
+      get().fetchRevenueChart(),
+      get().fetchPlatformUsage(),
+    ]);
   },
 
-  clearError: () => set({ error: null }),
+  clearError: () => set({ error: null, overviewError: null, revenueError: null, platformError: null }),
 }));
