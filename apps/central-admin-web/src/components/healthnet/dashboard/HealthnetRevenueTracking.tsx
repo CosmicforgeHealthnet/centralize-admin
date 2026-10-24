@@ -49,7 +49,7 @@ export default function HealthnetRevenueTracking() {
     fetchRevenueChart();
   }, [fetchRevenueChart]);
 
-  if (revenueChartError && !revenueChartLoading) return <ServiceDataState title="HealthNet revenue unavailable" message="The HealthNet data source could not be reached." retry={() => void fetchRevenueChart()} />;
+  if (revenueChartError && !revenueChartLoading) return <ServiceDataState title="HealthNet revenue unavailable" message={revenueChartError} retry={() => void fetchRevenueChart()} />;
   if (revenueChartLoading || !revenueChart) {
     return <SkeletonCard />;
   }
