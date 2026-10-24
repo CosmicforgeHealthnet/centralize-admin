@@ -1,0 +1,105 @@
+name: Staging Main DB Readiness Diagnostics
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [staging]
+    paths:
+      - .github/workflows/staging-main-db-diagnostics.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    name: Diagnose main DEV DB from running staging API (read only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    environment: staging
+    steps:
+      - name: Inspect staging main database reachability without printing credentials
+        shell: bash
+        env:
+          STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          key="$(mktemp)"
+          hosts="$(mktemp)"
+          trap 'rm -f "$key" "$hosts"' EXIT
+          printf '%s\n' "$STAGING_SSH_KEY" > "$key"
+          test -s "$key"
+          ssh-keyscan -T 10 -t ed25519 173.249.30.55 2>/dev/null > "$hosts"
+          test -s "$hosts"
+          [[ "$(ssh-keygen -l -E sha256 -f "$hosts" | awk '{print $2}')" == "SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ" ]]
+          ssh -T -i "$key" -o IdentitiesOnly=yes -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$hosts" \
+            cf-staging-deploy@173.249.30.55 \
+            'timeout 110 docker exec -i admin-server-staging-app-1 node -' <<'STAGING_DB_DIAG'
+          "use strict";
+          const dns = require("node:dns/promises");
+          const net = require("node:net");
+          const { Pool } = require("pg");
+          const { URL } = require("node:url");
+
+          async function go() {
+            const env = process.env;
+            const mode = env.MAIN_DB_ENV || "dev";
+            console.log("Main DB mode:", mode);
+            if (mode !== "dev") throw new Error("Unexpected main database mode; refusing query");
+            const url = env.MAIN_DATABASE_URL_DEV;
+            console.log("Main DEV DB URL configured:", !!url);
+            if (!url) return;
+            let parsed;
+            try { parsed = new URL(url); }
+            catch { console.log("Main DEV DB URL: invalid syntax"); return; }
+            const host = parsed.hostname;
+            const port = Number(parsed.port || 5432);
+            const classified = /^(127\.\d+\.\d+\.\d+|localhost|::1)$/.test(host)
+              ? "loopback"
+              : net.isIP(host)
+                ? "IP address"
+                : host.includes(".") ? "DNS hostname" : "Docker/internal hostname";
+            console.log("Main DEV DB host class:", classified, "port:", port);
+            const adminUrl = env.DATABASE_URL;
+            if (adminUrl) {
+              try {
+                const a = new URL(adminUrl);
+                console.log("Admin DB and Main DEV DB host+port same:",
+                  a.hostname === host && Number(a.port || 5432) === port);
+              } catch { console.log("Admin DB URL parsing failed"); }
+            }
+            try {
+              const addresses = await Promise.race([
+                dns.lookup(host),
+                new Promise((_, reject) => setTimeout(() => reject(Object.assign(new Error("DNS_TIMEOUT"), {code:"DNS_TIMEOUT"})), 7000)),
+              ]);
+              console.log("Main DEV DB DNS:", "OK", "address family:", addresses.family);
+            } catch (e) {
+              console.log("Main DEV DB DNS:", "FAILED", e.code || e.name);
+              return;
+            }
+            const tcp = await new Promise(resolve => {
+              const socket = net.connect({host, port});
+              socket.setTimeout(7500);
+              socket.once("connect", () => { socket.destroy(); resolve("OK"); });
+              socket.once("error", e => { socket.destroy(); resolve("FAILED "+(e.code || e.name)); });
+              socket.once("timeout", () => { socket.destroy(); resolve("FAILED TIMEOUT"); });
+            });
+            console.log("Main DEV DB TCP:", tcp);
+            if (tcp !== "OK") return;
+            const pool = new Pool({connectionString: url, connectionTimeoutMillis: 9000, max:1});
+            try {
+              const client = await pool.connect();
+              try {
+                await client.query("SELECT 1");
+                console.log("Main DEV DB PostgreSQL SELECT 1: OK");
+                const result = await client.query("SELECT to_regclass('public.users') AS users_table");
+                console.log("Main DEV DB users table exists:", !!result.rows[0]?.users_table);
+              } finally { client.release(); }
+            } catch(e) {
+              console.log("Main DEV DB PostgreSQL SELECT 1: FAILED", e.code || e.name);
+            } finally { await pool.end(); }
+          }
+          go().catch(e => { console.log("Diagnostic halted:", e.code || e.message); process.exitCode=1; });
+          STAGING_DB_DIAG
