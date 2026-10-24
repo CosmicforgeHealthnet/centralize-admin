@@ -31,7 +31,30 @@ export default function MembershipActivityChart() {
     fetchOverview();
   }, [fetchOverview]);
 
-  if (overviewError && !isLoadingOverview) return <ServiceDataState title="HealthNet memberships unavailable" message={overviewError} retry={() => void fetchOverview()} compact />;
+  if (overviewError && !isLoadingOverview) {
+    return (
+      <div className="bg-card rounded-lg border border-border p-4 flex flex-col">
+        <div className="mb-2">
+          <h2 className="text-[14px] font-sans font-bold text-foreground">Membership Activity</h2>
+          <p className="text-[11px] font-poppins text-muted-foreground mt-1">Total members: —</p>
+        </div>
+        <ServiceDataState embedded compact title="Membership data unavailable" message={overviewError}
+          retry={() => void fetchOverview()} />
+        <div className="flex flex-col gap-1 mt-3">
+          {MEMBERSHIP_CONFIG.map((item) => (
+            <div className="flex items-center justify-between" key={item.key}>
+              <span className="text-[11px] font-poppins text-muted-foreground">{item.name}</span>
+              <span className="text-[11px] text-muted-foreground">—</span>
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center gap-4 mt-3">
+          <span className="text-[11px] text-muted-foreground">Doctors</span>
+          <span className="text-[11px] text-muted-foreground">Patients</span>
+        </div>
+      </div>
+    );
+  }
   if (isLoadingOverview || !overview) return <MembershipSkeleton />;
 
   const { membershipActivity } = overview;
