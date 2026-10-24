@@ -153,10 +153,60 @@ jobs:
 
   # Backend deployment is intentionally attached to the existing CI job.
   # On staging pushes, a failed test/security check cannot publish or deploy.
+  verify-staging-ssh:
+    name: Verify Contabo SSH key and staging account
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Verify deployment key identity and reachable staging SSH account
+        shell: bash
+        env:
+          STAGING_HOST: ${{ secrets.STAGING_HOST }}
+          STAGING_USER: ${{ secrets.STAGING_USER }}
+          STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$STAGING_HOST" || -z "$STAGING_USER" || -z "$STAGING_SSH_KEY" ]]; then
+            echo "::error::Missing one of STAGING_HOST, STAGING_USER or STAGING_SSH_KEY in the staging environment."
+            exit 1
+          fi
+          umask 077
+          private_key="$(mktemp)"
+          public_key="$(mktemp)"
+          host_keys="$(mktemp)"
+          trap 'rm -f "$private_key" "$public_key" "$host_keys"' EXIT
+          printf '%s\n' "$STAGING_SSH_KEY" > "$private_key"
+          if ! ssh-keygen -y -P '' -f "$private_key" > "$public_key" 2>/dev/null; then
+            echo "::error::STAGING_SSH_KEY is not a valid unencrypted private key. Re-copy the entire private key (including BEGIN/END lines) into the staging environment secret."
+            exit 1
+          fi
+          fingerprint="$(ssh-keygen -l -E sha256 -f "$public_key" | awk '{print $2}')"
+          if [[ "$fingerprint" != "SHA256:LSVBOgX3GxSbGvrqRUwA/BYxw2zVxdvQUQLnV6ALW+4" ]]; then
+            echo "::error::The private key in GitHub does not match the working Windows cf-staging-deploy key fingerprint."
+            exit 1
+          fi
+          echo "GitHub staging deployment key matches expected public fingerprint."
+          ssh-keyscan -T 10 -t ed25519 "$STAGING_HOST" 2>/dev/null > "$host_keys"
+          if [[ ! -s "$host_keys" ]]; then
+            echo "::error::Contabo staging SSH service is unreachable."
+            exit 1
+          fi
+          server_fingerprint="$(ssh-keygen -l -E sha256 -f "$host_keys" | awk '{print $2}')"
+          if [[ "$server_fingerprint" != "SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ" ]]; then
+            echo "::error::Contabo SSH host key does not match the previously observed host fingerprint; deployment stopped."
+            exit 1
+          fi
+          ssh -i "$private_key" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=15 \
+            -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$host_keys" \
+            "$STAGING_USER@$STAGING_HOST" \
+            "docker ps --filter name=admin-server-staging-app-1 >/dev/null"
+          echo "GitHub Actions authenticated to the staging Contabo Docker account."
+
   build-staging-image:
     name: Publish immutable staging API image
     if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/staging'
-    needs: verify
+    needs: [verify, verify-staging-ssh]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -224,6 +274,7 @@ jobs:
           host: ${{ secrets.STAGING_HOST }}
           username: ${{ secrets.STAGING_USER }}
           key: ${{ secrets.STAGING_SSH_KEY }}
+          fingerprint: SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ
           port: 22
           envs: IMAGE_TAG,GHCR_USER,GHCR_TOKEN,DEPLOY_RUN_ID
           command_timeout: 15m
