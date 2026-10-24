@@ -46,7 +46,7 @@ export default function PatientsStatisticsChart() {
     fetchPatientsChart(month);
   }, [month, fetchPatientsChart]);
 
-  if (patientsChartError && !patientsChartLoading) return <ServiceDataState title="HealthNet patient statistics unavailable" message="The HealthNet data source could not be reached." retry={() => void fetchPatientsChart(month)} />;
+  if (patientsChartError && !patientsChartLoading) return <ServiceDataState title="HealthNet patient statistics unavailable" message={patientsChartError} retry={() => void fetchPatientsChart(month)} />;
   if (patientsChartLoading || !patientsChart) {
     return <SkeletonCard />;
   }
