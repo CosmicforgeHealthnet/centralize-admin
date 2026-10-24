@@ -1,0 +1,58 @@
+name: Staging Admin API Connectivity
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  api-smoke:
+    name: Verify staging API DNS, HTTPS and login CORS
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify staging backend reachability and frontend origin
+        shell: bash
+        env:
+          STAGING_API: https://stagingca.cosmicforge-healthnet.com
+          STAGING_WEB_ORIGIN: https://centralize-admin-staging.vercel.app
+        run: |
+          set -euo pipefail
+
+          if ! getent ahostsv4 stagingca.cosmicforge-healthnet.com >/dev/null; then
+            echo "::error::stagingca.cosmicforge-healthnet.com has no resolvable IPv4 address. Fix staging DNS/service first."
+            exit 1
+          fi
+
+          echo "Staging DNS resolves."
+          if ! curl --silent --show-error --fail --max-time 15 --output /dev/null "${STAGING_API}/health"; then
+            echo "::error::Staging Admin API /health is not reachable over valid HTTPS."
+            exit 1
+          fi
+
+          echo "Staging API /health returned success."
+          headers="$(mktemp)"
+          status="$(curl --silent --show-error --max-time 15 --dump-header "${headers}" --output /dev/null --write-out "%{http_code}" \
+            -X OPTIONS \
+            -H "Origin: ${STAGING_WEB_ORIGIN}" \
+            -H "Access-Control-Request-Method: POST" \
+            -H "Access-Control-Request-Headers: Content-Type" \
+            "${STAGING_API}/api/auth/login")"
+
+          if [[ ! "${status}" =~ ^2[0-9][0-9]$ ]]; then
+            echo "::error::Staging login preflight returned HTTP ${status} instead of 2xx."
+            exit 1
+          fi
+          if ! grep -qiE '^access-control-allow-origin: https://centralize-admin-staging\.vercel\.app\r?$' "${headers}"; then
+            echo "::error::Backend CORS did not allow the exact staging frontend origin."
+            exit 1
+          fi
+          if ! grep -qiE '^access-control-allow-credentials: true\r?$' "${headers}"; then
+            echo "::error::Backend CORS is missing credentialed request approval."
+            exit 1
+          fi
+
+          echo "Staging API and browser login preflight are ready. No credentials were transmitted."
