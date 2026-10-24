@@ -57,3 +57,18 @@ For service outages, dashboard widgets must show **unavailable**, not fabricated
 zero metrics or an indefinite skeleton. HealthNet's independent service foundation
 lives at `services/healthnet-admin`; the existing HQ-to-HealthNet data migration
 remains staged separately.
+
+### Dashboard outage UX regression contract
+
+When a product data source is offline, the HQ dashboard must **retain the
+ordinary five-card metric grid, chart panels, headings, legends and controls**.
+Only the source-dependent numbers/plots receive an in-card unavailable state.
+Never replace the entire dashboard card or layout with a generic outage panel.
+Unauthoritative financial counts are `—`, not zero; report CSV exports are
+disabled until authoritative figures are loaded. Working HR, staff, marketing,
+support, finance and other HQ navigation/routes remain independent.
+
+The staging fix for this presentation contract was implemented in PR #12
+on the `staging` branch and should be verified against both source-down
+and source-recovered API responses after each frontend deployment.
+

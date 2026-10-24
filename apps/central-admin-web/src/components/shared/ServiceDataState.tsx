@@ -8,6 +8,7 @@ interface ServiceDataStateProps {
   retry?: () => void;
   empty?: boolean;
   compact?: boolean;
+  embedded?: boolean;
 }
 
 // Shared by current HealthNet widgets and future product Admin integrations.
@@ -18,17 +19,18 @@ export default function ServiceDataState({
   retry,
   empty = false,
   compact = false,
+  embedded = false,
 }: ServiceDataStateProps) {
   const Icon = empty ? Inbox : CloudOff;
   return (
     <section
       role={empty ? "status" : "alert"}
-      className={`bg-card rounded-lg border border-border flex flex-col items-center justify-center gap-2 text-center ${compact ? "min-h-[110px] p-3" : "min-h-[220px] p-6"}`}
+      className={`${embedded ? "flex flex-col items-center justify-center gap-2 text-center" : "bg-card rounded-lg border border-border flex flex-col items-center justify-center gap-2 text-center"} ${compact ? "min-h-[100px] p-2" : "min-h-[200px] p-3"}`}
     >
-      <Icon className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
-      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-      <p className="max-w-md text-xs text-muted-foreground">
-        {message || (empty ? "No records were returned for this period." : "This data source is temporarily unavailable. Other Admin services are not affected.")}
+      <Icon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+      <h3 className="text-xs font-semibold text-foreground">{title}</h3>
+      <p className="max-w-xs text-[11px] leading-relaxed text-muted-foreground">
+        {message || (empty ? "No records were returned for this period." : "HealthNet data cannot be loaded right now.")}
       </p>
       {!empty && retry && (
         <button
