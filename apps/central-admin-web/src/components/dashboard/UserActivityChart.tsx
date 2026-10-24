@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { useDashboardStore } from "@/stores/dashboard.store";
+import ServiceDataState from "@/components/shared/ServiceDataState";
 
 const RING_CONFIG = [
   { key: "newDoctors" as const,    label: "New Doctors",  color: "#f64545", inner: 78, outer: 88, start: 90  },
@@ -29,12 +30,13 @@ function UserActivitySkeleton() {
 }
 
 export default function UserActivityChart() {
-  const { overview, isLoadingOverview, fetchOverview } = useDashboardStore();
+  const { overview, isLoadingOverview, overviewError, fetchOverview } = useDashboardStore();
 
   useEffect(() => {
     fetchOverview();
   }, [fetchOverview]);
 
+  if (overviewError && !isLoadingOverview) return <ServiceDataState title="HealthNet user activity unavailable" message={overviewError} retry={() => void fetchOverview()} />;
   if (isLoadingOverview || !overview) return <UserActivitySkeleton />;
 
   const { userActivity } = overview;
