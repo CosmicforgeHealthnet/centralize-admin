@@ -15,7 +15,8 @@ export type MessageStatus =
   | "BOUNCED"
   | "COMPLAINED"
   | "RECEIVED"
-  | "QUARANTINED";
+  | "QUARANTINED"
+  | "OUTCOME_UNKNOWN";
 export type ScanStatus = "PENDING" | "CLEAN" | "INFECTED" | "SCAN_FAILED" | "SCANNER_UNAVAILABLE";
 export type DraftMode = "NEW" | "REPLY" | "REPLY_ALL" | "FORWARD";
 export type DraftStatus = "ACTIVE" | "SENDING" | "SENT" | "DISCARDED";

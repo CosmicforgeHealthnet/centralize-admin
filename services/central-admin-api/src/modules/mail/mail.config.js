@@ -64,7 +64,8 @@ function loadMailConfig(env = process.env) {
       attachmentMaxBytes: intInRange(env.MAIL_ATTACHMENT_MAX_BYTES, 10 * 1024 * 1024, 1024, 25 * 1024 * 1024),
       messageMaxBytes: intInRange(env.MAIL_MESSAGE_MAX_BYTES, 25 * 1024 * 1024, 1024, 40 * 1024 * 1024),
       maxAttachmentsPerMessage: intInRange(env.MAIL_MAX_ATTACHMENTS, 10, 1, 50),
-      maxRecipients: intInRange(env.MAIL_MAX_RECIPIENTS, 50, 1, 500),
+      // Resend accepts at most 50 addresses per field; keep the total within it.
+      maxRecipients: intInRange(env.MAIL_MAX_RECIPIENTS, 50, 1, 50),
       bodyMaxBytes: intInRange(env.MAIL_BODY_MAX_BYTES, 1024 * 1024, 1024, 5 * 1024 * 1024),
       sendsPerMinutePerUser: intInRange(env.MAIL_SENDS_PER_MINUTE_PER_USER, 20, 1, 600),
       csvImportMaxRows: intInRange(env.MAIL_MARKETING_CSV_MAX_ROWS, 5000, 1, 50000),
@@ -77,6 +78,9 @@ function loadMailConfig(env = process.env) {
     },
     reconciliation: {
       enabled: flag(env.MAIL_RECONCILIATION_ENABLED),
+      // Resend keeps idempotency keys for 24h. A send whose first attempt is
+      // older than this window is never retried; it becomes OUTCOME_UNKNOWN.
+      idempotencyWindowHours: intInRange(env.MAIL_PROVIDER_IDEMPOTENCY_WINDOW_HOURS, 23, 1, 23),
     },
     worker: {
       pollIntervalMs: intInRange(env.MAIL_WORKER_POLL_INTERVAL_MS, 2000, 200, 60000),

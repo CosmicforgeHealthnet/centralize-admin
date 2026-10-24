@@ -4,6 +4,10 @@ Migration artifact: `services/central-admin-api/prisma/manual-migrations/2026102
 (manifest order 27, checksum in `manifest.json`).
 Rollback artifact: `docs/sql/cosmicforge-mail-m1-m6-rollback.sql` (manual only).
 
+The migration was amended once before any application (post-review remediation added
+`OUTCOME_UNKNOWN` statuses and `mail_message_recipients.provider_message_id`); always use the
+checksum in `manifest.json` from the reviewed commit.
+
 The migration is **additive**: 33 new enums, 36 new tables, indexes, CHECK
 constraints, 3 partial unique indexes, a GIN full-text index, and 2 trigger
 functions (append-only evidence, legal-hold delete guard). It does not alter,

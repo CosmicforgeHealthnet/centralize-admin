@@ -509,6 +509,180 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       assert.equal((await call("frank", "GET", `/mailboxes/${state.aliceBox}/threads`)).status, 404, "access expires");
     });
 
+    await t.test("Remediation: mixed internal/external recipients reach the provider exactly once, external only", async () => {
+      const sentFor = async (messageId) => {
+        const { rfcMessageId } = await client.mailMessage.findUnique({ where: { id: messageId } });
+        return harness.adapter.state.sent.filter((request) => request.headers["Message-ID"] === rfcMessageId);
+      };
+      const addresses = (list) => list.map((party) => party.address).sort();
+      const send = async (userKey, mailboxId, draft) => {
+        const created = await call(userKey, "POST", `/mailboxes/${mailboxId}/drafts`, { subject: "Mixed", text: "hello", ...draft });
+        assert.equal(created.status, 201, created.text);
+        const sent = await call(userKey, "POST", `/drafts/${created.body.data.id}/send`, { revision: 1 });
+        assert.equal(sent.status, 202, sent.text);
+        return sent.body.data;
+      };
+      const bobCopies = async (messageId) => {
+        const { rfcMessageId } = await client.mailMessage.findUnique({ where: { id: messageId } });
+        return client.mailMessage.findMany({ where: { mailboxId: state.bobBox, rfcMessageId }, include: { recipients: true } });
+      };
+
+      const toTo = await send("alice", state.aliceBox, { to: ["bob@cosmicforge.example", "mx1@partner.example"] });
+      const ccTo = await send("alice", state.aliceBox, { to: ["mx2@partner.example"], cc: ["bob@cosmicforge.example"] });
+      const bccTo = await send("alice", state.aliceBox, { to: ["mx3@partner.example"], bcc: ["bob@cosmicforge.example"] });
+      const extBcc = await send("alice", state.aliceBox, { bcc: ["hb1@partner.example", "hb2@partner.example"] });
+      const multi = await send("bob", state.bobBox, { to: ["alice@cosmicforge.example", "a.okafor@cosmicforge.example", "mx4@partner.example"] });
+      const internalOnly = await send("alice", state.aliceBox, { to: ["bob@cosmicforge.example"], cc: ["a.okafor@cosmicforge.example"] });
+      const extOnly = await send("alice", state.aliceBox, { to: ["mx5@partner.example"], cc: ["mx6@partner.example"] });
+      const promoted = await send("alice", state.aliceBox, { to: ["bob@cosmicforge.example"], cc: ["mx7@partner.example"] });
+      assert.equal(internalOnly.status, "DELIVERED");
+      assert.equal(internalOnly.jobId, null, "internal-only mail never creates a provider job");
+      await drain();
+
+      const one = async (data) => {
+        const requests = await sentFor(data.messageId);
+        assert.equal(requests.length, 1, "exactly one provider request");
+        return requests[0];
+      };
+      let request = await one(toTo);
+      assert.deepEqual([addresses(request.to), addresses(request.cc), addresses(request.bcc)], [["mx1@partner.example"], [], []]);
+      assert.equal((await bobCopies(toTo.messageId)).length, 1);
+      request = await one(ccTo);
+      assert.deepEqual([addresses(request.to), addresses(request.cc), addresses(request.bcc)], [["mx2@partner.example"], [], []]);
+      request = await one(bccTo);
+      assert.deepEqual([addresses(request.to), addresses(request.cc), addresses(request.bcc)], [["mx3@partner.example"], [], []]);
+      const [bccCopy] = await bobCopies(bccTo.messageId);
+      assert.ok(bccCopy, "internal BCC recipient received a local copy");
+      assert.ok(!bccCopy.recipients.some((recipient) => recipient.type === "BCC"), "BCC never copied into recipient mailboxes");
+      const individual = await sentFor(extBcc.messageId);
+      assert.equal(individual.length, 2, "external BCC-only mail is sent individually");
+      for (const entry of individual) {
+        assert.equal(entry.to.length, 1);
+        assert.deepEqual([entry.cc, entry.bcc], [[], []], "BCC recipients never see each other");
+      }
+      assert.deepEqual(individual.map((entry) => entry.to[0].address).sort(), ["hb1@partner.example", "hb2@partner.example"]);
+      assert.notEqual(individual[0].idempotencyKey, individual[1].idempotencyKey);
+      request = await one(multi);
+      assert.deepEqual(addresses(request.to), ["mx4@partner.example"]);
+      const { rfcMessageId: multiId } = await client.mailMessage.findUnique({ where: { id: multi.messageId } });
+      assert.equal(await client.mailMessage.count({ where: { mailboxId: state.aliceBox, rfcMessageId: multiId } }), 1, "two addresses of one mailbox -> one copy");
+      assert.equal((await sentFor(internalOnly.messageId)).length, 0);
+      request = await one(extOnly);
+      assert.deepEqual([addresses(request.to), addresses(request.cc)], [["mx5@partner.example"], ["mx6@partner.example"]]);
+      request = await one(promoted);
+      assert.deepEqual([addresses(request.to), addresses(request.cc)], [["mx7@partner.example"], []], "Resend requires `to`: external CC promoted, internal To excluded");
+      const toToStatus = await call("alice", "GET", `/messages/${toTo.messageId}/status`);
+      assert.equal(toToStatus.body.data.recipients.find((recipient) => recipient.address === "bob@cosmicforge.example").status, "INTERNAL_DELIVERED");
+      assert.equal(toToStatus.body.data.status, "PROVIDER_ACCEPTED");
+
+      // Provider echo / replay of the locally delivered message is deduplicated.
+      const { rfcMessageId } = await client.mailMessage.findUnique({ where: { id: toTo.messageId } });
+      harness.adapter.addInbound("echo_mixed", { from: { address: "alice@cosmicforge.example", name: "Alice" }, to: [{ address: "bob@cosmicforge.example", name: null }], cc: [], envelopeRecipients: [], subject: "Mixed", html: null, text: "dup", rfcMessageId, inReplyTo: null, references: [], receivedAt: harness.clock() });
+      const echo = await webhook("email.received", { email_id: "echo_mixed", to: ["bob@cosmicforge.example"] });
+      await webhook("email.received", { email_id: "echo_mixed", to: ["bob@cosmicforge.example"] }, { id: echo.id });
+      await drain();
+      assert.equal((await bobCopies(toTo.messageId)).length, 1, "no duplicate delivery after echo + replay");
+
+      // Delivery events for an individual BCC send resolve only that recipient.
+      const status = await call("alice", "GET", `/messages/${extBcc.messageId}/status`);
+      assert.equal(status.body.data.status, "PROVIDER_ACCEPTED");
+      await webhook("email.delivered", { email_id: individual.find((entry) => entry.to[0].address === "hb2@partner.example").providerMessageId, to: ["hb2@partner.example"] });
+      await drain();
+      const after = (await call("alice", "GET", `/messages/${extBcc.messageId}/status`)).body.data;
+      assert.equal(after.recipients.find((recipient) => recipient.address === "hb2@partner.example").status, "DELIVERED");
+      assert.equal(after.recipients.find((recipient) => recipient.address === "hb1@partner.example").status, "PROVIDER_ACCEPTED");
+    });
+
+    await t.test("Remediation: queued sends are re-authorized at dispatch (offboarding, identity revocation, domain kill-switch)", async () => {
+      const makeUser = async (key, name) => {
+        const id = crypto.randomUUID();
+        await client.adminUser.create({ data: { id, email: `${key}@staff.example.invalid`, password: "test-only-hash", name, tier: "EMPLOYEE", status: "ACTIVE", mustChangePassword: false } });
+        ids[key] = id;
+        const box = await call("mailAdmin", "POST", "/admin/mailboxes", { organizationId: state.orgId, type: "PERSONAL", ownerAdminUserId: id, address: { domainId: state.domainId, localPart: key } });
+        assert.equal(box.status, 201, box.text);
+        return box.body.data.id;
+      };
+      const queue = async (userKey, mailboxId, to = ["ext-dispatch@partner.example"]) => {
+        const draft = await call(userKey, "POST", `/mailboxes/${mailboxId}/drafts`, { to, subject: "Queued", text: "x" });
+        const sent = await call(userKey, "POST", `/drafts/${draft.body.data.id}/send`, { revision: 1 });
+        assert.equal(sent.status, 202, sent.text);
+        return sent.body.data;
+      };
+      const providerCalls = (messageRfc) => harness.adapter.state.sent.filter((request) => request.headers["Message-ID"] === messageRfc).length;
+      const rfc = async (messageId) => (await client.mailMessage.findUnique({ where: { id: messageId } })).rfcMessageId;
+
+      const zoeBox = await makeUser("zoe", "Zoe Leaver");
+      const zoeQueued = await queue("zoe", zoeBox);
+      assert.equal((await call("mailAdmin", "POST", `/admin/users/${ids.zoe}/offboard`)).status, 200);
+      await drain();
+      let message = await client.mailMessage.findUnique({ where: { id: zoeQueued.messageId }, include: { recipients: true } });
+      assert.equal(message.status, "FAILED");
+      assert.equal(message.recipients[0].lastEventDetail, "SENDER_MEMBERSHIP_REVOKED");
+      assert.equal(providerCalls(await rfc(zoeQueued.messageId)), 0, "offboarded sender's queued mail is never dispatched");
+      assert.equal((await client.mailOutboxJob.findUnique({ where: { id: zoeQueued.jobId } })).status, "FAILED");
+
+      const yanBox = await makeUser("yan", "Yan Domain");
+      const yanQueued = await queue("yan", yanBox);
+      await client.mailDomain.update({ where: { id: state.domainId }, data: { sendingStatus: "DISABLED" } });
+      await drain();
+      message = await client.mailMessage.findUnique({ where: { id: yanQueued.messageId }, include: { recipients: true } });
+      assert.equal(message.recipients[0].lastEventDetail, "SENDER_DOMAIN_SENDING_DISABLED");
+      assert.equal(providerCalls(await rfc(yanQueued.messageId)), 0, "domain kill-switch stops queued mail");
+      await client.mailDomain.update({ where: { id: state.domainId }, data: { sendingStatus: "VERIFIED" } });
+
+      const aliasDraft = await call("alice", "POST", `/mailboxes/${state.aliceBox}/drafts`, { to: ["ext-alias@partner.example"], subject: "Alias", text: "x" });
+      const aliasId = (await call("alice", "GET", `/mailboxes/${state.aliceBox}`)).body.data.senderIdentities.find((identity) => identity.address === "a.okafor@cosmicforge.example").addressId;
+      await call("alice", "PATCH", `/drafts/${aliasDraft.body.data.id}`, { revision: 1, senderAddressId: aliasId });
+      const aliasSent = await call("alice", "POST", `/drafts/${aliasDraft.body.data.id}/send`, { revision: 2 });
+      assert.equal((await call("mailAdmin", "PATCH", `/admin/addresses/${aliasId}`, { status: "SUSPENDED" })).status, 200);
+      await drain();
+      message = await client.mailMessage.findUnique({ where: { id: aliasSent.body.data.messageId }, include: { recipients: true } });
+      assert.equal(message.recipients[0].lastEventDetail, "SENDER_IDENTITY_REVOKED");
+      assert.equal(providerCalls(message.rfcMessageId), 0);
+      await client.mailAddress.update({ where: { id: aliasId }, data: { status: "ACTIVE" } });
+    });
+
+    await t.test("Remediation: ambiguous sends past the provider idempotency window become OUTCOME_UNKNOWN, never a duplicate", async () => {
+      const queue = async (to) => {
+        const draft = await call("alice", "POST", `/mailboxes/${state.aliceBox}/drafts`, { to: [to], subject: "Window", text: "x" });
+        return (await call("alice", "POST", `/drafts/${draft.body.data.id}/send`, { revision: 1 })).body.data;
+      };
+      const countFor = async (messageId) => {
+        const { rfcMessageId } = await client.mailMessage.findUnique({ where: { id: messageId } });
+        return harness.adapter.state.sent.filter((request) => request.headers["Message-ID"] === rfcMessageId).length;
+      };
+
+      // 1. Timeout after the provider accepted; the worker is unavailable for >24h.
+      const late = await queue("late@partner.example");
+      harness.adapter.failNext("sendMessage", "AMBIGUOUS", "PROVIDER_TIMEOUT", { acceptBeforeFailing: true });
+      await harness.worker.drain({ maxTicks: 1 });
+      assert.equal((await client.mailOutboxJob.findUnique({ where: { id: late.jobId } })).status, "RECONCILING");
+      assert.equal(await countFor(late.messageId), 1);
+      harness.advance(25 * 3600 * 1000);
+      await harness.worker.drain();
+      const lateStatus = (await call("alice", "GET", `/messages/${late.messageId}/status`)).body.data;
+      assert.equal(lateStatus.status, "OUTCOME_UNKNOWN");
+      assert.equal(lateStatus.recipients[0].status, "OUTCOME_UNKNOWN");
+      assert.equal(await countFor(late.messageId), 1, "no resend once deduplication is no longer guaranteed");
+      assert.ok(await client.mailAuditEvent.count({ where: { action: "MAIL_SEND_OUTCOME_UNKNOWN", targetId: late.messageId } }));
+
+      // 2. Provider says the key was used with a different payload.
+      const conflict = await queue("conflict@partner.example");
+      harness.adapter.failNext("sendMessage", "IDEMPOTENCY_CONFLICT", "RESEND_IDEMPOTENCY_CONFLICT");
+      await drain();
+      assert.equal((await call("alice", "GET", `/messages/${conflict.messageId}/status`)).body.data.status, "OUTCOME_UNKNOWN");
+
+      // 3. Worker crash mid-send on the final attempt.
+      const crash = await queue("lastcrash@partner.example");
+      const job = await client.mailOutboxJob.findUnique({ where: { id: crash.jobId } });
+      const recipients = await client.mailMessageRecipient.findMany({ where: { messageId: crash.messageId } });
+      await client.mailOutboxJob.update({ where: { id: job.id }, data: { status: "LEASED", leaseOwner: "dead-worker", leaseExpiresAt: new Date(harness.clock().getTime() - 1000), attemptCount: job.maxAttempts, payload: { plan: [{ to: recipients.map((recipient) => recipient.id), cc: [], bcc: [], firstAttemptAt: harness.clock().toISOString() }] } } });
+      await harness.worker.drain({ maxTicks: 1 });
+      assert.equal((await client.mailOutboxJob.findUnique({ where: { id: job.id } })).status, "DEAD_LETTER");
+      assert.equal((await call("alice", "GET", `/messages/${crash.messageId}/status`)).body.data.status, "OUTCOME_UNKNOWN", "a crash during an attempted send is unknown, not failed or sent");
+      assert.equal(await countFor(crash.messageId), 0);
+    });
+
     await t.test("M3: legal holds, immutable audit trail and offboarding retain history", async () => {
       await call("alice", "POST", `/threads/${state.aliceThreadId}/move`, { folder: "TRASH" });
       const hold = await call("mailAdmin", "POST", "/admin/legal-holds", { organizationId: state.orgId, mailboxId: state.aliceBox, reason: "Litigation hold LEGAL-42" });

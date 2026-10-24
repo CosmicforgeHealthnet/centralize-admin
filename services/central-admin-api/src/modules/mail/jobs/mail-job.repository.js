@@ -80,7 +80,7 @@ function createMailJobRepository({ client, clock = () => new Date(), random = Ma
   async function recoverExpiredLeases() {
     const now = clock();
     const expired = await client.mailOutboxJob.findMany({ where: { status: "LEASED", leaseExpiresAt: { lt: now } }, take: 200 });
-    let recovered = 0;
+    const recovered = [];
     for (const job of expired) {
       const exhausted = job.attemptCount >= job.maxAttempts;
       // Outbound sends interrupted mid-flight are reconciled (provider-side
@@ -90,7 +90,7 @@ function createMailJobRepository({ client, clock = () => new Date(), random = Ma
         where: { id: job.id, status: "LEASED", leaseOwner: job.leaseOwner, leaseExpiresAt: { lt: now } },
         data: { status, leaseOwner: null, leaseExpiresAt: null, nextAttemptAt: now, lastErrorCode: "LEASE_EXPIRED", completedAt: exhausted ? now : null },
       });
-      recovered += result.count;
+      if (result.count === 1) recovered.push({ job: { ...job, status }, status });
     }
     return recovered;
   }

@@ -319,8 +319,10 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
       const visibleRecipients = recipients.filter((recipient) => recipient.type !== "BCC").map((recipient) => ({ ...recipient, status: "DELIVERED" }));
       const delivered = new Set([mailbox.id]);
       const internalTargets = [];
+      let selfAddressed = false;
       for (const party of all) {
         const target = internalByAddress.get(party.address);
+        if (target && target.mailboxId === mailbox.id) selfAddressed = true;
         if (!target || delivered.has(target.mailboxId)) continue;
         delivered.add(target.mailboxId);
         const copy = await store.createMessage(tx, target.mailbox, {
@@ -345,6 +347,10 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
           await tx.mailAttachment.create({ data: { mailboxId: target.mailboxId, messageId: copy.message.id, filename: attachment.filename, contentType: attachment.contentType, sizeBytes: attachment.sizeBytes, sha256: attachment.sha256, storageKey: attachment.storageKey, isInline: attachment.isInline, contentId: attachment.contentId, scanStatus: attachment.scanStatus, scanDetail: attachment.scanDetail, quarantined: attachment.quarantined } });
         }
         internalTargets.push(target.mailbox);
+      }
+      if (selfAddressed) {
+        // Mail to one's own address/alias also lands in the inbox (one copy).
+        await tx.mailThread.update({ where: { id: created.thread.id }, data: { hasInbound: true, lastInboundAt: now } });
       }
       let job = null;
       if (externalRecipients.length) {

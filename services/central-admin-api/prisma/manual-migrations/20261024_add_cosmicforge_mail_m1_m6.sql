@@ -42,13 +42,13 @@ CREATE TYPE "MailProvisionRequestStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECT
 CREATE TYPE "MailMessageDirection" AS ENUM ('INBOUND', 'OUTBOUND', 'INTERNAL');
 
 -- CreateEnum
-CREATE TYPE "MailMessageStatus" AS ENUM ('QUEUED', 'PROVIDER_ACCEPTED', 'DELIVERED', 'DELAYED', 'FAILED', 'BOUNCED', 'COMPLAINED', 'RECEIVED', 'QUARANTINED');
+CREATE TYPE "MailMessageStatus" AS ENUM ('QUEUED', 'PROVIDER_ACCEPTED', 'DELIVERED', 'DELAYED', 'FAILED', 'BOUNCED', 'COMPLAINED', 'RECEIVED', 'QUARANTINED', 'OUTCOME_UNKNOWN');
 
 -- CreateEnum
 CREATE TYPE "MailRecipientType" AS ENUM ('TO', 'CC', 'BCC');
 
 -- CreateEnum
-CREATE TYPE "MailRecipientStatus" AS ENUM ('PENDING', 'PROVIDER_ACCEPTED', 'DELIVERED', 'DELAYED', 'FAILED', 'BOUNCED', 'COMPLAINED', 'INTERNAL_DELIVERED');
+CREATE TYPE "MailRecipientStatus" AS ENUM ('PENDING', 'PROVIDER_ACCEPTED', 'DELIVERED', 'DELAYED', 'FAILED', 'BOUNCED', 'COMPLAINED', 'INTERNAL_DELIVERED', 'OUTCOME_UNKNOWN');
 
 -- CreateEnum
 CREATE TYPE "MailThreadFolder" AS ENUM ('INBOX', 'ARCHIVE', 'TRASH', 'SPAM');
@@ -315,6 +315,7 @@ CREATE TABLE "mail_message_recipients" (
     "status" "MailRecipientStatus" NOT NULL DEFAULT 'PENDING',
     "last_event_at" TIMESTAMPTZ(6),
     "last_event_detail" VARCHAR(500),
+    "provider_message_id" VARCHAR(255),
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "mail_message_recipients_pkey" PRIMARY KEY ("id")
@@ -844,6 +845,9 @@ CREATE UNIQUE INDEX "UQ_mail_messages_mailbox_rfc_id" ON "mail_messages"("mailbo
 CREATE INDEX "IDX_mail_message_recipients_address" ON "mail_message_recipients"("address");
 
 -- CreateIndex
+CREATE INDEX "IDX_mail_message_recipients_provider_message" ON "mail_message_recipients"("provider_message_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "UQ_mail_message_recipients_message_type_address" ON "mail_message_recipients"("message_id", "type", "address");
 
 -- CreateIndex
@@ -1124,7 +1128,6 @@ ALTER TABLE "marketing_email_campaign_approvals" ADD CONSTRAINT "FK_marketing_ca
 
 -- AddForeignKey
 ALTER TABLE "marketing_email_campaign_approvals" ADD CONSTRAINT "FK_marketing_campaign_approvals_snapshot" FOREIGN KEY ("snapshot_id") REFERENCES "marketing_email_campaign_snapshots"("id") ON DELETE RESTRICT ON UPDATE NO ACTION;
-
 
 -- -----------------------------------------------------------------------------
 -- PostgreSQL-only Mail integrity artifacts (Prisma cannot represent these).

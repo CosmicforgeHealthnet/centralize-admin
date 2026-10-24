@@ -2180,6 +2180,7 @@ exports.Prisma.MailMessageRecipientScalarFieldEnum = {
   status: 'status',
   lastEventAt: 'lastEventAt',
   lastEventDetail: 'lastEventDetail',
+  providerMessageId: 'providerMessageId',
   createdAt: 'createdAt'
 };
 
@@ -3517,7 +3518,8 @@ exports.MailMessageStatus = exports.$Enums.MailMessageStatus = {
   BOUNCED: 'BOUNCED',
   COMPLAINED: 'COMPLAINED',
   RECEIVED: 'RECEIVED',
-  QUARANTINED: 'QUARANTINED'
+  QUARANTINED: 'QUARANTINED',
+  OUTCOME_UNKNOWN: 'OUTCOME_UNKNOWN'
 };
 
 exports.MailRecipientType = exports.$Enums.MailRecipientType = {
@@ -3534,7 +3536,8 @@ exports.MailRecipientStatus = exports.$Enums.MailRecipientStatus = {
   FAILED: 'FAILED',
   BOUNCED: 'BOUNCED',
   COMPLAINED: 'COMPLAINED',
-  INTERNAL_DELIVERED: 'INTERNAL_DELIVERED'
+  INTERNAL_DELIVERED: 'INTERNAL_DELIVERED',
+  OUTCOME_UNKNOWN: 'OUTCOME_UNKNOWN'
 };
 
 exports.MailDraftMode = exports.$Enums.MailDraftMode = {

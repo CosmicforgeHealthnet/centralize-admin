@@ -202,3 +202,39 @@ test("backoff is bounded with jitter and delivery status never claims more than 
   assert.equal(aggregateMessageStatus([{ status: "DELIVERED" }, { status: "INTERNAL_DELIVERED" }], "PROVIDER_ACCEPTED"), "DELIVERED");
   assert.equal(aggregateMessageStatus([{ status: "DELIVERED" }, { status: "BOUNCED" }], "DELIVERED"), "BOUNCED");
 });
+
+test("delivery plan sends only external (PENDING) recipients and never exposes BCC", () => {
+  const { buildDeliveryPlan } = require("../pipelines/outbound.processor");
+  const r = (id, type, status = "PENDING") => ({ id, type, status, address: `${id}@x.example` });
+  assert.deepEqual(buildDeliveryPlan([r("in", "TO", "INTERNAL_DELIVERED"), r("ext", "TO")]), [{ to: ["ext"], cc: [], bcc: [] }]);
+  assert.deepEqual(buildDeliveryPlan([r("ext", "TO"), r("in", "CC", "INTERNAL_DELIVERED")]), [{ to: ["ext"], cc: [], bcc: [] }]);
+  assert.deepEqual(buildDeliveryPlan([r("ext", "TO"), r("in", "BCC", "INTERNAL_DELIVERED"), r("eb", "BCC")]), [{ to: ["ext"], cc: [], bcc: ["eb"] }]);
+  assert.deepEqual(buildDeliveryPlan([r("in", "TO", "INTERNAL_DELIVERED"), r("ec", "CC")]), [{ to: ["ec"], cc: [], bcc: [], promotedCc: true }]);
+  assert.deepEqual(buildDeliveryPlan([r("b1", "BCC"), r("b2", "BCC")]), [{ to: ["b1"], cc: [], bcc: [], individualBcc: true }, { to: ["b2"], cc: [], bcc: [], individualBcc: true }]);
+  assert.deepEqual(buildDeliveryPlan([r("in", "TO", "INTERNAL_DELIVERED")]), []);
+});
+
+test("Resend 409 invalid_idempotent_request is an unknown outcome, concurrent 409 is retryable", async () => {
+  const config = loadMailConfig({ MAIL_ENABLED: "true", RESEND_API_KEY: "re_test_offline" });
+  const reply = (name) => async () => ({ ok: false, status: 409, headers: { get: () => null }, text: async () => JSON.stringify({ name, message: name }) });
+  const request = { idempotencyKey: "k", from: { address: "a@b.co" }, to: [{ address: "c@d.co" }], subject: "s" };
+  await assert.rejects(createResendAdapter({ config, fetchImpl: reply("invalid_idempotent_request") }).sendMessage(request), (error) => error.kind === "IDEMPOTENCY_CONFLICT");
+  await assert.rejects(createResendAdapter({ config, fetchImpl: reply("concurrent_idempotent_requests") }).sendMessage(request), (error) => error.kind === "RETRYABLE");
+  assert.equal(loadMailConfig({ MAIL_PROVIDER_IDEMPOTENCY_WINDOW_HOURS: "48" }).reconciliation.idempotencyWindowHours, 23, "window can never exceed the provider's 24h key retention");
+  assert.equal(loadMailConfig({ MAIL_MAX_RECIPIENTS: "500" }).limits.maxRecipients, 50);
+});
+
+test("sanitizer escapes attribute values so quotes cannot inject event handlers", () => {
+  const payloads = [
+    `<td width='x" onmouseover="alert(1)'>a</td>`,
+    `<a title='a" onclick="x()' href="https://ok.example">t</a>`,
+    `<p class='a"><script>x</script>'>z</p>`,
+    `<img alt='" onerror="x' src="cid:1">`,
+    `<table bgcolor='"><svg onload=alert(1)>'><tr><td>x</td></tr></table>`,
+  ];
+  for (const payload of payloads) {
+    const { html } = sanitizeEmailHtml(payload);
+    assert.ok(!/\son[a-z]+\s*=\s*"/i.test(html), html);
+    assert.ok(!/<script|<svg/i.test(html), html);
+  }
+});

@@ -119,9 +119,13 @@ legacy templates, campaigns, preflight, submit, approve, reject, history, snapsh
 Authorization: bearer HQ token + ACTIVE identity on every route; mailbox content only via active
 membership or approved break-glass; admin endpoints via `mail/admin` grant (SUPER implicit, no
 content); break-glass and marketing scopes via explicit grants only. Send returns **202** with
-`jobId`; provider acceptance is `PROVIDER_ACCEPTED`, never `DELIVERED`. Provider idempotency uses
-the job key (Resend `Idempotency-Key`); ambiguous timeouts become `RECONCILING` and retry with the
-same key; expired leases are recovered; exhausted jobs dead-letter.
+`jobId`; provider acceptance is `PROVIDER_ACCEPTED`, never `DELIVERED`. Only external recipients
+are sent through the provider, using a persisted per-job batch plan with one stable
+`Idempotency-Key` per batch. Resend keeps keys for 24 hours only, so ambiguous sends are retried
+with the same key only inside a 23-hour window; after that (or on a 409
+`invalid_idempotent_request`, or a crash on the final attempt) the recipients become
+`OUTCOME_UNKNOWN` for human review. This is at-most-once-with-review, **not** guaranteed
+exactly-once delivery. Expired leases are recovered; exhausted jobs dead-letter. See section 9.
 
 ## 5. Frontend deliverables
 
@@ -177,3 +181,94 @@ Branch `claude/gallant-ramanujan-0h6e6b` (from `origin/staging`), commits:
 schema+migration, backend module, frontend, fixes+docs. No PR was opened, nothing merged to
 `staging`, nothing deployed, no real database migrated, no DNS/MX/Resend configuration changed,
 no secrets committed. Production is untouched.
+
+## 9. Post-implementation review and remediation
+
+Reviewed after merging the latest `staging` (two frontend-only commits, no conflicts).
+
+### Bugs found and fixed
+
+1. **Mixed-recipient duplicate external delivery (high).** The outbound processor built the
+   Resend `to`/`cc` lists from every non-BCC recipient, including internal recipients that had
+   already received a local copy. They were sent again through the provider; if the company MX
+   does not route back to Resend this produced a duplicate (or a copy in a legacy mail system).
+   Fix: a deterministic plan built only from `PENDING` (external) recipients. Internal To/CC/BCC
+   are never sent externally. Resend requires `to` and documents no way to set visible headers
+   separately from recipients, so external CC is promoted to `to` when there is no external To,
+   and BCC-only mail is sent as one request per recipient.
+   Limitation: external recipients see only external To/Cc in the headers.
+2. **Unsafe retry outside Resend's idempotency window (high).** Ambiguous sends were retried with
+   the same key indefinitely, but Resend only keeps keys for 24 hours, so a late retry could send
+   twice. Fix: `firstAttemptAt` is persisted per batch before each provider call. After
+   `MAIL_PROVIDER_IDEMPOTENCY_WINDOW_HOURS` (default and max 23) the batch is never re-sent and
+   becomes `OUTCOME_UNKNOWN` (new message and recipient status, audited, sender notified).
+3. **All HTTP 409s treated as retryable (medium).** Resend's `invalid_idempotent_request` (same key,
+   different payload) is now `OUTCOME_UNKNOWN`. `concurrent_idempotent_requests` stays retryable.
+4. **Queued mail bypassed later revocation (medium).** Dispatch now re-checks, before every
+   provider call:
+   - the sender is ACTIVE;
+   - the membership is still active with send rights;
+   - the sender identity is still approved;
+   - the mailbox and address are still active;
+   - the domain is VERIFIED with sending VERIFIED (the domain kill-switch);
+   - the domain is on the allowlist.
+
+   Batches that fail any check are cancelled as FAILED with the reason, and the sender is notified.
+5. **Lease-expiry dead letters left messages QUEUED forever (medium).** Jobs that exhausted
+   attempts during crash recovery never called the dead-letter handler. They now do, and
+   attempted-but-unanswered batches become `OUTCOME_UNKNOWN`.
+6. **HTML attribute injection in the sanitizer (high, contained).** A `safeAttrValue` override
+   returned attribute values unescaped, so `<td width='x" onmouseover="alert(1)'>` produced a live
+   event handler. The frontend's script-less sandboxed iframe was the only thing containing it.
+   Values are now escaped (`escapeAttrValue`), and a regression test covers five payloads.
+7. **Mail to one's own address did not appear in the inbox (low).** Self-addressed mail now marks
+   the sender's thread as inbound (still a single copy).
+
+Schema: `OUTCOME_UNKNOWN` was added to both status enums and `provider_message_id` to recipients.
+These are folded into the still-unapplied migration
+`20261024_add_cosmicforge_mail_m1_m6.sql`, with the manifest checksum regenerated. It had never
+been applied to any real database.
+
+### Documented sending / revocation policy
+
+- Revocation, offboarding, address suspension, domain kill-switch or allowlist removal take
+  effect for every batch not yet accepted by the provider. Accepted mail cannot be recalled.
+- `MAIL_SENDING_ENABLED=false` while mail is queued: jobs retry and, if still disabled when
+  attempts are exhausted, the message is marked FAILED (never reported as sent).
+- Ambiguous provider outcomes are retried with the identical payload and key inside the window.
+  Afterwards they are `OUTCOME_UNKNOWN` and require human review. Resend offers no lookup by
+  idempotency key, so automatic resolution is not possible. A later provider delivery event can
+  still resolve an unknown recipient to DELIVERED.
+
+### Security review evidence (tests in `tests/mail-postgres.test.js` unless noted)
+
+| Area | Result | Evidence |
+| --- | --- | --- |
+| Private mailbox access / SUPER | Pass | SUPER and mail admins get 404 on threads, search returns nothing, and they cannot add themselves to personal mailboxes |
+| Shared membership revocation | Pass | Revoked member gets 404 on the next request; queued mail is cancelled at dispatch |
+| Sender spoofing | Pass | Draft sender change to another mailbox's address is 403. From is resolved server-side and re-checked at dispatch |
+| Attachment authorization | Pass | Non-members get 404; quarantined/infected files get 403; drafts are author-only |
+| Sanitized rendering | Fixed (bug 6) | Unit tests cover scripts, handlers, forms, SVG, CSS url(), remote pixels and attribute injection |
+| Webhook signatures | Pass | Unit tests for tampered bytes, re-serialised JSON, stale timestamp, wrong secret and oversize; integration tests for 401, duplicate and replay |
+| Tenant-scoped search | Pass | Mailbox IDs are enforced in SQL; cross-mailbox search returns 404 |
+| Marketing cross-brand | Pass | Other brand returns 404; cross-brand audience members are rejected; SUPER without a grant returns 404 |
+| Step-up | Pass | Real TOTP required; replay, single use, purpose binding and not-enrolled are all rejected |
+| Legal hold / retention | Pass / gap | API returns 409 and a DB trigger blocks deletes. No retention sweeper exists, so nothing is auto-deleted |
+| Worker failure | Fixed (bugs 2, 5) | Crash recovery, final-attempt crash leads to `OUTCOME_UNKNOWN`, outage leads to dead letter then FAILED |
+| Global auth / RBAC | Unchanged | `auth.middleware.js` and `rbac.middleware.js` were not modified |
+
+### Release blocker status
+
+| Item | Status |
+| --- | --- |
+| JavaScript-readable access token (`localStorage` + non-httpOnly cookie) | **Open, production blocker.** Mail mitigates (sandboxed rendering, sanitizer, in-memory cache cleared on login/logout/401/403) but cannot fix it |
+| Secure httpOnly session migration | **Not started**; needs a separate auth migration across the admin app |
+| TOTP enrollment | **Missing.** No enrollment flow exists, so step-up returns `MAIL_MFA_NOT_ENROLLED` and break-glass / campaign approval cannot be used yet |
+| Private object storage + KMS | **Not provisioned.** Filesystem + env keyring is staging-only; fails closed when unset |
+| Malware scanner | **Not provisioned** (clamd adapter implemented); without it every attachment is quarantined |
+| Real Resend staging credentials | **Not provided**; adapter tested offline only |
+| Verified staging test domain | **Not provided** |
+| DNS / receiving route confirmation | **Not done** (out of scope; the app makes no DNS changes) |
+| Staging Admin DB migration approval | **Pending**; runbook ready, nothing applied |
+| Frontend automated E2E / accessibility | **Missing** as CI suites. Manual Playwright smoke run only, no axe audit |
+| M6 gaps | No dispatch (M7 by design), no double-opt-in confirmation email, no retention sweeper, tickets page does not read `?ref=` |

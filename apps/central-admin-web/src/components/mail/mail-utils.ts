@@ -26,6 +26,8 @@ export const STATUS_LABELS: Record<MessageStatus, string> = {
   COMPLAINED: "Marked as spam by recipient",
   RECEIVED: "Received",
   QUARANTINED: "Quarantined",
+  // The provider may or may not have sent it; an administrator must review.
+  OUTCOME_UNKNOWN: "Delivery status unknown (under review)",
 };
 
 export function statusTone(status: string): string {
@@ -39,6 +41,7 @@ export function statusTone(status: string): string {
     case "QUARANTINED":
       return "bg-red-50 text-red-700 border-red-200";
     case "DELAYED":
+    case "OUTCOME_UNKNOWN":
       return "bg-amber-50 text-amber-700 border-amber-200";
     default:
       return "bg-muted text-muted-foreground border-border";

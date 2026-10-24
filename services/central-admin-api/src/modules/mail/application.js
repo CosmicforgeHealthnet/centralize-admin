@@ -44,7 +44,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const marketing = createMarketingService({ client, config, audit, stepUp, clock });
 
   const inbound = createInboundProcessor({ client, config, adapter: resolvedAdapter, store, scanner: resolvedScanner, audit, notifications, clock });
-  const outbound = createOutboundProcessor({ client, config, adapter: resolvedAdapter, store, audit, notifications });
+  const outbound = createOutboundProcessor({ client, config, adapter: resolvedAdapter, store, audit, notifications, clock });
   const deliveryEvents = createDeliveryEventProcessor({ client, audit, notifications });
 
   function createWorker(options = {}) {

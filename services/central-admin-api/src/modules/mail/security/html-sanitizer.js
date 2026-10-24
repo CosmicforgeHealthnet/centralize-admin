@@ -6,7 +6,7 @@
 // explicitly allows them for a specific render. The frontend additionally
 // renders inside a sandboxed iframe without script permissions.
 
-const { FilterXSS } = require("xss");
+const { FilterXSS, escapeAttrValue } = require("xss");
 
 const ALLOWED_TAGS = [
   "a", "abbr", "b", "blockquote", "br", "caption", "center", "code", "col", "colgroup", "dd", "del",
@@ -70,8 +70,10 @@ function sanitizeEmailHtml(html, { allowRemoteImages = false, cidResolver = null
       }
       return undefined;
     },
-    safeAttrValue(tag, name, value, cssFilter) {
-      return value;
+    // Every attribute value that reaches the default path is escaped so a
+    // quote inside a value can never open a new attribute (e.g. onmouseover).
+    safeAttrValue(tag, name, value) {
+      return escapeAttrValue(String(value ?? ""));
     },
   });
   const output = filter.process(String(html ?? ""));

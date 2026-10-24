@@ -17,7 +17,7 @@ const EVENT_MAP = {
   "email.clicked": "CLICKED",
 };
 const RECIPIENT_STATUS = { DELIVERED: "DELIVERED", DELIVERY_DELAYED: "DELAYED", BOUNCED: "BOUNCED", COMPLAINED: "COMPLAINED", FAILED: "FAILED" };
-const RANK = { PENDING: 0, PROVIDER_ACCEPTED: 1, DELAYED: 2, DELIVERED: 3, FAILED: 4, BOUNCED: 5, COMPLAINED: 6, INTERNAL_DELIVERED: 3 };
+const RANK = { PENDING: 0, OUTCOME_UNKNOWN: 0.5, PROVIDER_ACCEPTED: 1, DELAYED: 2, DELIVERED: 3, FAILED: 4, BOUNCED: 5, COMPLAINED: 6, INTERNAL_DELIVERED: 3 };
 
 function aggregateMessageStatus(recipients, current) {
   const external = recipients.filter((recipient) => recipient.status !== "INTERNAL_DELIVERED");
@@ -29,6 +29,7 @@ function aggregateMessageStatus(recipients, current) {
   if (statuses.every((status) => status === "DELIVERED")) return "DELIVERED";
   if (statuses.includes("DELAYED")) return "DELAYED";
   if (statuses.includes("FAILED")) return "FAILED";
+  if (statuses.includes("OUTCOME_UNKNOWN")) return "OUTCOME_UNKNOWN";
   return current === "QUEUED" ? "PROVIDER_ACCEPTED" : current;
 }
 
@@ -42,7 +43,12 @@ function createDeliveryEventProcessor({ client, audit, notifications }) {
     if (!type || !providerMessageId) return { skipped: true };
     const occurredAt = new Date(event.payload?.created_at || data.created_at || event.receivedAt);
     const recipients = [...new Set((Array.isArray(data.to) ? data.to : [data.to]).map(normalizeAddress).filter(Boolean))];
-    const messages = await client.mailMessage.findMany({ where: { providerMessageId, direction: "OUTBOUND" }, include: { recipients: true, mailbox: true } });
+    // A message may span several provider requests (e.g. individual BCC
+    // sends); match on the per-recipient provider id as well.
+    const messages = await client.mailMessage.findMany({
+      where: { direction: "OUTBOUND", OR: [{ providerMessageId }, { recipients: { some: { providerMessageId } } }] },
+      include: { recipients: true, mailbox: true },
+    });
     if (!messages.length) {
       await client.mailDeliveryEvent.create({ data: { webhookEventId: event.id, providerMessageId, eventType: type, occurredAt, recipient: recipients[0] || null, detail: { unmatched: true } } });
       return { matched: 0 };
@@ -59,6 +65,7 @@ function createDeliveryEventProcessor({ client, audit, notifications }) {
           for (const recipient of message.recipients) {
             if (recipients.length && !recipients.includes(recipient.address)) continue;
             if (recipient.status === "INTERNAL_DELIVERED") continue;
+            if (recipient.providerMessageId && recipient.providerMessageId !== providerMessageId) continue;
             if ((RANK[nextStatus] ?? 0) < (RANK[recipient.status] ?? 0) && recipient.status !== "DELAYED") continue;
             await tx.mailMessageRecipient.update({ where: { id: recipient.id }, data: { status: nextStatus, lastEventAt: occurredAt, lastEventDetail: type } });
             recipient.status = nextStatus;

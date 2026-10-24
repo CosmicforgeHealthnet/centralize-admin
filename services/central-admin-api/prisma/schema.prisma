@@ -3824,6 +3824,7 @@ enum MailMessageStatus {
   COMPLAINED
   RECEIVED
   QUARANTINED
+  OUTCOME_UNKNOWN
 }
 
 enum MailRecipientType {
@@ -3841,6 +3842,7 @@ enum MailRecipientStatus {
   BOUNCED
   COMPLAINED
   INTERNAL_DELIVERED
+  OUTCOME_UNKNOWN
 }
 
 enum MailThreadFolder {
@@ -4255,20 +4257,22 @@ model MailMessage {
 }
 
 model MailMessageRecipient {
-  id              String              @id @default(uuid()) @db.Uuid
-  messageId       String              @map("message_id") @db.Uuid
-  type            MailRecipientType
-  address         String              @db.VarChar(320)
-  name            String?             @db.VarChar(320)
-  status          MailRecipientStatus @default(PENDING)
-  lastEventAt     DateTime?           @map("last_event_at") @db.Timestamptz(6)
-  lastEventDetail String?             @map("last_event_detail") @db.VarChar(500)
-  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  id                String              @id @default(uuid()) @db.Uuid
+  messageId         String              @map("message_id") @db.Uuid
+  type              MailRecipientType
+  address           String              @db.VarChar(320)
+  name              String?             @db.VarChar(320)
+  status            MailRecipientStatus @default(PENDING)
+  lastEventAt       DateTime?           @map("last_event_at") @db.Timestamptz(6)
+  lastEventDetail   String?             @map("last_event_detail") @db.VarChar(500)
+  providerMessageId String?             @map("provider_message_id") @db.VarChar(255)
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
 
   message MailMessage @relation(fields: [messageId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_message_recipients_message")
 
   @@unique([messageId, type, address], map: "UQ_mail_message_recipients_message_type_address")
   @@index([address], map: "IDX_mail_message_recipients_address")
+  @@index([providerMessageId], map: "IDX_mail_message_recipients_provider_message")
   @@map("mail_message_recipients")
 }
 

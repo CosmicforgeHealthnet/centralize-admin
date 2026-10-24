@@ -2006,7 +2006,8 @@ export const MailMessageStatus: {
   BOUNCED: 'BOUNCED',
   COMPLAINED: 'COMPLAINED',
   RECEIVED: 'RECEIVED',
-  QUARANTINED: 'QUARANTINED'
+  QUARANTINED: 'QUARANTINED',
+  OUTCOME_UNKNOWN: 'OUTCOME_UNKNOWN'
 };
 
 export type MailMessageStatus = (typeof MailMessageStatus)[keyof typeof MailMessageStatus]
@@ -2029,7 +2030,8 @@ export const MailRecipientStatus: {
   FAILED: 'FAILED',
   BOUNCED: 'BOUNCED',
   COMPLAINED: 'COMPLAINED',
-  INTERNAL_DELIVERED: 'INTERNAL_DELIVERED'
+  INTERNAL_DELIVERED: 'INTERNAL_DELIVERED',
+  OUTCOME_UNKNOWN: 'OUTCOME_UNKNOWN'
 };
 
 export type MailRecipientStatus = (typeof MailRecipientStatus)[keyof typeof MailRecipientStatus]
@@ -174856,6 +174858,7 @@ export namespace Prisma {
     status: $Enums.MailRecipientStatus | null
     lastEventAt: Date | null
     lastEventDetail: string | null
+    providerMessageId: string | null
     createdAt: Date | null
   }
 
@@ -174868,6 +174871,7 @@ export namespace Prisma {
     status: $Enums.MailRecipientStatus | null
     lastEventAt: Date | null
     lastEventDetail: string | null
+    providerMessageId: string | null
     createdAt: Date | null
   }
 
@@ -174880,6 +174884,7 @@ export namespace Prisma {
     status: number
     lastEventAt: number
     lastEventDetail: number
+    providerMessageId: number
     createdAt: number
     _all: number
   }
@@ -174894,6 +174899,7 @@ export namespace Prisma {
     status?: true
     lastEventAt?: true
     lastEventDetail?: true
+    providerMessageId?: true
     createdAt?: true
   }
 
@@ -174906,6 +174912,7 @@ export namespace Prisma {
     status?: true
     lastEventAt?: true
     lastEventDetail?: true
+    providerMessageId?: true
     createdAt?: true
   }
 
@@ -174918,6 +174925,7 @@ export namespace Prisma {
     status?: true
     lastEventAt?: true
     lastEventDetail?: true
+    providerMessageId?: true
     createdAt?: true
     _all?: true
   }
@@ -175003,6 +175011,7 @@ export namespace Prisma {
     status: $Enums.MailRecipientStatus
     lastEventAt: Date | null
     lastEventDetail: string | null
+    providerMessageId: string | null
     createdAt: Date
     _count: MailMessageRecipientCountAggregateOutputType | null
     _min: MailMessageRecipientMinAggregateOutputType | null
@@ -175032,6 +175041,7 @@ export namespace Prisma {
     status?: boolean
     lastEventAt?: boolean
     lastEventDetail?: boolean
+    providerMessageId?: boolean
     createdAt?: boolean
     message?: boolean | MailMessageDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["mailMessageRecipient"]>
@@ -175045,6 +175055,7 @@ export namespace Prisma {
     status?: boolean
     lastEventAt?: boolean
     lastEventDetail?: boolean
+    providerMessageId?: boolean
     createdAt?: boolean
     message?: boolean | MailMessageDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["mailMessageRecipient"]>
@@ -175058,6 +175069,7 @@ export namespace Prisma {
     status?: boolean
     lastEventAt?: boolean
     lastEventDetail?: boolean
+    providerMessageId?: boolean
     createdAt?: boolean
     message?: boolean | MailMessageDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["mailMessageRecipient"]>
@@ -175071,10 +175083,11 @@ export namespace Prisma {
     status?: boolean
     lastEventAt?: boolean
     lastEventDetail?: boolean
+    providerMessageId?: boolean
     createdAt?: boolean
   }
 
-  export type MailMessageRecipientOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "messageId" | "type" | "address" | "name" | "status" | "lastEventAt" | "lastEventDetail" | "createdAt", ExtArgs["result"]["mailMessageRecipient"]>
+  export type MailMessageRecipientOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "messageId" | "type" | "address" | "name" | "status" | "lastEventAt" | "lastEventDetail" | "providerMessageId" | "createdAt", ExtArgs["result"]["mailMessageRecipient"]>
   export type MailMessageRecipientInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     message?: boolean | MailMessageDefaultArgs<ExtArgs>
   }
@@ -175099,6 +175112,7 @@ export namespace Prisma {
       status: $Enums.MailRecipientStatus
       lastEventAt: Date | null
       lastEventDetail: string | null
+      providerMessageId: string | null
       createdAt: Date
     }, ExtArgs["result"]["mailMessageRecipient"]>
     composites: {}
@@ -175532,6 +175546,7 @@ export namespace Prisma {
     readonly status: FieldRef<"MailMessageRecipient", 'MailRecipientStatus'>
     readonly lastEventAt: FieldRef<"MailMessageRecipient", 'DateTime'>
     readonly lastEventDetail: FieldRef<"MailMessageRecipient", 'String'>
+    readonly providerMessageId: FieldRef<"MailMessageRecipient", 'String'>
     readonly createdAt: FieldRef<"MailMessageRecipient", 'DateTime'>
   }
     
@@ -209025,6 +209040,7 @@ export namespace Prisma {
     status: 'status',
     lastEventAt: 'lastEventAt',
     lastEventDetail: 'lastEventDetail',
+    providerMessageId: 'providerMessageId',
     createdAt: 'createdAt'
   };
 
@@ -224570,6 +224586,7 @@ export namespace Prisma {
     status?: EnumMailRecipientStatusFilter<"MailMessageRecipient"> | $Enums.MailRecipientStatus
     lastEventAt?: DateTimeNullableFilter<"MailMessageRecipient"> | Date | string | null
     lastEventDetail?: StringNullableFilter<"MailMessageRecipient"> | string | null
+    providerMessageId?: StringNullableFilter<"MailMessageRecipient"> | string | null
     createdAt?: DateTimeFilter<"MailMessageRecipient"> | Date | string
     message?: XOR<MailMessageScalarRelationFilter, MailMessageWhereInput>
   }
@@ -224583,6 +224600,7 @@ export namespace Prisma {
     status?: SortOrder
     lastEventAt?: SortOrderInput | SortOrder
     lastEventDetail?: SortOrderInput | SortOrder
+    providerMessageId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     message?: MailMessageOrderByWithRelationInput
   }
@@ -224600,6 +224618,7 @@ export namespace Prisma {
     status?: EnumMailRecipientStatusFilter<"MailMessageRecipient"> | $Enums.MailRecipientStatus
     lastEventAt?: DateTimeNullableFilter<"MailMessageRecipient"> | Date | string | null
     lastEventDetail?: StringNullableFilter<"MailMessageRecipient"> | string | null
+    providerMessageId?: StringNullableFilter<"MailMessageRecipient"> | string | null
     createdAt?: DateTimeFilter<"MailMessageRecipient"> | Date | string
     message?: XOR<MailMessageScalarRelationFilter, MailMessageWhereInput>
   }, "id" | "messageId_type_address">
@@ -224613,6 +224632,7 @@ export namespace Prisma {
     status?: SortOrder
     lastEventAt?: SortOrderInput | SortOrder
     lastEventDetail?: SortOrderInput | SortOrder
+    providerMessageId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     _count?: MailMessageRecipientCountOrderByAggregateInput
     _max?: MailMessageRecipientMaxOrderByAggregateInput
@@ -224631,6 +224651,7 @@ export namespace Prisma {
     status?: EnumMailRecipientStatusWithAggregatesFilter<"MailMessageRecipient"> | $Enums.MailRecipientStatus
     lastEventAt?: DateTimeNullableWithAggregatesFilter<"MailMessageRecipient"> | Date | string | null
     lastEventDetail?: StringNullableWithAggregatesFilter<"MailMessageRecipient"> | string | null
+    providerMessageId?: StringNullableWithAggregatesFilter<"MailMessageRecipient"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"MailMessageRecipient"> | Date | string
   }
 
@@ -242023,6 +242044,7 @@ export namespace Prisma {
     status?: $Enums.MailRecipientStatus
     lastEventAt?: Date | string | null
     lastEventDetail?: string | null
+    providerMessageId?: string | null
     createdAt?: Date | string
     message: MailMessageCreateNestedOneWithoutRecipientsInput
   }
@@ -242036,6 +242058,7 @@ export namespace Prisma {
     status?: $Enums.MailRecipientStatus
     lastEventAt?: Date | string | null
     lastEventDetail?: string | null
+    providerMessageId?: string | null
     createdAt?: Date | string
   }
 
@@ -242047,6 +242070,7 @@ export namespace Prisma {
     status?: EnumMailRecipientStatusFieldUpdateOperationsInput | $Enums.MailRecipientStatus
     lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastEventDetail?: NullableStringFieldUpdateOperationsInput | string | null
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     message?: MailMessageUpdateOneRequiredWithoutRecipientsNestedInput
   }
@@ -242060,6 +242084,7 @@ export namespace Prisma {
     status?: EnumMailRecipientStatusFieldUpdateOperationsInput | $Enums.MailRecipientStatus
     lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastEventDetail?: NullableStringFieldUpdateOperationsInput | string | null
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -242072,6 +242097,7 @@ export namespace Prisma {
     status?: $Enums.MailRecipientStatus
     lastEventAt?: Date | string | null
     lastEventDetail?: string | null
+    providerMessageId?: string | null
     createdAt?: Date | string
   }
 
@@ -242083,6 +242109,7 @@ export namespace Prisma {
     status?: EnumMailRecipientStatusFieldUpdateOperationsInput | $Enums.MailRecipientStatus
     lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastEventDetail?: NullableStringFieldUpdateOperationsInput | string | null
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -242095,6 +242122,7 @@ export namespace Prisma {
     status?: EnumMailRecipientStatusFieldUpdateOperationsInput | $Enums.MailRecipientStatus
     lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastEventDetail?: NullableStringFieldUpdateOperationsInput | string | null
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -255503,6 +255531,7 @@ export namespace Prisma {
     status?: SortOrder
     lastEventAt?: SortOrder
     lastEventDetail?: SortOrder
+    providerMessageId?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -255515,6 +255544,7 @@ export namespace Prisma {
     status?: SortOrder
     lastEventAt?: SortOrder
     lastEventDetail?: SortOrder
+    providerMessageId?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -255527,6 +255557,7 @@ export namespace Prisma {
     status?: SortOrder
     lastEventAt?: SortOrder
     lastEventDetail?: SortOrder
+    providerMessageId?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -339175,6 +339206,7 @@ export namespace Prisma {
     status?: $Enums.MailRecipientStatus
     lastEventAt?: Date | string | null
     lastEventDetail?: string | null
+    providerMessageId?: string | null
     createdAt?: Date | string
   }
 
@@ -339186,6 +339218,7 @@ export namespace Prisma {
     status?: $Enums.MailRecipientStatus
     lastEventAt?: Date | string | null
     lastEventDetail?: string | null
+    providerMessageId?: string | null
     createdAt?: Date | string
   }
 
@@ -339505,6 +339538,7 @@ export namespace Prisma {
     status?: EnumMailRecipientStatusFilter<"MailMessageRecipient"> | $Enums.MailRecipientStatus
     lastEventAt?: DateTimeNullableFilter<"MailMessageRecipient"> | Date | string | null
     lastEventDetail?: StringNullableFilter<"MailMessageRecipient"> | string | null
+    providerMessageId?: StringNullableFilter<"MailMessageRecipient"> | string | null
     createdAt?: DateTimeFilter<"MailMessageRecipient"> | Date | string
   }
 
@@ -360427,6 +360461,7 @@ export namespace Prisma {
     status?: $Enums.MailRecipientStatus
     lastEventAt?: Date | string | null
     lastEventDetail?: string | null
+    providerMessageId?: string | null
     createdAt?: Date | string
   }
 
@@ -360489,6 +360524,7 @@ export namespace Prisma {
     status?: EnumMailRecipientStatusFieldUpdateOperationsInput | $Enums.MailRecipientStatus
     lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastEventDetail?: NullableStringFieldUpdateOperationsInput | string | null
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -360500,6 +360536,7 @@ export namespace Prisma {
     status?: EnumMailRecipientStatusFieldUpdateOperationsInput | $Enums.MailRecipientStatus
     lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastEventDetail?: NullableStringFieldUpdateOperationsInput | string | null
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -360511,6 +360548,7 @@ export namespace Prisma {
     status?: EnumMailRecipientStatusFieldUpdateOperationsInput | $Enums.MailRecipientStatus
     lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastEventDetail?: NullableStringFieldUpdateOperationsInput | string | null
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

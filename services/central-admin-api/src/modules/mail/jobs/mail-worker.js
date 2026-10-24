@@ -39,7 +39,14 @@ function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, q
 
   async function tick() {
     metrics.lastTickAt = new Date().toISOString();
-    metrics.recovered += await jobs.recoverExpiredLeases();
+    const recovered = await jobs.recoverExpiredLeases();
+    metrics.recovered += recovered.length;
+    for (const entry of recovered) {
+      if (entry.status !== "DEAD_LETTER") continue;
+      metrics.deadLettered += 1;
+      // A worker died mid-send on the final attempt: outcome is unknown.
+      await onDeadLetter[entry.job.kind]?.(entry.job, { code: "LEASE_EXPIRED", reconcile: true }).catch(() => {});
+    }
     const capacity = config.worker.concurrency - inFlight.size;
     if (capacity <= 0) return 0;
     const claimed = await jobs.claim({ queues, leaseOwner, leaseSeconds: config.worker.leaseSeconds, limit: capacity });

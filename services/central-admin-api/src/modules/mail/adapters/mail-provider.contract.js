@@ -19,6 +19,9 @@
 //   RETRYABLE  - safe to retry (429, 5xx, provider says retry)
 //   AMBIGUOUS  - request may have been accepted (timeout / connection reset after send)
 //   PERMANENT  - will not succeed on retry (validation, auth, forbidden sender)
+//   IDEMPOTENCY_CONFLICT - the key was already used with a different payload:
+//                the provider may already have sent an earlier request, so the
+//                outcome is UNKNOWN (never treated as a clean failure or retried)
 //   NOT_CONFIGURED - adapter has no credentials / disabled
 
 class MailProviderError extends Error {

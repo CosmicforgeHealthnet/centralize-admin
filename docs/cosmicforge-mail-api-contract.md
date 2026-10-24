@@ -87,7 +87,11 @@ type ThreadSummary = {
   supportTicketRef: string | null; firstResponseAt: string | null;
 };
 type MessageStatus = "QUEUED" | "PROVIDER_ACCEPTED" | "DELIVERED" | "DELAYED" |
-  "FAILED" | "BOUNCED" | "COMPLAINED" | "RECEIVED" | "QUARANTINED";
+  "FAILED" | "BOUNCED" | "COMPLAINED" | "RECEIVED" | "QUARANTINED" |
+  "OUTCOME_UNKNOWN";  // provider may or may not have sent it; never auto-retried
+// Recipient statuses add PENDING, PROVIDER_ACCEPTED, INTERNAL_DELIVERED and OUTCOME_UNKNOWN.
+// Only external (PENDING) recipients are sent through the provider; internal
+// recipients receive a local copy and are never re-sent externally.
 type Recipient = Party & { type: "TO" | "CC" | "BCC"; status: string };
 type Message = {
   id: string; threadId: string; mailboxId: string;

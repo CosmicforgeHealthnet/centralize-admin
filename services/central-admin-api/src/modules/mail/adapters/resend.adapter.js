@@ -10,9 +10,13 @@ const { normalizeMessageId, parseReferences } = require("../security/header-safe
 
 const MAX_ATTACHMENT_DOWNLOAD_BYTES = 40 * 1024 * 1024;
 
-function classifyStatus(status) {
+// Resend idempotency (documented): keys are kept for 24 hours; the same key +
+// same payload returns the original response without re-sending; the same key
+// + different payload fails with 409 invalid_idempotent_request; a request
+// still in flight with the same key fails with 409 concurrent_idempotent_requests.
+function classifyStatus(status, name = "") {
   if (status === 429 || status >= 500) return "RETRYABLE";
-  if (status === 409) return "RETRYABLE"; // concurrent idempotent request
+  if (status === 409) return name === "invalid_idempotent_request" ? "IDEMPOTENCY_CONFLICT" : "RETRYABLE";
   return "PERMANENT";
 }
 
@@ -69,7 +73,9 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
     }
     if (!response.ok) {
       const retryAfter = Number(response.headers?.get?.("retry-after"));
-      throw new MailProviderError(classifyStatus(response.status), `RESEND_HTTP_${response.status}`, String(payload?.message || payload?.name || `Resend returned ${response.status}`).slice(0, 300), {
+      const errorName = String(payload?.name || "");
+      const kind = classifyStatus(response.status, errorName);
+      throw new MailProviderError(kind, kind === "IDEMPOTENCY_CONFLICT" ? "RESEND_IDEMPOTENCY_CONFLICT" : `RESEND_HTTP_${response.status}`, String(payload?.message || payload?.name || `Resend returned ${response.status}`).slice(0, 300), {
         status: response.status,
         retryAfterSeconds: Number.isFinite(retryAfter) ? retryAfter : null,
       });
