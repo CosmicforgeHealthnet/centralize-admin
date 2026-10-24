@@ -2,6 +2,7 @@ const router = require("express").Router();
 const rateLimit = require("express-rate-limit");
 const { authenticate } = require("../../shared/middlewares/auth.middleware");
 const { requireTier } = require("../../shared/middlewares/rbac.middleware");
+const { mainDbBoundary } = require("../../shared/middlewares/dependency-boundary.middleware");
 const {
   getStats,
   getGrowthChart,
@@ -29,6 +30,7 @@ const limiter = rateLimit({
 router.use(authenticate);
 router.use(requireTier("ADMIN"));
 router.use(limiter);
+router.use(mainDbBoundary.gate);
 
 // ── Analytics ──────────────────────────────────────────────────────────────
 router.get("/stats", getStats);
@@ -50,5 +52,7 @@ router.get("/:id/subscriptions", getUserSubscriptions);
 router.patch("/:id/status", updateUserStatus);
 router.patch("/:id/force-password-reset", forcePasswordReset);
 router.delete("/:id", deleteUser);
+
+router.use(mainDbBoundary.handleError);
 
 module.exports = router;
