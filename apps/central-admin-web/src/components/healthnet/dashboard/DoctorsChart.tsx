@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { ChevronDown } from "lucide-react";
 import { useHealthnetStore } from "@/stores/healthnet.store";
+import ServiceDataState from "@/components/shared/ServiceDataState";
 
 const MONTHS = [
   "January","February","March","April","May","June",
@@ -38,12 +39,13 @@ export default function DoctorsChart() {
   const [month, setMonth] = useState("January");
   const [open, setOpen] = useState(false);
 
-  const { activityChart, activityChartLoading, fetchActivityChart } = useHealthnetStore();
+  const { activityChart, activityChartLoading, activityChartError, fetchActivityChart } = useHealthnetStore();
 
   useEffect(() => {
     fetchActivityChart(month);
   }, [month, fetchActivityChart]);
 
+  if (activityChartError && !activityChartLoading) return <ServiceDataState title="HealthNet activity unavailable" message="The HealthNet data source could not be reached." retry={() => void fetchActivityChart(month)} />;
   if (activityChartLoading || !activityChart) return <SkeletonCard />;
 
   const raw = {
