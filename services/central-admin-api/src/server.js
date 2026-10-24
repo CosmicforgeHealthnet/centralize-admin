@@ -32,6 +32,7 @@ const MAIN_DB_RECONNECT_INTERVAL_MS =
 
 let mainDbConnected = false;
 let mainDbReconnectTimer = null;
+let mainDbReconnectInFlight = false;
 
 /**
  * Runs the bootstrap step that depends on the main DB.
@@ -67,11 +68,13 @@ function scheduleMainDbReconnect() {
   if (mainDbReconnectTimer) return;
 
   mainDbReconnectTimer = setInterval(async () => {
+    if (mainDbReconnectInFlight) return;
     if (mainDbConnected) {
       clearInterval(mainDbReconnectTimer);
       mainDbReconnectTimer = null;
       return;
     }
+    mainDbReconnectInFlight = true;
     try {
       await connectMainDatabase();
       mainDbConnected = true;
@@ -83,6 +86,8 @@ function scheduleMainDbReconnect() {
       logger.error(
         `[MainDB] Background reconnect attempt failed: ${error.message}`,
       );
+    } finally {
+      mainDbReconnectInFlight = false;
     }
   }, MAIN_DB_RECONNECT_INTERVAL_MS);
 }
