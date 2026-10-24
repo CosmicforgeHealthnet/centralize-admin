@@ -130,3 +130,167 @@ jobs:
 
       - name: Full test suite
         run: npm test
+
+  # Backend deployment is intentionally attached to the existing CI job.
+  # On staging pushes, a failed test/security check cannot publish or deploy.
+  build-staging-image:
+    name: Publish immutable staging API image
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.image.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Authenticate to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Define immutable image tag
+        id: image
+        run: echo "tag=ghcr.io/cosmicforgehealthnet/admin-backend:staging-$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+      - name: Build and publish backend (monorepo Dockerfile)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.image.outputs.tag }}
+
+  deploy-staging-api:
+    name: Deploy staging API to Contabo and verify login
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    needs: build-staging-image
+    runs-on: ubuntu-latest
+    environment: staging
+    concurrency:
+      group: central-admin-api-staging-vps
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Require staging-only deployment credentials
+        shell: bash
+        env:
+          STAGING_HOST: ${{ secrets.STAGING_HOST }}
+          STAGING_USER: ${{ secrets.STAGING_USER }}
+          STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$STAGING_HOST" || -z "$STAGING_USER" || -z "$STAGING_SSH_KEY" ]]; then
+            echo "::error::Set STAGING_HOST, STAGING_USER and STAGING_SSH_KEY in the staging GitHub environment. Production secrets are intentionally not used."
+            exit 1
+          fi
+      - name: Pull and deploy only the staging app, with automatic rollback
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          IMAGE_TAG: ${{ needs.build-staging-image.outputs.image }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEPLOY_RUN_ID: ${{ github.run_id }}
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          port: 22
+          envs: IMAGE_TAG,GHCR_USER,GHCR_TOKEN,DEPLOY_RUN_ID
+          command_timeout: 15m
+          script_stop: true
+          script: |
+            set -eu
+            cd /var/www/admin-server-staging
+            test -f docker-compose.yml
+            test -n "$IMAGE_TAG"
+            case "$IMAGE_TAG" in
+              ghcr.io/cosmicforgehealthnet/admin-backend:staging-*) ;;
+              *) echo "Unexpected image repository/tag"; exit 1 ;;
+            esac
+
+            # Never operate on /var/www/admin-server or production Compose.
+            container="admin-server-staging-app-1"
+            test "$(docker inspect -f '{{index .Config.Labels "com.docker.compose.service"}}' "$container")" = "app"
+            test "$(docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' "$container")" = "admin-server-staging"
+            old_id="$(docker inspect -f '{{.Image}}' "$container")"
+            rollback_image="cf-admin-api:staging-rollback-$DEPLOY_RUN_ID"
+            docker image tag "$old_id" "$rollback_image"
+
+            # Use a disposable Docker auth configuration. Never persist the
+            # GitHub Actions token or Docker registry credentials on the VPS.
+            auth_dir="$(mktemp -d)"
+            export DOCKER_CONFIG="$auth_dir"
+            printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$GHCR_USER" --password-stdin >/dev/null
+            docker pull "$IMAGE_TAG"
+            docker logout ghcr.io >/dev/null 2>&1 || true
+            rm -rf "$auth_dir"
+            unset DOCKER_CONFIG GHCR_TOKEN
+
+            override="docker-compose.github-staging.yml"
+            deploy_app() {
+              docker compose -f docker-compose.yml -f "$override" up -d --no-deps --no-build --pull never --force-recreate app
+            }
+            rollback() {
+              echo "Staging release failed verification: restoring previous image."
+              printf 'services:\n  app:\n    image: %s\n    pull_policy: never\n' "$rollback_image" > "$override"
+              deploy_app || true
+              echo "Rollback initiated. Production and staging database untouched."
+            }
+            printf 'services:\n  app:\n    image: %s\n    pull_policy: never\n' "$IMAGE_TAG" > "$override"
+
+            if ! deploy_app; then
+              rollback
+              exit 1
+            fi
+
+            ok=0
+            for i in $(seq 1 30); do
+              if curl -fsS --max-time 4 http://127.0.0.1:4001/health >/dev/null 2>&1; then
+                ok=1
+                break
+              fi
+              sleep 3
+            done
+            if [ "$ok" -ne 1 ]; then
+              echo "Staging HTTP health failed."
+              rollback
+              exit 1
+            fi
+
+            # Verify login's database, not merely the /health liveness route.
+            if ! docker exec "$container" node -e '
+              const { prisma } = require("./src/shared/config/database");
+              prisma.adminUser.count().then(() => console.log("Admin DB login query OK"))
+                .catch(e => { console.error("Admin DB query failed:", e.code || e.name); process.exitCode=1; })
+                .finally(() => prisma.$disconnect());
+            '; then
+              rollback
+              exit 1
+            fi
+
+            headers="$(mktemp)"
+            status="$(curl -sS --max-time 15 -D "$headers" -o /dev/null -w '%{http_code}' -X OPTIONS               -H 'Origin: https://centralize-admin-staging.vercel.app'               -H 'Access-Control-Request-Method: POST'               -H 'Access-Control-Request-Headers: Content-Type'               https://stagingca.cosmicforge-healthnet.com/api/auth/login)" || status="000"
+            if [ "$status" != "200" ] ||                ! grep -qi '^access-control-allow-origin: https://centralize-admin-staging\.vercel\.app' "$headers" ||                ! grep -qi '^access-control-allow-credentials: true' "$headers"; then
+              echo "Staging HTTPS login CORS verification failed (HTTP $status)."
+              rm -f "$headers"
+              rollback
+              exit 1
+            fi
+            rm -f "$headers"
+
+            # Main DB has shown timeouts on this VPS. Report degraded status
+            # without confusing it with the admin_users login database.
+            if ! timeout 45 docker exec "$container" node -e '
+              const { mainPrisma } = require("./src/shared/config/mainDatabase");
+              mainPrisma.users.count().then(() => console.log("Main DEV DB query OK"))
+                .catch(e => { console.error("Main DEV DB query failed:", e.code || e.name); process.exitCode=1; })
+                .finally(() => mainPrisma.$disconnect());
+            '; then
+              echo "WARNING: Main DEV DB query failed; dashboard/Main DB functions remain degraded."
+            fi
+            echo "SUCCESS: staging API, admin_users query and HTTPS login CORS verified."
