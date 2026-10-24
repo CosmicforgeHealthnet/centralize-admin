@@ -9,23 +9,9 @@ import type {
   RevenueChartItem,
   PlatformUsageItem,
 } from "@/types/dashboard.types";
-import { inspectHttpError } from "@/lib/error-messages";
+import { describeServiceError, isTemporaryDependencyError } from "@/lib/service-errors";
 
 type DataStatus = "idle" | "loading" | "success" | "error";
-
-function dashboardError(error: unknown): string {
-  const details = inspectHttpError(error);
-  if (details.responseCode === "DEPENDENCY_UNAVAILABLE" || details.status === 503) {
-    return "HealthNet data is temporarily unavailable. Other Admin services remain operational.";
-  }
-  if (details.status === 502 || details.status === 504 || (!details.hasResponse && details.hasRequest)) {
-    return "The data service is not responding. Check its availability and retry.";
-  }
-  if (details.status === 401 || details.status === 403) {
-    return "You do not have access to this data. Please check your session and permissions.";
-  }
-  return "This dashboard section could not be loaded. Please retry or contact support.";
-}
 
 
 // Bounded per-widget recovery for temporary dependency/network failures.
@@ -44,10 +30,7 @@ function clearRecovery(source: DashboardSource): void {
 
 function maybeScheduleRecovery(source: DashboardSource, error: unknown, retry: () => Promise<void>): void {
   if (typeof window === "undefined") return;
-  const details = inspectHttpError(error);
-  const temporary = [502, 503, 504].includes(details.status ?? 0) ||
-    (!details.hasResponse && details.hasRequest);
-  if (!temporary || retryTimers[source] || retryAttempts[source] >= MAX_AUTO_RETRIES) return;
+  if (!isTemporaryDependencyError(error) || retryTimers[source] || retryAttempts[source] >= MAX_AUTO_RETRIES) return;
 
   retryTimers[source] = setTimeout(() => {
     delete retryTimers[source];
@@ -108,7 +91,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       clearRecovery("overview");
       set({ overview, isLoadingOverview: false, overviewStatus: "success", overviewError: null });
     } catch (err: unknown) {
-      const message = dashboardError(err);
+      const message = describeServiceError(err, "HealthNet");
       // Never present cached financial/user figures as live after a failed refresh.
       set({ overview: null, overviewError: message, error: message, overviewStatus: "error", isLoadingOverview: false });
       maybeScheduleRecovery("overview", err, () => get().fetchOverview());
@@ -123,7 +106,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       clearRecovery("revenue");
       set({ revenueChart, isLoadingRevenue: false, revenueStatus: "success", revenueError: null });
     } catch (err: unknown) {
-      const message = dashboardError(err);
+      const message = describeServiceError(err, "HealthNet");
       set({ revenueChart: [], revenueError: message, error: message, revenueStatus: "error", isLoadingRevenue: false });
       maybeScheduleRecovery("revenue", err, () => get().fetchRevenueChart());
     }
@@ -137,7 +120,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       clearRecovery("platform");
       set({ platformUsage, isLoadingPlatform: false, platformStatus: "success", platformError: null });
     } catch (err: unknown) {
-      const message = dashboardError(err);
+      const message = describeServiceError(err, "HealthNet");
       set({ platformUsage: [], platformError: message, error: message, platformStatus: "error", isLoadingPlatform: false });
       maybeScheduleRecovery("platform", err, () => get().fetchPlatformUsage());
     }
