@@ -23,6 +23,8 @@ Create the SSH key on a trusted admin machine. Never commit it, post it in chat,
 
 **Until these secrets are configured, GitHub will deliberately FAIL the deployment job with a clear message.** Do not substitute production credentials automatically.
 
+After adding the three secrets, open **Actions → Social Operations CI → Run workflow**, select **staging** and run it once to bootstrap. All subsequent pushes to `staging` will run the same gated pipeline automatically. Do not run the separate production workflow.
+
 ## VPS constraints preserved
 
 - Target: `/var/www/admin-server-staging`
