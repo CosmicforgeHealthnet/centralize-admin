@@ -51,7 +51,7 @@ export default function HealthnetStatCards() {
     fetchMetrics();
   }, [fetchMetrics]);
 
-  if (metricsError && !metricsLoading) return <ServiceDataState title="HealthNet statistics unavailable" message="The HealthNet data source could not be reached." retry={() => void fetchMetrics()} />;
+  if (metricsError && !metricsLoading) return <ServiceDataState title="HealthNet statistics unavailable" message={metricsError} retry={() => void fetchMetrics()} />;
 
   if (metricsLoading || !metrics) {
     return (
