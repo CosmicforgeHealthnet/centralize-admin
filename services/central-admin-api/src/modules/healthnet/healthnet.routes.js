@@ -2,6 +2,7 @@ const express = require("express");
 const rateLimit = require("express-rate-limit");
 const { authenticate } = require("../../shared/middlewares/auth.middleware");
 const { requireTier } = require("../../shared/middlewares/rbac.middleware");
+const { mainDbBoundary } = require("../../shared/middlewares/dependency-boundary.middleware");
 const healthnetController = require("./healthnet.controller");
 
 const router = express.Router();
@@ -17,6 +18,7 @@ const limiter = rateLimit({
 router.use(authenticate);
 router.use(requireTier("ADMIN"));
 router.use(limiter);
+router.use(mainDbBoundary.gate);
 
 router.get("/labs", healthnetController.getLabs);
 router.get("/labs/:id/staff", healthnetController.getLabStaff);
@@ -90,5 +92,7 @@ router.get("/dashboard/metrics", healthnetController.getDashboardMetrics);
 router.get("/dashboard/charts/activity", healthnetController.getActivityChart);
 router.get("/dashboard/charts/patients", healthnetController.getPatientsChart);
 router.get("/dashboard/charts/revenue", healthnetController.getRevenueChart);
+
+router.use(mainDbBoundary.handleError);
 
 module.exports = router;
