@@ -162,13 +162,13 @@ jobs:
       - name: Verify deployment key identity and reachable staging SSH account
         shell: bash
         env:
-          STAGING_HOST: ${{ secrets.STAGING_HOST }}
-          STAGING_USER: ${{ secrets.STAGING_USER }}
+          STAGING_HOST: 173.249.30.55
+          STAGING_USER: cf-staging-deploy
           STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
         run: |
           set -euo pipefail
           if [[ -z "$STAGING_HOST" || -z "$STAGING_USER" || -z "$STAGING_SSH_KEY" ]]; then
-            echo "::error::Missing one of STAGING_HOST, STAGING_USER or STAGING_SSH_KEY in the staging environment."
+            echo "::error::Missing staging deploy SSH private key in the staging environment."
             exit 1
           fi
           umask 077
@@ -254,13 +254,13 @@ jobs:
       - name: Require staging-only deployment credentials
         shell: bash
         env:
-          STAGING_HOST: ${{ secrets.STAGING_HOST }}
-          STAGING_USER: ${{ secrets.STAGING_USER }}
+          STAGING_HOST: 173.249.30.55
+          STAGING_USER: cf-staging-deploy
           STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
         run: |
           set -euo pipefail
           if [[ -z "$STAGING_HOST" || -z "$STAGING_USER" || -z "$STAGING_SSH_KEY" ]]; then
-            echo "::error::Set STAGING_HOST, STAGING_USER and STAGING_SSH_KEY in the staging GitHub environment. Production secrets are intentionally not used."
+            echo "::error::Set STAGING_SSH_KEY in the staging GitHub environment. Production secrets are intentionally not used."
             exit 1
           fi
       - name: Pull and deploy only the staging app, with automatic rollback
@@ -271,8 +271,8 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEPLOY_RUN_ID: ${{ github.run_id }}
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
+          host: 173.249.30.55
+          username: cf-staging-deploy
           key: ${{ secrets.STAGING_SSH_KEY }}
           fingerprint: SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ
           port: 22
