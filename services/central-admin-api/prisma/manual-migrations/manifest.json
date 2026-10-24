@@ -132,6 +132,11 @@
       "order": 26,
       "file": "20260801_advertising_execution_sections25_28_remediation.sql",
       "sha256": "b9f0493629ccf4f8b340f8cd1dab2be7c0987419c47c4853b2f73ef115d7b5e6"
+    },
+    {
+      "order": 27,
+      "file": "20261024_add_cosmicforge_mail_m1_m6.sql",
+      "sha256": "83d21ec5c4fa5f6e487a5e51a7bb4d599c27aaa8e1c68ee0f745c72f4b1c3286"
     }
   ]
 }
