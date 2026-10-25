@@ -7,6 +7,7 @@ const envelope = (schema) => ({ type: "object", required: ["success"], propertie
 const list = (name) => envelope({ type: "array", items: ref(name) });
 const one = (name) => envelope(ref(name));
 const any = envelope({ type: "object" });
+const partyInput = { oneOf: [{ type: "string" }, ref("Party")] };
 
 const PATHS = [
   ["get", "/me/entitlements", "Mail entitlements for the caller", envelope(ref("Entitlements"))],
@@ -78,6 +79,23 @@ const PATHS = [
   ["get", "/admin/webhook-events", "Provider webhook events (no payloads) with processing lag", any],
   ["get", "/admin/delivery-events", "Delivery events (recipient reduced to domain)", any],
   ["get", "/admin/jobs", "Outbox/inbound/event jobs incl. dead letters (no payloads)", any],
+  ["post", "/admin/jobs/{jobId}/requeue", "Requeue a dead-lettered/failed inbound or event job (mail admin + MFA step-up)", any],
+  // Gap closure (migration 35 features answer 503 MAIL_FEATURE_NOT_READY until applied)
+  ["get", "/mailboxes/{mailboxId}/rules", "List mailbox filters (MANAGE access)", list("MailRule")],
+  ["post", "/mailboxes/{mailboxId}/rules", "Create a filter (declarative conditions/actions only)", one("MailRule")],
+  ["post", "/mailboxes/{mailboxId}/rules/reorder", "Set filter execution order", list("MailRule")],
+  ["patch", "/rules/{ruleId}", "Edit / enable / disable / reprioritise a filter", one("MailRule")],
+  ["delete", "/rules/{ruleId}", "Delete a filter", any],
+  ["get", "/mailboxes/{mailboxId}/forwarding", "Forwarding rules of a mailbox", list("ForwardingRule")],
+  ["post", "/mailboxes/{mailboxId}/forwarding", "Request forwarding (admin approval required)", one("ForwardingRule")],
+  ["post", "/forwarding/{ruleId}/disable", "Disable forwarding (owner/manager or mail admin)", one("ForwardingRule")],
+  ["get", "/admin/forwarding", "Forwarding requests and rules (mail admins)", list("ForwardingRule")],
+  ["post", "/admin/forwarding/{ruleId}/approve", "Approve forwarding (external targets need MFA step-up and an allowed domain)", one("ForwardingRule")],
+  ["post", "/admin/forwarding/{ruleId}/reject", "Reject forwarding", one("ForwardingRule")],
+  ["get", "/messages/{messageId}/original-headers", "Archived original headers (audited)", envelope(ref("OriginalHeaders"))],
+  ["get", "/messages/{messageId}/raw", "Archived raw MIME (.eml; audited; quarantined: mail admins only)", { type: "string", format: "binary" }],
+  ["get", "/admin/search-index", "Body-search index freshness", envelope(ref("SearchIndexStatus"))],
+  ["post", "/admin/search-index/backfill", "Queue body-search index backfill (202)", any],
   ["get", "/admin/legal-holds", "Legal holds", any],
   ["post", "/admin/legal-holds", "Create legal hold", any],
   ["post", "/admin/legal-holds/{holdId}/release", "Release legal hold", any],
@@ -213,20 +231,92 @@ const SCHEMAS = {
   SendAccepted: { type: "object", required: ["messageId", "status"], properties: { messageId: { type: "string" }, threadId: { type: "string" }, jobId: { type: ["string", "null"] }, status: { enum: ["QUEUED", "DELIVERED"] } } },
   Entitlements: { type: "object", properties: { mailEnabled: { type: "boolean" }, sendingEnabled: { type: "boolean" }, marketingEnabled: { type: "boolean" }, mailboxes: { type: "array", items: ref("MailboxSummary") } } },
   BroadcastDispatch: { type: "object", properties: { id: { type: "string" }, campaignId: { type: "string" }, status: { enum: ["SCHEDULED", "QUEUED", "PREPARING", "SENDING", "COMPLETED", "PARTIAL", "FAILED", "CANCELLED", "OUTCOME_UNKNOWN", "PAUSED"] }, scheduledFor: { type: "string", format: "date-time" }, timeZone: { type: "string" }, providerStatus: { type: ["string", "null"] }, recipientCount: { type: "integer" }, excludedCount: { type: "integer" }, lastErrorCode: { type: ["string", "null"] } } },
+  DraftInput: { type: "object", properties: { mode: { enum: ["NEW", "REPLY", "REPLY_ALL", "FORWARD"] }, inReplyToMessageId: { type: ["string", "null"] }, senderAddressId: { type: ["string", "null"] }, to: { type: "array", items: partyInput }, cc: { type: "array", items: partyInput }, bcc: { type: "array", items: partyInput }, subject: { type: "string", maxLength: 998 }, html: { type: "string" }, text: { type: "string" } } },
+  MailRuleInput: { type: "object", properties: { name: { type: "string", minLength: 1, maxLength: 160 }, enabled: { type: "boolean" }, priority: { type: "integer", minimum: 1, maximum: 1000 }, conditions: { type: "object", additionalProperties: false, minProperties: 1, properties: { fromContains: { type: "string", minLength: 1, maxLength: 200 }, fromEquals: { type: "string", minLength: 1, maxLength: 200 }, toContains: { type: "string", minLength: 1, maxLength: 200 }, subjectContains: { type: "string", minLength: 1, maxLength: 200 }, hasAttachment: { type: "boolean" } } }, actions: { type: "object", additionalProperties: false, minProperties: 1, properties: { labelId: { type: "string", format: "uuid" }, folder: { enum: ["ARCHIVE", "SPAM", "TRASH"] }, markRead: { const: true }, star: { const: true }, stopProcessing: { const: true } } } } },
+  MailRule: { type: "object", properties: { id: { type: "string", format: "uuid" }, mailboxId: { type: "string", format: "uuid" }, name: { type: "string" }, enabled: { type: "boolean" }, priority: { type: "integer", minimum: 1, maximum: 1000 }, conditions: { type: "object", additionalProperties: false, properties: { fromContains: { type: "string", maxLength: 200 }, fromEquals: { type: "string", maxLength: 200 }, toContains: { type: "string", maxLength: 200 }, subjectContains: { type: "string", maxLength: 200 }, hasAttachment: { type: "boolean" } } }, actions: { type: "object", additionalProperties: false, properties: { labelId: { type: "string", format: "uuid" }, folder: { enum: ["ARCHIVE", "SPAM", "TRASH"] }, markRead: { const: true }, star: { const: true }, stopProcessing: { const: true } } }, createdAt: { type: "string", format: "date-time" }, updatedAt: { type: "string", format: "date-time" } } },
+  ForwardingRule: { type: "object", properties: { id: { type: "string", format: "uuid" }, mailboxId: { type: "string", format: "uuid" }, targetAddress: { type: "string" }, targetKind: { enum: ["INTERNAL", "EXTERNAL"] }, status: { enum: ["PENDING_APPROVAL", "ACTIVE", "REJECTED", "DISABLED"] }, reason: { type: "string" }, requestedAt: { type: "string", format: "date-time" }, decidedAt: { type: ["string", "null"] }, disabledAt: { type: ["string", "null"] }, disabledReason: { type: ["string", "null"] }, lastForwardedAt: { type: ["string", "null"] }, forwardedCount: { type: "integer" } } },
+  OriginalHeaders: { type: "object", properties: { available: { type: "boolean" }, headers: { type: "array", items: { type: "object", properties: { name: { type: "string" }, value: { type: "string" } } } }, rawMime: { type: "object", properties: { status: { enum: ["STORED", "NOT_REQUESTED", "UNAVAILABLE", "TOO_LARGE", "FAILED"] }, sizeBytes: { type: ["integer", "null"] } } } } },
+  SearchIndexStatus: { type: "object", properties: { enabled: { type: "boolean" }, unindexed: { type: ["integer", "null"] }, oldestUnindexedAt: { type: ["string", "null"] }, staleKeyVersion: { type: ["integer", "null"] }, activeKeyVersion: { type: ["string", "null"] } } },
   Error: { type: "object", properties: { success: { const: false }, code: { type: "string" }, retryable: { type: "boolean" }, message: { type: "string" }, errors: { type: "array", items: { type: "object" } }, correlationId: { type: ["string", "null"] } } },
 };
 
+// Success status per operation (default 200). Verified against the router
+// by tests/mail-openapi-contract.test.js.
+const CREATED = [
+  "post /mailboxes/{mailboxId}/labels", "post /mailboxes/{mailboxId}/rules", "post /mailboxes/{mailboxId}/forwarding", "post /mailboxes/{mailboxId}/drafts",
+  "post /drafts/{draftId}/attachments", "post /threads/{threadId}/notes", "post /mailboxes/{mailboxId}/members", "post /admin/organizations", "post /admin/domains",
+  "post /admin/addresses", "post /admin/mailboxes", "post /admin/sender-grants", "post /provisioning/requests", "post /admin/legal-holds", "post /admin/retention/runs",
+  "post /admin/retention/runs/{runId}/execute", "post /admin/rollout/rules", "post /admin/rollout/cohorts", "post /admin/rollout/cohorts/{cohortId}/members",
+  "post /admin/emergency-stops", "post /admin/integrations", "post /admin/integrations/{integrationId}/senders", "post /admin/retention-policies", "post /security/step-up",
+  "post /break-glass/requests", "post /marketing/{orgId}/contacts", "post /marketing/{orgId}/contacts/{contactId}/consents", "post /marketing/{orgId}/suppressions",
+  "post /marketing/{orgId}/audiences", "post /marketing/{orgId}/audiences/{audienceId}/segments", "post /marketing/{orgId}/templates",
+  "post /marketing/{orgId}/templates/{templateId}/versions", "post /marketing/{orgId}/campaigns", "post /marketing/{orgId}/campaigns/{campaignId}/schedule",
+  "post /marketing/{orgId}/automations",
+];
+const ACCEPTED = ["post /drafts/{draftId}/send", "post /admin/search-index/backfill", "post /marketing/{orgId}/campaigns/{campaignId}/test-send"];
+const SUCCESS_STATUS = Object.fromEntries([...CREATED.map((key) => [key, "201"]), ...ACCEPTED.map((key) => [key, "202"])]);
+
+// Typed request bodies for the write operations the staff UI uses. The
+// contract test sends schema-conforming and schema-violating bodies to the
+// real router and checks the runtime validation agrees.
+const str = (maxLength) => ({ type: "string", ...(maxLength ? { maxLength } : {}) });
+const uuid = { type: "string", format: "uuid" };
+const REQUEST_BODIES = {
+  "post /mailboxes/{mailboxId}/labels": { type: "object", required: ["name"], properties: { name: str(80), color: str(9) } },
+  "post /mailboxes/{mailboxId}/threads/bulk": { type: "object", required: ["threadIds", "action"], properties: { threadIds: { type: "array", items: uuid, maxItems: 100 }, action: { enum: ["archive", "trash", "spam", "inbox", "read", "unread", "star", "unstar"] } } },
+  "patch /threads/{threadId}/state": { type: "object", properties: { isRead: { type: "boolean" }, isStarred: { type: "boolean" } } },
+  "post /threads/{threadId}/move": { type: "object", required: ["folder"], properties: { folder: { enum: ["INBOX", "ARCHIVE", "TRASH", "SPAM"] } } },
+  "post /mailboxes/{mailboxId}/drafts": ref("DraftInput"),
+  "patch /drafts/{draftId}": { allOf: [ref("DraftInput"), { type: "object", required: ["revision"], properties: { revision: { type: "integer" } } }] },
+  "post /drafts/{draftId}/send": { type: "object", required: ["revision"], properties: { revision: { type: "integer" } } },
+  "post /threads/{threadId}/assign": { type: "object", properties: { assigneeAdminUserId: { type: ["string", "null"] } } },
+  "post /threads/{threadId}/status": { type: "object", required: ["status", "revision"], properties: { status: { enum: ["OPEN", "PENDING", "RESOLVED", "CLOSED"] }, revision: { type: "integer" } } },
+  "post /threads/{threadId}/notes": { type: "object", required: ["body"], properties: { body: str(5000), mentions: { type: "array", items: { type: "string" } } } },
+  "put /threads/{threadId}/ticket-link": { type: "object", properties: { ticketRef: { type: ["string", "null"], maxLength: 128 } } },
+  "post /mailboxes/{mailboxId}/members": { type: "object", required: ["adminUserId", "role"], properties: { adminUserId: { type: "string" }, role: { enum: ["OWNER", "MANAGER", "MEMBER", "READER"] }, canSend: { type: "boolean" } } },
+  "patch /mailboxes/{mailboxId}/settings": { type: "object", properties: { signatureHtml: { type: ["string", "null"] }, slaFirstResponseMinutes: { type: ["integer", "null"] }, supportTicketLinkEnabled: { type: "boolean" } } },
+  "post /mailboxes/{mailboxId}/rules": { allOf: [ref("MailRuleInput"), { type: "object", required: ["name", "conditions", "actions"] }] },
+  "patch /rules/{ruleId}": ref("MailRuleInput"),
+  "post /mailboxes/{mailboxId}/rules/reorder": { type: "object", required: ["ruleIds"], properties: { ruleIds: { type: "array", items: uuid, minItems: 1, maxItems: 50 } } },
+  "post /mailboxes/{mailboxId}/forwarding": { type: "object", required: ["targetAddress", "reason"], properties: { targetAddress: { type: "string", format: "email" }, reason: { type: "string", minLength: 5, maxLength: 500 } } },
+  "post /forwarding/{ruleId}/disable": { type: "object", properties: { reason: str(64) } },
+  "post /admin/forwarding/{ruleId}/approve": { type: "object", properties: { note: str(500), stepUpId: { type: "string" } } },
+  "post /admin/forwarding/{ruleId}/reject": { type: "object", properties: { note: str(500) } },
+  "post /admin/jobs/{jobId}/requeue": { type: "object", required: ["reason", "stepUpId"], properties: { reason: { type: "string", minLength: 5, maxLength: 500 }, stepUpId: { type: "string" } } },
+  "post /provisioning/requests": { type: "object", required: ["type"], properties: { organizationId: { type: "string" }, type: { enum: ["PERSONAL_MAILBOX", "SHARED_MAILBOX", "ALIAS", "SENDER_GRANT"] }, requestedAddress: { type: "string" }, justification: str(1000) } },
+  "post /security/step-up": { type: "object", required: ["code", "purpose"], properties: { code: { type: "string", pattern: "^[0-9]{6}$" }, purpose: { type: "string" } } },
+  "post /break-glass/requests": { type: "object", required: ["mailboxId", "reason"], properties: { mailboxId: uuid, reason: str(1000), ticketRef: str(128), durationMinutes: { type: "integer" }, stepUpId: { type: "string" } } },
+};
+
+// Stable, readable operation ids: method + non-parameter path segments, with
+// a "By<Param>" suffix when the path ends in a parameter.
+function operationIdFor(method, path) {
+  const parts = path.split("/").filter(Boolean);
+  const words = parts.filter((part) => !part.startsWith("{")).flatMap((part) => part.split(/[^A-Za-z0-9]+/)).filter(Boolean);
+  const last = parts[parts.length - 1] || "";
+  const by = last.startsWith("{") ? `By${last.slice(1, -1).replace(/^./, (c) => c.toUpperCase())}` : "";
+  return `${method}${words.map((word) => word.replace(/^./, (c) => c.toUpperCase())).join("")}${by}`;
+}
+
 function buildOpenApiDocument() {
   const paths = {};
+  const seen = new Set();
   for (const [method, path, summary, schema] of PATHS) {
     paths[path] = paths[path] || {};
+    const key = `${method} ${path}`;
+    const operationId = operationIdFor(method, path);
+    if (seen.has(operationId)) throw new Error(`duplicate operationId ${operationId}`);
+    seen.add(operationId);
     const params = [...path.matchAll(/\{(\w+)\}/g)].map((match) => ({ name: match[1], in: "path", required: true, schema: { type: "string" } }));
+    const status = SUCCESS_STATUS[key] || "200";
     paths[path][method] = {
+      operationId,
       summary,
       parameters: params,
-      security: path.startsWith("/webhooks/") || path.startsWith("/public/") ? [] : [{ bearerAuth: [] }],
+      security: path.startsWith("/webhooks/") || path.startsWith("/public/") || path.startsWith("/health/") ? [] : [{ bearerAuth: [] }],
+      ...(REQUEST_BODIES[key] ? { requestBody: { required: true, content: { "application/json": { schema: REQUEST_BODIES[key] } } } } : {}),
       responses: {
-        [path.endsWith("/send") ? "202" : "200"]: { description: "Success", content: { "application/json": { schema } } },
+        [status]: { description: status === "202" ? "Accepted (queued)" : status === "201" ? "Created" : "Success", content: { "application/json": { schema } } },
         default: { description: "Error", content: { "application/json": { schema: ref("Error") } } },
       },
     };
@@ -240,4 +330,4 @@ function buildOpenApiDocument() {
   };
 }
 
-module.exports = { buildOpenApiDocument, PATHS };
+module.exports = { buildOpenApiDocument, PATHS, REQUEST_BODIES, SUCCESS_STATUS, operationIdFor };

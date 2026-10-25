@@ -7,6 +7,7 @@ const { Prisma } = require("../../../generated/admin-client");
 const { mailError } = require("../mail.errors");
 const policy = require("../authz/mail.policy");
 const { sanitizeEmailHtml } = require("../security/html-sanitizer");
+const { publicSenderAuthentication } = require("../security/sender-auth");
 const { decodeCursor, encodeCursor, pageLimit, serializeThread, serializeAttachment, serializeRecipients, serializeMailbox, iso } = require("./serializers");
 
 const VIEWS = {
@@ -21,7 +22,7 @@ const VIEWS = {
 };
 const FOLDERS = new Set(["INBOX", "ARCHIVE", "TRASH", "SPAM"]);
 
-function createMailboxService({ client, config, store, audit }) {
+function createMailboxService({ client, config, store, audit, searchIndex = null }) {
   async function accessibleMailboxes(user, now = new Date()) {
     policy.assertActiveIdentity(user);
     const memberships = await client.mailMembership.findMany({
@@ -180,6 +181,8 @@ function createMailboxService({ client, config, store, audit }) {
         sentBy: message.sentByAdminUserId ? senderBy.get(message.sentByAdminUserId) || { id: message.sentByAdminUserId, name: "Former staff" } : null,
         deliveryEvents: message.deliveryEvents.map((event) => ({ type: event.eventType, recipient: event.recipient, occurredAt: iso(event.occurredAt) })),
         quarantineReason: message.quarantineReason,
+        // Provider-verified SPF/DKIM/DMARC assessment (spec 12, 19.4).
+        senderAuthentication: message.direction === "INBOUND" ? publicSenderAuthentication(message.authResults) : null,
       });
     }
     // Opening a thread marks it read for this user only.
@@ -281,20 +284,35 @@ function createMailboxService({ client, config, store, audit }) {
     return { threadId, labelId, attached: attach };
   }
 
-  async function search(user, { mailboxId, q, from, to, subject, after, before, labelId, cursor, limit }) {
+  // Search (spec 5.1, 12): sender, recipient (never BCC), subject, body (keyed
+  // blind index, when enabled), date and label. Mailbox membership is part of
+  // the SQL. A unified search covers only mailboxes the caller is a member
+  // of; a break-glass grant allows searching that one mailbox explicitly,
+  // and that search is audited (never folded silently into "all mail").
+  async function search(user, { mailboxId, q, from, to, subject, after, before, labelId, cursor, limit }, context = {}) {
     let mailboxIds;
+    let breakGlass = null;
     if (mailboxId) {
-      await policy.requireMailboxAccess(client, user, mailboxId, "READ");
+      const access = await policy.requireMailboxAccess(client, user, mailboxId, "READ");
+      breakGlass = access.viaBreakGlass || null;
       mailboxIds = [mailboxId];
     } else {
-      mailboxIds = (await accessibleMailboxes(user)).map((entry) => entry.mailbox.id);
+      mailboxIds = (await accessibleMailboxes(user)).filter((entry) => !entry.breakGlass).map((entry) => entry.mailbox.id);
     }
     if (!mailboxIds.length) return { items: [], nextCursor: null };
     const take = pageLimit(limit);
     const position = decodeCursor(cursor);
     const conditions = [Prisma.sql`m."mailbox_id"::text IN (${Prisma.join(mailboxIds)})`, Prisma.sql`m."deleted_at" IS NULL`, Prisma.sql`t."deleted_at" IS NULL`];
     const query = String(q || "").trim().slice(0, 200);
-    if (query) conditions.push(Prisma.sql`to_tsvector('simple', m."metadata_search_text") @@ plainto_tsquery('simple', ${query})`);
+    const bodyTerms = query && searchIndex ? await searchIndex.queryTerms(mailboxIds, query) : null;
+    if (query && bodyTerms && bodyTerms.length) {
+      // Every word must appear in the metadata OR the body of the message.
+      for (const entry of bodyTerms) {
+        conditions.push(Prisma.sql`(to_tsvector('simple', m."metadata_search_text") @@ plainto_tsquery('simple', ${entry.word}) OR EXISTS (SELECT 1 FROM "mail_message_search_index" si WHERE si."message_id" = m."id" AND si."mailbox_id" = m."mailbox_id" AND si."terms" && ${entry.terms}::text[]))`);
+      }
+    } else if (query) {
+      conditions.push(Prisma.sql`to_tsvector('simple', m."metadata_search_text") @@ plainto_tsquery('simple', ${query})`);
+    }
     if (from) conditions.push(Prisma.sql`(m."from_address" ILIKE ${`%${String(from).slice(0, 120)}%`} OR m."from_name" ILIKE ${`%${String(from).slice(0, 120)}%`})`);
     if (subject) conditions.push(Prisma.sql`m."subject" ILIKE ${`%${String(subject).slice(0, 200)}%`}`);
     if (to) conditions.push(Prisma.sql`EXISTS (SELECT 1 FROM "mail_message_recipients" r WHERE r."message_id" = m."id" AND r."type" <> 'BCC' AND r."address" ILIKE ${`%${String(to).slice(0, 120)}%`})`);
@@ -316,6 +334,10 @@ function createMailboxService({ client, config, store, audit }) {
     const threads = page.length ? await client.mailThread.findMany({ where: { id: { in: page.map((row) => row.id) }, mailboxId: { in: mailboxIds } } }) : [];
     const order = new Map(page.map((row, index) => [row.id, index]));
     threads.sort((a, b) => order.get(a.id) - order.get(b.id));
+    if (breakGlass) {
+      // The query text is never logged; only that a search happened.
+      await audit.record({ actorAdminUserId: user.id, action: "MAIL_BREAK_GLASS_SEARCH", targetType: "mailbox", targetId: mailboxId, mailboxId, metadata: { breakGlassRequestId: breakGlass.id, results: threads.length } }, context);
+    }
     return { items: await summarize(user, threads), nextCursor: rows.length > take ? encodeCursor(threads[threads.length - 1]) : null };
   }
 

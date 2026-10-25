@@ -9,6 +9,8 @@ import PermissionBoundary from "@/components/mail/PermissionBoundary";
 import { mailKeys, useEntitlements, useLabels, useMailbox, useMembers } from "@/components/mail/hooks";
 import { formatFullDate } from "@/components/mail/mail-utils";
 import StaffPicker from "@/components/mail/StaffPicker";
+import MailFilters from "@/components/mail/MailFilters";
+import MailForwarding from "@/components/mail/MailForwarding";
 import api from "@/lib/api";
 import {
   addMember,
@@ -273,6 +275,8 @@ function SettingsInner() {
           <>
             <Signature key={`sig-${mailbox.id}`} mailbox={mailbox} />
             <Labels key={`lab-${mailbox.id}`} mailbox={mailbox} />
+            <MailFilters key={`fil-${mailbox.id}`} mailbox={mailbox} />
+            <MailForwarding key={`fwd-${mailbox.id}`} mailbox={mailbox} />
             <Members key={`mem-${mailbox.id}`} mailbox={mailbox} />
           </>
         )}

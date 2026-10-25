@@ -15,6 +15,10 @@ const { createMailboxService } = require("./services/mailbox.service");
 const { createComposeService } = require("./services/compose.service");
 const { createMailAdminService } = require("./services/mail-admin.service");
 const { createSupportService } = require("./services/support.service");
+const { createMailRulesService } = require("./services/mail-rules.service");
+const { createSearchIndex } = require("./services/search-index.service");
+const { createForwardingService } = require("./services/forwarding.service");
+const { createMessageArchive } = require("./services/message-archive.service");
 const { createAttachmentReviewService } = require("./services/attachment-review.service");
 const { createMarketingService } = require("./marketing/marketing.service");
 const { createStepUpService } = require("./authz/step-up.service");
@@ -22,6 +26,7 @@ const { createBreakGlassService } = require("./authz/break-glass.service");
 const { createMailJobRepository } = require("./jobs/mail-job.repository");
 const { createMailWorker } = require("./jobs/mail-worker");
 const { createInboundProcessor } = require("./pipelines/inbound.processor");
+const { loadSenderAuthPolicy } = require("./security/sender-auth");
 const { createOutboundProcessor } = require("./pipelines/outbound.processor");
 const { createDeliveryEventProcessor } = require("./pipelines/delivery-event.processor");
 const { createResendWebhookHandler } = require("./webhooks/resend-webhook.controller");
@@ -32,6 +37,7 @@ const { createAutomationService } = require("./marketing/automation/automation.s
 const { createAutomationProcessor } = require("./marketing/automation/automation.processor");
 const { createConfirmationService } = require("./marketing/confirmation.service");
 const { createTestSendService } = require("./marketing/test-send.service");
+const { createCampaignReplies } = require("./marketing/campaign-replies");
 const { createMarketingEventsProcessor } = require("./marketing/marketing-events.processor");
 const { createPublicPreferencesService } = require("./marketing/public-preferences.service");
 const { createIntegrationService } = require("./integrations/integration.service");
@@ -44,7 +50,8 @@ const { createRolloutService } = require("./ops/rollout.service");
 const { createReadiness } = require("./ops/readiness");
 const { createRuntimeMetrics } = require("./ops/runtime-metrics");
 const { createInboundReconciler } = require("./pipelines/inbound-reconciler");
-const { createMailSchemaReadiness } = require("./schema-readiness");
+const { createSharedRateLimiter } = require("./ops/shared-rate-limit");
+const { createMailSchemaReadiness, MAIL_FEATURE_REQUIREMENTS } = require("./schema-readiness");
 
 async function unwrapKeyring({ config, encryption, logger, kmsClient }) {
   const { resolveMailKeyring, createAwsKmsClient } = require("./security/kms-keyring");
@@ -74,22 +81,33 @@ async function unwrapKeyring({ config, encryption, logger, kmsClient }) {
 function createMailApplication({ client, env = process.env, config = loadMailConfig(env), adapter, storageBackend, scanner, encryption, kmsClient, mfa, authSchema, marketingAdapter, marketingAdapters, logger = console, clock = () => new Date() } = {}) {
   if (!client) client = require("../../shared/config/database").prisma;
   const schema = createMailSchemaReadiness({ client, logger });
+  // Migration 35 (gap-closure features). Core Mail never waits for it.
+  const features = createMailSchemaReadiness({
+    client,
+    logger,
+    requirements: MAIL_FEATURE_REQUIREMENTS,
+    label: "Mail gap-closure feature",
+    missingMessage: "[Mail] Gap-closure tables not present: body search, forwarding, message archives, shared rate limits and campaign reply attribution stay off until migration 20261101_mail_spec_gap_closure.sql is applied",
+  });
   const useKms = !encryption && config.kms?.provider === "aws-kms";
   const resolvedEncryption = encryption || createMailEncryption(useKms ? { deferred: true } : config.encryption);
   // KMS-wrapped data keys are unwrapped once, asynchronously. Until then (or if
   // it fails) the keyring is unavailable and every content operation fails closed.
   const keyringReady = useKms ? unwrapKeyring({ config, encryption: resolvedEncryption, logger, kmsClient }) : Promise.resolve();
   const metrics = createRuntimeMetrics();
+  const rateLimiter = createSharedRateLimiter({ client, features, metrics, logger, clock: () => clock().getTime() });
   const resolvedAdapter = metrics.instrumentProvider(adapter || createProviderAdapter({ config }), "transactional");
   const storage = createMailStorage({ config, encryption: resolvedEncryption, backend: storageBackend, logger });
   const resolvedScanner = createAttachmentScanner({ config, scanner, logger });
   const audit = createMailAudit({ client });
   const notifications = createMailNotifications({ client, logger });
   const store = createMessageStore({ client, storage, config, encryption: resolvedEncryption });
+  const searchIndex = createSearchIndex({ client, config, features, store, audit, logger, clock });
+  store.useSearchIndex(searchIndex);
   const jobs = createMailJobRepository({ client, clock });
   const stepUp = createStepUpService({ client, config, clock, audit, mfa, authSchema, env, logger });
   const breakGlass = createBreakGlassService({ client, stepUp, audit, clock });
-  const mailbox = createMailboxService({ client, config, store, audit });
+  const mailbox = createMailboxService({ client, config, store, audit, searchIndex });
   // M9: kill switch and usage/quota accounting shared by every send path.
   const runtime = createRuntimeControls({ config });
   // M10: database-backed rollout rules, cohorts and operator emergency stops.
@@ -98,7 +116,10 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const usage = createUsageService({ client, audit, env, clock });
   const providerReady = () => resolvedAdapter.name !== "unconfigured";
   const compose = createComposeService({ client, config, store, encryption: resolvedEncryption, scanner: resolvedScanner, jobs, audit, notifications, providerReady, runtime, usage, clock });
-  const admin = createMailAdminService({ client, config, adapter: resolvedAdapter, audit, notifications, clock });
+  const forwarding = createForwardingService({ client, config, features, store, jobs, audit, stepUp, notifications, providerReady, runtime, usage, clock, logger });
+  const archive = createMessageArchive({ client, config, storage, features, audit, logger });
+  const admin = createMailAdminService({ client, config, adapter: resolvedAdapter, audit, notifications, jobs, stepUp, forwarding, clock });
+  const rules = createMailRulesService({ client, audit });
   const support = createSupportService({ client, mailboxService: mailbox, audit, notifications, encryption: resolvedEncryption, clock });
   // M7: per-brand marketing provider accounts, broadcasts and automation.
   const resolveMarketingProvider = createMarketingProviderResolver({ config, env, adapter: marketingAdapter, adapters: marketingAdapters });
@@ -106,23 +127,24 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const confirmation = createConfirmationService({ client, config, audit, jobs, encryption: resolvedEncryption, marketingProviders, runtime, usage, clock });
   const testSends = createTestSendService({ client, config, audit, jobs, marketingProviders, runtime, usage, clock });
   const marketing = createMarketingService({ client, config, audit, stepUp, clock, hooks: { onConfirmationRequired: confirmation.onConfirmationRequired, quotaCheck: (organizationId, count) => usage.check(organizationId, "MARKETING_BROADCAST", count) } });
-  const broadcasts = createBroadcastService({ client, config, audit, jobs, stepUp, env, clock });
+  const campaignReplies = createCampaignReplies({ client, config, features, audit, clock });
+  const broadcasts = createBroadcastService({ client, config, audit, jobs, stepUp, env, replies: campaignReplies, clock });
   const automations = createAutomationService({ client, config, audit, stepUp, clock });
   const publicPreferences = createPublicPreferencesService({ client, config, audit, marketing, clock });
-  const integrations = createIntegrationService({ client, config, audit, stepUp, automations, notifications, rollout, env, clock, logger });
+  const integrations = createIntegrationService({ client, config, audit, stepUp, automations, notifications, rollout, rateLimiter, env, clock, logger });
   const attachmentReview = createAttachmentReviewService({ client, config, store, scanner: resolvedScanner, audit });
 
-  const inbound = createInboundProcessor({ client, config, adapter: resolvedAdapter, store, scanner: resolvedScanner, audit, notifications, usage, clock });
-  const outbound = createOutboundProcessor({ client, config, adapter: resolvedAdapter, store, audit, notifications, runtime, usage, clock });
+  const inbound = createInboundProcessor({ client, config, adapter: resolvedAdapter, store, scanner: resolvedScanner, audit, notifications, usage, archive, forwarding, campaignReplies, senderAuth: loadSenderAuthPolicy(env), clock, logger });
+  const outbound = createOutboundProcessor({ client, config, adapter: resolvedAdapter, store, audit, notifications, runtime, usage, forwarding, clock });
   const marketingEvents = createMarketingEventsProcessor({ client, audit, clock });
   const deliveryEvents = createDeliveryEventProcessor({ client, audit, notifications, marketingEvents });
   const broadcastProcessor = createBroadcastProcessor({ client, config, audit, jobs, marketingProviders, eligibility: marketing.eligibleContacts, notifications, runtime, usage, clock, logger });
   const automationProcessor = createAutomationProcessor({ client, config, audit, jobs, marketingProviders, eligibility: marketing.eligibleContacts, runtime, usage, clock, logger });
 
   const retention = createRetentionService({ client, config, audit, jobs, stepUp, clock });
-  const retentionProcessor = createRetentionProcessor({ client, config, audit, storage, clock, logger });
+  const retentionProcessor = createRetentionProcessor({ client, config, audit, storage, features, clock, logger });
   // `health` is a hoisted function declaration below.
-  const ops = createOpsMonitor({ client, config, notifications, health: () => health(), runtime, metrics, clock, logger });
+  const ops = createOpsMonitor({ client, config, notifications, health: () => health(), runtime, metrics, searchIndex, features, clock, logger });
   const readiness = createReadiness({ client, config, ops, health: () => health() });
   const inboundReconciler = createInboundReconciler({ client, config, adapter: resolvedAdapter, jobs, audit, clock });
 
@@ -144,6 +166,12 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
         OPS_EVALUATE: ops.processEvaluate,
         RECONCILE_INBOUND: inboundReconciler.process,
         MARKETING_TEST_SEND: testSends.process,
+        // Re-enqueues itself while more messages need (re)indexing.
+        SEARCH_INDEX_BACKFILL: async () => {
+          const result = await searchIndex.backfill();
+          if (result.more) await jobs.enqueue(null, { queue: "EVENTS", kind: "SEARCH_INDEX_BACKFILL", idempotencyKey: `search-backfill:cont:${clock().getTime()}`, maxAttempts: 3 });
+          return result;
+        },
       },
       onDeadLetter: { SEND_MESSAGE: outbound.onDeadLetter, BROADCAST_DISPATCH: broadcastProcessor.onDeadLetter, BROADCAST_RECONCILE: broadcastProcessor.onDeadLetter, AUTOMATION_STEP: automationProcessor.onDeadLetter, RETENTION_RUN: retentionProcessor.onDeadLetter },
       // A MARKETING worker schedules one automation tick per minute bucket;
@@ -199,8 +227,10 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
     encryption: resolvedEncryption,
     audit,
     store,
+    searchIndex,
+    rateLimiter,
     jobs,
-    services: { mailbox, compose, admin, support, marketing, stepUp, breakGlass, attachmentReview, broadcasts, automations, publicPreferences, confirmation, testSends, integrations, usage, retention, ops, rollout, readiness },
+    services: { mailbox, compose, admin, rules, forwarding, archive, support, marketing, stepUp, breakGlass, attachmentReview, broadcasts, automations, publicPreferences, confirmation, testSends, integrations, usage, retention, ops, rollout, readiness },
     runtime,
     metrics,
     processors: { inbound, outbound, deliveryEvents, marketingEvents, broadcasts: broadcastProcessor, automations: automationProcessor, retention: retentionProcessor, inboundReconciler },
@@ -219,6 +249,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
     createWorker,
     health,
     schema,
+    features,
     // Public readiness (booleans only; never secrets or migration names).
     readiness: async () => {
       if (!config.enabled) return { ready: true, enabled: false, checks: {} };

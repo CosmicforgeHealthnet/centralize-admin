@@ -70,6 +70,13 @@ test("CosmicForge Mail M9 operations on real PostgreSQL", { timeout: 300000 }, a
       state.openCase = await makeThread(archiveBox, { support: "OPEN" });
       state.recent = await makeThread(archiveBox, { at: new Date(harness.clock().getTime() - 5 * 86400000) });
       state.held = await makeThread(heldBox);
+      // Gap closure: the same body/attachment objects are referenced by a copy
+      // in the held mailbox (as for an internal or multi-recipient message).
+      // Purging the first mailbox must not destroy the held copy's content.
+      const shared = state.purgeable[0];
+      const sharedThread = await client.mailThread.create({ data: { mailboxId: heldBox.id, subject: "Shared copy", normalizedSubject: "shared copy", lastMessageAt: harness.clock(), messageCount: 1, hasInbound: true } });
+      state.sharedCopy = await client.mailMessage.create({ data: { mailboxId: heldBox.id, threadId: sharedThread.id, direction: "INTERNAL", status: "RECEIVED", rfcMessageId: shared.message.rfcMessageId, subject: "Shared copy", fromAddress: "ops@cosmicforge.example", contentObjectKey: shared.bodyKey, contentSha256: shared.message.contentSha256, sizeBytes: 1 } });
+      await client.mailAttachment.create({ data: { mailboxId: heldBox.id, messageId: state.sharedCopy.id, filename: "contract.pdf", contentType: "application/pdf", sizeBytes: 1, sha256: "0".repeat(64), storageKey: shared.attachmentKey, scanStatus: "CLEAN", quarantined: false } });
       const hold = await call("ops", "POST", "/admin/legal-holds", { organizationId: cf.organization.id, mailboxId: heldBox.id, reason: "Pending litigation (test)" });
       assert.equal(hold.status, 201, hold.text);
       state.holdId = hold.body.data.id;
@@ -130,7 +137,11 @@ test("CosmicForge Mail M9 operations on real PostgreSQL", { timeout: 300000 }, a
       assert.equal(run.counts.purgedThreads, 5);
       assert.equal(run.counts.held, 1);
       assert.equal(run.counts.skippedActive, 1);
-      assert.equal(run.counts.storageObjectsRemoved, 10, "body + attachment for each purged thread");
+      assert.equal(run.counts.storageObjectsRemoved, 8, "body + attachment for each purged thread, except objects still shared");
+      assert.equal(run.counts.storageObjectsKeptShared, 2, "the held copy's shared body and attachment are kept");
+      assert.ok(await exists(state.purgeable[0].bodyKey), "shared body still readable by the held mailbox");
+      assert.ok(await exists(state.purgeable[0].attachmentKey), "shared attachment still readable");
+      assert.equal((await harness.mail.store.readBody(state.sharedCopy)).text, "secret body");
       assert.equal(run.counts.storageRemoveFailed, 0);
     });
 
@@ -145,8 +156,8 @@ test("CosmicForge Mail M9 operations on real PostgreSQL", { timeout: 300000 }, a
         assert.equal(await client.mailMessageRecipient.count({ where: { messageId: item.message.id } }), 0);
         assert.equal(await client.mailAttachment.count({ where: { messageId: item.message.id } }), 0);
         assert.equal(await client.mailDeliveryEvent.count({ where: { messageId: item.message.id } }), 0);
-        assert.equal(await exists(item.bodyKey), false);
-        assert.equal(await exists(item.attachmentKey), false);
+        if (item !== state.purgeable[0]) assert.equal(await exists(item.bodyKey), false);
+        if (item !== state.purgeable[0]) assert.equal(await exists(item.attachmentKey), false);
         const thread = await client.mailThread.findUnique({ where: { id: item.thread.id } });
         assert.equal(thread.subject, "");
         assert.equal(thread.participants, null);

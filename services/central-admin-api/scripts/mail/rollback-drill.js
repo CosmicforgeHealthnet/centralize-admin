@@ -30,7 +30,7 @@ const FIRST_ROLLED_BACK = "20261026_mail_step_up_session_binding.sql";
 // Rollbacks for migrations ordered after M10, newest first. They run before
 // the M7-M10 rollback (later migrations may depend on M7-M10 objects) and are
 // re-applied by the same roll-forward.
-const LATER_ROLLBACKS = ["account-setup-tokens-rollback.sql"].map((file) => path.resolve(ROOT, "..", "..", "docs", "sql", file));
+const LATER_ROLLBACKS = ["cosmicforge-mail-gap-closure-rollback.sql", "account-setup-tokens-rollback.sql"].map((file) => path.resolve(ROOT, "..", "..", "docs", "sql", file));
 const REMOVED_TABLES = [
   "marketing_brand_settings", "marketing_broadcast_dispatches", "marketing_broadcast_recipients", "marketing_automations", "marketing_automation_versions",
   "marketing_automation_enrollments", "marketing_automation_step_runs", "marketing_trigger_events", "marketing_campaign_approved_contacts",

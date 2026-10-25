@@ -1,18 +1,30 @@
 "use strict";
 
-// Inbound email pipeline (job kind PROCESS_INBOUND).
-// 1. retrieve the received message + attachments from the provider
-// 2. resolve envelope recipients to ACTIVE local addresses/mailboxes
-//    (receiving-domain verification does NOT auto-provision addresses)
-// 3. unknown recipients follow MAIL_UNKNOWN_RECIPIENT_POLICY (reject|quarantine)
-// 4. scan + encrypt attachments, encrypt body, create one copy per mailbox
-//    (per-mailbox copies keep BCC envelope data private to that mailbox)
-// 5. thread by RFC identifiers, apply rules, mark unread, notify members
+// Inbound email pipeline (job kind PROCESS_INBOUND), spec section 10.
+// 1. retrieve the received message + attachments from the provider (the
+//    webhook alone is never the whole email)
+// 2. resolve every delivery address (To, Cc, Bcc, Received-for) on OUR
+//    domains to ACTIVE local addresses/mailboxes. External addresses are
+//    ignored; receiving-domain verification never auto-provisions addresses
+//    and there is no catch-all.
+// 3. unknown local recipients follow MAIL_UNKNOWN_RECIPIENT_POLICY:
+//    reject = record and drop; quarantine = record and end the job as
+//    FAILED(INBOUND_UNKNOWN_RECIPIENT_QUARANTINED) so an operator can requeue
+//    it after provisioning the address (nothing is stored or shown to staff)
+// 4. assess sender authentication (provider-verified SPF/DKIM/DMARC only)
+// 5. scan + encrypt attachments, encrypt body and archive original headers
+//    (and raw MIME when approved) once; create one copy per mailbox (BCC
+//    envelope data stays private to that mailbox's copy)
+// 6. mailbox storage quota policy (accept + alert, or reject per mailbox)
+// 7. thread by RFC identifiers, apply rules, Support SLA, mark unread,
+//    index for body search (keyed, opt-in), notify members
+// 8. after commit: approved forwarding and campaign reply attribution
 
 const { normalizeAddress } = require("../security/address.util");
 const { normalizeMessageId } = require("../security/header-safety");
 const { evaluateAttachment } = require("../scanning/attachment-scanner");
 const { applyRules } = require("../services/mail-rules");
+const { assessSenderAuthentication, authResultsRecord, loadSenderAuthPolicy } = require("../security/sender-auth");
 
 class PipelineError extends Error {
   constructor(code, message, { retryable = true } = {}) {
@@ -22,24 +34,37 @@ class PipelineError extends Error {
   }
 }
 
-function createInboundProcessor({ client, config, adapter, store, scanner, audit, notifications, usage = null, clock = () => new Date() }) {
-  async function resolveRecipients(addresses) {
+function createInboundProcessor({ client, config, adapter, store, scanner, audit, notifications, usage = null, archive = null, forwarding = null, campaignReplies = null, senderAuth = loadSenderAuthPolicy({}), clock = () => new Date(), logger = null }) {
+  async function ownDomains() {
+    const rows = await client.mailDomain.findMany({ select: { domain: true } });
+    return new Set(rows.map((row) => row.domain.toLowerCase()));
+  }
+
+  async function resolveRecipients(addresses, domains = null) {
     const normalized = [...new Set(addresses.map(normalizeAddress).filter(Boolean))];
     if (!normalized.length) return { local: [], unknown: [] };
+    const ours = domains || (await ownDomains());
+    const candidates = normalized.filter((address) => ours.has(address.split("@")[1]));
+    if (!candidates.length) return { local: [], unknown: [] };
     const rows = await client.mailAddress.findMany({
-      where: { address: { in: normalized }, status: "ACTIVE", mailboxId: { not: null }, mailbox: { status: "ACTIVE" }, domain: { status: { in: ["VERIFIED", "PENDING_VERIFICATION"] } } },
+      where: { address: { in: candidates }, status: "ACTIVE", mailboxId: { not: null }, mailbox: { status: "ACTIVE" }, domain: { status: { in: ["VERIFIED", "PENDING_VERIFICATION"] } } },
       include: { mailbox: true },
     });
     const known = new Map(rows.map((row) => [row.address, row]));
     const local = [];
     const seenMailboxes = new Set();
-    for (const address of normalized) {
+    for (const address of candidates) {
       const row = known.get(address);
       if (!row || seenMailboxes.has(row.mailboxId)) continue;
       seenMailboxes.add(row.mailboxId);
       local.push(row);
     }
-    return { local, unknown: normalized.filter((address) => !known.has(address)) };
+    return { local, unknown: candidates.filter((address) => !known.has(address)) };
+  }
+
+  async function mailboxUsageBytes(mailboxId) {
+    const result = await client.mailMessage.aggregate({ where: { mailboxId, deletedAt: null }, _sum: { sizeBytes: true } });
+    return Number(result._sum.sizeBytes || 0);
   }
 
   async function process(job) {
@@ -50,8 +75,11 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
     const inbound = await adapter.fetchInboundMessage(providerEmailId);
     if (!inbound.from?.address) throw new PipelineError("INBOUND_SENDER_INVALID", "sender missing or invalid", { retryable: false });
 
-    const envelope = [...(job.payload?.to || []), ...(inbound.envelopeRecipients || [])];
-    const { local, unknown } = await resolveRecipients(envelope);
+    const domains = await ownDomains();
+    // Every address the email was delivered for (To, Cc, Bcc/envelope).
+    // Only our own domains are considered; BCC data never becomes visible.
+    const envelope = [...(job.payload?.to || []), ...(inbound.to || []).map((party) => party.address), ...(inbound.cc || []).map((party) => party.address), ...(inbound.envelopeRecipients || [])];
+    const { local, unknown } = await resolveRecipients(envelope, domains);
     if (unknown.length) {
       await audit.record({
         action: config.unknownRecipientPolicy === "quarantine" ? "MAIL_INBOUND_UNKNOWN_RECIPIENT_QUARANTINED" : "MAIL_INBOUND_UNKNOWN_RECIPIENT_REJECTED",
@@ -61,7 +89,16 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
         metadata: { unknownCount: unknown.length, domains: [...new Set(unknown.map((address) => address.split("@")[1]))].slice(0, 10), providerEmailId, senderDomain: inbound.from.address.split("@")[1] },
       });
     }
-    if (!local.length) return { delivered: 0, unknown: unknown.length };
+    if (!local.length) {
+      if (unknown.length && config.unknownRecipientPolicy === "quarantine") throw new PipelineError("INBOUND_UNKNOWN_RECIPIENT_QUARANTINED", "no provisioned recipient; held for operator review", { retryable: false });
+      return { delivered: 0, unknown: unknown.length };
+    }
+
+    // Sender authentication: provider-verified results only.
+    const assessment = assessSenderAuthentication(inbound, { settings: senderAuth, internalDomains: domains });
+    if (assessment.warn || assessment.quarantineReason) {
+      await audit.record({ action: assessment.quarantineReason ? "MAIL_INBOUND_AUTH_QUARANTINED" : "MAIL_INBOUND_AUTH_WARNING", targetType: "webhook_event", targetId: job.webhookEventId, outcome: assessment.quarantineReason ? "DENIED" : "SUCCESS", metadata: { verdict: assessment.verdict, reasons: assessment.reasons, source: assessment.source, senderDomain: assessment.fromDomain, providerEmailId } });
+    }
 
     // Attachments are scanned once, stored once, referenced per mailbox copy.
     const storedAttachments = [];
@@ -83,21 +120,36 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
     }
 
     const body = await store.storeBody({ html: inbound.html, text: inbound.text });
+    // Original headers / raw MIME (spec 10.6), encrypted, stored once.
+    const archived = archive ? await archive.captureInbound(inbound) : null;
     const rfcMessageId = normalizeMessageId(inbound.rfcMessageId) || `<resend-${providerEmailId.replace(/[^A-Za-z0-9_-]/g, "")}@inbound.cosmicforge.invalid>`;
     const isSpam = ["yes", "true", "spam"].includes(String(inbound.spamVerdict || "").toLowerCase());
     const visibleRecipients = [
-      ...inbound.to.map((party) => ({ ...party, type: "TO", status: "DELIVERED" })),
-      ...inbound.cc.map((party) => ({ ...party, type: "CC", status: "DELIVERED" })),
+      ...(inbound.to || []).map((party) => ({ ...party, type: "TO", status: "DELIVERED" })),
+      ...(inbound.cc || []).map((party) => ({ ...party, type: "CC", status: "DELIVERED" })),
     ];
     const anyInfected = storedAttachments.some((entry) => entry.verdict?.scanStatus === "INFECTED");
+    const quarantineReason = anyInfected ? "MALICIOUS_ATTACHMENT" : assessment.quarantineReason || (isSpam ? "PROVIDER_SPAM_VERDICT" : null);
+    const sizeBytes = body.sizeBytes + storedAttachments.reduce((sum, entry) => sum + (entry.stored?.sizeBytes || 0), 0);
 
     let delivered = 0;
+    let overQuota = 0;
     for (const target of local) {
       const mailbox = target.mailbox;
+      const used = await mailboxUsageBytes(mailbox.id);
+      if (used + sizeBytes > config.quota.mailboxStorageBytes) {
+        overQuota += 1;
+        await audit.record({ action: config.quota.overQuotaPolicy === "reject" ? "MAIL_INBOUND_OVER_QUOTA_REJECTED" : "MAIL_MAILBOX_OVER_QUOTA", targetType: "mailbox", targetId: mailbox.id, mailboxId: mailbox.id, outcome: config.quota.overQuotaPolicy === "reject" ? "DENIED" : "SUCCESS", metadata: { usedBytes: used, incomingBytes: sizeBytes, quotaBytes: config.quota.mailboxStorageBytes, policy: config.quota.overQuotaPolicy } });
+        if (config.quota.overQuotaPolicy === "reject") {
+          const members = await notifications.mailboxMemberIds(mailbox.id);
+          await notifications.notifyUsers(members, { icon: "alert", title: `${mailbox.name} is full`, subtitle: "An incoming email could not be delivered. Free up space or ask IT for more." }).catch(() => {});
+          continue;
+        }
+      }
       const outcome = await client.$transaction(async (tx) => {
         const created = await store.createMessage(tx, mailbox, {
           direction: "INBOUND",
-          status: isSpam || anyInfected ? "QUARANTINED" : "RECEIVED",
+          status: quarantineReason ? "QUARANTINED" : "RECEIVED",
           rfcMessageId,
           inReplyTo: inbound.inReplyTo,
           references: inbound.references,
@@ -109,18 +161,19 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
           text: body.text,
           body,
           hasAttachments: storedAttachments.length > 0,
-          sizeBytes: body.sizeBytes + storedAttachments.reduce((sum, entry) => sum + (entry.stored?.sizeBytes || 0), 0),
+          sizeBytes,
           providerMessageId: providerEmailId,
-          authResults: inbound.authResults,
+          authResults: authResultsRecord(inbound, assessment),
           spamVerdict: inbound.spamVerdict,
-          quarantineReason: anyInfected ? "MALICIOUS_ATTACHMENT" : isSpam ? "PROVIDER_SPAM_VERDICT" : null,
+          quarantineReason,
           receivedAt: inbound.receivedAt,
           at: inbound.receivedAt || clock(),
-          folder: isSpam || anyInfected ? "SPAM" : undefined,
+          folder: quarantineReason ? "SPAM" : undefined,
         });
         if (created.duplicate) return created;
+        const attachmentRows = [];
         for (const entry of storedAttachments) {
-          await tx.mailAttachment.create({
+          attachmentRows.push(await tx.mailAttachment.create({
             data: {
               mailboxId: mailbox.id,
               messageId: created.message.id,
@@ -136,9 +189,10 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
               quarantined: entry.failed ? true : entry.verdict.quarantined,
               providerAttachmentId: entry.meta.providerAttachmentId || null,
             },
-          });
+          }));
         }
-        await applyRules(tx, mailbox, created, { from: inbound.from, subject: inbound.subject, to: visibleRecipients });
+        if (archive) await archive.recordCopy(tx, { messageId: created.message.id, mailboxId: mailbox.id, capture: archived });
+        await applyRules(tx, mailbox, created, { from: inbound.from, subject: inbound.subject, to: visibleRecipients, hasAttachments: storedAttachments.length > 0 });
         if (mailbox.type === "SHARED" && mailbox.purpose === "SUPPORT") {
           const thread = await tx.mailThread.findUnique({ where: { id: created.thread.id } });
           const reopen = !thread.conversationStatus || ["RESOLVED", "CLOSED"].includes(thread.conversationStatus);
@@ -152,16 +206,23 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
           });
         }
         if (usage) await usage.record(tx, { organizationId: mailbox.organizationId, purpose: "INBOUND", received: 1, bytes: created.message.sizeBytes || 0 });
-        await audit.record({ action: "MAIL_INBOUND_DELIVERED", targetType: "message", targetId: created.message.id, mailboxId: mailbox.id, metadata: { attachments: storedAttachments.length, quarantined: created.message.status === "QUARANTINED" } }, {}, tx);
-        return created;
+        await audit.record({ action: "MAIL_INBOUND_DELIVERED", targetType: "message", targetId: created.message.id, mailboxId: mailbox.id, metadata: { attachments: storedAttachments.length, quarantined: created.message.status === "QUARANTINED", authVerdict: assessment.verdict } }, {}, tx);
+        return { ...created, attachmentRows };
       });
       if (!outcome.duplicate) {
         delivered += 1;
         const members = await notifications.mailboxMemberIds(mailbox.id);
         await notifications.notifyUsers(members, { icon: "bell", title: `New email in ${mailbox.name}`, subtitle: `From ${inbound.from.name || inbound.from.address}` });
+        // Post-commit side effects never undo the delivery.
+        if (forwarding) {
+          await forwarding.forwardInbound({ mailbox, message: outcome.message, inbound, body, attachments: outcome.attachmentRows }).catch((error) => logger?.warn?.(`[Mail] forwarding failed (${error?.code || "error"})`));
+        }
+        if (campaignReplies) {
+          await campaignReplies.attributeInbound({ mailbox, message: outcome.message }).catch((error) => logger?.warn?.(`[Mail] reply attribution failed (${error?.code || "error"})`));
+        }
       }
     }
-    return { delivered, unknown: unknown.length };
+    return { delivered, unknown: unknown.length, overQuota, authVerdict: assessment.verdict };
   }
 
   return { process, resolveRecipients };

@@ -56,23 +56,33 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
       return next();
     });
 
-  // Created lazily so importing the app never starts the limiter's timers.
+  // Per-user limit shared by every API replica (mail_rate_limit_buckets);
+  // falls back to a process-local window with the same limit if the shared
+  // store is unavailable. Without a Mail application limiter (unit tests),
+  // express-rate-limit is used, created lazily so importing never starts timers.
   let rateLimiter = null;
-  const limiter = (req, res, next) => {
-    if (!rateLimiter) {
-      rateLimiter = rateLimit({
-        windowMs: 60 * 1000,
-        max: rateLimitMax,
-        standardHeaders: true,
-        legacyHeaders: false,
-        // Intentional lazy construction (see above); not a per-request limiter.
-        validate: { creationStack: false },
-        keyGenerator: (request) => request.adminUser?.id || rateLimit.ipKeyGenerator?.(request.ip) || request.ip,
-        handler: (request, response, done) => done(mailError("MAIL_RATE_LIMITED", { retryAfter: 60 })),
-      });
-    }
-    return rateLimiter(req, res, next);
-  };
+  const limiter = mail.rateLimiter
+    ? mail.rateLimiter.middleware({
+      name: "mail-api",
+      max: rateLimitMax,
+      keyOf: (request) => request.adminUser?.id || request.ip,
+      onLimited: (request, response, done) => done(mailError("MAIL_RATE_LIMITED", { retryAfter: 60 })),
+    })
+    : (req, res, next) => {
+      if (!rateLimiter) {
+        rateLimiter = rateLimit({
+          windowMs: 60 * 1000,
+          max: rateLimitMax,
+          standardHeaders: true,
+          legacyHeaders: false,
+          // Intentional lazy construction (see above); not a per-request limiter.
+          validate: { creationStack: false },
+          keyGenerator: (request) => request.adminUser?.id || rateLimit.ipKeyGenerator?.(request.ip) || request.ip,
+          handler: (request, response, done) => done(mailError("MAIL_RATE_LIMITED", { retryAfter: 60 })),
+        });
+      }
+      return rateLimiter(req, res, next);
+    };
 
   router.get("/openapi.json", (req, res) => res.json(buildOpenApiDocument()));
 
@@ -93,12 +103,14 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
 
   // ---- public recipient endpoints (signed tokens only, per-IP rate limit) ----
   let publicLimiterInstance = null;
-  const publicLimiter = (req, res, next) => {
-    if (!publicLimiterInstance) {
-      publicLimiterInstance = rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false, validate: { creationStack: false }, handler: (request, response) => response.status(429).type("text/plain").send("Too many requests") });
-    }
-    return publicLimiterInstance(req, res, next);
-  };
+  const publicLimiter = mail.rateLimiter
+    ? mail.rateLimiter.middleware({ name: "mail-public", max: 30, keyOf: (request) => request.ip || "unknown", onLimited: (request, response) => response.status(429).type("text/plain").send("Too many requests") })
+    : (req, res, next) => {
+      if (!publicLimiterInstance) {
+        publicLimiterInstance = rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false, validate: { creationStack: false }, handler: (request, response) => response.status(429).type("text/plain").send("Too many requests") });
+      }
+      return publicLimiterInstance(req, res, next);
+    };
   const publicForm = express.urlencoded({ extended: false, limit: "2kb" });
   const sendPage = (res, result) => res.status(result.status).set(publicPreferences.PAGE_HEADERS).send(result.html);
   router.post("/public/consent/confirm", publicLimiter, express.json({ limit: "2kb" }), asyncHandler(async (req, res) => ok(res, await marketing.confirmConsent(req.body?.token))));
@@ -168,8 +180,39 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
   router.post("/mailboxes/:mailboxId/threads/bulk", asyncHandler(async (req, res) => ok(res, await mailbox.bulk(user(req), req.params.mailboxId, body(req), ctx(req)))));
   router.get("/mailboxes/:mailboxId/labels", asyncHandler(async (req, res) => ok(res, await mailbox.listLabels(user(req), req.params.mailboxId))));
   router.post("/mailboxes/:mailboxId/labels", asyncHandler(async (req, res) => ok(res, await mailbox.createLabel(user(req), req.params.mailboxId, body(req)), { status: 201 })));
-  router.get("/mailboxes/:mailboxId/search", asyncHandler(async (req, res) => page(res, await mailbox.search(user(req), { ...req.query, mailboxId: req.params.mailboxId }))));
-  router.get("/search", asyncHandler(async (req, res) => page(res, await mailbox.search(user(req), { ...req.query, mailboxId: undefined }))));
+  router.get("/mailboxes/:mailboxId/search", asyncHandler(async (req, res) => {
+    res.setHeader("Cache-Control", "no-store");
+    page(res, await mailbox.search(user(req), { ...req.query, mailboxId: req.params.mailboxId }, ctx(req)));
+  }));
+  router.get("/search", asyncHandler(async (req, res) => {
+    res.setHeader("Cache-Control", "no-store");
+    page(res, await mailbox.search(user(req), { ...req.query, mailboxId: undefined }, ctx(req)));
+  }));
+  // ---- filters (mailbox rules): MANAGE access on the rule's own mailbox
+  router.get("/mailboxes/:mailboxId/rules", asyncHandler(async (req, res) => ok(res, await mail.services.rules.list(user(req), req.params.mailboxId))));
+  router.post("/mailboxes/:mailboxId/rules", asyncHandler(async (req, res) => ok(res, await mail.services.rules.create(user(req), req.params.mailboxId, body(req), ctx(req)), { status: 201 })));
+  router.post("/mailboxes/:mailboxId/rules/reorder", asyncHandler(async (req, res) => ok(res, await mail.services.rules.reorder(user(req), req.params.mailboxId, body(req), ctx(req)))));
+  router.patch("/rules/:ruleId", asyncHandler(async (req, res) => ok(res, await mail.services.rules.update(user(req), req.params.ruleId, body(req), ctx(req)))));
+  router.delete("/rules/:ruleId", asyncHandler(async (req, res) => ok(res, await mail.services.rules.remove(user(req), req.params.ruleId, ctx(req)))));
+  // ---- forwarding (approved, audited; never an open relay)
+  router.get("/mailboxes/:mailboxId/forwarding", asyncHandler(async (req, res) => ok(res, await mail.services.forwarding.list(user(req), req.params.mailboxId))));
+  router.post("/mailboxes/:mailboxId/forwarding", asyncHandler(async (req, res) => ok(res, await mail.services.forwarding.request(user(req), req.params.mailboxId, body(req), ctx(req)), { status: 201 })));
+  router.post("/forwarding/:ruleId/disable", asyncHandler(async (req, res) => ok(res, await mail.services.forwarding.disable(user(req), req.params.ruleId, body(req), ctx(req)))));
+  // ---- original headers / raw MIME (encrypted archive; audited reads)
+  router.get("/messages/:messageId/original-headers", asyncHandler(async (req, res) => {
+    res.setHeader("Cache-Control", "no-store");
+    ok(res, await mail.services.archive.originalHeaders(user(req), req.params.messageId, ctx(req)));
+  }));
+  router.get("/messages/:messageId/raw", asyncHandler(async (req, res) => {
+    const { content, sha256 } = await mail.services.archive.rawMime(user(req), req.params.messageId, ctx(req));
+    res.setHeader("Content-Type", "message/rfc822");
+    res.setHeader("Content-Disposition", `attachment; filename="message-${req.params.messageId}.eml"`);
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("Content-Security-Policy", "default-src 'none'; sandbox");
+    res.setHeader("X-Content-SHA256", sha256);
+    res.status(200).send(content);
+  }));
   router.get("/contacts/suggest", asyncHandler(async (req, res) => ok(res, await mailbox.suggestContacts(user(req), req.query.q))));
 
   router.get("/threads/:threadId", asyncHandler(async (req, res) => ok(res, await mailbox.getThread(user(req), req.params.threadId))));
@@ -257,6 +300,21 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
   router.get("/admin/webhook-events", asyncHandler(async (req, res) => ok(res, await admin.listWebhookEvents(user(req), req.query))));
   router.get("/admin/delivery-events", asyncHandler(async (req, res) => ok(res, await admin.listDeliveryEvents(user(req), req.query))));
   router.get("/admin/jobs", asyncHandler(async (req, res) => ok(res, await admin.listJobs(user(req), req.query))));
+  router.post("/admin/jobs/:jobId/requeue", asyncHandler(async (req, res) => ok(res, await admin.requeueJob(user(req), req.params.jobId, body(req), ctx(req)))));
+  router.get("/admin/forwarding", asyncHandler(async (req, res) => ok(res, await mail.services.forwarding.adminList(user(req), req.query))));
+  router.post("/admin/forwarding/:ruleId/approve", asyncHandler(async (req, res) => ok(res, await mail.services.forwarding.decide(user(req), req.params.ruleId, { ...body(req), approve: true }, ctx(req)))));
+  router.post("/admin/forwarding/:ruleId/reject", asyncHandler(async (req, res) => ok(res, await mail.services.forwarding.decide(user(req), req.params.ruleId, { ...body(req), approve: false }, ctx(req)))));
+  router.get("/admin/search-index", asyncHandler(async (req, res) => {
+    await policy.requireMailAdmin(mail.client, user(req), "VIEW");
+    ok(res, await mail.searchIndex.freshness());
+  }));
+  router.post("/admin/search-index/backfill", asyncHandler(async (req, res) => {
+    await policy.requireMailAdmin(mail.client, user(req), "EDIT");
+    if (!(await mail.searchIndex.ready())) throw mailError("MAIL_FEATURE_DISABLED", { feature: "body_search" });
+    const { job } = await mail.jobs.enqueue(null, { queue: "EVENTS", kind: "SEARCH_INDEX_BACKFILL", idempotencyKey: `search-backfill:${Math.floor(Date.now() / 60000)}`, maxAttempts: 3 });
+    await mail.audit.record({ actorAdminUserId: user(req).id, action: "MAIL_SEARCH_INDEX_BACKFILL_REQUESTED", targetType: "job", targetId: job.id }, ctx(req));
+    ok(res, { jobId: job.id, status: job.status }, { status: 202 });
+  }));
   router.get("/admin/legal-holds", asyncHandler(async (req, res) => ok(res, await admin.listLegalHolds(user(req)))));
   router.post("/admin/legal-holds", asyncHandler(async (req, res) => ok(res, await admin.createLegalHold(user(req), body(req), ctx(req)), { status: 201 })));
   router.post("/admin/legal-holds/:holdId/release", asyncHandler(async (req, res) => ok(res, await admin.releaseLegalHold(user(req), req.params.holdId, ctx(req)))));

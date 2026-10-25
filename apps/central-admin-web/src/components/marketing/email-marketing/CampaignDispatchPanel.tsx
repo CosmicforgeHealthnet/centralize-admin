@@ -231,6 +231,14 @@ export default function CampaignDispatchPanel({ org, campaign }: { org: Marketin
                 Delivered {reportQ.data.rates.deliveredPercent ?? "–"}% · bounce {reportQ.data.rates.bouncePercent ?? "–"}% · complaints {reportQ.data.rates.complaintPercent ?? "–"}% · opens {reportQ.data.rates.openPercentIndicative ?? "–"}% and clicks {reportQ.data.rates.clickPercentIndicative ?? "–"}% (indicative only).
               </p>
               <p className="text-muted-foreground">Accepted by the provider is not the same as delivered; {reportQ.data.totals.awaitingDeliveryEvidence} recipient(s) have no delivery evidence yet.</p>
+              {reportQ.data.replied ? (
+                <p className="text-muted-foreground">
+                  Replied: <strong className="text-foreground">{reportQ.data.replied.replied}</strong>
+                  {reportQ.data.rates.replyPercent != null ? ` (${reportQ.data.rates.replyPercent}% of ${reportQ.data.replied.denominator})` : ""} within {reportQ.data.replied.window.days} days of sending. Counts distinct recipients whose reply reached this campaign&apos;s reply mailbox.
+                </p>
+              ) : (
+                <p className="text-muted-foreground">Reply reporting is not available yet.</p>
+              )}
               {reportQ.data.exclusions.length > 0 && (
                 <p className="mt-1 text-muted-foreground">Excluded: {reportQ.data.exclusions.map((e) => `${e.reason.replace(/_/g, " ").toLowerCase()} ${e.count}`).join(" · ")}</p>
               )}

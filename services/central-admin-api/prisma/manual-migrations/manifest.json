@@ -172,6 +172,11 @@
       "order": 34,
       "file": "20261031_account_setup_tokens.sql",
       "sha256": "364fa19c3b9bdd6844dcfe068a4f63e6952d8a6d631b354f0416317b9bf9a613"
+    },
+    {
+      "order": 35,
+      "file": "20261101_mail_spec_gap_closure.sql",
+      "sha256": "efc3c863c21ba0413a9d239ea53de50cf2837c3ba456caa622776ed65818f5b4"
     }
   ]
 }

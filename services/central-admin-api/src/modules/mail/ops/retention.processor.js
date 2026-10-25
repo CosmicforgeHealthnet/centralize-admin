@@ -37,7 +37,7 @@ function addCounts(counts, delta) {
   return next;
 }
 
-function createRetentionProcessor({ client, config, audit, storage, clock = () => new Date(), logger = null }) {
+function createRetentionProcessor({ client, config, audit, storage, features = null, clock = () => new Date(), logger = null }) {
   const now = () => clock();
 
   async function holdsFor(organizationId) {
@@ -72,10 +72,19 @@ function createRetentionProcessor({ client, config, audit, storage, clock = () =
   async function purgeThread(tx, thread) {
     const messages = await tx.mailMessage.findMany({ where: { threadId: thread.id }, select: { id: true, contentObjectKey: true, rawMimeObjectKey: true } });
     const messageIds = messages.map((message) => message.id);
+    // Gap-closure tables (migration 35): body-search terms and archived
+    // headers/raw MIME go with the messages.
+    let archiveKeys = [];
+    if (features && (await features.isReady())) {
+      const archives = await tx.mailMessageArchive.findMany({ where: { messageId: { in: messageIds } }, select: { headersObjectKey: true, rawMimeObjectKey: true } });
+      archiveKeys = archives.flatMap((archive) => [archive.headersObjectKey, archive.rawMimeObjectKey]);
+      await tx.mailMessageArchive.deleteMany({ where: { messageId: { in: messageIds } } });
+      await tx.mailMessageSearchIndex.deleteMany({ where: { messageId: { in: messageIds } } });
+    }
     const drafts = await tx.mailDraft.findMany({ where: { threadId: thread.id }, select: { id: true } });
     const draftIds = drafts.map((draft) => draft.id);
     const attachments = await tx.mailAttachment.findMany({ where: { OR: [{ messageId: { in: messageIds } }, { draftId: { in: draftIds } }] }, select: { id: true, storageKey: true, sizeBytes: true } });
-    const keys = [...messages.flatMap((message) => [message.contentObjectKey, message.rawMimeObjectKey]), ...attachments.map((attachment) => attachment.storageKey)].filter(Boolean);
+    const keys = [...new Set([...messages.flatMap((message) => [message.contentObjectKey, message.rawMimeObjectKey]), ...attachments.map((attachment) => attachment.storageKey), ...archiveKeys].filter(Boolean))];
     await tx.mailDeliveryEvent.deleteMany({ where: { messageId: { in: messageIds } } });
     await tx.mailOutboxJob.deleteMany({ where: { messageId: { in: messageIds }, status: { notIn: ACTIVE_JOB_STATUSES } } });
     await tx.mailMessageRecipient.deleteMany({ where: { messageId: { in: messageIds } } });
@@ -90,10 +99,32 @@ function createRetentionProcessor({ client, config, audit, storage, clock = () =
     return { keys, messages: messageIds.length, attachments: attachments.length, bytes: attachments.reduce((sum, attachment) => sum + attachment.sizeBytes, 0) };
   }
 
+  // Objects are shared: one inbound body/attachment/archive object is
+  // referenced by every local mailbox copy of the message (and internal mail
+  // shares the sender's body). An object is removed only once NOTHING still
+  // references it, so purging one mailbox never destroys another mailbox's
+  // content (including content under a legal hold).
+  async function stillReferenced(key) {
+    const [message, attachment] = await Promise.all([
+      client.mailMessage.count({ where: { OR: [{ contentObjectKey: key }, { rawMimeObjectKey: key }] } }),
+      client.mailAttachment.count({ where: { storageKey: key } }),
+    ]);
+    if (message || attachment) return true;
+    if (features && (await features.isReady())) {
+      return (await client.mailMessageArchive.count({ where: { OR: [{ headersObjectKey: key }, { rawMimeObjectKey: key }] } })) > 0;
+    }
+    return false;
+  }
+
   async function removeObjects(keys) {
     let removed = 0;
     let failed = 0;
+    let shared = 0;
     for (const key of keys) {
+      if (await stillReferenced(key)) {
+        shared += 1;
+        continue;
+      }
       try {
         await storage.remove(key);
         removed += 1;
@@ -102,7 +133,7 @@ function createRetentionProcessor({ client, config, audit, storage, clock = () =
         logger?.warn?.(`[MailRetention] storage remove failed (${error?.code || "error"})`);
       }
     }
-    return { removed, failed };
+    return { removed, failed, shared };
   }
 
   async function policyBatch(run) {
@@ -118,7 +149,7 @@ function createRetentionProcessor({ client, config, audit, storage, clock = () =
       ...afterCursor(run.cursor),
     };
     const threads = await client.mailThread.findMany({ where, orderBy: [{ lastMessageAt: "asc" }, { id: "asc" }], take: config.retention.batchSize, select: { id: true, mailboxId: true, lastMessageAt: true, conversationStatus: true, messageCount: true } });
-    let delta = { candidates: 0, held: 0, skippedActive: 0, archived: 0, purgedThreads: 0, purgedMessages: 0, purgedAttachments: 0, purgedAttachmentBytes: 0, storageObjectsRemoved: 0, storageRemoveFailed: 0, messagesInScope: 0 };
+    let delta = { candidates: 0, held: 0, skippedActive: 0, archived: 0, purgedThreads: 0, purgedMessages: 0, purgedAttachments: 0, purgedAttachmentBytes: 0, storageObjectsRemoved: 0, storageRemoveFailed: 0, storageObjectsKeptShared: 0, messagesInScope: 0 };
     let cursor = run.cursor;
     for (const thread of threads) {
       cursor = { at: thread.lastMessageAt.toISOString(), id: thread.id };
@@ -149,7 +180,7 @@ function createRetentionProcessor({ client, config, audit, storage, clock = () =
         return purged;
       });
       const objects = await removeObjects(result.keys);
-      delta = addCounts(delta, { purgedThreads: 1, purgedMessages: result.messages, purgedAttachments: result.attachments, purgedAttachmentBytes: result.bytes, storageObjectsRemoved: objects.removed, storageRemoveFailed: objects.failed });
+      delta = addCounts(delta, { purgedThreads: 1, purgedMessages: result.messages, purgedAttachments: result.attachments, purgedAttachmentBytes: result.bytes, storageObjectsRemoved: objects.removed, storageRemoveFailed: objects.failed, storageObjectsKeptShared: objects.shared });
     }
     if (threads.length && delta.candidates) delta.newestCandidateAt = threads[threads.length - 1].lastMessageAt.toISOString();
     return { delta, cursor, done: threads.length < config.retention.batchSize };

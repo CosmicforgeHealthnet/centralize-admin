@@ -314,8 +314,10 @@ export interface BroadcastReport {
   dispatch: BroadcastDispatch;
   counts: RecipientCounts;
   totals: { handedToProvider: number; delivered: number; awaitingDeliveryEvidence: number; outcomeUnknown: number; excluded: number };
-  rates: { deliveredPercent: number | null; bouncePercent: number | null; complaintPercent: number | null; openPercentIndicative: number | null; clickPercentIndicative: number | null };
+  rates: { deliveredPercent: number | null; bouncePercent: number | null; complaintPercent: number | null; openPercentIndicative: number | null; clickPercentIndicative: number | null; replyPercent?: number | null };
   engagement: { opened: number; clicked: number; note: string };
+  // Evidence-based reply attribution; null until the database update is applied.
+  replied?: { replied: number; method: string; denominator: string; window: { from: string | null; to: string | null; days: number }; firstReplyAt: string | null; note: string } | null;
   exclusions: { reason: string; count: number }[];
   timeline: { action: string; actor: string | null; outcome: string; at: string }[];
 }

@@ -11,13 +11,37 @@
 function createInboundReconciler({ client, config, adapter, jobs, audit, clock = () => new Date() }) {
   const settings = config.reconciliation;
 
-  async function isKnown(providerEmailId) {
-    const [message, event, job] = await Promise.all([
-      client.mailMessage.findFirst({ where: { providerMessageId: providerEmailId, direction: "INBOUND" }, select: { id: true } }),
-      client.mailWebhookEvent.findFirst({ where: { eventType: "email.received", payload: { path: ["data", "email_id"], equals: providerEmailId } }, select: { id: true } }),
-      client.mailOutboxJob.findFirst({ where: { idempotencyKey: `inbound:reconcile:${providerEmailId}` }, select: { id: true } }),
-    ]);
-    return Boolean(message || event || job);
+  const IN_FLIGHT = new Set(["PENDING", "LEASED", "RETRY_SCHEDULED", "RECONCILING"]);
+  // FAILED is a permanent, deliberate decision (malformed sender, unknown
+  // recipient held for review): handled. DEAD_LETTER/CANCELLED mean transient
+  // failures ran out of attempts: not processed.
+  const UNSUCCESSFUL = new Set(["DEAD_LETTER", "CANCELLED"]);
+
+  // What do we already know about this provider email?
+  //   DELIVERED   a local copy exists
+  //   IN_FLIGHT   a processing job is pending/running
+  //   PROCESSED   a job succeeded (e.g. every recipient was unknown/rejected)
+  //               or failed permanently by design (operators requeue those)
+  //   UNRECOVERED every job for it failed or dead-lettered and no copy exists:
+  //               a received webhook is NOT proof of processing
+  //   UNKNOWN     no record at all
+  async function classify(providerEmailId) {
+    const message = await client.mailMessage.findFirst({ where: { providerMessageId: providerEmailId, direction: "INBOUND" }, select: { id: true } });
+    if (message) return "DELIVERED";
+    const events = await client.mailWebhookEvent.findMany({ where: { eventType: "email.received", payload: { path: ["data", "email_id"], equals: providerEmailId } }, select: { id: true, status: true }, take: 10 });
+    const jobs = await client.mailOutboxJob.findMany({
+      where: { kind: "PROCESS_INBOUND", OR: [{ idempotencyKey: `inbound:reconcile:${providerEmailId}` }, ...(events.length ? [{ webhookEventId: { in: events.map((event) => event.id) } }] : [])] },
+      select: { id: true, status: true, idempotencyKey: true },
+    });
+    if (jobs.some((job) => IN_FLIGHT.has(job.status))) return "IN_FLIGHT";
+    if (jobs.some((job) => job.status === "SUCCEEDED" || job.status === "FAILED")) return "PROCESSED";
+    if (jobs.length && jobs.every((job) => UNSUCCESSFUL.has(job.status))) {
+      return { state: "UNRECOVERED", reconcileAttempted: jobs.some((job) => job.idempotencyKey === `inbound:reconcile:${providerEmailId}`) };
+    }
+    // An accepted event without a job (pre-queue records) is handled unless
+    // it was itself marked failed.
+    if (!jobs.length && events.some((event) => event.status !== "FAILED")) return "PROCESSED";
+    return "UNKNOWN";
   }
 
   async function process() {
@@ -30,6 +54,9 @@ function createInboundReconciler({ client, config, adapter, jobs, audit, clock =
     let pages = 0;
     let scanned = 0;
     let recovered = 0;
+    let retried = 0;
+    let unrecovered = 0;
+    const unrecoveredIds = [];
     let complete = false;
     while (pages < settings.inboundMaxPages) {
       const page = await adapter.listReceivedEmails({ limit: 100, after });
@@ -42,7 +69,19 @@ function createInboundReconciler({ client, config, adapter, jobs, audit, clock =
         }
         scanned += 1;
         if (created === null || created > grace) continue;
-        if (await isKnown(item.providerEmailId)) continue;
+        const known = await classify(item.providerEmailId);
+        if (known === "DELIVERED" || known === "IN_FLIGHT" || known === "PROCESSED") continue;
+        if (known?.state === "UNRECOVERED") {
+          // The webhook's job failed. Retry once through reconciliation; if
+          // that also failed, report it (operators requeue after fixing the
+          // cause) instead of counting the email as processed.
+          if (known.reconcileAttempted) {
+            unrecovered += 1;
+            if (unrecoveredIds.length < 20) unrecoveredIds.push(item.providerEmailId);
+            continue;
+          }
+          retried += 1;
+        }
         const job = await jobs.enqueue(null, {
           queue: "INBOUND",
           kind: "PROCESS_INBOUND",
@@ -53,7 +92,7 @@ function createInboundReconciler({ client, config, adapter, jobs, audit, clock =
           if (error?.code === "P2002") return null;
           throw error;
         });
-        if (job) recovered += 1;
+        if (job?.created !== false && job) recovered += 1;
       }
       if (complete || !page.hasMore || !page.items.length) {
         complete = true;
@@ -61,8 +100,11 @@ function createInboundReconciler({ client, config, adapter, jobs, audit, clock =
       }
       after = page.items[page.items.length - 1].providerEmailId;
     }
-    await audit.record({ action: "MAIL_INBOUND_RECONCILED", targetType: "reconciliation", outcome: recovered ? "PARTIAL" : "SUCCESS", metadata: { scanned, recovered, pages, complete } });
-    return { scanned, recovered, pages, complete };
+    await audit.record({ action: "MAIL_INBOUND_RECONCILED", targetType: "reconciliation", outcome: recovered || unrecovered ? "PARTIAL" : "SUCCESS", metadata: { scanned, recovered, retried, unrecovered, pages, complete } });
+    if (unrecovered) {
+      await audit.record({ action: "MAIL_INBOUND_UNRECOVERED", targetType: "reconciliation", outcome: "FAILURE", metadata: { count: unrecovered, providerEmailIds: unrecoveredIds } });
+    }
+    return { scanned, recovered, retried, unrecovered, pages, complete };
   }
 
   return { process };

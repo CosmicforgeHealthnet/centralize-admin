@@ -2983,6 +2983,69 @@ exports.Prisma.AccountSetupTokenScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.MailMessageSearchIndexScalarFieldEnum = {
+  messageId: 'messageId',
+  mailboxId: 'mailboxId',
+  keyVersion: 'keyVersion',
+  terms: 'terms',
+  termCount: 'termCount',
+  indexedAt: 'indexedAt'
+};
+
+exports.Prisma.MailMessageArchiveScalarFieldEnum = {
+  messageId: 'messageId',
+  mailboxId: 'mailboxId',
+  headersObjectKey: 'headersObjectKey',
+  headersSha256: 'headersSha256',
+  headerCount: 'headerCount',
+  rawMimeStatus: 'rawMimeStatus',
+  rawMimeObjectKey: 'rawMimeObjectKey',
+  rawMimeSha256: 'rawMimeSha256',
+  rawMimeSizeBytes: 'rawMimeSizeBytes',
+  archivedAt: 'archivedAt'
+};
+
+exports.Prisma.MailForwardingRuleScalarFieldEnum = {
+  id: 'id',
+  mailboxId: 'mailboxId',
+  organizationId: 'organizationId',
+  targetAddress: 'targetAddress',
+  targetKind: 'targetKind',
+  status: 'status',
+  reason: 'reason',
+  requestedBy: 'requestedBy',
+  requestedAt: 'requestedAt',
+  decidedBy: 'decidedBy',
+  decidedAt: 'decidedAt',
+  decisionNote: 'decisionNote',
+  disabledBy: 'disabledBy',
+  disabledAt: 'disabledAt',
+  disabledReason: 'disabledReason',
+  lastForwardedAt: 'lastForwardedAt',
+  forwardedCount: 'forwardedCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MailRateLimitBucketScalarFieldEnum = {
+  key: 'key',
+  windowStart: 'windowStart',
+  count: 'count',
+  expiresAt: 'expiresAt'
+};
+
+exports.Prisma.MarketingCampaignReplyScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  dispatchId: 'dispatchId',
+  recipientId: 'recipientId',
+  mailMessageId: 'mailMessageId',
+  method: 'method',
+  receivedAt: 'receivedAt',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -4365,7 +4428,12 @@ exports.Prisma.ModelName = {
   MailRolloutCohortMember: 'MailRolloutCohortMember',
   MailRolloutRule: 'MailRolloutRule',
   MailEmergencyStop: 'MailEmergencyStop',
-  AccountSetupToken: 'AccountSetupToken'
+  AccountSetupToken: 'AccountSetupToken',
+  MailMessageSearchIndex: 'MailMessageSearchIndex',
+  MailMessageArchive: 'MailMessageArchive',
+  MailForwardingRule: 'MailForwardingRule',
+  MailRateLimitBucket: 'MailRateLimitBucket',
+  MarketingCampaignReply: 'MarketingCampaignReply'
 };
 
 /**

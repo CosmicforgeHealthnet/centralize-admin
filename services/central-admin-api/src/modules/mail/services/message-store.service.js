@@ -18,14 +18,21 @@ function generateMessageId(domain) {
 }
 
 // Metadata-only search text: subject, sender and visible (non-BCC)
-// recipients. Message bodies are NEVER included: bodies live only in
-// encrypted private storage, so there is deliberately no body search.
+// recipients. Message bodies are NEVER included here: bodies live only in
+// encrypted private storage; body search uses the keyed blind index
+// (search-index.service.js, opt-in), never plaintext.
 function buildMetadataSearchText({ subject, from, recipients = [] }) {
   const parts = [subject || "", from?.address || "", from?.name || "", ...recipients.filter((r) => r.type !== "BCC").map((r) => `${r.address} ${r.name || ""}`)];
   return parts.join(" ").replace(/\s+/g, " ").trim();
 }
 
 function createMessageStore({ client, storage, config, encryption }) {
+  // Optional keyed blind index for body search (attached by the application).
+  let searchIndex = null;
+  function useSearchIndex(index) {
+    searchIndex = index;
+  }
+
   // Previews are body-derived, so they are stored only as AES-256-GCM
   // ciphertext in the row and decrypted in-process for authorized readers.
   function encryptSnippet(text) {
@@ -172,10 +179,11 @@ function createMessageStore({ client, storage, config, encryption }) {
       // New inbound mail is unread for everyone with access (per-user state).
       await tx.mailUserThreadState.updateMany({ where: { threadId: thread.id }, data: { isRead: false } });
     }
+    if (searchIndex && input.text) await searchIndex.indexMessage(tx, { messageId: message.id, mailboxId: mailbox.id, text: input.text });
     return { message, thread, duplicate: false };
   }
 
-  return { encryptSnippet, decryptSnippet, storeBody, readBody, storeAttachmentContent, readAttachmentContent, createMessage, resolveThread, findThreadForReferences, generateMessageId, BODY_PURPOSE, ATTACHMENT_PURPOSE };
+  return { useSearchIndex, encryptSnippet, decryptSnippet, storeBody, readBody, storeAttachmentContent, readAttachmentContent, createMessage, resolveThread, findThreadForReferences, generateMessageId, BODY_PURPOSE, ATTACHMENT_PURPOSE };
 }
 
 module.exports = { createMessageStore, generateMessageId, buildMetadataSearchText, SNIPPET_PURPOSE };

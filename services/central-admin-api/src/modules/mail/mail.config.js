@@ -130,14 +130,43 @@ function loadMailConfig(env = process.env) {
       csvImportMaxRows: intInRange(env.MAIL_MARKETING_CSV_MAX_ROWS, 5000, 1, 50000),
     },
     search: {
-      // Body search is intentionally unavailable: bodies are stored only as
-      // ciphertext. There is no flag that turns plaintext body indexing on;
-      // a legacy MAIL_SEARCH_INDEX_BODIES=true is refused and reported.
-      bodies: false,
+      // Plaintext body indexing does not exist; a legacy
+      // MAIL_SEARCH_INDEX_BODIES=true is refused and reported.
       bodyIndexingRequestRefused: flag(env.MAIL_SEARCH_INDEX_BODIES),
+      // Keyed blind index (spec 5.1, 12): opt-in and only with a dedicated
+      // search keyring ("s1:<base64 32 bytes>,..."). Leakage trade-off is
+      // documented in docs/cosmicforge-mail-body-search.md.
+      bodies: enabled && flag(env.MAIL_BODY_SEARCH_ENABLED) && Boolean(String(env.MAIL_SEARCH_INDEX_KEYS || "").trim()),
+      bodyRequested: flag(env.MAIL_BODY_SEARCH_ENABLED),
+      keys: String(env.MAIL_SEARCH_INDEX_KEYS || ""),
+      activeKey: String(env.MAIL_SEARCH_INDEX_ACTIVE_KEY || ""),
+      maxTermsPerMessage: intInRange(env.MAIL_SEARCH_MAX_TERMS_PER_MESSAGE, 2000, 100, 4000),
+      backfillBatch: intInRange(env.MAIL_SEARCH_BACKFILL_BATCH, 100, 10, 1000),
     },
     archive: {
+      // Original headers are archived (encrypted) whenever migration 35 is
+      // present; raw MIME needs its own approval flag (spec 10.6).
+      storeHeaders: env.MAIL_ARCHIVE_HEADERS === undefined ? true : flag(env.MAIL_ARCHIVE_HEADERS),
       storeRawMime: flag(env.MAIL_ARCHIVE_RAW_MIME),
+      rawMimeMaxBytes: intInRange(env.MAIL_ARCHIVE_RAW_MAX_BYTES, 30 * 1024 * 1024, 1024, 40 * 1024 * 1024),
+    },
+    forwarding: {
+      // External forwarding is denied unless the target domain is listed
+      // here AND a mail administrator approves with MFA (spec 5.3, 10.5).
+      externalAllowedDomains: list(env.MAIL_FORWARDING_EXTERNAL_ALLOWED_DOMAINS),
+      maxRulesPerMailbox: intInRange(env.MAIL_FORWARDING_MAX_RULES, 3, 1, 10),
+      maxHops: intInRange(env.MAIL_FORWARDING_MAX_HOPS, 3, 1, 5),
+    },
+    quota: {
+      // Mailbox storage quota and the over-quota policy (spec 10.8):
+      // accept (deliver + alert) or reject (do not deliver to that mailbox).
+      mailboxStorageBytes: intInRange(env.MAIL_MAILBOX_STORAGE_QUOTA_MB, 10240, 1, 1024 * 1024) * 1024 * 1024,
+      // Alert when a mailbox passes this share of its quota.
+      warnPercent: intInRange(env.MAIL_MAILBOX_STORAGE_WARN_PERCENT, 90, 50, 100),
+      overQuotaPolicy: String(env.MAIL_OVER_QUOTA_POLICY || "accept").trim().toLowerCase() === "reject" ? "reject" : "accept",
+    },
+    marketingReplies: {
+      windowDays: intInRange(env.MAIL_MARKETING_REPLY_WINDOW_DAYS, 30, 1, 180),
     },
     reconciliation: {
       enabled: flag(env.MAIL_RECONCILIATION_ENABLED),
@@ -241,6 +270,11 @@ function loadMailConfig(env = process.env) {
         // Jobs currently backing off on provider 429/5xx/timeouts.
         providerRetrying: intInRange(env.MAIL_ALERT_PROVIDER_RETRYING, 20, 1, 100000),
         webhookLagSeconds: intInRange(env.MAIL_ALERT_WEBHOOK_LAG_SECONDS, 300, 30, 86400),
+        // Content reads/downloads by one person within an hour (attachments,
+        // raw MIME, original headers, break-glass reads).
+        exportsPerActorHour: intInRange(env.MAIL_ALERT_EXPORTS_PER_ACTOR_HOUR, 50, 5, 100000),
+        scannerFailures24h: intInRange(env.MAIL_ALERT_SCANNER_FAILURES_24H, 1, 1, 100000),
+        searchIndexStaleSeconds: intInRange(env.MAIL_ALERT_SEARCH_STALE_SECONDS, 3600, 60, 604800),
       },
     },
     // M10 rollout rules. Enforcement defaults ON in production (deny unless an
@@ -335,7 +369,10 @@ function publicStatus(config) {
     kmsProvider: config.kms.provider,
     deploymentEnvironment: config.deploymentEnvironment,
     unknownRecipientPolicy: config.unknownRecipientPolicy,
-    search: { metadataOnly: true, bodySearch: "disabled", bodyIndexingRequestRefused: config.search.bodyIndexingRequestRefused },
+    search: { metadataOnly: !config.search.bodies, bodySearch: config.search.bodies ? "keyed-blind-index" : "disabled", bodySearchRequestedWithoutKey: config.search.bodyRequested && !config.search.bodies, bodyIndexingRequestRefused: config.search.bodyIndexingRequestRefused },
+    archive: { headers: config.archive.storeHeaders, rawMime: config.archive.storeRawMime },
+    forwarding: { externalAllowedDomains: config.forwarding.externalAllowedDomains.length },
+    quota: { mailboxStorageBytes: config.quota.mailboxStorageBytes, overQuotaPolicy: config.quota.overQuotaPolicy },
     broadcastDispatchEnabled: config.broadcastDispatchEnabled,
     automationEnabled: config.automationEnabled,
     confirmationEmailsEnabled: config.confirmationEmailsEnabled,

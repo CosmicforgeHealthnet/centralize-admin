@@ -30,6 +30,33 @@ function headerValue(headers, name) {
   return key ? headers[key] : null;
 }
 
+const AUTH_VALUES = new Set(["pass", "fail", "gray", "processing_failed", "unknown", "none", "neutral", "softfail", "temperror", "permerror"]);
+
+// Resend's `authentication` object is computed by the provider's receiving
+// MTA and returned over the authenticated API: it is provider-verified, unlike
+// Authentication-Results headers inside the message, which a sender can forge.
+function providerAuthentication(value) {
+  if (!value || typeof value !== "object") return null;
+  const pick = (entry) => {
+    const raw = typeof entry === "object" && entry ? entry.result || entry.status : entry;
+    const normalized = String(raw || "").trim().toLowerCase();
+    return AUTH_VALUES.has(normalized) ? normalized : normalized ? "unknown" : null;
+  };
+  const result = { spf: pick(value.spf), dkim: pick(value.dkim), dmarc: pick(value.dmarc) };
+  return result.spf || result.dkim || result.dmarc ? result : null;
+}
+
+// Bounded copy of the original header map for the encrypted archive.
+function originalHeaderList(headers) {
+  const list = Array.isArray(headers)
+    ? headers.map((item) => [String(item?.name || item?.key || ""), item?.value])
+    : Object.entries(headers || {});
+  return list
+    .filter(([name]) => name && name.length <= 128)
+    .slice(0, 300)
+    .flatMap(([name, value]) => (Array.isArray(value) ? value : [value]).map((entry) => ({ name, value: String(entry ?? "").slice(0, 8192) })));
+}
+
 function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () => Date.now() }) {
   const { apiKey, baseUrl, timeoutMs, attachmentHostAllowlist } = config.resend;
 
@@ -121,7 +148,9 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
       replyTo: parseParty(headerValue(headers, "reply-to") || payload?.reply_to)?.address || null,
       to: parsePartyList(payload?.to || []).parties,
       cc: parsePartyList(payload?.cc || []).parties,
-      envelopeRecipients: parsePartyList(payload?.envelope_to || payload?.to || []).parties.map((party) => party.address),
+      // Routing candidates only (never displayed): every address the message
+      // was delivered for, including CC, BCC and the Received "for" clause.
+      envelopeRecipients: [...new Set(["envelope_to", "to", "cc", "bcc", "received_for"].flatMap((field) => parsePartyList(payload?.[field] || []).parties.map((party) => party.address)))],
       subject: String(payload?.subject || ""),
       html: payload?.html || null,
       text: payload?.text || null,
@@ -133,8 +162,13 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
         spf: headerValue(headers, "received-spf") ? String(headerValue(headers, "received-spf")).slice(0, 200) : null,
         authenticationResults: headerValue(headers, "authentication-results") ? String(headerValue(headers, "authentication-results")).slice(0, 500) : null,
       },
+      providerAuthentication: providerAuthentication(payload?.authentication),
       spamVerdict: headerValue(headers, "x-spam-flag") ? String(headerValue(headers, "x-spam-flag")).toLowerCase() : null,
       attachmentCount: Array.isArray(payload?.attachments) ? payload.attachments.length : 0,
+      originalHeaders: originalHeaderList(headers),
+      // Signed, expiring link to the original .eml (spec 10.6); fetched only
+      // when the raw-MIME archive policy is on.
+      rawMime: payload?.raw?.download_url ? { expiresAt: payload.raw.expires_at ? new Date(payload.raw.expires_at) : null, download: (maxBytes) => download(payload.raw.download_url, maxBytes) } : null,
     };
   }
 
@@ -153,7 +187,8 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
     return url;
   }
 
-  async function download(urlValue) {
+  async function download(urlValue, maxBytes = MAX_ATTACHMENT_DOWNLOAD_BYTES) {
+    const limit = Math.min(Number(maxBytes) || MAX_ATTACHMENT_DOWNLOAD_BYTES, MAX_ATTACHMENT_DOWNLOAD_BYTES);
     const url = assertSafeDownloadUrl(urlValue);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -161,9 +196,9 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
       const response = await fetchImpl(url.toString(), { method: "GET", signal: controller.signal, redirect: "error" });
       if (!response.ok) throw new MailProviderError(classifyStatus(response.status), `ATTACHMENT_HTTP_${response.status}`, "Attachment download failed", { status: response.status });
       const declared = Number(response.headers?.get?.("content-length"));
-      if (Number.isFinite(declared) && declared > MAX_ATTACHMENT_DOWNLOAD_BYTES) throw new MailProviderError("PERMANENT", "ATTACHMENT_TOO_LARGE", "Attachment exceeds limit");
+      if (Number.isFinite(declared) && declared > limit) throw new MailProviderError("PERMANENT", "ATTACHMENT_TOO_LARGE", "Attachment exceeds limit");
       const buffer = Buffer.from(await response.arrayBuffer());
-      if (buffer.length > MAX_ATTACHMENT_DOWNLOAD_BYTES) throw new MailProviderError("PERMANENT", "ATTACHMENT_TOO_LARGE", "Attachment exceeds limit");
+      if (buffer.length > limit) throw new MailProviderError("PERMANENT", "ATTACHMENT_TOO_LARGE", "Attachment exceeds limit");
       return buffer;
     } catch (error) {
       if (error instanceof MailProviderError) throw error;

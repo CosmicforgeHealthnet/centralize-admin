@@ -4195,6 +4195,8 @@ model MailMailbox {
   breakGlass   MailBreakGlassRequest[]
   retention    MailRetentionPolicy[]
 
+  forwardingRules MailForwardingRule[]
+
   @@unique([organizationId, ownerAdminUserId], map: "UQ_mail_mailboxes_personal_owner")
   @@index([organizationId, type, status], map: "IDX_mail_mailboxes_org_type_status")
   @@map("mail_mailboxes")
@@ -4381,6 +4383,10 @@ model MailMessage {
   attachments    MailAttachment[]
   deliveryEvents MailDeliveryEvent[]
   outboxJobs     MailOutboxJob[]
+
+  searchIndex   MailMessageSearchIndex?
+  archive       MailMessageArchive?
+  campaignReply MarketingCampaignReply?
 
   @@unique([mailboxId, rfcMessageId], map: "UQ_mail_messages_mailbox_rfc_id")
   @@index([threadId, createdAt], map: "IDX_mail_messages_thread_created")
@@ -4904,6 +4910,8 @@ model MarketingEmailCampaign {
   snapshots       MarketingCampaignSnapshot[]
   dispatch        MarketingBroadcastDispatch?
 
+  replies MarketingCampaignReply[]
+
   @@index([organizationId, status, updatedAt], map: "IDX_marketing_email_campaigns_org_status")
   @@map("marketing_email_campaigns")
 }
@@ -5121,6 +5129,8 @@ model MarketingBroadcastRecipient {
 
   dispatch MarketingBroadcastDispatch @relation(fields: [dispatchId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_broadcast_recipients_dispatch")
   contact  MarketingContact           @relation(fields: [contactId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_broadcast_recipients_contact")
+
+  reply MarketingCampaignReply?
 
   @@unique([dispatchId, contactId], map: "UQ_marketing_broadcast_recipients_dispatch_contact")
   @@index([dispatchId, status], map: "IDX_marketing_broadcast_recipients_dispatch_status")
@@ -5552,4 +5562,110 @@ model AccountSetupToken {
   @@index([subjectKind, subjectId, purpose], map: "IDX_account_setup_tokens_subject")
   @@index([expiresAt], map: "IDX_account_setup_tokens_expires")
   @@map("account_setup_tokens")
+}
+
+// ---------------------------------------------------------------------------
+// CosmicForge Mail specification gap closure (migration 35). New tables only:
+// pre-migration code never selects them, so existing Mail keeps working until
+// the migration is applied (features answer MAIL_FEATURE_NOT_READY).
+// ---------------------------------------------------------------------------
+
+// Keyed blind index for body search (spec 5.1, 12). No plaintext: each term
+// is a truncated HMAC under a per-mailbox key derived from a dedicated search
+// key, so terms cannot be read, nor correlated across mailboxes.
+model MailMessageSearchIndex {
+  messageId  String   @id @map("message_id") @db.Uuid
+  mailboxId  String   @map("mailbox_id") @db.Uuid
+  keyVersion String   @map("key_version") @db.VarChar(16)
+  terms      String[] @default([])
+  termCount  Int      @default(0) @map("term_count")
+  indexedAt  DateTime @default(now()) @map("indexed_at") @db.Timestamptz(6)
+
+  message MailMessage @relation(fields: [messageId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_mail_message_search_index_message")
+
+  @@index([mailboxId, indexedAt], map: "IDX_mail_message_search_index_mailbox")
+  @@index([terms(ops: ArrayOps)], map: "IDX_mail_message_search_index_terms", type: Gin)
+  @@map("mail_message_search_index")
+}
+
+// Original headers and (policy-gated) raw MIME, as encrypted private objects
+// (spec 10.6). Never stored in searchable columns.
+model MailMessageArchive {
+  messageId        String   @id @map("message_id") @db.Uuid
+  mailboxId        String   @map("mailbox_id") @db.Uuid
+  headersObjectKey String?  @map("headers_object_key") @db.VarChar(512)
+  headersSha256    String?  @map("headers_sha256") @db.Char(64)
+  headerCount      Int      @default(0) @map("header_count")
+  rawMimeStatus    String   @map("raw_mime_status") @db.VarChar(24)
+  rawMimeObjectKey String?  @map("raw_mime_object_key") @db.VarChar(512)
+  rawMimeSha256    String?  @map("raw_mime_sha256") @db.Char(64)
+  rawMimeSizeBytes Int?     @map("raw_mime_size_bytes")
+  archivedAt       DateTime @default(now()) @map("archived_at") @db.Timestamptz(6)
+
+  message MailMessage @relation(fields: [messageId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_mail_message_archives_message")
+
+  @@index([mailboxId], map: "IDX_mail_message_archives_mailbox")
+  @@map("mail_message_archives")
+}
+
+// Approved, audited forwarding (spec 5.3, 5.4, 10.5). Never an open relay.
+model MailForwardingRule {
+  id              String    @id @default(uuid()) @db.Uuid
+  mailboxId       String    @map("mailbox_id") @db.Uuid
+  organizationId  String    @map("organization_id") @db.Uuid
+  targetAddress   String    @map("target_address") @db.VarChar(320)
+  targetKind      String    @map("target_kind") @db.VarChar(16)
+  status          String    @default("PENDING_APPROVAL") @db.VarChar(24)
+  reason          String    @db.VarChar(500)
+  requestedBy     String    @map("requested_by")
+  requestedAt     DateTime  @default(now()) @map("requested_at") @db.Timestamptz(6)
+  decidedBy       String?   @map("decided_by")
+  decidedAt       DateTime? @map("decided_at") @db.Timestamptz(6)
+  decisionNote    String?   @map("decision_note") @db.VarChar(500)
+  disabledBy      String?   @map("disabled_by")
+  disabledAt      DateTime? @map("disabled_at") @db.Timestamptz(6)
+  disabledReason  String?   @map("disabled_reason") @db.VarChar(64)
+  lastForwardedAt DateTime? @map("last_forwarded_at") @db.Timestamptz(6)
+  forwardedCount  Int       @default(0) @map("forwarded_count")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  mailbox MailMailbox @relation(fields: [mailboxId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_forwarding_rules_mailbox")
+
+  @@index([mailboxId, status], map: "IDX_mail_forwarding_rules_mailbox_status")
+  @@index([status, requestedAt], map: "IDX_mail_forwarding_rules_status")
+  @@map("mail_forwarding_rules")
+}
+
+// Fixed-window counters shared by every API replica (spec 19.5, 20).
+model MailRateLimitBucket {
+  key         String   @db.VarChar(200)
+  windowStart DateTime @map("window_start") @db.Timestamptz(6)
+  count       Int      @default(0)
+  expiresAt   DateTime @map("expires_at") @db.Timestamptz(6)
+
+  @@id([key, windowStart], map: "PK_mail_rate_limit_buckets")
+  @@index([expiresAt], map: "IDX_mail_rate_limit_buckets_expires")
+  @@map("mail_rate_limit_buckets")
+}
+
+// Evidence-based campaign reply attribution (spec 13.3 "replied"): one row
+// per broadcast recipient, never message content.
+model MarketingCampaignReply {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  campaignId     String   @map("campaign_id") @db.Uuid
+  dispatchId     String   @map("dispatch_id") @db.Uuid
+  recipientId    String   @unique(map: "UQ_marketing_campaign_replies_recipient") @map("recipient_id") @db.Uuid
+  mailMessageId  String   @unique(map: "UQ_marketing_campaign_replies_message") @map("mail_message_id") @db.Uuid
+  method         String   @db.VarChar(32)
+  receivedAt     DateTime @map("received_at") @db.Timestamptz(6)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  campaign  MarketingEmailCampaign      @relation(fields: [campaignId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_campaign_replies_campaign")
+  recipient MarketingBroadcastRecipient @relation(fields: [recipientId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_campaign_replies_recipient")
+  message   MailMessage                 @relation(fields: [mailMessageId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_campaign_replies_message")
+
+  @@index([campaignId, receivedAt], map: "IDX_marketing_campaign_replies_campaign")
+  @@map("marketing_campaign_replies")
 }

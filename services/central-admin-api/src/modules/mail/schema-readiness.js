@@ -39,12 +39,21 @@ const MAIL_SCHEMA_REQUIREMENTS = [
   { migration: "20261030_mail_m10_rollout.sql", tables: ["mail_rollout_cohorts", "mail_rollout_cohort_members", "mail_rollout_rules", "mail_emergency_stops"] },
 ];
 
+// Optional feature tables (migration 35). Core Mail does NOT wait for these:
+// the features that need them answer 503 MAIL_FEATURE_NOT_READY instead.
+const MAIL_FEATURE_REQUIREMENTS = [
+  {
+    migration: "20261101_mail_spec_gap_closure.sql",
+    tables: ["mail_message_search_index", "mail_message_archives", "mail_forwarding_rules", "mail_rate_limit_buckets", "marketing_campaign_replies"],
+  },
+];
+
 function quoteLiteral(value) {
   if (!/^[a-z_][a-z0-9_]*$/.test(value)) throw new Error(`unsafe identifier ${value}`);
   return `'${value}'`;
 }
 
-function createMailSchemaReadiness({ client, logger = null, recheckMs = 30_000, now = () => Date.now(), requirements = MAIL_SCHEMA_REQUIREMENTS } = {}) {
+function createMailSchemaReadiness({ client, logger = null, recheckMs = 30_000, now = () => Date.now(), requirements = MAIL_SCHEMA_REQUIREMENTS, missingMessage = null, label = "Mail" } = {}) {
   let ready = false;
   let missing = null;
   let checkedAt = null;
@@ -79,9 +88,9 @@ function createMailSchemaReadiness({ client, logger = null, recheckMs = 30_000, 
       inFlight = null;
       if (!ready && !warned) {
         warned = true;
-        logger?.warn?.(`[Mail] Mail schema not present (missing: ${result.join(", ")}). Mail answers 503 MAIL_SCHEMA_NOT_READY and workers idle until the approved migrations are applied.`);
+        logger?.warn?.(missingMessage ? `${missingMessage} (missing: ${result.join(", ")})` : `[Mail] Mail schema not present (missing: ${result.join(", ")}). Mail answers 503 MAIL_SCHEMA_NOT_READY and workers idle until the approved migrations are applied.`);
       }
-      if (ready) logger?.info?.("[Mail] Mail schema detected.");
+      if (ready) logger?.info?.(`[Mail] ${label} schema detected.`);
       return { ready, missing };
     });
     return inFlight;
@@ -100,4 +109,4 @@ function createMailSchemaReadiness({ client, logger = null, recheckMs = 30_000, 
   });
 }
 
-module.exports = { createMailSchemaReadiness, MAIL_SCHEMA_REQUIREMENTS };
+module.exports = { createMailSchemaReadiness, MAIL_SCHEMA_REQUIREMENTS, MAIL_FEATURE_REQUIREMENTS };

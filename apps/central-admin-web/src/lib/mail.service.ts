@@ -1,11 +1,17 @@
 import api from "./api";
 import { inspectHttpError } from "./error-messages";
+import { MAIL_API_BASE, MAIL_OPERATIONS, mailPath, type MailOperationId, type MailPathParams } from "./generated/mail-api";
 import type {
   ActivityEvent,
   Attachment,
   BulkAction,
   ConversationStatus,
   Draft,
+  ForwardingRule,
+  MailRule,
+  MailRuleInput,
+  OriginalHeaders,
+  SearchIndexStatus,
   DraftInput,
   InternalNote,
   MailEntitlements,
@@ -34,7 +40,7 @@ import type {
 // logout / revoked access), but private-mail production rollout requires the
 // planned migration to httpOnly-cookie sessions. See the Mail deployment docs.
 
-const BASE = "/api/mail/v1";
+const BASE = MAIL_API_BASE;
 
 interface Envelope<T> {
   success: boolean;
@@ -43,34 +49,40 @@ interface Envelope<T> {
   meta?: { nextCursor?: string | null };
 }
 
-async function getPaged<T>(url: string, params?: Record<string, unknown>): Promise<Paged<T>> {
-  const { data } = await api.get<Envelope<T[]>>(`${BASE}${url}`, { params });
-  return { items: data.data ?? [], nextCursor: data.meta?.nextCursor ?? null };
+// Every call goes through the generated operation table (OpenAPI ->
+// src/lib/generated/mail-api.ts): methods and paths cannot drift from the
+// backend contract without a compile error or a failing CI check.
+async function request<T, O extends MailOperationId>(
+  operation: O,
+  params: MailPathParams<O>,
+  config: { body?: unknown; query?: Record<string, unknown>; headers?: Record<string, string> } = {},
+): Promise<Envelope<T>> {
+  const spec = MAIL_OPERATIONS[operation];
+  const { data } = await api.request<Envelope<T>>({
+    method: spec.method,
+    url: `${MAIL_API_BASE}${mailPath(operation, params)}`,
+    params: config.query,
+    data: spec.method === "GET" || spec.method === "DELETE" ? undefined : (config.body ?? {}),
+    headers: config.headers,
+  });
+  return data;
 }
 
-async function get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
-  const { data } = await api.get<Envelope<T>>(`${BASE}${url}`, { params });
-  return data.data;
-}
-
-async function post<T>(url: string, body?: unknown, headers?: Record<string, string>): Promise<T> {
-  const { data } = await api.post<Envelope<T>>(`${BASE}${url}`, body ?? {}, { headers });
-  return data.data;
-}
-
-async function patch<T>(url: string, body: unknown): Promise<T> {
-  const { data } = await api.patch<Envelope<T>>(`${BASE}${url}`, body);
-  return data.data;
-}
-
-async function put<T>(url: string, body?: unknown): Promise<T> {
-  const { data } = await api.put<Envelope<T>>(`${BASE}${url}`, body ?? {});
-  return data.data;
-}
-
-async function del<T>(url: string): Promise<T> {
-  const { data } = await api.delete<Envelope<T>>(`${BASE}${url}`);
-  return data.data;
+// op(id, params) checks the path parameters against the generated table;
+// .get/.paged/.send declare the payload type expected by the UI.
+function op<O extends MailOperationId>(operation: O, params: MailPathParams<O>) {
+  return {
+    async get<T>(query?: Record<string, unknown>): Promise<T> {
+      return (await request<T, O>(operation, params, { query })).data;
+    },
+    async paged<T>(query?: Record<string, unknown>): Promise<Paged<T>> {
+      const data = await request<T[], O>(operation, params, { query });
+      return { items: data.data ?? [], nextCursor: data.meta?.nextCursor ?? null };
+    },
+    async send<T>(body?: unknown, headers?: Record<string, string>): Promise<T> {
+      return (await request<T, O>(operation, params, { body, headers })).data;
+    },
+  };
 }
 
 // ── Error classification ──────────────────────────────────────────────────
@@ -104,61 +116,61 @@ export function classifyMailError(error: unknown): MailErrorInfo {
 }
 
 // ── Entitlements & mailboxes ──────────────────────────────────────────────
-export const fetchEntitlements = () => get<MailEntitlements>("/me/entitlements");
-export const fetchMyMailboxes = () => get<MailboxSummary[]>("/me/mailboxes");
-export const fetchMailbox = (mailboxId: string) => get<MailboxDetail>(`/mailboxes/${mailboxId}`);
+export const fetchEntitlements = () => op("getMeEntitlements", {}).get<MailEntitlements>();
+export const fetchMyMailboxes = () => op("getMeMailboxes", {}).get<MailboxSummary[]>();
+export const fetchMailbox = (mailboxId: string) => op("getMailboxesByMailboxId", { mailboxId }).get<MailboxDetail>();
 
 export const fetchThreads = (
   mailboxId: string,
   params: { view: Exclude<MailView, "drafts">; labelId?: string; cursor?: string | null; limit?: number },
-) => getPaged<ThreadSummary>(`/mailboxes/${mailboxId}/threads`, { ...params, cursor: params.cursor ?? undefined });
+) => op("getMailboxesThreads", { mailboxId }).paged<ThreadSummary>({ ...params, cursor: params.cursor ?? undefined });
 
-export const fetchThread = (threadId: string) => get<ThreadSummary>(`/threads/${threadId}`);
+export const fetchThread = (threadId: string) => op("getThreadsByThreadId", { threadId }).get<ThreadSummary>();
 export const fetchThreadMessages = (threadId: string, remoteImages: "block" | "allow" = "block") =>
-  get<MailMessage[]>(`/threads/${threadId}/messages`, { remoteImages });
+  op("getThreadsMessages", { threadId }).get<MailMessage[]>({ remoteImages });
 
 export const updateThreadState = (threadId: string, body: { isRead?: boolean; isStarred?: boolean }) =>
-  patch<unknown>(`/threads/${threadId}/state`, body);
-export const moveThread = (threadId: string, folder: ThreadFolder) => post<unknown>(`/threads/${threadId}/move`, { folder });
+  op("patchThreadsState", { threadId }).send<unknown>(body);
+export const moveThread = (threadId: string, folder: ThreadFolder) => op("postThreadsMove", { threadId }).send<unknown>({ folder });
 export const bulkThreads = (mailboxId: string, threadIds: string[], action: BulkAction) =>
-  post<{ updated: number }>(`/mailboxes/${mailboxId}/threads/bulk`, { threadIds, action });
+  op("postMailboxesThreadsBulk", { mailboxId }).send<{ updated: number }>({ threadIds, action });
 
-export const fetchLabels = (mailboxId: string) => get<MailLabel[]>(`/mailboxes/${mailboxId}/labels`);
+export const fetchLabels = (mailboxId: string) => op("getMailboxesLabels", { mailboxId }).get<MailLabel[]>();
 export const createLabel = (mailboxId: string, body: { name: string; color?: string }) =>
-  post<MailLabel>(`/mailboxes/${mailboxId}/labels`, body);
-export const addThreadLabel = (threadId: string, labelId: string) => put<unknown>(`/threads/${threadId}/labels/${labelId}`);
-export const removeThreadLabel = (threadId: string, labelId: string) => del<unknown>(`/threads/${threadId}/labels/${labelId}`);
+  op("postMailboxesLabels", { mailboxId }).send<MailLabel>(body);
+export const addThreadLabel = (threadId: string, labelId: string) => op("putThreadsLabelsByLabelId", { threadId, labelId }).send<unknown>();
+export const removeThreadLabel = (threadId: string, labelId: string) => op("deleteThreadsLabelsByLabelId", { threadId, labelId }).send<unknown>();
 
 export const searchMailbox = (mailboxId: string, params: SearchParams & { cursor?: string | null }) =>
-  getPaged<ThreadSummary>(`/mailboxes/${mailboxId}/search`, { ...params, cursor: params.cursor ?? undefined });
+  op("getMailboxesSearch", { mailboxId }).paged<ThreadSummary>({ ...params, cursor: params.cursor ?? undefined });
 export const searchAll = (params: SearchParams & { cursor?: string | null }) =>
-  getPaged<ThreadSummary>(`/search`, { ...params, cursor: params.cursor ?? undefined });
-export const suggestContacts = (q: string) => get<Party[]>(`/contacts/suggest`, { q });
+  op("getSearch", {}).paged<ThreadSummary>({ ...params, cursor: params.cursor ?? undefined });
+export const suggestContacts = (q: string) => op("getContactsSuggest", {}).get<Party[]>({ q });
 
 // ── Drafts & sending ──────────────────────────────────────────────────────
-export const fetchDrafts = (mailboxId: string) => getPaged<Draft>(`/mailboxes/${mailboxId}/drafts`);
-export const createDraft = (mailboxId: string, body: DraftInput) => post<Draft>(`/mailboxes/${mailboxId}/drafts`, body);
-export const fetchDraft = (draftId: string) => get<Draft>(`/drafts/${draftId}`);
-export const updateDraft = (draftId: string, body: DraftInput & { revision: number }) => patch<Draft>(`/drafts/${draftId}`, body);
-export const discardDraft = (draftId: string) => del<unknown>(`/drafts/${draftId}`);
+export const fetchDrafts = (mailboxId: string) => op("getMailboxesDrafts", { mailboxId }).paged<Draft>();
+export const createDraft = (mailboxId: string, body: DraftInput) => op("postMailboxesDrafts", { mailboxId }).send<Draft>(body);
+export const fetchDraft = (draftId: string) => op("getDraftsByDraftId", { draftId }).get<Draft>();
+export const updateDraft = (draftId: string, body: DraftInput & { revision: number }) => op("patchDraftsByDraftId", { draftId }).send<Draft>(body);
+export const discardDraft = (draftId: string) => op("deleteDraftsByDraftId", { draftId }).send<unknown>();
 
 export async function uploadDraftAttachment(draftId: string, file: File): Promise<Attachment> {
   const form = new FormData();
   form.append("file", file);
-  const { data } = await api.post<Envelope<Attachment>>(`${BASE}/drafts/${draftId}/attachments`, form, {
+  const { data } = await api.post<Envelope<Attachment>>(`${BASE}${mailPath("postDraftsAttachments", { draftId })}`, form, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return data.data;
 }
 export const removeDraftAttachment = (draftId: string, attachmentId: string) =>
-  del<unknown>(`/drafts/${draftId}/attachments/${attachmentId}`);
+  op("deleteDraftsAttachmentsByAttachmentId", { draftId, attachmentId }).send<unknown>();
 
 export const sendDraft = (draftId: string, revision: number, idempotencyKey: string) =>
-  post<SendResult>(`/drafts/${draftId}/send`, { revision }, { "Idempotency-Key": idempotencyKey });
-export const fetchMessageStatus = (messageId: string) => get<MessageStatusResult>(`/messages/${messageId}/status`);
+  op("postDraftsSend", { draftId }).send<SendResult>({ revision }, { "Idempotency-Key": idempotencyKey });
+export const fetchMessageStatus = (messageId: string) => op("getMessagesStatus", { messageId }).get<MessageStatusResult>();
 
 export async function downloadAttachment(attachment: Attachment): Promise<void> {
-  const res = await api.get(`${BASE}/attachments/${attachment.id}/download`, { responseType: "blob" });
+  const res = await api.get(`${BASE}${mailPath("getAttachmentsDownload", { attachmentId: attachment.id })}`, { responseType: "blob" });
   const url = URL.createObjectURL(res.data as Blob);
   const a = document.createElement("a");
   a.href = url;
@@ -173,29 +185,63 @@ export async function downloadAttachment(attachment: Attachment): Promise<void> 
 export const fetchQueue = (
   mailboxId: string,
   params: { status?: ConversationStatus; assignee?: string; cursor?: string | null },
-) => getPaged<ThreadSummary>(`/mailboxes/${mailboxId}/queue`, { ...params, cursor: params.cursor ?? undefined });
+) => op("getMailboxesQueue", { mailboxId }).paged<ThreadSummary>({ ...params, cursor: params.cursor ?? undefined });
 export const assignThread = (threadId: string, assigneeAdminUserId: string | null) =>
-  post<ThreadSummary>(`/threads/${threadId}/assign`, { assigneeAdminUserId });
+  op("postThreadsAssign", { threadId }).send<ThreadSummary>({ assigneeAdminUserId });
 export const setThreadStatus = (threadId: string, status: ConversationStatus, revision: number) =>
-  post<ThreadSummary>(`/threads/${threadId}/status`, { status, revision });
-export const lockThread = (threadId: string) => post<{ lockExpiresAt: string }>(`/threads/${threadId}/lock`);
-export const unlockThread = (threadId: string) => del<unknown>(`/threads/${threadId}/lock`);
-export const fetchNotes = (threadId: string) => get<InternalNote[]>(`/threads/${threadId}/notes`);
+  op("postThreadsStatus", { threadId }).send<ThreadSummary>({ status, revision });
+export const lockThread = (threadId: string) => op("postThreadsLock", { threadId }).send<{ lockExpiresAt: string }>();
+export const unlockThread = (threadId: string) => op("deleteThreadsLock", { threadId }).send<unknown>();
+export const fetchNotes = (threadId: string) => op("getThreadsNotes", { threadId }).get<InternalNote[]>();
 export const addNote = (threadId: string, body: string, mentions: string[] = []) =>
-  post<InternalNote>(`/threads/${threadId}/notes`, { body, mentions });
+  op("postThreadsNotes", { threadId }).send<InternalNote>({ body, mentions });
 export const setTicketLink = (threadId: string, ticketRef: string | null) =>
-  put<ThreadSummary>(`/threads/${threadId}/ticket-link`, { ticketRef });
-export const fetchActivity = (threadId: string) => get<ActivityEvent[]>(`/threads/${threadId}/activity`);
-export const fetchMembers = (mailboxId: string) => get<MailboxMember[]>(`/mailboxes/${mailboxId}/members`);
+  op("putThreadsTicketLink", { threadId }).send<ThreadSummary>({ ticketRef });
+export const fetchActivity = (threadId: string) => op("getThreadsActivity", { threadId }).get<ActivityEvent[]>();
+export const fetchMembers = (mailboxId: string) => op("getMailboxesMembers", { mailboxId }).get<MailboxMember[]>();
 export const addMember = (mailboxId: string, body: { adminUserId: string; role: MembershipRole; canSend: boolean }) =>
-  post<MailboxMember>(`/mailboxes/${mailboxId}/members`, body);
+  op("postMailboxesMembers", { mailboxId }).send<MailboxMember>(body);
 export const revokeMember = (mailboxId: string, membershipId: string) =>
-  del<unknown>(`/mailboxes/${mailboxId}/members/${membershipId}`);
+  op("deleteMailboxesMembersByMembershipId", { mailboxId, membershipId }).send<unknown>();
 export const updateMailboxSettings = (mailboxId: string, body: MailboxSettingsInput) =>
-  patch<MailboxDetail>(`/mailboxes/${mailboxId}/settings`, body);
-export const fetchSupportMailboxes = () => get<MailboxSummary[]>(`/support/mailboxes`);
+  op("patchMailboxesSettings", { mailboxId }).send<MailboxDetail>(body);
+export const fetchSupportMailboxes = () => op("getSupportMailboxes", {}).get<MailboxSummary[]>();
 
-export const searchStaffDirectory = (q: string) => get<StaffDirectoryEntry[]>(`/directory/staff`, { q });
+export const searchStaffDirectory = (q: string) => op("getDirectoryStaff", {}).get<StaffDirectoryEntry[]>({ q });
+
+// ── Filters (mailbox rules) ───────────────────────────────────────────────
+export const fetchRules = (mailboxId: string) => op("getMailboxesRules", { mailboxId }).get<MailRule[]>();
+export const createRule = (mailboxId: string, body: MailRuleInput) => op("postMailboxesRules", { mailboxId }).send<MailRule>(body);
+export const updateRule = (ruleId: string, body: MailRuleInput) => op("patchRulesByRuleId", { ruleId }).send<MailRule>(body);
+export const deleteRule = (ruleId: string) => op("deleteRulesByRuleId", { ruleId }).send<{ deleted: boolean }>();
+export const reorderRules = (mailboxId: string, ruleIds: string[]) => op("postMailboxesRulesReorder", { mailboxId }).send<MailRule[]>({ ruleIds });
+
+// ── Forwarding (approved by a mail administrator) ─────────────────────────
+export const fetchForwarding = (mailboxId: string) => op("getMailboxesForwarding", { mailboxId }).get<ForwardingRule[]>();
+export const requestForwarding = (mailboxId: string, body: { targetAddress: string; reason: string }) =>
+  op("postMailboxesForwarding", { mailboxId }).send<ForwardingRule>(body);
+export const disableForwarding = (ruleId: string) => op("postForwardingDisable", { ruleId }).send<ForwardingRule>({});
+export const fetchForwardingRequests = (status?: string) => op("getAdminForwarding", {}).get<ForwardingRule[]>(status ? { status } : undefined);
+export const approveForwarding = (ruleId: string, body: { note?: string; stepUpId?: string }) => op("postAdminForwardingApprove", { ruleId }).send<ForwardingRule>(body);
+export const rejectForwarding = (ruleId: string, body: { note?: string }) => op("postAdminForwardingReject", { ruleId }).send<ForwardingRule>(body);
+
+// ── Original headers / raw MIME (audited reads) ───────────────────────────
+export const fetchOriginalHeaders = (messageId: string) => op("getMessagesOriginalHeaders", { messageId }).get<OriginalHeaders>();
+export async function downloadRawMessage(messageId: string): Promise<void> {
+  const res = await api.get(`${BASE}${mailPath("getMessagesRaw", { messageId })}`, { responseType: "blob" });
+  const url = URL.createObjectURL(res.data as Blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `message-${messageId}.eml`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ── Search index (mail administrators) ────────────────────────────────────
+export const fetchSearchIndexStatus = () => op("getAdminSearchIndex", {}).get<SearchIndexStatus>();
+export const startSearchBackfill = () => op("postAdminSearchIndexBackfill", {}).send<{ jobId: string; status: string }>({});
 
 // ── Step-up ───────────────────────────────────────────────────────────────
-export const stepUp = (code: string, purpose: string) => post<StepUpResult>(`/security/step-up`, { code, purpose });
+export const stepUp = (code: string, purpose: string) => op("postSecurityStepUp", {}).send<StepUpResult>({ code, purpose });

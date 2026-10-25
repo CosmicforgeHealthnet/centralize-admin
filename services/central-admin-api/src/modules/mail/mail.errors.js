@@ -30,6 +30,9 @@ const DEFAULT_MESSAGES = {
   MAIL_RATE_LIMITED: "Too many requests.",
   MAIL_STORAGE_UNAVAILABLE: "Private mail storage is unavailable.",
   MAIL_SCHEMA_NOT_READY: "CosmicForge Mail is not ready: its database migrations have not been applied.",
+  MAIL_FEATURE_NOT_READY: "This Mail feature is not available yet: its database migration has not been applied.",
+  MAIL_FEATURE_DISABLED: "This Mail feature is turned off in this environment.",
+  MAIL_FORWARDING_NOT_ALLOWED: "Forwarding to this address is not allowed by policy.",
   MAIL_PROVIDER_UNAVAILABLE: "The mail provider is unavailable.",
   MAIL_WEBHOOK_SIGNATURE_INVALID: "Webhook signature verification failed.",
   MAIL_PREFLIGHT_FAILED: "Campaign preflight checks failed.",
@@ -60,6 +63,9 @@ const DEFAULT_STATUS = {
   MAIL_MARKETING_DISABLED: 503,
   MAIL_STORAGE_UNAVAILABLE: 503,
   MAIL_SCHEMA_NOT_READY: 503,
+  MAIL_FEATURE_NOT_READY: 503,
+  MAIL_FEATURE_DISABLED: 503,
+  MAIL_FORWARDING_NOT_ALLOWED: 422,
   MAIL_PROVIDER_UNAVAILABLE: 503,
   MAIL_FORBIDDEN: 403,
   MAIL_IDENTITY_INACTIVE: 403,
@@ -101,7 +107,7 @@ const DEFAULT_STATUS = {
   MAIL_RATE_LIMITED: 429,
 };
 
-const RETRYABLE = new Set(["MAIL_SCHEMA_NOT_READY", "MAIL_STORAGE_UNAVAILABLE", "MAIL_PROVIDER_UNAVAILABLE", "MAIL_RATE_LIMITED"]);
+const RETRYABLE = new Set(["MAIL_SCHEMA_NOT_READY", "MAIL_FEATURE_NOT_READY", "MAIL_STORAGE_UNAVAILABLE", "MAIL_PROVIDER_UNAVAILABLE", "MAIL_RATE_LIMITED"]);
 
 function mailError(code, details = {}, message) {
   const status = details.status || DEFAULT_STATUS[code] || 400;

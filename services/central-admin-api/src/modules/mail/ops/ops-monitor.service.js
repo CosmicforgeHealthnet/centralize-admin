@@ -16,7 +16,11 @@ const ACTIVE_JOB_STATUSES = ["PENDING", "LEASED", "RETRY_SCHEDULED", "RECONCILIN
 // Provider error codes that mean "provider degraded" (rate limit, 5xx, timeout).
 const PROVIDER_DEGRADED = /^(RESEND_HTTP_(429|5\d\d)|PROVIDER_(TIMEOUT|NETWORK_ERROR))$/;
 
-function createOpsMonitor({ client, config, notifications, health = async () => ({}), runtime = null, metrics = null, clock = () => new Date(), logger = null }) {
+// Audit actions that move mail content out of the mailbox UI (spec 5.8:
+// "unusual exports"). Counted per actor per hour; never the content itself.
+const EXPORT_ACTIONS = ["MAIL_ATTACHMENT_DOWNLOADED", "MAIL_RAW_MIME_DOWNLOADED", "MAIL_ORIGINAL_HEADERS_READ", "MAIL_BREAK_GLASS_READ", "MAIL_BREAK_GLASS_ATTACHMENT_DOWNLOAD", "MAIL_BREAK_GLASS_RAW_DOWNLOAD", "MAIL_BREAK_GLASS_HEADERS_READ", "MAIL_BREAK_GLASS_SEARCH"];
+
+function createOpsMonitor({ client, config, notifications, health = async () => ({}), runtime = null, metrics = null, searchIndex = null, features = null, clock = () => new Date(), logger = null }) {
   const now = () => clock();
   const thresholds = config.ops.thresholds;
 
@@ -49,6 +53,18 @@ function createOpsMonitor({ client, config, notifications, health = async () => 
       client.mailOutboxJob.findFirst({ where: { kind: "RECONCILE_INBOUND", status: "SUCCEEDED" }, orderBy: { completedAt: "desc" }, select: { completedAt: true } }),
       client.mailOutboxJob.count({ where: { kind: "PROCESS_INBOUND", idempotencyKey: { startsWith: "inbound:reconcile:" }, nextAttemptAt: { gt: day } } }),
     ]);
+    // Spec 5.8/20: storage capacity, search freshness, unusual exports,
+    // scanner failures, unrecovered inbound mail, over-quota deliveries.
+    const [storageByMailbox, exportsByActor, scannerFailures24h, unrecovered24h, overQuota24h, search] = await Promise.all([
+      client.mailMessage.groupBy({ by: ["mailboxId"], where: { deletedAt: null }, _sum: { sizeBytes: true } }),
+      client.mailAuditEvent.groupBy({ by: ["actorAdminUserId"], where: { action: { in: EXPORT_ACTIONS }, createdAt: { gt: hour }, actorAdminUserId: { not: null } }, _count: { _all: true } }),
+      client.mailAttachment.count({ where: { scanStatus: { in: ["SCAN_FAILED", "SCANNER_UNAVAILABLE"] }, createdAt: { gt: day } } }),
+      client.mailAuditEvent.findMany({ where: { action: "MAIL_INBOUND_UNRECOVERED", createdAt: { gt: day } }, select: { metadata: true }, take: 200 }),
+      client.mailAuditEvent.groupBy({ by: ["action"], where: { action: { in: ["MAIL_MAILBOX_OVER_QUOTA", "MAIL_INBOUND_OVER_QUOTA_REJECTED"] }, createdAt: { gt: day } }, _count: { _all: true } }),
+      searchIndex ? searchIndex.freshness().catch(() => null) : null,
+    ]);
+    const quotaBytes = config.quota.mailboxStorageBytes;
+    const mailboxUsage = storageByMailbox.map((row) => ({ mailboxId: row.mailboxId, bytes: Number(row._sum.sizeBytes || 0) }));
     const lags = processedRecently.map((row) => Math.max(0, Math.round((row.processedAt.getTime() - row.receivedAt.getTime()) / 1000))).sort((a, b) => a - b);
     const ageSeconds = (date) => (date ? Math.max(0, Math.round((at.getTime() - new Date(date).getTime()) / 1000)) : 0);
     const staffRates = Object.fromEntries(recipients24h.map((row) => [row.status, row._count._all]));
@@ -89,7 +105,20 @@ function createOpsMonitor({ client, config, notifications, health = async () => 
         lastSuccessAgeSeconds: lastReconcile?.completedAt ? ageSeconds(lastReconcile.completedAt) : null,
         recovered24h,
       },
-      process: metrics ? { authDenials: metrics.total("auth_denials"), providerErrors: metrics.total("provider_errors") } : null,
+      storage: {
+        totalBytes: mailboxUsage.reduce((sum, row) => sum + row.bytes, 0),
+        mailboxes: mailboxUsage.length,
+        quotaBytesPerMailbox: quotaBytes,
+        overWarn: mailboxUsage.filter((row) => row.bytes * 100 >= quotaBytes * config.quota.warnPercent && row.bytes < quotaBytes).map((row) => ({ mailboxId: row.mailboxId, bytes: row.bytes })).slice(0, 50),
+        overQuota: mailboxUsage.filter((row) => row.bytes >= quotaBytes).map((row) => ({ mailboxId: row.mailboxId, bytes: row.bytes })).slice(0, 50),
+        overQuotaDeliveries24h: Object.fromEntries(overQuota24h.map((row) => [row.action, row._count._all])),
+      },
+      search: search || { enabled: false },
+      exports1h: { byActor: exportsByActor.map((row) => ({ actorAdminUserId: row.actorAdminUserId, count: row._count._all })).filter((row) => row.count >= thresholds.exportsPerActorHour) },
+      scanning24h: { failures: scannerFailures24h },
+      inboundUnrecovered24h: unrecovered24h.reduce((sum, row) => sum + Number(row.metadata?.count || 0), 0),
+      process: metrics ? { authDenials: metrics.total("auth_denials"), providerErrors: metrics.total("provider_errors"), rateLimitFallbacks: metrics.total("rate_limit_fallback") } : null,
+      features: features ? { gapClosureSchema: await features.isReady() } : null,
       openAlerts: openAlerts.map(serializeAlert),
     };
   }
@@ -129,6 +158,13 @@ function createOpsMonitor({ client, config, notifications, health = async () => 
       if (snap.reconciliation.lastSuccessAgeSeconds === null || snap.reconciliation.lastSuccessAgeSeconds > interval * 3) push("MAIL_RECONCILIATION_STALE", "warning", { lastSuccessAgeSeconds: snap.reconciliation.lastSuccessAgeSeconds, intervalSeconds: interval });
       if (snap.reconciliation.recovered24h > 0) push("MAIL_INBOUND_WEBHOOKS_MISSED", "warning", { recovered24h: snap.reconciliation.recovered24h });
     }
+    for (const row of snap.storage?.overQuota || []) push("MAIL_STORAGE_QUOTA_EXCEEDED", "critical", { key: row.mailboxId, mailboxId: row.mailboxId, bytes: row.bytes, quotaBytes: snap.storage.quotaBytesPerMailbox });
+    for (const row of snap.storage?.overWarn || []) push("MAIL_STORAGE_QUOTA_HIGH", "warning", { key: row.mailboxId, mailboxId: row.mailboxId, bytes: row.bytes, quotaBytes: snap.storage.quotaBytesPerMailbox });
+    if (snap.search?.enabled && snap.search.oldestUnindexedAt && (Date.parse(snap.generatedAt) - Date.parse(snap.search.oldestUnindexedAt)) / 1000 > thresholds.searchIndexStaleSeconds) push("MAIL_SEARCH_INDEX_STALE", "warning", { unindexed: snap.search.unindexed, oldestUnindexedAt: snap.search.oldestUnindexedAt });
+    for (const row of snap.exports1h?.byActor || []) push("MAIL_UNUSUAL_EXPORT", "critical", { key: row.actorAdminUserId, actorAdminUserId: row.actorAdminUserId, count: row.count, threshold: thresholds.exportsPerActorHour });
+    if ((snap.scanning24h?.failures || 0) >= thresholds.scannerFailures24h) push("MAIL_SCANNER_FAILURES", "warning", { failures24h: snap.scanning24h.failures });
+    if (snap.inboundUnrecovered24h > 0) push("MAIL_INBOUND_UNRECOVERED", "critical", { count: snap.inboundUnrecovered24h });
+    if (snap.process?.rateLimitFallbacks > 0) push("MAIL_RATE_LIMIT_DEGRADED", "warning", { fallbacks: snap.process.rateLimitFallbacks });
     if (snap.runtimeHalt?.staffMail || snap.runtimeHalt?.marketing) push("MAIL_EMERGENCY_STOP_ACTIVE", "warning", { key: "halt", staffMail: snap.runtimeHalt.staffMail, marketing: snap.runtimeHalt.marketing });
     if (healthReport.storage && healthReport.storage.ok === false && config.enabled) push("MAIL_STORAGE_UNHEALTHY", "critical", { detail: healthReport.storage.detail });
     if (healthReport.encryption && healthReport.encryption.available === false && config.enabled) push("MAIL_ENCRYPTION_UNAVAILABLE", "critical", { error: healthReport.encryption.error });
@@ -222,6 +258,13 @@ function createOpsMonitor({ client, config, notifications, health = async () => 
       metric("cf_mail_auth_denials_total", "Mail API requests refused with 401/403 (this process)", "counter", metrics.samples("auth_denials"));
       metric("cf_mail_provider_errors_total", "Provider call errors by channel, kind and status (this process)", "counter", metrics.samples("provider_errors"));
     }
+    metric("cf_mail_storage_bytes", "Stored message bytes (all mailboxes)", "gauge", [[null, snap.storage.totalBytes]]);
+    metric("cf_mail_mailboxes_over_quota", "Mailboxes at or above their storage quota / warning level", "gauge", [[{ level: "quota" }, snap.storage.overQuota.length], [{ level: "warn" }, snap.storage.overWarn.length]]);
+    metric("cf_mail_search_unindexed", "Readable messages not yet in the body-search index", "gauge", [[null, snap.search.enabled ? snap.search.unindexed : -1]]);
+    metric("cf_mail_unusual_export_actors_1h", "People above the hourly content export threshold", "gauge", [[null, snap.exports1h.byActor.length]]);
+    metric("cf_mail_scanner_failures_24h", "Attachments whose malware scan failed or had no scanner (24h)", "gauge", [[null, snap.scanning24h.failures]]);
+    metric("cf_mail_inbound_unrecovered_24h", "Inbound emails whose processing failed even after reconciliation (24h)", "gauge", [[null, snap.inboundUnrecovered24h]]);
+    if (metrics) metric("cf_mail_rate_limit_fallback_total", "Requests limited by the process-local fallback (shared limiter unavailable)", "counter", metrics.samples("rate_limit_fallback"));
     metric("cf_mail_halted", "1 when an emergency stop halts the purpose", "gauge", [[{ purpose: "staff" }, snap.runtimeHalt?.staffMail ? 1 : 0], [{ purpose: "marketing" }, snap.runtimeHalt?.marketing ? 1 : 0]]);
     return `${lines.join("\n")}\n`;
   }

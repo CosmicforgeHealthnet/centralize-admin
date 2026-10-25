@@ -15,7 +15,7 @@ const { TERMINAL_BROADCAST_STATUSES } = require("./broadcast.processor");
 const PRE_SEND = new Set(["SCHEDULED", "QUEUED", "PREPARING", "PAUSED"]);
 const DELIVERY_STATUSES = ["PROVIDER_ACCEPTED", "DELIVERED", "DELAYED", "BOUNCED", "COMPLAINED", "FAILED", "SUPPRESSED", "UNSUBSCRIBED", "OUTCOME_UNKNOWN", "CANCELLED", "EXCLUDED", "PENDING", "SYNCED"];
 
-function createBroadcastService({ client, config, audit, jobs, stepUp, env = process.env, clock = () => new Date() }) {
+function createBroadcastService({ client, config, audit, jobs, stepUp, env = process.env, replies = null, clock = () => new Date() }) {
   const scope = (user, organizationId, need) => {
     if (!config.marketingEnabled) throw mailError("MAIL_MARKETING_DISABLED");
     return policy.requireMarketingScope(client, user, organizationId, need);
@@ -254,11 +254,14 @@ function createBroadcastService({ client, config, audit, jobs, stepUp, env = pro
     ]);
     const handedToProvider = counts.PROVIDER_ACCEPTED + counts.DELIVERED + counts.DELAYED + counts.BOUNCED + counts.COMPLAINED + counts.SUPPRESSED;
     const rate = (value) => (handedToProvider ? Math.round((value / handedToProvider) * 10000) / 100 : null);
+    const replied = replies ? await replies.summary(dispatch) : null;
     return {
       dispatch: serializeDispatch(dispatch),
       counts,
       totals: { handedToProvider, delivered: counts.DELIVERED, awaitingDeliveryEvidence: counts.PROVIDER_ACCEPTED, outcomeUnknown: counts.OUTCOME_UNKNOWN, excluded: dispatch.excludedCount },
-      rates: { deliveredPercent: rate(counts.DELIVERED), bouncePercent: rate(counts.BOUNCED), complaintPercent: rate(counts.COMPLAINED), openPercentIndicative: rate(opened), clickPercentIndicative: rate(clicked) },
+      rates: { deliveredPercent: rate(counts.DELIVERED), bouncePercent: rate(counts.BOUNCED), complaintPercent: rate(counts.COMPLAINED), openPercentIndicative: rate(opened), clickPercentIndicative: rate(clicked), replyPercent: replied ? rate(replied.replied) : null },
+      // Spec 13.3 "replied": evidence-based attribution (null until migration 35).
+      replied,
       engagement: { opened, clicked, note: "Opens and clicks are indicative only." },
       exclusions: exclusions.map((row) => ({ reason: row.exclusionReason, count: row._count._all })),
       timeline: events.map((event) => ({ action: event.action, actor: event.actorAdminUserId, outcome: event.outcome, metadata: event.metadata, at: iso(event.createdAt) })).reverse(),

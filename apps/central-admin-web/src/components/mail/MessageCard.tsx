@@ -1,11 +1,72 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight, ShieldAlert } from "lucide-react";
+import { ChevronDown, ChevronRight, ShieldAlert, TriangleAlert } from "lucide-react";
+import { classifyMailError, downloadRawMessage, fetchOriginalHeaders } from "@/lib/mail.service";
 import AttachmentViewer from "./AttachmentViewer";
 import SafeHtmlFrame from "./SafeHtmlFrame";
 import { STATUS_LABELS, formatFullDate, partyLabel, recipientStatusLabel, statusTone } from "./mail-utils";
-import type { MailMessage, Recipient } from "@/types/mail.types";
+import type { MailMessage, OriginalHeaders, Recipient, SenderAuthentication } from "@/types/mail.types";
+
+const AUTH_REASON_TEXT: Record<string, string> = {
+  DMARC_FAIL: "the sender's domain policy (DMARC) check failed",
+  SPF_FAIL_NO_DKIM: "the sending server is not authorized for this domain and the message is not signed",
+  DKIM_FAIL: "the message signature (DKIM) did not verify",
+  INTERNAL_DOMAIN_NOT_AUTHENTICATED: "it claims to come from one of our own domains but could not be verified",
+};
+
+function SenderAuthWarning({ auth }: { auth?: SenderAuthentication | null }) {
+  if (!auth || (auth.verdict !== "FAIL" && auth.verdict !== "SUSPICIOUS")) return null;
+  const reasons = auth.reasons.map((reason) => AUTH_REASON_TEXT[reason]).filter(Boolean);
+  return (
+    <p role="alert" className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-[12px] text-amber-900">
+      <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+      <span>
+        Be careful with this message: the sender could not be verified{reasons.length ? ` (${reasons.join("; ")})` : ""}. Do not open links, attachments or payment requests unless you can confirm them another way.
+      </span>
+    </p>
+  );
+}
+
+function OriginalMessage({ messageId }: { messageId: string }) {
+  const [state, setState] = useState<{ loading: boolean; data?: OriginalHeaders; error?: string }>({ loading: false });
+  const load = async () => {
+    setState({ loading: true });
+    try {
+      setState({ loading: false, data: await fetchOriginalHeaders(messageId) });
+    } catch (error) {
+      setState({ loading: false, error: classifyMailError(error).message });
+    }
+  };
+  if (!state.data) {
+    return (
+      <div>
+        <button type="button" onClick={load} disabled={state.loading} className="text-[11px] font-semibold text-primary hover:underline disabled:opacity-50">
+          {state.loading ? "Loading original…" : "Show original headers"}
+        </button>
+        {state.error && <p role="alert" className="text-[11px] text-red-600">{state.error}</p>}
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-md border border-border p-2 text-[11px]">
+      {!state.data.available ? (
+        <p className="text-muted-foreground">Original headers were not archived for this message.</p>
+      ) : (
+        <dl className="max-h-64 overflow-auto font-mono">
+          {state.data.headers.map((header, index) => (
+            <div key={`${header.name}-${index}`} className="break-all"><dt className="inline font-semibold">{header.name}:</dt> <dd className="inline">{header.value}</dd></div>
+          ))}
+        </dl>
+      )}
+      {state.data.rawMime.status === "STORED" && (
+        <button type="button" onClick={() => downloadRawMessage(messageId).catch((error) => setState((s) => ({ ...s, error: classifyMailError(error).message })))} className="mt-1 font-semibold text-primary hover:underline">
+          Download original (.eml)
+        </button>
+      )}
+    </div>
+  );
+}
 
 function RecipientLine({ label, recipients }: { label: string; recipients: Recipient[] }) {
   if (!recipients.length) return null;
@@ -99,12 +160,14 @@ export default function MessageCard({
               This message was quarantined{message.quarantineReason ? `: ${message.quarantineReason}` : "."}
             </p>
           )}
+          {message.direction === "INBOUND" && <SenderAuthWarning auth={message.senderAuthentication} />}
           {message.html ? (
             <SafeHtmlFrame html={message.html} title={`Message body: ${message.subject || "no subject"}`} />
           ) : (
             <pre className="whitespace-pre-wrap break-words font-poppins text-[13px] text-foreground">{message.text || "(empty message)"}</pre>
           )}
           <AttachmentViewer attachments={message.attachments} />
+          {message.direction === "INBOUND" && <OriginalMessage messageId={message.id} />}
         </div>
       )}
     </article>

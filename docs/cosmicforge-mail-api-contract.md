@@ -4,6 +4,20 @@ Base path: `/api/mail/v1` (HQ API, `services/central-admin-api`).
 Machine-readable schema: `GET /api/mail/v1/openapi.json` (source:
 `services/central-admin-api/src/modules/mail/openapi/mail.openapi.js`).
 
+Generated client: `apps/central-admin-web/src/lib/generated/mail-api.ts` is
+generated from that document (`cd services/central-admin-api && npm run
+mail:client:generate`). It carries every schema as a TypeScript type, the
+operation table (operationId -> method, path, success status), per-operation
+request/response types, `mailPath()` and `createMailClient()`. The staff Mail
+service (`src/lib/mail.service.ts`) issues every call through that table, so a
+renamed or removed route is a TypeScript error. Contract drift fails CI:
+`npm run mail:client:check` and `tests/mail-openapi-contract.test.js` (part of
+`npm test`) check that the generated file is current, that documented success
+statuses match the router, that every Mail call anywhere in the web app hits a
+documented route and method, and, on real PostgreSQL, that live responses
+validate against their schemas and that bodies violating a documented request
+schema are refused by the runtime validation.
+
 All endpoints except the provider webhook and `openapi.json` require
 `Authorization: Bearer <admin access token>` (existing HQ login).
 Authorization is evaluated server-side on every request (deny by default).
@@ -266,3 +280,25 @@ type Block =
 
 Allowed personalization variables: `first_name`, `last_name`, `email`, `brand_name`,
 `unsubscribe_url`. Unknown variables fail rendering with `MAIL_TEMPLATE_INVALID_VARIABLE`.
+
+
+## Specification gap closure (migration 35)
+
+Feature endpoints answer `503 MAIL_FEATURE_NOT_READY` (retryable) until
+`20261101_mail_spec_gap_closure.sql` is applied; core Mail does not depend on it.
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET/POST /mailboxes/{id}/rules`, `PATCH/DELETE /rules/{id}`, `POST /mailboxes/{id}/rules/reorder` | Filters (MANAGE access; fixed operators only; uses the M1 `mail_rules` table) |
+| `GET/POST /mailboxes/{id}/forwarding`, `POST /forwarding/{id}/disable` | Forwarding requests (owner/manager) |
+| `GET /admin/forwarding`, `POST /admin/forwarding/{id}/approve|reject` | Approval by a different mail admin; external targets need an allowed domain and step-up `MAIL_FORWARDING_APPROVE` |
+| `GET /messages/{id}/original-headers`, `GET /messages/{id}/raw` | Encrypted header / raw-MIME archive (audited; raw of quarantined mail: mail admins only) |
+| `GET /admin/search-index`, `POST /admin/search-index/backfill` | Body-search index freshness and backfill (202) |
+| `POST /admin/jobs/{id}/requeue` | Requeue a DEAD_LETTER/FAILED inbound or event job (step-up `MAIL_JOB_REQUEUE`; outbound sends are refused) |
+
+`GET /search` and `GET /mailboxes/{id}/search`: `q` words must each appear in
+the metadata or (with body search enabled) the body; see
+`docs/cosmicforge-mail-body-search.md`. `GET /threads/{id}/messages` adds
+`senderAuthentication: { verdict: PASS|NONE|SUSPICIOUS|FAIL, reasons, source }`
+for inbound messages. Campaign reports add `replied` (evidence-based reply
+attribution) and `rates.replyPercent`.

@@ -52,7 +52,20 @@ function createFakeAdapter() {
       if (failure) throw new MailProviderError(failure.kind, failure.code, "fake failure");
       const message = state.inbound.get(providerEmailId);
       if (!message) throw new MailProviderError("PERMANENT", "NOT_FOUND", "unknown inbound email");
-      return { providerEmailId, attachmentCount: (state.attachments.get(providerEmailId) || []).length, ...message };
+      const { rawMime, ...rest } = message;
+      return {
+        providerEmailId,
+        attachmentCount: (state.attachments.get(providerEmailId) || []).length,
+        ...rest,
+        rawMime: rawMime == null ? null : {
+          expiresAt: null,
+          download: async (maxBytes) => {
+            const buffer = Buffer.from(rawMime);
+            if (maxBytes && buffer.length > maxBytes) throw new MailProviderError("PERMANENT", "ATTACHMENT_TOO_LARGE", "raw too large");
+            return buffer;
+          },
+        },
+      };
     },
     async fetchInboundAttachments(providerEmailId) {
       const failure = nextFailure("fetchInboundAttachments");
@@ -64,7 +77,10 @@ function createFakeAdapter() {
         sizeBytes: attachment.content.length,
         contentId: attachment.contentId || null,
         inline: Boolean(attachment.inline),
-        download: async () => Buffer.from(attachment.content),
+        download: async () => {
+          if (attachment.failDownload) throw new MailProviderError("PERMANENT", "ATTACHMENT_URL_EXPIRED", "fake expired attachment link");
+          return Buffer.from(attachment.content);
+        },
       }));
     },
     async validateDomain(providerDomainId) {

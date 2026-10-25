@@ -14,7 +14,12 @@ const { MailWebhookStatus, MailDeliveryEventType, MailJobStatus, MailJobQueue } 
 
 const ROLES = new Set(["OWNER", "MANAGER", "MEMBER", "READER"]);
 
-function createMailAdminService({ client, config, adapter, audit, notifications, clock = () => new Date() }) {
+// Job kinds an operator may replay from DEAD_LETTER/FAILED. Outbound sends and
+// marketing dispatches are excluded: their provider outcome may be unknown,
+// so they are recovered through reconciliation or a new, reviewed send.
+const REQUEUEABLE_JOB_KINDS = new Set(["PROCESS_INBOUND", "PROCESS_DELIVERY_EVENT", "RECONCILE_INBOUND", "OPS_EVALUATE", "SEARCH_INDEX_BACKFILL"]);
+
+function createMailAdminService({ client, config, adapter, audit, notifications, jobs = null, stepUp = null, forwarding = null, clock = () => new Date() }) {
   const admin = (user, mode = "EDIT") => policy.requireMailAdmin(client, user, mode);
 
   // ---------------------------------------------------------------- orgs
@@ -212,6 +217,8 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
     if (!mailbox) throw mailError("MAIL_NOT_FOUND", { resource: "mailbox" });
     const row = await client.mailMailbox.update({ where: { id: mailboxId }, data: { status, suspendedAt: status === "SUSPENDED" ? clock() : null } });
     await audit.record({ actorAdminUserId: user.id, action: status === "ACTIVE" ? "MAIL_MAILBOX_REACTIVATED" : "MAIL_MAILBOX_SUSPENDED", targetType: "mailbox", targetId: mailboxId, mailboxId }, context);
+    // Suspension stops forwarding; reactivation does NOT re-enable it.
+    if (status !== "ACTIVE" && forwarding) await forwarding.disableForMailbox(mailboxId, "MAILBOX_SUSPENDED", user.id, context);
     return row;
   }
 
@@ -352,8 +359,15 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
       await tx.mailDraft.updateMany({ where: { authorAdminUserId: subject.id, status: "ACTIVE" }, data: { status: "DISCARDED", encryptedBody: null } });
       return { membershipsRevoked: memberships.count, senderGrantsRevoked: grants.count, mailboxesSuspended: mailboxes.length };
     });
-    await audit.record({ actorAdminUserId: user.id, action: "MAIL_USER_OFFBOARDED", targetType: "admin_user", targetId: subject.id, metadata: summary }, context);
-    return { ...summary, historyRetained: true };
+    // Former employees' mail is never silently forwarded (spec 5.4).
+    let forwardingDisabled = 0;
+    if (forwarding) {
+      const owned = await client.mailMailbox.findMany({ where: { ownerAdminUserId: subject.id, type: "PERSONAL" }, select: { id: true } });
+      for (const mailbox of owned) forwardingDisabled += await forwarding.disableForMailbox(mailbox.id, "OFFBOARDED", user.id, context);
+      forwardingDisabled += await forwarding.disableForRequester(subject.id, "REQUESTER_OFFBOARDED", user.id, context);
+    }
+    await audit.record({ actorAdminUserId: user.id, action: "MAIL_USER_OFFBOARDED", targetType: "admin_user", targetId: subject.id, metadata: { ...summary, forwardingDisabled } }, context);
+    return { ...summary, forwardingDisabled, historyRetained: true };
   }
 
   // ---------------------------------------------------------------- provisioning
@@ -556,7 +570,25 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
     return rows.map((row) => ({ ...row, nextAttemptAt: iso(row.nextAttemptAt), completedAt: iso(row.completedAt), createdAt: iso(row.createdAt), updatedAt: iso(row.updatedAt) }));
   }
 
+  // Spec 5.8 / section 10.8: dead-letter jobs are recoverable, with MFA.
+  async function requeueJob(user, jobId, { stepUpId, reason } = {}, context = {}) {
+    await admin(user);
+    if (!policy.isUuid(jobId)) throw mailError("MAIL_NOT_FOUND", { resource: "job" });
+    const cleanReason = String(reason || "").trim().slice(0, 500);
+    if (cleanReason.length < 5) throw mailError("MAIL_VALIDATION_FAILED", { field: "reason" });
+    const job = await client.mailOutboxJob.findUnique({ where: { id: jobId }, select: { id: true, kind: true, status: true, queue: true } });
+    if (!job) throw mailError("MAIL_NOT_FOUND", { resource: "job" });
+    if (!REQUEUEABLE_JOB_KINDS.has(job.kind)) throw mailError("MAIL_INVALID_TRANSITION", { reason: "KIND_NOT_REQUEUEABLE", kind: job.kind });
+    if (!["DEAD_LETTER", "FAILED"].includes(job.status)) throw mailError("MAIL_INVALID_TRANSITION", { from: job.status });
+    await client.$transaction(async (tx) => stepUp.consume(tx, user, stepUpId, "MAIL_JOB_REQUEUE", context));
+    const result = await jobs.requeue(jobId);
+    if (!result?.requeued) throw mailError("MAIL_INVALID_TRANSITION", { from: result?.job?.status || job.status });
+    await audit.record({ actorAdminUserId: user.id, action: "MAIL_JOB_REQUEUED", targetType: "job", targetId: jobId, metadata: { kind: job.kind, queue: job.queue, from: job.status, reason: cleanReason } }, context);
+    return { id: jobId, status: "PENDING", kind: job.kind };
+  }
+
   return {
+    requeueJob,
     listAuditEvents, listWebhookEvents, listDeliveryEvents, listJobs,
     listOrganizations, createOrganization, listDomains, createDomain, verifyDomain,
     listAddresses, createAddress, updateAddressStatus, listMailboxes, createMailbox, setMailboxStatus,

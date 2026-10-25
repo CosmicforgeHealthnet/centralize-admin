@@ -908,6 +908,31 @@ export type MailEmergencyStop = $Result.DefaultSelection<Prisma.$MailEmergencySt
  * 
  */
 export type AccountSetupToken = $Result.DefaultSelection<Prisma.$AccountSetupTokenPayload>
+/**
+ * Model MailMessageSearchIndex
+ * 
+ */
+export type MailMessageSearchIndex = $Result.DefaultSelection<Prisma.$MailMessageSearchIndexPayload>
+/**
+ * Model MailMessageArchive
+ * 
+ */
+export type MailMessageArchive = $Result.DefaultSelection<Prisma.$MailMessageArchivePayload>
+/**
+ * Model MailForwardingRule
+ * 
+ */
+export type MailForwardingRule = $Result.DefaultSelection<Prisma.$MailForwardingRulePayload>
+/**
+ * Model MailRateLimitBucket
+ * 
+ */
+export type MailRateLimitBucket = $Result.DefaultSelection<Prisma.$MailRateLimitBucketPayload>
+/**
+ * Model MarketingCampaignReply
+ * 
+ */
+export type MarketingCampaignReply = $Result.DefaultSelection<Prisma.$MarketingCampaignReplyPayload>
 
 /**
  * Enums
@@ -4936,6 +4961,56 @@ export class PrismaClient<
     * ```
     */
   get accountSetupToken(): Prisma.AccountSetupTokenDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mailMessageSearchIndex`: Exposes CRUD operations for the **MailMessageSearchIndex** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MailMessageSearchIndices
+    * const mailMessageSearchIndices = await prisma.mailMessageSearchIndex.findMany()
+    * ```
+    */
+  get mailMessageSearchIndex(): Prisma.MailMessageSearchIndexDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mailMessageArchive`: Exposes CRUD operations for the **MailMessageArchive** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MailMessageArchives
+    * const mailMessageArchives = await prisma.mailMessageArchive.findMany()
+    * ```
+    */
+  get mailMessageArchive(): Prisma.MailMessageArchiveDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mailForwardingRule`: Exposes CRUD operations for the **MailForwardingRule** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MailForwardingRules
+    * const mailForwardingRules = await prisma.mailForwardingRule.findMany()
+    * ```
+    */
+  get mailForwardingRule(): Prisma.MailForwardingRuleDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mailRateLimitBucket`: Exposes CRUD operations for the **MailRateLimitBucket** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MailRateLimitBuckets
+    * const mailRateLimitBuckets = await prisma.mailRateLimitBucket.findMany()
+    * ```
+    */
+  get mailRateLimitBucket(): Prisma.MailRateLimitBucketDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.marketingCampaignReply`: Exposes CRUD operations for the **MarketingCampaignReply** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MarketingCampaignReplies
+    * const marketingCampaignReplies = await prisma.marketingCampaignReply.findMany()
+    * ```
+    */
+  get marketingCampaignReply(): Prisma.MarketingCampaignReplyDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -5561,7 +5636,12 @@ export namespace Prisma {
     MailRolloutCohortMember: 'MailRolloutCohortMember',
     MailRolloutRule: 'MailRolloutRule',
     MailEmergencyStop: 'MailEmergencyStop',
-    AccountSetupToken: 'AccountSetupToken'
+    AccountSetupToken: 'AccountSetupToken',
+    MailMessageSearchIndex: 'MailMessageSearchIndex',
+    MailMessageArchive: 'MailMessageArchive',
+    MailForwardingRule: 'MailForwardingRule',
+    MailRateLimitBucket: 'MailRateLimitBucket',
+    MarketingCampaignReply: 'MarketingCampaignReply'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -5577,7 +5657,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "adminUser" | "marketing_campaigns" | "marketing_campaign_performance" | "marketing_campaign_timeline" | "marketing_campaign_team_members" | "marketing_content_items" | "marketing_content_monthly_performance" | "marketing_notification_events" | "marketing_email_templates" | "marketing_social_accounts" | "marketing_social_posts" | "marketing_social_analytics_snapshots" | "marketing_promotions" | "marketing_banners" | "marketing_analytics_snapshots" | "marketing_ad_platform_connections" | "marketing_ad_insights_raw" | "marketing_performance_snapshots" | "marketing_oauth_states" | "marketing_attributions" | "marketing_funnel_events" | "marketing_identity_links" | "marketing_attribution_decisions" | "marketing_intelligence_settings" | "marketing_intelligence_evaluation_runs" | "marketing_creative_assets" | "marketing_creative_performance_snapshots" | "marketing_creative_score_snapshots" | "marketing_recommendations" | "marketing_alerts" | "marketing_experiments" | "marketing_sync_locks" | "marketingExecutionPlan" | "marketingExecutionPlanItem" | "marketingExecutionApproval" | "marketingExecutionApprovalEvent" | "marketingExecutionRun" | "marketingExecutionJob" | "marketingProviderOperation" | "marketingProviderOperationAttempt" | "marketingExecutionStateSnapshot" | "marketingExecutionValidationIssue" | "marketingExecutionReconciliation" | "marketingExecutionPolicy" | "marketingCreativePublication" | "marketingCreativeMediaValidationEvidence" | "marketingCreativePublicationReviewEvent" | "marketingTargetingDiscovery" | "marketingExecutionAccountLock" | "marketingExecutionDeadLetterReview" | "marketingExecutionPolicyHistory" | "marketingExecutionValidationPacket" | "marketingExecutionDriftAcknowledgment" | "marketingExecutionRetryReview" | "marketingExecutionEmergencyOverride" | "marketingExecutionReconciliationJob" | "marketingExecutionCompensationLink" | "socialAccountConnection" | "socialPublishingIdentity" | "socialOAuthState" | "socialPost" | "socialPostRevision" | "socialPostTarget" | "socialPostApproval" | "socialPublication" | "socialPublicationAttempt" | "socialPublishingJob" | "socialMediaAsset" | "socialPostMedia" | "socialContact" | "socialConversation" | "socialMessage" | "socialTag" | "socialConversationTag" | "socialProviderContent" | "socialComment" | "socialEngagementEvent" | "socialEscalation" | "socialWebhookSubscription" | "socialWebhookEvent" | "socialIdentityMetricSnapshot" | "socialProviderContentMetricSnapshot" | "socialIdentitySyncState" | "socialActionJob" | "socialActionAttempt" | "socialInternalNote" | "socialSavedReply" | "socialOperationsSetting" | "adminManualMigrationLedger" | "adminSession" | "adminSessionRefreshToken" | "adminMfaEnrollment" | "adminMfaRecoveryCode" | "adminMfaChallenge" | "adminAuthEvent" | "refreshToken" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event" | "mailOrganization" | "mailDomain" | "mailMailbox" | "mailAddress" | "mailMembership" | "mailSenderGrant" | "mailProvisionRequest" | "mailThread" | "mailMessage" | "mailMessageRecipient" | "mailUserThreadState" | "mailDraft" | "mailLabel" | "mailThreadLabel" | "mailRule" | "mailAttachment" | "mailInternalNote" | "mailOutboxJob" | "mailWebhookEvent" | "mailDeliveryEvent" | "mailAuditEvent" | "mailRetentionPolicy" | "mailLegalHold" | "mailStepUpVerification" | "mailBreakGlassRequest" | "marketingContact" | "marketingConsent" | "marketingSuppression" | "marketingAudience" | "marketingAudienceContact" | "marketingSegment" | "marketingEmailTemplate" | "marketingTemplateVersion" | "marketingEmailCampaign" | "marketingCampaignSnapshot" | "marketingCampaignApproval" | "marketingBrandSettings" | "marketingCampaignApprovedContact" | "marketingBroadcastDispatch" | "marketingBroadcastRecipient" | "marketingAutomation" | "marketingAutomationVersion" | "marketingAutomationEnrollment" | "marketingAutomationStepRun" | "marketingTriggerEvent" | "mailProductIntegration" | "mailProductSenderAuthorization" | "mailProductIntegrationEvent" | "mailProductDeliveryEvent" | "mailRetentionRun" | "mailUsageDaily" | "mailQuotaLimit" | "mailOpsAlert" | "mailRolloutCohort" | "mailRolloutCohortMember" | "mailRolloutRule" | "mailEmergencyStop" | "accountSetupToken"
+      modelProps: "adminUser" | "marketing_campaigns" | "marketing_campaign_performance" | "marketing_campaign_timeline" | "marketing_campaign_team_members" | "marketing_content_items" | "marketing_content_monthly_performance" | "marketing_notification_events" | "marketing_email_templates" | "marketing_social_accounts" | "marketing_social_posts" | "marketing_social_analytics_snapshots" | "marketing_promotions" | "marketing_banners" | "marketing_analytics_snapshots" | "marketing_ad_platform_connections" | "marketing_ad_insights_raw" | "marketing_performance_snapshots" | "marketing_oauth_states" | "marketing_attributions" | "marketing_funnel_events" | "marketing_identity_links" | "marketing_attribution_decisions" | "marketing_intelligence_settings" | "marketing_intelligence_evaluation_runs" | "marketing_creative_assets" | "marketing_creative_performance_snapshots" | "marketing_creative_score_snapshots" | "marketing_recommendations" | "marketing_alerts" | "marketing_experiments" | "marketing_sync_locks" | "marketingExecutionPlan" | "marketingExecutionPlanItem" | "marketingExecutionApproval" | "marketingExecutionApprovalEvent" | "marketingExecutionRun" | "marketingExecutionJob" | "marketingProviderOperation" | "marketingProviderOperationAttempt" | "marketingExecutionStateSnapshot" | "marketingExecutionValidationIssue" | "marketingExecutionReconciliation" | "marketingExecutionPolicy" | "marketingCreativePublication" | "marketingCreativeMediaValidationEvidence" | "marketingCreativePublicationReviewEvent" | "marketingTargetingDiscovery" | "marketingExecutionAccountLock" | "marketingExecutionDeadLetterReview" | "marketingExecutionPolicyHistory" | "marketingExecutionValidationPacket" | "marketingExecutionDriftAcknowledgment" | "marketingExecutionRetryReview" | "marketingExecutionEmergencyOverride" | "marketingExecutionReconciliationJob" | "marketingExecutionCompensationLink" | "socialAccountConnection" | "socialPublishingIdentity" | "socialOAuthState" | "socialPost" | "socialPostRevision" | "socialPostTarget" | "socialPostApproval" | "socialPublication" | "socialPublicationAttempt" | "socialPublishingJob" | "socialMediaAsset" | "socialPostMedia" | "socialContact" | "socialConversation" | "socialMessage" | "socialTag" | "socialConversationTag" | "socialProviderContent" | "socialComment" | "socialEngagementEvent" | "socialEscalation" | "socialWebhookSubscription" | "socialWebhookEvent" | "socialIdentityMetricSnapshot" | "socialProviderContentMetricSnapshot" | "socialIdentitySyncState" | "socialActionJob" | "socialActionAttempt" | "socialInternalNote" | "socialSavedReply" | "socialOperationsSetting" | "adminManualMigrationLedger" | "adminSession" | "adminSessionRefreshToken" | "adminMfaEnrollment" | "adminMfaRecoveryCode" | "adminMfaChallenge" | "adminAuthEvent" | "refreshToken" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event" | "mailOrganization" | "mailDomain" | "mailMailbox" | "mailAddress" | "mailMembership" | "mailSenderGrant" | "mailProvisionRequest" | "mailThread" | "mailMessage" | "mailMessageRecipient" | "mailUserThreadState" | "mailDraft" | "mailLabel" | "mailThreadLabel" | "mailRule" | "mailAttachment" | "mailInternalNote" | "mailOutboxJob" | "mailWebhookEvent" | "mailDeliveryEvent" | "mailAuditEvent" | "mailRetentionPolicy" | "mailLegalHold" | "mailStepUpVerification" | "mailBreakGlassRequest" | "marketingContact" | "marketingConsent" | "marketingSuppression" | "marketingAudience" | "marketingAudienceContact" | "marketingSegment" | "marketingEmailTemplate" | "marketingTemplateVersion" | "marketingEmailCampaign" | "marketingCampaignSnapshot" | "marketingCampaignApproval" | "marketingBrandSettings" | "marketingCampaignApprovedContact" | "marketingBroadcastDispatch" | "marketingBroadcastRecipient" | "marketingAutomation" | "marketingAutomationVersion" | "marketingAutomationEnrollment" | "marketingAutomationStepRun" | "marketingTriggerEvent" | "mailProductIntegration" | "mailProductSenderAuthorization" | "mailProductIntegrationEvent" | "mailProductDeliveryEvent" | "mailRetentionRun" | "mailUsageDaily" | "mailQuotaLimit" | "mailOpsAlert" | "mailRolloutCohort" | "mailRolloutCohortMember" | "mailRolloutRule" | "mailEmergencyStop" | "accountSetupToken" | "mailMessageSearchIndex" | "mailMessageArchive" | "mailForwardingRule" | "mailRateLimitBucket" | "marketingCampaignReply"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -18827,6 +18907,376 @@ export namespace Prisma {
           }
         }
       }
+      MailMessageSearchIndex: {
+        payload: Prisma.$MailMessageSearchIndexPayload<ExtArgs>
+        fields: Prisma.MailMessageSearchIndexFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MailMessageSearchIndexFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageSearchIndexPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MailMessageSearchIndexFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageSearchIndexPayload>
+          }
+          findFirst: {
+            args: Prisma.MailMessageSearchIndexFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageSearchIndexPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MailMessageSearchIndexFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageSearchIndexPayload>
+          }
+          findMany: {
+            args: Prisma.MailMessageSearchIndexFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageSearchIndexPayload>[]
+          }
+          create: {
+            args: Prisma.MailMessageSearchIndexCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageSearchIndexPayload>
+          }
+          createMany: {
+            args: Prisma.MailMessageSearchIndexCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MailMessageSearchIndexCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageSearchIndexPayload>[]
+          }
+          delete: {
+            args: Prisma.MailMessageSearchIndexDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageSearchIndexPayload>
+          }
+          update: {
+            args: Prisma.MailMessageSearchIndexUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageSearchIndexPayload>
+          }
+          deleteMany: {
+            args: Prisma.MailMessageSearchIndexDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MailMessageSearchIndexUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MailMessageSearchIndexUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageSearchIndexPayload>[]
+          }
+          upsert: {
+            args: Prisma.MailMessageSearchIndexUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageSearchIndexPayload>
+          }
+          aggregate: {
+            args: Prisma.MailMessageSearchIndexAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMailMessageSearchIndex>
+          }
+          groupBy: {
+            args: Prisma.MailMessageSearchIndexGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MailMessageSearchIndexGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MailMessageSearchIndexCountArgs<ExtArgs>
+            result: $Utils.Optional<MailMessageSearchIndexCountAggregateOutputType> | number
+          }
+        }
+      }
+      MailMessageArchive: {
+        payload: Prisma.$MailMessageArchivePayload<ExtArgs>
+        fields: Prisma.MailMessageArchiveFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MailMessageArchiveFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageArchivePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MailMessageArchiveFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageArchivePayload>
+          }
+          findFirst: {
+            args: Prisma.MailMessageArchiveFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageArchivePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MailMessageArchiveFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageArchivePayload>
+          }
+          findMany: {
+            args: Prisma.MailMessageArchiveFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageArchivePayload>[]
+          }
+          create: {
+            args: Prisma.MailMessageArchiveCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageArchivePayload>
+          }
+          createMany: {
+            args: Prisma.MailMessageArchiveCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MailMessageArchiveCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageArchivePayload>[]
+          }
+          delete: {
+            args: Prisma.MailMessageArchiveDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageArchivePayload>
+          }
+          update: {
+            args: Prisma.MailMessageArchiveUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageArchivePayload>
+          }
+          deleteMany: {
+            args: Prisma.MailMessageArchiveDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MailMessageArchiveUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MailMessageArchiveUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageArchivePayload>[]
+          }
+          upsert: {
+            args: Prisma.MailMessageArchiveUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailMessageArchivePayload>
+          }
+          aggregate: {
+            args: Prisma.MailMessageArchiveAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMailMessageArchive>
+          }
+          groupBy: {
+            args: Prisma.MailMessageArchiveGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MailMessageArchiveGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MailMessageArchiveCountArgs<ExtArgs>
+            result: $Utils.Optional<MailMessageArchiveCountAggregateOutputType> | number
+          }
+        }
+      }
+      MailForwardingRule: {
+        payload: Prisma.$MailForwardingRulePayload<ExtArgs>
+        fields: Prisma.MailForwardingRuleFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MailForwardingRuleFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailForwardingRulePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MailForwardingRuleFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailForwardingRulePayload>
+          }
+          findFirst: {
+            args: Prisma.MailForwardingRuleFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailForwardingRulePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MailForwardingRuleFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailForwardingRulePayload>
+          }
+          findMany: {
+            args: Prisma.MailForwardingRuleFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailForwardingRulePayload>[]
+          }
+          create: {
+            args: Prisma.MailForwardingRuleCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailForwardingRulePayload>
+          }
+          createMany: {
+            args: Prisma.MailForwardingRuleCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MailForwardingRuleCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailForwardingRulePayload>[]
+          }
+          delete: {
+            args: Prisma.MailForwardingRuleDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailForwardingRulePayload>
+          }
+          update: {
+            args: Prisma.MailForwardingRuleUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailForwardingRulePayload>
+          }
+          deleteMany: {
+            args: Prisma.MailForwardingRuleDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MailForwardingRuleUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MailForwardingRuleUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailForwardingRulePayload>[]
+          }
+          upsert: {
+            args: Prisma.MailForwardingRuleUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailForwardingRulePayload>
+          }
+          aggregate: {
+            args: Prisma.MailForwardingRuleAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMailForwardingRule>
+          }
+          groupBy: {
+            args: Prisma.MailForwardingRuleGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MailForwardingRuleGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MailForwardingRuleCountArgs<ExtArgs>
+            result: $Utils.Optional<MailForwardingRuleCountAggregateOutputType> | number
+          }
+        }
+      }
+      MailRateLimitBucket: {
+        payload: Prisma.$MailRateLimitBucketPayload<ExtArgs>
+        fields: Prisma.MailRateLimitBucketFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MailRateLimitBucketFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRateLimitBucketPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MailRateLimitBucketFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRateLimitBucketPayload>
+          }
+          findFirst: {
+            args: Prisma.MailRateLimitBucketFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRateLimitBucketPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MailRateLimitBucketFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRateLimitBucketPayload>
+          }
+          findMany: {
+            args: Prisma.MailRateLimitBucketFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRateLimitBucketPayload>[]
+          }
+          create: {
+            args: Prisma.MailRateLimitBucketCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRateLimitBucketPayload>
+          }
+          createMany: {
+            args: Prisma.MailRateLimitBucketCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MailRateLimitBucketCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRateLimitBucketPayload>[]
+          }
+          delete: {
+            args: Prisma.MailRateLimitBucketDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRateLimitBucketPayload>
+          }
+          update: {
+            args: Prisma.MailRateLimitBucketUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRateLimitBucketPayload>
+          }
+          deleteMany: {
+            args: Prisma.MailRateLimitBucketDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MailRateLimitBucketUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MailRateLimitBucketUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRateLimitBucketPayload>[]
+          }
+          upsert: {
+            args: Prisma.MailRateLimitBucketUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRateLimitBucketPayload>
+          }
+          aggregate: {
+            args: Prisma.MailRateLimitBucketAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMailRateLimitBucket>
+          }
+          groupBy: {
+            args: Prisma.MailRateLimitBucketGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MailRateLimitBucketGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MailRateLimitBucketCountArgs<ExtArgs>
+            result: $Utils.Optional<MailRateLimitBucketCountAggregateOutputType> | number
+          }
+        }
+      }
+      MarketingCampaignReply: {
+        payload: Prisma.$MarketingCampaignReplyPayload<ExtArgs>
+        fields: Prisma.MarketingCampaignReplyFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MarketingCampaignReplyFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignReplyPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MarketingCampaignReplyFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignReplyPayload>
+          }
+          findFirst: {
+            args: Prisma.MarketingCampaignReplyFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignReplyPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MarketingCampaignReplyFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignReplyPayload>
+          }
+          findMany: {
+            args: Prisma.MarketingCampaignReplyFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignReplyPayload>[]
+          }
+          create: {
+            args: Prisma.MarketingCampaignReplyCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignReplyPayload>
+          }
+          createMany: {
+            args: Prisma.MarketingCampaignReplyCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MarketingCampaignReplyCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignReplyPayload>[]
+          }
+          delete: {
+            args: Prisma.MarketingCampaignReplyDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignReplyPayload>
+          }
+          update: {
+            args: Prisma.MarketingCampaignReplyUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignReplyPayload>
+          }
+          deleteMany: {
+            args: Prisma.MarketingCampaignReplyDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MarketingCampaignReplyUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MarketingCampaignReplyUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignReplyPayload>[]
+          }
+          upsert: {
+            args: Prisma.MarketingCampaignReplyUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignReplyPayload>
+          }
+          aggregate: {
+            args: Prisma.MarketingCampaignReplyAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMarketingCampaignReply>
+          }
+          groupBy: {
+            args: Prisma.MarketingCampaignReplyGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MarketingCampaignReplyGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MarketingCampaignReplyCountArgs<ExtArgs>
+            result: $Utils.Optional<MarketingCampaignReplyCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -19129,6 +19579,11 @@ export namespace Prisma {
     mailRolloutRule?: MailRolloutRuleOmit
     mailEmergencyStop?: MailEmergencyStopOmit
     accountSetupToken?: AccountSetupTokenOmit
+    mailMessageSearchIndex?: MailMessageSearchIndexOmit
+    mailMessageArchive?: MailMessageArchiveOmit
+    mailForwardingRule?: MailForwardingRuleOmit
+    mailRateLimitBucket?: MailRateLimitBucketOmit
+    marketingCampaignReply?: MarketingCampaignReplyOmit
   }
 
   /* Types for Logging */
@@ -21927,6 +22382,7 @@ export namespace Prisma {
     legalHolds: number
     breakGlass: number
     retention: number
+    forwardingRules: number
   }
 
   export type MailMailboxCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -21942,6 +22398,7 @@ export namespace Prisma {
     legalHolds?: boolean | MailMailboxCountOutputTypeCountLegalHoldsArgs
     breakGlass?: boolean | MailMailboxCountOutputTypeCountBreakGlassArgs
     retention?: boolean | MailMailboxCountOutputTypeCountRetentionArgs
+    forwardingRules?: boolean | MailMailboxCountOutputTypeCountForwardingRulesArgs
   }
 
   // Custom InputTypes
@@ -22037,6 +22494,13 @@ export namespace Prisma {
    */
   export type MailMailboxCountOutputTypeCountRetentionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MailRetentionPolicyWhereInput
+  }
+
+  /**
+   * MailMailboxCountOutputType without action
+   */
+  export type MailMailboxCountOutputTypeCountForwardingRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailForwardingRuleWhereInput
   }
 
 
@@ -22514,11 +22978,13 @@ export namespace Prisma {
   export type MarketingEmailCampaignCountOutputType = {
     approvals: number
     snapshots: number
+    replies: number
   }
 
   export type MarketingEmailCampaignCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     approvals?: boolean | MarketingEmailCampaignCountOutputTypeCountApprovalsArgs
     snapshots?: boolean | MarketingEmailCampaignCountOutputTypeCountSnapshotsArgs
+    replies?: boolean | MarketingEmailCampaignCountOutputTypeCountRepliesArgs
   }
 
   // Custom InputTypes
@@ -22544,6 +23010,13 @@ export namespace Prisma {
    */
   export type MarketingEmailCampaignCountOutputTypeCountSnapshotsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MarketingCampaignSnapshotWhereInput
+  }
+
+  /**
+   * MarketingEmailCampaignCountOutputType without action
+   */
+  export type MarketingEmailCampaignCountOutputTypeCountRepliesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingCampaignReplyWhereInput
   }
 
 
@@ -175746,6 +176219,7 @@ export namespace Prisma {
     legalHolds?: boolean | MailMailbox$legalHoldsArgs<ExtArgs>
     breakGlass?: boolean | MailMailbox$breakGlassArgs<ExtArgs>
     retention?: boolean | MailMailbox$retentionArgs<ExtArgs>
+    forwardingRules?: boolean | MailMailbox$forwardingRulesArgs<ExtArgs>
     _count?: boolean | MailMailboxCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["mailMailbox"]>
 
@@ -175826,6 +176300,7 @@ export namespace Prisma {
     legalHolds?: boolean | MailMailbox$legalHoldsArgs<ExtArgs>
     breakGlass?: boolean | MailMailbox$breakGlassArgs<ExtArgs>
     retention?: boolean | MailMailbox$retentionArgs<ExtArgs>
+    forwardingRules?: boolean | MailMailbox$forwardingRulesArgs<ExtArgs>
     _count?: boolean | MailMailboxCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MailMailboxIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -175854,6 +176329,7 @@ export namespace Prisma {
       legalHolds: Prisma.$MailLegalHoldPayload<ExtArgs>[]
       breakGlass: Prisma.$MailBreakGlassRequestPayload<ExtArgs>[]
       retention: Prisma.$MailRetentionPolicyPayload<ExtArgs>[]
+      forwardingRules: Prisma.$MailForwardingRulePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -176280,6 +176756,7 @@ export namespace Prisma {
     legalHolds<T extends MailMailbox$legalHoldsArgs<ExtArgs> = {}>(args?: Subset<T, MailMailbox$legalHoldsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailLegalHoldPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     breakGlass<T extends MailMailbox$breakGlassArgs<ExtArgs> = {}>(args?: Subset<T, MailMailbox$breakGlassArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailBreakGlassRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     retention<T extends MailMailbox$retentionArgs<ExtArgs> = {}>(args?: Subset<T, MailMailbox$retentionArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailRetentionPolicyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    forwardingRules<T extends MailMailbox$forwardingRulesArgs<ExtArgs> = {}>(args?: Subset<T, MailMailbox$forwardingRulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailForwardingRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -177030,6 +177507,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: MailRetentionPolicyScalarFieldEnum | MailRetentionPolicyScalarFieldEnum[]
+  }
+
+  /**
+   * MailMailbox.forwardingRules
+   */
+  export type MailMailbox$forwardingRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailForwardingRule
+     */
+    select?: MailForwardingRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailForwardingRule
+     */
+    omit?: MailForwardingRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailForwardingRuleInclude<ExtArgs> | null
+    where?: MailForwardingRuleWhereInput
+    orderBy?: MailForwardingRuleOrderByWithRelationInput | MailForwardingRuleOrderByWithRelationInput[]
+    cursor?: MailForwardingRuleWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MailForwardingRuleScalarFieldEnum | MailForwardingRuleScalarFieldEnum[]
   }
 
   /**
@@ -183765,6 +184266,9 @@ export namespace Prisma {
     attachments?: boolean | MailMessage$attachmentsArgs<ExtArgs>
     deliveryEvents?: boolean | MailMessage$deliveryEventsArgs<ExtArgs>
     outboxJobs?: boolean | MailMessage$outboxJobsArgs<ExtArgs>
+    searchIndex?: boolean | MailMessage$searchIndexArgs<ExtArgs>
+    archive?: boolean | MailMessage$archiveArgs<ExtArgs>
+    campaignReply?: boolean | MailMessage$campaignReplyArgs<ExtArgs>
     _count?: boolean | MailMessageCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["mailMessage"]>
 
@@ -183888,6 +184392,9 @@ export namespace Prisma {
     attachments?: boolean | MailMessage$attachmentsArgs<ExtArgs>
     deliveryEvents?: boolean | MailMessage$deliveryEventsArgs<ExtArgs>
     outboxJobs?: boolean | MailMessage$outboxJobsArgs<ExtArgs>
+    searchIndex?: boolean | MailMessage$searchIndexArgs<ExtArgs>
+    archive?: boolean | MailMessage$archiveArgs<ExtArgs>
+    campaignReply?: boolean | MailMessage$campaignReplyArgs<ExtArgs>
     _count?: boolean | MailMessageCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MailMessageIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -183908,6 +184415,9 @@ export namespace Prisma {
       attachments: Prisma.$MailAttachmentPayload<ExtArgs>[]
       deliveryEvents: Prisma.$MailDeliveryEventPayload<ExtArgs>[]
       outboxJobs: Prisma.$MailOutboxJobPayload<ExtArgs>[]
+      searchIndex: Prisma.$MailMessageSearchIndexPayload<ExtArgs> | null
+      archive: Prisma.$MailMessageArchivePayload<ExtArgs> | null
+      campaignReply: Prisma.$MarketingCampaignReplyPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -184343,6 +184853,9 @@ export namespace Prisma {
     attachments<T extends MailMessage$attachmentsArgs<ExtArgs> = {}>(args?: Subset<T, MailMessage$attachmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailAttachmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     deliveryEvents<T extends MailMessage$deliveryEventsArgs<ExtArgs> = {}>(args?: Subset<T, MailMessage$deliveryEventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailDeliveryEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     outboxJobs<T extends MailMessage$outboxJobsArgs<ExtArgs> = {}>(args?: Subset<T, MailMessage$outboxJobsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailOutboxJobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    searchIndex<T extends MailMessage$searchIndexArgs<ExtArgs> = {}>(args?: Subset<T, MailMessage$searchIndexArgs<ExtArgs>>): Prisma__MailMessageSearchIndexClient<$Result.GetResult<Prisma.$MailMessageSearchIndexPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    archive<T extends MailMessage$archiveArgs<ExtArgs> = {}>(args?: Subset<T, MailMessage$archiveArgs<ExtArgs>>): Prisma__MailMessageArchiveClient<$Result.GetResult<Prisma.$MailMessageArchivePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    campaignReply<T extends MailMessage$campaignReplyArgs<ExtArgs> = {}>(args?: Subset<T, MailMessage$campaignReplyArgs<ExtArgs>>): Prisma__MarketingCampaignReplyClient<$Result.GetResult<Prisma.$MarketingCampaignReplyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -184899,6 +185412,63 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: MailOutboxJobScalarFieldEnum | MailOutboxJobScalarFieldEnum[]
+  }
+
+  /**
+   * MailMessage.searchIndex
+   */
+  export type MailMessage$searchIndexArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageSearchIndex
+     */
+    select?: MailMessageSearchIndexSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageSearchIndex
+     */
+    omit?: MailMessageSearchIndexOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageSearchIndexInclude<ExtArgs> | null
+    where?: MailMessageSearchIndexWhereInput
+  }
+
+  /**
+   * MailMessage.archive
+   */
+  export type MailMessage$archiveArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageArchive
+     */
+    select?: MailMessageArchiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageArchive
+     */
+    omit?: MailMessageArchiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageArchiveInclude<ExtArgs> | null
+    where?: MailMessageArchiveWhereInput
+  }
+
+  /**
+   * MailMessage.campaignReply
+   */
+  export type MailMessage$campaignReplyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignReply
+     */
+    select?: MarketingCampaignReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignReply
+     */
+    omit?: MarketingCampaignReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignReplyInclude<ExtArgs> | null
+    where?: MarketingCampaignReplyWhereInput
   }
 
   /**
@@ -213178,6 +213748,7 @@ export namespace Prisma {
     approvals?: boolean | MarketingEmailCampaign$approvalsArgs<ExtArgs>
     snapshots?: boolean | MarketingEmailCampaign$snapshotsArgs<ExtArgs>
     dispatch?: boolean | MarketingEmailCampaign$dispatchArgs<ExtArgs>
+    replies?: boolean | MarketingEmailCampaign$repliesArgs<ExtArgs>
     _count?: boolean | MarketingEmailCampaignCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["marketingEmailCampaign"]>
 
@@ -213273,6 +213844,7 @@ export namespace Prisma {
     approvals?: boolean | MarketingEmailCampaign$approvalsArgs<ExtArgs>
     snapshots?: boolean | MarketingEmailCampaign$snapshotsArgs<ExtArgs>
     dispatch?: boolean | MarketingEmailCampaign$dispatchArgs<ExtArgs>
+    replies?: boolean | MarketingEmailCampaign$repliesArgs<ExtArgs>
     _count?: boolean | MarketingEmailCampaignCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MarketingEmailCampaignIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -213298,6 +213870,7 @@ export namespace Prisma {
       approvals: Prisma.$MarketingCampaignApprovalPayload<ExtArgs>[]
       snapshots: Prisma.$MarketingCampaignSnapshotPayload<ExtArgs>[]
       dispatch: Prisma.$MarketingBroadcastDispatchPayload<ExtArgs> | null
+      replies: Prisma.$MarketingCampaignReplyPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -213723,6 +214296,7 @@ export namespace Prisma {
     approvals<T extends MarketingEmailCampaign$approvalsArgs<ExtArgs> = {}>(args?: Subset<T, MarketingEmailCampaign$approvalsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingCampaignApprovalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     snapshots<T extends MarketingEmailCampaign$snapshotsArgs<ExtArgs> = {}>(args?: Subset<T, MarketingEmailCampaign$snapshotsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingCampaignSnapshotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     dispatch<T extends MarketingEmailCampaign$dispatchArgs<ExtArgs> = {}>(args?: Subset<T, MarketingEmailCampaign$dispatchArgs<ExtArgs>>): Prisma__MarketingBroadcastDispatchClient<$Result.GetResult<Prisma.$MarketingBroadcastDispatchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    replies<T extends MarketingEmailCampaign$repliesArgs<ExtArgs> = {}>(args?: Subset<T, MarketingEmailCampaign$repliesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingCampaignReplyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -214296,6 +214870,30 @@ export namespace Prisma {
      */
     include?: MarketingBroadcastDispatchInclude<ExtArgs> | null
     where?: MarketingBroadcastDispatchWhereInput
+  }
+
+  /**
+   * MarketingEmailCampaign.replies
+   */
+  export type MarketingEmailCampaign$repliesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignReply
+     */
+    select?: MarketingCampaignReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignReply
+     */
+    omit?: MarketingCampaignReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignReplyInclude<ExtArgs> | null
+    where?: MarketingCampaignReplyWhereInput
+    orderBy?: MarketingCampaignReplyOrderByWithRelationInput | MarketingCampaignReplyOrderByWithRelationInput[]
+    cursor?: MarketingCampaignReplyWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MarketingCampaignReplyScalarFieldEnum | MarketingCampaignReplyScalarFieldEnum[]
   }
 
   /**
@@ -220776,6 +221374,7 @@ export namespace Prisma {
     updatedAt?: boolean
     dispatch?: boolean | MarketingBroadcastDispatchDefaultArgs<ExtArgs>
     contact?: boolean | MarketingContactDefaultArgs<ExtArgs>
+    reply?: boolean | MarketingBroadcastRecipient$replyArgs<ExtArgs>
   }, ExtArgs["result"]["marketingBroadcastRecipient"]>
 
   export type MarketingBroadcastRecipientSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -220846,6 +221445,7 @@ export namespace Prisma {
   export type MarketingBroadcastRecipientInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     dispatch?: boolean | MarketingBroadcastDispatchDefaultArgs<ExtArgs>
     contact?: boolean | MarketingContactDefaultArgs<ExtArgs>
+    reply?: boolean | MarketingBroadcastRecipient$replyArgs<ExtArgs>
   }
   export type MarketingBroadcastRecipientIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     dispatch?: boolean | MarketingBroadcastDispatchDefaultArgs<ExtArgs>
@@ -220861,6 +221461,7 @@ export namespace Prisma {
     objects: {
       dispatch: Prisma.$MarketingBroadcastDispatchPayload<ExtArgs>
       contact: Prisma.$MarketingContactPayload<ExtArgs>
+      reply: Prisma.$MarketingCampaignReplyPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -221276,6 +221877,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     dispatch<T extends MarketingBroadcastDispatchDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MarketingBroadcastDispatchDefaultArgs<ExtArgs>>): Prisma__MarketingBroadcastDispatchClient<$Result.GetResult<Prisma.$MarketingBroadcastDispatchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     contact<T extends MarketingContactDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MarketingContactDefaultArgs<ExtArgs>>): Prisma__MarketingContactClient<$Result.GetResult<Prisma.$MarketingContactPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    reply<T extends MarketingBroadcastRecipient$replyArgs<ExtArgs> = {}>(args?: Subset<T, MarketingBroadcastRecipient$replyArgs<ExtArgs>>): Prisma__MarketingCampaignReplyClient<$Result.GetResult<Prisma.$MarketingCampaignReplyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -221720,6 +222322,25 @@ export namespace Prisma {
      * Limit how many MarketingBroadcastRecipients to delete.
      */
     limit?: number
+  }
+
+  /**
+   * MarketingBroadcastRecipient.reply
+   */
+  export type MarketingBroadcastRecipient$replyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignReply
+     */
+    select?: MarketingCampaignReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignReply
+     */
+    omit?: MarketingCampaignReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignReplyInclude<ExtArgs> | null
+    where?: MarketingCampaignReplyWhereInput
   }
 
   /**
@@ -242660,6 +243281,5709 @@ export namespace Prisma {
 
 
   /**
+   * Model MailMessageSearchIndex
+   */
+
+  export type AggregateMailMessageSearchIndex = {
+    _count: MailMessageSearchIndexCountAggregateOutputType | null
+    _avg: MailMessageSearchIndexAvgAggregateOutputType | null
+    _sum: MailMessageSearchIndexSumAggregateOutputType | null
+    _min: MailMessageSearchIndexMinAggregateOutputType | null
+    _max: MailMessageSearchIndexMaxAggregateOutputType | null
+  }
+
+  export type MailMessageSearchIndexAvgAggregateOutputType = {
+    termCount: number | null
+  }
+
+  export type MailMessageSearchIndexSumAggregateOutputType = {
+    termCount: number | null
+  }
+
+  export type MailMessageSearchIndexMinAggregateOutputType = {
+    messageId: string | null
+    mailboxId: string | null
+    keyVersion: string | null
+    termCount: number | null
+    indexedAt: Date | null
+  }
+
+  export type MailMessageSearchIndexMaxAggregateOutputType = {
+    messageId: string | null
+    mailboxId: string | null
+    keyVersion: string | null
+    termCount: number | null
+    indexedAt: Date | null
+  }
+
+  export type MailMessageSearchIndexCountAggregateOutputType = {
+    messageId: number
+    mailboxId: number
+    keyVersion: number
+    terms: number
+    termCount: number
+    indexedAt: number
+    _all: number
+  }
+
+
+  export type MailMessageSearchIndexAvgAggregateInputType = {
+    termCount?: true
+  }
+
+  export type MailMessageSearchIndexSumAggregateInputType = {
+    termCount?: true
+  }
+
+  export type MailMessageSearchIndexMinAggregateInputType = {
+    messageId?: true
+    mailboxId?: true
+    keyVersion?: true
+    termCount?: true
+    indexedAt?: true
+  }
+
+  export type MailMessageSearchIndexMaxAggregateInputType = {
+    messageId?: true
+    mailboxId?: true
+    keyVersion?: true
+    termCount?: true
+    indexedAt?: true
+  }
+
+  export type MailMessageSearchIndexCountAggregateInputType = {
+    messageId?: true
+    mailboxId?: true
+    keyVersion?: true
+    terms?: true
+    termCount?: true
+    indexedAt?: true
+    _all?: true
+  }
+
+  export type MailMessageSearchIndexAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailMessageSearchIndex to aggregate.
+     */
+    where?: MailMessageSearchIndexWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailMessageSearchIndices to fetch.
+     */
+    orderBy?: MailMessageSearchIndexOrderByWithRelationInput | MailMessageSearchIndexOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MailMessageSearchIndexWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailMessageSearchIndices from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailMessageSearchIndices.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MailMessageSearchIndices
+    **/
+    _count?: true | MailMessageSearchIndexCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MailMessageSearchIndexAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MailMessageSearchIndexSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MailMessageSearchIndexMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MailMessageSearchIndexMaxAggregateInputType
+  }
+
+  export type GetMailMessageSearchIndexAggregateType<T extends MailMessageSearchIndexAggregateArgs> = {
+        [P in keyof T & keyof AggregateMailMessageSearchIndex]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMailMessageSearchIndex[P]>
+      : GetScalarType<T[P], AggregateMailMessageSearchIndex[P]>
+  }
+
+
+
+
+  export type MailMessageSearchIndexGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailMessageSearchIndexWhereInput
+    orderBy?: MailMessageSearchIndexOrderByWithAggregationInput | MailMessageSearchIndexOrderByWithAggregationInput[]
+    by: MailMessageSearchIndexScalarFieldEnum[] | MailMessageSearchIndexScalarFieldEnum
+    having?: MailMessageSearchIndexScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MailMessageSearchIndexCountAggregateInputType | true
+    _avg?: MailMessageSearchIndexAvgAggregateInputType
+    _sum?: MailMessageSearchIndexSumAggregateInputType
+    _min?: MailMessageSearchIndexMinAggregateInputType
+    _max?: MailMessageSearchIndexMaxAggregateInputType
+  }
+
+  export type MailMessageSearchIndexGroupByOutputType = {
+    messageId: string
+    mailboxId: string
+    keyVersion: string
+    terms: string[]
+    termCount: number
+    indexedAt: Date
+    _count: MailMessageSearchIndexCountAggregateOutputType | null
+    _avg: MailMessageSearchIndexAvgAggregateOutputType | null
+    _sum: MailMessageSearchIndexSumAggregateOutputType | null
+    _min: MailMessageSearchIndexMinAggregateOutputType | null
+    _max: MailMessageSearchIndexMaxAggregateOutputType | null
+  }
+
+  type GetMailMessageSearchIndexGroupByPayload<T extends MailMessageSearchIndexGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MailMessageSearchIndexGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MailMessageSearchIndexGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MailMessageSearchIndexGroupByOutputType[P]>
+            : GetScalarType<T[P], MailMessageSearchIndexGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MailMessageSearchIndexSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    messageId?: boolean
+    mailboxId?: boolean
+    keyVersion?: boolean
+    terms?: boolean
+    termCount?: boolean
+    indexedAt?: boolean
+    message?: boolean | MailMessageDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailMessageSearchIndex"]>
+
+  export type MailMessageSearchIndexSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    messageId?: boolean
+    mailboxId?: boolean
+    keyVersion?: boolean
+    terms?: boolean
+    termCount?: boolean
+    indexedAt?: boolean
+    message?: boolean | MailMessageDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailMessageSearchIndex"]>
+
+  export type MailMessageSearchIndexSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    messageId?: boolean
+    mailboxId?: boolean
+    keyVersion?: boolean
+    terms?: boolean
+    termCount?: boolean
+    indexedAt?: boolean
+    message?: boolean | MailMessageDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailMessageSearchIndex"]>
+
+  export type MailMessageSearchIndexSelectScalar = {
+    messageId?: boolean
+    mailboxId?: boolean
+    keyVersion?: boolean
+    terms?: boolean
+    termCount?: boolean
+    indexedAt?: boolean
+  }
+
+  export type MailMessageSearchIndexOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"messageId" | "mailboxId" | "keyVersion" | "terms" | "termCount" | "indexedAt", ExtArgs["result"]["mailMessageSearchIndex"]>
+  export type MailMessageSearchIndexInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    message?: boolean | MailMessageDefaultArgs<ExtArgs>
+  }
+  export type MailMessageSearchIndexIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    message?: boolean | MailMessageDefaultArgs<ExtArgs>
+  }
+  export type MailMessageSearchIndexIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    message?: boolean | MailMessageDefaultArgs<ExtArgs>
+  }
+
+  export type $MailMessageSearchIndexPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MailMessageSearchIndex"
+    objects: {
+      message: Prisma.$MailMessagePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      messageId: string
+      mailboxId: string
+      keyVersion: string
+      terms: string[]
+      termCount: number
+      indexedAt: Date
+    }, ExtArgs["result"]["mailMessageSearchIndex"]>
+    composites: {}
+  }
+
+  type MailMessageSearchIndexGetPayload<S extends boolean | null | undefined | MailMessageSearchIndexDefaultArgs> = $Result.GetResult<Prisma.$MailMessageSearchIndexPayload, S>
+
+  type MailMessageSearchIndexCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MailMessageSearchIndexFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MailMessageSearchIndexCountAggregateInputType | true
+    }
+
+  export interface MailMessageSearchIndexDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MailMessageSearchIndex'], meta: { name: 'MailMessageSearchIndex' } }
+    /**
+     * Find zero or one MailMessageSearchIndex that matches the filter.
+     * @param {MailMessageSearchIndexFindUniqueArgs} args - Arguments to find a MailMessageSearchIndex
+     * @example
+     * // Get one MailMessageSearchIndex
+     * const mailMessageSearchIndex = await prisma.mailMessageSearchIndex.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MailMessageSearchIndexFindUniqueArgs>(args: SelectSubset<T, MailMessageSearchIndexFindUniqueArgs<ExtArgs>>): Prisma__MailMessageSearchIndexClient<$Result.GetResult<Prisma.$MailMessageSearchIndexPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MailMessageSearchIndex that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MailMessageSearchIndexFindUniqueOrThrowArgs} args - Arguments to find a MailMessageSearchIndex
+     * @example
+     * // Get one MailMessageSearchIndex
+     * const mailMessageSearchIndex = await prisma.mailMessageSearchIndex.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MailMessageSearchIndexFindUniqueOrThrowArgs>(args: SelectSubset<T, MailMessageSearchIndexFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MailMessageSearchIndexClient<$Result.GetResult<Prisma.$MailMessageSearchIndexPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailMessageSearchIndex that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailMessageSearchIndexFindFirstArgs} args - Arguments to find a MailMessageSearchIndex
+     * @example
+     * // Get one MailMessageSearchIndex
+     * const mailMessageSearchIndex = await prisma.mailMessageSearchIndex.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MailMessageSearchIndexFindFirstArgs>(args?: SelectSubset<T, MailMessageSearchIndexFindFirstArgs<ExtArgs>>): Prisma__MailMessageSearchIndexClient<$Result.GetResult<Prisma.$MailMessageSearchIndexPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailMessageSearchIndex that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailMessageSearchIndexFindFirstOrThrowArgs} args - Arguments to find a MailMessageSearchIndex
+     * @example
+     * // Get one MailMessageSearchIndex
+     * const mailMessageSearchIndex = await prisma.mailMessageSearchIndex.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MailMessageSearchIndexFindFirstOrThrowArgs>(args?: SelectSubset<T, MailMessageSearchIndexFindFirstOrThrowArgs<ExtArgs>>): Prisma__MailMessageSearchIndexClient<$Result.GetResult<Prisma.$MailMessageSearchIndexPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MailMessageSearchIndices that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailMessageSearchIndexFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MailMessageSearchIndices
+     * const mailMessageSearchIndices = await prisma.mailMessageSearchIndex.findMany()
+     * 
+     * // Get first 10 MailMessageSearchIndices
+     * const mailMessageSearchIndices = await prisma.mailMessageSearchIndex.findMany({ take: 10 })
+     * 
+     * // Only select the `messageId`
+     * const mailMessageSearchIndexWithMessageIdOnly = await prisma.mailMessageSearchIndex.findMany({ select: { messageId: true } })
+     * 
+     */
+    findMany<T extends MailMessageSearchIndexFindManyArgs>(args?: SelectSubset<T, MailMessageSearchIndexFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailMessageSearchIndexPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MailMessageSearchIndex.
+     * @param {MailMessageSearchIndexCreateArgs} args - Arguments to create a MailMessageSearchIndex.
+     * @example
+     * // Create one MailMessageSearchIndex
+     * const MailMessageSearchIndex = await prisma.mailMessageSearchIndex.create({
+     *   data: {
+     *     // ... data to create a MailMessageSearchIndex
+     *   }
+     * })
+     * 
+     */
+    create<T extends MailMessageSearchIndexCreateArgs>(args: SelectSubset<T, MailMessageSearchIndexCreateArgs<ExtArgs>>): Prisma__MailMessageSearchIndexClient<$Result.GetResult<Prisma.$MailMessageSearchIndexPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MailMessageSearchIndices.
+     * @param {MailMessageSearchIndexCreateManyArgs} args - Arguments to create many MailMessageSearchIndices.
+     * @example
+     * // Create many MailMessageSearchIndices
+     * const mailMessageSearchIndex = await prisma.mailMessageSearchIndex.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MailMessageSearchIndexCreateManyArgs>(args?: SelectSubset<T, MailMessageSearchIndexCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MailMessageSearchIndices and returns the data saved in the database.
+     * @param {MailMessageSearchIndexCreateManyAndReturnArgs} args - Arguments to create many MailMessageSearchIndices.
+     * @example
+     * // Create many MailMessageSearchIndices
+     * const mailMessageSearchIndex = await prisma.mailMessageSearchIndex.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MailMessageSearchIndices and only return the `messageId`
+     * const mailMessageSearchIndexWithMessageIdOnly = await prisma.mailMessageSearchIndex.createManyAndReturn({
+     *   select: { messageId: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MailMessageSearchIndexCreateManyAndReturnArgs>(args?: SelectSubset<T, MailMessageSearchIndexCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailMessageSearchIndexPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MailMessageSearchIndex.
+     * @param {MailMessageSearchIndexDeleteArgs} args - Arguments to delete one MailMessageSearchIndex.
+     * @example
+     * // Delete one MailMessageSearchIndex
+     * const MailMessageSearchIndex = await prisma.mailMessageSearchIndex.delete({
+     *   where: {
+     *     // ... filter to delete one MailMessageSearchIndex
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MailMessageSearchIndexDeleteArgs>(args: SelectSubset<T, MailMessageSearchIndexDeleteArgs<ExtArgs>>): Prisma__MailMessageSearchIndexClient<$Result.GetResult<Prisma.$MailMessageSearchIndexPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MailMessageSearchIndex.
+     * @param {MailMessageSearchIndexUpdateArgs} args - Arguments to update one MailMessageSearchIndex.
+     * @example
+     * // Update one MailMessageSearchIndex
+     * const mailMessageSearchIndex = await prisma.mailMessageSearchIndex.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MailMessageSearchIndexUpdateArgs>(args: SelectSubset<T, MailMessageSearchIndexUpdateArgs<ExtArgs>>): Prisma__MailMessageSearchIndexClient<$Result.GetResult<Prisma.$MailMessageSearchIndexPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MailMessageSearchIndices.
+     * @param {MailMessageSearchIndexDeleteManyArgs} args - Arguments to filter MailMessageSearchIndices to delete.
+     * @example
+     * // Delete a few MailMessageSearchIndices
+     * const { count } = await prisma.mailMessageSearchIndex.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MailMessageSearchIndexDeleteManyArgs>(args?: SelectSubset<T, MailMessageSearchIndexDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailMessageSearchIndices.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailMessageSearchIndexUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MailMessageSearchIndices
+     * const mailMessageSearchIndex = await prisma.mailMessageSearchIndex.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MailMessageSearchIndexUpdateManyArgs>(args: SelectSubset<T, MailMessageSearchIndexUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailMessageSearchIndices and returns the data updated in the database.
+     * @param {MailMessageSearchIndexUpdateManyAndReturnArgs} args - Arguments to update many MailMessageSearchIndices.
+     * @example
+     * // Update many MailMessageSearchIndices
+     * const mailMessageSearchIndex = await prisma.mailMessageSearchIndex.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MailMessageSearchIndices and only return the `messageId`
+     * const mailMessageSearchIndexWithMessageIdOnly = await prisma.mailMessageSearchIndex.updateManyAndReturn({
+     *   select: { messageId: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MailMessageSearchIndexUpdateManyAndReturnArgs>(args: SelectSubset<T, MailMessageSearchIndexUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailMessageSearchIndexPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MailMessageSearchIndex.
+     * @param {MailMessageSearchIndexUpsertArgs} args - Arguments to update or create a MailMessageSearchIndex.
+     * @example
+     * // Update or create a MailMessageSearchIndex
+     * const mailMessageSearchIndex = await prisma.mailMessageSearchIndex.upsert({
+     *   create: {
+     *     // ... data to create a MailMessageSearchIndex
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MailMessageSearchIndex we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MailMessageSearchIndexUpsertArgs>(args: SelectSubset<T, MailMessageSearchIndexUpsertArgs<ExtArgs>>): Prisma__MailMessageSearchIndexClient<$Result.GetResult<Prisma.$MailMessageSearchIndexPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MailMessageSearchIndices.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailMessageSearchIndexCountArgs} args - Arguments to filter MailMessageSearchIndices to count.
+     * @example
+     * // Count the number of MailMessageSearchIndices
+     * const count = await prisma.mailMessageSearchIndex.count({
+     *   where: {
+     *     // ... the filter for the MailMessageSearchIndices we want to count
+     *   }
+     * })
+    **/
+    count<T extends MailMessageSearchIndexCountArgs>(
+      args?: Subset<T, MailMessageSearchIndexCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MailMessageSearchIndexCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MailMessageSearchIndex.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailMessageSearchIndexAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MailMessageSearchIndexAggregateArgs>(args: Subset<T, MailMessageSearchIndexAggregateArgs>): Prisma.PrismaPromise<GetMailMessageSearchIndexAggregateType<T>>
+
+    /**
+     * Group by MailMessageSearchIndex.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailMessageSearchIndexGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MailMessageSearchIndexGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MailMessageSearchIndexGroupByArgs['orderBy'] }
+        : { orderBy?: MailMessageSearchIndexGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MailMessageSearchIndexGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMailMessageSearchIndexGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MailMessageSearchIndex model
+   */
+  readonly fields: MailMessageSearchIndexFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MailMessageSearchIndex.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MailMessageSearchIndexClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    message<T extends MailMessageDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MailMessageDefaultArgs<ExtArgs>>): Prisma__MailMessageClient<$Result.GetResult<Prisma.$MailMessagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MailMessageSearchIndex model
+   */
+  interface MailMessageSearchIndexFieldRefs {
+    readonly messageId: FieldRef<"MailMessageSearchIndex", 'String'>
+    readonly mailboxId: FieldRef<"MailMessageSearchIndex", 'String'>
+    readonly keyVersion: FieldRef<"MailMessageSearchIndex", 'String'>
+    readonly terms: FieldRef<"MailMessageSearchIndex", 'String[]'>
+    readonly termCount: FieldRef<"MailMessageSearchIndex", 'Int'>
+    readonly indexedAt: FieldRef<"MailMessageSearchIndex", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MailMessageSearchIndex findUnique
+   */
+  export type MailMessageSearchIndexFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageSearchIndex
+     */
+    select?: MailMessageSearchIndexSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageSearchIndex
+     */
+    omit?: MailMessageSearchIndexOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageSearchIndexInclude<ExtArgs> | null
+    /**
+     * Filter, which MailMessageSearchIndex to fetch.
+     */
+    where: MailMessageSearchIndexWhereUniqueInput
+  }
+
+  /**
+   * MailMessageSearchIndex findUniqueOrThrow
+   */
+  export type MailMessageSearchIndexFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageSearchIndex
+     */
+    select?: MailMessageSearchIndexSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageSearchIndex
+     */
+    omit?: MailMessageSearchIndexOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageSearchIndexInclude<ExtArgs> | null
+    /**
+     * Filter, which MailMessageSearchIndex to fetch.
+     */
+    where: MailMessageSearchIndexWhereUniqueInput
+  }
+
+  /**
+   * MailMessageSearchIndex findFirst
+   */
+  export type MailMessageSearchIndexFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageSearchIndex
+     */
+    select?: MailMessageSearchIndexSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageSearchIndex
+     */
+    omit?: MailMessageSearchIndexOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageSearchIndexInclude<ExtArgs> | null
+    /**
+     * Filter, which MailMessageSearchIndex to fetch.
+     */
+    where?: MailMessageSearchIndexWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailMessageSearchIndices to fetch.
+     */
+    orderBy?: MailMessageSearchIndexOrderByWithRelationInput | MailMessageSearchIndexOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailMessageSearchIndices.
+     */
+    cursor?: MailMessageSearchIndexWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailMessageSearchIndices from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailMessageSearchIndices.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailMessageSearchIndices.
+     */
+    distinct?: MailMessageSearchIndexScalarFieldEnum | MailMessageSearchIndexScalarFieldEnum[]
+  }
+
+  /**
+   * MailMessageSearchIndex findFirstOrThrow
+   */
+  export type MailMessageSearchIndexFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageSearchIndex
+     */
+    select?: MailMessageSearchIndexSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageSearchIndex
+     */
+    omit?: MailMessageSearchIndexOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageSearchIndexInclude<ExtArgs> | null
+    /**
+     * Filter, which MailMessageSearchIndex to fetch.
+     */
+    where?: MailMessageSearchIndexWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailMessageSearchIndices to fetch.
+     */
+    orderBy?: MailMessageSearchIndexOrderByWithRelationInput | MailMessageSearchIndexOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailMessageSearchIndices.
+     */
+    cursor?: MailMessageSearchIndexWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailMessageSearchIndices from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailMessageSearchIndices.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailMessageSearchIndices.
+     */
+    distinct?: MailMessageSearchIndexScalarFieldEnum | MailMessageSearchIndexScalarFieldEnum[]
+  }
+
+  /**
+   * MailMessageSearchIndex findMany
+   */
+  export type MailMessageSearchIndexFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageSearchIndex
+     */
+    select?: MailMessageSearchIndexSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageSearchIndex
+     */
+    omit?: MailMessageSearchIndexOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageSearchIndexInclude<ExtArgs> | null
+    /**
+     * Filter, which MailMessageSearchIndices to fetch.
+     */
+    where?: MailMessageSearchIndexWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailMessageSearchIndices to fetch.
+     */
+    orderBy?: MailMessageSearchIndexOrderByWithRelationInput | MailMessageSearchIndexOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MailMessageSearchIndices.
+     */
+    cursor?: MailMessageSearchIndexWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailMessageSearchIndices from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailMessageSearchIndices.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailMessageSearchIndices.
+     */
+    distinct?: MailMessageSearchIndexScalarFieldEnum | MailMessageSearchIndexScalarFieldEnum[]
+  }
+
+  /**
+   * MailMessageSearchIndex create
+   */
+  export type MailMessageSearchIndexCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageSearchIndex
+     */
+    select?: MailMessageSearchIndexSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageSearchIndex
+     */
+    omit?: MailMessageSearchIndexOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageSearchIndexInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MailMessageSearchIndex.
+     */
+    data: XOR<MailMessageSearchIndexCreateInput, MailMessageSearchIndexUncheckedCreateInput>
+  }
+
+  /**
+   * MailMessageSearchIndex createMany
+   */
+  export type MailMessageSearchIndexCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MailMessageSearchIndices.
+     */
+    data: MailMessageSearchIndexCreateManyInput | MailMessageSearchIndexCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailMessageSearchIndex createManyAndReturn
+   */
+  export type MailMessageSearchIndexCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageSearchIndex
+     */
+    select?: MailMessageSearchIndexSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageSearchIndex
+     */
+    omit?: MailMessageSearchIndexOmit<ExtArgs> | null
+    /**
+     * The data used to create many MailMessageSearchIndices.
+     */
+    data: MailMessageSearchIndexCreateManyInput | MailMessageSearchIndexCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageSearchIndexIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MailMessageSearchIndex update
+   */
+  export type MailMessageSearchIndexUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageSearchIndex
+     */
+    select?: MailMessageSearchIndexSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageSearchIndex
+     */
+    omit?: MailMessageSearchIndexOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageSearchIndexInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MailMessageSearchIndex.
+     */
+    data: XOR<MailMessageSearchIndexUpdateInput, MailMessageSearchIndexUncheckedUpdateInput>
+    /**
+     * Choose, which MailMessageSearchIndex to update.
+     */
+    where: MailMessageSearchIndexWhereUniqueInput
+  }
+
+  /**
+   * MailMessageSearchIndex updateMany
+   */
+  export type MailMessageSearchIndexUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MailMessageSearchIndices.
+     */
+    data: XOR<MailMessageSearchIndexUpdateManyMutationInput, MailMessageSearchIndexUncheckedUpdateManyInput>
+    /**
+     * Filter which MailMessageSearchIndices to update
+     */
+    where?: MailMessageSearchIndexWhereInput
+    /**
+     * Limit how many MailMessageSearchIndices to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailMessageSearchIndex updateManyAndReturn
+   */
+  export type MailMessageSearchIndexUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageSearchIndex
+     */
+    select?: MailMessageSearchIndexSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageSearchIndex
+     */
+    omit?: MailMessageSearchIndexOmit<ExtArgs> | null
+    /**
+     * The data used to update MailMessageSearchIndices.
+     */
+    data: XOR<MailMessageSearchIndexUpdateManyMutationInput, MailMessageSearchIndexUncheckedUpdateManyInput>
+    /**
+     * Filter which MailMessageSearchIndices to update
+     */
+    where?: MailMessageSearchIndexWhereInput
+    /**
+     * Limit how many MailMessageSearchIndices to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageSearchIndexIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MailMessageSearchIndex upsert
+   */
+  export type MailMessageSearchIndexUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageSearchIndex
+     */
+    select?: MailMessageSearchIndexSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageSearchIndex
+     */
+    omit?: MailMessageSearchIndexOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageSearchIndexInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MailMessageSearchIndex to update in case it exists.
+     */
+    where: MailMessageSearchIndexWhereUniqueInput
+    /**
+     * In case the MailMessageSearchIndex found by the `where` argument doesn't exist, create a new MailMessageSearchIndex with this data.
+     */
+    create: XOR<MailMessageSearchIndexCreateInput, MailMessageSearchIndexUncheckedCreateInput>
+    /**
+     * In case the MailMessageSearchIndex was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MailMessageSearchIndexUpdateInput, MailMessageSearchIndexUncheckedUpdateInput>
+  }
+
+  /**
+   * MailMessageSearchIndex delete
+   */
+  export type MailMessageSearchIndexDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageSearchIndex
+     */
+    select?: MailMessageSearchIndexSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageSearchIndex
+     */
+    omit?: MailMessageSearchIndexOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageSearchIndexInclude<ExtArgs> | null
+    /**
+     * Filter which MailMessageSearchIndex to delete.
+     */
+    where: MailMessageSearchIndexWhereUniqueInput
+  }
+
+  /**
+   * MailMessageSearchIndex deleteMany
+   */
+  export type MailMessageSearchIndexDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailMessageSearchIndices to delete
+     */
+    where?: MailMessageSearchIndexWhereInput
+    /**
+     * Limit how many MailMessageSearchIndices to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailMessageSearchIndex without action
+   */
+  export type MailMessageSearchIndexDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageSearchIndex
+     */
+    select?: MailMessageSearchIndexSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageSearchIndex
+     */
+    omit?: MailMessageSearchIndexOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageSearchIndexInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MailMessageArchive
+   */
+
+  export type AggregateMailMessageArchive = {
+    _count: MailMessageArchiveCountAggregateOutputType | null
+    _avg: MailMessageArchiveAvgAggregateOutputType | null
+    _sum: MailMessageArchiveSumAggregateOutputType | null
+    _min: MailMessageArchiveMinAggregateOutputType | null
+    _max: MailMessageArchiveMaxAggregateOutputType | null
+  }
+
+  export type MailMessageArchiveAvgAggregateOutputType = {
+    headerCount: number | null
+    rawMimeSizeBytes: number | null
+  }
+
+  export type MailMessageArchiveSumAggregateOutputType = {
+    headerCount: number | null
+    rawMimeSizeBytes: number | null
+  }
+
+  export type MailMessageArchiveMinAggregateOutputType = {
+    messageId: string | null
+    mailboxId: string | null
+    headersObjectKey: string | null
+    headersSha256: string | null
+    headerCount: number | null
+    rawMimeStatus: string | null
+    rawMimeObjectKey: string | null
+    rawMimeSha256: string | null
+    rawMimeSizeBytes: number | null
+    archivedAt: Date | null
+  }
+
+  export type MailMessageArchiveMaxAggregateOutputType = {
+    messageId: string | null
+    mailboxId: string | null
+    headersObjectKey: string | null
+    headersSha256: string | null
+    headerCount: number | null
+    rawMimeStatus: string | null
+    rawMimeObjectKey: string | null
+    rawMimeSha256: string | null
+    rawMimeSizeBytes: number | null
+    archivedAt: Date | null
+  }
+
+  export type MailMessageArchiveCountAggregateOutputType = {
+    messageId: number
+    mailboxId: number
+    headersObjectKey: number
+    headersSha256: number
+    headerCount: number
+    rawMimeStatus: number
+    rawMimeObjectKey: number
+    rawMimeSha256: number
+    rawMimeSizeBytes: number
+    archivedAt: number
+    _all: number
+  }
+
+
+  export type MailMessageArchiveAvgAggregateInputType = {
+    headerCount?: true
+    rawMimeSizeBytes?: true
+  }
+
+  export type MailMessageArchiveSumAggregateInputType = {
+    headerCount?: true
+    rawMimeSizeBytes?: true
+  }
+
+  export type MailMessageArchiveMinAggregateInputType = {
+    messageId?: true
+    mailboxId?: true
+    headersObjectKey?: true
+    headersSha256?: true
+    headerCount?: true
+    rawMimeStatus?: true
+    rawMimeObjectKey?: true
+    rawMimeSha256?: true
+    rawMimeSizeBytes?: true
+    archivedAt?: true
+  }
+
+  export type MailMessageArchiveMaxAggregateInputType = {
+    messageId?: true
+    mailboxId?: true
+    headersObjectKey?: true
+    headersSha256?: true
+    headerCount?: true
+    rawMimeStatus?: true
+    rawMimeObjectKey?: true
+    rawMimeSha256?: true
+    rawMimeSizeBytes?: true
+    archivedAt?: true
+  }
+
+  export type MailMessageArchiveCountAggregateInputType = {
+    messageId?: true
+    mailboxId?: true
+    headersObjectKey?: true
+    headersSha256?: true
+    headerCount?: true
+    rawMimeStatus?: true
+    rawMimeObjectKey?: true
+    rawMimeSha256?: true
+    rawMimeSizeBytes?: true
+    archivedAt?: true
+    _all?: true
+  }
+
+  export type MailMessageArchiveAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailMessageArchive to aggregate.
+     */
+    where?: MailMessageArchiveWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailMessageArchives to fetch.
+     */
+    orderBy?: MailMessageArchiveOrderByWithRelationInput | MailMessageArchiveOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MailMessageArchiveWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailMessageArchives from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailMessageArchives.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MailMessageArchives
+    **/
+    _count?: true | MailMessageArchiveCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MailMessageArchiveAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MailMessageArchiveSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MailMessageArchiveMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MailMessageArchiveMaxAggregateInputType
+  }
+
+  export type GetMailMessageArchiveAggregateType<T extends MailMessageArchiveAggregateArgs> = {
+        [P in keyof T & keyof AggregateMailMessageArchive]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMailMessageArchive[P]>
+      : GetScalarType<T[P], AggregateMailMessageArchive[P]>
+  }
+
+
+
+
+  export type MailMessageArchiveGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailMessageArchiveWhereInput
+    orderBy?: MailMessageArchiveOrderByWithAggregationInput | MailMessageArchiveOrderByWithAggregationInput[]
+    by: MailMessageArchiveScalarFieldEnum[] | MailMessageArchiveScalarFieldEnum
+    having?: MailMessageArchiveScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MailMessageArchiveCountAggregateInputType | true
+    _avg?: MailMessageArchiveAvgAggregateInputType
+    _sum?: MailMessageArchiveSumAggregateInputType
+    _min?: MailMessageArchiveMinAggregateInputType
+    _max?: MailMessageArchiveMaxAggregateInputType
+  }
+
+  export type MailMessageArchiveGroupByOutputType = {
+    messageId: string
+    mailboxId: string
+    headersObjectKey: string | null
+    headersSha256: string | null
+    headerCount: number
+    rawMimeStatus: string
+    rawMimeObjectKey: string | null
+    rawMimeSha256: string | null
+    rawMimeSizeBytes: number | null
+    archivedAt: Date
+    _count: MailMessageArchiveCountAggregateOutputType | null
+    _avg: MailMessageArchiveAvgAggregateOutputType | null
+    _sum: MailMessageArchiveSumAggregateOutputType | null
+    _min: MailMessageArchiveMinAggregateOutputType | null
+    _max: MailMessageArchiveMaxAggregateOutputType | null
+  }
+
+  type GetMailMessageArchiveGroupByPayload<T extends MailMessageArchiveGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MailMessageArchiveGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MailMessageArchiveGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MailMessageArchiveGroupByOutputType[P]>
+            : GetScalarType<T[P], MailMessageArchiveGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MailMessageArchiveSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    messageId?: boolean
+    mailboxId?: boolean
+    headersObjectKey?: boolean
+    headersSha256?: boolean
+    headerCount?: boolean
+    rawMimeStatus?: boolean
+    rawMimeObjectKey?: boolean
+    rawMimeSha256?: boolean
+    rawMimeSizeBytes?: boolean
+    archivedAt?: boolean
+    message?: boolean | MailMessageDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailMessageArchive"]>
+
+  export type MailMessageArchiveSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    messageId?: boolean
+    mailboxId?: boolean
+    headersObjectKey?: boolean
+    headersSha256?: boolean
+    headerCount?: boolean
+    rawMimeStatus?: boolean
+    rawMimeObjectKey?: boolean
+    rawMimeSha256?: boolean
+    rawMimeSizeBytes?: boolean
+    archivedAt?: boolean
+    message?: boolean | MailMessageDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailMessageArchive"]>
+
+  export type MailMessageArchiveSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    messageId?: boolean
+    mailboxId?: boolean
+    headersObjectKey?: boolean
+    headersSha256?: boolean
+    headerCount?: boolean
+    rawMimeStatus?: boolean
+    rawMimeObjectKey?: boolean
+    rawMimeSha256?: boolean
+    rawMimeSizeBytes?: boolean
+    archivedAt?: boolean
+    message?: boolean | MailMessageDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailMessageArchive"]>
+
+  export type MailMessageArchiveSelectScalar = {
+    messageId?: boolean
+    mailboxId?: boolean
+    headersObjectKey?: boolean
+    headersSha256?: boolean
+    headerCount?: boolean
+    rawMimeStatus?: boolean
+    rawMimeObjectKey?: boolean
+    rawMimeSha256?: boolean
+    rawMimeSizeBytes?: boolean
+    archivedAt?: boolean
+  }
+
+  export type MailMessageArchiveOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"messageId" | "mailboxId" | "headersObjectKey" | "headersSha256" | "headerCount" | "rawMimeStatus" | "rawMimeObjectKey" | "rawMimeSha256" | "rawMimeSizeBytes" | "archivedAt", ExtArgs["result"]["mailMessageArchive"]>
+  export type MailMessageArchiveInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    message?: boolean | MailMessageDefaultArgs<ExtArgs>
+  }
+  export type MailMessageArchiveIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    message?: boolean | MailMessageDefaultArgs<ExtArgs>
+  }
+  export type MailMessageArchiveIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    message?: boolean | MailMessageDefaultArgs<ExtArgs>
+  }
+
+  export type $MailMessageArchivePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MailMessageArchive"
+    objects: {
+      message: Prisma.$MailMessagePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      messageId: string
+      mailboxId: string
+      headersObjectKey: string | null
+      headersSha256: string | null
+      headerCount: number
+      rawMimeStatus: string
+      rawMimeObjectKey: string | null
+      rawMimeSha256: string | null
+      rawMimeSizeBytes: number | null
+      archivedAt: Date
+    }, ExtArgs["result"]["mailMessageArchive"]>
+    composites: {}
+  }
+
+  type MailMessageArchiveGetPayload<S extends boolean | null | undefined | MailMessageArchiveDefaultArgs> = $Result.GetResult<Prisma.$MailMessageArchivePayload, S>
+
+  type MailMessageArchiveCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MailMessageArchiveFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MailMessageArchiveCountAggregateInputType | true
+    }
+
+  export interface MailMessageArchiveDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MailMessageArchive'], meta: { name: 'MailMessageArchive' } }
+    /**
+     * Find zero or one MailMessageArchive that matches the filter.
+     * @param {MailMessageArchiveFindUniqueArgs} args - Arguments to find a MailMessageArchive
+     * @example
+     * // Get one MailMessageArchive
+     * const mailMessageArchive = await prisma.mailMessageArchive.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MailMessageArchiveFindUniqueArgs>(args: SelectSubset<T, MailMessageArchiveFindUniqueArgs<ExtArgs>>): Prisma__MailMessageArchiveClient<$Result.GetResult<Prisma.$MailMessageArchivePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MailMessageArchive that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MailMessageArchiveFindUniqueOrThrowArgs} args - Arguments to find a MailMessageArchive
+     * @example
+     * // Get one MailMessageArchive
+     * const mailMessageArchive = await prisma.mailMessageArchive.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MailMessageArchiveFindUniqueOrThrowArgs>(args: SelectSubset<T, MailMessageArchiveFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MailMessageArchiveClient<$Result.GetResult<Prisma.$MailMessageArchivePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailMessageArchive that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailMessageArchiveFindFirstArgs} args - Arguments to find a MailMessageArchive
+     * @example
+     * // Get one MailMessageArchive
+     * const mailMessageArchive = await prisma.mailMessageArchive.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MailMessageArchiveFindFirstArgs>(args?: SelectSubset<T, MailMessageArchiveFindFirstArgs<ExtArgs>>): Prisma__MailMessageArchiveClient<$Result.GetResult<Prisma.$MailMessageArchivePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailMessageArchive that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailMessageArchiveFindFirstOrThrowArgs} args - Arguments to find a MailMessageArchive
+     * @example
+     * // Get one MailMessageArchive
+     * const mailMessageArchive = await prisma.mailMessageArchive.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MailMessageArchiveFindFirstOrThrowArgs>(args?: SelectSubset<T, MailMessageArchiveFindFirstOrThrowArgs<ExtArgs>>): Prisma__MailMessageArchiveClient<$Result.GetResult<Prisma.$MailMessageArchivePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MailMessageArchives that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailMessageArchiveFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MailMessageArchives
+     * const mailMessageArchives = await prisma.mailMessageArchive.findMany()
+     * 
+     * // Get first 10 MailMessageArchives
+     * const mailMessageArchives = await prisma.mailMessageArchive.findMany({ take: 10 })
+     * 
+     * // Only select the `messageId`
+     * const mailMessageArchiveWithMessageIdOnly = await prisma.mailMessageArchive.findMany({ select: { messageId: true } })
+     * 
+     */
+    findMany<T extends MailMessageArchiveFindManyArgs>(args?: SelectSubset<T, MailMessageArchiveFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailMessageArchivePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MailMessageArchive.
+     * @param {MailMessageArchiveCreateArgs} args - Arguments to create a MailMessageArchive.
+     * @example
+     * // Create one MailMessageArchive
+     * const MailMessageArchive = await prisma.mailMessageArchive.create({
+     *   data: {
+     *     // ... data to create a MailMessageArchive
+     *   }
+     * })
+     * 
+     */
+    create<T extends MailMessageArchiveCreateArgs>(args: SelectSubset<T, MailMessageArchiveCreateArgs<ExtArgs>>): Prisma__MailMessageArchiveClient<$Result.GetResult<Prisma.$MailMessageArchivePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MailMessageArchives.
+     * @param {MailMessageArchiveCreateManyArgs} args - Arguments to create many MailMessageArchives.
+     * @example
+     * // Create many MailMessageArchives
+     * const mailMessageArchive = await prisma.mailMessageArchive.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MailMessageArchiveCreateManyArgs>(args?: SelectSubset<T, MailMessageArchiveCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MailMessageArchives and returns the data saved in the database.
+     * @param {MailMessageArchiveCreateManyAndReturnArgs} args - Arguments to create many MailMessageArchives.
+     * @example
+     * // Create many MailMessageArchives
+     * const mailMessageArchive = await prisma.mailMessageArchive.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MailMessageArchives and only return the `messageId`
+     * const mailMessageArchiveWithMessageIdOnly = await prisma.mailMessageArchive.createManyAndReturn({
+     *   select: { messageId: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MailMessageArchiveCreateManyAndReturnArgs>(args?: SelectSubset<T, MailMessageArchiveCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailMessageArchivePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MailMessageArchive.
+     * @param {MailMessageArchiveDeleteArgs} args - Arguments to delete one MailMessageArchive.
+     * @example
+     * // Delete one MailMessageArchive
+     * const MailMessageArchive = await prisma.mailMessageArchive.delete({
+     *   where: {
+     *     // ... filter to delete one MailMessageArchive
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MailMessageArchiveDeleteArgs>(args: SelectSubset<T, MailMessageArchiveDeleteArgs<ExtArgs>>): Prisma__MailMessageArchiveClient<$Result.GetResult<Prisma.$MailMessageArchivePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MailMessageArchive.
+     * @param {MailMessageArchiveUpdateArgs} args - Arguments to update one MailMessageArchive.
+     * @example
+     * // Update one MailMessageArchive
+     * const mailMessageArchive = await prisma.mailMessageArchive.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MailMessageArchiveUpdateArgs>(args: SelectSubset<T, MailMessageArchiveUpdateArgs<ExtArgs>>): Prisma__MailMessageArchiveClient<$Result.GetResult<Prisma.$MailMessageArchivePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MailMessageArchives.
+     * @param {MailMessageArchiveDeleteManyArgs} args - Arguments to filter MailMessageArchives to delete.
+     * @example
+     * // Delete a few MailMessageArchives
+     * const { count } = await prisma.mailMessageArchive.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MailMessageArchiveDeleteManyArgs>(args?: SelectSubset<T, MailMessageArchiveDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailMessageArchives.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailMessageArchiveUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MailMessageArchives
+     * const mailMessageArchive = await prisma.mailMessageArchive.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MailMessageArchiveUpdateManyArgs>(args: SelectSubset<T, MailMessageArchiveUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailMessageArchives and returns the data updated in the database.
+     * @param {MailMessageArchiveUpdateManyAndReturnArgs} args - Arguments to update many MailMessageArchives.
+     * @example
+     * // Update many MailMessageArchives
+     * const mailMessageArchive = await prisma.mailMessageArchive.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MailMessageArchives and only return the `messageId`
+     * const mailMessageArchiveWithMessageIdOnly = await prisma.mailMessageArchive.updateManyAndReturn({
+     *   select: { messageId: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MailMessageArchiveUpdateManyAndReturnArgs>(args: SelectSubset<T, MailMessageArchiveUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailMessageArchivePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MailMessageArchive.
+     * @param {MailMessageArchiveUpsertArgs} args - Arguments to update or create a MailMessageArchive.
+     * @example
+     * // Update or create a MailMessageArchive
+     * const mailMessageArchive = await prisma.mailMessageArchive.upsert({
+     *   create: {
+     *     // ... data to create a MailMessageArchive
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MailMessageArchive we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MailMessageArchiveUpsertArgs>(args: SelectSubset<T, MailMessageArchiveUpsertArgs<ExtArgs>>): Prisma__MailMessageArchiveClient<$Result.GetResult<Prisma.$MailMessageArchivePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MailMessageArchives.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailMessageArchiveCountArgs} args - Arguments to filter MailMessageArchives to count.
+     * @example
+     * // Count the number of MailMessageArchives
+     * const count = await prisma.mailMessageArchive.count({
+     *   where: {
+     *     // ... the filter for the MailMessageArchives we want to count
+     *   }
+     * })
+    **/
+    count<T extends MailMessageArchiveCountArgs>(
+      args?: Subset<T, MailMessageArchiveCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MailMessageArchiveCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MailMessageArchive.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailMessageArchiveAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MailMessageArchiveAggregateArgs>(args: Subset<T, MailMessageArchiveAggregateArgs>): Prisma.PrismaPromise<GetMailMessageArchiveAggregateType<T>>
+
+    /**
+     * Group by MailMessageArchive.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailMessageArchiveGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MailMessageArchiveGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MailMessageArchiveGroupByArgs['orderBy'] }
+        : { orderBy?: MailMessageArchiveGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MailMessageArchiveGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMailMessageArchiveGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MailMessageArchive model
+   */
+  readonly fields: MailMessageArchiveFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MailMessageArchive.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MailMessageArchiveClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    message<T extends MailMessageDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MailMessageDefaultArgs<ExtArgs>>): Prisma__MailMessageClient<$Result.GetResult<Prisma.$MailMessagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MailMessageArchive model
+   */
+  interface MailMessageArchiveFieldRefs {
+    readonly messageId: FieldRef<"MailMessageArchive", 'String'>
+    readonly mailboxId: FieldRef<"MailMessageArchive", 'String'>
+    readonly headersObjectKey: FieldRef<"MailMessageArchive", 'String'>
+    readonly headersSha256: FieldRef<"MailMessageArchive", 'String'>
+    readonly headerCount: FieldRef<"MailMessageArchive", 'Int'>
+    readonly rawMimeStatus: FieldRef<"MailMessageArchive", 'String'>
+    readonly rawMimeObjectKey: FieldRef<"MailMessageArchive", 'String'>
+    readonly rawMimeSha256: FieldRef<"MailMessageArchive", 'String'>
+    readonly rawMimeSizeBytes: FieldRef<"MailMessageArchive", 'Int'>
+    readonly archivedAt: FieldRef<"MailMessageArchive", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MailMessageArchive findUnique
+   */
+  export type MailMessageArchiveFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageArchive
+     */
+    select?: MailMessageArchiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageArchive
+     */
+    omit?: MailMessageArchiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageArchiveInclude<ExtArgs> | null
+    /**
+     * Filter, which MailMessageArchive to fetch.
+     */
+    where: MailMessageArchiveWhereUniqueInput
+  }
+
+  /**
+   * MailMessageArchive findUniqueOrThrow
+   */
+  export type MailMessageArchiveFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageArchive
+     */
+    select?: MailMessageArchiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageArchive
+     */
+    omit?: MailMessageArchiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageArchiveInclude<ExtArgs> | null
+    /**
+     * Filter, which MailMessageArchive to fetch.
+     */
+    where: MailMessageArchiveWhereUniqueInput
+  }
+
+  /**
+   * MailMessageArchive findFirst
+   */
+  export type MailMessageArchiveFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageArchive
+     */
+    select?: MailMessageArchiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageArchive
+     */
+    omit?: MailMessageArchiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageArchiveInclude<ExtArgs> | null
+    /**
+     * Filter, which MailMessageArchive to fetch.
+     */
+    where?: MailMessageArchiveWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailMessageArchives to fetch.
+     */
+    orderBy?: MailMessageArchiveOrderByWithRelationInput | MailMessageArchiveOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailMessageArchives.
+     */
+    cursor?: MailMessageArchiveWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailMessageArchives from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailMessageArchives.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailMessageArchives.
+     */
+    distinct?: MailMessageArchiveScalarFieldEnum | MailMessageArchiveScalarFieldEnum[]
+  }
+
+  /**
+   * MailMessageArchive findFirstOrThrow
+   */
+  export type MailMessageArchiveFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageArchive
+     */
+    select?: MailMessageArchiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageArchive
+     */
+    omit?: MailMessageArchiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageArchiveInclude<ExtArgs> | null
+    /**
+     * Filter, which MailMessageArchive to fetch.
+     */
+    where?: MailMessageArchiveWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailMessageArchives to fetch.
+     */
+    orderBy?: MailMessageArchiveOrderByWithRelationInput | MailMessageArchiveOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailMessageArchives.
+     */
+    cursor?: MailMessageArchiveWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailMessageArchives from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailMessageArchives.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailMessageArchives.
+     */
+    distinct?: MailMessageArchiveScalarFieldEnum | MailMessageArchiveScalarFieldEnum[]
+  }
+
+  /**
+   * MailMessageArchive findMany
+   */
+  export type MailMessageArchiveFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageArchive
+     */
+    select?: MailMessageArchiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageArchive
+     */
+    omit?: MailMessageArchiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageArchiveInclude<ExtArgs> | null
+    /**
+     * Filter, which MailMessageArchives to fetch.
+     */
+    where?: MailMessageArchiveWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailMessageArchives to fetch.
+     */
+    orderBy?: MailMessageArchiveOrderByWithRelationInput | MailMessageArchiveOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MailMessageArchives.
+     */
+    cursor?: MailMessageArchiveWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailMessageArchives from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailMessageArchives.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailMessageArchives.
+     */
+    distinct?: MailMessageArchiveScalarFieldEnum | MailMessageArchiveScalarFieldEnum[]
+  }
+
+  /**
+   * MailMessageArchive create
+   */
+  export type MailMessageArchiveCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageArchive
+     */
+    select?: MailMessageArchiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageArchive
+     */
+    omit?: MailMessageArchiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageArchiveInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MailMessageArchive.
+     */
+    data: XOR<MailMessageArchiveCreateInput, MailMessageArchiveUncheckedCreateInput>
+  }
+
+  /**
+   * MailMessageArchive createMany
+   */
+  export type MailMessageArchiveCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MailMessageArchives.
+     */
+    data: MailMessageArchiveCreateManyInput | MailMessageArchiveCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailMessageArchive createManyAndReturn
+   */
+  export type MailMessageArchiveCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageArchive
+     */
+    select?: MailMessageArchiveSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageArchive
+     */
+    omit?: MailMessageArchiveOmit<ExtArgs> | null
+    /**
+     * The data used to create many MailMessageArchives.
+     */
+    data: MailMessageArchiveCreateManyInput | MailMessageArchiveCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageArchiveIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MailMessageArchive update
+   */
+  export type MailMessageArchiveUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageArchive
+     */
+    select?: MailMessageArchiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageArchive
+     */
+    omit?: MailMessageArchiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageArchiveInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MailMessageArchive.
+     */
+    data: XOR<MailMessageArchiveUpdateInput, MailMessageArchiveUncheckedUpdateInput>
+    /**
+     * Choose, which MailMessageArchive to update.
+     */
+    where: MailMessageArchiveWhereUniqueInput
+  }
+
+  /**
+   * MailMessageArchive updateMany
+   */
+  export type MailMessageArchiveUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MailMessageArchives.
+     */
+    data: XOR<MailMessageArchiveUpdateManyMutationInput, MailMessageArchiveUncheckedUpdateManyInput>
+    /**
+     * Filter which MailMessageArchives to update
+     */
+    where?: MailMessageArchiveWhereInput
+    /**
+     * Limit how many MailMessageArchives to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailMessageArchive updateManyAndReturn
+   */
+  export type MailMessageArchiveUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageArchive
+     */
+    select?: MailMessageArchiveSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageArchive
+     */
+    omit?: MailMessageArchiveOmit<ExtArgs> | null
+    /**
+     * The data used to update MailMessageArchives.
+     */
+    data: XOR<MailMessageArchiveUpdateManyMutationInput, MailMessageArchiveUncheckedUpdateManyInput>
+    /**
+     * Filter which MailMessageArchives to update
+     */
+    where?: MailMessageArchiveWhereInput
+    /**
+     * Limit how many MailMessageArchives to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageArchiveIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MailMessageArchive upsert
+   */
+  export type MailMessageArchiveUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageArchive
+     */
+    select?: MailMessageArchiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageArchive
+     */
+    omit?: MailMessageArchiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageArchiveInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MailMessageArchive to update in case it exists.
+     */
+    where: MailMessageArchiveWhereUniqueInput
+    /**
+     * In case the MailMessageArchive found by the `where` argument doesn't exist, create a new MailMessageArchive with this data.
+     */
+    create: XOR<MailMessageArchiveCreateInput, MailMessageArchiveUncheckedCreateInput>
+    /**
+     * In case the MailMessageArchive was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MailMessageArchiveUpdateInput, MailMessageArchiveUncheckedUpdateInput>
+  }
+
+  /**
+   * MailMessageArchive delete
+   */
+  export type MailMessageArchiveDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageArchive
+     */
+    select?: MailMessageArchiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageArchive
+     */
+    omit?: MailMessageArchiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageArchiveInclude<ExtArgs> | null
+    /**
+     * Filter which MailMessageArchive to delete.
+     */
+    where: MailMessageArchiveWhereUniqueInput
+  }
+
+  /**
+   * MailMessageArchive deleteMany
+   */
+  export type MailMessageArchiveDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailMessageArchives to delete
+     */
+    where?: MailMessageArchiveWhereInput
+    /**
+     * Limit how many MailMessageArchives to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailMessageArchive without action
+   */
+  export type MailMessageArchiveDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailMessageArchive
+     */
+    select?: MailMessageArchiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailMessageArchive
+     */
+    omit?: MailMessageArchiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailMessageArchiveInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MailForwardingRule
+   */
+
+  export type AggregateMailForwardingRule = {
+    _count: MailForwardingRuleCountAggregateOutputType | null
+    _avg: MailForwardingRuleAvgAggregateOutputType | null
+    _sum: MailForwardingRuleSumAggregateOutputType | null
+    _min: MailForwardingRuleMinAggregateOutputType | null
+    _max: MailForwardingRuleMaxAggregateOutputType | null
+  }
+
+  export type MailForwardingRuleAvgAggregateOutputType = {
+    forwardedCount: number | null
+  }
+
+  export type MailForwardingRuleSumAggregateOutputType = {
+    forwardedCount: number | null
+  }
+
+  export type MailForwardingRuleMinAggregateOutputType = {
+    id: string | null
+    mailboxId: string | null
+    organizationId: string | null
+    targetAddress: string | null
+    targetKind: string | null
+    status: string | null
+    reason: string | null
+    requestedBy: string | null
+    requestedAt: Date | null
+    decidedBy: string | null
+    decidedAt: Date | null
+    decisionNote: string | null
+    disabledBy: string | null
+    disabledAt: Date | null
+    disabledReason: string | null
+    lastForwardedAt: Date | null
+    forwardedCount: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MailForwardingRuleMaxAggregateOutputType = {
+    id: string | null
+    mailboxId: string | null
+    organizationId: string | null
+    targetAddress: string | null
+    targetKind: string | null
+    status: string | null
+    reason: string | null
+    requestedBy: string | null
+    requestedAt: Date | null
+    decidedBy: string | null
+    decidedAt: Date | null
+    decisionNote: string | null
+    disabledBy: string | null
+    disabledAt: Date | null
+    disabledReason: string | null
+    lastForwardedAt: Date | null
+    forwardedCount: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MailForwardingRuleCountAggregateOutputType = {
+    id: number
+    mailboxId: number
+    organizationId: number
+    targetAddress: number
+    targetKind: number
+    status: number
+    reason: number
+    requestedBy: number
+    requestedAt: number
+    decidedBy: number
+    decidedAt: number
+    decisionNote: number
+    disabledBy: number
+    disabledAt: number
+    disabledReason: number
+    lastForwardedAt: number
+    forwardedCount: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MailForwardingRuleAvgAggregateInputType = {
+    forwardedCount?: true
+  }
+
+  export type MailForwardingRuleSumAggregateInputType = {
+    forwardedCount?: true
+  }
+
+  export type MailForwardingRuleMinAggregateInputType = {
+    id?: true
+    mailboxId?: true
+    organizationId?: true
+    targetAddress?: true
+    targetKind?: true
+    status?: true
+    reason?: true
+    requestedBy?: true
+    requestedAt?: true
+    decidedBy?: true
+    decidedAt?: true
+    decisionNote?: true
+    disabledBy?: true
+    disabledAt?: true
+    disabledReason?: true
+    lastForwardedAt?: true
+    forwardedCount?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MailForwardingRuleMaxAggregateInputType = {
+    id?: true
+    mailboxId?: true
+    organizationId?: true
+    targetAddress?: true
+    targetKind?: true
+    status?: true
+    reason?: true
+    requestedBy?: true
+    requestedAt?: true
+    decidedBy?: true
+    decidedAt?: true
+    decisionNote?: true
+    disabledBy?: true
+    disabledAt?: true
+    disabledReason?: true
+    lastForwardedAt?: true
+    forwardedCount?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MailForwardingRuleCountAggregateInputType = {
+    id?: true
+    mailboxId?: true
+    organizationId?: true
+    targetAddress?: true
+    targetKind?: true
+    status?: true
+    reason?: true
+    requestedBy?: true
+    requestedAt?: true
+    decidedBy?: true
+    decidedAt?: true
+    decisionNote?: true
+    disabledBy?: true
+    disabledAt?: true
+    disabledReason?: true
+    lastForwardedAt?: true
+    forwardedCount?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MailForwardingRuleAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailForwardingRule to aggregate.
+     */
+    where?: MailForwardingRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailForwardingRules to fetch.
+     */
+    orderBy?: MailForwardingRuleOrderByWithRelationInput | MailForwardingRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MailForwardingRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailForwardingRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailForwardingRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MailForwardingRules
+    **/
+    _count?: true | MailForwardingRuleCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MailForwardingRuleAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MailForwardingRuleSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MailForwardingRuleMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MailForwardingRuleMaxAggregateInputType
+  }
+
+  export type GetMailForwardingRuleAggregateType<T extends MailForwardingRuleAggregateArgs> = {
+        [P in keyof T & keyof AggregateMailForwardingRule]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMailForwardingRule[P]>
+      : GetScalarType<T[P], AggregateMailForwardingRule[P]>
+  }
+
+
+
+
+  export type MailForwardingRuleGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailForwardingRuleWhereInput
+    orderBy?: MailForwardingRuleOrderByWithAggregationInput | MailForwardingRuleOrderByWithAggregationInput[]
+    by: MailForwardingRuleScalarFieldEnum[] | MailForwardingRuleScalarFieldEnum
+    having?: MailForwardingRuleScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MailForwardingRuleCountAggregateInputType | true
+    _avg?: MailForwardingRuleAvgAggregateInputType
+    _sum?: MailForwardingRuleSumAggregateInputType
+    _min?: MailForwardingRuleMinAggregateInputType
+    _max?: MailForwardingRuleMaxAggregateInputType
+  }
+
+  export type MailForwardingRuleGroupByOutputType = {
+    id: string
+    mailboxId: string
+    organizationId: string
+    targetAddress: string
+    targetKind: string
+    status: string
+    reason: string
+    requestedBy: string
+    requestedAt: Date
+    decidedBy: string | null
+    decidedAt: Date | null
+    decisionNote: string | null
+    disabledBy: string | null
+    disabledAt: Date | null
+    disabledReason: string | null
+    lastForwardedAt: Date | null
+    forwardedCount: number
+    createdAt: Date
+    updatedAt: Date
+    _count: MailForwardingRuleCountAggregateOutputType | null
+    _avg: MailForwardingRuleAvgAggregateOutputType | null
+    _sum: MailForwardingRuleSumAggregateOutputType | null
+    _min: MailForwardingRuleMinAggregateOutputType | null
+    _max: MailForwardingRuleMaxAggregateOutputType | null
+  }
+
+  type GetMailForwardingRuleGroupByPayload<T extends MailForwardingRuleGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MailForwardingRuleGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MailForwardingRuleGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MailForwardingRuleGroupByOutputType[P]>
+            : GetScalarType<T[P], MailForwardingRuleGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MailForwardingRuleSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    mailboxId?: boolean
+    organizationId?: boolean
+    targetAddress?: boolean
+    targetKind?: boolean
+    status?: boolean
+    reason?: boolean
+    requestedBy?: boolean
+    requestedAt?: boolean
+    decidedBy?: boolean
+    decidedAt?: boolean
+    decisionNote?: boolean
+    disabledBy?: boolean
+    disabledAt?: boolean
+    disabledReason?: boolean
+    lastForwardedAt?: boolean
+    forwardedCount?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    mailbox?: boolean | MailMailboxDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailForwardingRule"]>
+
+  export type MailForwardingRuleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    mailboxId?: boolean
+    organizationId?: boolean
+    targetAddress?: boolean
+    targetKind?: boolean
+    status?: boolean
+    reason?: boolean
+    requestedBy?: boolean
+    requestedAt?: boolean
+    decidedBy?: boolean
+    decidedAt?: boolean
+    decisionNote?: boolean
+    disabledBy?: boolean
+    disabledAt?: boolean
+    disabledReason?: boolean
+    lastForwardedAt?: boolean
+    forwardedCount?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    mailbox?: boolean | MailMailboxDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailForwardingRule"]>
+
+  export type MailForwardingRuleSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    mailboxId?: boolean
+    organizationId?: boolean
+    targetAddress?: boolean
+    targetKind?: boolean
+    status?: boolean
+    reason?: boolean
+    requestedBy?: boolean
+    requestedAt?: boolean
+    decidedBy?: boolean
+    decidedAt?: boolean
+    decisionNote?: boolean
+    disabledBy?: boolean
+    disabledAt?: boolean
+    disabledReason?: boolean
+    lastForwardedAt?: boolean
+    forwardedCount?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    mailbox?: boolean | MailMailboxDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailForwardingRule"]>
+
+  export type MailForwardingRuleSelectScalar = {
+    id?: boolean
+    mailboxId?: boolean
+    organizationId?: boolean
+    targetAddress?: boolean
+    targetKind?: boolean
+    status?: boolean
+    reason?: boolean
+    requestedBy?: boolean
+    requestedAt?: boolean
+    decidedBy?: boolean
+    decidedAt?: boolean
+    decisionNote?: boolean
+    disabledBy?: boolean
+    disabledAt?: boolean
+    disabledReason?: boolean
+    lastForwardedAt?: boolean
+    forwardedCount?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type MailForwardingRuleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "mailboxId" | "organizationId" | "targetAddress" | "targetKind" | "status" | "reason" | "requestedBy" | "requestedAt" | "decidedBy" | "decidedAt" | "decisionNote" | "disabledBy" | "disabledAt" | "disabledReason" | "lastForwardedAt" | "forwardedCount" | "createdAt" | "updatedAt", ExtArgs["result"]["mailForwardingRule"]>
+  export type MailForwardingRuleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    mailbox?: boolean | MailMailboxDefaultArgs<ExtArgs>
+  }
+  export type MailForwardingRuleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    mailbox?: boolean | MailMailboxDefaultArgs<ExtArgs>
+  }
+  export type MailForwardingRuleIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    mailbox?: boolean | MailMailboxDefaultArgs<ExtArgs>
+  }
+
+  export type $MailForwardingRulePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MailForwardingRule"
+    objects: {
+      mailbox: Prisma.$MailMailboxPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      mailboxId: string
+      organizationId: string
+      targetAddress: string
+      targetKind: string
+      status: string
+      reason: string
+      requestedBy: string
+      requestedAt: Date
+      decidedBy: string | null
+      decidedAt: Date | null
+      decisionNote: string | null
+      disabledBy: string | null
+      disabledAt: Date | null
+      disabledReason: string | null
+      lastForwardedAt: Date | null
+      forwardedCount: number
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["mailForwardingRule"]>
+    composites: {}
+  }
+
+  type MailForwardingRuleGetPayload<S extends boolean | null | undefined | MailForwardingRuleDefaultArgs> = $Result.GetResult<Prisma.$MailForwardingRulePayload, S>
+
+  type MailForwardingRuleCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MailForwardingRuleFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MailForwardingRuleCountAggregateInputType | true
+    }
+
+  export interface MailForwardingRuleDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MailForwardingRule'], meta: { name: 'MailForwardingRule' } }
+    /**
+     * Find zero or one MailForwardingRule that matches the filter.
+     * @param {MailForwardingRuleFindUniqueArgs} args - Arguments to find a MailForwardingRule
+     * @example
+     * // Get one MailForwardingRule
+     * const mailForwardingRule = await prisma.mailForwardingRule.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MailForwardingRuleFindUniqueArgs>(args: SelectSubset<T, MailForwardingRuleFindUniqueArgs<ExtArgs>>): Prisma__MailForwardingRuleClient<$Result.GetResult<Prisma.$MailForwardingRulePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MailForwardingRule that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MailForwardingRuleFindUniqueOrThrowArgs} args - Arguments to find a MailForwardingRule
+     * @example
+     * // Get one MailForwardingRule
+     * const mailForwardingRule = await prisma.mailForwardingRule.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MailForwardingRuleFindUniqueOrThrowArgs>(args: SelectSubset<T, MailForwardingRuleFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MailForwardingRuleClient<$Result.GetResult<Prisma.$MailForwardingRulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailForwardingRule that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailForwardingRuleFindFirstArgs} args - Arguments to find a MailForwardingRule
+     * @example
+     * // Get one MailForwardingRule
+     * const mailForwardingRule = await prisma.mailForwardingRule.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MailForwardingRuleFindFirstArgs>(args?: SelectSubset<T, MailForwardingRuleFindFirstArgs<ExtArgs>>): Prisma__MailForwardingRuleClient<$Result.GetResult<Prisma.$MailForwardingRulePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailForwardingRule that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailForwardingRuleFindFirstOrThrowArgs} args - Arguments to find a MailForwardingRule
+     * @example
+     * // Get one MailForwardingRule
+     * const mailForwardingRule = await prisma.mailForwardingRule.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MailForwardingRuleFindFirstOrThrowArgs>(args?: SelectSubset<T, MailForwardingRuleFindFirstOrThrowArgs<ExtArgs>>): Prisma__MailForwardingRuleClient<$Result.GetResult<Prisma.$MailForwardingRulePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MailForwardingRules that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailForwardingRuleFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MailForwardingRules
+     * const mailForwardingRules = await prisma.mailForwardingRule.findMany()
+     * 
+     * // Get first 10 MailForwardingRules
+     * const mailForwardingRules = await prisma.mailForwardingRule.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const mailForwardingRuleWithIdOnly = await prisma.mailForwardingRule.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MailForwardingRuleFindManyArgs>(args?: SelectSubset<T, MailForwardingRuleFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailForwardingRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MailForwardingRule.
+     * @param {MailForwardingRuleCreateArgs} args - Arguments to create a MailForwardingRule.
+     * @example
+     * // Create one MailForwardingRule
+     * const MailForwardingRule = await prisma.mailForwardingRule.create({
+     *   data: {
+     *     // ... data to create a MailForwardingRule
+     *   }
+     * })
+     * 
+     */
+    create<T extends MailForwardingRuleCreateArgs>(args: SelectSubset<T, MailForwardingRuleCreateArgs<ExtArgs>>): Prisma__MailForwardingRuleClient<$Result.GetResult<Prisma.$MailForwardingRulePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MailForwardingRules.
+     * @param {MailForwardingRuleCreateManyArgs} args - Arguments to create many MailForwardingRules.
+     * @example
+     * // Create many MailForwardingRules
+     * const mailForwardingRule = await prisma.mailForwardingRule.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MailForwardingRuleCreateManyArgs>(args?: SelectSubset<T, MailForwardingRuleCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MailForwardingRules and returns the data saved in the database.
+     * @param {MailForwardingRuleCreateManyAndReturnArgs} args - Arguments to create many MailForwardingRules.
+     * @example
+     * // Create many MailForwardingRules
+     * const mailForwardingRule = await prisma.mailForwardingRule.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MailForwardingRules and only return the `id`
+     * const mailForwardingRuleWithIdOnly = await prisma.mailForwardingRule.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MailForwardingRuleCreateManyAndReturnArgs>(args?: SelectSubset<T, MailForwardingRuleCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailForwardingRulePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MailForwardingRule.
+     * @param {MailForwardingRuleDeleteArgs} args - Arguments to delete one MailForwardingRule.
+     * @example
+     * // Delete one MailForwardingRule
+     * const MailForwardingRule = await prisma.mailForwardingRule.delete({
+     *   where: {
+     *     // ... filter to delete one MailForwardingRule
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MailForwardingRuleDeleteArgs>(args: SelectSubset<T, MailForwardingRuleDeleteArgs<ExtArgs>>): Prisma__MailForwardingRuleClient<$Result.GetResult<Prisma.$MailForwardingRulePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MailForwardingRule.
+     * @param {MailForwardingRuleUpdateArgs} args - Arguments to update one MailForwardingRule.
+     * @example
+     * // Update one MailForwardingRule
+     * const mailForwardingRule = await prisma.mailForwardingRule.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MailForwardingRuleUpdateArgs>(args: SelectSubset<T, MailForwardingRuleUpdateArgs<ExtArgs>>): Prisma__MailForwardingRuleClient<$Result.GetResult<Prisma.$MailForwardingRulePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MailForwardingRules.
+     * @param {MailForwardingRuleDeleteManyArgs} args - Arguments to filter MailForwardingRules to delete.
+     * @example
+     * // Delete a few MailForwardingRules
+     * const { count } = await prisma.mailForwardingRule.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MailForwardingRuleDeleteManyArgs>(args?: SelectSubset<T, MailForwardingRuleDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailForwardingRules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailForwardingRuleUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MailForwardingRules
+     * const mailForwardingRule = await prisma.mailForwardingRule.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MailForwardingRuleUpdateManyArgs>(args: SelectSubset<T, MailForwardingRuleUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailForwardingRules and returns the data updated in the database.
+     * @param {MailForwardingRuleUpdateManyAndReturnArgs} args - Arguments to update many MailForwardingRules.
+     * @example
+     * // Update many MailForwardingRules
+     * const mailForwardingRule = await prisma.mailForwardingRule.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MailForwardingRules and only return the `id`
+     * const mailForwardingRuleWithIdOnly = await prisma.mailForwardingRule.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MailForwardingRuleUpdateManyAndReturnArgs>(args: SelectSubset<T, MailForwardingRuleUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailForwardingRulePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MailForwardingRule.
+     * @param {MailForwardingRuleUpsertArgs} args - Arguments to update or create a MailForwardingRule.
+     * @example
+     * // Update or create a MailForwardingRule
+     * const mailForwardingRule = await prisma.mailForwardingRule.upsert({
+     *   create: {
+     *     // ... data to create a MailForwardingRule
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MailForwardingRule we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MailForwardingRuleUpsertArgs>(args: SelectSubset<T, MailForwardingRuleUpsertArgs<ExtArgs>>): Prisma__MailForwardingRuleClient<$Result.GetResult<Prisma.$MailForwardingRulePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MailForwardingRules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailForwardingRuleCountArgs} args - Arguments to filter MailForwardingRules to count.
+     * @example
+     * // Count the number of MailForwardingRules
+     * const count = await prisma.mailForwardingRule.count({
+     *   where: {
+     *     // ... the filter for the MailForwardingRules we want to count
+     *   }
+     * })
+    **/
+    count<T extends MailForwardingRuleCountArgs>(
+      args?: Subset<T, MailForwardingRuleCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MailForwardingRuleCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MailForwardingRule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailForwardingRuleAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MailForwardingRuleAggregateArgs>(args: Subset<T, MailForwardingRuleAggregateArgs>): Prisma.PrismaPromise<GetMailForwardingRuleAggregateType<T>>
+
+    /**
+     * Group by MailForwardingRule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailForwardingRuleGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MailForwardingRuleGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MailForwardingRuleGroupByArgs['orderBy'] }
+        : { orderBy?: MailForwardingRuleGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MailForwardingRuleGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMailForwardingRuleGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MailForwardingRule model
+   */
+  readonly fields: MailForwardingRuleFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MailForwardingRule.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MailForwardingRuleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    mailbox<T extends MailMailboxDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MailMailboxDefaultArgs<ExtArgs>>): Prisma__MailMailboxClient<$Result.GetResult<Prisma.$MailMailboxPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MailForwardingRule model
+   */
+  interface MailForwardingRuleFieldRefs {
+    readonly id: FieldRef<"MailForwardingRule", 'String'>
+    readonly mailboxId: FieldRef<"MailForwardingRule", 'String'>
+    readonly organizationId: FieldRef<"MailForwardingRule", 'String'>
+    readonly targetAddress: FieldRef<"MailForwardingRule", 'String'>
+    readonly targetKind: FieldRef<"MailForwardingRule", 'String'>
+    readonly status: FieldRef<"MailForwardingRule", 'String'>
+    readonly reason: FieldRef<"MailForwardingRule", 'String'>
+    readonly requestedBy: FieldRef<"MailForwardingRule", 'String'>
+    readonly requestedAt: FieldRef<"MailForwardingRule", 'DateTime'>
+    readonly decidedBy: FieldRef<"MailForwardingRule", 'String'>
+    readonly decidedAt: FieldRef<"MailForwardingRule", 'DateTime'>
+    readonly decisionNote: FieldRef<"MailForwardingRule", 'String'>
+    readonly disabledBy: FieldRef<"MailForwardingRule", 'String'>
+    readonly disabledAt: FieldRef<"MailForwardingRule", 'DateTime'>
+    readonly disabledReason: FieldRef<"MailForwardingRule", 'String'>
+    readonly lastForwardedAt: FieldRef<"MailForwardingRule", 'DateTime'>
+    readonly forwardedCount: FieldRef<"MailForwardingRule", 'Int'>
+    readonly createdAt: FieldRef<"MailForwardingRule", 'DateTime'>
+    readonly updatedAt: FieldRef<"MailForwardingRule", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MailForwardingRule findUnique
+   */
+  export type MailForwardingRuleFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailForwardingRule
+     */
+    select?: MailForwardingRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailForwardingRule
+     */
+    omit?: MailForwardingRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailForwardingRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which MailForwardingRule to fetch.
+     */
+    where: MailForwardingRuleWhereUniqueInput
+  }
+
+  /**
+   * MailForwardingRule findUniqueOrThrow
+   */
+  export type MailForwardingRuleFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailForwardingRule
+     */
+    select?: MailForwardingRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailForwardingRule
+     */
+    omit?: MailForwardingRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailForwardingRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which MailForwardingRule to fetch.
+     */
+    where: MailForwardingRuleWhereUniqueInput
+  }
+
+  /**
+   * MailForwardingRule findFirst
+   */
+  export type MailForwardingRuleFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailForwardingRule
+     */
+    select?: MailForwardingRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailForwardingRule
+     */
+    omit?: MailForwardingRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailForwardingRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which MailForwardingRule to fetch.
+     */
+    where?: MailForwardingRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailForwardingRules to fetch.
+     */
+    orderBy?: MailForwardingRuleOrderByWithRelationInput | MailForwardingRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailForwardingRules.
+     */
+    cursor?: MailForwardingRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailForwardingRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailForwardingRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailForwardingRules.
+     */
+    distinct?: MailForwardingRuleScalarFieldEnum | MailForwardingRuleScalarFieldEnum[]
+  }
+
+  /**
+   * MailForwardingRule findFirstOrThrow
+   */
+  export type MailForwardingRuleFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailForwardingRule
+     */
+    select?: MailForwardingRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailForwardingRule
+     */
+    omit?: MailForwardingRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailForwardingRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which MailForwardingRule to fetch.
+     */
+    where?: MailForwardingRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailForwardingRules to fetch.
+     */
+    orderBy?: MailForwardingRuleOrderByWithRelationInput | MailForwardingRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailForwardingRules.
+     */
+    cursor?: MailForwardingRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailForwardingRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailForwardingRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailForwardingRules.
+     */
+    distinct?: MailForwardingRuleScalarFieldEnum | MailForwardingRuleScalarFieldEnum[]
+  }
+
+  /**
+   * MailForwardingRule findMany
+   */
+  export type MailForwardingRuleFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailForwardingRule
+     */
+    select?: MailForwardingRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailForwardingRule
+     */
+    omit?: MailForwardingRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailForwardingRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which MailForwardingRules to fetch.
+     */
+    where?: MailForwardingRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailForwardingRules to fetch.
+     */
+    orderBy?: MailForwardingRuleOrderByWithRelationInput | MailForwardingRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MailForwardingRules.
+     */
+    cursor?: MailForwardingRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailForwardingRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailForwardingRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailForwardingRules.
+     */
+    distinct?: MailForwardingRuleScalarFieldEnum | MailForwardingRuleScalarFieldEnum[]
+  }
+
+  /**
+   * MailForwardingRule create
+   */
+  export type MailForwardingRuleCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailForwardingRule
+     */
+    select?: MailForwardingRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailForwardingRule
+     */
+    omit?: MailForwardingRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailForwardingRuleInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MailForwardingRule.
+     */
+    data: XOR<MailForwardingRuleCreateInput, MailForwardingRuleUncheckedCreateInput>
+  }
+
+  /**
+   * MailForwardingRule createMany
+   */
+  export type MailForwardingRuleCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MailForwardingRules.
+     */
+    data: MailForwardingRuleCreateManyInput | MailForwardingRuleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailForwardingRule createManyAndReturn
+   */
+  export type MailForwardingRuleCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailForwardingRule
+     */
+    select?: MailForwardingRuleSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailForwardingRule
+     */
+    omit?: MailForwardingRuleOmit<ExtArgs> | null
+    /**
+     * The data used to create many MailForwardingRules.
+     */
+    data: MailForwardingRuleCreateManyInput | MailForwardingRuleCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailForwardingRuleIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MailForwardingRule update
+   */
+  export type MailForwardingRuleUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailForwardingRule
+     */
+    select?: MailForwardingRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailForwardingRule
+     */
+    omit?: MailForwardingRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailForwardingRuleInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MailForwardingRule.
+     */
+    data: XOR<MailForwardingRuleUpdateInput, MailForwardingRuleUncheckedUpdateInput>
+    /**
+     * Choose, which MailForwardingRule to update.
+     */
+    where: MailForwardingRuleWhereUniqueInput
+  }
+
+  /**
+   * MailForwardingRule updateMany
+   */
+  export type MailForwardingRuleUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MailForwardingRules.
+     */
+    data: XOR<MailForwardingRuleUpdateManyMutationInput, MailForwardingRuleUncheckedUpdateManyInput>
+    /**
+     * Filter which MailForwardingRules to update
+     */
+    where?: MailForwardingRuleWhereInput
+    /**
+     * Limit how many MailForwardingRules to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailForwardingRule updateManyAndReturn
+   */
+  export type MailForwardingRuleUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailForwardingRule
+     */
+    select?: MailForwardingRuleSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailForwardingRule
+     */
+    omit?: MailForwardingRuleOmit<ExtArgs> | null
+    /**
+     * The data used to update MailForwardingRules.
+     */
+    data: XOR<MailForwardingRuleUpdateManyMutationInput, MailForwardingRuleUncheckedUpdateManyInput>
+    /**
+     * Filter which MailForwardingRules to update
+     */
+    where?: MailForwardingRuleWhereInput
+    /**
+     * Limit how many MailForwardingRules to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailForwardingRuleIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MailForwardingRule upsert
+   */
+  export type MailForwardingRuleUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailForwardingRule
+     */
+    select?: MailForwardingRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailForwardingRule
+     */
+    omit?: MailForwardingRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailForwardingRuleInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MailForwardingRule to update in case it exists.
+     */
+    where: MailForwardingRuleWhereUniqueInput
+    /**
+     * In case the MailForwardingRule found by the `where` argument doesn't exist, create a new MailForwardingRule with this data.
+     */
+    create: XOR<MailForwardingRuleCreateInput, MailForwardingRuleUncheckedCreateInput>
+    /**
+     * In case the MailForwardingRule was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MailForwardingRuleUpdateInput, MailForwardingRuleUncheckedUpdateInput>
+  }
+
+  /**
+   * MailForwardingRule delete
+   */
+  export type MailForwardingRuleDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailForwardingRule
+     */
+    select?: MailForwardingRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailForwardingRule
+     */
+    omit?: MailForwardingRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailForwardingRuleInclude<ExtArgs> | null
+    /**
+     * Filter which MailForwardingRule to delete.
+     */
+    where: MailForwardingRuleWhereUniqueInput
+  }
+
+  /**
+   * MailForwardingRule deleteMany
+   */
+  export type MailForwardingRuleDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailForwardingRules to delete
+     */
+    where?: MailForwardingRuleWhereInput
+    /**
+     * Limit how many MailForwardingRules to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailForwardingRule without action
+   */
+  export type MailForwardingRuleDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailForwardingRule
+     */
+    select?: MailForwardingRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailForwardingRule
+     */
+    omit?: MailForwardingRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailForwardingRuleInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MailRateLimitBucket
+   */
+
+  export type AggregateMailRateLimitBucket = {
+    _count: MailRateLimitBucketCountAggregateOutputType | null
+    _avg: MailRateLimitBucketAvgAggregateOutputType | null
+    _sum: MailRateLimitBucketSumAggregateOutputType | null
+    _min: MailRateLimitBucketMinAggregateOutputType | null
+    _max: MailRateLimitBucketMaxAggregateOutputType | null
+  }
+
+  export type MailRateLimitBucketAvgAggregateOutputType = {
+    count: number | null
+  }
+
+  export type MailRateLimitBucketSumAggregateOutputType = {
+    count: number | null
+  }
+
+  export type MailRateLimitBucketMinAggregateOutputType = {
+    key: string | null
+    windowStart: Date | null
+    count: number | null
+    expiresAt: Date | null
+  }
+
+  export type MailRateLimitBucketMaxAggregateOutputType = {
+    key: string | null
+    windowStart: Date | null
+    count: number | null
+    expiresAt: Date | null
+  }
+
+  export type MailRateLimitBucketCountAggregateOutputType = {
+    key: number
+    windowStart: number
+    count: number
+    expiresAt: number
+    _all: number
+  }
+
+
+  export type MailRateLimitBucketAvgAggregateInputType = {
+    count?: true
+  }
+
+  export type MailRateLimitBucketSumAggregateInputType = {
+    count?: true
+  }
+
+  export type MailRateLimitBucketMinAggregateInputType = {
+    key?: true
+    windowStart?: true
+    count?: true
+    expiresAt?: true
+  }
+
+  export type MailRateLimitBucketMaxAggregateInputType = {
+    key?: true
+    windowStart?: true
+    count?: true
+    expiresAt?: true
+  }
+
+  export type MailRateLimitBucketCountAggregateInputType = {
+    key?: true
+    windowStart?: true
+    count?: true
+    expiresAt?: true
+    _all?: true
+  }
+
+  export type MailRateLimitBucketAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailRateLimitBucket to aggregate.
+     */
+    where?: MailRateLimitBucketWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailRateLimitBuckets to fetch.
+     */
+    orderBy?: MailRateLimitBucketOrderByWithRelationInput | MailRateLimitBucketOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MailRateLimitBucketWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailRateLimitBuckets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailRateLimitBuckets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MailRateLimitBuckets
+    **/
+    _count?: true | MailRateLimitBucketCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MailRateLimitBucketAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MailRateLimitBucketSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MailRateLimitBucketMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MailRateLimitBucketMaxAggregateInputType
+  }
+
+  export type GetMailRateLimitBucketAggregateType<T extends MailRateLimitBucketAggregateArgs> = {
+        [P in keyof T & keyof AggregateMailRateLimitBucket]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMailRateLimitBucket[P]>
+      : GetScalarType<T[P], AggregateMailRateLimitBucket[P]>
+  }
+
+
+
+
+  export type MailRateLimitBucketGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailRateLimitBucketWhereInput
+    orderBy?: MailRateLimitBucketOrderByWithAggregationInput | MailRateLimitBucketOrderByWithAggregationInput[]
+    by: MailRateLimitBucketScalarFieldEnum[] | MailRateLimitBucketScalarFieldEnum
+    having?: MailRateLimitBucketScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MailRateLimitBucketCountAggregateInputType | true
+    _avg?: MailRateLimitBucketAvgAggregateInputType
+    _sum?: MailRateLimitBucketSumAggregateInputType
+    _min?: MailRateLimitBucketMinAggregateInputType
+    _max?: MailRateLimitBucketMaxAggregateInputType
+  }
+
+  export type MailRateLimitBucketGroupByOutputType = {
+    key: string
+    windowStart: Date
+    count: number
+    expiresAt: Date
+    _count: MailRateLimitBucketCountAggregateOutputType | null
+    _avg: MailRateLimitBucketAvgAggregateOutputType | null
+    _sum: MailRateLimitBucketSumAggregateOutputType | null
+    _min: MailRateLimitBucketMinAggregateOutputType | null
+    _max: MailRateLimitBucketMaxAggregateOutputType | null
+  }
+
+  type GetMailRateLimitBucketGroupByPayload<T extends MailRateLimitBucketGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MailRateLimitBucketGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MailRateLimitBucketGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MailRateLimitBucketGroupByOutputType[P]>
+            : GetScalarType<T[P], MailRateLimitBucketGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MailRateLimitBucketSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    key?: boolean
+    windowStart?: boolean
+    count?: boolean
+    expiresAt?: boolean
+  }, ExtArgs["result"]["mailRateLimitBucket"]>
+
+  export type MailRateLimitBucketSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    key?: boolean
+    windowStart?: boolean
+    count?: boolean
+    expiresAt?: boolean
+  }, ExtArgs["result"]["mailRateLimitBucket"]>
+
+  export type MailRateLimitBucketSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    key?: boolean
+    windowStart?: boolean
+    count?: boolean
+    expiresAt?: boolean
+  }, ExtArgs["result"]["mailRateLimitBucket"]>
+
+  export type MailRateLimitBucketSelectScalar = {
+    key?: boolean
+    windowStart?: boolean
+    count?: boolean
+    expiresAt?: boolean
+  }
+
+  export type MailRateLimitBucketOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"key" | "windowStart" | "count" | "expiresAt", ExtArgs["result"]["mailRateLimitBucket"]>
+
+  export type $MailRateLimitBucketPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MailRateLimitBucket"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      key: string
+      windowStart: Date
+      count: number
+      expiresAt: Date
+    }, ExtArgs["result"]["mailRateLimitBucket"]>
+    composites: {}
+  }
+
+  type MailRateLimitBucketGetPayload<S extends boolean | null | undefined | MailRateLimitBucketDefaultArgs> = $Result.GetResult<Prisma.$MailRateLimitBucketPayload, S>
+
+  type MailRateLimitBucketCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MailRateLimitBucketFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MailRateLimitBucketCountAggregateInputType | true
+    }
+
+  export interface MailRateLimitBucketDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MailRateLimitBucket'], meta: { name: 'MailRateLimitBucket' } }
+    /**
+     * Find zero or one MailRateLimitBucket that matches the filter.
+     * @param {MailRateLimitBucketFindUniqueArgs} args - Arguments to find a MailRateLimitBucket
+     * @example
+     * // Get one MailRateLimitBucket
+     * const mailRateLimitBucket = await prisma.mailRateLimitBucket.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MailRateLimitBucketFindUniqueArgs>(args: SelectSubset<T, MailRateLimitBucketFindUniqueArgs<ExtArgs>>): Prisma__MailRateLimitBucketClient<$Result.GetResult<Prisma.$MailRateLimitBucketPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MailRateLimitBucket that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MailRateLimitBucketFindUniqueOrThrowArgs} args - Arguments to find a MailRateLimitBucket
+     * @example
+     * // Get one MailRateLimitBucket
+     * const mailRateLimitBucket = await prisma.mailRateLimitBucket.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MailRateLimitBucketFindUniqueOrThrowArgs>(args: SelectSubset<T, MailRateLimitBucketFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MailRateLimitBucketClient<$Result.GetResult<Prisma.$MailRateLimitBucketPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailRateLimitBucket that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRateLimitBucketFindFirstArgs} args - Arguments to find a MailRateLimitBucket
+     * @example
+     * // Get one MailRateLimitBucket
+     * const mailRateLimitBucket = await prisma.mailRateLimitBucket.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MailRateLimitBucketFindFirstArgs>(args?: SelectSubset<T, MailRateLimitBucketFindFirstArgs<ExtArgs>>): Prisma__MailRateLimitBucketClient<$Result.GetResult<Prisma.$MailRateLimitBucketPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailRateLimitBucket that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRateLimitBucketFindFirstOrThrowArgs} args - Arguments to find a MailRateLimitBucket
+     * @example
+     * // Get one MailRateLimitBucket
+     * const mailRateLimitBucket = await prisma.mailRateLimitBucket.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MailRateLimitBucketFindFirstOrThrowArgs>(args?: SelectSubset<T, MailRateLimitBucketFindFirstOrThrowArgs<ExtArgs>>): Prisma__MailRateLimitBucketClient<$Result.GetResult<Prisma.$MailRateLimitBucketPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MailRateLimitBuckets that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRateLimitBucketFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MailRateLimitBuckets
+     * const mailRateLimitBuckets = await prisma.mailRateLimitBucket.findMany()
+     * 
+     * // Get first 10 MailRateLimitBuckets
+     * const mailRateLimitBuckets = await prisma.mailRateLimitBucket.findMany({ take: 10 })
+     * 
+     * // Only select the `key`
+     * const mailRateLimitBucketWithKeyOnly = await prisma.mailRateLimitBucket.findMany({ select: { key: true } })
+     * 
+     */
+    findMany<T extends MailRateLimitBucketFindManyArgs>(args?: SelectSubset<T, MailRateLimitBucketFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailRateLimitBucketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MailRateLimitBucket.
+     * @param {MailRateLimitBucketCreateArgs} args - Arguments to create a MailRateLimitBucket.
+     * @example
+     * // Create one MailRateLimitBucket
+     * const MailRateLimitBucket = await prisma.mailRateLimitBucket.create({
+     *   data: {
+     *     // ... data to create a MailRateLimitBucket
+     *   }
+     * })
+     * 
+     */
+    create<T extends MailRateLimitBucketCreateArgs>(args: SelectSubset<T, MailRateLimitBucketCreateArgs<ExtArgs>>): Prisma__MailRateLimitBucketClient<$Result.GetResult<Prisma.$MailRateLimitBucketPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MailRateLimitBuckets.
+     * @param {MailRateLimitBucketCreateManyArgs} args - Arguments to create many MailRateLimitBuckets.
+     * @example
+     * // Create many MailRateLimitBuckets
+     * const mailRateLimitBucket = await prisma.mailRateLimitBucket.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MailRateLimitBucketCreateManyArgs>(args?: SelectSubset<T, MailRateLimitBucketCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MailRateLimitBuckets and returns the data saved in the database.
+     * @param {MailRateLimitBucketCreateManyAndReturnArgs} args - Arguments to create many MailRateLimitBuckets.
+     * @example
+     * // Create many MailRateLimitBuckets
+     * const mailRateLimitBucket = await prisma.mailRateLimitBucket.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MailRateLimitBuckets and only return the `key`
+     * const mailRateLimitBucketWithKeyOnly = await prisma.mailRateLimitBucket.createManyAndReturn({
+     *   select: { key: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MailRateLimitBucketCreateManyAndReturnArgs>(args?: SelectSubset<T, MailRateLimitBucketCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailRateLimitBucketPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MailRateLimitBucket.
+     * @param {MailRateLimitBucketDeleteArgs} args - Arguments to delete one MailRateLimitBucket.
+     * @example
+     * // Delete one MailRateLimitBucket
+     * const MailRateLimitBucket = await prisma.mailRateLimitBucket.delete({
+     *   where: {
+     *     // ... filter to delete one MailRateLimitBucket
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MailRateLimitBucketDeleteArgs>(args: SelectSubset<T, MailRateLimitBucketDeleteArgs<ExtArgs>>): Prisma__MailRateLimitBucketClient<$Result.GetResult<Prisma.$MailRateLimitBucketPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MailRateLimitBucket.
+     * @param {MailRateLimitBucketUpdateArgs} args - Arguments to update one MailRateLimitBucket.
+     * @example
+     * // Update one MailRateLimitBucket
+     * const mailRateLimitBucket = await prisma.mailRateLimitBucket.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MailRateLimitBucketUpdateArgs>(args: SelectSubset<T, MailRateLimitBucketUpdateArgs<ExtArgs>>): Prisma__MailRateLimitBucketClient<$Result.GetResult<Prisma.$MailRateLimitBucketPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MailRateLimitBuckets.
+     * @param {MailRateLimitBucketDeleteManyArgs} args - Arguments to filter MailRateLimitBuckets to delete.
+     * @example
+     * // Delete a few MailRateLimitBuckets
+     * const { count } = await prisma.mailRateLimitBucket.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MailRateLimitBucketDeleteManyArgs>(args?: SelectSubset<T, MailRateLimitBucketDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailRateLimitBuckets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRateLimitBucketUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MailRateLimitBuckets
+     * const mailRateLimitBucket = await prisma.mailRateLimitBucket.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MailRateLimitBucketUpdateManyArgs>(args: SelectSubset<T, MailRateLimitBucketUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailRateLimitBuckets and returns the data updated in the database.
+     * @param {MailRateLimitBucketUpdateManyAndReturnArgs} args - Arguments to update many MailRateLimitBuckets.
+     * @example
+     * // Update many MailRateLimitBuckets
+     * const mailRateLimitBucket = await prisma.mailRateLimitBucket.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MailRateLimitBuckets and only return the `key`
+     * const mailRateLimitBucketWithKeyOnly = await prisma.mailRateLimitBucket.updateManyAndReturn({
+     *   select: { key: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MailRateLimitBucketUpdateManyAndReturnArgs>(args: SelectSubset<T, MailRateLimitBucketUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailRateLimitBucketPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MailRateLimitBucket.
+     * @param {MailRateLimitBucketUpsertArgs} args - Arguments to update or create a MailRateLimitBucket.
+     * @example
+     * // Update or create a MailRateLimitBucket
+     * const mailRateLimitBucket = await prisma.mailRateLimitBucket.upsert({
+     *   create: {
+     *     // ... data to create a MailRateLimitBucket
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MailRateLimitBucket we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MailRateLimitBucketUpsertArgs>(args: SelectSubset<T, MailRateLimitBucketUpsertArgs<ExtArgs>>): Prisma__MailRateLimitBucketClient<$Result.GetResult<Prisma.$MailRateLimitBucketPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MailRateLimitBuckets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRateLimitBucketCountArgs} args - Arguments to filter MailRateLimitBuckets to count.
+     * @example
+     * // Count the number of MailRateLimitBuckets
+     * const count = await prisma.mailRateLimitBucket.count({
+     *   where: {
+     *     // ... the filter for the MailRateLimitBuckets we want to count
+     *   }
+     * })
+    **/
+    count<T extends MailRateLimitBucketCountArgs>(
+      args?: Subset<T, MailRateLimitBucketCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MailRateLimitBucketCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MailRateLimitBucket.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRateLimitBucketAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MailRateLimitBucketAggregateArgs>(args: Subset<T, MailRateLimitBucketAggregateArgs>): Prisma.PrismaPromise<GetMailRateLimitBucketAggregateType<T>>
+
+    /**
+     * Group by MailRateLimitBucket.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRateLimitBucketGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MailRateLimitBucketGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MailRateLimitBucketGroupByArgs['orderBy'] }
+        : { orderBy?: MailRateLimitBucketGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MailRateLimitBucketGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMailRateLimitBucketGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MailRateLimitBucket model
+   */
+  readonly fields: MailRateLimitBucketFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MailRateLimitBucket.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MailRateLimitBucketClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MailRateLimitBucket model
+   */
+  interface MailRateLimitBucketFieldRefs {
+    readonly key: FieldRef<"MailRateLimitBucket", 'String'>
+    readonly windowStart: FieldRef<"MailRateLimitBucket", 'DateTime'>
+    readonly count: FieldRef<"MailRateLimitBucket", 'Int'>
+    readonly expiresAt: FieldRef<"MailRateLimitBucket", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MailRateLimitBucket findUnique
+   */
+  export type MailRateLimitBucketFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRateLimitBucket
+     */
+    select?: MailRateLimitBucketSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRateLimitBucket
+     */
+    omit?: MailRateLimitBucketOmit<ExtArgs> | null
+    /**
+     * Filter, which MailRateLimitBucket to fetch.
+     */
+    where: MailRateLimitBucketWhereUniqueInput
+  }
+
+  /**
+   * MailRateLimitBucket findUniqueOrThrow
+   */
+  export type MailRateLimitBucketFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRateLimitBucket
+     */
+    select?: MailRateLimitBucketSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRateLimitBucket
+     */
+    omit?: MailRateLimitBucketOmit<ExtArgs> | null
+    /**
+     * Filter, which MailRateLimitBucket to fetch.
+     */
+    where: MailRateLimitBucketWhereUniqueInput
+  }
+
+  /**
+   * MailRateLimitBucket findFirst
+   */
+  export type MailRateLimitBucketFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRateLimitBucket
+     */
+    select?: MailRateLimitBucketSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRateLimitBucket
+     */
+    omit?: MailRateLimitBucketOmit<ExtArgs> | null
+    /**
+     * Filter, which MailRateLimitBucket to fetch.
+     */
+    where?: MailRateLimitBucketWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailRateLimitBuckets to fetch.
+     */
+    orderBy?: MailRateLimitBucketOrderByWithRelationInput | MailRateLimitBucketOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailRateLimitBuckets.
+     */
+    cursor?: MailRateLimitBucketWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailRateLimitBuckets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailRateLimitBuckets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailRateLimitBuckets.
+     */
+    distinct?: MailRateLimitBucketScalarFieldEnum | MailRateLimitBucketScalarFieldEnum[]
+  }
+
+  /**
+   * MailRateLimitBucket findFirstOrThrow
+   */
+  export type MailRateLimitBucketFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRateLimitBucket
+     */
+    select?: MailRateLimitBucketSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRateLimitBucket
+     */
+    omit?: MailRateLimitBucketOmit<ExtArgs> | null
+    /**
+     * Filter, which MailRateLimitBucket to fetch.
+     */
+    where?: MailRateLimitBucketWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailRateLimitBuckets to fetch.
+     */
+    orderBy?: MailRateLimitBucketOrderByWithRelationInput | MailRateLimitBucketOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailRateLimitBuckets.
+     */
+    cursor?: MailRateLimitBucketWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailRateLimitBuckets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailRateLimitBuckets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailRateLimitBuckets.
+     */
+    distinct?: MailRateLimitBucketScalarFieldEnum | MailRateLimitBucketScalarFieldEnum[]
+  }
+
+  /**
+   * MailRateLimitBucket findMany
+   */
+  export type MailRateLimitBucketFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRateLimitBucket
+     */
+    select?: MailRateLimitBucketSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRateLimitBucket
+     */
+    omit?: MailRateLimitBucketOmit<ExtArgs> | null
+    /**
+     * Filter, which MailRateLimitBuckets to fetch.
+     */
+    where?: MailRateLimitBucketWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailRateLimitBuckets to fetch.
+     */
+    orderBy?: MailRateLimitBucketOrderByWithRelationInput | MailRateLimitBucketOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MailRateLimitBuckets.
+     */
+    cursor?: MailRateLimitBucketWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailRateLimitBuckets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailRateLimitBuckets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailRateLimitBuckets.
+     */
+    distinct?: MailRateLimitBucketScalarFieldEnum | MailRateLimitBucketScalarFieldEnum[]
+  }
+
+  /**
+   * MailRateLimitBucket create
+   */
+  export type MailRateLimitBucketCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRateLimitBucket
+     */
+    select?: MailRateLimitBucketSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRateLimitBucket
+     */
+    omit?: MailRateLimitBucketOmit<ExtArgs> | null
+    /**
+     * The data needed to create a MailRateLimitBucket.
+     */
+    data: XOR<MailRateLimitBucketCreateInput, MailRateLimitBucketUncheckedCreateInput>
+  }
+
+  /**
+   * MailRateLimitBucket createMany
+   */
+  export type MailRateLimitBucketCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MailRateLimitBuckets.
+     */
+    data: MailRateLimitBucketCreateManyInput | MailRateLimitBucketCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailRateLimitBucket createManyAndReturn
+   */
+  export type MailRateLimitBucketCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRateLimitBucket
+     */
+    select?: MailRateLimitBucketSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRateLimitBucket
+     */
+    omit?: MailRateLimitBucketOmit<ExtArgs> | null
+    /**
+     * The data used to create many MailRateLimitBuckets.
+     */
+    data: MailRateLimitBucketCreateManyInput | MailRateLimitBucketCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailRateLimitBucket update
+   */
+  export type MailRateLimitBucketUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRateLimitBucket
+     */
+    select?: MailRateLimitBucketSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRateLimitBucket
+     */
+    omit?: MailRateLimitBucketOmit<ExtArgs> | null
+    /**
+     * The data needed to update a MailRateLimitBucket.
+     */
+    data: XOR<MailRateLimitBucketUpdateInput, MailRateLimitBucketUncheckedUpdateInput>
+    /**
+     * Choose, which MailRateLimitBucket to update.
+     */
+    where: MailRateLimitBucketWhereUniqueInput
+  }
+
+  /**
+   * MailRateLimitBucket updateMany
+   */
+  export type MailRateLimitBucketUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MailRateLimitBuckets.
+     */
+    data: XOR<MailRateLimitBucketUpdateManyMutationInput, MailRateLimitBucketUncheckedUpdateManyInput>
+    /**
+     * Filter which MailRateLimitBuckets to update
+     */
+    where?: MailRateLimitBucketWhereInput
+    /**
+     * Limit how many MailRateLimitBuckets to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailRateLimitBucket updateManyAndReturn
+   */
+  export type MailRateLimitBucketUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRateLimitBucket
+     */
+    select?: MailRateLimitBucketSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRateLimitBucket
+     */
+    omit?: MailRateLimitBucketOmit<ExtArgs> | null
+    /**
+     * The data used to update MailRateLimitBuckets.
+     */
+    data: XOR<MailRateLimitBucketUpdateManyMutationInput, MailRateLimitBucketUncheckedUpdateManyInput>
+    /**
+     * Filter which MailRateLimitBuckets to update
+     */
+    where?: MailRateLimitBucketWhereInput
+    /**
+     * Limit how many MailRateLimitBuckets to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailRateLimitBucket upsert
+   */
+  export type MailRateLimitBucketUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRateLimitBucket
+     */
+    select?: MailRateLimitBucketSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRateLimitBucket
+     */
+    omit?: MailRateLimitBucketOmit<ExtArgs> | null
+    /**
+     * The filter to search for the MailRateLimitBucket to update in case it exists.
+     */
+    where: MailRateLimitBucketWhereUniqueInput
+    /**
+     * In case the MailRateLimitBucket found by the `where` argument doesn't exist, create a new MailRateLimitBucket with this data.
+     */
+    create: XOR<MailRateLimitBucketCreateInput, MailRateLimitBucketUncheckedCreateInput>
+    /**
+     * In case the MailRateLimitBucket was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MailRateLimitBucketUpdateInput, MailRateLimitBucketUncheckedUpdateInput>
+  }
+
+  /**
+   * MailRateLimitBucket delete
+   */
+  export type MailRateLimitBucketDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRateLimitBucket
+     */
+    select?: MailRateLimitBucketSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRateLimitBucket
+     */
+    omit?: MailRateLimitBucketOmit<ExtArgs> | null
+    /**
+     * Filter which MailRateLimitBucket to delete.
+     */
+    where: MailRateLimitBucketWhereUniqueInput
+  }
+
+  /**
+   * MailRateLimitBucket deleteMany
+   */
+  export type MailRateLimitBucketDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailRateLimitBuckets to delete
+     */
+    where?: MailRateLimitBucketWhereInput
+    /**
+     * Limit how many MailRateLimitBuckets to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailRateLimitBucket without action
+   */
+  export type MailRateLimitBucketDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRateLimitBucket
+     */
+    select?: MailRateLimitBucketSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRateLimitBucket
+     */
+    omit?: MailRateLimitBucketOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MarketingCampaignReply
+   */
+
+  export type AggregateMarketingCampaignReply = {
+    _count: MarketingCampaignReplyCountAggregateOutputType | null
+    _min: MarketingCampaignReplyMinAggregateOutputType | null
+    _max: MarketingCampaignReplyMaxAggregateOutputType | null
+  }
+
+  export type MarketingCampaignReplyMinAggregateOutputType = {
+    id: string | null
+    organizationId: string | null
+    campaignId: string | null
+    dispatchId: string | null
+    recipientId: string | null
+    mailMessageId: string | null
+    method: string | null
+    receivedAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type MarketingCampaignReplyMaxAggregateOutputType = {
+    id: string | null
+    organizationId: string | null
+    campaignId: string | null
+    dispatchId: string | null
+    recipientId: string | null
+    mailMessageId: string | null
+    method: string | null
+    receivedAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type MarketingCampaignReplyCountAggregateOutputType = {
+    id: number
+    organizationId: number
+    campaignId: number
+    dispatchId: number
+    recipientId: number
+    mailMessageId: number
+    method: number
+    receivedAt: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type MarketingCampaignReplyMinAggregateInputType = {
+    id?: true
+    organizationId?: true
+    campaignId?: true
+    dispatchId?: true
+    recipientId?: true
+    mailMessageId?: true
+    method?: true
+    receivedAt?: true
+    createdAt?: true
+  }
+
+  export type MarketingCampaignReplyMaxAggregateInputType = {
+    id?: true
+    organizationId?: true
+    campaignId?: true
+    dispatchId?: true
+    recipientId?: true
+    mailMessageId?: true
+    method?: true
+    receivedAt?: true
+    createdAt?: true
+  }
+
+  export type MarketingCampaignReplyCountAggregateInputType = {
+    id?: true
+    organizationId?: true
+    campaignId?: true
+    dispatchId?: true
+    recipientId?: true
+    mailMessageId?: true
+    method?: true
+    receivedAt?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type MarketingCampaignReplyAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingCampaignReply to aggregate.
+     */
+    where?: MarketingCampaignReplyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingCampaignReplies to fetch.
+     */
+    orderBy?: MarketingCampaignReplyOrderByWithRelationInput | MarketingCampaignReplyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MarketingCampaignReplyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingCampaignReplies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingCampaignReplies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MarketingCampaignReplies
+    **/
+    _count?: true | MarketingCampaignReplyCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MarketingCampaignReplyMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MarketingCampaignReplyMaxAggregateInputType
+  }
+
+  export type GetMarketingCampaignReplyAggregateType<T extends MarketingCampaignReplyAggregateArgs> = {
+        [P in keyof T & keyof AggregateMarketingCampaignReply]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMarketingCampaignReply[P]>
+      : GetScalarType<T[P], AggregateMarketingCampaignReply[P]>
+  }
+
+
+
+
+  export type MarketingCampaignReplyGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingCampaignReplyWhereInput
+    orderBy?: MarketingCampaignReplyOrderByWithAggregationInput | MarketingCampaignReplyOrderByWithAggregationInput[]
+    by: MarketingCampaignReplyScalarFieldEnum[] | MarketingCampaignReplyScalarFieldEnum
+    having?: MarketingCampaignReplyScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MarketingCampaignReplyCountAggregateInputType | true
+    _min?: MarketingCampaignReplyMinAggregateInputType
+    _max?: MarketingCampaignReplyMaxAggregateInputType
+  }
+
+  export type MarketingCampaignReplyGroupByOutputType = {
+    id: string
+    organizationId: string
+    campaignId: string
+    dispatchId: string
+    recipientId: string
+    mailMessageId: string
+    method: string
+    receivedAt: Date
+    createdAt: Date
+    _count: MarketingCampaignReplyCountAggregateOutputType | null
+    _min: MarketingCampaignReplyMinAggregateOutputType | null
+    _max: MarketingCampaignReplyMaxAggregateOutputType | null
+  }
+
+  type GetMarketingCampaignReplyGroupByPayload<T extends MarketingCampaignReplyGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MarketingCampaignReplyGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MarketingCampaignReplyGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MarketingCampaignReplyGroupByOutputType[P]>
+            : GetScalarType<T[P], MarketingCampaignReplyGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MarketingCampaignReplySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    campaignId?: boolean
+    dispatchId?: boolean
+    recipientId?: boolean
+    mailMessageId?: boolean
+    method?: boolean
+    receivedAt?: boolean
+    createdAt?: boolean
+    campaign?: boolean | MarketingEmailCampaignDefaultArgs<ExtArgs>
+    recipient?: boolean | MarketingBroadcastRecipientDefaultArgs<ExtArgs>
+    message?: boolean | MailMessageDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingCampaignReply"]>
+
+  export type MarketingCampaignReplySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    campaignId?: boolean
+    dispatchId?: boolean
+    recipientId?: boolean
+    mailMessageId?: boolean
+    method?: boolean
+    receivedAt?: boolean
+    createdAt?: boolean
+    campaign?: boolean | MarketingEmailCampaignDefaultArgs<ExtArgs>
+    recipient?: boolean | MarketingBroadcastRecipientDefaultArgs<ExtArgs>
+    message?: boolean | MailMessageDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingCampaignReply"]>
+
+  export type MarketingCampaignReplySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    campaignId?: boolean
+    dispatchId?: boolean
+    recipientId?: boolean
+    mailMessageId?: boolean
+    method?: boolean
+    receivedAt?: boolean
+    createdAt?: boolean
+    campaign?: boolean | MarketingEmailCampaignDefaultArgs<ExtArgs>
+    recipient?: boolean | MarketingBroadcastRecipientDefaultArgs<ExtArgs>
+    message?: boolean | MailMessageDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingCampaignReply"]>
+
+  export type MarketingCampaignReplySelectScalar = {
+    id?: boolean
+    organizationId?: boolean
+    campaignId?: boolean
+    dispatchId?: boolean
+    recipientId?: boolean
+    mailMessageId?: boolean
+    method?: boolean
+    receivedAt?: boolean
+    createdAt?: boolean
+  }
+
+  export type MarketingCampaignReplyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "campaignId" | "dispatchId" | "recipientId" | "mailMessageId" | "method" | "receivedAt" | "createdAt", ExtArgs["result"]["marketingCampaignReply"]>
+  export type MarketingCampaignReplyInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    campaign?: boolean | MarketingEmailCampaignDefaultArgs<ExtArgs>
+    recipient?: boolean | MarketingBroadcastRecipientDefaultArgs<ExtArgs>
+    message?: boolean | MailMessageDefaultArgs<ExtArgs>
+  }
+  export type MarketingCampaignReplyIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    campaign?: boolean | MarketingEmailCampaignDefaultArgs<ExtArgs>
+    recipient?: boolean | MarketingBroadcastRecipientDefaultArgs<ExtArgs>
+    message?: boolean | MailMessageDefaultArgs<ExtArgs>
+  }
+  export type MarketingCampaignReplyIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    campaign?: boolean | MarketingEmailCampaignDefaultArgs<ExtArgs>
+    recipient?: boolean | MarketingBroadcastRecipientDefaultArgs<ExtArgs>
+    message?: boolean | MailMessageDefaultArgs<ExtArgs>
+  }
+
+  export type $MarketingCampaignReplyPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MarketingCampaignReply"
+    objects: {
+      campaign: Prisma.$MarketingEmailCampaignPayload<ExtArgs>
+      recipient: Prisma.$MarketingBroadcastRecipientPayload<ExtArgs>
+      message: Prisma.$MailMessagePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      organizationId: string
+      campaignId: string
+      dispatchId: string
+      recipientId: string
+      mailMessageId: string
+      method: string
+      receivedAt: Date
+      createdAt: Date
+    }, ExtArgs["result"]["marketingCampaignReply"]>
+    composites: {}
+  }
+
+  type MarketingCampaignReplyGetPayload<S extends boolean | null | undefined | MarketingCampaignReplyDefaultArgs> = $Result.GetResult<Prisma.$MarketingCampaignReplyPayload, S>
+
+  type MarketingCampaignReplyCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MarketingCampaignReplyFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MarketingCampaignReplyCountAggregateInputType | true
+    }
+
+  export interface MarketingCampaignReplyDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MarketingCampaignReply'], meta: { name: 'MarketingCampaignReply' } }
+    /**
+     * Find zero or one MarketingCampaignReply that matches the filter.
+     * @param {MarketingCampaignReplyFindUniqueArgs} args - Arguments to find a MarketingCampaignReply
+     * @example
+     * // Get one MarketingCampaignReply
+     * const marketingCampaignReply = await prisma.marketingCampaignReply.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MarketingCampaignReplyFindUniqueArgs>(args: SelectSubset<T, MarketingCampaignReplyFindUniqueArgs<ExtArgs>>): Prisma__MarketingCampaignReplyClient<$Result.GetResult<Prisma.$MarketingCampaignReplyPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MarketingCampaignReply that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MarketingCampaignReplyFindUniqueOrThrowArgs} args - Arguments to find a MarketingCampaignReply
+     * @example
+     * // Get one MarketingCampaignReply
+     * const marketingCampaignReply = await prisma.marketingCampaignReply.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MarketingCampaignReplyFindUniqueOrThrowArgs>(args: SelectSubset<T, MarketingCampaignReplyFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MarketingCampaignReplyClient<$Result.GetResult<Prisma.$MarketingCampaignReplyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarketingCampaignReply that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignReplyFindFirstArgs} args - Arguments to find a MarketingCampaignReply
+     * @example
+     * // Get one MarketingCampaignReply
+     * const marketingCampaignReply = await prisma.marketingCampaignReply.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MarketingCampaignReplyFindFirstArgs>(args?: SelectSubset<T, MarketingCampaignReplyFindFirstArgs<ExtArgs>>): Prisma__MarketingCampaignReplyClient<$Result.GetResult<Prisma.$MarketingCampaignReplyPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarketingCampaignReply that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignReplyFindFirstOrThrowArgs} args - Arguments to find a MarketingCampaignReply
+     * @example
+     * // Get one MarketingCampaignReply
+     * const marketingCampaignReply = await prisma.marketingCampaignReply.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MarketingCampaignReplyFindFirstOrThrowArgs>(args?: SelectSubset<T, MarketingCampaignReplyFindFirstOrThrowArgs<ExtArgs>>): Prisma__MarketingCampaignReplyClient<$Result.GetResult<Prisma.$MarketingCampaignReplyPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MarketingCampaignReplies that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignReplyFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MarketingCampaignReplies
+     * const marketingCampaignReplies = await prisma.marketingCampaignReply.findMany()
+     * 
+     * // Get first 10 MarketingCampaignReplies
+     * const marketingCampaignReplies = await prisma.marketingCampaignReply.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const marketingCampaignReplyWithIdOnly = await prisma.marketingCampaignReply.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MarketingCampaignReplyFindManyArgs>(args?: SelectSubset<T, MarketingCampaignReplyFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingCampaignReplyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MarketingCampaignReply.
+     * @param {MarketingCampaignReplyCreateArgs} args - Arguments to create a MarketingCampaignReply.
+     * @example
+     * // Create one MarketingCampaignReply
+     * const MarketingCampaignReply = await prisma.marketingCampaignReply.create({
+     *   data: {
+     *     // ... data to create a MarketingCampaignReply
+     *   }
+     * })
+     * 
+     */
+    create<T extends MarketingCampaignReplyCreateArgs>(args: SelectSubset<T, MarketingCampaignReplyCreateArgs<ExtArgs>>): Prisma__MarketingCampaignReplyClient<$Result.GetResult<Prisma.$MarketingCampaignReplyPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MarketingCampaignReplies.
+     * @param {MarketingCampaignReplyCreateManyArgs} args - Arguments to create many MarketingCampaignReplies.
+     * @example
+     * // Create many MarketingCampaignReplies
+     * const marketingCampaignReply = await prisma.marketingCampaignReply.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MarketingCampaignReplyCreateManyArgs>(args?: SelectSubset<T, MarketingCampaignReplyCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MarketingCampaignReplies and returns the data saved in the database.
+     * @param {MarketingCampaignReplyCreateManyAndReturnArgs} args - Arguments to create many MarketingCampaignReplies.
+     * @example
+     * // Create many MarketingCampaignReplies
+     * const marketingCampaignReply = await prisma.marketingCampaignReply.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MarketingCampaignReplies and only return the `id`
+     * const marketingCampaignReplyWithIdOnly = await prisma.marketingCampaignReply.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MarketingCampaignReplyCreateManyAndReturnArgs>(args?: SelectSubset<T, MarketingCampaignReplyCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingCampaignReplyPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MarketingCampaignReply.
+     * @param {MarketingCampaignReplyDeleteArgs} args - Arguments to delete one MarketingCampaignReply.
+     * @example
+     * // Delete one MarketingCampaignReply
+     * const MarketingCampaignReply = await prisma.marketingCampaignReply.delete({
+     *   where: {
+     *     // ... filter to delete one MarketingCampaignReply
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MarketingCampaignReplyDeleteArgs>(args: SelectSubset<T, MarketingCampaignReplyDeleteArgs<ExtArgs>>): Prisma__MarketingCampaignReplyClient<$Result.GetResult<Prisma.$MarketingCampaignReplyPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MarketingCampaignReply.
+     * @param {MarketingCampaignReplyUpdateArgs} args - Arguments to update one MarketingCampaignReply.
+     * @example
+     * // Update one MarketingCampaignReply
+     * const marketingCampaignReply = await prisma.marketingCampaignReply.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MarketingCampaignReplyUpdateArgs>(args: SelectSubset<T, MarketingCampaignReplyUpdateArgs<ExtArgs>>): Prisma__MarketingCampaignReplyClient<$Result.GetResult<Prisma.$MarketingCampaignReplyPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MarketingCampaignReplies.
+     * @param {MarketingCampaignReplyDeleteManyArgs} args - Arguments to filter MarketingCampaignReplies to delete.
+     * @example
+     * // Delete a few MarketingCampaignReplies
+     * const { count } = await prisma.marketingCampaignReply.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MarketingCampaignReplyDeleteManyArgs>(args?: SelectSubset<T, MarketingCampaignReplyDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingCampaignReplies.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignReplyUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MarketingCampaignReplies
+     * const marketingCampaignReply = await prisma.marketingCampaignReply.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MarketingCampaignReplyUpdateManyArgs>(args: SelectSubset<T, MarketingCampaignReplyUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingCampaignReplies and returns the data updated in the database.
+     * @param {MarketingCampaignReplyUpdateManyAndReturnArgs} args - Arguments to update many MarketingCampaignReplies.
+     * @example
+     * // Update many MarketingCampaignReplies
+     * const marketingCampaignReply = await prisma.marketingCampaignReply.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MarketingCampaignReplies and only return the `id`
+     * const marketingCampaignReplyWithIdOnly = await prisma.marketingCampaignReply.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MarketingCampaignReplyUpdateManyAndReturnArgs>(args: SelectSubset<T, MarketingCampaignReplyUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingCampaignReplyPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MarketingCampaignReply.
+     * @param {MarketingCampaignReplyUpsertArgs} args - Arguments to update or create a MarketingCampaignReply.
+     * @example
+     * // Update or create a MarketingCampaignReply
+     * const marketingCampaignReply = await prisma.marketingCampaignReply.upsert({
+     *   create: {
+     *     // ... data to create a MarketingCampaignReply
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MarketingCampaignReply we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MarketingCampaignReplyUpsertArgs>(args: SelectSubset<T, MarketingCampaignReplyUpsertArgs<ExtArgs>>): Prisma__MarketingCampaignReplyClient<$Result.GetResult<Prisma.$MarketingCampaignReplyPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MarketingCampaignReplies.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignReplyCountArgs} args - Arguments to filter MarketingCampaignReplies to count.
+     * @example
+     * // Count the number of MarketingCampaignReplies
+     * const count = await prisma.marketingCampaignReply.count({
+     *   where: {
+     *     // ... the filter for the MarketingCampaignReplies we want to count
+     *   }
+     * })
+    **/
+    count<T extends MarketingCampaignReplyCountArgs>(
+      args?: Subset<T, MarketingCampaignReplyCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MarketingCampaignReplyCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MarketingCampaignReply.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignReplyAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MarketingCampaignReplyAggregateArgs>(args: Subset<T, MarketingCampaignReplyAggregateArgs>): Prisma.PrismaPromise<GetMarketingCampaignReplyAggregateType<T>>
+
+    /**
+     * Group by MarketingCampaignReply.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignReplyGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MarketingCampaignReplyGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MarketingCampaignReplyGroupByArgs['orderBy'] }
+        : { orderBy?: MarketingCampaignReplyGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MarketingCampaignReplyGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMarketingCampaignReplyGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MarketingCampaignReply model
+   */
+  readonly fields: MarketingCampaignReplyFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MarketingCampaignReply.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MarketingCampaignReplyClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    campaign<T extends MarketingEmailCampaignDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MarketingEmailCampaignDefaultArgs<ExtArgs>>): Prisma__MarketingEmailCampaignClient<$Result.GetResult<Prisma.$MarketingEmailCampaignPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    recipient<T extends MarketingBroadcastRecipientDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MarketingBroadcastRecipientDefaultArgs<ExtArgs>>): Prisma__MarketingBroadcastRecipientClient<$Result.GetResult<Prisma.$MarketingBroadcastRecipientPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    message<T extends MailMessageDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MailMessageDefaultArgs<ExtArgs>>): Prisma__MailMessageClient<$Result.GetResult<Prisma.$MailMessagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MarketingCampaignReply model
+   */
+  interface MarketingCampaignReplyFieldRefs {
+    readonly id: FieldRef<"MarketingCampaignReply", 'String'>
+    readonly organizationId: FieldRef<"MarketingCampaignReply", 'String'>
+    readonly campaignId: FieldRef<"MarketingCampaignReply", 'String'>
+    readonly dispatchId: FieldRef<"MarketingCampaignReply", 'String'>
+    readonly recipientId: FieldRef<"MarketingCampaignReply", 'String'>
+    readonly mailMessageId: FieldRef<"MarketingCampaignReply", 'String'>
+    readonly method: FieldRef<"MarketingCampaignReply", 'String'>
+    readonly receivedAt: FieldRef<"MarketingCampaignReply", 'DateTime'>
+    readonly createdAt: FieldRef<"MarketingCampaignReply", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MarketingCampaignReply findUnique
+   */
+  export type MarketingCampaignReplyFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignReply
+     */
+    select?: MarketingCampaignReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignReply
+     */
+    omit?: MarketingCampaignReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignReplyInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingCampaignReply to fetch.
+     */
+    where: MarketingCampaignReplyWhereUniqueInput
+  }
+
+  /**
+   * MarketingCampaignReply findUniqueOrThrow
+   */
+  export type MarketingCampaignReplyFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignReply
+     */
+    select?: MarketingCampaignReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignReply
+     */
+    omit?: MarketingCampaignReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignReplyInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingCampaignReply to fetch.
+     */
+    where: MarketingCampaignReplyWhereUniqueInput
+  }
+
+  /**
+   * MarketingCampaignReply findFirst
+   */
+  export type MarketingCampaignReplyFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignReply
+     */
+    select?: MarketingCampaignReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignReply
+     */
+    omit?: MarketingCampaignReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignReplyInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingCampaignReply to fetch.
+     */
+    where?: MarketingCampaignReplyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingCampaignReplies to fetch.
+     */
+    orderBy?: MarketingCampaignReplyOrderByWithRelationInput | MarketingCampaignReplyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingCampaignReplies.
+     */
+    cursor?: MarketingCampaignReplyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingCampaignReplies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingCampaignReplies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingCampaignReplies.
+     */
+    distinct?: MarketingCampaignReplyScalarFieldEnum | MarketingCampaignReplyScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingCampaignReply findFirstOrThrow
+   */
+  export type MarketingCampaignReplyFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignReply
+     */
+    select?: MarketingCampaignReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignReply
+     */
+    omit?: MarketingCampaignReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignReplyInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingCampaignReply to fetch.
+     */
+    where?: MarketingCampaignReplyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingCampaignReplies to fetch.
+     */
+    orderBy?: MarketingCampaignReplyOrderByWithRelationInput | MarketingCampaignReplyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingCampaignReplies.
+     */
+    cursor?: MarketingCampaignReplyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingCampaignReplies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingCampaignReplies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingCampaignReplies.
+     */
+    distinct?: MarketingCampaignReplyScalarFieldEnum | MarketingCampaignReplyScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingCampaignReply findMany
+   */
+  export type MarketingCampaignReplyFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignReply
+     */
+    select?: MarketingCampaignReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignReply
+     */
+    omit?: MarketingCampaignReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignReplyInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingCampaignReplies to fetch.
+     */
+    where?: MarketingCampaignReplyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingCampaignReplies to fetch.
+     */
+    orderBy?: MarketingCampaignReplyOrderByWithRelationInput | MarketingCampaignReplyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MarketingCampaignReplies.
+     */
+    cursor?: MarketingCampaignReplyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingCampaignReplies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingCampaignReplies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingCampaignReplies.
+     */
+    distinct?: MarketingCampaignReplyScalarFieldEnum | MarketingCampaignReplyScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingCampaignReply create
+   */
+  export type MarketingCampaignReplyCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignReply
+     */
+    select?: MarketingCampaignReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignReply
+     */
+    omit?: MarketingCampaignReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignReplyInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MarketingCampaignReply.
+     */
+    data: XOR<MarketingCampaignReplyCreateInput, MarketingCampaignReplyUncheckedCreateInput>
+  }
+
+  /**
+   * MarketingCampaignReply createMany
+   */
+  export type MarketingCampaignReplyCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MarketingCampaignReplies.
+     */
+    data: MarketingCampaignReplyCreateManyInput | MarketingCampaignReplyCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MarketingCampaignReply createManyAndReturn
+   */
+  export type MarketingCampaignReplyCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignReply
+     */
+    select?: MarketingCampaignReplySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignReply
+     */
+    omit?: MarketingCampaignReplyOmit<ExtArgs> | null
+    /**
+     * The data used to create many MarketingCampaignReplies.
+     */
+    data: MarketingCampaignReplyCreateManyInput | MarketingCampaignReplyCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignReplyIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarketingCampaignReply update
+   */
+  export type MarketingCampaignReplyUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignReply
+     */
+    select?: MarketingCampaignReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignReply
+     */
+    omit?: MarketingCampaignReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignReplyInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MarketingCampaignReply.
+     */
+    data: XOR<MarketingCampaignReplyUpdateInput, MarketingCampaignReplyUncheckedUpdateInput>
+    /**
+     * Choose, which MarketingCampaignReply to update.
+     */
+    where: MarketingCampaignReplyWhereUniqueInput
+  }
+
+  /**
+   * MarketingCampaignReply updateMany
+   */
+  export type MarketingCampaignReplyUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MarketingCampaignReplies.
+     */
+    data: XOR<MarketingCampaignReplyUpdateManyMutationInput, MarketingCampaignReplyUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingCampaignReplies to update
+     */
+    where?: MarketingCampaignReplyWhereInput
+    /**
+     * Limit how many MarketingCampaignReplies to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingCampaignReply updateManyAndReturn
+   */
+  export type MarketingCampaignReplyUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignReply
+     */
+    select?: MarketingCampaignReplySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignReply
+     */
+    omit?: MarketingCampaignReplyOmit<ExtArgs> | null
+    /**
+     * The data used to update MarketingCampaignReplies.
+     */
+    data: XOR<MarketingCampaignReplyUpdateManyMutationInput, MarketingCampaignReplyUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingCampaignReplies to update
+     */
+    where?: MarketingCampaignReplyWhereInput
+    /**
+     * Limit how many MarketingCampaignReplies to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignReplyIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarketingCampaignReply upsert
+   */
+  export type MarketingCampaignReplyUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignReply
+     */
+    select?: MarketingCampaignReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignReply
+     */
+    omit?: MarketingCampaignReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignReplyInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MarketingCampaignReply to update in case it exists.
+     */
+    where: MarketingCampaignReplyWhereUniqueInput
+    /**
+     * In case the MarketingCampaignReply found by the `where` argument doesn't exist, create a new MarketingCampaignReply with this data.
+     */
+    create: XOR<MarketingCampaignReplyCreateInput, MarketingCampaignReplyUncheckedCreateInput>
+    /**
+     * In case the MarketingCampaignReply was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MarketingCampaignReplyUpdateInput, MarketingCampaignReplyUncheckedUpdateInput>
+  }
+
+  /**
+   * MarketingCampaignReply delete
+   */
+  export type MarketingCampaignReplyDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignReply
+     */
+    select?: MarketingCampaignReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignReply
+     */
+    omit?: MarketingCampaignReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignReplyInclude<ExtArgs> | null
+    /**
+     * Filter which MarketingCampaignReply to delete.
+     */
+    where: MarketingCampaignReplyWhereUniqueInput
+  }
+
+  /**
+   * MarketingCampaignReply deleteMany
+   */
+  export type MarketingCampaignReplyDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingCampaignReplies to delete
+     */
+    where?: MarketingCampaignReplyWhereInput
+    /**
+     * Limit how many MarketingCampaignReplies to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingCampaignReply without action
+   */
+  export type MarketingCampaignReplyDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignReply
+     */
+    select?: MarketingCampaignReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignReply
+     */
+    omit?: MarketingCampaignReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignReplyInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -246071,6 +252395,84 @@ export namespace Prisma {
   };
 
   export type AccountSetupTokenScalarFieldEnum = (typeof AccountSetupTokenScalarFieldEnum)[keyof typeof AccountSetupTokenScalarFieldEnum]
+
+
+  export const MailMessageSearchIndexScalarFieldEnum: {
+    messageId: 'messageId',
+    mailboxId: 'mailboxId',
+    keyVersion: 'keyVersion',
+    terms: 'terms',
+    termCount: 'termCount',
+    indexedAt: 'indexedAt'
+  };
+
+  export type MailMessageSearchIndexScalarFieldEnum = (typeof MailMessageSearchIndexScalarFieldEnum)[keyof typeof MailMessageSearchIndexScalarFieldEnum]
+
+
+  export const MailMessageArchiveScalarFieldEnum: {
+    messageId: 'messageId',
+    mailboxId: 'mailboxId',
+    headersObjectKey: 'headersObjectKey',
+    headersSha256: 'headersSha256',
+    headerCount: 'headerCount',
+    rawMimeStatus: 'rawMimeStatus',
+    rawMimeObjectKey: 'rawMimeObjectKey',
+    rawMimeSha256: 'rawMimeSha256',
+    rawMimeSizeBytes: 'rawMimeSizeBytes',
+    archivedAt: 'archivedAt'
+  };
+
+  export type MailMessageArchiveScalarFieldEnum = (typeof MailMessageArchiveScalarFieldEnum)[keyof typeof MailMessageArchiveScalarFieldEnum]
+
+
+  export const MailForwardingRuleScalarFieldEnum: {
+    id: 'id',
+    mailboxId: 'mailboxId',
+    organizationId: 'organizationId',
+    targetAddress: 'targetAddress',
+    targetKind: 'targetKind',
+    status: 'status',
+    reason: 'reason',
+    requestedBy: 'requestedBy',
+    requestedAt: 'requestedAt',
+    decidedBy: 'decidedBy',
+    decidedAt: 'decidedAt',
+    decisionNote: 'decisionNote',
+    disabledBy: 'disabledBy',
+    disabledAt: 'disabledAt',
+    disabledReason: 'disabledReason',
+    lastForwardedAt: 'lastForwardedAt',
+    forwardedCount: 'forwardedCount',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MailForwardingRuleScalarFieldEnum = (typeof MailForwardingRuleScalarFieldEnum)[keyof typeof MailForwardingRuleScalarFieldEnum]
+
+
+  export const MailRateLimitBucketScalarFieldEnum: {
+    key: 'key',
+    windowStart: 'windowStart',
+    count: 'count',
+    expiresAt: 'expiresAt'
+  };
+
+  export type MailRateLimitBucketScalarFieldEnum = (typeof MailRateLimitBucketScalarFieldEnum)[keyof typeof MailRateLimitBucketScalarFieldEnum]
+
+
+  export const MarketingCampaignReplyScalarFieldEnum: {
+    id: 'id',
+    organizationId: 'organizationId',
+    campaignId: 'campaignId',
+    dispatchId: 'dispatchId',
+    recipientId: 'recipientId',
+    mailMessageId: 'mailMessageId',
+    method: 'method',
+    receivedAt: 'receivedAt',
+    createdAt: 'createdAt'
+  };
+
+  export type MarketingCampaignReplyScalarFieldEnum = (typeof MarketingCampaignReplyScalarFieldEnum)[keyof typeof MarketingCampaignReplyScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -260895,6 +267297,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldListRelationFilter
     breakGlass?: MailBreakGlassRequestListRelationFilter
     retention?: MailRetentionPolicyListRelationFilter
+    forwardingRules?: MailForwardingRuleListRelationFilter
   }
 
   export type MailMailboxOrderByWithRelationInput = {
@@ -260928,6 +267331,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldOrderByRelationAggregateInput
     breakGlass?: MailBreakGlassRequestOrderByRelationAggregateInput
     retention?: MailRetentionPolicyOrderByRelationAggregateInput
+    forwardingRules?: MailForwardingRuleOrderByRelationAggregateInput
   }
 
   export type MailMailboxWhereUniqueInput = Prisma.AtLeast<{
@@ -260965,6 +267369,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldListRelationFilter
     breakGlass?: MailBreakGlassRequestListRelationFilter
     retention?: MailRetentionPolicyListRelationFilter
+    forwardingRules?: MailForwardingRuleListRelationFilter
   }, "id" | "organizationId_ownerAdminUserId">
 
   export type MailMailboxOrderByWithAggregationInput = {
@@ -261628,6 +268033,9 @@ export namespace Prisma {
     attachments?: MailAttachmentListRelationFilter
     deliveryEvents?: MailDeliveryEventListRelationFilter
     outboxJobs?: MailOutboxJobListRelationFilter
+    searchIndex?: XOR<MailMessageSearchIndexNullableScalarRelationFilter, MailMessageSearchIndexWhereInput> | null
+    archive?: XOR<MailMessageArchiveNullableScalarRelationFilter, MailMessageArchiveWhereInput> | null
+    campaignReply?: XOR<MarketingCampaignReplyNullableScalarRelationFilter, MarketingCampaignReplyWhereInput> | null
   }
 
   export type MailMessageOrderByWithRelationInput = {
@@ -261670,6 +268078,9 @@ export namespace Prisma {
     attachments?: MailAttachmentOrderByRelationAggregateInput
     deliveryEvents?: MailDeliveryEventOrderByRelationAggregateInput
     outboxJobs?: MailOutboxJobOrderByRelationAggregateInput
+    searchIndex?: MailMessageSearchIndexOrderByWithRelationInput
+    archive?: MailMessageArchiveOrderByWithRelationInput
+    campaignReply?: MarketingCampaignReplyOrderByWithRelationInput
   }
 
   export type MailMessageWhereUniqueInput = Prisma.AtLeast<{
@@ -261716,6 +268127,9 @@ export namespace Prisma {
     attachments?: MailAttachmentListRelationFilter
     deliveryEvents?: MailDeliveryEventListRelationFilter
     outboxJobs?: MailOutboxJobListRelationFilter
+    searchIndex?: XOR<MailMessageSearchIndexNullableScalarRelationFilter, MailMessageSearchIndexWhereInput> | null
+    archive?: XOR<MailMessageArchiveNullableScalarRelationFilter, MailMessageArchiveWhereInput> | null
+    campaignReply?: XOR<MarketingCampaignReplyNullableScalarRelationFilter, MarketingCampaignReplyWhereInput> | null
   }, "id" | "idempotencyKey" | "mailboxId_rfcMessageId">
 
   export type MailMessageOrderByWithAggregationInput = {
@@ -263908,6 +270322,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalListRelationFilter
     snapshots?: MarketingCampaignSnapshotListRelationFilter
     dispatch?: XOR<MarketingBroadcastDispatchNullableScalarRelationFilter, MarketingBroadcastDispatchWhereInput> | null
+    replies?: MarketingCampaignReplyListRelationFilter
   }
 
   export type MarketingEmailCampaignOrderByWithRelationInput = {
@@ -263940,6 +270355,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalOrderByRelationAggregateInput
     snapshots?: MarketingCampaignSnapshotOrderByRelationAggregateInput
     dispatch?: MarketingBroadcastDispatchOrderByWithRelationInput
+    replies?: MarketingCampaignReplyOrderByRelationAggregateInput
   }
 
   export type MarketingEmailCampaignWhereUniqueInput = Prisma.AtLeast<{
@@ -263975,6 +270391,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalListRelationFilter
     snapshots?: MarketingCampaignSnapshotListRelationFilter
     dispatch?: XOR<MarketingBroadcastDispatchNullableScalarRelationFilter, MarketingBroadcastDispatchWhereInput> | null
+    replies?: MarketingCampaignReplyListRelationFilter
   }, "id">
 
   export type MarketingEmailCampaignOrderByWithAggregationInput = {
@@ -264590,6 +271007,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"MarketingBroadcastRecipient"> | Date | string
     dispatch?: XOR<MarketingBroadcastDispatchScalarRelationFilter, MarketingBroadcastDispatchWhereInput>
     contact?: XOR<MarketingContactScalarRelationFilter, MarketingContactWhereInput>
+    reply?: XOR<MarketingCampaignReplyNullableScalarRelationFilter, MarketingCampaignReplyWhereInput> | null
   }
 
   export type MarketingBroadcastRecipientOrderByWithRelationInput = {
@@ -264612,6 +271030,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     dispatch?: MarketingBroadcastDispatchOrderByWithRelationInput
     contact?: MarketingContactOrderByWithRelationInput
+    reply?: MarketingCampaignReplyOrderByWithRelationInput
   }
 
   export type MarketingBroadcastRecipientWhereUniqueInput = Prisma.AtLeast<{
@@ -264638,6 +271057,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"MarketingBroadcastRecipient"> | Date | string
     dispatch?: XOR<MarketingBroadcastDispatchScalarRelationFilter, MarketingBroadcastDispatchWhereInput>
     contact?: XOR<MarketingContactScalarRelationFilter, MarketingContactWhereInput>
+    reply?: XOR<MarketingCampaignReplyNullableScalarRelationFilter, MarketingCampaignReplyWhereInput> | null
   }, "id" | "dispatchId_contactId">
 
   export type MarketingBroadcastRecipientOrderByWithAggregationInput = {
@@ -266372,6 +272792,408 @@ export namespace Prisma {
     attempts?: IntWithAggregatesFilter<"AccountSetupToken"> | number
     createdBy?: StringNullableWithAggregatesFilter<"AccountSetupToken"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"AccountSetupToken"> | Date | string
+  }
+
+  export type MailMessageSearchIndexWhereInput = {
+    AND?: MailMessageSearchIndexWhereInput | MailMessageSearchIndexWhereInput[]
+    OR?: MailMessageSearchIndexWhereInput[]
+    NOT?: MailMessageSearchIndexWhereInput | MailMessageSearchIndexWhereInput[]
+    messageId?: UuidFilter<"MailMessageSearchIndex"> | string
+    mailboxId?: UuidFilter<"MailMessageSearchIndex"> | string
+    keyVersion?: StringFilter<"MailMessageSearchIndex"> | string
+    terms?: StringNullableListFilter<"MailMessageSearchIndex">
+    termCount?: IntFilter<"MailMessageSearchIndex"> | number
+    indexedAt?: DateTimeFilter<"MailMessageSearchIndex"> | Date | string
+    message?: XOR<MailMessageScalarRelationFilter, MailMessageWhereInput>
+  }
+
+  export type MailMessageSearchIndexOrderByWithRelationInput = {
+    messageId?: SortOrder
+    mailboxId?: SortOrder
+    keyVersion?: SortOrder
+    terms?: SortOrder
+    termCount?: SortOrder
+    indexedAt?: SortOrder
+    message?: MailMessageOrderByWithRelationInput
+  }
+
+  export type MailMessageSearchIndexWhereUniqueInput = Prisma.AtLeast<{
+    messageId?: string
+    AND?: MailMessageSearchIndexWhereInput | MailMessageSearchIndexWhereInput[]
+    OR?: MailMessageSearchIndexWhereInput[]
+    NOT?: MailMessageSearchIndexWhereInput | MailMessageSearchIndexWhereInput[]
+    mailboxId?: UuidFilter<"MailMessageSearchIndex"> | string
+    keyVersion?: StringFilter<"MailMessageSearchIndex"> | string
+    terms?: StringNullableListFilter<"MailMessageSearchIndex">
+    termCount?: IntFilter<"MailMessageSearchIndex"> | number
+    indexedAt?: DateTimeFilter<"MailMessageSearchIndex"> | Date | string
+    message?: XOR<MailMessageScalarRelationFilter, MailMessageWhereInput>
+  }, "messageId">
+
+  export type MailMessageSearchIndexOrderByWithAggregationInput = {
+    messageId?: SortOrder
+    mailboxId?: SortOrder
+    keyVersion?: SortOrder
+    terms?: SortOrder
+    termCount?: SortOrder
+    indexedAt?: SortOrder
+    _count?: MailMessageSearchIndexCountOrderByAggregateInput
+    _avg?: MailMessageSearchIndexAvgOrderByAggregateInput
+    _max?: MailMessageSearchIndexMaxOrderByAggregateInput
+    _min?: MailMessageSearchIndexMinOrderByAggregateInput
+    _sum?: MailMessageSearchIndexSumOrderByAggregateInput
+  }
+
+  export type MailMessageSearchIndexScalarWhereWithAggregatesInput = {
+    AND?: MailMessageSearchIndexScalarWhereWithAggregatesInput | MailMessageSearchIndexScalarWhereWithAggregatesInput[]
+    OR?: MailMessageSearchIndexScalarWhereWithAggregatesInput[]
+    NOT?: MailMessageSearchIndexScalarWhereWithAggregatesInput | MailMessageSearchIndexScalarWhereWithAggregatesInput[]
+    messageId?: UuidWithAggregatesFilter<"MailMessageSearchIndex"> | string
+    mailboxId?: UuidWithAggregatesFilter<"MailMessageSearchIndex"> | string
+    keyVersion?: StringWithAggregatesFilter<"MailMessageSearchIndex"> | string
+    terms?: StringNullableListFilter<"MailMessageSearchIndex">
+    termCount?: IntWithAggregatesFilter<"MailMessageSearchIndex"> | number
+    indexedAt?: DateTimeWithAggregatesFilter<"MailMessageSearchIndex"> | Date | string
+  }
+
+  export type MailMessageArchiveWhereInput = {
+    AND?: MailMessageArchiveWhereInput | MailMessageArchiveWhereInput[]
+    OR?: MailMessageArchiveWhereInput[]
+    NOT?: MailMessageArchiveWhereInput | MailMessageArchiveWhereInput[]
+    messageId?: UuidFilter<"MailMessageArchive"> | string
+    mailboxId?: UuidFilter<"MailMessageArchive"> | string
+    headersObjectKey?: StringNullableFilter<"MailMessageArchive"> | string | null
+    headersSha256?: StringNullableFilter<"MailMessageArchive"> | string | null
+    headerCount?: IntFilter<"MailMessageArchive"> | number
+    rawMimeStatus?: StringFilter<"MailMessageArchive"> | string
+    rawMimeObjectKey?: StringNullableFilter<"MailMessageArchive"> | string | null
+    rawMimeSha256?: StringNullableFilter<"MailMessageArchive"> | string | null
+    rawMimeSizeBytes?: IntNullableFilter<"MailMessageArchive"> | number | null
+    archivedAt?: DateTimeFilter<"MailMessageArchive"> | Date | string
+    message?: XOR<MailMessageScalarRelationFilter, MailMessageWhereInput>
+  }
+
+  export type MailMessageArchiveOrderByWithRelationInput = {
+    messageId?: SortOrder
+    mailboxId?: SortOrder
+    headersObjectKey?: SortOrderInput | SortOrder
+    headersSha256?: SortOrderInput | SortOrder
+    headerCount?: SortOrder
+    rawMimeStatus?: SortOrder
+    rawMimeObjectKey?: SortOrderInput | SortOrder
+    rawMimeSha256?: SortOrderInput | SortOrder
+    rawMimeSizeBytes?: SortOrderInput | SortOrder
+    archivedAt?: SortOrder
+    message?: MailMessageOrderByWithRelationInput
+  }
+
+  export type MailMessageArchiveWhereUniqueInput = Prisma.AtLeast<{
+    messageId?: string
+    AND?: MailMessageArchiveWhereInput | MailMessageArchiveWhereInput[]
+    OR?: MailMessageArchiveWhereInput[]
+    NOT?: MailMessageArchiveWhereInput | MailMessageArchiveWhereInput[]
+    mailboxId?: UuidFilter<"MailMessageArchive"> | string
+    headersObjectKey?: StringNullableFilter<"MailMessageArchive"> | string | null
+    headersSha256?: StringNullableFilter<"MailMessageArchive"> | string | null
+    headerCount?: IntFilter<"MailMessageArchive"> | number
+    rawMimeStatus?: StringFilter<"MailMessageArchive"> | string
+    rawMimeObjectKey?: StringNullableFilter<"MailMessageArchive"> | string | null
+    rawMimeSha256?: StringNullableFilter<"MailMessageArchive"> | string | null
+    rawMimeSizeBytes?: IntNullableFilter<"MailMessageArchive"> | number | null
+    archivedAt?: DateTimeFilter<"MailMessageArchive"> | Date | string
+    message?: XOR<MailMessageScalarRelationFilter, MailMessageWhereInput>
+  }, "messageId">
+
+  export type MailMessageArchiveOrderByWithAggregationInput = {
+    messageId?: SortOrder
+    mailboxId?: SortOrder
+    headersObjectKey?: SortOrderInput | SortOrder
+    headersSha256?: SortOrderInput | SortOrder
+    headerCount?: SortOrder
+    rawMimeStatus?: SortOrder
+    rawMimeObjectKey?: SortOrderInput | SortOrder
+    rawMimeSha256?: SortOrderInput | SortOrder
+    rawMimeSizeBytes?: SortOrderInput | SortOrder
+    archivedAt?: SortOrder
+    _count?: MailMessageArchiveCountOrderByAggregateInput
+    _avg?: MailMessageArchiveAvgOrderByAggregateInput
+    _max?: MailMessageArchiveMaxOrderByAggregateInput
+    _min?: MailMessageArchiveMinOrderByAggregateInput
+    _sum?: MailMessageArchiveSumOrderByAggregateInput
+  }
+
+  export type MailMessageArchiveScalarWhereWithAggregatesInput = {
+    AND?: MailMessageArchiveScalarWhereWithAggregatesInput | MailMessageArchiveScalarWhereWithAggregatesInput[]
+    OR?: MailMessageArchiveScalarWhereWithAggregatesInput[]
+    NOT?: MailMessageArchiveScalarWhereWithAggregatesInput | MailMessageArchiveScalarWhereWithAggregatesInput[]
+    messageId?: UuidWithAggregatesFilter<"MailMessageArchive"> | string
+    mailboxId?: UuidWithAggregatesFilter<"MailMessageArchive"> | string
+    headersObjectKey?: StringNullableWithAggregatesFilter<"MailMessageArchive"> | string | null
+    headersSha256?: StringNullableWithAggregatesFilter<"MailMessageArchive"> | string | null
+    headerCount?: IntWithAggregatesFilter<"MailMessageArchive"> | number
+    rawMimeStatus?: StringWithAggregatesFilter<"MailMessageArchive"> | string
+    rawMimeObjectKey?: StringNullableWithAggregatesFilter<"MailMessageArchive"> | string | null
+    rawMimeSha256?: StringNullableWithAggregatesFilter<"MailMessageArchive"> | string | null
+    rawMimeSizeBytes?: IntNullableWithAggregatesFilter<"MailMessageArchive"> | number | null
+    archivedAt?: DateTimeWithAggregatesFilter<"MailMessageArchive"> | Date | string
+  }
+
+  export type MailForwardingRuleWhereInput = {
+    AND?: MailForwardingRuleWhereInput | MailForwardingRuleWhereInput[]
+    OR?: MailForwardingRuleWhereInput[]
+    NOT?: MailForwardingRuleWhereInput | MailForwardingRuleWhereInput[]
+    id?: UuidFilter<"MailForwardingRule"> | string
+    mailboxId?: UuidFilter<"MailForwardingRule"> | string
+    organizationId?: UuidFilter<"MailForwardingRule"> | string
+    targetAddress?: StringFilter<"MailForwardingRule"> | string
+    targetKind?: StringFilter<"MailForwardingRule"> | string
+    status?: StringFilter<"MailForwardingRule"> | string
+    reason?: StringFilter<"MailForwardingRule"> | string
+    requestedBy?: StringFilter<"MailForwardingRule"> | string
+    requestedAt?: DateTimeFilter<"MailForwardingRule"> | Date | string
+    decidedBy?: StringNullableFilter<"MailForwardingRule"> | string | null
+    decidedAt?: DateTimeNullableFilter<"MailForwardingRule"> | Date | string | null
+    decisionNote?: StringNullableFilter<"MailForwardingRule"> | string | null
+    disabledBy?: StringNullableFilter<"MailForwardingRule"> | string | null
+    disabledAt?: DateTimeNullableFilter<"MailForwardingRule"> | Date | string | null
+    disabledReason?: StringNullableFilter<"MailForwardingRule"> | string | null
+    lastForwardedAt?: DateTimeNullableFilter<"MailForwardingRule"> | Date | string | null
+    forwardedCount?: IntFilter<"MailForwardingRule"> | number
+    createdAt?: DateTimeFilter<"MailForwardingRule"> | Date | string
+    updatedAt?: DateTimeFilter<"MailForwardingRule"> | Date | string
+    mailbox?: XOR<MailMailboxScalarRelationFilter, MailMailboxWhereInput>
+  }
+
+  export type MailForwardingRuleOrderByWithRelationInput = {
+    id?: SortOrder
+    mailboxId?: SortOrder
+    organizationId?: SortOrder
+    targetAddress?: SortOrder
+    targetKind?: SortOrder
+    status?: SortOrder
+    reason?: SortOrder
+    requestedBy?: SortOrder
+    requestedAt?: SortOrder
+    decidedBy?: SortOrderInput | SortOrder
+    decidedAt?: SortOrderInput | SortOrder
+    decisionNote?: SortOrderInput | SortOrder
+    disabledBy?: SortOrderInput | SortOrder
+    disabledAt?: SortOrderInput | SortOrder
+    disabledReason?: SortOrderInput | SortOrder
+    lastForwardedAt?: SortOrderInput | SortOrder
+    forwardedCount?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    mailbox?: MailMailboxOrderByWithRelationInput
+  }
+
+  export type MailForwardingRuleWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: MailForwardingRuleWhereInput | MailForwardingRuleWhereInput[]
+    OR?: MailForwardingRuleWhereInput[]
+    NOT?: MailForwardingRuleWhereInput | MailForwardingRuleWhereInput[]
+    mailboxId?: UuidFilter<"MailForwardingRule"> | string
+    organizationId?: UuidFilter<"MailForwardingRule"> | string
+    targetAddress?: StringFilter<"MailForwardingRule"> | string
+    targetKind?: StringFilter<"MailForwardingRule"> | string
+    status?: StringFilter<"MailForwardingRule"> | string
+    reason?: StringFilter<"MailForwardingRule"> | string
+    requestedBy?: StringFilter<"MailForwardingRule"> | string
+    requestedAt?: DateTimeFilter<"MailForwardingRule"> | Date | string
+    decidedBy?: StringNullableFilter<"MailForwardingRule"> | string | null
+    decidedAt?: DateTimeNullableFilter<"MailForwardingRule"> | Date | string | null
+    decisionNote?: StringNullableFilter<"MailForwardingRule"> | string | null
+    disabledBy?: StringNullableFilter<"MailForwardingRule"> | string | null
+    disabledAt?: DateTimeNullableFilter<"MailForwardingRule"> | Date | string | null
+    disabledReason?: StringNullableFilter<"MailForwardingRule"> | string | null
+    lastForwardedAt?: DateTimeNullableFilter<"MailForwardingRule"> | Date | string | null
+    forwardedCount?: IntFilter<"MailForwardingRule"> | number
+    createdAt?: DateTimeFilter<"MailForwardingRule"> | Date | string
+    updatedAt?: DateTimeFilter<"MailForwardingRule"> | Date | string
+    mailbox?: XOR<MailMailboxScalarRelationFilter, MailMailboxWhereInput>
+  }, "id">
+
+  export type MailForwardingRuleOrderByWithAggregationInput = {
+    id?: SortOrder
+    mailboxId?: SortOrder
+    organizationId?: SortOrder
+    targetAddress?: SortOrder
+    targetKind?: SortOrder
+    status?: SortOrder
+    reason?: SortOrder
+    requestedBy?: SortOrder
+    requestedAt?: SortOrder
+    decidedBy?: SortOrderInput | SortOrder
+    decidedAt?: SortOrderInput | SortOrder
+    decisionNote?: SortOrderInput | SortOrder
+    disabledBy?: SortOrderInput | SortOrder
+    disabledAt?: SortOrderInput | SortOrder
+    disabledReason?: SortOrderInput | SortOrder
+    lastForwardedAt?: SortOrderInput | SortOrder
+    forwardedCount?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MailForwardingRuleCountOrderByAggregateInput
+    _avg?: MailForwardingRuleAvgOrderByAggregateInput
+    _max?: MailForwardingRuleMaxOrderByAggregateInput
+    _min?: MailForwardingRuleMinOrderByAggregateInput
+    _sum?: MailForwardingRuleSumOrderByAggregateInput
+  }
+
+  export type MailForwardingRuleScalarWhereWithAggregatesInput = {
+    AND?: MailForwardingRuleScalarWhereWithAggregatesInput | MailForwardingRuleScalarWhereWithAggregatesInput[]
+    OR?: MailForwardingRuleScalarWhereWithAggregatesInput[]
+    NOT?: MailForwardingRuleScalarWhereWithAggregatesInput | MailForwardingRuleScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MailForwardingRule"> | string
+    mailboxId?: UuidWithAggregatesFilter<"MailForwardingRule"> | string
+    organizationId?: UuidWithAggregatesFilter<"MailForwardingRule"> | string
+    targetAddress?: StringWithAggregatesFilter<"MailForwardingRule"> | string
+    targetKind?: StringWithAggregatesFilter<"MailForwardingRule"> | string
+    status?: StringWithAggregatesFilter<"MailForwardingRule"> | string
+    reason?: StringWithAggregatesFilter<"MailForwardingRule"> | string
+    requestedBy?: StringWithAggregatesFilter<"MailForwardingRule"> | string
+    requestedAt?: DateTimeWithAggregatesFilter<"MailForwardingRule"> | Date | string
+    decidedBy?: StringNullableWithAggregatesFilter<"MailForwardingRule"> | string | null
+    decidedAt?: DateTimeNullableWithAggregatesFilter<"MailForwardingRule"> | Date | string | null
+    decisionNote?: StringNullableWithAggregatesFilter<"MailForwardingRule"> | string | null
+    disabledBy?: StringNullableWithAggregatesFilter<"MailForwardingRule"> | string | null
+    disabledAt?: DateTimeNullableWithAggregatesFilter<"MailForwardingRule"> | Date | string | null
+    disabledReason?: StringNullableWithAggregatesFilter<"MailForwardingRule"> | string | null
+    lastForwardedAt?: DateTimeNullableWithAggregatesFilter<"MailForwardingRule"> | Date | string | null
+    forwardedCount?: IntWithAggregatesFilter<"MailForwardingRule"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"MailForwardingRule"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MailForwardingRule"> | Date | string
+  }
+
+  export type MailRateLimitBucketWhereInput = {
+    AND?: MailRateLimitBucketWhereInput | MailRateLimitBucketWhereInput[]
+    OR?: MailRateLimitBucketWhereInput[]
+    NOT?: MailRateLimitBucketWhereInput | MailRateLimitBucketWhereInput[]
+    key?: StringFilter<"MailRateLimitBucket"> | string
+    windowStart?: DateTimeFilter<"MailRateLimitBucket"> | Date | string
+    count?: IntFilter<"MailRateLimitBucket"> | number
+    expiresAt?: DateTimeFilter<"MailRateLimitBucket"> | Date | string
+  }
+
+  export type MailRateLimitBucketOrderByWithRelationInput = {
+    key?: SortOrder
+    windowStart?: SortOrder
+    count?: SortOrder
+    expiresAt?: SortOrder
+  }
+
+  export type MailRateLimitBucketWhereUniqueInput = Prisma.AtLeast<{
+    key_windowStart?: MailRateLimitBucketKeyWindowStartCompoundUniqueInput
+    AND?: MailRateLimitBucketWhereInput | MailRateLimitBucketWhereInput[]
+    OR?: MailRateLimitBucketWhereInput[]
+    NOT?: MailRateLimitBucketWhereInput | MailRateLimitBucketWhereInput[]
+    key?: StringFilter<"MailRateLimitBucket"> | string
+    windowStart?: DateTimeFilter<"MailRateLimitBucket"> | Date | string
+    count?: IntFilter<"MailRateLimitBucket"> | number
+    expiresAt?: DateTimeFilter<"MailRateLimitBucket"> | Date | string
+  }, "key_windowStart">
+
+  export type MailRateLimitBucketOrderByWithAggregationInput = {
+    key?: SortOrder
+    windowStart?: SortOrder
+    count?: SortOrder
+    expiresAt?: SortOrder
+    _count?: MailRateLimitBucketCountOrderByAggregateInput
+    _avg?: MailRateLimitBucketAvgOrderByAggregateInput
+    _max?: MailRateLimitBucketMaxOrderByAggregateInput
+    _min?: MailRateLimitBucketMinOrderByAggregateInput
+    _sum?: MailRateLimitBucketSumOrderByAggregateInput
+  }
+
+  export type MailRateLimitBucketScalarWhereWithAggregatesInput = {
+    AND?: MailRateLimitBucketScalarWhereWithAggregatesInput | MailRateLimitBucketScalarWhereWithAggregatesInput[]
+    OR?: MailRateLimitBucketScalarWhereWithAggregatesInput[]
+    NOT?: MailRateLimitBucketScalarWhereWithAggregatesInput | MailRateLimitBucketScalarWhereWithAggregatesInput[]
+    key?: StringWithAggregatesFilter<"MailRateLimitBucket"> | string
+    windowStart?: DateTimeWithAggregatesFilter<"MailRateLimitBucket"> | Date | string
+    count?: IntWithAggregatesFilter<"MailRateLimitBucket"> | number
+    expiresAt?: DateTimeWithAggregatesFilter<"MailRateLimitBucket"> | Date | string
+  }
+
+  export type MarketingCampaignReplyWhereInput = {
+    AND?: MarketingCampaignReplyWhereInput | MarketingCampaignReplyWhereInput[]
+    OR?: MarketingCampaignReplyWhereInput[]
+    NOT?: MarketingCampaignReplyWhereInput | MarketingCampaignReplyWhereInput[]
+    id?: UuidFilter<"MarketingCampaignReply"> | string
+    organizationId?: UuidFilter<"MarketingCampaignReply"> | string
+    campaignId?: UuidFilter<"MarketingCampaignReply"> | string
+    dispatchId?: UuidFilter<"MarketingCampaignReply"> | string
+    recipientId?: UuidFilter<"MarketingCampaignReply"> | string
+    mailMessageId?: UuidFilter<"MarketingCampaignReply"> | string
+    method?: StringFilter<"MarketingCampaignReply"> | string
+    receivedAt?: DateTimeFilter<"MarketingCampaignReply"> | Date | string
+    createdAt?: DateTimeFilter<"MarketingCampaignReply"> | Date | string
+    campaign?: XOR<MarketingEmailCampaignScalarRelationFilter, MarketingEmailCampaignWhereInput>
+    recipient?: XOR<MarketingBroadcastRecipientScalarRelationFilter, MarketingBroadcastRecipientWhereInput>
+    message?: XOR<MailMessageScalarRelationFilter, MailMessageWhereInput>
+  }
+
+  export type MarketingCampaignReplyOrderByWithRelationInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    campaignId?: SortOrder
+    dispatchId?: SortOrder
+    recipientId?: SortOrder
+    mailMessageId?: SortOrder
+    method?: SortOrder
+    receivedAt?: SortOrder
+    createdAt?: SortOrder
+    campaign?: MarketingEmailCampaignOrderByWithRelationInput
+    recipient?: MarketingBroadcastRecipientOrderByWithRelationInput
+    message?: MailMessageOrderByWithRelationInput
+  }
+
+  export type MarketingCampaignReplyWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    recipientId?: string
+    mailMessageId?: string
+    AND?: MarketingCampaignReplyWhereInput | MarketingCampaignReplyWhereInput[]
+    OR?: MarketingCampaignReplyWhereInput[]
+    NOT?: MarketingCampaignReplyWhereInput | MarketingCampaignReplyWhereInput[]
+    organizationId?: UuidFilter<"MarketingCampaignReply"> | string
+    campaignId?: UuidFilter<"MarketingCampaignReply"> | string
+    dispatchId?: UuidFilter<"MarketingCampaignReply"> | string
+    method?: StringFilter<"MarketingCampaignReply"> | string
+    receivedAt?: DateTimeFilter<"MarketingCampaignReply"> | Date | string
+    createdAt?: DateTimeFilter<"MarketingCampaignReply"> | Date | string
+    campaign?: XOR<MarketingEmailCampaignScalarRelationFilter, MarketingEmailCampaignWhereInput>
+    recipient?: XOR<MarketingBroadcastRecipientScalarRelationFilter, MarketingBroadcastRecipientWhereInput>
+    message?: XOR<MailMessageScalarRelationFilter, MailMessageWhereInput>
+  }, "id" | "recipientId" | "mailMessageId">
+
+  export type MarketingCampaignReplyOrderByWithAggregationInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    campaignId?: SortOrder
+    dispatchId?: SortOrder
+    recipientId?: SortOrder
+    mailMessageId?: SortOrder
+    method?: SortOrder
+    receivedAt?: SortOrder
+    createdAt?: SortOrder
+    _count?: MarketingCampaignReplyCountOrderByAggregateInput
+    _max?: MarketingCampaignReplyMaxOrderByAggregateInput
+    _min?: MarketingCampaignReplyMinOrderByAggregateInput
+  }
+
+  export type MarketingCampaignReplyScalarWhereWithAggregatesInput = {
+    AND?: MarketingCampaignReplyScalarWhereWithAggregatesInput | MarketingCampaignReplyScalarWhereWithAggregatesInput[]
+    OR?: MarketingCampaignReplyScalarWhereWithAggregatesInput[]
+    NOT?: MarketingCampaignReplyScalarWhereWithAggregatesInput | MarketingCampaignReplyScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MarketingCampaignReply"> | string
+    organizationId?: UuidWithAggregatesFilter<"MarketingCampaignReply"> | string
+    campaignId?: UuidWithAggregatesFilter<"MarketingCampaignReply"> | string
+    dispatchId?: UuidWithAggregatesFilter<"MarketingCampaignReply"> | string
+    recipientId?: UuidWithAggregatesFilter<"MarketingCampaignReply"> | string
+    mailMessageId?: UuidWithAggregatesFilter<"MarketingCampaignReply"> | string
+    method?: StringWithAggregatesFilter<"MarketingCampaignReply"> | string
+    receivedAt?: DateTimeWithAggregatesFilter<"MarketingCampaignReply"> | Date | string
+    createdAt?: DateTimeWithAggregatesFilter<"MarketingCampaignReply"> | Date | string
   }
 
   export type AdminUserCreateInput = {
@@ -280912,6 +287734,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxUncheckedCreateInput = {
@@ -280943,6 +287766,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestUncheckedCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyUncheckedCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleUncheckedCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxUpdateInput = {
@@ -280974,6 +287798,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMailboxUncheckedUpdateInput = {
@@ -281005,6 +287830,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUncheckedUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUncheckedUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUncheckedUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMailboxCreateManyInput = {
@@ -281754,6 +288580,9 @@ export namespace Prisma {
     attachments?: MailAttachmentCreateNestedManyWithoutMessageInput
     deliveryEvents?: MailDeliveryEventCreateNestedManyWithoutMessageInput
     outboxJobs?: MailOutboxJobCreateNestedManyWithoutMessageInput
+    searchIndex?: MailMessageSearchIndexCreateNestedOneWithoutMessageInput
+    archive?: MailMessageArchiveCreateNestedOneWithoutMessageInput
+    campaignReply?: MarketingCampaignReplyCreateNestedOneWithoutMessageInput
   }
 
   export type MailMessageUncheckedCreateInput = {
@@ -281794,6 +288623,9 @@ export namespace Prisma {
     attachments?: MailAttachmentUncheckedCreateNestedManyWithoutMessageInput
     deliveryEvents?: MailDeliveryEventUncheckedCreateNestedManyWithoutMessageInput
     outboxJobs?: MailOutboxJobUncheckedCreateNestedManyWithoutMessageInput
+    searchIndex?: MailMessageSearchIndexUncheckedCreateNestedOneWithoutMessageInput
+    archive?: MailMessageArchiveUncheckedCreateNestedOneWithoutMessageInput
+    campaignReply?: MarketingCampaignReplyUncheckedCreateNestedOneWithoutMessageInput
   }
 
   export type MailMessageUpdateInput = {
@@ -281834,6 +288666,9 @@ export namespace Prisma {
     attachments?: MailAttachmentUpdateManyWithoutMessageNestedInput
     deliveryEvents?: MailDeliveryEventUpdateManyWithoutMessageNestedInput
     outboxJobs?: MailOutboxJobUpdateManyWithoutMessageNestedInput
+    searchIndex?: MailMessageSearchIndexUpdateOneWithoutMessageNestedInput
+    archive?: MailMessageArchiveUpdateOneWithoutMessageNestedInput
+    campaignReply?: MarketingCampaignReplyUpdateOneWithoutMessageNestedInput
   }
 
   export type MailMessageUncheckedUpdateInput = {
@@ -281874,6 +288709,9 @@ export namespace Prisma {
     attachments?: MailAttachmentUncheckedUpdateManyWithoutMessageNestedInput
     deliveryEvents?: MailDeliveryEventUncheckedUpdateManyWithoutMessageNestedInput
     outboxJobs?: MailOutboxJobUncheckedUpdateManyWithoutMessageNestedInput
+    searchIndex?: MailMessageSearchIndexUncheckedUpdateOneWithoutMessageNestedInput
+    archive?: MailMessageArchiveUncheckedUpdateOneWithoutMessageNestedInput
+    campaignReply?: MarketingCampaignReplyUncheckedUpdateOneWithoutMessageNestedInput
   }
 
   export type MailMessageCreateManyInput = {
@@ -284308,6 +291146,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotCreateNestedManyWithoutCampaignInput
     dispatch?: MarketingBroadcastDispatchCreateNestedOneWithoutCampaignInput
+    replies?: MarketingCampaignReplyCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignUncheckedCreateInput = {
@@ -284336,6 +291175,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalUncheckedCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotUncheckedCreateNestedManyWithoutCampaignInput
     dispatch?: MarketingBroadcastDispatchUncheckedCreateNestedOneWithoutCampaignInput
+    replies?: MarketingCampaignReplyUncheckedCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignUpdateInput = {
@@ -284364,6 +291204,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUpdateManyWithoutCampaignNestedInput
     dispatch?: MarketingBroadcastDispatchUpdateOneWithoutCampaignNestedInput
+    replies?: MarketingCampaignReplyUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateInput = {
@@ -284392,6 +291233,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalUncheckedUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUncheckedUpdateManyWithoutCampaignNestedInput
     dispatch?: MarketingBroadcastDispatchUncheckedUpdateOneWithoutCampaignNestedInput
+    replies?: MarketingCampaignReplyUncheckedUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignCreateManyInput = {
@@ -285098,6 +291940,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     dispatch: MarketingBroadcastDispatchCreateNestedOneWithoutRecipientsInput
     contact: MarketingContactCreateNestedOneWithoutBroadcastRecipientsInput
+    reply?: MarketingCampaignReplyCreateNestedOneWithoutRecipientInput
   }
 
   export type MarketingBroadcastRecipientUncheckedCreateInput = {
@@ -285118,6 +291961,7 @@ export namespace Prisma {
     clickedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    reply?: MarketingCampaignReplyUncheckedCreateNestedOneWithoutRecipientInput
   }
 
   export type MarketingBroadcastRecipientUpdateInput = {
@@ -285138,6 +291982,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     dispatch?: MarketingBroadcastDispatchUpdateOneRequiredWithoutRecipientsNestedInput
     contact?: MarketingContactUpdateOneRequiredWithoutBroadcastRecipientsNestedInput
+    reply?: MarketingCampaignReplyUpdateOneWithoutRecipientNestedInput
   }
 
   export type MarketingBroadcastRecipientUncheckedUpdateInput = {
@@ -285158,6 +292003,7 @@ export namespace Prisma {
     clickedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reply?: MarketingCampaignReplyUncheckedUpdateOneWithoutRecipientNestedInput
   }
 
   export type MarketingBroadcastRecipientCreateManyInput = {
@@ -287183,6 +294029,441 @@ export namespace Prisma {
     revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     attempts?: IntFieldUpdateOperationsInput | number
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailMessageSearchIndexCreateInput = {
+    mailboxId: string
+    keyVersion: string
+    terms?: MailMessageSearchIndexCreatetermsInput | string[]
+    termCount?: number
+    indexedAt?: Date | string
+    message: MailMessageCreateNestedOneWithoutSearchIndexInput
+  }
+
+  export type MailMessageSearchIndexUncheckedCreateInput = {
+    messageId: string
+    mailboxId: string
+    keyVersion: string
+    terms?: MailMessageSearchIndexCreatetermsInput | string[]
+    termCount?: number
+    indexedAt?: Date | string
+  }
+
+  export type MailMessageSearchIndexUpdateInput = {
+    mailboxId?: StringFieldUpdateOperationsInput | string
+    keyVersion?: StringFieldUpdateOperationsInput | string
+    terms?: MailMessageSearchIndexUpdatetermsInput | string[]
+    termCount?: IntFieldUpdateOperationsInput | number
+    indexedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    message?: MailMessageUpdateOneRequiredWithoutSearchIndexNestedInput
+  }
+
+  export type MailMessageSearchIndexUncheckedUpdateInput = {
+    messageId?: StringFieldUpdateOperationsInput | string
+    mailboxId?: StringFieldUpdateOperationsInput | string
+    keyVersion?: StringFieldUpdateOperationsInput | string
+    terms?: MailMessageSearchIndexUpdatetermsInput | string[]
+    termCount?: IntFieldUpdateOperationsInput | number
+    indexedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailMessageSearchIndexCreateManyInput = {
+    messageId: string
+    mailboxId: string
+    keyVersion: string
+    terms?: MailMessageSearchIndexCreatetermsInput | string[]
+    termCount?: number
+    indexedAt?: Date | string
+  }
+
+  export type MailMessageSearchIndexUpdateManyMutationInput = {
+    mailboxId?: StringFieldUpdateOperationsInput | string
+    keyVersion?: StringFieldUpdateOperationsInput | string
+    terms?: MailMessageSearchIndexUpdatetermsInput | string[]
+    termCount?: IntFieldUpdateOperationsInput | number
+    indexedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailMessageSearchIndexUncheckedUpdateManyInput = {
+    messageId?: StringFieldUpdateOperationsInput | string
+    mailboxId?: StringFieldUpdateOperationsInput | string
+    keyVersion?: StringFieldUpdateOperationsInput | string
+    terms?: MailMessageSearchIndexUpdatetermsInput | string[]
+    termCount?: IntFieldUpdateOperationsInput | number
+    indexedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailMessageArchiveCreateInput = {
+    mailboxId: string
+    headersObjectKey?: string | null
+    headersSha256?: string | null
+    headerCount?: number
+    rawMimeStatus: string
+    rawMimeObjectKey?: string | null
+    rawMimeSha256?: string | null
+    rawMimeSizeBytes?: number | null
+    archivedAt?: Date | string
+    message: MailMessageCreateNestedOneWithoutArchiveInput
+  }
+
+  export type MailMessageArchiveUncheckedCreateInput = {
+    messageId: string
+    mailboxId: string
+    headersObjectKey?: string | null
+    headersSha256?: string | null
+    headerCount?: number
+    rawMimeStatus: string
+    rawMimeObjectKey?: string | null
+    rawMimeSha256?: string | null
+    rawMimeSizeBytes?: number | null
+    archivedAt?: Date | string
+  }
+
+  export type MailMessageArchiveUpdateInput = {
+    mailboxId?: StringFieldUpdateOperationsInput | string
+    headersObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    headersSha256?: NullableStringFieldUpdateOperationsInput | string | null
+    headerCount?: IntFieldUpdateOperationsInput | number
+    rawMimeStatus?: StringFieldUpdateOperationsInput | string
+    rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    rawMimeSha256?: NullableStringFieldUpdateOperationsInput | string | null
+    rawMimeSizeBytes?: NullableIntFieldUpdateOperationsInput | number | null
+    archivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    message?: MailMessageUpdateOneRequiredWithoutArchiveNestedInput
+  }
+
+  export type MailMessageArchiveUncheckedUpdateInput = {
+    messageId?: StringFieldUpdateOperationsInput | string
+    mailboxId?: StringFieldUpdateOperationsInput | string
+    headersObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    headersSha256?: NullableStringFieldUpdateOperationsInput | string | null
+    headerCount?: IntFieldUpdateOperationsInput | number
+    rawMimeStatus?: StringFieldUpdateOperationsInput | string
+    rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    rawMimeSha256?: NullableStringFieldUpdateOperationsInput | string | null
+    rawMimeSizeBytes?: NullableIntFieldUpdateOperationsInput | number | null
+    archivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailMessageArchiveCreateManyInput = {
+    messageId: string
+    mailboxId: string
+    headersObjectKey?: string | null
+    headersSha256?: string | null
+    headerCount?: number
+    rawMimeStatus: string
+    rawMimeObjectKey?: string | null
+    rawMimeSha256?: string | null
+    rawMimeSizeBytes?: number | null
+    archivedAt?: Date | string
+  }
+
+  export type MailMessageArchiveUpdateManyMutationInput = {
+    mailboxId?: StringFieldUpdateOperationsInput | string
+    headersObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    headersSha256?: NullableStringFieldUpdateOperationsInput | string | null
+    headerCount?: IntFieldUpdateOperationsInput | number
+    rawMimeStatus?: StringFieldUpdateOperationsInput | string
+    rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    rawMimeSha256?: NullableStringFieldUpdateOperationsInput | string | null
+    rawMimeSizeBytes?: NullableIntFieldUpdateOperationsInput | number | null
+    archivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailMessageArchiveUncheckedUpdateManyInput = {
+    messageId?: StringFieldUpdateOperationsInput | string
+    mailboxId?: StringFieldUpdateOperationsInput | string
+    headersObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    headersSha256?: NullableStringFieldUpdateOperationsInput | string | null
+    headerCount?: IntFieldUpdateOperationsInput | number
+    rawMimeStatus?: StringFieldUpdateOperationsInput | string
+    rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    rawMimeSha256?: NullableStringFieldUpdateOperationsInput | string | null
+    rawMimeSizeBytes?: NullableIntFieldUpdateOperationsInput | number | null
+    archivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailForwardingRuleCreateInput = {
+    id?: string
+    organizationId: string
+    targetAddress: string
+    targetKind: string
+    status?: string
+    reason: string
+    requestedBy: string
+    requestedAt?: Date | string
+    decidedBy?: string | null
+    decidedAt?: Date | string | null
+    decisionNote?: string | null
+    disabledBy?: string | null
+    disabledAt?: Date | string | null
+    disabledReason?: string | null
+    lastForwardedAt?: Date | string | null
+    forwardedCount?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    mailbox: MailMailboxCreateNestedOneWithoutForwardingRulesInput
+  }
+
+  export type MailForwardingRuleUncheckedCreateInput = {
+    id?: string
+    mailboxId: string
+    organizationId: string
+    targetAddress: string
+    targetKind: string
+    status?: string
+    reason: string
+    requestedBy: string
+    requestedAt?: Date | string
+    decidedBy?: string | null
+    decidedAt?: Date | string | null
+    decisionNote?: string | null
+    disabledBy?: string | null
+    disabledAt?: Date | string | null
+    disabledReason?: string | null
+    lastForwardedAt?: Date | string | null
+    forwardedCount?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MailForwardingRuleUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    targetAddress?: StringFieldUpdateOperationsInput | string
+    targetKind?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    requestedBy?: StringFieldUpdateOperationsInput | string
+    requestedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    decidedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    decisionNote?: NullableStringFieldUpdateOperationsInput | string | null
+    disabledBy?: NullableStringFieldUpdateOperationsInput | string | null
+    disabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    disabledReason?: NullableStringFieldUpdateOperationsInput | string | null
+    lastForwardedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    forwardedCount?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mailbox?: MailMailboxUpdateOneRequiredWithoutForwardingRulesNestedInput
+  }
+
+  export type MailForwardingRuleUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    mailboxId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    targetAddress?: StringFieldUpdateOperationsInput | string
+    targetKind?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    requestedBy?: StringFieldUpdateOperationsInput | string
+    requestedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    decidedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    decisionNote?: NullableStringFieldUpdateOperationsInput | string | null
+    disabledBy?: NullableStringFieldUpdateOperationsInput | string | null
+    disabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    disabledReason?: NullableStringFieldUpdateOperationsInput | string | null
+    lastForwardedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    forwardedCount?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailForwardingRuleCreateManyInput = {
+    id?: string
+    mailboxId: string
+    organizationId: string
+    targetAddress: string
+    targetKind: string
+    status?: string
+    reason: string
+    requestedBy: string
+    requestedAt?: Date | string
+    decidedBy?: string | null
+    decidedAt?: Date | string | null
+    decisionNote?: string | null
+    disabledBy?: string | null
+    disabledAt?: Date | string | null
+    disabledReason?: string | null
+    lastForwardedAt?: Date | string | null
+    forwardedCount?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MailForwardingRuleUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    targetAddress?: StringFieldUpdateOperationsInput | string
+    targetKind?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    requestedBy?: StringFieldUpdateOperationsInput | string
+    requestedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    decidedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    decisionNote?: NullableStringFieldUpdateOperationsInput | string | null
+    disabledBy?: NullableStringFieldUpdateOperationsInput | string | null
+    disabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    disabledReason?: NullableStringFieldUpdateOperationsInput | string | null
+    lastForwardedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    forwardedCount?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailForwardingRuleUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    mailboxId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    targetAddress?: StringFieldUpdateOperationsInput | string
+    targetKind?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    requestedBy?: StringFieldUpdateOperationsInput | string
+    requestedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    decidedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    decisionNote?: NullableStringFieldUpdateOperationsInput | string | null
+    disabledBy?: NullableStringFieldUpdateOperationsInput | string | null
+    disabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    disabledReason?: NullableStringFieldUpdateOperationsInput | string | null
+    lastForwardedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    forwardedCount?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailRateLimitBucketCreateInput = {
+    key: string
+    windowStart: Date | string
+    count?: number
+    expiresAt: Date | string
+  }
+
+  export type MailRateLimitBucketUncheckedCreateInput = {
+    key: string
+    windowStart: Date | string
+    count?: number
+    expiresAt: Date | string
+  }
+
+  export type MailRateLimitBucketUpdateInput = {
+    key?: StringFieldUpdateOperationsInput | string
+    windowStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    count?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailRateLimitBucketUncheckedUpdateInput = {
+    key?: StringFieldUpdateOperationsInput | string
+    windowStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    count?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailRateLimitBucketCreateManyInput = {
+    key: string
+    windowStart: Date | string
+    count?: number
+    expiresAt: Date | string
+  }
+
+  export type MailRateLimitBucketUpdateManyMutationInput = {
+    key?: StringFieldUpdateOperationsInput | string
+    windowStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    count?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailRateLimitBucketUncheckedUpdateManyInput = {
+    key?: StringFieldUpdateOperationsInput | string
+    windowStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    count?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingCampaignReplyCreateInput = {
+    id?: string
+    organizationId: string
+    dispatchId: string
+    method: string
+    receivedAt: Date | string
+    createdAt?: Date | string
+    campaign: MarketingEmailCampaignCreateNestedOneWithoutRepliesInput
+    recipient: MarketingBroadcastRecipientCreateNestedOneWithoutReplyInput
+    message: MailMessageCreateNestedOneWithoutCampaignReplyInput
+  }
+
+  export type MarketingCampaignReplyUncheckedCreateInput = {
+    id?: string
+    organizationId: string
+    campaignId: string
+    dispatchId: string
+    recipientId: string
+    mailMessageId: string
+    method: string
+    receivedAt: Date | string
+    createdAt?: Date | string
+  }
+
+  export type MarketingCampaignReplyUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    dispatchId?: StringFieldUpdateOperationsInput | string
+    method?: StringFieldUpdateOperationsInput | string
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    campaign?: MarketingEmailCampaignUpdateOneRequiredWithoutRepliesNestedInput
+    recipient?: MarketingBroadcastRecipientUpdateOneRequiredWithoutReplyNestedInput
+    message?: MailMessageUpdateOneRequiredWithoutCampaignReplyNestedInput
+  }
+
+  export type MarketingCampaignReplyUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    campaignId?: StringFieldUpdateOperationsInput | string
+    dispatchId?: StringFieldUpdateOperationsInput | string
+    recipientId?: StringFieldUpdateOperationsInput | string
+    mailMessageId?: StringFieldUpdateOperationsInput | string
+    method?: StringFieldUpdateOperationsInput | string
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingCampaignReplyCreateManyInput = {
+    id?: string
+    organizationId: string
+    campaignId: string
+    dispatchId: string
+    recipientId: string
+    mailMessageId: string
+    method: string
+    receivedAt: Date | string
+    createdAt?: Date | string
+  }
+
+  export type MarketingCampaignReplyUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    dispatchId?: StringFieldUpdateOperationsInput | string
+    method?: StringFieldUpdateOperationsInput | string
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingCampaignReplyUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    campaignId?: StringFieldUpdateOperationsInput | string
+    dispatchId?: StringFieldUpdateOperationsInput | string
+    recipientId?: StringFieldUpdateOperationsInput | string
+    mailMessageId?: StringFieldUpdateOperationsInput | string
+    method?: StringFieldUpdateOperationsInput | string
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -297537,6 +304818,12 @@ export namespace Prisma {
     none?: MailBreakGlassRequestWhereInput
   }
 
+  export type MailForwardingRuleListRelationFilter = {
+    every?: MailForwardingRuleWhereInput
+    some?: MailForwardingRuleWhereInput
+    none?: MailForwardingRuleWhereInput
+  }
+
   export type MailThreadOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -297558,6 +304845,10 @@ export namespace Prisma {
   }
 
   export type MailBreakGlassRequestOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MailForwardingRuleOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -298136,6 +305427,21 @@ export namespace Prisma {
     every?: MailOutboxJobWhereInput
     some?: MailOutboxJobWhereInput
     none?: MailOutboxJobWhereInput
+  }
+
+  export type MailMessageSearchIndexNullableScalarRelationFilter = {
+    is?: MailMessageSearchIndexWhereInput | null
+    isNot?: MailMessageSearchIndexWhereInput | null
+  }
+
+  export type MailMessageArchiveNullableScalarRelationFilter = {
+    is?: MailMessageArchiveWhereInput | null
+    isNot?: MailMessageArchiveWhereInput | null
+  }
+
+  export type MarketingCampaignReplyNullableScalarRelationFilter = {
+    is?: MarketingCampaignReplyWhereInput | null
+    isNot?: MarketingCampaignReplyWhereInput | null
   }
 
   export type MailMessageRecipientOrderByRelationAggregateInput = {
@@ -299761,11 +307067,21 @@ export namespace Prisma {
     isNot?: MarketingBroadcastDispatchWhereInput | null
   }
 
+  export type MarketingCampaignReplyListRelationFilter = {
+    every?: MarketingCampaignReplyWhereInput
+    some?: MarketingCampaignReplyWhereInput
+    none?: MarketingCampaignReplyWhereInput
+  }
+
   export type MarketingCampaignApprovalOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
   export type MarketingCampaignSnapshotOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MarketingCampaignReplyOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -301512,6 +308828,237 @@ export namespace Prisma {
 
   export type AccountSetupTokenSumOrderByAggregateInput = {
     attempts?: SortOrder
+  }
+
+  export type MailMessageSearchIndexCountOrderByAggregateInput = {
+    messageId?: SortOrder
+    mailboxId?: SortOrder
+    keyVersion?: SortOrder
+    terms?: SortOrder
+    termCount?: SortOrder
+    indexedAt?: SortOrder
+  }
+
+  export type MailMessageSearchIndexAvgOrderByAggregateInput = {
+    termCount?: SortOrder
+  }
+
+  export type MailMessageSearchIndexMaxOrderByAggregateInput = {
+    messageId?: SortOrder
+    mailboxId?: SortOrder
+    keyVersion?: SortOrder
+    termCount?: SortOrder
+    indexedAt?: SortOrder
+  }
+
+  export type MailMessageSearchIndexMinOrderByAggregateInput = {
+    messageId?: SortOrder
+    mailboxId?: SortOrder
+    keyVersion?: SortOrder
+    termCount?: SortOrder
+    indexedAt?: SortOrder
+  }
+
+  export type MailMessageSearchIndexSumOrderByAggregateInput = {
+    termCount?: SortOrder
+  }
+
+  export type MailMessageArchiveCountOrderByAggregateInput = {
+    messageId?: SortOrder
+    mailboxId?: SortOrder
+    headersObjectKey?: SortOrder
+    headersSha256?: SortOrder
+    headerCount?: SortOrder
+    rawMimeStatus?: SortOrder
+    rawMimeObjectKey?: SortOrder
+    rawMimeSha256?: SortOrder
+    rawMimeSizeBytes?: SortOrder
+    archivedAt?: SortOrder
+  }
+
+  export type MailMessageArchiveAvgOrderByAggregateInput = {
+    headerCount?: SortOrder
+    rawMimeSizeBytes?: SortOrder
+  }
+
+  export type MailMessageArchiveMaxOrderByAggregateInput = {
+    messageId?: SortOrder
+    mailboxId?: SortOrder
+    headersObjectKey?: SortOrder
+    headersSha256?: SortOrder
+    headerCount?: SortOrder
+    rawMimeStatus?: SortOrder
+    rawMimeObjectKey?: SortOrder
+    rawMimeSha256?: SortOrder
+    rawMimeSizeBytes?: SortOrder
+    archivedAt?: SortOrder
+  }
+
+  export type MailMessageArchiveMinOrderByAggregateInput = {
+    messageId?: SortOrder
+    mailboxId?: SortOrder
+    headersObjectKey?: SortOrder
+    headersSha256?: SortOrder
+    headerCount?: SortOrder
+    rawMimeStatus?: SortOrder
+    rawMimeObjectKey?: SortOrder
+    rawMimeSha256?: SortOrder
+    rawMimeSizeBytes?: SortOrder
+    archivedAt?: SortOrder
+  }
+
+  export type MailMessageArchiveSumOrderByAggregateInput = {
+    headerCount?: SortOrder
+    rawMimeSizeBytes?: SortOrder
+  }
+
+  export type MailForwardingRuleCountOrderByAggregateInput = {
+    id?: SortOrder
+    mailboxId?: SortOrder
+    organizationId?: SortOrder
+    targetAddress?: SortOrder
+    targetKind?: SortOrder
+    status?: SortOrder
+    reason?: SortOrder
+    requestedBy?: SortOrder
+    requestedAt?: SortOrder
+    decidedBy?: SortOrder
+    decidedAt?: SortOrder
+    decisionNote?: SortOrder
+    disabledBy?: SortOrder
+    disabledAt?: SortOrder
+    disabledReason?: SortOrder
+    lastForwardedAt?: SortOrder
+    forwardedCount?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MailForwardingRuleAvgOrderByAggregateInput = {
+    forwardedCount?: SortOrder
+  }
+
+  export type MailForwardingRuleMaxOrderByAggregateInput = {
+    id?: SortOrder
+    mailboxId?: SortOrder
+    organizationId?: SortOrder
+    targetAddress?: SortOrder
+    targetKind?: SortOrder
+    status?: SortOrder
+    reason?: SortOrder
+    requestedBy?: SortOrder
+    requestedAt?: SortOrder
+    decidedBy?: SortOrder
+    decidedAt?: SortOrder
+    decisionNote?: SortOrder
+    disabledBy?: SortOrder
+    disabledAt?: SortOrder
+    disabledReason?: SortOrder
+    lastForwardedAt?: SortOrder
+    forwardedCount?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MailForwardingRuleMinOrderByAggregateInput = {
+    id?: SortOrder
+    mailboxId?: SortOrder
+    organizationId?: SortOrder
+    targetAddress?: SortOrder
+    targetKind?: SortOrder
+    status?: SortOrder
+    reason?: SortOrder
+    requestedBy?: SortOrder
+    requestedAt?: SortOrder
+    decidedBy?: SortOrder
+    decidedAt?: SortOrder
+    decisionNote?: SortOrder
+    disabledBy?: SortOrder
+    disabledAt?: SortOrder
+    disabledReason?: SortOrder
+    lastForwardedAt?: SortOrder
+    forwardedCount?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MailForwardingRuleSumOrderByAggregateInput = {
+    forwardedCount?: SortOrder
+  }
+
+  export type MailRateLimitBucketKeyWindowStartCompoundUniqueInput = {
+    key: string
+    windowStart: Date | string
+  }
+
+  export type MailRateLimitBucketCountOrderByAggregateInput = {
+    key?: SortOrder
+    windowStart?: SortOrder
+    count?: SortOrder
+    expiresAt?: SortOrder
+  }
+
+  export type MailRateLimitBucketAvgOrderByAggregateInput = {
+    count?: SortOrder
+  }
+
+  export type MailRateLimitBucketMaxOrderByAggregateInput = {
+    key?: SortOrder
+    windowStart?: SortOrder
+    count?: SortOrder
+    expiresAt?: SortOrder
+  }
+
+  export type MailRateLimitBucketMinOrderByAggregateInput = {
+    key?: SortOrder
+    windowStart?: SortOrder
+    count?: SortOrder
+    expiresAt?: SortOrder
+  }
+
+  export type MailRateLimitBucketSumOrderByAggregateInput = {
+    count?: SortOrder
+  }
+
+  export type MarketingBroadcastRecipientScalarRelationFilter = {
+    is?: MarketingBroadcastRecipientWhereInput
+    isNot?: MarketingBroadcastRecipientWhereInput
+  }
+
+  export type MarketingCampaignReplyCountOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    campaignId?: SortOrder
+    dispatchId?: SortOrder
+    recipientId?: SortOrder
+    mailMessageId?: SortOrder
+    method?: SortOrder
+    receivedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MarketingCampaignReplyMaxOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    campaignId?: SortOrder
+    dispatchId?: SortOrder
+    recipientId?: SortOrder
+    mailMessageId?: SortOrder
+    method?: SortOrder
+    receivedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MarketingCampaignReplyMinOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    campaignId?: SortOrder
+    dispatchId?: SortOrder
+    recipientId?: SortOrder
+    mailMessageId?: SortOrder
+    method?: SortOrder
+    receivedAt?: SortOrder
+    createdAt?: SortOrder
   }
 
   export type AdminSessionCreateNestedManyWithoutAdminUserInput = {
@@ -313448,6 +320995,13 @@ export namespace Prisma {
     connect?: MailRetentionPolicyWhereUniqueInput | MailRetentionPolicyWhereUniqueInput[]
   }
 
+  export type MailForwardingRuleCreateNestedManyWithoutMailboxInput = {
+    create?: XOR<MailForwardingRuleCreateWithoutMailboxInput, MailForwardingRuleUncheckedCreateWithoutMailboxInput> | MailForwardingRuleCreateWithoutMailboxInput[] | MailForwardingRuleUncheckedCreateWithoutMailboxInput[]
+    connectOrCreate?: MailForwardingRuleCreateOrConnectWithoutMailboxInput | MailForwardingRuleCreateOrConnectWithoutMailboxInput[]
+    createMany?: MailForwardingRuleCreateManyMailboxInputEnvelope
+    connect?: MailForwardingRuleWhereUniqueInput | MailForwardingRuleWhereUniqueInput[]
+  }
+
   export type MailAddressUncheckedCreateNestedManyWithoutMailboxInput = {
     create?: XOR<MailAddressCreateWithoutMailboxInput, MailAddressUncheckedCreateWithoutMailboxInput> | MailAddressCreateWithoutMailboxInput[] | MailAddressUncheckedCreateWithoutMailboxInput[]
     connectOrCreate?: MailAddressCreateOrConnectWithoutMailboxInput | MailAddressCreateOrConnectWithoutMailboxInput[]
@@ -313530,6 +321084,13 @@ export namespace Prisma {
     connectOrCreate?: MailRetentionPolicyCreateOrConnectWithoutMailboxInput | MailRetentionPolicyCreateOrConnectWithoutMailboxInput[]
     createMany?: MailRetentionPolicyCreateManyMailboxInputEnvelope
     connect?: MailRetentionPolicyWhereUniqueInput | MailRetentionPolicyWhereUniqueInput[]
+  }
+
+  export type MailForwardingRuleUncheckedCreateNestedManyWithoutMailboxInput = {
+    create?: XOR<MailForwardingRuleCreateWithoutMailboxInput, MailForwardingRuleUncheckedCreateWithoutMailboxInput> | MailForwardingRuleCreateWithoutMailboxInput[] | MailForwardingRuleUncheckedCreateWithoutMailboxInput[]
+    connectOrCreate?: MailForwardingRuleCreateOrConnectWithoutMailboxInput | MailForwardingRuleCreateOrConnectWithoutMailboxInput[]
+    createMany?: MailForwardingRuleCreateManyMailboxInputEnvelope
+    connect?: MailForwardingRuleWhereUniqueInput | MailForwardingRuleWhereUniqueInput[]
   }
 
   export type EnumMailMailboxTypeFieldUpdateOperationsInput = {
@@ -313726,6 +321287,20 @@ export namespace Prisma {
     deleteMany?: MailRetentionPolicyScalarWhereInput | MailRetentionPolicyScalarWhereInput[]
   }
 
+  export type MailForwardingRuleUpdateManyWithoutMailboxNestedInput = {
+    create?: XOR<MailForwardingRuleCreateWithoutMailboxInput, MailForwardingRuleUncheckedCreateWithoutMailboxInput> | MailForwardingRuleCreateWithoutMailboxInput[] | MailForwardingRuleUncheckedCreateWithoutMailboxInput[]
+    connectOrCreate?: MailForwardingRuleCreateOrConnectWithoutMailboxInput | MailForwardingRuleCreateOrConnectWithoutMailboxInput[]
+    upsert?: MailForwardingRuleUpsertWithWhereUniqueWithoutMailboxInput | MailForwardingRuleUpsertWithWhereUniqueWithoutMailboxInput[]
+    createMany?: MailForwardingRuleCreateManyMailboxInputEnvelope
+    set?: MailForwardingRuleWhereUniqueInput | MailForwardingRuleWhereUniqueInput[]
+    disconnect?: MailForwardingRuleWhereUniqueInput | MailForwardingRuleWhereUniqueInput[]
+    delete?: MailForwardingRuleWhereUniqueInput | MailForwardingRuleWhereUniqueInput[]
+    connect?: MailForwardingRuleWhereUniqueInput | MailForwardingRuleWhereUniqueInput[]
+    update?: MailForwardingRuleUpdateWithWhereUniqueWithoutMailboxInput | MailForwardingRuleUpdateWithWhereUniqueWithoutMailboxInput[]
+    updateMany?: MailForwardingRuleUpdateManyWithWhereWithoutMailboxInput | MailForwardingRuleUpdateManyWithWhereWithoutMailboxInput[]
+    deleteMany?: MailForwardingRuleScalarWhereInput | MailForwardingRuleScalarWhereInput[]
+  }
+
   export type MailAddressUncheckedUpdateManyWithoutMailboxNestedInput = {
     create?: XOR<MailAddressCreateWithoutMailboxInput, MailAddressUncheckedCreateWithoutMailboxInput> | MailAddressCreateWithoutMailboxInput[] | MailAddressUncheckedCreateWithoutMailboxInput[]
     connectOrCreate?: MailAddressCreateOrConnectWithoutMailboxInput | MailAddressCreateOrConnectWithoutMailboxInput[]
@@ -313892,6 +321467,20 @@ export namespace Prisma {
     update?: MailRetentionPolicyUpdateWithWhereUniqueWithoutMailboxInput | MailRetentionPolicyUpdateWithWhereUniqueWithoutMailboxInput[]
     updateMany?: MailRetentionPolicyUpdateManyWithWhereWithoutMailboxInput | MailRetentionPolicyUpdateManyWithWhereWithoutMailboxInput[]
     deleteMany?: MailRetentionPolicyScalarWhereInput | MailRetentionPolicyScalarWhereInput[]
+  }
+
+  export type MailForwardingRuleUncheckedUpdateManyWithoutMailboxNestedInput = {
+    create?: XOR<MailForwardingRuleCreateWithoutMailboxInput, MailForwardingRuleUncheckedCreateWithoutMailboxInput> | MailForwardingRuleCreateWithoutMailboxInput[] | MailForwardingRuleUncheckedCreateWithoutMailboxInput[]
+    connectOrCreate?: MailForwardingRuleCreateOrConnectWithoutMailboxInput | MailForwardingRuleCreateOrConnectWithoutMailboxInput[]
+    upsert?: MailForwardingRuleUpsertWithWhereUniqueWithoutMailboxInput | MailForwardingRuleUpsertWithWhereUniqueWithoutMailboxInput[]
+    createMany?: MailForwardingRuleCreateManyMailboxInputEnvelope
+    set?: MailForwardingRuleWhereUniqueInput | MailForwardingRuleWhereUniqueInput[]
+    disconnect?: MailForwardingRuleWhereUniqueInput | MailForwardingRuleWhereUniqueInput[]
+    delete?: MailForwardingRuleWhereUniqueInput | MailForwardingRuleWhereUniqueInput[]
+    connect?: MailForwardingRuleWhereUniqueInput | MailForwardingRuleWhereUniqueInput[]
+    update?: MailForwardingRuleUpdateWithWhereUniqueWithoutMailboxInput | MailForwardingRuleUpdateWithWhereUniqueWithoutMailboxInput[]
+    updateMany?: MailForwardingRuleUpdateManyWithWhereWithoutMailboxInput | MailForwardingRuleUpdateManyWithWhereWithoutMailboxInput[]
+    deleteMany?: MailForwardingRuleScalarWhereInput | MailForwardingRuleScalarWhereInput[]
   }
 
   export type MailOrganizationCreateNestedOneWithoutAddressesInput = {
@@ -314418,6 +322007,24 @@ export namespace Prisma {
     connect?: MailOutboxJobWhereUniqueInput | MailOutboxJobWhereUniqueInput[]
   }
 
+  export type MailMessageSearchIndexCreateNestedOneWithoutMessageInput = {
+    create?: XOR<MailMessageSearchIndexCreateWithoutMessageInput, MailMessageSearchIndexUncheckedCreateWithoutMessageInput>
+    connectOrCreate?: MailMessageSearchIndexCreateOrConnectWithoutMessageInput
+    connect?: MailMessageSearchIndexWhereUniqueInput
+  }
+
+  export type MailMessageArchiveCreateNestedOneWithoutMessageInput = {
+    create?: XOR<MailMessageArchiveCreateWithoutMessageInput, MailMessageArchiveUncheckedCreateWithoutMessageInput>
+    connectOrCreate?: MailMessageArchiveCreateOrConnectWithoutMessageInput
+    connect?: MailMessageArchiveWhereUniqueInput
+  }
+
+  export type MarketingCampaignReplyCreateNestedOneWithoutMessageInput = {
+    create?: XOR<MarketingCampaignReplyCreateWithoutMessageInput, MarketingCampaignReplyUncheckedCreateWithoutMessageInput>
+    connectOrCreate?: MarketingCampaignReplyCreateOrConnectWithoutMessageInput
+    connect?: MarketingCampaignReplyWhereUniqueInput
+  }
+
   export type MailMessageRecipientUncheckedCreateNestedManyWithoutMessageInput = {
     create?: XOR<MailMessageRecipientCreateWithoutMessageInput, MailMessageRecipientUncheckedCreateWithoutMessageInput> | MailMessageRecipientCreateWithoutMessageInput[] | MailMessageRecipientUncheckedCreateWithoutMessageInput[]
     connectOrCreate?: MailMessageRecipientCreateOrConnectWithoutMessageInput | MailMessageRecipientCreateOrConnectWithoutMessageInput[]
@@ -314444,6 +322051,24 @@ export namespace Prisma {
     connectOrCreate?: MailOutboxJobCreateOrConnectWithoutMessageInput | MailOutboxJobCreateOrConnectWithoutMessageInput[]
     createMany?: MailOutboxJobCreateManyMessageInputEnvelope
     connect?: MailOutboxJobWhereUniqueInput | MailOutboxJobWhereUniqueInput[]
+  }
+
+  export type MailMessageSearchIndexUncheckedCreateNestedOneWithoutMessageInput = {
+    create?: XOR<MailMessageSearchIndexCreateWithoutMessageInput, MailMessageSearchIndexUncheckedCreateWithoutMessageInput>
+    connectOrCreate?: MailMessageSearchIndexCreateOrConnectWithoutMessageInput
+    connect?: MailMessageSearchIndexWhereUniqueInput
+  }
+
+  export type MailMessageArchiveUncheckedCreateNestedOneWithoutMessageInput = {
+    create?: XOR<MailMessageArchiveCreateWithoutMessageInput, MailMessageArchiveUncheckedCreateWithoutMessageInput>
+    connectOrCreate?: MailMessageArchiveCreateOrConnectWithoutMessageInput
+    connect?: MailMessageArchiveWhereUniqueInput
+  }
+
+  export type MarketingCampaignReplyUncheckedCreateNestedOneWithoutMessageInput = {
+    create?: XOR<MarketingCampaignReplyCreateWithoutMessageInput, MarketingCampaignReplyUncheckedCreateWithoutMessageInput>
+    connectOrCreate?: MarketingCampaignReplyCreateOrConnectWithoutMessageInput
+    connect?: MarketingCampaignReplyWhereUniqueInput
   }
 
   export type EnumMailMessageDirectionFieldUpdateOperationsInput = {
@@ -314531,6 +322156,36 @@ export namespace Prisma {
     deleteMany?: MailOutboxJobScalarWhereInput | MailOutboxJobScalarWhereInput[]
   }
 
+  export type MailMessageSearchIndexUpdateOneWithoutMessageNestedInput = {
+    create?: XOR<MailMessageSearchIndexCreateWithoutMessageInput, MailMessageSearchIndexUncheckedCreateWithoutMessageInput>
+    connectOrCreate?: MailMessageSearchIndexCreateOrConnectWithoutMessageInput
+    upsert?: MailMessageSearchIndexUpsertWithoutMessageInput
+    disconnect?: MailMessageSearchIndexWhereInput | boolean
+    delete?: MailMessageSearchIndexWhereInput | boolean
+    connect?: MailMessageSearchIndexWhereUniqueInput
+    update?: XOR<XOR<MailMessageSearchIndexUpdateToOneWithWhereWithoutMessageInput, MailMessageSearchIndexUpdateWithoutMessageInput>, MailMessageSearchIndexUncheckedUpdateWithoutMessageInput>
+  }
+
+  export type MailMessageArchiveUpdateOneWithoutMessageNestedInput = {
+    create?: XOR<MailMessageArchiveCreateWithoutMessageInput, MailMessageArchiveUncheckedCreateWithoutMessageInput>
+    connectOrCreate?: MailMessageArchiveCreateOrConnectWithoutMessageInput
+    upsert?: MailMessageArchiveUpsertWithoutMessageInput
+    disconnect?: MailMessageArchiveWhereInput | boolean
+    delete?: MailMessageArchiveWhereInput | boolean
+    connect?: MailMessageArchiveWhereUniqueInput
+    update?: XOR<XOR<MailMessageArchiveUpdateToOneWithWhereWithoutMessageInput, MailMessageArchiveUpdateWithoutMessageInput>, MailMessageArchiveUncheckedUpdateWithoutMessageInput>
+  }
+
+  export type MarketingCampaignReplyUpdateOneWithoutMessageNestedInput = {
+    create?: XOR<MarketingCampaignReplyCreateWithoutMessageInput, MarketingCampaignReplyUncheckedCreateWithoutMessageInput>
+    connectOrCreate?: MarketingCampaignReplyCreateOrConnectWithoutMessageInput
+    upsert?: MarketingCampaignReplyUpsertWithoutMessageInput
+    disconnect?: MarketingCampaignReplyWhereInput | boolean
+    delete?: MarketingCampaignReplyWhereInput | boolean
+    connect?: MarketingCampaignReplyWhereUniqueInput
+    update?: XOR<XOR<MarketingCampaignReplyUpdateToOneWithWhereWithoutMessageInput, MarketingCampaignReplyUpdateWithoutMessageInput>, MarketingCampaignReplyUncheckedUpdateWithoutMessageInput>
+  }
+
   export type MailMessageRecipientUncheckedUpdateManyWithoutMessageNestedInput = {
     create?: XOR<MailMessageRecipientCreateWithoutMessageInput, MailMessageRecipientUncheckedCreateWithoutMessageInput> | MailMessageRecipientCreateWithoutMessageInput[] | MailMessageRecipientUncheckedCreateWithoutMessageInput[]
     connectOrCreate?: MailMessageRecipientCreateOrConnectWithoutMessageInput | MailMessageRecipientCreateOrConnectWithoutMessageInput[]
@@ -314585,6 +322240,36 @@ export namespace Prisma {
     update?: MailOutboxJobUpdateWithWhereUniqueWithoutMessageInput | MailOutboxJobUpdateWithWhereUniqueWithoutMessageInput[]
     updateMany?: MailOutboxJobUpdateManyWithWhereWithoutMessageInput | MailOutboxJobUpdateManyWithWhereWithoutMessageInput[]
     deleteMany?: MailOutboxJobScalarWhereInput | MailOutboxJobScalarWhereInput[]
+  }
+
+  export type MailMessageSearchIndexUncheckedUpdateOneWithoutMessageNestedInput = {
+    create?: XOR<MailMessageSearchIndexCreateWithoutMessageInput, MailMessageSearchIndexUncheckedCreateWithoutMessageInput>
+    connectOrCreate?: MailMessageSearchIndexCreateOrConnectWithoutMessageInput
+    upsert?: MailMessageSearchIndexUpsertWithoutMessageInput
+    disconnect?: MailMessageSearchIndexWhereInput | boolean
+    delete?: MailMessageSearchIndexWhereInput | boolean
+    connect?: MailMessageSearchIndexWhereUniqueInput
+    update?: XOR<XOR<MailMessageSearchIndexUpdateToOneWithWhereWithoutMessageInput, MailMessageSearchIndexUpdateWithoutMessageInput>, MailMessageSearchIndexUncheckedUpdateWithoutMessageInput>
+  }
+
+  export type MailMessageArchiveUncheckedUpdateOneWithoutMessageNestedInput = {
+    create?: XOR<MailMessageArchiveCreateWithoutMessageInput, MailMessageArchiveUncheckedCreateWithoutMessageInput>
+    connectOrCreate?: MailMessageArchiveCreateOrConnectWithoutMessageInput
+    upsert?: MailMessageArchiveUpsertWithoutMessageInput
+    disconnect?: MailMessageArchiveWhereInput | boolean
+    delete?: MailMessageArchiveWhereInput | boolean
+    connect?: MailMessageArchiveWhereUniqueInput
+    update?: XOR<XOR<MailMessageArchiveUpdateToOneWithWhereWithoutMessageInput, MailMessageArchiveUpdateWithoutMessageInput>, MailMessageArchiveUncheckedUpdateWithoutMessageInput>
+  }
+
+  export type MarketingCampaignReplyUncheckedUpdateOneWithoutMessageNestedInput = {
+    create?: XOR<MarketingCampaignReplyCreateWithoutMessageInput, MarketingCampaignReplyUncheckedCreateWithoutMessageInput>
+    connectOrCreate?: MarketingCampaignReplyCreateOrConnectWithoutMessageInput
+    upsert?: MarketingCampaignReplyUpsertWithoutMessageInput
+    disconnect?: MarketingCampaignReplyWhereInput | boolean
+    delete?: MarketingCampaignReplyWhereInput | boolean
+    connect?: MarketingCampaignReplyWhereUniqueInput
+    update?: XOR<XOR<MarketingCampaignReplyUpdateToOneWithWhereWithoutMessageInput, MarketingCampaignReplyUpdateWithoutMessageInput>, MarketingCampaignReplyUncheckedUpdateWithoutMessageInput>
   }
 
   export type MailMessageCreateNestedOneWithoutRecipientsInput = {
@@ -315749,6 +323434,13 @@ export namespace Prisma {
     connect?: MarketingBroadcastDispatchWhereUniqueInput
   }
 
+  export type MarketingCampaignReplyCreateNestedManyWithoutCampaignInput = {
+    create?: XOR<MarketingCampaignReplyCreateWithoutCampaignInput, MarketingCampaignReplyUncheckedCreateWithoutCampaignInput> | MarketingCampaignReplyCreateWithoutCampaignInput[] | MarketingCampaignReplyUncheckedCreateWithoutCampaignInput[]
+    connectOrCreate?: MarketingCampaignReplyCreateOrConnectWithoutCampaignInput | MarketingCampaignReplyCreateOrConnectWithoutCampaignInput[]
+    createMany?: MarketingCampaignReplyCreateManyCampaignInputEnvelope
+    connect?: MarketingCampaignReplyWhereUniqueInput | MarketingCampaignReplyWhereUniqueInput[]
+  }
+
   export type MarketingCampaignApprovalUncheckedCreateNestedManyWithoutCampaignInput = {
     create?: XOR<MarketingCampaignApprovalCreateWithoutCampaignInput, MarketingCampaignApprovalUncheckedCreateWithoutCampaignInput> | MarketingCampaignApprovalCreateWithoutCampaignInput[] | MarketingCampaignApprovalUncheckedCreateWithoutCampaignInput[]
     connectOrCreate?: MarketingCampaignApprovalCreateOrConnectWithoutCampaignInput | MarketingCampaignApprovalCreateOrConnectWithoutCampaignInput[]
@@ -315767,6 +323459,13 @@ export namespace Prisma {
     create?: XOR<MarketingBroadcastDispatchCreateWithoutCampaignInput, MarketingBroadcastDispatchUncheckedCreateWithoutCampaignInput>
     connectOrCreate?: MarketingBroadcastDispatchCreateOrConnectWithoutCampaignInput
     connect?: MarketingBroadcastDispatchWhereUniqueInput
+  }
+
+  export type MarketingCampaignReplyUncheckedCreateNestedManyWithoutCampaignInput = {
+    create?: XOR<MarketingCampaignReplyCreateWithoutCampaignInput, MarketingCampaignReplyUncheckedCreateWithoutCampaignInput> | MarketingCampaignReplyCreateWithoutCampaignInput[] | MarketingCampaignReplyUncheckedCreateWithoutCampaignInput[]
+    connectOrCreate?: MarketingCampaignReplyCreateOrConnectWithoutCampaignInput | MarketingCampaignReplyCreateOrConnectWithoutCampaignInput[]
+    createMany?: MarketingCampaignReplyCreateManyCampaignInputEnvelope
+    connect?: MarketingCampaignReplyWhereUniqueInput | MarketingCampaignReplyWhereUniqueInput[]
   }
 
   export type EnumMarketingEmailCampaignStatusFieldUpdateOperationsInput = {
@@ -315849,6 +323548,20 @@ export namespace Prisma {
     update?: XOR<XOR<MarketingBroadcastDispatchUpdateToOneWithWhereWithoutCampaignInput, MarketingBroadcastDispatchUpdateWithoutCampaignInput>, MarketingBroadcastDispatchUncheckedUpdateWithoutCampaignInput>
   }
 
+  export type MarketingCampaignReplyUpdateManyWithoutCampaignNestedInput = {
+    create?: XOR<MarketingCampaignReplyCreateWithoutCampaignInput, MarketingCampaignReplyUncheckedCreateWithoutCampaignInput> | MarketingCampaignReplyCreateWithoutCampaignInput[] | MarketingCampaignReplyUncheckedCreateWithoutCampaignInput[]
+    connectOrCreate?: MarketingCampaignReplyCreateOrConnectWithoutCampaignInput | MarketingCampaignReplyCreateOrConnectWithoutCampaignInput[]
+    upsert?: MarketingCampaignReplyUpsertWithWhereUniqueWithoutCampaignInput | MarketingCampaignReplyUpsertWithWhereUniqueWithoutCampaignInput[]
+    createMany?: MarketingCampaignReplyCreateManyCampaignInputEnvelope
+    set?: MarketingCampaignReplyWhereUniqueInput | MarketingCampaignReplyWhereUniqueInput[]
+    disconnect?: MarketingCampaignReplyWhereUniqueInput | MarketingCampaignReplyWhereUniqueInput[]
+    delete?: MarketingCampaignReplyWhereUniqueInput | MarketingCampaignReplyWhereUniqueInput[]
+    connect?: MarketingCampaignReplyWhereUniqueInput | MarketingCampaignReplyWhereUniqueInput[]
+    update?: MarketingCampaignReplyUpdateWithWhereUniqueWithoutCampaignInput | MarketingCampaignReplyUpdateWithWhereUniqueWithoutCampaignInput[]
+    updateMany?: MarketingCampaignReplyUpdateManyWithWhereWithoutCampaignInput | MarketingCampaignReplyUpdateManyWithWhereWithoutCampaignInput[]
+    deleteMany?: MarketingCampaignReplyScalarWhereInput | MarketingCampaignReplyScalarWhereInput[]
+  }
+
   export type MarketingCampaignApprovalUncheckedUpdateManyWithoutCampaignNestedInput = {
     create?: XOR<MarketingCampaignApprovalCreateWithoutCampaignInput, MarketingCampaignApprovalUncheckedCreateWithoutCampaignInput> | MarketingCampaignApprovalCreateWithoutCampaignInput[] | MarketingCampaignApprovalUncheckedCreateWithoutCampaignInput[]
     connectOrCreate?: MarketingCampaignApprovalCreateOrConnectWithoutCampaignInput | MarketingCampaignApprovalCreateOrConnectWithoutCampaignInput[]
@@ -315885,6 +323598,20 @@ export namespace Prisma {
     delete?: MarketingBroadcastDispatchWhereInput | boolean
     connect?: MarketingBroadcastDispatchWhereUniqueInput
     update?: XOR<XOR<MarketingBroadcastDispatchUpdateToOneWithWhereWithoutCampaignInput, MarketingBroadcastDispatchUpdateWithoutCampaignInput>, MarketingBroadcastDispatchUncheckedUpdateWithoutCampaignInput>
+  }
+
+  export type MarketingCampaignReplyUncheckedUpdateManyWithoutCampaignNestedInput = {
+    create?: XOR<MarketingCampaignReplyCreateWithoutCampaignInput, MarketingCampaignReplyUncheckedCreateWithoutCampaignInput> | MarketingCampaignReplyCreateWithoutCampaignInput[] | MarketingCampaignReplyUncheckedCreateWithoutCampaignInput[]
+    connectOrCreate?: MarketingCampaignReplyCreateOrConnectWithoutCampaignInput | MarketingCampaignReplyCreateOrConnectWithoutCampaignInput[]
+    upsert?: MarketingCampaignReplyUpsertWithWhereUniqueWithoutCampaignInput | MarketingCampaignReplyUpsertWithWhereUniqueWithoutCampaignInput[]
+    createMany?: MarketingCampaignReplyCreateManyCampaignInputEnvelope
+    set?: MarketingCampaignReplyWhereUniqueInput | MarketingCampaignReplyWhereUniqueInput[]
+    disconnect?: MarketingCampaignReplyWhereUniqueInput | MarketingCampaignReplyWhereUniqueInput[]
+    delete?: MarketingCampaignReplyWhereUniqueInput | MarketingCampaignReplyWhereUniqueInput[]
+    connect?: MarketingCampaignReplyWhereUniqueInput | MarketingCampaignReplyWhereUniqueInput[]
+    update?: MarketingCampaignReplyUpdateWithWhereUniqueWithoutCampaignInput | MarketingCampaignReplyUpdateWithWhereUniqueWithoutCampaignInput[]
+    updateMany?: MarketingCampaignReplyUpdateManyWithWhereWithoutCampaignInput | MarketingCampaignReplyUpdateManyWithWhereWithoutCampaignInput[]
+    deleteMany?: MarketingCampaignReplyScalarWhereInput | MarketingCampaignReplyScalarWhereInput[]
   }
 
   export type MarketingEmailCampaignCreateNestedOneWithoutSnapshotsInput = {
@@ -316123,6 +323850,18 @@ export namespace Prisma {
     connect?: MarketingContactWhereUniqueInput
   }
 
+  export type MarketingCampaignReplyCreateNestedOneWithoutRecipientInput = {
+    create?: XOR<MarketingCampaignReplyCreateWithoutRecipientInput, MarketingCampaignReplyUncheckedCreateWithoutRecipientInput>
+    connectOrCreate?: MarketingCampaignReplyCreateOrConnectWithoutRecipientInput
+    connect?: MarketingCampaignReplyWhereUniqueInput
+  }
+
+  export type MarketingCampaignReplyUncheckedCreateNestedOneWithoutRecipientInput = {
+    create?: XOR<MarketingCampaignReplyCreateWithoutRecipientInput, MarketingCampaignReplyUncheckedCreateWithoutRecipientInput>
+    connectOrCreate?: MarketingCampaignReplyCreateOrConnectWithoutRecipientInput
+    connect?: MarketingCampaignReplyWhereUniqueInput
+  }
+
   export type EnumMarketingBroadcastRecipientStatusFieldUpdateOperationsInput = {
     set?: $Enums.MarketingBroadcastRecipientStatus
   }
@@ -316141,6 +323880,26 @@ export namespace Prisma {
     upsert?: MarketingContactUpsertWithoutBroadcastRecipientsInput
     connect?: MarketingContactWhereUniqueInput
     update?: XOR<XOR<MarketingContactUpdateToOneWithWhereWithoutBroadcastRecipientsInput, MarketingContactUpdateWithoutBroadcastRecipientsInput>, MarketingContactUncheckedUpdateWithoutBroadcastRecipientsInput>
+  }
+
+  export type MarketingCampaignReplyUpdateOneWithoutRecipientNestedInput = {
+    create?: XOR<MarketingCampaignReplyCreateWithoutRecipientInput, MarketingCampaignReplyUncheckedCreateWithoutRecipientInput>
+    connectOrCreate?: MarketingCampaignReplyCreateOrConnectWithoutRecipientInput
+    upsert?: MarketingCampaignReplyUpsertWithoutRecipientInput
+    disconnect?: MarketingCampaignReplyWhereInput | boolean
+    delete?: MarketingCampaignReplyWhereInput | boolean
+    connect?: MarketingCampaignReplyWhereUniqueInput
+    update?: XOR<XOR<MarketingCampaignReplyUpdateToOneWithWhereWithoutRecipientInput, MarketingCampaignReplyUpdateWithoutRecipientInput>, MarketingCampaignReplyUncheckedUpdateWithoutRecipientInput>
+  }
+
+  export type MarketingCampaignReplyUncheckedUpdateOneWithoutRecipientNestedInput = {
+    create?: XOR<MarketingCampaignReplyCreateWithoutRecipientInput, MarketingCampaignReplyUncheckedCreateWithoutRecipientInput>
+    connectOrCreate?: MarketingCampaignReplyCreateOrConnectWithoutRecipientInput
+    upsert?: MarketingCampaignReplyUpsertWithoutRecipientInput
+    disconnect?: MarketingCampaignReplyWhereInput | boolean
+    delete?: MarketingCampaignReplyWhereInput | boolean
+    connect?: MarketingCampaignReplyWhereUniqueInput
+    update?: XOR<XOR<MarketingCampaignReplyUpdateToOneWithWhereWithoutRecipientInput, MarketingCampaignReplyUpdateWithoutRecipientInput>, MarketingCampaignReplyUncheckedUpdateWithoutRecipientInput>
   }
 
   export type MailOrganizationCreateNestedOneWithoutMarketingAutomationsInput = {
@@ -316667,6 +324426,99 @@ export namespace Prisma {
     upsert?: MailRolloutCohortUpsertWithoutMembersInput
     connect?: MailRolloutCohortWhereUniqueInput
     update?: XOR<XOR<MailRolloutCohortUpdateToOneWithWhereWithoutMembersInput, MailRolloutCohortUpdateWithoutMembersInput>, MailRolloutCohortUncheckedUpdateWithoutMembersInput>
+  }
+
+  export type MailMessageSearchIndexCreatetermsInput = {
+    set: string[]
+  }
+
+  export type MailMessageCreateNestedOneWithoutSearchIndexInput = {
+    create?: XOR<MailMessageCreateWithoutSearchIndexInput, MailMessageUncheckedCreateWithoutSearchIndexInput>
+    connectOrCreate?: MailMessageCreateOrConnectWithoutSearchIndexInput
+    connect?: MailMessageWhereUniqueInput
+  }
+
+  export type MailMessageSearchIndexUpdatetermsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type MailMessageUpdateOneRequiredWithoutSearchIndexNestedInput = {
+    create?: XOR<MailMessageCreateWithoutSearchIndexInput, MailMessageUncheckedCreateWithoutSearchIndexInput>
+    connectOrCreate?: MailMessageCreateOrConnectWithoutSearchIndexInput
+    upsert?: MailMessageUpsertWithoutSearchIndexInput
+    connect?: MailMessageWhereUniqueInput
+    update?: XOR<XOR<MailMessageUpdateToOneWithWhereWithoutSearchIndexInput, MailMessageUpdateWithoutSearchIndexInput>, MailMessageUncheckedUpdateWithoutSearchIndexInput>
+  }
+
+  export type MailMessageCreateNestedOneWithoutArchiveInput = {
+    create?: XOR<MailMessageCreateWithoutArchiveInput, MailMessageUncheckedCreateWithoutArchiveInput>
+    connectOrCreate?: MailMessageCreateOrConnectWithoutArchiveInput
+    connect?: MailMessageWhereUniqueInput
+  }
+
+  export type MailMessageUpdateOneRequiredWithoutArchiveNestedInput = {
+    create?: XOR<MailMessageCreateWithoutArchiveInput, MailMessageUncheckedCreateWithoutArchiveInput>
+    connectOrCreate?: MailMessageCreateOrConnectWithoutArchiveInput
+    upsert?: MailMessageUpsertWithoutArchiveInput
+    connect?: MailMessageWhereUniqueInput
+    update?: XOR<XOR<MailMessageUpdateToOneWithWhereWithoutArchiveInput, MailMessageUpdateWithoutArchiveInput>, MailMessageUncheckedUpdateWithoutArchiveInput>
+  }
+
+  export type MailMailboxCreateNestedOneWithoutForwardingRulesInput = {
+    create?: XOR<MailMailboxCreateWithoutForwardingRulesInput, MailMailboxUncheckedCreateWithoutForwardingRulesInput>
+    connectOrCreate?: MailMailboxCreateOrConnectWithoutForwardingRulesInput
+    connect?: MailMailboxWhereUniqueInput
+  }
+
+  export type MailMailboxUpdateOneRequiredWithoutForwardingRulesNestedInput = {
+    create?: XOR<MailMailboxCreateWithoutForwardingRulesInput, MailMailboxUncheckedCreateWithoutForwardingRulesInput>
+    connectOrCreate?: MailMailboxCreateOrConnectWithoutForwardingRulesInput
+    upsert?: MailMailboxUpsertWithoutForwardingRulesInput
+    connect?: MailMailboxWhereUniqueInput
+    update?: XOR<XOR<MailMailboxUpdateToOneWithWhereWithoutForwardingRulesInput, MailMailboxUpdateWithoutForwardingRulesInput>, MailMailboxUncheckedUpdateWithoutForwardingRulesInput>
+  }
+
+  export type MarketingEmailCampaignCreateNestedOneWithoutRepliesInput = {
+    create?: XOR<MarketingEmailCampaignCreateWithoutRepliesInput, MarketingEmailCampaignUncheckedCreateWithoutRepliesInput>
+    connectOrCreate?: MarketingEmailCampaignCreateOrConnectWithoutRepliesInput
+    connect?: MarketingEmailCampaignWhereUniqueInput
+  }
+
+  export type MarketingBroadcastRecipientCreateNestedOneWithoutReplyInput = {
+    create?: XOR<MarketingBroadcastRecipientCreateWithoutReplyInput, MarketingBroadcastRecipientUncheckedCreateWithoutReplyInput>
+    connectOrCreate?: MarketingBroadcastRecipientCreateOrConnectWithoutReplyInput
+    connect?: MarketingBroadcastRecipientWhereUniqueInput
+  }
+
+  export type MailMessageCreateNestedOneWithoutCampaignReplyInput = {
+    create?: XOR<MailMessageCreateWithoutCampaignReplyInput, MailMessageUncheckedCreateWithoutCampaignReplyInput>
+    connectOrCreate?: MailMessageCreateOrConnectWithoutCampaignReplyInput
+    connect?: MailMessageWhereUniqueInput
+  }
+
+  export type MarketingEmailCampaignUpdateOneRequiredWithoutRepliesNestedInput = {
+    create?: XOR<MarketingEmailCampaignCreateWithoutRepliesInput, MarketingEmailCampaignUncheckedCreateWithoutRepliesInput>
+    connectOrCreate?: MarketingEmailCampaignCreateOrConnectWithoutRepliesInput
+    upsert?: MarketingEmailCampaignUpsertWithoutRepliesInput
+    connect?: MarketingEmailCampaignWhereUniqueInput
+    update?: XOR<XOR<MarketingEmailCampaignUpdateToOneWithWhereWithoutRepliesInput, MarketingEmailCampaignUpdateWithoutRepliesInput>, MarketingEmailCampaignUncheckedUpdateWithoutRepliesInput>
+  }
+
+  export type MarketingBroadcastRecipientUpdateOneRequiredWithoutReplyNestedInput = {
+    create?: XOR<MarketingBroadcastRecipientCreateWithoutReplyInput, MarketingBroadcastRecipientUncheckedCreateWithoutReplyInput>
+    connectOrCreate?: MarketingBroadcastRecipientCreateOrConnectWithoutReplyInput
+    upsert?: MarketingBroadcastRecipientUpsertWithoutReplyInput
+    connect?: MarketingBroadcastRecipientWhereUniqueInput
+    update?: XOR<XOR<MarketingBroadcastRecipientUpdateToOneWithWhereWithoutReplyInput, MarketingBroadcastRecipientUpdateWithoutReplyInput>, MarketingBroadcastRecipientUncheckedUpdateWithoutReplyInput>
+  }
+
+  export type MailMessageUpdateOneRequiredWithoutCampaignReplyNestedInput = {
+    create?: XOR<MailMessageCreateWithoutCampaignReplyInput, MailMessageUncheckedCreateWithoutCampaignReplyInput>
+    connectOrCreate?: MailMessageCreateOrConnectWithoutCampaignReplyInput
+    upsert?: MailMessageUpsertWithoutCampaignReplyInput
+    connect?: MailMessageWhereUniqueInput
+    update?: XOR<XOR<MailMessageUpdateToOneWithWhereWithoutCampaignReplyInput, MailMessageUpdateWithoutCampaignReplyInput>, MailMessageUncheckedUpdateWithoutCampaignReplyInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -322575,6 +330427,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxUncheckedCreateWithoutOwnerInput = {
@@ -322605,6 +330458,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestUncheckedCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyUncheckedCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleUncheckedCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxCreateOrConnectWithoutOwnerInput = {
@@ -384429,6 +392283,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxUncheckedCreateWithoutOrganizationInput = {
@@ -384459,6 +392314,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestUncheckedCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyUncheckedCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleUncheckedCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxCreateOrConnectWithoutOrganizationInput = {
@@ -384728,6 +392584,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotCreateNestedManyWithoutCampaignInput
     dispatch?: MarketingBroadcastDispatchCreateNestedOneWithoutCampaignInput
+    replies?: MarketingCampaignReplyCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignUncheckedCreateWithoutOrganizationInput = {
@@ -384755,6 +392612,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalUncheckedCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotUncheckedCreateNestedManyWithoutCampaignInput
     dispatch?: MarketingBroadcastDispatchUncheckedCreateNestedOneWithoutCampaignInput
+    replies?: MarketingCampaignReplyUncheckedCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignCreateOrConnectWithoutOrganizationInput = {
@@ -385965,6 +393823,9 @@ export namespace Prisma {
     attachments?: MailAttachmentCreateNestedManyWithoutMessageInput
     deliveryEvents?: MailDeliveryEventCreateNestedManyWithoutMessageInput
     outboxJobs?: MailOutboxJobCreateNestedManyWithoutMessageInput
+    searchIndex?: MailMessageSearchIndexCreateNestedOneWithoutMessageInput
+    archive?: MailMessageArchiveCreateNestedOneWithoutMessageInput
+    campaignReply?: MarketingCampaignReplyCreateNestedOneWithoutMessageInput
   }
 
   export type MailMessageUncheckedCreateWithoutMailboxInput = {
@@ -386004,6 +393865,9 @@ export namespace Prisma {
     attachments?: MailAttachmentUncheckedCreateNestedManyWithoutMessageInput
     deliveryEvents?: MailDeliveryEventUncheckedCreateNestedManyWithoutMessageInput
     outboxJobs?: MailOutboxJobUncheckedCreateNestedManyWithoutMessageInput
+    searchIndex?: MailMessageSearchIndexUncheckedCreateNestedOneWithoutMessageInput
+    archive?: MailMessageArchiveUncheckedCreateNestedOneWithoutMessageInput
+    campaignReply?: MarketingCampaignReplyUncheckedCreateNestedOneWithoutMessageInput
   }
 
   export type MailMessageCreateOrConnectWithoutMailboxInput = {
@@ -386281,6 +394145,58 @@ export namespace Prisma {
 
   export type MailRetentionPolicyCreateManyMailboxInputEnvelope = {
     data: MailRetentionPolicyCreateManyMailboxInput | MailRetentionPolicyCreateManyMailboxInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MailForwardingRuleCreateWithoutMailboxInput = {
+    id?: string
+    organizationId: string
+    targetAddress: string
+    targetKind: string
+    status?: string
+    reason: string
+    requestedBy: string
+    requestedAt?: Date | string
+    decidedBy?: string | null
+    decidedAt?: Date | string | null
+    decisionNote?: string | null
+    disabledBy?: string | null
+    disabledAt?: Date | string | null
+    disabledReason?: string | null
+    lastForwardedAt?: Date | string | null
+    forwardedCount?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MailForwardingRuleUncheckedCreateWithoutMailboxInput = {
+    id?: string
+    organizationId: string
+    targetAddress: string
+    targetKind: string
+    status?: string
+    reason: string
+    requestedBy: string
+    requestedAt?: Date | string
+    decidedBy?: string | null
+    decidedAt?: Date | string | null
+    decisionNote?: string | null
+    disabledBy?: string | null
+    disabledAt?: Date | string | null
+    disabledReason?: string | null
+    lastForwardedAt?: Date | string | null
+    forwardedCount?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MailForwardingRuleCreateOrConnectWithoutMailboxInput = {
+    where: MailForwardingRuleWhereUniqueInput
+    create: XOR<MailForwardingRuleCreateWithoutMailboxInput, MailForwardingRuleUncheckedCreateWithoutMailboxInput>
+  }
+
+  export type MailForwardingRuleCreateManyMailboxInputEnvelope = {
+    data: MailForwardingRuleCreateManyMailboxInput | MailForwardingRuleCreateManyMailboxInput[]
     skipDuplicates?: boolean
   }
 
@@ -386935,6 +394851,47 @@ export namespace Prisma {
     data: XOR<MailRetentionPolicyUpdateManyMutationInput, MailRetentionPolicyUncheckedUpdateManyWithoutMailboxInput>
   }
 
+  export type MailForwardingRuleUpsertWithWhereUniqueWithoutMailboxInput = {
+    where: MailForwardingRuleWhereUniqueInput
+    update: XOR<MailForwardingRuleUpdateWithoutMailboxInput, MailForwardingRuleUncheckedUpdateWithoutMailboxInput>
+    create: XOR<MailForwardingRuleCreateWithoutMailboxInput, MailForwardingRuleUncheckedCreateWithoutMailboxInput>
+  }
+
+  export type MailForwardingRuleUpdateWithWhereUniqueWithoutMailboxInput = {
+    where: MailForwardingRuleWhereUniqueInput
+    data: XOR<MailForwardingRuleUpdateWithoutMailboxInput, MailForwardingRuleUncheckedUpdateWithoutMailboxInput>
+  }
+
+  export type MailForwardingRuleUpdateManyWithWhereWithoutMailboxInput = {
+    where: MailForwardingRuleScalarWhereInput
+    data: XOR<MailForwardingRuleUpdateManyMutationInput, MailForwardingRuleUncheckedUpdateManyWithoutMailboxInput>
+  }
+
+  export type MailForwardingRuleScalarWhereInput = {
+    AND?: MailForwardingRuleScalarWhereInput | MailForwardingRuleScalarWhereInput[]
+    OR?: MailForwardingRuleScalarWhereInput[]
+    NOT?: MailForwardingRuleScalarWhereInput | MailForwardingRuleScalarWhereInput[]
+    id?: UuidFilter<"MailForwardingRule"> | string
+    mailboxId?: UuidFilter<"MailForwardingRule"> | string
+    organizationId?: UuidFilter<"MailForwardingRule"> | string
+    targetAddress?: StringFilter<"MailForwardingRule"> | string
+    targetKind?: StringFilter<"MailForwardingRule"> | string
+    status?: StringFilter<"MailForwardingRule"> | string
+    reason?: StringFilter<"MailForwardingRule"> | string
+    requestedBy?: StringFilter<"MailForwardingRule"> | string
+    requestedAt?: DateTimeFilter<"MailForwardingRule"> | Date | string
+    decidedBy?: StringNullableFilter<"MailForwardingRule"> | string | null
+    decidedAt?: DateTimeNullableFilter<"MailForwardingRule"> | Date | string | null
+    decisionNote?: StringNullableFilter<"MailForwardingRule"> | string | null
+    disabledBy?: StringNullableFilter<"MailForwardingRule"> | string | null
+    disabledAt?: DateTimeNullableFilter<"MailForwardingRule"> | Date | string | null
+    disabledReason?: StringNullableFilter<"MailForwardingRule"> | string | null
+    lastForwardedAt?: DateTimeNullableFilter<"MailForwardingRule"> | Date | string | null
+    forwardedCount?: IntFilter<"MailForwardingRule"> | number
+    createdAt?: DateTimeFilter<"MailForwardingRule"> | Date | string
+    updatedAt?: DateTimeFilter<"MailForwardingRule"> | Date | string
+  }
+
   export type MailOrganizationCreateWithoutAddressesInput = {
     id?: string
     slug: string
@@ -387051,6 +395008,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxUncheckedCreateWithoutAddressesInput = {
@@ -387081,6 +395039,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestUncheckedCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyUncheckedCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleUncheckedCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxCreateOrConnectWithoutAddressesInput = {
@@ -387346,6 +395305,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMailboxUncheckedUpdateWithoutAddressesInput = {
@@ -387376,6 +395336,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUncheckedUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUncheckedUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUncheckedUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailAddressUpsertWithoutAliasesInput = {
@@ -387485,6 +395446,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxUncheckedCreateWithoutMembershipsInput = {
@@ -387515,6 +395477,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestUncheckedCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyUncheckedCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleUncheckedCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxCreateOrConnectWithoutMembershipsInput = {
@@ -387818,6 +395781,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMailboxUncheckedUpdateWithoutMembershipsInput = {
@@ -387848,6 +395812,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUncheckedUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUncheckedUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUncheckedUpdateManyWithoutMailboxNestedInput
   }
 
   export type AdminUserUpsertWithoutMailMembershipsInput = {
@@ -388141,6 +396106,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxUncheckedCreateWithoutSenderGrantsInput = {
@@ -388171,6 +396137,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestUncheckedCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyUncheckedCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleUncheckedCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxCreateOrConnectWithoutSenderGrantsInput = {
@@ -388515,6 +396482,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMailboxUncheckedUpdateWithoutSenderGrantsInput = {
@@ -388545,6 +396513,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUncheckedUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUncheckedUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUncheckedUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailAddressUpsertWithoutSenderGrantsInput = {
@@ -388989,6 +396958,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxUncheckedCreateWithoutThreadsInput = {
@@ -389019,6 +396989,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestUncheckedCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyUncheckedCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleUncheckedCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxCreateOrConnectWithoutThreadsInput = {
@@ -389063,6 +397034,9 @@ export namespace Prisma {
     attachments?: MailAttachmentCreateNestedManyWithoutMessageInput
     deliveryEvents?: MailDeliveryEventCreateNestedManyWithoutMessageInput
     outboxJobs?: MailOutboxJobCreateNestedManyWithoutMessageInput
+    searchIndex?: MailMessageSearchIndexCreateNestedOneWithoutMessageInput
+    archive?: MailMessageArchiveCreateNestedOneWithoutMessageInput
+    campaignReply?: MarketingCampaignReplyCreateNestedOneWithoutMessageInput
   }
 
   export type MailMessageUncheckedCreateWithoutThreadInput = {
@@ -389102,6 +397076,9 @@ export namespace Prisma {
     attachments?: MailAttachmentUncheckedCreateNestedManyWithoutMessageInput
     deliveryEvents?: MailDeliveryEventUncheckedCreateNestedManyWithoutMessageInput
     outboxJobs?: MailOutboxJobUncheckedCreateNestedManyWithoutMessageInput
+    searchIndex?: MailMessageSearchIndexUncheckedCreateNestedOneWithoutMessageInput
+    archive?: MailMessageArchiveUncheckedCreateNestedOneWithoutMessageInput
+    campaignReply?: MarketingCampaignReplyUncheckedCreateNestedOneWithoutMessageInput
   }
 
   export type MailMessageCreateOrConnectWithoutThreadInput = {
@@ -389279,6 +397256,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMailboxUncheckedUpdateWithoutThreadsInput = {
@@ -389309,6 +397287,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUncheckedUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUncheckedUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUncheckedUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMessageUpsertWithWhereUniqueWithoutThreadInput = {
@@ -389441,6 +397420,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxUncheckedCreateWithoutMessagesInput = {
@@ -389471,6 +397451,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestUncheckedCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyUncheckedCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleUncheckedCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxCreateOrConnectWithoutMessagesInput = {
@@ -389713,6 +397694,83 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type MailMessageSearchIndexCreateWithoutMessageInput = {
+    mailboxId: string
+    keyVersion: string
+    terms?: MailMessageSearchIndexCreatetermsInput | string[]
+    termCount?: number
+    indexedAt?: Date | string
+  }
+
+  export type MailMessageSearchIndexUncheckedCreateWithoutMessageInput = {
+    mailboxId: string
+    keyVersion: string
+    terms?: MailMessageSearchIndexCreatetermsInput | string[]
+    termCount?: number
+    indexedAt?: Date | string
+  }
+
+  export type MailMessageSearchIndexCreateOrConnectWithoutMessageInput = {
+    where: MailMessageSearchIndexWhereUniqueInput
+    create: XOR<MailMessageSearchIndexCreateWithoutMessageInput, MailMessageSearchIndexUncheckedCreateWithoutMessageInput>
+  }
+
+  export type MailMessageArchiveCreateWithoutMessageInput = {
+    mailboxId: string
+    headersObjectKey?: string | null
+    headersSha256?: string | null
+    headerCount?: number
+    rawMimeStatus: string
+    rawMimeObjectKey?: string | null
+    rawMimeSha256?: string | null
+    rawMimeSizeBytes?: number | null
+    archivedAt?: Date | string
+  }
+
+  export type MailMessageArchiveUncheckedCreateWithoutMessageInput = {
+    mailboxId: string
+    headersObjectKey?: string | null
+    headersSha256?: string | null
+    headerCount?: number
+    rawMimeStatus: string
+    rawMimeObjectKey?: string | null
+    rawMimeSha256?: string | null
+    rawMimeSizeBytes?: number | null
+    archivedAt?: Date | string
+  }
+
+  export type MailMessageArchiveCreateOrConnectWithoutMessageInput = {
+    where: MailMessageArchiveWhereUniqueInput
+    create: XOR<MailMessageArchiveCreateWithoutMessageInput, MailMessageArchiveUncheckedCreateWithoutMessageInput>
+  }
+
+  export type MarketingCampaignReplyCreateWithoutMessageInput = {
+    id?: string
+    organizationId: string
+    dispatchId: string
+    method: string
+    receivedAt: Date | string
+    createdAt?: Date | string
+    campaign: MarketingEmailCampaignCreateNestedOneWithoutRepliesInput
+    recipient: MarketingBroadcastRecipientCreateNestedOneWithoutReplyInput
+  }
+
+  export type MarketingCampaignReplyUncheckedCreateWithoutMessageInput = {
+    id?: string
+    organizationId: string
+    campaignId: string
+    dispatchId: string
+    recipientId: string
+    method: string
+    receivedAt: Date | string
+    createdAt?: Date | string
+  }
+
+  export type MarketingCampaignReplyCreateOrConnectWithoutMessageInput = {
+    where: MarketingCampaignReplyWhereUniqueInput
+    create: XOR<MarketingCampaignReplyCreateWithoutMessageInput, MarketingCampaignReplyUncheckedCreateWithoutMessageInput>
+  }
+
   export type MailMailboxUpsertWithoutMessagesInput = {
     update: XOR<MailMailboxUpdateWithoutMessagesInput, MailMailboxUncheckedUpdateWithoutMessagesInput>
     create: XOR<MailMailboxCreateWithoutMessagesInput, MailMailboxUncheckedCreateWithoutMessagesInput>
@@ -389752,6 +397810,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMailboxUncheckedUpdateWithoutMessagesInput = {
@@ -389782,6 +397841,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUncheckedUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUncheckedUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUncheckedUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailThreadUpsertWithoutMessagesInput = {
@@ -389979,6 +398039,101 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"MailOutboxJob"> | Date | string
   }
 
+  export type MailMessageSearchIndexUpsertWithoutMessageInput = {
+    update: XOR<MailMessageSearchIndexUpdateWithoutMessageInput, MailMessageSearchIndexUncheckedUpdateWithoutMessageInput>
+    create: XOR<MailMessageSearchIndexCreateWithoutMessageInput, MailMessageSearchIndexUncheckedCreateWithoutMessageInput>
+    where?: MailMessageSearchIndexWhereInput
+  }
+
+  export type MailMessageSearchIndexUpdateToOneWithWhereWithoutMessageInput = {
+    where?: MailMessageSearchIndexWhereInput
+    data: XOR<MailMessageSearchIndexUpdateWithoutMessageInput, MailMessageSearchIndexUncheckedUpdateWithoutMessageInput>
+  }
+
+  export type MailMessageSearchIndexUpdateWithoutMessageInput = {
+    mailboxId?: StringFieldUpdateOperationsInput | string
+    keyVersion?: StringFieldUpdateOperationsInput | string
+    terms?: MailMessageSearchIndexUpdatetermsInput | string[]
+    termCount?: IntFieldUpdateOperationsInput | number
+    indexedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailMessageSearchIndexUncheckedUpdateWithoutMessageInput = {
+    mailboxId?: StringFieldUpdateOperationsInput | string
+    keyVersion?: StringFieldUpdateOperationsInput | string
+    terms?: MailMessageSearchIndexUpdatetermsInput | string[]
+    termCount?: IntFieldUpdateOperationsInput | number
+    indexedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailMessageArchiveUpsertWithoutMessageInput = {
+    update: XOR<MailMessageArchiveUpdateWithoutMessageInput, MailMessageArchiveUncheckedUpdateWithoutMessageInput>
+    create: XOR<MailMessageArchiveCreateWithoutMessageInput, MailMessageArchiveUncheckedCreateWithoutMessageInput>
+    where?: MailMessageArchiveWhereInput
+  }
+
+  export type MailMessageArchiveUpdateToOneWithWhereWithoutMessageInput = {
+    where?: MailMessageArchiveWhereInput
+    data: XOR<MailMessageArchiveUpdateWithoutMessageInput, MailMessageArchiveUncheckedUpdateWithoutMessageInput>
+  }
+
+  export type MailMessageArchiveUpdateWithoutMessageInput = {
+    mailboxId?: StringFieldUpdateOperationsInput | string
+    headersObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    headersSha256?: NullableStringFieldUpdateOperationsInput | string | null
+    headerCount?: IntFieldUpdateOperationsInput | number
+    rawMimeStatus?: StringFieldUpdateOperationsInput | string
+    rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    rawMimeSha256?: NullableStringFieldUpdateOperationsInput | string | null
+    rawMimeSizeBytes?: NullableIntFieldUpdateOperationsInput | number | null
+    archivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailMessageArchiveUncheckedUpdateWithoutMessageInput = {
+    mailboxId?: StringFieldUpdateOperationsInput | string
+    headersObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    headersSha256?: NullableStringFieldUpdateOperationsInput | string | null
+    headerCount?: IntFieldUpdateOperationsInput | number
+    rawMimeStatus?: StringFieldUpdateOperationsInput | string
+    rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    rawMimeSha256?: NullableStringFieldUpdateOperationsInput | string | null
+    rawMimeSizeBytes?: NullableIntFieldUpdateOperationsInput | number | null
+    archivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingCampaignReplyUpsertWithoutMessageInput = {
+    update: XOR<MarketingCampaignReplyUpdateWithoutMessageInput, MarketingCampaignReplyUncheckedUpdateWithoutMessageInput>
+    create: XOR<MarketingCampaignReplyCreateWithoutMessageInput, MarketingCampaignReplyUncheckedCreateWithoutMessageInput>
+    where?: MarketingCampaignReplyWhereInput
+  }
+
+  export type MarketingCampaignReplyUpdateToOneWithWhereWithoutMessageInput = {
+    where?: MarketingCampaignReplyWhereInput
+    data: XOR<MarketingCampaignReplyUpdateWithoutMessageInput, MarketingCampaignReplyUncheckedUpdateWithoutMessageInput>
+  }
+
+  export type MarketingCampaignReplyUpdateWithoutMessageInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    dispatchId?: StringFieldUpdateOperationsInput | string
+    method?: StringFieldUpdateOperationsInput | string
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    campaign?: MarketingEmailCampaignUpdateOneRequiredWithoutRepliesNestedInput
+    recipient?: MarketingBroadcastRecipientUpdateOneRequiredWithoutReplyNestedInput
+  }
+
+  export type MarketingCampaignReplyUncheckedUpdateWithoutMessageInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    campaignId?: StringFieldUpdateOperationsInput | string
+    dispatchId?: StringFieldUpdateOperationsInput | string
+    recipientId?: StringFieldUpdateOperationsInput | string
+    method?: StringFieldUpdateOperationsInput | string
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type MailMessageCreateWithoutRecipientsInput = {
     id?: string
     direction: $Enums.MailMessageDirection
@@ -390016,6 +398171,9 @@ export namespace Prisma {
     attachments?: MailAttachmentCreateNestedManyWithoutMessageInput
     deliveryEvents?: MailDeliveryEventCreateNestedManyWithoutMessageInput
     outboxJobs?: MailOutboxJobCreateNestedManyWithoutMessageInput
+    searchIndex?: MailMessageSearchIndexCreateNestedOneWithoutMessageInput
+    archive?: MailMessageArchiveCreateNestedOneWithoutMessageInput
+    campaignReply?: MarketingCampaignReplyCreateNestedOneWithoutMessageInput
   }
 
   export type MailMessageUncheckedCreateWithoutRecipientsInput = {
@@ -390055,6 +398213,9 @@ export namespace Prisma {
     attachments?: MailAttachmentUncheckedCreateNestedManyWithoutMessageInput
     deliveryEvents?: MailDeliveryEventUncheckedCreateNestedManyWithoutMessageInput
     outboxJobs?: MailOutboxJobUncheckedCreateNestedManyWithoutMessageInput
+    searchIndex?: MailMessageSearchIndexUncheckedCreateNestedOneWithoutMessageInput
+    archive?: MailMessageArchiveUncheckedCreateNestedOneWithoutMessageInput
+    campaignReply?: MarketingCampaignReplyUncheckedCreateNestedOneWithoutMessageInput
   }
 
   export type MailMessageCreateOrConnectWithoutRecipientsInput = {
@@ -390110,6 +398271,9 @@ export namespace Prisma {
     attachments?: MailAttachmentUpdateManyWithoutMessageNestedInput
     deliveryEvents?: MailDeliveryEventUpdateManyWithoutMessageNestedInput
     outboxJobs?: MailOutboxJobUpdateManyWithoutMessageNestedInput
+    searchIndex?: MailMessageSearchIndexUpdateOneWithoutMessageNestedInput
+    archive?: MailMessageArchiveUpdateOneWithoutMessageNestedInput
+    campaignReply?: MarketingCampaignReplyUpdateOneWithoutMessageNestedInput
   }
 
   export type MailMessageUncheckedUpdateWithoutRecipientsInput = {
@@ -390149,6 +398313,9 @@ export namespace Prisma {
     attachments?: MailAttachmentUncheckedUpdateManyWithoutMessageNestedInput
     deliveryEvents?: MailDeliveryEventUncheckedUpdateManyWithoutMessageNestedInput
     outboxJobs?: MailOutboxJobUncheckedUpdateManyWithoutMessageNestedInput
+    searchIndex?: MailMessageSearchIndexUncheckedUpdateOneWithoutMessageNestedInput
+    archive?: MailMessageArchiveUncheckedUpdateOneWithoutMessageNestedInput
+    campaignReply?: MarketingCampaignReplyUncheckedUpdateOneWithoutMessageNestedInput
   }
 
   export type MailThreadCreateWithoutUserStatesInput = {
@@ -390843,6 +399010,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxUncheckedCreateWithoutDraftsInput = {
@@ -390873,6 +399041,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestUncheckedCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyUncheckedCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleUncheckedCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxCreateOrConnectWithoutDraftsInput = {
@@ -391293,6 +399462,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMailboxUncheckedUpdateWithoutDraftsInput = {
@@ -391323,6 +399493,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUncheckedUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUncheckedUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUncheckedUpdateManyWithoutMailboxNestedInput
   }
 
   export type AdminUserUpsertWithoutMailDraftsInput = {
@@ -391707,6 +399878,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxUncheckedCreateWithoutLabelsInput = {
@@ -391737,6 +399909,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestUncheckedCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyUncheckedCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleUncheckedCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxCreateOrConnectWithoutLabelsInput = {
@@ -391803,6 +399976,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMailboxUncheckedUpdateWithoutLabelsInput = {
@@ -391833,6 +400007,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUncheckedUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUncheckedUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUncheckedUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailThreadLabelUpsertWithWhereUniqueWithoutLabelInput = {
@@ -392075,6 +400250,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxUncheckedCreateWithoutRulesInput = {
@@ -392105,6 +400281,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestUncheckedCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyUncheckedCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleUncheckedCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxCreateOrConnectWithoutRulesInput = {
@@ -392151,6 +400328,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMailboxUncheckedUpdateWithoutRulesInput = {
@@ -392181,6 +400359,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUncheckedUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUncheckedUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUncheckedUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMailboxCreateWithoutAttachmentsInput = {
@@ -392211,6 +400390,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxUncheckedCreateWithoutAttachmentsInput = {
@@ -392241,6 +400421,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestUncheckedCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyUncheckedCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleUncheckedCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxCreateOrConnectWithoutAttachmentsInput = {
@@ -392285,6 +400466,9 @@ export namespace Prisma {
     recipients?: MailMessageRecipientCreateNestedManyWithoutMessageInput
     deliveryEvents?: MailDeliveryEventCreateNestedManyWithoutMessageInput
     outboxJobs?: MailOutboxJobCreateNestedManyWithoutMessageInput
+    searchIndex?: MailMessageSearchIndexCreateNestedOneWithoutMessageInput
+    archive?: MailMessageArchiveCreateNestedOneWithoutMessageInput
+    campaignReply?: MarketingCampaignReplyCreateNestedOneWithoutMessageInput
   }
 
   export type MailMessageUncheckedCreateWithoutAttachmentsInput = {
@@ -392324,6 +400508,9 @@ export namespace Prisma {
     recipients?: MailMessageRecipientUncheckedCreateNestedManyWithoutMessageInput
     deliveryEvents?: MailDeliveryEventUncheckedCreateNestedManyWithoutMessageInput
     outboxJobs?: MailOutboxJobUncheckedCreateNestedManyWithoutMessageInput
+    searchIndex?: MailMessageSearchIndexUncheckedCreateNestedOneWithoutMessageInput
+    archive?: MailMessageArchiveUncheckedCreateNestedOneWithoutMessageInput
+    campaignReply?: MarketingCampaignReplyUncheckedCreateNestedOneWithoutMessageInput
   }
 
   export type MailMessageCreateOrConnectWithoutAttachmentsInput = {
@@ -392415,6 +400602,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMailboxUncheckedUpdateWithoutAttachmentsInput = {
@@ -392445,6 +400633,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUncheckedUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUncheckedUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUncheckedUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMessageUpsertWithoutAttachmentsInput = {
@@ -392495,6 +400684,9 @@ export namespace Prisma {
     recipients?: MailMessageRecipientUpdateManyWithoutMessageNestedInput
     deliveryEvents?: MailDeliveryEventUpdateManyWithoutMessageNestedInput
     outboxJobs?: MailOutboxJobUpdateManyWithoutMessageNestedInput
+    searchIndex?: MailMessageSearchIndexUpdateOneWithoutMessageNestedInput
+    archive?: MailMessageArchiveUpdateOneWithoutMessageNestedInput
+    campaignReply?: MarketingCampaignReplyUpdateOneWithoutMessageNestedInput
   }
 
   export type MailMessageUncheckedUpdateWithoutAttachmentsInput = {
@@ -392534,6 +400726,9 @@ export namespace Prisma {
     recipients?: MailMessageRecipientUncheckedUpdateManyWithoutMessageNestedInput
     deliveryEvents?: MailDeliveryEventUncheckedUpdateManyWithoutMessageNestedInput
     outboxJobs?: MailOutboxJobUncheckedUpdateManyWithoutMessageNestedInput
+    searchIndex?: MailMessageSearchIndexUncheckedUpdateOneWithoutMessageNestedInput
+    archive?: MailMessageArchiveUncheckedUpdateOneWithoutMessageNestedInput
+    campaignReply?: MarketingCampaignReplyUncheckedUpdateOneWithoutMessageNestedInput
   }
 
   export type MailDraftUpsertWithoutAttachmentsInput = {
@@ -392768,6 +400963,9 @@ export namespace Prisma {
     recipients?: MailMessageRecipientCreateNestedManyWithoutMessageInput
     attachments?: MailAttachmentCreateNestedManyWithoutMessageInput
     deliveryEvents?: MailDeliveryEventCreateNestedManyWithoutMessageInput
+    searchIndex?: MailMessageSearchIndexCreateNestedOneWithoutMessageInput
+    archive?: MailMessageArchiveCreateNestedOneWithoutMessageInput
+    campaignReply?: MarketingCampaignReplyCreateNestedOneWithoutMessageInput
   }
 
   export type MailMessageUncheckedCreateWithoutOutboxJobsInput = {
@@ -392807,6 +401005,9 @@ export namespace Prisma {
     recipients?: MailMessageRecipientUncheckedCreateNestedManyWithoutMessageInput
     attachments?: MailAttachmentUncheckedCreateNestedManyWithoutMessageInput
     deliveryEvents?: MailDeliveryEventUncheckedCreateNestedManyWithoutMessageInput
+    searchIndex?: MailMessageSearchIndexUncheckedCreateNestedOneWithoutMessageInput
+    archive?: MailMessageArchiveUncheckedCreateNestedOneWithoutMessageInput
+    campaignReply?: MarketingCampaignReplyUncheckedCreateNestedOneWithoutMessageInput
   }
 
   export type MailMessageCreateOrConnectWithoutOutboxJobsInput = {
@@ -392897,6 +401098,9 @@ export namespace Prisma {
     recipients?: MailMessageRecipientUpdateManyWithoutMessageNestedInput
     attachments?: MailAttachmentUpdateManyWithoutMessageNestedInput
     deliveryEvents?: MailDeliveryEventUpdateManyWithoutMessageNestedInput
+    searchIndex?: MailMessageSearchIndexUpdateOneWithoutMessageNestedInput
+    archive?: MailMessageArchiveUpdateOneWithoutMessageNestedInput
+    campaignReply?: MarketingCampaignReplyUpdateOneWithoutMessageNestedInput
   }
 
   export type MailMessageUncheckedUpdateWithoutOutboxJobsInput = {
@@ -392936,6 +401140,9 @@ export namespace Prisma {
     recipients?: MailMessageRecipientUncheckedUpdateManyWithoutMessageNestedInput
     attachments?: MailAttachmentUncheckedUpdateManyWithoutMessageNestedInput
     deliveryEvents?: MailDeliveryEventUncheckedUpdateManyWithoutMessageNestedInput
+    searchIndex?: MailMessageSearchIndexUncheckedUpdateOneWithoutMessageNestedInput
+    archive?: MailMessageArchiveUncheckedUpdateOneWithoutMessageNestedInput
+    campaignReply?: MarketingCampaignReplyUncheckedUpdateOneWithoutMessageNestedInput
   }
 
   export type MailWebhookEventUpsertWithoutJobsInput = {
@@ -393132,6 +401339,9 @@ export namespace Prisma {
     recipients?: MailMessageRecipientCreateNestedManyWithoutMessageInput
     attachments?: MailAttachmentCreateNestedManyWithoutMessageInput
     outboxJobs?: MailOutboxJobCreateNestedManyWithoutMessageInput
+    searchIndex?: MailMessageSearchIndexCreateNestedOneWithoutMessageInput
+    archive?: MailMessageArchiveCreateNestedOneWithoutMessageInput
+    campaignReply?: MarketingCampaignReplyCreateNestedOneWithoutMessageInput
   }
 
   export type MailMessageUncheckedCreateWithoutDeliveryEventsInput = {
@@ -393171,6 +401381,9 @@ export namespace Prisma {
     recipients?: MailMessageRecipientUncheckedCreateNestedManyWithoutMessageInput
     attachments?: MailAttachmentUncheckedCreateNestedManyWithoutMessageInput
     outboxJobs?: MailOutboxJobUncheckedCreateNestedManyWithoutMessageInput
+    searchIndex?: MailMessageSearchIndexUncheckedCreateNestedOneWithoutMessageInput
+    archive?: MailMessageArchiveUncheckedCreateNestedOneWithoutMessageInput
+    campaignReply?: MarketingCampaignReplyUncheckedCreateNestedOneWithoutMessageInput
   }
 
   export type MailMessageCreateOrConnectWithoutDeliveryEventsInput = {
@@ -393261,6 +401474,9 @@ export namespace Prisma {
     recipients?: MailMessageRecipientUpdateManyWithoutMessageNestedInput
     attachments?: MailAttachmentUpdateManyWithoutMessageNestedInput
     outboxJobs?: MailOutboxJobUpdateManyWithoutMessageNestedInput
+    searchIndex?: MailMessageSearchIndexUpdateOneWithoutMessageNestedInput
+    archive?: MailMessageArchiveUpdateOneWithoutMessageNestedInput
+    campaignReply?: MarketingCampaignReplyUpdateOneWithoutMessageNestedInput
   }
 
   export type MailMessageUncheckedUpdateWithoutDeliveryEventsInput = {
@@ -393300,6 +401516,9 @@ export namespace Prisma {
     recipients?: MailMessageRecipientUncheckedUpdateManyWithoutMessageNestedInput
     attachments?: MailAttachmentUncheckedUpdateManyWithoutMessageNestedInput
     outboxJobs?: MailOutboxJobUncheckedUpdateManyWithoutMessageNestedInput
+    searchIndex?: MailMessageSearchIndexUncheckedUpdateOneWithoutMessageNestedInput
+    archive?: MailMessageArchiveUncheckedUpdateOneWithoutMessageNestedInput
+    campaignReply?: MarketingCampaignReplyUncheckedUpdateOneWithoutMessageNestedInput
   }
 
   export type MailWebhookEventUpsertWithoutDeliveryEventsInput = {
@@ -393420,6 +401639,7 @@ export namespace Prisma {
     attachments?: MailAttachmentCreateNestedManyWithoutMailboxInput
     legalHolds?: MailLegalHoldCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxUncheckedCreateWithoutRetentionInput = {
@@ -393450,6 +401670,7 @@ export namespace Prisma {
     attachments?: MailAttachmentUncheckedCreateNestedManyWithoutMailboxInput
     legalHolds?: MailLegalHoldUncheckedCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestUncheckedCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleUncheckedCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxCreateOrConnectWithoutRetentionInput = {
@@ -393551,6 +401772,7 @@ export namespace Prisma {
     attachments?: MailAttachmentUpdateManyWithoutMailboxNestedInput
     legalHolds?: MailLegalHoldUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMailboxUncheckedUpdateWithoutRetentionInput = {
@@ -393581,6 +401803,7 @@ export namespace Prisma {
     attachments?: MailAttachmentUncheckedUpdateManyWithoutMailboxNestedInput
     legalHolds?: MailLegalHoldUncheckedUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUncheckedUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUncheckedUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailOrganizationCreateWithoutLegalHoldsInput = {
@@ -393660,6 +401883,7 @@ export namespace Prisma {
     attachments?: MailAttachmentCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxUncheckedCreateWithoutLegalHoldsInput = {
@@ -393690,6 +401914,7 @@ export namespace Prisma {
     attachments?: MailAttachmentUncheckedCreateNestedManyWithoutMailboxInput
     breakGlass?: MailBreakGlassRequestUncheckedCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyUncheckedCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleUncheckedCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxCreateOrConnectWithoutLegalHoldsInput = {
@@ -393791,6 +402016,7 @@ export namespace Prisma {
     attachments?: MailAttachmentUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMailboxUncheckedUpdateWithoutLegalHoldsInput = {
@@ -393821,6 +402047,7 @@ export namespace Prisma {
     attachments?: MailAttachmentUncheckedUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUncheckedUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUncheckedUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUncheckedUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMailboxCreateWithoutBreakGlassInput = {
@@ -393851,6 +402078,7 @@ export namespace Prisma {
     attachments?: MailAttachmentCreateNestedManyWithoutMailboxInput
     legalHolds?: MailLegalHoldCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxUncheckedCreateWithoutBreakGlassInput = {
@@ -393881,6 +402109,7 @@ export namespace Prisma {
     attachments?: MailAttachmentUncheckedCreateNestedManyWithoutMailboxInput
     legalHolds?: MailLegalHoldUncheckedCreateNestedManyWithoutMailboxInput
     retention?: MailRetentionPolicyUncheckedCreateNestedManyWithoutMailboxInput
+    forwardingRules?: MailForwardingRuleUncheckedCreateNestedManyWithoutMailboxInput
   }
 
   export type MailMailboxCreateOrConnectWithoutBreakGlassInput = {
@@ -393927,6 +402156,7 @@ export namespace Prisma {
     attachments?: MailAttachmentUpdateManyWithoutMailboxNestedInput
     legalHolds?: MailLegalHoldUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMailboxUncheckedUpdateWithoutBreakGlassInput = {
@@ -393957,6 +402187,7 @@ export namespace Prisma {
     attachments?: MailAttachmentUncheckedUpdateManyWithoutMailboxNestedInput
     legalHolds?: MailLegalHoldUncheckedUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUncheckedUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUncheckedUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailOrganizationCreateWithoutMarketingContactsInput = {
@@ -394095,6 +402326,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     dispatch: MarketingBroadcastDispatchCreateNestedOneWithoutRecipientsInput
+    reply?: MarketingCampaignReplyCreateNestedOneWithoutRecipientInput
   }
 
   export type MarketingBroadcastRecipientUncheckedCreateWithoutContactInput = {
@@ -394114,6 +402346,7 @@ export namespace Prisma {
     clickedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    reply?: MarketingCampaignReplyUncheckedCreateNestedOneWithoutRecipientInput
   }
 
   export type MarketingBroadcastRecipientCreateOrConnectWithoutContactInput = {
@@ -394583,6 +402816,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotCreateNestedManyWithoutCampaignInput
     dispatch?: MarketingBroadcastDispatchCreateNestedOneWithoutCampaignInput
+    replies?: MarketingCampaignReplyCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignUncheckedCreateWithoutAudienceInput = {
@@ -394610,6 +402844,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalUncheckedCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotUncheckedCreateNestedManyWithoutCampaignInput
     dispatch?: MarketingBroadcastDispatchUncheckedCreateNestedOneWithoutCampaignInput
+    replies?: MarketingCampaignReplyUncheckedCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignCreateOrConnectWithoutAudienceInput = {
@@ -394953,6 +403188,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotCreateNestedManyWithoutCampaignInput
     dispatch?: MarketingBroadcastDispatchCreateNestedOneWithoutCampaignInput
+    replies?: MarketingCampaignReplyCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignUncheckedCreateWithoutSegmentInput = {
@@ -394980,6 +403216,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalUncheckedCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotUncheckedCreateNestedManyWithoutCampaignInput
     dispatch?: MarketingBroadcastDispatchUncheckedCreateNestedOneWithoutCampaignInput
+    replies?: MarketingCampaignReplyUncheckedCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignCreateOrConnectWithoutSegmentInput = {
@@ -395284,6 +403521,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotCreateNestedManyWithoutCampaignInput
     dispatch?: MarketingBroadcastDispatchCreateNestedOneWithoutCampaignInput
+    replies?: MarketingCampaignReplyCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignUncheckedCreateWithoutTemplateVersionInput = {
@@ -395311,6 +403549,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalUncheckedCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotUncheckedCreateNestedManyWithoutCampaignInput
     dispatch?: MarketingBroadcastDispatchUncheckedCreateNestedOneWithoutCampaignInput
+    replies?: MarketingCampaignReplyUncheckedCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignCreateOrConnectWithoutTemplateVersionInput = {
@@ -395675,6 +403914,38 @@ export namespace Prisma {
     create: XOR<MarketingBroadcastDispatchCreateWithoutCampaignInput, MarketingBroadcastDispatchUncheckedCreateWithoutCampaignInput>
   }
 
+  export type MarketingCampaignReplyCreateWithoutCampaignInput = {
+    id?: string
+    organizationId: string
+    dispatchId: string
+    method: string
+    receivedAt: Date | string
+    createdAt?: Date | string
+    recipient: MarketingBroadcastRecipientCreateNestedOneWithoutReplyInput
+    message: MailMessageCreateNestedOneWithoutCampaignReplyInput
+  }
+
+  export type MarketingCampaignReplyUncheckedCreateWithoutCampaignInput = {
+    id?: string
+    organizationId: string
+    dispatchId: string
+    recipientId: string
+    mailMessageId: string
+    method: string
+    receivedAt: Date | string
+    createdAt?: Date | string
+  }
+
+  export type MarketingCampaignReplyCreateOrConnectWithoutCampaignInput = {
+    where: MarketingCampaignReplyWhereUniqueInput
+    create: XOR<MarketingCampaignReplyCreateWithoutCampaignInput, MarketingCampaignReplyUncheckedCreateWithoutCampaignInput>
+  }
+
+  export type MarketingCampaignReplyCreateManyCampaignInputEnvelope = {
+    data: MarketingCampaignReplyCreateManyCampaignInput | MarketingCampaignReplyCreateManyCampaignInput[]
+    skipDuplicates?: boolean
+  }
+
   export type MailOrganizationUpsertWithoutMarketingCampaignsInput = {
     update: XOR<MailOrganizationUpdateWithoutMarketingCampaignsInput, MailOrganizationUncheckedUpdateWithoutMarketingCampaignsInput>
     create: XOR<MailOrganizationCreateWithoutMarketingCampaignsInput, MailOrganizationUncheckedCreateWithoutMarketingCampaignsInput>
@@ -395991,6 +404262,37 @@ export namespace Prisma {
     recipients?: MarketingBroadcastRecipientUncheckedUpdateManyWithoutDispatchNestedInput
   }
 
+  export type MarketingCampaignReplyUpsertWithWhereUniqueWithoutCampaignInput = {
+    where: MarketingCampaignReplyWhereUniqueInput
+    update: XOR<MarketingCampaignReplyUpdateWithoutCampaignInput, MarketingCampaignReplyUncheckedUpdateWithoutCampaignInput>
+    create: XOR<MarketingCampaignReplyCreateWithoutCampaignInput, MarketingCampaignReplyUncheckedCreateWithoutCampaignInput>
+  }
+
+  export type MarketingCampaignReplyUpdateWithWhereUniqueWithoutCampaignInput = {
+    where: MarketingCampaignReplyWhereUniqueInput
+    data: XOR<MarketingCampaignReplyUpdateWithoutCampaignInput, MarketingCampaignReplyUncheckedUpdateWithoutCampaignInput>
+  }
+
+  export type MarketingCampaignReplyUpdateManyWithWhereWithoutCampaignInput = {
+    where: MarketingCampaignReplyScalarWhereInput
+    data: XOR<MarketingCampaignReplyUpdateManyMutationInput, MarketingCampaignReplyUncheckedUpdateManyWithoutCampaignInput>
+  }
+
+  export type MarketingCampaignReplyScalarWhereInput = {
+    AND?: MarketingCampaignReplyScalarWhereInput | MarketingCampaignReplyScalarWhereInput[]
+    OR?: MarketingCampaignReplyScalarWhereInput[]
+    NOT?: MarketingCampaignReplyScalarWhereInput | MarketingCampaignReplyScalarWhereInput[]
+    id?: UuidFilter<"MarketingCampaignReply"> | string
+    organizationId?: UuidFilter<"MarketingCampaignReply"> | string
+    campaignId?: UuidFilter<"MarketingCampaignReply"> | string
+    dispatchId?: UuidFilter<"MarketingCampaignReply"> | string
+    recipientId?: UuidFilter<"MarketingCampaignReply"> | string
+    mailMessageId?: UuidFilter<"MarketingCampaignReply"> | string
+    method?: StringFilter<"MarketingCampaignReply"> | string
+    receivedAt?: DateTimeFilter<"MarketingCampaignReply"> | Date | string
+    createdAt?: DateTimeFilter<"MarketingCampaignReply"> | Date | string
+  }
+
   export type MarketingEmailCampaignCreateWithoutSnapshotsInput = {
     id?: string
     name: string
@@ -396016,6 +404318,7 @@ export namespace Prisma {
     segment?: MarketingSegmentCreateNestedOneWithoutCampaignsInput
     approvals?: MarketingCampaignApprovalCreateNestedManyWithoutCampaignInput
     dispatch?: MarketingBroadcastDispatchCreateNestedOneWithoutCampaignInput
+    replies?: MarketingCampaignReplyCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignUncheckedCreateWithoutSnapshotsInput = {
@@ -396043,6 +404346,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     approvals?: MarketingCampaignApprovalUncheckedCreateNestedManyWithoutCampaignInput
     dispatch?: MarketingBroadcastDispatchUncheckedCreateNestedOneWithoutCampaignInput
+    replies?: MarketingCampaignReplyUncheckedCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignCreateOrConnectWithoutSnapshotsInput = {
@@ -396138,6 +404442,7 @@ export namespace Prisma {
     segment?: MarketingSegmentUpdateOneWithoutCampaignsNestedInput
     approvals?: MarketingCampaignApprovalUpdateManyWithoutCampaignNestedInput
     dispatch?: MarketingBroadcastDispatchUpdateOneWithoutCampaignNestedInput
+    replies?: MarketingCampaignReplyUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateWithoutSnapshotsInput = {
@@ -396165,6 +404470,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     approvals?: MarketingCampaignApprovalUncheckedUpdateManyWithoutCampaignNestedInput
     dispatch?: MarketingBroadcastDispatchUncheckedUpdateOneWithoutCampaignNestedInput
+    replies?: MarketingCampaignReplyUncheckedUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingCampaignApprovalUpsertWithWhereUniqueWithoutSnapshotInput = {
@@ -396233,6 +404539,7 @@ export namespace Prisma {
     segment?: MarketingSegmentCreateNestedOneWithoutCampaignsInput
     snapshots?: MarketingCampaignSnapshotCreateNestedManyWithoutCampaignInput
     dispatch?: MarketingBroadcastDispatchCreateNestedOneWithoutCampaignInput
+    replies?: MarketingCampaignReplyCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignUncheckedCreateWithoutApprovalsInput = {
@@ -396260,6 +404567,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     snapshots?: MarketingCampaignSnapshotUncheckedCreateNestedManyWithoutCampaignInput
     dispatch?: MarketingBroadcastDispatchUncheckedCreateNestedOneWithoutCampaignInput
+    replies?: MarketingCampaignReplyUncheckedCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignCreateOrConnectWithoutApprovalsInput = {
@@ -396348,6 +404656,7 @@ export namespace Prisma {
     segment?: MarketingSegmentUpdateOneWithoutCampaignsNestedInput
     snapshots?: MarketingCampaignSnapshotUpdateManyWithoutCampaignNestedInput
     dispatch?: MarketingBroadcastDispatchUpdateOneWithoutCampaignNestedInput
+    replies?: MarketingCampaignReplyUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateWithoutApprovalsInput = {
@@ -396375,6 +404684,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     snapshots?: MarketingCampaignSnapshotUncheckedUpdateManyWithoutCampaignNestedInput
     dispatch?: MarketingBroadcastDispatchUncheckedUpdateOneWithoutCampaignNestedInput
+    replies?: MarketingCampaignReplyUncheckedUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingCampaignSnapshotUpsertWithoutApprovalsInput = {
@@ -396653,6 +404963,7 @@ export namespace Prisma {
     segment?: MarketingSegmentCreateNestedOneWithoutCampaignsInput
     approvals?: MarketingCampaignApprovalCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotCreateNestedManyWithoutCampaignInput
+    replies?: MarketingCampaignReplyCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignUncheckedCreateWithoutDispatchInput = {
@@ -396680,6 +404991,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     approvals?: MarketingCampaignApprovalUncheckedCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotUncheckedCreateNestedManyWithoutCampaignInput
+    replies?: MarketingCampaignReplyUncheckedCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignCreateOrConnectWithoutDispatchInput = {
@@ -396704,6 +405016,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     contact: MarketingContactCreateNestedOneWithoutBroadcastRecipientsInput
+    reply?: MarketingCampaignReplyCreateNestedOneWithoutRecipientInput
   }
 
   export type MarketingBroadcastRecipientUncheckedCreateWithoutDispatchInput = {
@@ -396723,6 +405036,7 @@ export namespace Prisma {
     clickedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    reply?: MarketingCampaignReplyUncheckedCreateNestedOneWithoutRecipientInput
   }
 
   export type MarketingBroadcastRecipientCreateOrConnectWithoutDispatchInput = {
@@ -396771,6 +405085,7 @@ export namespace Prisma {
     segment?: MarketingSegmentUpdateOneWithoutCampaignsNestedInput
     approvals?: MarketingCampaignApprovalUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUpdateManyWithoutCampaignNestedInput
+    replies?: MarketingCampaignReplyUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateWithoutDispatchInput = {
@@ -396798,6 +405113,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     approvals?: MarketingCampaignApprovalUncheckedUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUncheckedUpdateManyWithoutCampaignNestedInput
+    replies?: MarketingCampaignReplyUncheckedUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingBroadcastRecipientUpsertWithWhereUniqueWithoutDispatchInput = {
@@ -396926,6 +405242,33 @@ export namespace Prisma {
     create: XOR<MarketingContactCreateWithoutBroadcastRecipientsInput, MarketingContactUncheckedCreateWithoutBroadcastRecipientsInput>
   }
 
+  export type MarketingCampaignReplyCreateWithoutRecipientInput = {
+    id?: string
+    organizationId: string
+    dispatchId: string
+    method: string
+    receivedAt: Date | string
+    createdAt?: Date | string
+    campaign: MarketingEmailCampaignCreateNestedOneWithoutRepliesInput
+    message: MailMessageCreateNestedOneWithoutCampaignReplyInput
+  }
+
+  export type MarketingCampaignReplyUncheckedCreateWithoutRecipientInput = {
+    id?: string
+    organizationId: string
+    campaignId: string
+    dispatchId: string
+    mailMessageId: string
+    method: string
+    receivedAt: Date | string
+    createdAt?: Date | string
+  }
+
+  export type MarketingCampaignReplyCreateOrConnectWithoutRecipientInput = {
+    where: MarketingCampaignReplyWhereUniqueInput
+    create: XOR<MarketingCampaignReplyCreateWithoutRecipientInput, MarketingCampaignReplyUncheckedCreateWithoutRecipientInput>
+  }
+
   export type MarketingBroadcastDispatchUpsertWithoutRecipientsInput = {
     update: XOR<MarketingBroadcastDispatchUpdateWithoutRecipientsInput, MarketingBroadcastDispatchUncheckedUpdateWithoutRecipientsInput>
     create: XOR<MarketingBroadcastDispatchCreateWithoutRecipientsInput, MarketingBroadcastDispatchUncheckedCreateWithoutRecipientsInput>
@@ -397046,6 +405389,39 @@ export namespace Prisma {
     consents?: MarketingConsentUncheckedUpdateManyWithoutContactNestedInput
     audiences?: MarketingAudienceContactUncheckedUpdateManyWithoutContactNestedInput
     automationEnrollments?: MarketingAutomationEnrollmentUncheckedUpdateManyWithoutContactNestedInput
+  }
+
+  export type MarketingCampaignReplyUpsertWithoutRecipientInput = {
+    update: XOR<MarketingCampaignReplyUpdateWithoutRecipientInput, MarketingCampaignReplyUncheckedUpdateWithoutRecipientInput>
+    create: XOR<MarketingCampaignReplyCreateWithoutRecipientInput, MarketingCampaignReplyUncheckedCreateWithoutRecipientInput>
+    where?: MarketingCampaignReplyWhereInput
+  }
+
+  export type MarketingCampaignReplyUpdateToOneWithWhereWithoutRecipientInput = {
+    where?: MarketingCampaignReplyWhereInput
+    data: XOR<MarketingCampaignReplyUpdateWithoutRecipientInput, MarketingCampaignReplyUncheckedUpdateWithoutRecipientInput>
+  }
+
+  export type MarketingCampaignReplyUpdateWithoutRecipientInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    dispatchId?: StringFieldUpdateOperationsInput | string
+    method?: StringFieldUpdateOperationsInput | string
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    campaign?: MarketingEmailCampaignUpdateOneRequiredWithoutRepliesNestedInput
+    message?: MailMessageUpdateOneRequiredWithoutCampaignReplyNestedInput
+  }
+
+  export type MarketingCampaignReplyUncheckedUpdateWithoutRecipientInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    campaignId?: StringFieldUpdateOperationsInput | string
+    dispatchId?: StringFieldUpdateOperationsInput | string
+    mailMessageId?: StringFieldUpdateOperationsInput | string
+    method?: StringFieldUpdateOperationsInput | string
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type MailOrganizationCreateWithoutMarketingAutomationsInput = {
@@ -398586,6 +406962,922 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailMessageCreateWithoutSearchIndexInput = {
+    id?: string
+    direction: $Enums.MailMessageDirection
+    status: $Enums.MailMessageStatus
+    rfcMessageId: string
+    inReplyTo?: string | null
+    references?: MailMessageCreatereferencesInput | string[]
+    subject?: string
+    encryptedSnippet?: Bytes | null
+    fromAddress: string
+    fromName?: string | null
+    replyTo?: string | null
+    senderAddressId?: string | null
+    sentByAdminUserId?: string | null
+    envelopeRecipient?: string | null
+    hasAttachments?: boolean
+    sizeBytes?: number
+    contentObjectKey?: string | null
+    contentSha256?: string | null
+    rawMimeObjectKey?: string | null
+    metadataSearchText?: string
+    providerMessageId?: string | null
+    idempotencyKey?: string | null
+    authResults?: NullableJsonNullValueInput | InputJsonValue
+    spamVerdict?: string | null
+    quarantineReason?: string | null
+    lastStatusAt?: Date | string | null
+    sentAt?: Date | string | null
+    receivedAt?: Date | string | null
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    mailbox: MailMailboxCreateNestedOneWithoutMessagesInput
+    thread: MailThreadCreateNestedOneWithoutMessagesInput
+    recipients?: MailMessageRecipientCreateNestedManyWithoutMessageInput
+    attachments?: MailAttachmentCreateNestedManyWithoutMessageInput
+    deliveryEvents?: MailDeliveryEventCreateNestedManyWithoutMessageInput
+    outboxJobs?: MailOutboxJobCreateNestedManyWithoutMessageInput
+    archive?: MailMessageArchiveCreateNestedOneWithoutMessageInput
+    campaignReply?: MarketingCampaignReplyCreateNestedOneWithoutMessageInput
+  }
+
+  export type MailMessageUncheckedCreateWithoutSearchIndexInput = {
+    id?: string
+    mailboxId: string
+    threadId: string
+    direction: $Enums.MailMessageDirection
+    status: $Enums.MailMessageStatus
+    rfcMessageId: string
+    inReplyTo?: string | null
+    references?: MailMessageCreatereferencesInput | string[]
+    subject?: string
+    encryptedSnippet?: Bytes | null
+    fromAddress: string
+    fromName?: string | null
+    replyTo?: string | null
+    senderAddressId?: string | null
+    sentByAdminUserId?: string | null
+    envelopeRecipient?: string | null
+    hasAttachments?: boolean
+    sizeBytes?: number
+    contentObjectKey?: string | null
+    contentSha256?: string | null
+    rawMimeObjectKey?: string | null
+    metadataSearchText?: string
+    providerMessageId?: string | null
+    idempotencyKey?: string | null
+    authResults?: NullableJsonNullValueInput | InputJsonValue
+    spamVerdict?: string | null
+    quarantineReason?: string | null
+    lastStatusAt?: Date | string | null
+    sentAt?: Date | string | null
+    receivedAt?: Date | string | null
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    recipients?: MailMessageRecipientUncheckedCreateNestedManyWithoutMessageInput
+    attachments?: MailAttachmentUncheckedCreateNestedManyWithoutMessageInput
+    deliveryEvents?: MailDeliveryEventUncheckedCreateNestedManyWithoutMessageInput
+    outboxJobs?: MailOutboxJobUncheckedCreateNestedManyWithoutMessageInput
+    archive?: MailMessageArchiveUncheckedCreateNestedOneWithoutMessageInput
+    campaignReply?: MarketingCampaignReplyUncheckedCreateNestedOneWithoutMessageInput
+  }
+
+  export type MailMessageCreateOrConnectWithoutSearchIndexInput = {
+    where: MailMessageWhereUniqueInput
+    create: XOR<MailMessageCreateWithoutSearchIndexInput, MailMessageUncheckedCreateWithoutSearchIndexInput>
+  }
+
+  export type MailMessageUpsertWithoutSearchIndexInput = {
+    update: XOR<MailMessageUpdateWithoutSearchIndexInput, MailMessageUncheckedUpdateWithoutSearchIndexInput>
+    create: XOR<MailMessageCreateWithoutSearchIndexInput, MailMessageUncheckedCreateWithoutSearchIndexInput>
+    where?: MailMessageWhereInput
+  }
+
+  export type MailMessageUpdateToOneWithWhereWithoutSearchIndexInput = {
+    where?: MailMessageWhereInput
+    data: XOR<MailMessageUpdateWithoutSearchIndexInput, MailMessageUncheckedUpdateWithoutSearchIndexInput>
+  }
+
+  export type MailMessageUpdateWithoutSearchIndexInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    direction?: EnumMailMessageDirectionFieldUpdateOperationsInput | $Enums.MailMessageDirection
+    status?: EnumMailMessageStatusFieldUpdateOperationsInput | $Enums.MailMessageStatus
+    rfcMessageId?: StringFieldUpdateOperationsInput | string
+    inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    references?: MailMessageUpdatereferencesInput | string[]
+    subject?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
+    fromAddress?: StringFieldUpdateOperationsInput | string
+    fromName?: NullableStringFieldUpdateOperationsInput | string | null
+    replyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    senderAddressId?: NullableStringFieldUpdateOperationsInput | string | null
+    sentByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    envelopeRecipient?: NullableStringFieldUpdateOperationsInput | string | null
+    hasAttachments?: BoolFieldUpdateOperationsInput | boolean
+    sizeBytes?: IntFieldUpdateOperationsInput | number
+    contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
+    rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    authResults?: NullableJsonNullValueInput | InputJsonValue
+    spamVerdict?: NullableStringFieldUpdateOperationsInput | string | null
+    quarantineReason?: NullableStringFieldUpdateOperationsInput | string | null
+    lastStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    receivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mailbox?: MailMailboxUpdateOneRequiredWithoutMessagesNestedInput
+    thread?: MailThreadUpdateOneRequiredWithoutMessagesNestedInput
+    recipients?: MailMessageRecipientUpdateManyWithoutMessageNestedInput
+    attachments?: MailAttachmentUpdateManyWithoutMessageNestedInput
+    deliveryEvents?: MailDeliveryEventUpdateManyWithoutMessageNestedInput
+    outboxJobs?: MailOutboxJobUpdateManyWithoutMessageNestedInput
+    archive?: MailMessageArchiveUpdateOneWithoutMessageNestedInput
+    campaignReply?: MarketingCampaignReplyUpdateOneWithoutMessageNestedInput
+  }
+
+  export type MailMessageUncheckedUpdateWithoutSearchIndexInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    mailboxId?: StringFieldUpdateOperationsInput | string
+    threadId?: StringFieldUpdateOperationsInput | string
+    direction?: EnumMailMessageDirectionFieldUpdateOperationsInput | $Enums.MailMessageDirection
+    status?: EnumMailMessageStatusFieldUpdateOperationsInput | $Enums.MailMessageStatus
+    rfcMessageId?: StringFieldUpdateOperationsInput | string
+    inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    references?: MailMessageUpdatereferencesInput | string[]
+    subject?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
+    fromAddress?: StringFieldUpdateOperationsInput | string
+    fromName?: NullableStringFieldUpdateOperationsInput | string | null
+    replyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    senderAddressId?: NullableStringFieldUpdateOperationsInput | string | null
+    sentByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    envelopeRecipient?: NullableStringFieldUpdateOperationsInput | string | null
+    hasAttachments?: BoolFieldUpdateOperationsInput | boolean
+    sizeBytes?: IntFieldUpdateOperationsInput | number
+    contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
+    rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    authResults?: NullableJsonNullValueInput | InputJsonValue
+    spamVerdict?: NullableStringFieldUpdateOperationsInput | string | null
+    quarantineReason?: NullableStringFieldUpdateOperationsInput | string | null
+    lastStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    receivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    recipients?: MailMessageRecipientUncheckedUpdateManyWithoutMessageNestedInput
+    attachments?: MailAttachmentUncheckedUpdateManyWithoutMessageNestedInput
+    deliveryEvents?: MailDeliveryEventUncheckedUpdateManyWithoutMessageNestedInput
+    outboxJobs?: MailOutboxJobUncheckedUpdateManyWithoutMessageNestedInput
+    archive?: MailMessageArchiveUncheckedUpdateOneWithoutMessageNestedInput
+    campaignReply?: MarketingCampaignReplyUncheckedUpdateOneWithoutMessageNestedInput
+  }
+
+  export type MailMessageCreateWithoutArchiveInput = {
+    id?: string
+    direction: $Enums.MailMessageDirection
+    status: $Enums.MailMessageStatus
+    rfcMessageId: string
+    inReplyTo?: string | null
+    references?: MailMessageCreatereferencesInput | string[]
+    subject?: string
+    encryptedSnippet?: Bytes | null
+    fromAddress: string
+    fromName?: string | null
+    replyTo?: string | null
+    senderAddressId?: string | null
+    sentByAdminUserId?: string | null
+    envelopeRecipient?: string | null
+    hasAttachments?: boolean
+    sizeBytes?: number
+    contentObjectKey?: string | null
+    contentSha256?: string | null
+    rawMimeObjectKey?: string | null
+    metadataSearchText?: string
+    providerMessageId?: string | null
+    idempotencyKey?: string | null
+    authResults?: NullableJsonNullValueInput | InputJsonValue
+    spamVerdict?: string | null
+    quarantineReason?: string | null
+    lastStatusAt?: Date | string | null
+    sentAt?: Date | string | null
+    receivedAt?: Date | string | null
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    mailbox: MailMailboxCreateNestedOneWithoutMessagesInput
+    thread: MailThreadCreateNestedOneWithoutMessagesInput
+    recipients?: MailMessageRecipientCreateNestedManyWithoutMessageInput
+    attachments?: MailAttachmentCreateNestedManyWithoutMessageInput
+    deliveryEvents?: MailDeliveryEventCreateNestedManyWithoutMessageInput
+    outboxJobs?: MailOutboxJobCreateNestedManyWithoutMessageInput
+    searchIndex?: MailMessageSearchIndexCreateNestedOneWithoutMessageInput
+    campaignReply?: MarketingCampaignReplyCreateNestedOneWithoutMessageInput
+  }
+
+  export type MailMessageUncheckedCreateWithoutArchiveInput = {
+    id?: string
+    mailboxId: string
+    threadId: string
+    direction: $Enums.MailMessageDirection
+    status: $Enums.MailMessageStatus
+    rfcMessageId: string
+    inReplyTo?: string | null
+    references?: MailMessageCreatereferencesInput | string[]
+    subject?: string
+    encryptedSnippet?: Bytes | null
+    fromAddress: string
+    fromName?: string | null
+    replyTo?: string | null
+    senderAddressId?: string | null
+    sentByAdminUserId?: string | null
+    envelopeRecipient?: string | null
+    hasAttachments?: boolean
+    sizeBytes?: number
+    contentObjectKey?: string | null
+    contentSha256?: string | null
+    rawMimeObjectKey?: string | null
+    metadataSearchText?: string
+    providerMessageId?: string | null
+    idempotencyKey?: string | null
+    authResults?: NullableJsonNullValueInput | InputJsonValue
+    spamVerdict?: string | null
+    quarantineReason?: string | null
+    lastStatusAt?: Date | string | null
+    sentAt?: Date | string | null
+    receivedAt?: Date | string | null
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    recipients?: MailMessageRecipientUncheckedCreateNestedManyWithoutMessageInput
+    attachments?: MailAttachmentUncheckedCreateNestedManyWithoutMessageInput
+    deliveryEvents?: MailDeliveryEventUncheckedCreateNestedManyWithoutMessageInput
+    outboxJobs?: MailOutboxJobUncheckedCreateNestedManyWithoutMessageInput
+    searchIndex?: MailMessageSearchIndexUncheckedCreateNestedOneWithoutMessageInput
+    campaignReply?: MarketingCampaignReplyUncheckedCreateNestedOneWithoutMessageInput
+  }
+
+  export type MailMessageCreateOrConnectWithoutArchiveInput = {
+    where: MailMessageWhereUniqueInput
+    create: XOR<MailMessageCreateWithoutArchiveInput, MailMessageUncheckedCreateWithoutArchiveInput>
+  }
+
+  export type MailMessageUpsertWithoutArchiveInput = {
+    update: XOR<MailMessageUpdateWithoutArchiveInput, MailMessageUncheckedUpdateWithoutArchiveInput>
+    create: XOR<MailMessageCreateWithoutArchiveInput, MailMessageUncheckedCreateWithoutArchiveInput>
+    where?: MailMessageWhereInput
+  }
+
+  export type MailMessageUpdateToOneWithWhereWithoutArchiveInput = {
+    where?: MailMessageWhereInput
+    data: XOR<MailMessageUpdateWithoutArchiveInput, MailMessageUncheckedUpdateWithoutArchiveInput>
+  }
+
+  export type MailMessageUpdateWithoutArchiveInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    direction?: EnumMailMessageDirectionFieldUpdateOperationsInput | $Enums.MailMessageDirection
+    status?: EnumMailMessageStatusFieldUpdateOperationsInput | $Enums.MailMessageStatus
+    rfcMessageId?: StringFieldUpdateOperationsInput | string
+    inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    references?: MailMessageUpdatereferencesInput | string[]
+    subject?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
+    fromAddress?: StringFieldUpdateOperationsInput | string
+    fromName?: NullableStringFieldUpdateOperationsInput | string | null
+    replyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    senderAddressId?: NullableStringFieldUpdateOperationsInput | string | null
+    sentByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    envelopeRecipient?: NullableStringFieldUpdateOperationsInput | string | null
+    hasAttachments?: BoolFieldUpdateOperationsInput | boolean
+    sizeBytes?: IntFieldUpdateOperationsInput | number
+    contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
+    rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    authResults?: NullableJsonNullValueInput | InputJsonValue
+    spamVerdict?: NullableStringFieldUpdateOperationsInput | string | null
+    quarantineReason?: NullableStringFieldUpdateOperationsInput | string | null
+    lastStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    receivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mailbox?: MailMailboxUpdateOneRequiredWithoutMessagesNestedInput
+    thread?: MailThreadUpdateOneRequiredWithoutMessagesNestedInput
+    recipients?: MailMessageRecipientUpdateManyWithoutMessageNestedInput
+    attachments?: MailAttachmentUpdateManyWithoutMessageNestedInput
+    deliveryEvents?: MailDeliveryEventUpdateManyWithoutMessageNestedInput
+    outboxJobs?: MailOutboxJobUpdateManyWithoutMessageNestedInput
+    searchIndex?: MailMessageSearchIndexUpdateOneWithoutMessageNestedInput
+    campaignReply?: MarketingCampaignReplyUpdateOneWithoutMessageNestedInput
+  }
+
+  export type MailMessageUncheckedUpdateWithoutArchiveInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    mailboxId?: StringFieldUpdateOperationsInput | string
+    threadId?: StringFieldUpdateOperationsInput | string
+    direction?: EnumMailMessageDirectionFieldUpdateOperationsInput | $Enums.MailMessageDirection
+    status?: EnumMailMessageStatusFieldUpdateOperationsInput | $Enums.MailMessageStatus
+    rfcMessageId?: StringFieldUpdateOperationsInput | string
+    inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    references?: MailMessageUpdatereferencesInput | string[]
+    subject?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
+    fromAddress?: StringFieldUpdateOperationsInput | string
+    fromName?: NullableStringFieldUpdateOperationsInput | string | null
+    replyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    senderAddressId?: NullableStringFieldUpdateOperationsInput | string | null
+    sentByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    envelopeRecipient?: NullableStringFieldUpdateOperationsInput | string | null
+    hasAttachments?: BoolFieldUpdateOperationsInput | boolean
+    sizeBytes?: IntFieldUpdateOperationsInput | number
+    contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
+    rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    authResults?: NullableJsonNullValueInput | InputJsonValue
+    spamVerdict?: NullableStringFieldUpdateOperationsInput | string | null
+    quarantineReason?: NullableStringFieldUpdateOperationsInput | string | null
+    lastStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    receivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    recipients?: MailMessageRecipientUncheckedUpdateManyWithoutMessageNestedInput
+    attachments?: MailAttachmentUncheckedUpdateManyWithoutMessageNestedInput
+    deliveryEvents?: MailDeliveryEventUncheckedUpdateManyWithoutMessageNestedInput
+    outboxJobs?: MailOutboxJobUncheckedUpdateManyWithoutMessageNestedInput
+    searchIndex?: MailMessageSearchIndexUncheckedUpdateOneWithoutMessageNestedInput
+    campaignReply?: MarketingCampaignReplyUncheckedUpdateOneWithoutMessageNestedInput
+  }
+
+  export type MailMailboxCreateWithoutForwardingRulesInput = {
+    id?: string
+    type: $Enums.MailMailboxType
+    purpose?: $Enums.MailMailboxPurpose
+    name: string
+    status?: $Enums.MailRecordStatus
+    signatureHtml?: string | null
+    dailySendQuota?: number
+    slaFirstResponseMinutes?: number | null
+    supportTicketLinkEnabled?: boolean
+    suspendedAt?: Date | string | null
+    offboardedAt?: Date | string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: MailOrganizationCreateNestedOneWithoutMailboxesInput
+    owner?: AdminUserCreateNestedOneWithoutMailMailboxesOwnedInput
+    addresses?: MailAddressCreateNestedManyWithoutMailboxInput
+    memberships?: MailMembershipCreateNestedManyWithoutMailboxInput
+    senderGrants?: MailSenderGrantCreateNestedManyWithoutMailboxInput
+    threads?: MailThreadCreateNestedManyWithoutMailboxInput
+    messages?: MailMessageCreateNestedManyWithoutMailboxInput
+    drafts?: MailDraftCreateNestedManyWithoutMailboxInput
+    labels?: MailLabelCreateNestedManyWithoutMailboxInput
+    rules?: MailRuleCreateNestedManyWithoutMailboxInput
+    attachments?: MailAttachmentCreateNestedManyWithoutMailboxInput
+    legalHolds?: MailLegalHoldCreateNestedManyWithoutMailboxInput
+    breakGlass?: MailBreakGlassRequestCreateNestedManyWithoutMailboxInput
+    retention?: MailRetentionPolicyCreateNestedManyWithoutMailboxInput
+  }
+
+  export type MailMailboxUncheckedCreateWithoutForwardingRulesInput = {
+    id?: string
+    organizationId: string
+    type: $Enums.MailMailboxType
+    purpose?: $Enums.MailMailboxPurpose
+    name: string
+    ownerAdminUserId?: string | null
+    status?: $Enums.MailRecordStatus
+    signatureHtml?: string | null
+    dailySendQuota?: number
+    slaFirstResponseMinutes?: number | null
+    supportTicketLinkEnabled?: boolean
+    suspendedAt?: Date | string | null
+    offboardedAt?: Date | string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    addresses?: MailAddressUncheckedCreateNestedManyWithoutMailboxInput
+    memberships?: MailMembershipUncheckedCreateNestedManyWithoutMailboxInput
+    senderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutMailboxInput
+    threads?: MailThreadUncheckedCreateNestedManyWithoutMailboxInput
+    messages?: MailMessageUncheckedCreateNestedManyWithoutMailboxInput
+    drafts?: MailDraftUncheckedCreateNestedManyWithoutMailboxInput
+    labels?: MailLabelUncheckedCreateNestedManyWithoutMailboxInput
+    rules?: MailRuleUncheckedCreateNestedManyWithoutMailboxInput
+    attachments?: MailAttachmentUncheckedCreateNestedManyWithoutMailboxInput
+    legalHolds?: MailLegalHoldUncheckedCreateNestedManyWithoutMailboxInput
+    breakGlass?: MailBreakGlassRequestUncheckedCreateNestedManyWithoutMailboxInput
+    retention?: MailRetentionPolicyUncheckedCreateNestedManyWithoutMailboxInput
+  }
+
+  export type MailMailboxCreateOrConnectWithoutForwardingRulesInput = {
+    where: MailMailboxWhereUniqueInput
+    create: XOR<MailMailboxCreateWithoutForwardingRulesInput, MailMailboxUncheckedCreateWithoutForwardingRulesInput>
+  }
+
+  export type MailMailboxUpsertWithoutForwardingRulesInput = {
+    update: XOR<MailMailboxUpdateWithoutForwardingRulesInput, MailMailboxUncheckedUpdateWithoutForwardingRulesInput>
+    create: XOR<MailMailboxCreateWithoutForwardingRulesInput, MailMailboxUncheckedCreateWithoutForwardingRulesInput>
+    where?: MailMailboxWhereInput
+  }
+
+  export type MailMailboxUpdateToOneWithWhereWithoutForwardingRulesInput = {
+    where?: MailMailboxWhereInput
+    data: XOR<MailMailboxUpdateWithoutForwardingRulesInput, MailMailboxUncheckedUpdateWithoutForwardingRulesInput>
+  }
+
+  export type MailMailboxUpdateWithoutForwardingRulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumMailMailboxTypeFieldUpdateOperationsInput | $Enums.MailMailboxType
+    purpose?: EnumMailMailboxPurposeFieldUpdateOperationsInput | $Enums.MailMailboxPurpose
+    name?: StringFieldUpdateOperationsInput | string
+    status?: EnumMailRecordStatusFieldUpdateOperationsInput | $Enums.MailRecordStatus
+    signatureHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    dailySendQuota?: IntFieldUpdateOperationsInput | number
+    slaFirstResponseMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    supportTicketLinkEnabled?: BoolFieldUpdateOperationsInput | boolean
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    offboardedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: MailOrganizationUpdateOneRequiredWithoutMailboxesNestedInput
+    owner?: AdminUserUpdateOneWithoutMailMailboxesOwnedNestedInput
+    addresses?: MailAddressUpdateManyWithoutMailboxNestedInput
+    memberships?: MailMembershipUpdateManyWithoutMailboxNestedInput
+    senderGrants?: MailSenderGrantUpdateManyWithoutMailboxNestedInput
+    threads?: MailThreadUpdateManyWithoutMailboxNestedInput
+    messages?: MailMessageUpdateManyWithoutMailboxNestedInput
+    drafts?: MailDraftUpdateManyWithoutMailboxNestedInput
+    labels?: MailLabelUpdateManyWithoutMailboxNestedInput
+    rules?: MailRuleUpdateManyWithoutMailboxNestedInput
+    attachments?: MailAttachmentUpdateManyWithoutMailboxNestedInput
+    legalHolds?: MailLegalHoldUpdateManyWithoutMailboxNestedInput
+    breakGlass?: MailBreakGlassRequestUpdateManyWithoutMailboxNestedInput
+    retention?: MailRetentionPolicyUpdateManyWithoutMailboxNestedInput
+  }
+
+  export type MailMailboxUncheckedUpdateWithoutForwardingRulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    type?: EnumMailMailboxTypeFieldUpdateOperationsInput | $Enums.MailMailboxType
+    purpose?: EnumMailMailboxPurposeFieldUpdateOperationsInput | $Enums.MailMailboxPurpose
+    name?: StringFieldUpdateOperationsInput | string
+    ownerAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumMailRecordStatusFieldUpdateOperationsInput | $Enums.MailRecordStatus
+    signatureHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    dailySendQuota?: IntFieldUpdateOperationsInput | number
+    slaFirstResponseMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    supportTicketLinkEnabled?: BoolFieldUpdateOperationsInput | boolean
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    offboardedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    addresses?: MailAddressUncheckedUpdateManyWithoutMailboxNestedInput
+    memberships?: MailMembershipUncheckedUpdateManyWithoutMailboxNestedInput
+    senderGrants?: MailSenderGrantUncheckedUpdateManyWithoutMailboxNestedInput
+    threads?: MailThreadUncheckedUpdateManyWithoutMailboxNestedInput
+    messages?: MailMessageUncheckedUpdateManyWithoutMailboxNestedInput
+    drafts?: MailDraftUncheckedUpdateManyWithoutMailboxNestedInput
+    labels?: MailLabelUncheckedUpdateManyWithoutMailboxNestedInput
+    rules?: MailRuleUncheckedUpdateManyWithoutMailboxNestedInput
+    attachments?: MailAttachmentUncheckedUpdateManyWithoutMailboxNestedInput
+    legalHolds?: MailLegalHoldUncheckedUpdateManyWithoutMailboxNestedInput
+    breakGlass?: MailBreakGlassRequestUncheckedUpdateManyWithoutMailboxNestedInput
+    retention?: MailRetentionPolicyUncheckedUpdateManyWithoutMailboxNestedInput
+  }
+
+  export type MarketingEmailCampaignCreateWithoutRepliesInput = {
+    id?: string
+    name: string
+    status?: $Enums.MarketingEmailCampaignStatus
+    topic: string
+    senderAddressId?: string | null
+    replyTo?: string | null
+    subjectOverride?: string | null
+    frequencyCapHours?: number
+    legacyCampaignId?: string | null
+    revision?: number
+    createdByAdminUserId: string
+    updatedByAdminUserId: string
+    submittedAt?: Date | string | null
+    submittedByAdminUserId?: string | null
+    approvedAt?: Date | string | null
+    approvedByAdminUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: MailOrganizationCreateNestedOneWithoutMarketingCampaignsInput
+    templateVersion?: MarketingTemplateVersionCreateNestedOneWithoutCampaignsInput
+    audience?: MarketingAudienceCreateNestedOneWithoutCampaignsInput
+    segment?: MarketingSegmentCreateNestedOneWithoutCampaignsInput
+    approvals?: MarketingCampaignApprovalCreateNestedManyWithoutCampaignInput
+    snapshots?: MarketingCampaignSnapshotCreateNestedManyWithoutCampaignInput
+    dispatch?: MarketingBroadcastDispatchCreateNestedOneWithoutCampaignInput
+  }
+
+  export type MarketingEmailCampaignUncheckedCreateWithoutRepliesInput = {
+    id?: string
+    organizationId: string
+    name: string
+    status?: $Enums.MarketingEmailCampaignStatus
+    topic: string
+    senderAddressId?: string | null
+    replyTo?: string | null
+    subjectOverride?: string | null
+    templateVersionId?: string | null
+    audienceId?: string | null
+    segmentId?: string | null
+    frequencyCapHours?: number
+    legacyCampaignId?: string | null
+    revision?: number
+    createdByAdminUserId: string
+    updatedByAdminUserId: string
+    submittedAt?: Date | string | null
+    submittedByAdminUserId?: string | null
+    approvedAt?: Date | string | null
+    approvedByAdminUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    approvals?: MarketingCampaignApprovalUncheckedCreateNestedManyWithoutCampaignInput
+    snapshots?: MarketingCampaignSnapshotUncheckedCreateNestedManyWithoutCampaignInput
+    dispatch?: MarketingBroadcastDispatchUncheckedCreateNestedOneWithoutCampaignInput
+  }
+
+  export type MarketingEmailCampaignCreateOrConnectWithoutRepliesInput = {
+    where: MarketingEmailCampaignWhereUniqueInput
+    create: XOR<MarketingEmailCampaignCreateWithoutRepliesInput, MarketingEmailCampaignUncheckedCreateWithoutRepliesInput>
+  }
+
+  export type MarketingBroadcastRecipientCreateWithoutReplyInput = {
+    id?: string
+    organizationId: string
+    email: string
+    status?: $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: string | null
+    providerContactId?: string | null
+    providerEmailId?: string | null
+    syncedAt?: Date | string | null
+    acceptedAt?: Date | string | null
+    lastEventType?: string | null
+    lastEventAt?: Date | string | null
+    openedAt?: Date | string | null
+    clickedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    dispatch: MarketingBroadcastDispatchCreateNestedOneWithoutRecipientsInput
+    contact: MarketingContactCreateNestedOneWithoutBroadcastRecipientsInput
+  }
+
+  export type MarketingBroadcastRecipientUncheckedCreateWithoutReplyInput = {
+    id?: string
+    dispatchId: string
+    organizationId: string
+    contactId: string
+    email: string
+    status?: $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: string | null
+    providerContactId?: string | null
+    providerEmailId?: string | null
+    syncedAt?: Date | string | null
+    acceptedAt?: Date | string | null
+    lastEventType?: string | null
+    lastEventAt?: Date | string | null
+    openedAt?: Date | string | null
+    clickedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingBroadcastRecipientCreateOrConnectWithoutReplyInput = {
+    where: MarketingBroadcastRecipientWhereUniqueInput
+    create: XOR<MarketingBroadcastRecipientCreateWithoutReplyInput, MarketingBroadcastRecipientUncheckedCreateWithoutReplyInput>
+  }
+
+  export type MailMessageCreateWithoutCampaignReplyInput = {
+    id?: string
+    direction: $Enums.MailMessageDirection
+    status: $Enums.MailMessageStatus
+    rfcMessageId: string
+    inReplyTo?: string | null
+    references?: MailMessageCreatereferencesInput | string[]
+    subject?: string
+    encryptedSnippet?: Bytes | null
+    fromAddress: string
+    fromName?: string | null
+    replyTo?: string | null
+    senderAddressId?: string | null
+    sentByAdminUserId?: string | null
+    envelopeRecipient?: string | null
+    hasAttachments?: boolean
+    sizeBytes?: number
+    contentObjectKey?: string | null
+    contentSha256?: string | null
+    rawMimeObjectKey?: string | null
+    metadataSearchText?: string
+    providerMessageId?: string | null
+    idempotencyKey?: string | null
+    authResults?: NullableJsonNullValueInput | InputJsonValue
+    spamVerdict?: string | null
+    quarantineReason?: string | null
+    lastStatusAt?: Date | string | null
+    sentAt?: Date | string | null
+    receivedAt?: Date | string | null
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    mailbox: MailMailboxCreateNestedOneWithoutMessagesInput
+    thread: MailThreadCreateNestedOneWithoutMessagesInput
+    recipients?: MailMessageRecipientCreateNestedManyWithoutMessageInput
+    attachments?: MailAttachmentCreateNestedManyWithoutMessageInput
+    deliveryEvents?: MailDeliveryEventCreateNestedManyWithoutMessageInput
+    outboxJobs?: MailOutboxJobCreateNestedManyWithoutMessageInput
+    searchIndex?: MailMessageSearchIndexCreateNestedOneWithoutMessageInput
+    archive?: MailMessageArchiveCreateNestedOneWithoutMessageInput
+  }
+
+  export type MailMessageUncheckedCreateWithoutCampaignReplyInput = {
+    id?: string
+    mailboxId: string
+    threadId: string
+    direction: $Enums.MailMessageDirection
+    status: $Enums.MailMessageStatus
+    rfcMessageId: string
+    inReplyTo?: string | null
+    references?: MailMessageCreatereferencesInput | string[]
+    subject?: string
+    encryptedSnippet?: Bytes | null
+    fromAddress: string
+    fromName?: string | null
+    replyTo?: string | null
+    senderAddressId?: string | null
+    sentByAdminUserId?: string | null
+    envelopeRecipient?: string | null
+    hasAttachments?: boolean
+    sizeBytes?: number
+    contentObjectKey?: string | null
+    contentSha256?: string | null
+    rawMimeObjectKey?: string | null
+    metadataSearchText?: string
+    providerMessageId?: string | null
+    idempotencyKey?: string | null
+    authResults?: NullableJsonNullValueInput | InputJsonValue
+    spamVerdict?: string | null
+    quarantineReason?: string | null
+    lastStatusAt?: Date | string | null
+    sentAt?: Date | string | null
+    receivedAt?: Date | string | null
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    recipients?: MailMessageRecipientUncheckedCreateNestedManyWithoutMessageInput
+    attachments?: MailAttachmentUncheckedCreateNestedManyWithoutMessageInput
+    deliveryEvents?: MailDeliveryEventUncheckedCreateNestedManyWithoutMessageInput
+    outboxJobs?: MailOutboxJobUncheckedCreateNestedManyWithoutMessageInput
+    searchIndex?: MailMessageSearchIndexUncheckedCreateNestedOneWithoutMessageInput
+    archive?: MailMessageArchiveUncheckedCreateNestedOneWithoutMessageInput
+  }
+
+  export type MailMessageCreateOrConnectWithoutCampaignReplyInput = {
+    where: MailMessageWhereUniqueInput
+    create: XOR<MailMessageCreateWithoutCampaignReplyInput, MailMessageUncheckedCreateWithoutCampaignReplyInput>
+  }
+
+  export type MarketingEmailCampaignUpsertWithoutRepliesInput = {
+    update: XOR<MarketingEmailCampaignUpdateWithoutRepliesInput, MarketingEmailCampaignUncheckedUpdateWithoutRepliesInput>
+    create: XOR<MarketingEmailCampaignCreateWithoutRepliesInput, MarketingEmailCampaignUncheckedCreateWithoutRepliesInput>
+    where?: MarketingEmailCampaignWhereInput
+  }
+
+  export type MarketingEmailCampaignUpdateToOneWithWhereWithoutRepliesInput = {
+    where?: MarketingEmailCampaignWhereInput
+    data: XOR<MarketingEmailCampaignUpdateWithoutRepliesInput, MarketingEmailCampaignUncheckedUpdateWithoutRepliesInput>
+  }
+
+  export type MarketingEmailCampaignUpdateWithoutRepliesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingEmailCampaignStatusFieldUpdateOperationsInput | $Enums.MarketingEmailCampaignStatus
+    topic?: StringFieldUpdateOperationsInput | string
+    senderAddressId?: NullableStringFieldUpdateOperationsInput | string | null
+    replyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    subjectOverride?: NullableStringFieldUpdateOperationsInput | string | null
+    frequencyCapHours?: IntFieldUpdateOperationsInput | number
+    legacyCampaignId?: NullableStringFieldUpdateOperationsInput | string | null
+    revision?: IntFieldUpdateOperationsInput | number
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    updatedByAdminUserId?: StringFieldUpdateOperationsInput | string
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    submittedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: MailOrganizationUpdateOneRequiredWithoutMarketingCampaignsNestedInput
+    templateVersion?: MarketingTemplateVersionUpdateOneWithoutCampaignsNestedInput
+    audience?: MarketingAudienceUpdateOneWithoutCampaignsNestedInput
+    segment?: MarketingSegmentUpdateOneWithoutCampaignsNestedInput
+    approvals?: MarketingCampaignApprovalUpdateManyWithoutCampaignNestedInput
+    snapshots?: MarketingCampaignSnapshotUpdateManyWithoutCampaignNestedInput
+    dispatch?: MarketingBroadcastDispatchUpdateOneWithoutCampaignNestedInput
+  }
+
+  export type MarketingEmailCampaignUncheckedUpdateWithoutRepliesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingEmailCampaignStatusFieldUpdateOperationsInput | $Enums.MarketingEmailCampaignStatus
+    topic?: StringFieldUpdateOperationsInput | string
+    senderAddressId?: NullableStringFieldUpdateOperationsInput | string | null
+    replyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    subjectOverride?: NullableStringFieldUpdateOperationsInput | string | null
+    templateVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    audienceId?: NullableStringFieldUpdateOperationsInput | string | null
+    segmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    frequencyCapHours?: IntFieldUpdateOperationsInput | number
+    legacyCampaignId?: NullableStringFieldUpdateOperationsInput | string | null
+    revision?: IntFieldUpdateOperationsInput | number
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    updatedByAdminUserId?: StringFieldUpdateOperationsInput | string
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    submittedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    approvals?: MarketingCampaignApprovalUncheckedUpdateManyWithoutCampaignNestedInput
+    snapshots?: MarketingCampaignSnapshotUncheckedUpdateManyWithoutCampaignNestedInput
+    dispatch?: MarketingBroadcastDispatchUncheckedUpdateOneWithoutCampaignNestedInput
+  }
+
+  export type MarketingBroadcastRecipientUpsertWithoutReplyInput = {
+    update: XOR<MarketingBroadcastRecipientUpdateWithoutReplyInput, MarketingBroadcastRecipientUncheckedUpdateWithoutReplyInput>
+    create: XOR<MarketingBroadcastRecipientCreateWithoutReplyInput, MarketingBroadcastRecipientUncheckedCreateWithoutReplyInput>
+    where?: MarketingBroadcastRecipientWhereInput
+  }
+
+  export type MarketingBroadcastRecipientUpdateToOneWithWhereWithoutReplyInput = {
+    where?: MarketingBroadcastRecipientWhereInput
+    data: XOR<MarketingBroadcastRecipientUpdateWithoutReplyInput, MarketingBroadcastRecipientUncheckedUpdateWithoutReplyInput>
+  }
+
+  export type MarketingBroadcastRecipientUpdateWithoutReplyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingBroadcastRecipientStatusFieldUpdateOperationsInput | $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    providerContactId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerEmailId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastEventType?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    openedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    clickedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dispatch?: MarketingBroadcastDispatchUpdateOneRequiredWithoutRecipientsNestedInput
+    contact?: MarketingContactUpdateOneRequiredWithoutBroadcastRecipientsNestedInput
+  }
+
+  export type MarketingBroadcastRecipientUncheckedUpdateWithoutReplyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dispatchId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    contactId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingBroadcastRecipientStatusFieldUpdateOperationsInput | $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    providerContactId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerEmailId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastEventType?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    openedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    clickedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailMessageUpsertWithoutCampaignReplyInput = {
+    update: XOR<MailMessageUpdateWithoutCampaignReplyInput, MailMessageUncheckedUpdateWithoutCampaignReplyInput>
+    create: XOR<MailMessageCreateWithoutCampaignReplyInput, MailMessageUncheckedCreateWithoutCampaignReplyInput>
+    where?: MailMessageWhereInput
+  }
+
+  export type MailMessageUpdateToOneWithWhereWithoutCampaignReplyInput = {
+    where?: MailMessageWhereInput
+    data: XOR<MailMessageUpdateWithoutCampaignReplyInput, MailMessageUncheckedUpdateWithoutCampaignReplyInput>
+  }
+
+  export type MailMessageUpdateWithoutCampaignReplyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    direction?: EnumMailMessageDirectionFieldUpdateOperationsInput | $Enums.MailMessageDirection
+    status?: EnumMailMessageStatusFieldUpdateOperationsInput | $Enums.MailMessageStatus
+    rfcMessageId?: StringFieldUpdateOperationsInput | string
+    inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    references?: MailMessageUpdatereferencesInput | string[]
+    subject?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
+    fromAddress?: StringFieldUpdateOperationsInput | string
+    fromName?: NullableStringFieldUpdateOperationsInput | string | null
+    replyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    senderAddressId?: NullableStringFieldUpdateOperationsInput | string | null
+    sentByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    envelopeRecipient?: NullableStringFieldUpdateOperationsInput | string | null
+    hasAttachments?: BoolFieldUpdateOperationsInput | boolean
+    sizeBytes?: IntFieldUpdateOperationsInput | number
+    contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
+    rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    authResults?: NullableJsonNullValueInput | InputJsonValue
+    spamVerdict?: NullableStringFieldUpdateOperationsInput | string | null
+    quarantineReason?: NullableStringFieldUpdateOperationsInput | string | null
+    lastStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    receivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mailbox?: MailMailboxUpdateOneRequiredWithoutMessagesNestedInput
+    thread?: MailThreadUpdateOneRequiredWithoutMessagesNestedInput
+    recipients?: MailMessageRecipientUpdateManyWithoutMessageNestedInput
+    attachments?: MailAttachmentUpdateManyWithoutMessageNestedInput
+    deliveryEvents?: MailDeliveryEventUpdateManyWithoutMessageNestedInput
+    outboxJobs?: MailOutboxJobUpdateManyWithoutMessageNestedInput
+    searchIndex?: MailMessageSearchIndexUpdateOneWithoutMessageNestedInput
+    archive?: MailMessageArchiveUpdateOneWithoutMessageNestedInput
+  }
+
+  export type MailMessageUncheckedUpdateWithoutCampaignReplyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    mailboxId?: StringFieldUpdateOperationsInput | string
+    threadId?: StringFieldUpdateOperationsInput | string
+    direction?: EnumMailMessageDirectionFieldUpdateOperationsInput | $Enums.MailMessageDirection
+    status?: EnumMailMessageStatusFieldUpdateOperationsInput | $Enums.MailMessageStatus
+    rfcMessageId?: StringFieldUpdateOperationsInput | string
+    inReplyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    references?: MailMessageUpdatereferencesInput | string[]
+    subject?: StringFieldUpdateOperationsInput | string
+    encryptedSnippet?: NullableBytesFieldUpdateOperationsInput | Bytes | null
+    fromAddress?: StringFieldUpdateOperationsInput | string
+    fromName?: NullableStringFieldUpdateOperationsInput | string | null
+    replyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    senderAddressId?: NullableStringFieldUpdateOperationsInput | string | null
+    sentByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    envelopeRecipient?: NullableStringFieldUpdateOperationsInput | string | null
+    hasAttachments?: BoolFieldUpdateOperationsInput | boolean
+    sizeBytes?: IntFieldUpdateOperationsInput | number
+    contentObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    contentSha256?: NullableStringFieldUpdateOperationsInput | string | null
+    rawMimeObjectKey?: NullableStringFieldUpdateOperationsInput | string | null
+    metadataSearchText?: StringFieldUpdateOperationsInput | string
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    authResults?: NullableJsonNullValueInput | InputJsonValue
+    spamVerdict?: NullableStringFieldUpdateOperationsInput | string | null
+    quarantineReason?: NullableStringFieldUpdateOperationsInput | string | null
+    lastStatusAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    receivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    recipients?: MailMessageRecipientUncheckedUpdateManyWithoutMessageNestedInput
+    attachments?: MailAttachmentUncheckedUpdateManyWithoutMessageNestedInput
+    deliveryEvents?: MailDeliveryEventUncheckedUpdateManyWithoutMessageNestedInput
+    outboxJobs?: MailOutboxJobUncheckedUpdateManyWithoutMessageNestedInput
+    searchIndex?: MailMessageSearchIndexUncheckedUpdateOneWithoutMessageNestedInput
+    archive?: MailMessageArchiveUncheckedUpdateOneWithoutMessageNestedInput
   }
 
   export type AdminSessionCreateManyAdminUserInput = {
@@ -403292,6 +412584,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMailboxUncheckedUpdateWithoutOwnerInput = {
@@ -403322,6 +412615,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUncheckedUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUncheckedUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUncheckedUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMailboxUncheckedUpdateManyWithoutOwnerInput = {
@@ -412017,6 +421311,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMailboxUncheckedUpdateWithoutOrganizationInput = {
@@ -412047,6 +421342,7 @@ export namespace Prisma {
     legalHolds?: MailLegalHoldUncheckedUpdateManyWithoutMailboxNestedInput
     breakGlass?: MailBreakGlassRequestUncheckedUpdateManyWithoutMailboxNestedInput
     retention?: MailRetentionPolicyUncheckedUpdateManyWithoutMailboxNestedInput
+    forwardingRules?: MailForwardingRuleUncheckedUpdateManyWithoutMailboxNestedInput
   }
 
   export type MailMailboxUncheckedUpdateManyWithoutOrganizationInput = {
@@ -412342,6 +421638,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUpdateManyWithoutCampaignNestedInput
     dispatch?: MarketingBroadcastDispatchUpdateOneWithoutCampaignNestedInput
+    replies?: MarketingCampaignReplyUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateWithoutOrganizationInput = {
@@ -412369,6 +421666,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalUncheckedUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUncheckedUpdateManyWithoutCampaignNestedInput
     dispatch?: MarketingBroadcastDispatchUncheckedUpdateOneWithoutCampaignNestedInput
+    replies?: MarketingCampaignReplyUncheckedUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateManyWithoutOrganizationInput = {
@@ -412723,6 +422021,27 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type MailForwardingRuleCreateManyMailboxInput = {
+    id?: string
+    organizationId: string
+    targetAddress: string
+    targetKind: string
+    status?: string
+    reason: string
+    requestedBy: string
+    requestedAt?: Date | string
+    decidedBy?: string | null
+    decidedAt?: Date | string | null
+    decisionNote?: string | null
+    disabledBy?: string | null
+    disabledAt?: Date | string | null
+    disabledReason?: string | null
+    lastForwardedAt?: Date | string | null
+    forwardedCount?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type MailAddressUpdateWithoutMailboxInput = {
     id?: StringFieldUpdateOperationsInput | string
     localPart?: StringFieldUpdateOperationsInput | string
@@ -412975,6 +422294,9 @@ export namespace Prisma {
     attachments?: MailAttachmentUpdateManyWithoutMessageNestedInput
     deliveryEvents?: MailDeliveryEventUpdateManyWithoutMessageNestedInput
     outboxJobs?: MailOutboxJobUpdateManyWithoutMessageNestedInput
+    searchIndex?: MailMessageSearchIndexUpdateOneWithoutMessageNestedInput
+    archive?: MailMessageArchiveUpdateOneWithoutMessageNestedInput
+    campaignReply?: MarketingCampaignReplyUpdateOneWithoutMessageNestedInput
   }
 
   export type MailMessageUncheckedUpdateWithoutMailboxInput = {
@@ -413014,6 +422336,9 @@ export namespace Prisma {
     attachments?: MailAttachmentUncheckedUpdateManyWithoutMessageNestedInput
     deliveryEvents?: MailDeliveryEventUncheckedUpdateManyWithoutMessageNestedInput
     outboxJobs?: MailOutboxJobUncheckedUpdateManyWithoutMessageNestedInput
+    searchIndex?: MailMessageSearchIndexUncheckedUpdateOneWithoutMessageNestedInput
+    archive?: MailMessageArchiveUncheckedUpdateOneWithoutMessageNestedInput
+    campaignReply?: MarketingCampaignReplyUncheckedUpdateOneWithoutMessageNestedInput
   }
 
   export type MailMessageUncheckedUpdateManyWithoutMailboxInput = {
@@ -413346,6 +422671,69 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type MailForwardingRuleUpdateWithoutMailboxInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    targetAddress?: StringFieldUpdateOperationsInput | string
+    targetKind?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    requestedBy?: StringFieldUpdateOperationsInput | string
+    requestedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    decidedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    decisionNote?: NullableStringFieldUpdateOperationsInput | string | null
+    disabledBy?: NullableStringFieldUpdateOperationsInput | string | null
+    disabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    disabledReason?: NullableStringFieldUpdateOperationsInput | string | null
+    lastForwardedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    forwardedCount?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailForwardingRuleUncheckedUpdateWithoutMailboxInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    targetAddress?: StringFieldUpdateOperationsInput | string
+    targetKind?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    requestedBy?: StringFieldUpdateOperationsInput | string
+    requestedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    decidedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    decisionNote?: NullableStringFieldUpdateOperationsInput | string | null
+    disabledBy?: NullableStringFieldUpdateOperationsInput | string | null
+    disabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    disabledReason?: NullableStringFieldUpdateOperationsInput | string | null
+    lastForwardedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    forwardedCount?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailForwardingRuleUncheckedUpdateManyWithoutMailboxInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    targetAddress?: StringFieldUpdateOperationsInput | string
+    targetKind?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    requestedBy?: StringFieldUpdateOperationsInput | string
+    requestedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    decidedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    decisionNote?: NullableStringFieldUpdateOperationsInput | string | null
+    disabledBy?: NullableStringFieldUpdateOperationsInput | string | null
+    disabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    disabledReason?: NullableStringFieldUpdateOperationsInput | string | null
+    lastForwardedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    forwardedCount?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type MailAddressCreateManyAliasOfInput = {
     id?: string
     organizationId: string
@@ -413572,6 +422960,9 @@ export namespace Prisma {
     attachments?: MailAttachmentUpdateManyWithoutMessageNestedInput
     deliveryEvents?: MailDeliveryEventUpdateManyWithoutMessageNestedInput
     outboxJobs?: MailOutboxJobUpdateManyWithoutMessageNestedInput
+    searchIndex?: MailMessageSearchIndexUpdateOneWithoutMessageNestedInput
+    archive?: MailMessageArchiveUpdateOneWithoutMessageNestedInput
+    campaignReply?: MarketingCampaignReplyUpdateOneWithoutMessageNestedInput
   }
 
   export type MailMessageUncheckedUpdateWithoutThreadInput = {
@@ -413611,6 +423002,9 @@ export namespace Prisma {
     attachments?: MailAttachmentUncheckedUpdateManyWithoutMessageNestedInput
     deliveryEvents?: MailDeliveryEventUncheckedUpdateManyWithoutMessageNestedInput
     outboxJobs?: MailOutboxJobUncheckedUpdateManyWithoutMessageNestedInput
+    searchIndex?: MailMessageSearchIndexUncheckedUpdateOneWithoutMessageNestedInput
+    archive?: MailMessageArchiveUncheckedUpdateOneWithoutMessageNestedInput
+    campaignReply?: MarketingCampaignReplyUncheckedUpdateOneWithoutMessageNestedInput
   }
 
   export type MailMessageUncheckedUpdateManyWithoutThreadInput = {
@@ -414406,6 +423800,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     dispatch?: MarketingBroadcastDispatchUpdateOneRequiredWithoutRecipientsNestedInput
+    reply?: MarketingCampaignReplyUpdateOneWithoutRecipientNestedInput
   }
 
   export type MarketingBroadcastRecipientUncheckedUpdateWithoutContactInput = {
@@ -414425,6 +423820,7 @@ export namespace Prisma {
     clickedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reply?: MarketingCampaignReplyUncheckedUpdateOneWithoutRecipientNestedInput
   }
 
   export type MarketingBroadcastRecipientUncheckedUpdateManyWithoutContactInput = {
@@ -414617,6 +424013,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUpdateManyWithoutCampaignNestedInput
     dispatch?: MarketingBroadcastDispatchUpdateOneWithoutCampaignNestedInput
+    replies?: MarketingCampaignReplyUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateWithoutAudienceInput = {
@@ -414644,6 +424041,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalUncheckedUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUncheckedUpdateManyWithoutCampaignNestedInput
     dispatch?: MarketingBroadcastDispatchUncheckedUpdateOneWithoutCampaignNestedInput
+    replies?: MarketingCampaignReplyUncheckedUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateManyWithoutAudienceInput = {
@@ -414719,6 +424117,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUpdateManyWithoutCampaignNestedInput
     dispatch?: MarketingBroadcastDispatchUpdateOneWithoutCampaignNestedInput
+    replies?: MarketingCampaignReplyUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateWithoutSegmentInput = {
@@ -414746,6 +424145,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalUncheckedUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUncheckedUpdateManyWithoutCampaignNestedInput
     dispatch?: MarketingBroadcastDispatchUncheckedUpdateOneWithoutCampaignNestedInput
+    replies?: MarketingCampaignReplyUncheckedUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateManyWithoutSegmentInput = {
@@ -414883,6 +424283,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUpdateManyWithoutCampaignNestedInput
     dispatch?: MarketingBroadcastDispatchUpdateOneWithoutCampaignNestedInput
+    replies?: MarketingCampaignReplyUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateWithoutTemplateVersionInput = {
@@ -414910,6 +424311,7 @@ export namespace Prisma {
     approvals?: MarketingCampaignApprovalUncheckedUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUncheckedUpdateManyWithoutCampaignNestedInput
     dispatch?: MarketingBroadcastDispatchUncheckedUpdateOneWithoutCampaignNestedInput
+    replies?: MarketingCampaignReplyUncheckedUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateManyWithoutTemplateVersionInput = {
@@ -414962,6 +424364,17 @@ export namespace Prisma {
     excludedCount: number
     contentSha256: string
     createdBy: string
+    createdAt?: Date | string
+  }
+
+  export type MarketingCampaignReplyCreateManyCampaignInput = {
+    id?: string
+    organizationId: string
+    dispatchId: string
+    recipientId: string
+    mailMessageId: string
+    method: string
+    receivedAt: Date | string
     createdAt?: Date | string
   }
 
@@ -415053,6 +424466,39 @@ export namespace Prisma {
     excludedCount?: IntFieldUpdateOperationsInput | number
     contentSha256?: StringFieldUpdateOperationsInput | string
     createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingCampaignReplyUpdateWithoutCampaignInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    dispatchId?: StringFieldUpdateOperationsInput | string
+    method?: StringFieldUpdateOperationsInput | string
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    recipient?: MarketingBroadcastRecipientUpdateOneRequiredWithoutReplyNestedInput
+    message?: MailMessageUpdateOneRequiredWithoutCampaignReplyNestedInput
+  }
+
+  export type MarketingCampaignReplyUncheckedUpdateWithoutCampaignInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    dispatchId?: StringFieldUpdateOperationsInput | string
+    recipientId?: StringFieldUpdateOperationsInput | string
+    mailMessageId?: StringFieldUpdateOperationsInput | string
+    method?: StringFieldUpdateOperationsInput | string
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingCampaignReplyUncheckedUpdateManyWithoutCampaignInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    dispatchId?: StringFieldUpdateOperationsInput | string
+    recipientId?: StringFieldUpdateOperationsInput | string
+    mailMessageId?: StringFieldUpdateOperationsInput | string
+    method?: StringFieldUpdateOperationsInput | string
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -415156,6 +424602,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     contact?: MarketingContactUpdateOneRequiredWithoutBroadcastRecipientsNestedInput
+    reply?: MarketingCampaignReplyUpdateOneWithoutRecipientNestedInput
   }
 
   export type MarketingBroadcastRecipientUncheckedUpdateWithoutDispatchInput = {
@@ -415175,6 +424622,7 @@ export namespace Prisma {
     clickedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reply?: MarketingCampaignReplyUncheckedUpdateOneWithoutRecipientNestedInput
   }
 
   export type MarketingBroadcastRecipientUncheckedUpdateManyWithoutDispatchInput = {

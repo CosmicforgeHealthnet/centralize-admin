@@ -154,6 +154,84 @@ export interface MailMessage {
   sentBy: { id: string; name: string } | null;
   deliveryEvents: DeliveryEvent[];
   quarantineReason: string | null;
+  // Provider-verified SPF/DKIM/DMARC assessment (inbound only).
+  senderAuthentication?: SenderAuthentication | null;
+}
+
+export type SenderAuthVerdict = "PASS" | "NONE" | "SUSPICIOUS" | "FAIL";
+export interface SenderAuthentication {
+  verdict: SenderAuthVerdict;
+  reasons: string[];
+  source: "provider" | "trusted-header" | "none";
+}
+
+// ── Filters (mailbox rules) ──────────────────────────────────────────────
+export interface MailRuleConditions {
+  fromContains?: string;
+  fromEquals?: string;
+  toContains?: string;
+  subjectContains?: string;
+  hasAttachment?: boolean;
+}
+export interface MailRuleActions {
+  labelId?: string;
+  folder?: "ARCHIVE" | "SPAM" | "TRASH";
+  markRead?: true;
+  star?: true;
+  stopProcessing?: true;
+}
+export interface MailRule {
+  id: string;
+  mailboxId: string;
+  name: string;
+  enabled: boolean;
+  priority: number;
+  conditions: MailRuleConditions;
+  actions: MailRuleActions;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface MailRuleInput {
+  name?: string;
+  enabled?: boolean;
+  priority?: number;
+  conditions?: MailRuleConditions;
+  actions?: MailRuleActions;
+}
+
+// ── Forwarding ───────────────────────────────────────────────────────────
+export type ForwardingStatus = "PENDING_APPROVAL" | "ACTIVE" | "REJECTED" | "DISABLED";
+export interface ForwardingRule {
+  id: string;
+  mailboxId: string;
+  targetAddress: string;
+  targetKind: "INTERNAL" | "EXTERNAL";
+  status: ForwardingStatus;
+  reason: string;
+  requestedBy: string;
+  requestedAt: string;
+  decidedAt: string | null;
+  decisionNote: string | null;
+  disabledAt: string | null;
+  disabledReason: string | null;
+  lastForwardedAt: string | null;
+  forwardedCount: number;
+  mailbox?: { name: string; type: "PERSONAL" | "SHARED" };
+}
+
+export interface OriginalHeaders {
+  available: boolean;
+  headers: { name: string; value: string }[];
+  rfcMessageId?: string | null;
+  rawMime: { status: "STORED" | "NOT_REQUESTED" | "UNAVAILABLE" | "TOO_LARGE" | "FAILED"; sizeBytes?: number | null };
+}
+
+export interface SearchIndexStatus {
+  enabled: boolean;
+  unindexed: number | null;
+  oldestUnindexedAt: string | null;
+  staleKeyVersion: number | null;
+  activeKeyVersion: string | null;
 }
 
 export interface Draft {

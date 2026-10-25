@@ -40,14 +40,33 @@ function createRolloutService({ client, config, audit, stepUp, clock = () => new
     cache = null;
   }
 
+  // Cross-replica consistency (spec 20): rules and stops are append-only with
+  // revoke/release timestamps, so (latest change, row count) changes whenever
+  // any replica edits them. One cheap aggregate per decision; the rows are
+  // re-read only when it changed. A rule change or emergency stop is
+  // therefore effective on every API replica and worker at the next check.
+  async function fingerprint() {
+    if (typeof client.$queryRaw !== "function") return null;
+    try {
+      const [row] = await client.$queryRaw`
+        SELECT
+          (SELECT coalesce(max(greatest("created_at", coalesce("revoked_at", "created_at")))::text, '-') || ':' || count(*)::text FROM "mail_rollout_rules" WHERE "environment" = ${environment}) AS "rules",
+          (SELECT coalesce(max(greatest("activated_at", coalesce("released_at", "activated_at")))::text, '-') || ':' || count(*)::text FROM "mail_emergency_stops" WHERE "environment" = ${environment}) AS "stops"`;
+      return row ? `${row.rules}|${row.stops}` : null;
+    } catch {
+      return null;
+    }
+  }
+
   async function state() {
     const now = clock().getTime();
-    if (cache && now - cache.at < CACHE_MS) return cache;
+    const version = await fingerprint();
+    if (cache && (version !== null ? cache.version === version : now - cache.at < CACHE_MS)) return cache;
     const [rules, stops] = await Promise.all([
       client.mailRolloutRule.findMany({ where: { environment, revokedAt: null } }),
       client.mailEmergencyStop.findMany({ where: { environment, releasedAt: null } }),
     ]);
-    cache = { at: now, rules, stops };
+    cache = { at: now, version, rules, stops };
     return cache;
   }
 

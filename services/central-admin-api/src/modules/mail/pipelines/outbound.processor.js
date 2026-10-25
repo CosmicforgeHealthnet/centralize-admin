@@ -61,7 +61,7 @@ class DispatchBlockedError extends Error {
   }
 }
 
-function createOutboundProcessor({ client, config, adapter, store, audit, notifications, runtime = null, usage = null, clock = () => new Date() }) {
+function createOutboundProcessor({ client, config, adapter, store, audit, notifications, runtime = null, usage = null, forwarding = null, clock = () => new Date() }) {
   const windowMs = (config.reconciliation?.idempotencyWindowHours || 23) * 3600 * 1000;
 
   async function assertStillAuthorized(message) {
@@ -78,6 +78,8 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
     // provider or a disabled/suspended domain cancel queued external mail.
     const blocked = externalSendBlockReason({ config, providerReady: () => adapter.name !== "unconfigured", domain: address.domain });
     if (blocked && blocked !== SEND_BLOCK_REASONS.SENDING_DISABLED) throw new DispatchBlockedError(blocked);
+    // Auto-forwarded copies stop as soon as their rule is disabled.
+    if (forwarding && String(message.idempotencyKey || "").startsWith("fwd:") && !(await forwarding.ruleStillActive(message.idempotencyKey))) throw new DispatchBlockedError("FORWARDING_RULE_DISABLED");
   }
 
   async function savePlan(job, plan) {
@@ -159,6 +161,7 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
       "Message-ID": message.rfcMessageId,
       ...(message.inReplyTo ? { "In-Reply-To": message.inReplyTo } : {}),
       ...(message.references?.length ? { References: message.references.join(" ") } : {}),
+      ...(forwarding ? forwarding.forwardHeaders(message.idempotencyKey) : {}),
     };
 
     for (const { batch, index } of pendingBatches) {

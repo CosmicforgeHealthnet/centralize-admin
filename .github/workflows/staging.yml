@@ -137,6 +137,9 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+      - name: Mail API contract (generated web client is current)
+        run: npm run mail:client:check
+
       - name: Focused CosmicForge Mail tests (offline provider, disposable PostgreSQL replay)
         env:
           MAIL_ENABLED: "false"
