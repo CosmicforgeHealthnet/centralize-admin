@@ -36,6 +36,7 @@ const { MailProviderError } = require("../adapters/mail-provider.contract");
 const { PipelineError } = require("./inbound.processor");
 const policy = require("../authz/mail.policy");
 const { externalSendBlockReason, SEND_BLOCK_REASONS } = require("../authz/sending-gate");
+const { purposeForMailbox } = require("../ops/runtime-controls");
 
 function party(recipient) {
   return { address: recipient.address, name: recipient.name };
@@ -60,7 +61,7 @@ class DispatchBlockedError extends Error {
   }
 }
 
-function createOutboundProcessor({ client, config, adapter, store, audit, notifications, clock = () => new Date() }) {
+function createOutboundProcessor({ client, config, adapter, store, audit, notifications, runtime = null, usage = null, clock = () => new Date() }) {
   const windowMs = (config.reconciliation?.idempotencyWindowHours || 23) * 3600 * 1000;
 
   async function assertStillAuthorized(message) {
@@ -143,6 +144,11 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
       throw new PipelineError(error.code, "send blocked at dispatch", { retryable: false });
     }
 
+    // M9 kill switch: hold (never drop) queued mail while sending is stopped.
+    const purpose = purposeForMailbox(message.mailbox);
+    const halted = runtime ? await runtime.haltReason(purpose, { organizationId: message.mailbox?.organizationId, mailboxId: message.mailboxId, adminUserId: message.sentByAdminUserId }) : null;
+    if (halted) return { defer: { seconds: 300, code: halted } };
+
     const body = await store.readBody(message);
     const attachments = [];
     for (const attachment of message.attachments) {
@@ -189,6 +195,7 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
       try {
         result = await adapter.sendMessage(request);
       } catch (error) {
+        if (usage) await usage.record(null, { organizationId: message.mailbox?.organizationId, purpose, providerRequests: 1, rejected: error?.kind === "PERMANENT" ? recipientIds.length : 0 }).catch(() => {});
         if (!(error instanceof MailProviderError)) throw error;
         if (error.kind === "IDEMPOTENCY_CONFLICT") {
           batch.outcome = "UNKNOWN";
@@ -221,6 +228,7 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
         await tx.mailMessageRecipient.updateMany({ where: { id: { in: recipientIds }, status: "PENDING" }, data: { status: "PROVIDER_ACCEPTED", providerMessageId: result.providerMessageId, lastEventAt: clock() } });
         await tx.mailMessage.update({ where: { id: message.id }, data: { providerMessageId: message.providerMessageId || result.providerMessageId, sentAt: message.sentAt || clock() } });
         await audit.record({ actorAdminUserId: message.sentByAdminUserId, action: "MAIL_PROVIDER_ACCEPTED", targetType: "message", targetId: message.id, mailboxId: message.mailboxId, metadata: { batch: index, recipients: recipientIds.length } }, {}, tx);
+        if (usage) await usage.record(tx, { organizationId: message.mailbox?.organizationId, purpose, accepted: recipientIds.length, providerRequests: 1, bytes: message.sizeBytes });
       });
       message.providerMessageId = message.providerMessageId || result.providerMessageId;
       message.sentAt = message.sentAt || clock();

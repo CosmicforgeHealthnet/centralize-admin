@@ -1263,7 +1263,7 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       assert.equal(edited.body.data.revision, 3);
       const after = await call("erin", "GET", `${base}/campaigns/${campaign.body.data.id}/history`);
       assert.ok(after.body.data.approvals.some((approval) => approval.decision === "INVALIDATED"));
-      assert.equal(await client.mailOutboxJob.count({ where: { kind: { notIn: ["SEND_MESSAGE", "PROCESS_INBOUND", "PROCESS_DELIVERY_EVENT"] } } }), 0, "no marketing dispatch jobs exist in M6");
+      assert.equal(await client.mailOutboxJob.count({ where: { kind: { notIn: ["SEND_MESSAGE", "PROCESS_INBOUND", "PROCESS_DELIVERY_EVENT", "OPS_EVALUATE"] } } }), 0, "no marketing dispatch jobs exist in M6 (periodic M9 ops evaluation aside)");
       await assert.rejects(harness.adapter.sendBroadcast({}), (error) => error.code === "BROADCAST_NOT_ENABLED");
     });
 

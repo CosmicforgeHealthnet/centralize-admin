@@ -5362,3 +5362,100 @@ model MailProductDeliveryEvent {
   @@index([integrationId, productMessageId], map: "IDX_mail_product_delivery_events_message")
   @@map("mail_product_delivery_events")
 }
+
+// -----------------------------------------------------------------------------
+// CosmicForge Mail M9: operations (retention runs, usage, quotas, ops alerts)
+// -----------------------------------------------------------------------------
+
+enum MailRetentionRunMode {
+  DRY_RUN
+  EXECUTE
+}
+
+enum MailRetentionRunStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// One retention evaluation. A DRY_RUN never changes data. An EXECUTE run is
+// created only from a completed DRY_RUN and reuses its fixed cutoff, so the
+// set it acts on can never grow past what was reviewed. `cursor` makes runs
+// resumable after a crash or lease expiry.
+model MailRetentionRun {
+  id             String                 @id @default(uuid()) @db.Uuid
+  organizationId String?                @map("organization_id") @db.Uuid
+  policyId       String?                @map("policy_id") @db.Uuid
+  category       String                 @db.VarChar(40)
+  action         String                 @db.VarChar(16)
+  mode           MailRetentionRunMode
+  status         MailRetentionRunStatus @default(QUEUED)
+  cutoff         DateTime               @db.Timestamptz(6)
+  dryRunId       String?                @map("dry_run_id") @db.Uuid
+  requestedBy    String                 @map("requested_by")
+  counts         Json                   @default("{}")
+  cursor         Json?
+  errorCode      String?                @map("error_code") @db.VarChar(64)
+  startedAt      DateTime?              @map("started_at") @db.Timestamptz(6)
+  completedAt    DateTime?              @map("completed_at") @db.Timestamptz(6)
+  createdAt      DateTime               @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([dryRunId], map: "UQ_mail_retention_runs_dry_run")
+  @@index([organizationId, createdAt(sort: Desc)], map: "IDX_mail_retention_runs_org_created")
+  @@index([status, updatedAt], map: "IDX_mail_retention_runs_status")
+  @@map("mail_retention_runs")
+}
+
+// Daily usage counters split by purpose. Counts only; no prices are stored.
+model MailUsageDaily {
+  organizationId   String   @map("organization_id") @db.Uuid
+  purpose          String   @db.VarChar(32)
+  day              DateTime @db.Date
+  accepted         Int      @default(0)
+  rejected         Int      @default(0)
+  received         Int      @default(0)
+  providerRequests Int      @default(0) @map("provider_requests")
+  bytes            BigInt   @default(0)
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@id([organizationId, purpose, day], map: "PK_mail_usage_daily")
+  @@map("mail_usage_daily")
+}
+
+model MailQuotaLimit {
+  id               String   @id @default(uuid()) @db.Uuid
+  organizationId   String   @map("organization_id") @db.Uuid
+  purpose          String   @db.VarChar(32)
+  dailySoftLimit   Int?     @map("daily_soft_limit")
+  dailyHardLimit   Int?     @map("daily_hard_limit")
+  monthlyHardLimit Int?     @map("monthly_hard_limit")
+  updatedBy        String   @map("updated_by")
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([organizationId, purpose], map: "UQ_mail_quota_limits_org_purpose")
+  @@map("mail_quota_limits")
+}
+
+// Evaluated operational alerts, de-duplicated by fingerprint while open.
+model MailOpsAlert {
+  id             String    @id @default(uuid()) @db.Uuid
+  code           String    @db.VarChar(64)
+  severity       String    @db.VarChar(16)
+  organizationId String?   @map("organization_id") @db.Uuid
+  fingerprint    String    @db.VarChar(200)
+  detail         Json?
+  occurrences    Int       @default(1)
+  firstSeenAt    DateTime  @map("first_seen_at") @db.Timestamptz(6)
+  lastSeenAt     DateTime  @map("last_seen_at") @db.Timestamptz(6)
+  notifiedAt     DateTime? @map("notified_at") @db.Timestamptz(6)
+  acknowledgedAt DateTime? @map("acknowledged_at") @db.Timestamptz(6)
+  acknowledgedBy String?   @map("acknowledged_by")
+  resolvedAt     DateTime? @map("resolved_at") @db.Timestamptz(6)
+
+  @@index([resolvedAt, severity], map: "IDX_mail_ops_alerts_open")
+  @@index([fingerprint, resolvedAt], map: "IDX_mail_ops_alerts_fingerprint")
+  @@map("mail_ops_alerts")
+}

@@ -16,12 +16,16 @@ DROP TABLE IF EXISTS "mail_rollout_cohort_members";
 DROP TABLE IF EXISTS "mail_rollout_settings";
 
 -- ===================================================================== M9
-DROP TRIGGER IF EXISTS "TRG_mail_retention_runs_evidence" ON "mail_retention_runs";
-DROP TABLE IF EXISTS "mail_retention_run_items";
+-- 20261029_mail_m9_operations.sql. Retention run history and ops alerts are
+-- evidence: export them first if they must be kept.
+DROP TABLE IF EXISTS "mail_ops_alerts";
+DROP TABLE IF EXISTS "mail_quota_limits";
+DROP TABLE IF EXISTS "mail_usage_daily";
 DROP TABLE IF EXISTS "mail_retention_runs";
-DROP TABLE IF EXISTS "mail_operational_controls";
-DROP TABLE IF EXISTS "mail_usage_counters";
-DROP TABLE IF EXISTS "mail_export_requests";
+DROP TYPE IF EXISTS "MailRetentionRunStatus";
+DROP TYPE IF EXISTS "MailRetentionRunMode";
+-- Queued M9 jobs are cancelled (rows kept for evidence).
+UPDATE "mail_outbox_jobs" SET "status" = 'CANCELLED', "completed_at" = now(), "last_error_code" = 'ROLLED_BACK' WHERE "kind" IN ('RETENTION_RUN', 'OPS_EVALUATE') AND "status"::text IN ('PENDING', 'RETRY_SCHEDULED', 'RECONCILING', 'LEASED');
 
 -- ===================================================================== M8
 DROP TABLE IF EXISTS "mail_product_delivery_events";
@@ -29,6 +33,7 @@ DROP TABLE IF EXISTS "mail_product_integration_events";
 DROP TABLE IF EXISTS "mail_product_sender_authorizations";
 DROP TABLE IF EXISTS "mail_product_integrations";
 DROP TYPE IF EXISTS "MailProductIntegrationStatus";
+DROP FUNCTION IF EXISTS mail_guard_append_only();
 
 -- ===================================================================== M7
 DROP TRIGGER IF EXISTS "TRG_marketing_automation_versions_immutable" ON "marketing_automation_versions";
@@ -59,8 +64,14 @@ UPDATE "mail_outbox_jobs" SET "status" = 'CANCELLED', "completed_at" = now(), "l
 DROP INDEX IF EXISTS "IDX_mail_step_up_session";
 ALTER TABLE "mail_step_up_verifications" DROP COLUMN IF EXISTS "session_id";
 
--- Finally remove the ledger rows for the rolled-back files so the manifest
--- tooling sees them as unapplied (adjust to the ledger table in use).
--- DELETE FROM "admin_manual_migrations" WHERE "file" IN (...);
+-- Finally remove the ledger rows for the rolled-back files so
+-- db:admin:prepare sees them as unapplied. Keep only the sections you ran.
+DELETE FROM public.social_manual_migrations WHERE "file" IN (
+  '20261030_mail_m10_rollout.sql',
+  '20261029_mail_m9_operations.sql',
+  '20261028_mail_m8_product_integration.sql',
+  '20261027_mail_m7_broadcasts_automation.sql',
+  '20261026_mail_step_up_session_binding.sql'
+);
 
 COMMIT;

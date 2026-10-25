@@ -18,10 +18,11 @@ const { sanitizeEmailHtml, htmlToText, escapeHtml } = require("../security/html-
 const { evaluateAttachment } = require("../scanning/attachment-scanner");
 const { serializeAttachment, iso } = require("./serializers");
 const { externalSendBlockReason, SEND_BLOCK_REASONS } = require("../authz/sending-gate");
+const { purposeForMailbox } = require("../ops/runtime-controls");
 
 const DRAFT_PURPOSE = "mail-draft";
 
-function createComposeService({ client, config, store, encryption, scanner, jobs, audit, notifications, providerReady = () => false, clock = () => new Date() }) {
+function createComposeService({ client, config, store, encryption, scanner, jobs, audit, notifications, providerReady = () => false, runtime = null, usage = null, clock = () => new Date() }) {
   function encryptDraftBody(html, text) {
     if (!encryption.available) throw mailError("MAIL_STORAGE_UNAVAILABLE");
     return encryption.encryptJson({ html, text }, DRAFT_PURPOSE);
@@ -266,6 +267,11 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
       if (blocked === SEND_BLOCK_REASONS.SENDING_DISABLED) throw mailError("MAIL_SENDING_DISABLED");
       if (blocked === SEND_BLOCK_REASONS.PROVIDER_NOT_CONFIGURED) throw mailError("MAIL_PROVIDER_UNAVAILABLE", { reason: blocked });
       if (blocked) throw mailError("MAIL_SENDER_NOT_AUTHORIZED", { reason: blocked });
+      // M9: emergency stop and brand/purpose hard limits (external mail only).
+      const purpose = purposeForMailbox(mailbox);
+      const halted = runtime ? await runtime.haltReason(purpose, { organizationId: mailbox.organizationId, mailboxId: mailbox.id, adminUserId: user.id }) : null;
+      if (halted) throw mailError("MAIL_EMERGENCY_STOP", { reason: halted });
+      if (usage) await usage.assertWithinQuota(mailbox.organizationId, purpose, externalRecipients.length);
     }
     await enforceQuota(user, mailbox);
 

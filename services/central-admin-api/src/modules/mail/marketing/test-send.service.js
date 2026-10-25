@@ -18,7 +18,12 @@ const { classifySendError } = require("./marketing-sender");
 
 const SAMPLE = { first_name: "Ada", last_name: "Lovelace", email: "test@example.invalid", unsubscribe_url: "https://example.invalid/unsubscribe-disabled-for-test-sends" };
 
-function createTestSendService({ client, config, audit, jobs, marketingProviders, clock = () => new Date() }) {
+// Runtime halts (brand pause, emergency stop) and quotas use the broadcast
+// purpose: a paused brand or exhausted quota stops test sends too, and test
+// sends count toward the brand's provider usage.
+const PURPOSE = "MARKETING_BROADCAST";
+
+function createTestSendService({ client, config, audit, jobs, marketingProviders, runtime = null, usage = null, clock = () => new Date() }) {
   async function requestTestSend(user, organizationId, campaignId, { recipients } = {}, context = {}) {
     if (!config.marketingEnabled) throw mailError("MAIL_MARKETING_DISABLED");
     await policy.requireMarketingScope(client, user, organizationId, "EDIT");
@@ -27,6 +32,8 @@ function createTestSendService({ client, config, audit, jobs, marketingProviders
     const campaign = policy.isUuid(campaignId) ? await client.marketingEmailCampaign.findUnique({ where: { id: campaignId } }) : null;
     if (!campaign || campaign.organizationId !== organizationId) throw mailError("MAIL_NOT_FOUND", { resource: "campaign" });
     if (!campaign.templateVersionId || !campaign.senderAddressId) throw mailError("MAIL_VALIDATION_FAILED", { field: "campaign", reason: "TEMPLATE_AND_SENDER_REQUIRED" });
+    const halt = runtime ? await runtime.haltReason(PURPOSE, { organizationId }) : null;
+    if (halt) throw mailError("MAIL_EMERGENCY_STOP", { reason: halt });
 
     const requested = Array.isArray(recipients) && recipients.length ? recipients : [user.email];
     const normalized = [...new Set(requested.map((value) => normalizeAddress(String(value || ""))))];
@@ -74,6 +81,9 @@ function createTestSendService({ client, config, audit, jobs, marketingProviders
     const active = await client.adminUser.findMany({ where: { email: { in: recipients, mode: "insensitive" }, status: "ACTIVE" }, select: { email: true } });
     const to = recipients.filter((value) => active.some((row) => row.email.toLowerCase() === value));
     if (!to.length) return { skipped: "NO_ACTIVE_RECIPIENTS" };
+    const runtimeHalt = runtime ? await runtime.haltReason(PURPOSE, { organizationId }) : null;
+    if (runtimeHalt) return { defer: { seconds: 900, code: runtimeHalt } };
+    if (usage && !(await usage.check(organizationId, PURPOSE, to.length)).allowed) return { defer: { seconds: 3600, code: "MAIL_QUOTA_HARD_LIMIT" } };
     const [version, sender, brandSettings] = await Promise.all([
       client.marketingTemplateVersion.findUnique({ where: { id: campaign.templateVersionId }, include: { template: true } }),
       client.mailAddress.findUnique({ where: { id: campaign.senderAddressId }, include: { domain: { include: { organization: { select: { id: true, slug: true } } } } } }),
@@ -110,6 +120,7 @@ function createTestSendService({ client, config, audit, jobs, marketingProviders
         throw Object.assign(new Error(verdict.code), { code: verdict.code, retryable: false });
       }
     }
+    if (usage) await usage.record(null, { organizationId, purpose: PURPOSE, accepted: to.length, providerRequests: to.length }).catch(() => {});
     await audit.record({ action: "MARKETING_TEST_SEND_HANDED_TO_PROVIDER", targetType: "marketing_campaign", targetId: campaignId, organizationId, metadata: { recipientCount: to.length, revision } });
     return { providerMessageIds: results };
   }

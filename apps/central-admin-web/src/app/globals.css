@@ -72,7 +72,7 @@
   --secondary: rgba(39, 46, 167, 0.15);
   --secondary-foreground: #272ea7;
   --muted: #f8f9fa;
-  --muted-foreground: #8f90a4;
+  --muted-foreground: #6b6c80; /* WCAG AA: 5.1:1 on white (was #8f90a4, 3.2:1) */
   --accent: rgba(39, 46, 167, 0.08);
   --accent-foreground: #272ea7;
   --destructive: #f64545;

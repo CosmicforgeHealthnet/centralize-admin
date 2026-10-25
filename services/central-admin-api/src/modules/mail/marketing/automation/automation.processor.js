@@ -20,7 +20,7 @@ const { classifySendError, unsubscribeHeaders } = require("../marketing-sender")
 const { evaluateCondition } = require("./definition");
 const { nextOccurrence } = require("../scheduling");
 
-function createAutomationProcessor({ client, config, audit, jobs, marketingProviders, eligibility, clock = () => new Date(), logger = null }) {
+function createAutomationProcessor({ client, config, audit, jobs, marketingProviders, eligibility, runtime = null, usage = null, clock = () => new Date(), logger = null }) {
   const now = () => clock();
   // One job per enrollment step *run time*: a step that waits (delay or
   // frequency cap) is re-enqueued under a new key when it becomes due.
@@ -151,6 +151,8 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
   async function haltReason(automation, organizationId) {
     if (!config.automationEnabled) return "AUTOMATION_DISABLED";
     if (config.emergencyStop.marketing) return "MARKETING_EMERGENCY_STOP";
+    const runtimeHalt = runtime ? await runtime.haltReason("MARKETING_AUTOMATION", { organizationId }) : null;
+    if (runtimeHalt) return runtimeHalt;
     if (automation.status === "PAUSED" || automation.status === "DRAFT") return "AUTOMATION_PAUSED";
     const settings = await client.marketingBrandSettings.findUnique({ where: { organizationId } });
     if (settings?.dispatchPaused) return "BRAND_DISPATCH_PAUSED";
@@ -194,6 +196,7 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
     const settings = await client.marketingBrandSettings.findUnique({ where: { organizationId: organization.id } });
     const sentToday = await client.marketingAutomationStepRun.count({ where: { organizationId: organization.id, stepType: "send_email", status: "SUCCEEDED", createdAt: { gt: new Date(now().getTime() - 86400000) } } });
     if (sentToday >= (settings?.dailyAutomationCap ?? 500)) return { defer: { seconds: 3600, code: "BRAND_DAILY_AUTOMATION_CAP" } };
+    if (usage && !(await usage.check(organization.id, "MARKETING_AUTOMATION", 1)).allowed) return { defer: { seconds: 3600, code: "MAIL_QUOTA_HARD_LIMIT" } };
     if (!settings?.postalAddress) return { defer: { seconds: 3600, code: "POSTAL_ADDRESS_MISSING" } };
     if (config.unsubscribe.secret.length < 32 || !config.publicApiUrl) return { defer: { seconds: 3600, code: "UNSUBSCRIBE_NOT_CONFIGURED" } };
     const template = await client.marketingTemplateVersion.findUnique({ where: { id: step.templateVersionId }, include: { template: true } });
@@ -234,6 +237,7 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
       });
       await client.$transaction(async (tx) => {
         await tx.marketingAutomationStepRun.update({ where: { id: run.id }, data: { status: "SUCCEEDED", providerMessageId: result.providerMessageId, deliveryStatus: "PROVIDER_ACCEPTED" } });
+        if (usage) await usage.record(tx, { organizationId: organization.id, purpose: "MARKETING_AUTOMATION", accepted: 1, providerRequests: 1 });
         await audit.record({ action: "MARKETING_AUTOMATION_EMAIL_HANDED_TO_PROVIDER", targetType: "marketing_automation", targetId: automation.id, organizationId: organization.id, metadata: { enrollmentId: enrollment.id, sequence: enrollment.stepCount } }, {}, tx);
         await advance(enrollment, step.next, { tx });
       });

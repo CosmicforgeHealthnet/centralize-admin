@@ -740,6 +740,11 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     const capWindow = new Date(clock().getTime() - campaign.frequencyCapHours * 3600000);
     const recent = await client.marketingEmailCampaign.count({ where: { organizationId: campaign.organizationId, id: { not: campaign.id }, audienceId: campaign.audienceId, status: { in: ["SCHEDULED", "QUEUED", "SENDING", "COMPLETE", "PARTIAL", "OUTCOME_UNKNOWN"] }, updatedAt: { gt: capWindow } } });
     add("frequency_cap", recent === 0, recent ? `${recent} campaign(s) to this audience inside ${campaign.frequencyCapHours}h` : `No sends inside ${campaign.frequencyCapHours}h`);
+    // Spec §13.2 step 4: the brand's sending quota must cover this audience.
+    if (hooks.quotaCheck) {
+      const quota = await hooks.quotaCheck(campaign.organizationId, eligibility.eligible.length).catch(() => ({ allowed: false, reason: "QUOTA_CHECK_FAILED" }));
+      add("quota_available", Boolean(quota.allowed), quota.allowed ? (quota.soft ? "Within the hard limit; the daily soft limit will be passed" : "Within the brand's sending quota") : `${quota.reason || "MAIL_QUOTA_HARD_LIMIT"}${quota.limit ? `: ${quota.used ?? 0} used of ${quota.limit} per ${quota.period}` : ""}`);
+    }
     // Marketing mail must carry the brand's physical postal address (M7).
     const brandSettings = await client.marketingBrandSettings.findUnique({ where: { organizationId: campaign.organizationId } });
     add("postal_address", Boolean(brandSettings?.postalAddress), brandSettings?.postalAddress ? "Postal address included in the footer" : "Set the brand postal address in Email Marketing settings");

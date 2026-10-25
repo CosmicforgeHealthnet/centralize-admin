@@ -29,9 +29,19 @@ function page(res, result) {
 
 function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
   const router = express.Router();
-  const { mailbox, compose, admin, support, marketing, stepUp, breakGlass, broadcasts, automations, publicPreferences, integrations } = mail.services;
+  const { mailbox, compose, admin, support, marketing, stepUp, breakGlass, broadcasts, automations, publicPreferences, integrations, usage, retention, ops } = mail.services;
   const config = mail.config;
   const limits = config.limits;
+
+  // §20 metric: count 401/403 answers on Mail routes (no user ids or paths).
+  if (mail.metrics) {
+    router.use((req, res, next) => {
+      res.on("finish", () => {
+        if (res.statusCode === 401 || res.statusCode === 403) mail.metrics.inc("auth_denials", { status: String(res.statusCode) });
+      });
+      next();
+    });
+  }
 
   const attachmentUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: limits.attachmentMaxBytes, files: 1 } });
   const csvUpload = multer({
@@ -101,6 +111,14 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
     const result = await publicPreferences.unsubscribe(req.params.token, { scope: req.body?.scope === "topic" ? "topic" : "all", oneClick, ipAddress: req.ip || null });
     if (oneClick) return res.status(result.ok ? 200 : 404).type("text/plain").send(result.ok ? "Unsubscribed" : "Not found");
     return sendPage(res, result.ok ? result : await publicPreferences.renderPreferences(req.params.token));
+  }));
+
+  // ---- M9: Prometheus metrics for the platform scraper (token, not session) ----
+  router.get("/ops/metrics", publicLimiter, asyncHandler(async (req, res) => {
+    const auth = ops.metricsAuthorized(req.get("authorization"));
+    if (!auth.enabled) return res.status(404).type("text/plain").send("Not found");
+    if (!auth.ok) return res.status(401).type("text/plain").set("WWW-Authenticate", "Bearer").send("Unauthorized");
+    return res.status(200).type("text/plain; version=0.0.4").set("Cache-Control", "no-store").send(await ops.prometheus());
   }));
 
   router.use(authenticate);
@@ -243,6 +261,22 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
   router.post("/admin/legal-holds", asyncHandler(async (req, res) => ok(res, await admin.createLegalHold(user(req), body(req), ctx(req)), { status: 201 })));
   router.post("/admin/legal-holds/:holdId/release", asyncHandler(async (req, res) => ok(res, await admin.releaseLegalHold(user(req), req.params.holdId, ctx(req)))));
   // ---- M8: product integrations (HQ administration; service ingestion is a raw-body route in app.js)
+  // ---- M9: operations, usage/quotas, retention runs
+  router.get("/admin/ops/snapshot", asyncHandler(async (req, res) => ok(res, await ops.adminSnapshot(user(req)))));
+  router.get("/admin/ops/alerts", asyncHandler(async (req, res) => ok(res, await ops.listAlerts(user(req), req.query))));
+  router.post("/admin/ops/alerts/:alertId/acknowledge", asyncHandler(async (req, res) => ok(res, await ops.acknowledge(user(req), req.params.alertId, mail.audit, ctx(req)))));
+  router.get("/admin/usage", asyncHandler(async (req, res) => ok(res, await usage.report(user(req), req.query))));
+  router.put("/admin/quotas", asyncHandler(async (req, res) => ok(res, await usage.setLimit(user(req), body(req), ctx(req)))));
+  router.get("/admin/retention/capabilities", asyncHandler(async (req, res) => {
+    await policy.requireMailAdmin(mail.client, user(req), "VIEW");
+    ok(res, retention.capabilities());
+  }));
+  router.get("/admin/retention/runs", asyncHandler(async (req, res) => ok(res, await retention.list(user(req), req.query))));
+  router.post("/admin/retention/runs", asyncHandler(async (req, res) => ok(res, await retention.startDryRun(user(req), body(req), ctx(req)), { status: 201 })));
+  router.get("/admin/retention/runs/:runId", asyncHandler(async (req, res) => ok(res, await retention.get(user(req), req.params.runId))));
+  router.post("/admin/retention/runs/:runId/execute", asyncHandler(async (req, res) => ok(res, await retention.execute(user(req), req.params.runId, body(req), ctx(req)), { status: 201 })));
+  router.post("/admin/retention/runs/:runId/cancel", asyncHandler(async (req, res) => ok(res, await retention.cancel(user(req), req.params.runId, ctx(req)))));
+
   router.get("/admin/integrations", asyncHandler(async (req, res) => ok(res, await integrations.list(user(req)))));
   router.post("/admin/integrations", asyncHandler(async (req, res) => ok(res, await integrations.create(user(req), body(req), ctx(req)), { status: 201 })));
   router.patch("/admin/integrations/:integrationId", asyncHandler(async (req, res) => ok(res, await integrations.update(user(req), req.params.integrationId, body(req), ctx(req)))));

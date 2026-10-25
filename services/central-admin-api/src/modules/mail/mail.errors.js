@@ -45,6 +45,10 @@ const DEFAULT_MESSAGES = {
   MAIL_INTEGRATION_UNAUTHORIZED: "Integration request is not authorized.",
   MAIL_INTEGRATION_FORBIDDEN_CONTENT: "The payload contains content this integration may not send.",
   MAIL_QUOTA_HARD_LIMIT: "The configured hard limit would be exceeded.",
+  MAIL_RETENTION_EXECUTION_DISABLED: "Retention execution is not enabled in this environment.",
+  MAIL_RETENTION_DRY_RUN_REQUIRED: "Run and review a current dry run before executing retention.",
+  MAIL_RETENTION_PERIOD_NOT_CONFIGURED: "No retention period is configured for this category.",
+  MAIL_METRICS_UNAUTHORIZED: "Metrics token required.",
 };
 
 const DEFAULT_STATUS = {
@@ -78,6 +82,10 @@ const DEFAULT_STATUS = {
   MAIL_ATTACHMENT_NOT_CLEAN: 422,
   MAIL_QUOTA_EXCEEDED: 429,
   MAIL_QUOTA_HARD_LIMIT: 429,
+  MAIL_RETENTION_EXECUTION_DISABLED: 409,
+  MAIL_RETENTION_DRY_RUN_REQUIRED: 409,
+  MAIL_RETENTION_PERIOD_NOT_CONFIGURED: 409,
+  MAIL_METRICS_UNAUTHORIZED: 401,
   MAIL_BROADCAST_DISABLED: 503,
   MAIL_AUTOMATION_DISABLED: 503,
   MAIL_TEST_SEND_DISABLED: 503,

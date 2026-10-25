@@ -144,6 +144,12 @@ function loadMailConfig(env = process.env) {
       // Resend keeps idempotency keys for 24h. A send whose first attempt is
       // older than this window is never retried; it becomes OUTCOME_UNKNOWN.
       idempotencyWindowHours: intInRange(env.MAIL_PROVIDER_IDEMPOTENCY_WINDOW_HOURS, 23, 1, 23),
+      // Inbound reconciliation (spec §10.8): list received emails and process
+      // any whose webhook never arrived.
+      inboundIntervalSeconds: intInRange(env.MAIL_INBOUND_RECONCILE_INTERVAL_SECONDS, 900, 60, 86400),
+      inboundLookbackHours: intInRange(env.MAIL_INBOUND_RECONCILE_LOOKBACK_HOURS, 24, 1, 72),
+      inboundGraceSeconds: intInRange(env.MAIL_INBOUND_RECONCILE_GRACE_SECONDS, 600, 60, 3600),
+      inboundMaxPages: intInRange(env.MAIL_INBOUND_RECONCILE_MAX_PAGES, 5, 1, 50),
     },
     worker: {
       pollIntervalMs: intInRange(env.MAIL_WORKER_POLL_INTERVAL_MS, 2000, 200, 60000),
@@ -203,6 +209,40 @@ function loadMailConfig(env = process.env) {
       ratePerMinute: intInRange(env.MAIL_INTEGRATION_RATE_PER_MINUTE, 600, 10, 100000),
       maxBodyBytes: intInRange(env.MAIL_INTEGRATION_MAX_BODY_BYTES, 16384, 1024, 262144),
     },
+    // M9 retention. Execution (destructive) is OFF by default; dry runs are
+    // always available to mail admins. No retention durations are defaulted:
+    // system categories are purgeable only when an operator sets a period.
+    retention: {
+      executionEnabled: enabled && flag(env.MAIL_RETENTION_EXECUTION_ENABLED),
+      batchSize: intInRange(env.MAIL_RETENTION_BATCH_SIZE, 100, 1, 1000),
+      dryRunValidHours: intInRange(env.MAIL_RETENTION_DRY_RUN_VALID_HOURS, 24, 1, 168),
+      systemDays: {
+        WEBHOOK_PAYLOADS: optionalDays(env.MAIL_RETENTION_WEBHOOK_PAYLOAD_DAYS),
+        INTEGRATION_EVENTS: optionalDays(env.MAIL_RETENTION_INTEGRATION_EVENT_DAYS),
+        PRODUCT_DELIVERY_EVENTS: optionalDays(env.MAIL_RETENTION_PRODUCT_DELIVERY_EVENT_DAYS),
+      },
+    },
+    // M9 operations: alert evaluation and the token-protected metrics endpoint.
+    ops: {
+      alertsEnabled: env.MAIL_OPS_ALERTS_ENABLED === undefined ? true : flag(env.MAIL_OPS_ALERTS_ENABLED),
+      evaluateIntervalSeconds: intInRange(env.MAIL_OPS_EVALUATE_SECONDS, 300, 60, 3600),
+      metricsToken: String(env.MAIL_METRICS_TOKEN || ""),
+      // Initial thresholds; tune from pilot observations (no stability data yet).
+      thresholds: {
+        queueOldestPendingSeconds: intInRange(env.MAIL_ALERT_QUEUE_OLDEST_SECONDS, 900, 60, 86400),
+        deadLetters24h: intInRange(env.MAIL_ALERT_DEAD_LETTERS_24H, 1, 1, 100000),
+        webhookBacklogSeconds: intInRange(env.MAIL_ALERT_WEBHOOK_BACKLOG_SECONDS, 600, 60, 86400),
+        scanBacklogSeconds: intInRange(env.MAIL_ALERT_SCAN_BACKLOG_SECONDS, 1800, 60, 86400),
+        outcomeUnknown24h: intInRange(env.MAIL_ALERT_OUTCOME_UNKNOWN_24H, 1, 1, 100000),
+        bounceRatePercent: intInRange(env.MAIL_ALERT_BOUNCE_RATE_PERCENT, 5, 1, 100),
+        complaintRatePerThousand: intInRange(env.MAIL_ALERT_COMPLAINT_RATE_PER_THOUSAND, 1, 1, 1000),
+        minSampleForRates: intInRange(env.MAIL_ALERT_MIN_SAMPLE, 100, 1, 100000),
+        integrationRejections1h: intInRange(env.MAIL_ALERT_INTEGRATION_REJECTIONS_1H, 20, 1, 100000),
+        // Jobs currently backing off on provider 429/5xx/timeouts.
+        providerRetrying: intInRange(env.MAIL_ALERT_PROVIDER_RETRYING, 20, 1, 100000),
+        webhookLagSeconds: intInRange(env.MAIL_ALERT_WEBHOOK_LAG_SECONDS, 300, 30, 86400),
+      },
+    },
     // Emergency stop (M9/M10). Blocks provider calls without deleting queued records.
     emergencyStop: {
       all: flag(env.MAIL_EMERGENCY_STOP_ALL),
@@ -210,6 +250,12 @@ function loadMailConfig(env = process.env) {
     },
   };
   return Object.freeze(config);
+}
+
+function optionalDays(value) {
+  if (value === undefined || value === null || String(value).trim() === "") return null;
+  const days = Number(value);
+  return Number.isInteger(days) && days >= 1 && days <= 36500 ? days : null;
 }
 
 function hostIsLocal(url) {
@@ -294,6 +340,10 @@ function publicStatus(config) {
     emergencyStop: { ...config.emergencyStop },
     integrationsEnabled: config.integrations.enabled,
     integrationsConfigured: config.integrations.hashSecret.length >= 32,
+    retentionExecutionEnabled: config.retention.executionEnabled,
+    retentionSystemDays: { ...config.retention.systemDays },
+    opsAlertsEnabled: config.ops.alertsEnabled,
+    metricsEndpointEnabled: config.ops.metricsToken.length >= 32,
     broadcastLimits: { maxRecipients: config.broadcast.maxRecipients, providerRequestsPerSecond: config.broadcast.providerRequestsPerSecond, approvalTtlDays: config.broadcast.approvalTtlDays, sharedProviderAccountAllowed: config.broadcast.allowSharedProviderAccount },
   };
 }

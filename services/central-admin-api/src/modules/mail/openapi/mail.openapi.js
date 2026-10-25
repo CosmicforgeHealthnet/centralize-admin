@@ -176,6 +176,19 @@ const PATHS = [
   ["get", "/admin/integrations/{integrationId}/senders", "Authorized sender identities", any],
   ["post", "/admin/integrations/{integrationId}/senders", "Authorize a brand sender identity for a purpose", any],
   ["delete", "/admin/integrations/{integrationId}/senders/{senderId}", "Revoke a sender authorization", any],
+  // M9 operations
+  ["get", "/ops/metrics", "Prometheus metrics (counts and ages only; Bearer MAIL_METRICS_TOKEN; 404 when not configured)", any],
+  ["get", "/admin/ops/snapshot", "Operational snapshot: queues, webhooks, scanning, delivery, usage, open alerts", any],
+  ["get", "/admin/ops/alerts", "Ops alerts (open by default; includeResolved=true for history)", any],
+  ["post", "/admin/ops/alerts/{alertId}/acknowledge", "Acknowledge an ops alert", any],
+  ["get", "/admin/usage", "Usage by brand and purpose (counts only; cost only if operator-configured)", any],
+  ["put", "/admin/quotas", "Set a brand/purpose quota (daily soft/hard, monthly hard)", any],
+  ["get", "/admin/retention/capabilities", "Retention execution flag and configured system periods", any],
+  ["get", "/admin/retention/runs", "Retention runs", any],
+  ["post", "/admin/retention/runs", "Start a retention DRY RUN for a policy or system category", any],
+  ["get", "/admin/retention/runs/{runId}", "Retention run detail (counts only)", any],
+  ["post", "/admin/retention/runs/{runId}/execute", "Execute a completed dry run (flag + step-up MAIL_RETENTION_EXECUTE)", any],
+  ["post", "/admin/retention/runs/{runId}/cancel", "Cancel a queued or running retention run", any],
 ];
 
 const SCHEMAS = {
