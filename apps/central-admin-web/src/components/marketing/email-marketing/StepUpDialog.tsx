@@ -1,9 +1,28 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import { classifyMailError, stepUp } from "@/lib/mail.service";
 import { emBtn, emBtnOutline, emInput } from "./em-ui";
+
+/** User-facing text for shared-MFA step-up failures (codes from the Mail API). */
+export function stepUpErrorMessage(code: string | undefined, fallback: string): string {
+  switch (code) {
+    case "MAIL_MFA_NOT_ENROLLED":
+      return "Two-factor authentication is not set up for your account, so this action is not available yet.";
+    case "MAIL_MFA_SESSION_REQUIRED":
+      return "Your sign-in session can't confirm this action. Sign out and sign in again, then retry.";
+    case "MAIL_MFA_LOCKED":
+      return "Too many incorrect codes. Two-factor verification is locked for 15 minutes.";
+    case "MAIL_MFA_UNAVAILABLE":
+      return "Two-factor verification is not available on this server yet.";
+    case "MAIL_MFA_INVALID":
+      return "That code is not valid or was already used. Wait for the next code and try again.";
+    default:
+      return fallback;
+  }
+}
 
 /** Collects a fresh TOTP code and exchanges it for a short-lived step-up id. */
 export default function StepUpDialog({
@@ -19,6 +38,7 @@ export default function StepUpDialog({
 }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [needsEnrollment, setNeedsEnrollment] = useState(false);
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const prevFocus = useRef<Element | null>(null);
@@ -43,11 +63,8 @@ export default function StepUpDialog({
       await onVerified(res.stepUpId);
     } catch (err) {
       const info = classifyMailError(err);
-      setError(
-        info.code === "MAIL_MFA_NOT_ENROLLED"
-          ? "Two-factor authentication is not enrolled for your account, so this action is not available."
-          : info.message,
-      );
+      setNeedsEnrollment(info.code === "MAIL_MFA_NOT_ENROLLED");
+      setError(stepUpErrorMessage(info.code, info.message));
     } finally {
       setBusy(false);
     }
@@ -80,6 +97,11 @@ export default function StepUpDialog({
           className={emInput}
         />
         {error && <p role="alert" className="mt-2 text-[11px] text-red-600">{error}</p>}
+        {needsEnrollment && (
+          <Link href="/dashboard/settings?tab=account-security" className="mt-1 inline-block text-[11px] font-semibold text-primary underline">
+            Set up two-factor authentication
+          </Link>
+        )}
         <div className="mt-4 flex justify-end gap-2">
           <button type="button" onClick={onCancel} className={emBtnOutline}>Cancel</button>
           <button type="submit" disabled={code.length !== 6 || busy} className={emBtn}>{busy ? "Verifying…" : "Verify"}</button>
