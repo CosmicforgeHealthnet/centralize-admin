@@ -20,6 +20,8 @@ function createOpsMonitor({ client, config, notifications, health = async () => 
   const now = () => clock();
   const thresholds = config.ops.thresholds;
 
+  const stopOnly = (reason) => (reason && !reason.startsWith("MAIL_ROLLOUT_") ? reason : null);
+
   async function snapshot() {
     const at = now();
     const day = new Date(at.getTime() - 86400000);
@@ -62,7 +64,8 @@ function createOpsMonitor({ client, config, notifications, health = async () => 
     return {
       generatedAt: at.toISOString(),
       flags: publicStatus(config),
-      runtimeHalt: runtime ? { staffMail: await runtime.haltReason("STAFF_MAIL"), marketing: await runtime.haltReason("MARKETING_BROADCAST") } : null,
+      // Only stops count here; "not rolled out" (M10) is normal, not a halt.
+      runtimeHalt: runtime ? { staffMail: stopOnly(await runtime.haltReason("STAFF_MAIL")), marketing: stopOnly(await runtime.haltReason("MARKETING_BROADCAST")) } : null,
       queue: {
         byStatus: queue.map((row) => ({ queue: row.queue, status: row.status, count: row._count._all })),
         oldestDueSeconds: Object.fromEntries(oldest.map((row) => [row.queue, ageSeconds(row._min.nextAttemptAt)])),

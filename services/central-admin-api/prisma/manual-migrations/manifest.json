@@ -162,6 +162,11 @@
       "order": 32,
       "file": "20261029_mail_m9_operations.sql",
       "sha256": "a3bf88806a0a74bc2d06ddce972fa56f6cf2c0c6580270e9d4bf91c402686447"
+    },
+    {
+      "order": 33,
+      "file": "20261030_mail_m10_rollout.sql",
+      "sha256": "1bc07e19b8fe54837c0b2c5ff1199c7dc2841bfa4e5be37fdeb9f305ab7a1753"
     }
   ]
 }

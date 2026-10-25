@@ -32,8 +32,8 @@ function createTestSendService({ client, config, audit, jobs, marketingProviders
     const campaign = policy.isUuid(campaignId) ? await client.marketingEmailCampaign.findUnique({ where: { id: campaignId } }) : null;
     if (!campaign || campaign.organizationId !== organizationId) throw mailError("MAIL_NOT_FOUND", { resource: "campaign" });
     if (!campaign.templateVersionId || !campaign.senderAddressId) throw mailError("MAIL_VALIDATION_FAILED", { field: "campaign", reason: "TEMPLATE_AND_SENDER_REQUIRED" });
-    const halt = runtime ? await runtime.haltReason(PURPOSE, { organizationId }) : null;
-    if (halt) throw mailError("MAIL_EMERGENCY_STOP", { reason: halt });
+    const halt = runtime ? await runtime.haltReason(PURPOSE, { organizationId, adminUserId: user.id }) : null;
+    if (halt) throw mailError(halt.startsWith("MAIL_ROLLOUT_") ? halt : "MAIL_EMERGENCY_STOP", { reason: halt });
 
     const requested = Array.isArray(recipients) && recipients.length ? recipients : [user.email];
     const normalized = [...new Set(requested.map((value) => normalizeAddress(String(value || ""))))];
@@ -81,7 +81,7 @@ function createTestSendService({ client, config, audit, jobs, marketingProviders
     const active = await client.adminUser.findMany({ where: { email: { in: recipients, mode: "insensitive" }, status: "ACTIVE" }, select: { email: true } });
     const to = recipients.filter((value) => active.some((row) => row.email.toLowerCase() === value));
     if (!to.length) return { skipped: "NO_ACTIVE_RECIPIENTS" };
-    const runtimeHalt = runtime ? await runtime.haltReason(PURPOSE, { organizationId }) : null;
+    const runtimeHalt = runtime ? await runtime.haltReason(PURPOSE, { organizationId, adminUserId: job.payload?.requestedBy || null }) : null;
     if (runtimeHalt) return { defer: { seconds: 900, code: runtimeHalt } };
     if (usage && !(await usage.check(organizationId, PURPOSE, to.length)).allowed) return { defer: { seconds: 3600, code: "MAIL_QUOTA_HARD_LIMIT" } };
     const [version, sender, brandSettings] = await Promise.all([

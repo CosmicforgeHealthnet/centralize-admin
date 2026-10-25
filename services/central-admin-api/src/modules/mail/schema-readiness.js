@@ -36,6 +36,7 @@ const MAIL_SCHEMA_REQUIREMENTS = [
     tables: ["mail_product_integrations", "mail_product_sender_authorizations", "mail_product_integration_events", "mail_product_delivery_events"],
   },
   { migration: "20261029_mail_m9_operations.sql", tables: ["mail_retention_runs", "mail_usage_daily", "mail_quota_limits", "mail_ops_alerts"] },
+  { migration: "20261030_mail_m10_rollout.sql", tables: ["mail_rollout_cohorts", "mail_rollout_cohort_members", "mail_rollout_rules", "mail_emergency_stops"] },
 ];
 
 function quoteLiteral(value) {

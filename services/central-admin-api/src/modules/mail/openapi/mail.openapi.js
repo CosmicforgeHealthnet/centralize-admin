@@ -189,6 +189,17 @@ const PATHS = [
   ["get", "/admin/retention/runs/{runId}", "Retention run detail (counts only)", any],
   ["post", "/admin/retention/runs/{runId}/execute", "Execute a completed dry run (flag + step-up MAIL_RETENTION_EXECUTE)", any],
   ["post", "/admin/retention/runs/{runId}/cancel", "Cancel a queued or running retention run", any],
+  // M10 rollout
+  ["get", "/admin/rollout", "Rollout rules, cohorts and emergency stops for this environment", any],
+  ["get", "/admin/rollout/readiness", "Progressive rollout gates (automated PASS/FAIL + MANUAL sign-offs)", any],
+  ["post", "/admin/rollout/rules", "Create an ALLOW (step-up MAIL_ROLLOUT_CHANGE) or DENY rollout rule", any],
+  ["post", "/admin/rollout/rules/{ruleId}/revoke", "Revoke a rule (revoking DENY needs step-up)", any],
+  ["post", "/admin/rollout/cohorts", "Create a pilot cohort", any],
+  ["post", "/admin/rollout/cohorts/{cohortId}/members", "Onboard a staff member to a cohort", any],
+  ["delete", "/admin/rollout/cohorts/{cohortId}/members/{adminUserId}", "Offboard a staff member from a cohort", any],
+  ["get", "/admin/rollout/pilot/{adminUserId}", "Pilot readiness checklist for one staff member", any],
+  ["post", "/admin/emergency-stops", "Activate an emergency stop (ALL, MARKETING or ORGANIZATION); immediate", any],
+  ["post", "/admin/emergency-stops/{stopId}/release", "Release an emergency stop (step-up MAIL_EMERGENCY_STOP_RELEASE)", any],
 ];
 
 const SCHEMAS = {

@@ -49,6 +49,8 @@ const DEFAULT_MESSAGES = {
   MAIL_RETENTION_DRY_RUN_REQUIRED: "Run and review a current dry run before executing retention.",
   MAIL_RETENTION_PERIOD_NOT_CONFIGURED: "No retention period is configured for this category.",
   MAIL_METRICS_UNAUTHORIZED: "Metrics token required.",
+  MAIL_ROLLOUT_NOT_ENABLED: "This capability is not rolled out to you yet.",
+  MAIL_ROLLOUT_DENIED: "This capability is disabled for this scope.",
 };
 
 const DEFAULT_STATUS = {
@@ -86,6 +88,8 @@ const DEFAULT_STATUS = {
   MAIL_RETENTION_DRY_RUN_REQUIRED: 409,
   MAIL_RETENTION_PERIOD_NOT_CONFIGURED: 409,
   MAIL_METRICS_UNAUTHORIZED: 401,
+  MAIL_ROLLOUT_NOT_ENABLED: 403,
+  MAIL_ROLLOUT_DENIED: 403,
   MAIL_BROADCAST_DISABLED: 503,
   MAIL_AUTOMATION_DISABLED: 503,
   MAIL_TEST_SEND_DISABLED: 503,

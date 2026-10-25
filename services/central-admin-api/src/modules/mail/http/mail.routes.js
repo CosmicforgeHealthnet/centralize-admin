@@ -29,7 +29,7 @@ function page(res, result) {
 
 function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
   const router = express.Router();
-  const { mailbox, compose, admin, support, marketing, stepUp, breakGlass, broadcasts, automations, publicPreferences, integrations, usage, retention, ops } = mail.services;
+  const { mailbox, compose, admin, support, marketing, stepUp, breakGlass, broadcasts, automations, publicPreferences, integrations, usage, retention, ops, rollout, readiness } = mail.services;
   const config = mail.config;
   const limits = config.limits;
 
@@ -276,6 +276,21 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
   router.get("/admin/retention/runs/:runId", asyncHandler(async (req, res) => ok(res, await retention.get(user(req), req.params.runId))));
   router.post("/admin/retention/runs/:runId/execute", asyncHandler(async (req, res) => ok(res, await retention.execute(user(req), req.params.runId, body(req), ctx(req)), { status: 201 })));
   router.post("/admin/retention/runs/:runId/cancel", asyncHandler(async (req, res) => ok(res, await retention.cancel(user(req), req.params.runId, ctx(req)))));
+
+  // ---- M10: rollout rules, pilot cohorts, emergency stops, readiness
+  router.get("/admin/rollout", asyncHandler(async (req, res) => ok(res, await rollout.overview(user(req)))));
+  router.get("/admin/rollout/readiness", asyncHandler(async (req, res) => {
+    await policy.requireMailAdmin(mail.client, user(req), "VIEW");
+    ok(res, await readiness.evaluate());
+  }));
+  router.post("/admin/rollout/rules", asyncHandler(async (req, res) => ok(res, await rollout.createRule(user(req), body(req), ctx(req)), { status: 201 })));
+  router.post("/admin/rollout/rules/:ruleId/revoke", asyncHandler(async (req, res) => ok(res, await rollout.revokeRule(user(req), req.params.ruleId, body(req), ctx(req)))));
+  router.post("/admin/rollout/cohorts", asyncHandler(async (req, res) => ok(res, await rollout.createCohort(user(req), body(req), ctx(req)), { status: 201 })));
+  router.post("/admin/rollout/cohorts/:cohortId/members", asyncHandler(async (req, res) => ok(res, await rollout.addMember(user(req), req.params.cohortId, body(req), ctx(req)), { status: 201 })));
+  router.delete("/admin/rollout/cohorts/:cohortId/members/:adminUserId", asyncHandler(async (req, res) => ok(res, await rollout.removeMember(user(req), req.params.cohortId, req.params.adminUserId, ctx(req)))));
+  router.get("/admin/rollout/pilot/:adminUserId", asyncHandler(async (req, res) => ok(res, await rollout.pilotStatus(user(req), req.params.adminUserId))));
+  router.post("/admin/emergency-stops", asyncHandler(async (req, res) => ok(res, await rollout.activateStop(user(req), body(req), ctx(req)), { status: 201 })));
+  router.post("/admin/emergency-stops/:stopId/release", asyncHandler(async (req, res) => ok(res, await rollout.releaseStop(user(req), req.params.stopId, body(req), ctx(req)))));
 
   router.get("/admin/integrations", asyncHandler(async (req, res) => ok(res, await integrations.list(user(req)))));
   router.post("/admin/integrations", asyncHandler(async (req, res) => ok(res, await integrations.create(user(req), body(req), ctx(req)), { status: 201 })));

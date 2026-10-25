@@ -40,6 +40,8 @@ const { createUsageService } = require("./ops/usage.service");
 const { createRetentionService } = require("./ops/retention.service");
 const { createRetentionProcessor } = require("./ops/retention.processor");
 const { createOpsMonitor } = require("./ops/ops-monitor.service");
+const { createRolloutService } = require("./ops/rollout.service");
+const { createReadiness } = require("./ops/readiness");
 const { createRuntimeMetrics } = require("./ops/runtime-metrics");
 const { createInboundReconciler } = require("./pipelines/inbound-reconciler");
 const { createMailSchemaReadiness } = require("./schema-readiness");
@@ -90,6 +92,9 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const mailbox = createMailboxService({ client, config, store, audit });
   // M9: kill switch and usage/quota accounting shared by every send path.
   const runtime = createRuntimeControls({ config });
+  // M10: database-backed rollout rules, cohorts and operator emergency stops.
+  const rollout = createRolloutService({ client, config, audit, stepUp, clock });
+  runtime.use(rollout.resolver);
   const usage = createUsageService({ client, audit, env, clock });
   const providerReady = () => resolvedAdapter.name !== "unconfigured";
   const compose = createComposeService({ client, config, store, encryption: resolvedEncryption, scanner: resolvedScanner, jobs, audit, notifications, providerReady, runtime, usage, clock });
@@ -104,7 +109,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const broadcasts = createBroadcastService({ client, config, audit, jobs, stepUp, env, clock });
   const automations = createAutomationService({ client, config, audit, stepUp, clock });
   const publicPreferences = createPublicPreferencesService({ client, config, audit, marketing, clock });
-  const integrations = createIntegrationService({ client, config, audit, stepUp, automations, notifications, env, clock, logger });
+  const integrations = createIntegrationService({ client, config, audit, stepUp, automations, notifications, rollout, env, clock, logger });
   const attachmentReview = createAttachmentReviewService({ client, config, store, scanner: resolvedScanner, audit });
 
   const inbound = createInboundProcessor({ client, config, adapter: resolvedAdapter, store, scanner: resolvedScanner, audit, notifications, usage, clock });
@@ -118,6 +123,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const retentionProcessor = createRetentionProcessor({ client, config, audit, storage, clock, logger });
   // `health` is a hoisted function declaration below.
   const ops = createOpsMonitor({ client, config, notifications, health: () => health(), runtime, metrics, clock, logger });
+  const readiness = createReadiness({ client, config, ops, health: () => health() });
   const inboundReconciler = createInboundReconciler({ client, config, adapter: resolvedAdapter, jobs, audit, clock });
 
   function createWorker(options = {}) {
@@ -142,6 +148,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
       onDeadLetter: { SEND_MESSAGE: outbound.onDeadLetter, BROADCAST_DISPATCH: broadcastProcessor.onDeadLetter, BROADCAST_RECONCILE: broadcastProcessor.onDeadLetter, AUTOMATION_STEP: automationProcessor.onDeadLetter, RETENTION_RUN: retentionProcessor.onDeadLetter },
       // A MARKETING worker schedules one automation tick per minute bucket;
       // the idempotency key makes concurrent workers enqueue it once.
+      queueFilter: config.rollout.enforced ? rollout.workerQueuesAllowed : null,
       beforeTick: async ({ queues }) => {
         const once = (spec) => jobs.enqueue(null, spec).catch((error) => {
           if (error?.code !== "P2002") throw error;
@@ -193,7 +200,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
     audit,
     store,
     jobs,
-    services: { mailbox, compose, admin, support, marketing, stepUp, breakGlass, attachmentReview, broadcasts, automations, publicPreferences, confirmation, testSends, integrations, usage, retention, ops },
+    services: { mailbox, compose, admin, support, marketing, stepUp, breakGlass, attachmentReview, broadcasts, automations, publicPreferences, confirmation, testSends, integrations, usage, retention, ops, rollout, readiness },
     runtime,
     metrics,
     processors: { inbound, outbound, deliveryEvents, marketingEvents, broadcasts: broadcastProcessor, automations: automationProcessor, retention: retentionProcessor, inboundReconciler },

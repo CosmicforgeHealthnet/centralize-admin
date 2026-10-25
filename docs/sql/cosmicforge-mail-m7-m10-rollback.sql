@@ -10,10 +10,13 @@
 BEGIN;
 
 -- ===================================================================== M10
--- (see section added by 20261030_mail_m10_rollout.sql)
-DROP TABLE IF EXISTS "mail_rollout_stage_events";
+-- 20261030_mail_m10_rollout.sql. After this the code falls back to the M9
+-- environment flags only; set MAIL_ROLLOUT_ENFORCED=false first, or the
+-- (already deployed) code will deny every gated capability.
+DROP TABLE IF EXISTS "mail_emergency_stops";
+DROP TABLE IF EXISTS "mail_rollout_rules";
 DROP TABLE IF EXISTS "mail_rollout_cohort_members";
-DROP TABLE IF EXISTS "mail_rollout_settings";
+DROP TABLE IF EXISTS "mail_rollout_cohorts";
 
 -- ===================================================================== M9
 -- 20261029_mail_m9_operations.sql. Retention run history and ops alerts are
@@ -66,12 +69,17 @@ ALTER TABLE "mail_step_up_verifications" DROP COLUMN IF EXISTS "session_id";
 
 -- Finally remove the ledger rows for the rolled-back files so
 -- db:admin:prepare sees them as unapplied. Keep only the sections you ran.
-DELETE FROM public.social_manual_migrations WHERE "file" IN (
-  '20261030_mail_m10_rollout.sql',
-  '20261029_mail_m9_operations.sql',
-  '20261028_mail_m8_product_integration.sql',
-  '20261027_mail_m7_broadcasts_automation.sql',
-  '20261026_mail_step_up_session_binding.sql'
-);
+DO $$
+BEGIN
+  IF to_regclass('public.social_manual_migrations') IS NOT NULL THEN
+    DELETE FROM public.social_manual_migrations WHERE "file" IN (
+      '20261030_mail_m10_rollout.sql',
+      '20261029_mail_m9_operations.sql',
+      '20261028_mail_m8_product_integration.sql',
+      '20261027_mail_m7_broadcasts_automation.sql',
+      '20261026_mail_step_up_session_binding.sql'
+    );
+  END IF;
+END $$;
 
 COMMIT;

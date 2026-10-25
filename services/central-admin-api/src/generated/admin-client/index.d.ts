@@ -883,6 +883,26 @@ export type MailQuotaLimit = $Result.DefaultSelection<Prisma.$MailQuotaLimitPayl
  * 
  */
 export type MailOpsAlert = $Result.DefaultSelection<Prisma.$MailOpsAlertPayload>
+/**
+ * Model MailRolloutCohort
+ * 
+ */
+export type MailRolloutCohort = $Result.DefaultSelection<Prisma.$MailRolloutCohortPayload>
+/**
+ * Model MailRolloutCohortMember
+ * 
+ */
+export type MailRolloutCohortMember = $Result.DefaultSelection<Prisma.$MailRolloutCohortMemberPayload>
+/**
+ * Model MailRolloutRule
+ * 
+ */
+export type MailRolloutRule = $Result.DefaultSelection<Prisma.$MailRolloutRulePayload>
+/**
+ * Model MailEmergencyStop
+ * 
+ */
+export type MailEmergencyStop = $Result.DefaultSelection<Prisma.$MailEmergencyStopPayload>
 
 /**
  * Enums
@@ -4861,6 +4881,46 @@ export class PrismaClient<
     * ```
     */
   get mailOpsAlert(): Prisma.MailOpsAlertDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mailRolloutCohort`: Exposes CRUD operations for the **MailRolloutCohort** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MailRolloutCohorts
+    * const mailRolloutCohorts = await prisma.mailRolloutCohort.findMany()
+    * ```
+    */
+  get mailRolloutCohort(): Prisma.MailRolloutCohortDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mailRolloutCohortMember`: Exposes CRUD operations for the **MailRolloutCohortMember** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MailRolloutCohortMembers
+    * const mailRolloutCohortMembers = await prisma.mailRolloutCohortMember.findMany()
+    * ```
+    */
+  get mailRolloutCohortMember(): Prisma.MailRolloutCohortMemberDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mailRolloutRule`: Exposes CRUD operations for the **MailRolloutRule** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MailRolloutRules
+    * const mailRolloutRules = await prisma.mailRolloutRule.findMany()
+    * ```
+    */
+  get mailRolloutRule(): Prisma.MailRolloutRuleDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mailEmergencyStop`: Exposes CRUD operations for the **MailEmergencyStop** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MailEmergencyStops
+    * const mailEmergencyStops = await prisma.mailEmergencyStop.findMany()
+    * ```
+    */
+  get mailEmergencyStop(): Prisma.MailEmergencyStopDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -5481,7 +5541,11 @@ export namespace Prisma {
     MailRetentionRun: 'MailRetentionRun',
     MailUsageDaily: 'MailUsageDaily',
     MailQuotaLimit: 'MailQuotaLimit',
-    MailOpsAlert: 'MailOpsAlert'
+    MailOpsAlert: 'MailOpsAlert',
+    MailRolloutCohort: 'MailRolloutCohort',
+    MailRolloutCohortMember: 'MailRolloutCohortMember',
+    MailRolloutRule: 'MailRolloutRule',
+    MailEmergencyStop: 'MailEmergencyStop'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -5497,7 +5561,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "adminUser" | "marketing_campaigns" | "marketing_campaign_performance" | "marketing_campaign_timeline" | "marketing_campaign_team_members" | "marketing_content_items" | "marketing_content_monthly_performance" | "marketing_notification_events" | "marketing_email_templates" | "marketing_social_accounts" | "marketing_social_posts" | "marketing_social_analytics_snapshots" | "marketing_promotions" | "marketing_banners" | "marketing_analytics_snapshots" | "marketing_ad_platform_connections" | "marketing_ad_insights_raw" | "marketing_performance_snapshots" | "marketing_oauth_states" | "marketing_attributions" | "marketing_funnel_events" | "marketing_identity_links" | "marketing_attribution_decisions" | "marketing_intelligence_settings" | "marketing_intelligence_evaluation_runs" | "marketing_creative_assets" | "marketing_creative_performance_snapshots" | "marketing_creative_score_snapshots" | "marketing_recommendations" | "marketing_alerts" | "marketing_experiments" | "marketing_sync_locks" | "marketingExecutionPlan" | "marketingExecutionPlanItem" | "marketingExecutionApproval" | "marketingExecutionApprovalEvent" | "marketingExecutionRun" | "marketingExecutionJob" | "marketingProviderOperation" | "marketingProviderOperationAttempt" | "marketingExecutionStateSnapshot" | "marketingExecutionValidationIssue" | "marketingExecutionReconciliation" | "marketingExecutionPolicy" | "marketingCreativePublication" | "marketingCreativeMediaValidationEvidence" | "marketingCreativePublicationReviewEvent" | "marketingTargetingDiscovery" | "marketingExecutionAccountLock" | "marketingExecutionDeadLetterReview" | "marketingExecutionPolicyHistory" | "marketingExecutionValidationPacket" | "marketingExecutionDriftAcknowledgment" | "marketingExecutionRetryReview" | "marketingExecutionEmergencyOverride" | "marketingExecutionReconciliationJob" | "marketingExecutionCompensationLink" | "socialAccountConnection" | "socialPublishingIdentity" | "socialOAuthState" | "socialPost" | "socialPostRevision" | "socialPostTarget" | "socialPostApproval" | "socialPublication" | "socialPublicationAttempt" | "socialPublishingJob" | "socialMediaAsset" | "socialPostMedia" | "socialContact" | "socialConversation" | "socialMessage" | "socialTag" | "socialConversationTag" | "socialProviderContent" | "socialComment" | "socialEngagementEvent" | "socialEscalation" | "socialWebhookSubscription" | "socialWebhookEvent" | "socialIdentityMetricSnapshot" | "socialProviderContentMetricSnapshot" | "socialIdentitySyncState" | "socialActionJob" | "socialActionAttempt" | "socialInternalNote" | "socialSavedReply" | "socialOperationsSetting" | "adminManualMigrationLedger" | "adminSession" | "adminSessionRefreshToken" | "adminMfaEnrollment" | "adminMfaRecoveryCode" | "adminMfaChallenge" | "adminAuthEvent" | "refreshToken" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event" | "mailOrganization" | "mailDomain" | "mailMailbox" | "mailAddress" | "mailMembership" | "mailSenderGrant" | "mailProvisionRequest" | "mailThread" | "mailMessage" | "mailMessageRecipient" | "mailUserThreadState" | "mailDraft" | "mailLabel" | "mailThreadLabel" | "mailRule" | "mailAttachment" | "mailInternalNote" | "mailOutboxJob" | "mailWebhookEvent" | "mailDeliveryEvent" | "mailAuditEvent" | "mailRetentionPolicy" | "mailLegalHold" | "mailStepUpVerification" | "mailBreakGlassRequest" | "marketingContact" | "marketingConsent" | "marketingSuppression" | "marketingAudience" | "marketingAudienceContact" | "marketingSegment" | "marketingEmailTemplate" | "marketingTemplateVersion" | "marketingEmailCampaign" | "marketingCampaignSnapshot" | "marketingCampaignApproval" | "marketingBrandSettings" | "marketingCampaignApprovedContact" | "marketingBroadcastDispatch" | "marketingBroadcastRecipient" | "marketingAutomation" | "marketingAutomationVersion" | "marketingAutomationEnrollment" | "marketingAutomationStepRun" | "marketingTriggerEvent" | "mailProductIntegration" | "mailProductSenderAuthorization" | "mailProductIntegrationEvent" | "mailProductDeliveryEvent" | "mailRetentionRun" | "mailUsageDaily" | "mailQuotaLimit" | "mailOpsAlert"
+      modelProps: "adminUser" | "marketing_campaigns" | "marketing_campaign_performance" | "marketing_campaign_timeline" | "marketing_campaign_team_members" | "marketing_content_items" | "marketing_content_monthly_performance" | "marketing_notification_events" | "marketing_email_templates" | "marketing_social_accounts" | "marketing_social_posts" | "marketing_social_analytics_snapshots" | "marketing_promotions" | "marketing_banners" | "marketing_analytics_snapshots" | "marketing_ad_platform_connections" | "marketing_ad_insights_raw" | "marketing_performance_snapshots" | "marketing_oauth_states" | "marketing_attributions" | "marketing_funnel_events" | "marketing_identity_links" | "marketing_attribution_decisions" | "marketing_intelligence_settings" | "marketing_intelligence_evaluation_runs" | "marketing_creative_assets" | "marketing_creative_performance_snapshots" | "marketing_creative_score_snapshots" | "marketing_recommendations" | "marketing_alerts" | "marketing_experiments" | "marketing_sync_locks" | "marketingExecutionPlan" | "marketingExecutionPlanItem" | "marketingExecutionApproval" | "marketingExecutionApprovalEvent" | "marketingExecutionRun" | "marketingExecutionJob" | "marketingProviderOperation" | "marketingProviderOperationAttempt" | "marketingExecutionStateSnapshot" | "marketingExecutionValidationIssue" | "marketingExecutionReconciliation" | "marketingExecutionPolicy" | "marketingCreativePublication" | "marketingCreativeMediaValidationEvidence" | "marketingCreativePublicationReviewEvent" | "marketingTargetingDiscovery" | "marketingExecutionAccountLock" | "marketingExecutionDeadLetterReview" | "marketingExecutionPolicyHistory" | "marketingExecutionValidationPacket" | "marketingExecutionDriftAcknowledgment" | "marketingExecutionRetryReview" | "marketingExecutionEmergencyOverride" | "marketingExecutionReconciliationJob" | "marketingExecutionCompensationLink" | "socialAccountConnection" | "socialPublishingIdentity" | "socialOAuthState" | "socialPost" | "socialPostRevision" | "socialPostTarget" | "socialPostApproval" | "socialPublication" | "socialPublicationAttempt" | "socialPublishingJob" | "socialMediaAsset" | "socialPostMedia" | "socialContact" | "socialConversation" | "socialMessage" | "socialTag" | "socialConversationTag" | "socialProviderContent" | "socialComment" | "socialEngagementEvent" | "socialEscalation" | "socialWebhookSubscription" | "socialWebhookEvent" | "socialIdentityMetricSnapshot" | "socialProviderContentMetricSnapshot" | "socialIdentitySyncState" | "socialActionJob" | "socialActionAttempt" | "socialInternalNote" | "socialSavedReply" | "socialOperationsSetting" | "adminManualMigrationLedger" | "adminSession" | "adminSessionRefreshToken" | "adminMfaEnrollment" | "adminMfaRecoveryCode" | "adminMfaChallenge" | "adminAuthEvent" | "refreshToken" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event" | "mailOrganization" | "mailDomain" | "mailMailbox" | "mailAddress" | "mailMembership" | "mailSenderGrant" | "mailProvisionRequest" | "mailThread" | "mailMessage" | "mailMessageRecipient" | "mailUserThreadState" | "mailDraft" | "mailLabel" | "mailThreadLabel" | "mailRule" | "mailAttachment" | "mailInternalNote" | "mailOutboxJob" | "mailWebhookEvent" | "mailDeliveryEvent" | "mailAuditEvent" | "mailRetentionPolicy" | "mailLegalHold" | "mailStepUpVerification" | "mailBreakGlassRequest" | "marketingContact" | "marketingConsent" | "marketingSuppression" | "marketingAudience" | "marketingAudienceContact" | "marketingSegment" | "marketingEmailTemplate" | "marketingTemplateVersion" | "marketingEmailCampaign" | "marketingCampaignSnapshot" | "marketingCampaignApproval" | "marketingBrandSettings" | "marketingCampaignApprovedContact" | "marketingBroadcastDispatch" | "marketingBroadcastRecipient" | "marketingAutomation" | "marketingAutomationVersion" | "marketingAutomationEnrollment" | "marketingAutomationStepRun" | "marketingTriggerEvent" | "mailProductIntegration" | "mailProductSenderAuthorization" | "mailProductIntegrationEvent" | "mailProductDeliveryEvent" | "mailRetentionRun" | "mailUsageDaily" | "mailQuotaLimit" | "mailOpsAlert" | "mailRolloutCohort" | "mailRolloutCohortMember" | "mailRolloutRule" | "mailEmergencyStop"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -18377,6 +18441,302 @@ export namespace Prisma {
           }
         }
       }
+      MailRolloutCohort: {
+        payload: Prisma.$MailRolloutCohortPayload<ExtArgs>
+        fields: Prisma.MailRolloutCohortFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MailRolloutCohortFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MailRolloutCohortFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortPayload>
+          }
+          findFirst: {
+            args: Prisma.MailRolloutCohortFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MailRolloutCohortFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortPayload>
+          }
+          findMany: {
+            args: Prisma.MailRolloutCohortFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortPayload>[]
+          }
+          create: {
+            args: Prisma.MailRolloutCohortCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortPayload>
+          }
+          createMany: {
+            args: Prisma.MailRolloutCohortCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MailRolloutCohortCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortPayload>[]
+          }
+          delete: {
+            args: Prisma.MailRolloutCohortDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortPayload>
+          }
+          update: {
+            args: Prisma.MailRolloutCohortUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortPayload>
+          }
+          deleteMany: {
+            args: Prisma.MailRolloutCohortDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MailRolloutCohortUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MailRolloutCohortUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortPayload>[]
+          }
+          upsert: {
+            args: Prisma.MailRolloutCohortUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortPayload>
+          }
+          aggregate: {
+            args: Prisma.MailRolloutCohortAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMailRolloutCohort>
+          }
+          groupBy: {
+            args: Prisma.MailRolloutCohortGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MailRolloutCohortGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MailRolloutCohortCountArgs<ExtArgs>
+            result: $Utils.Optional<MailRolloutCohortCountAggregateOutputType> | number
+          }
+        }
+      }
+      MailRolloutCohortMember: {
+        payload: Prisma.$MailRolloutCohortMemberPayload<ExtArgs>
+        fields: Prisma.MailRolloutCohortMemberFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MailRolloutCohortMemberFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortMemberPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MailRolloutCohortMemberFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortMemberPayload>
+          }
+          findFirst: {
+            args: Prisma.MailRolloutCohortMemberFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortMemberPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MailRolloutCohortMemberFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortMemberPayload>
+          }
+          findMany: {
+            args: Prisma.MailRolloutCohortMemberFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortMemberPayload>[]
+          }
+          create: {
+            args: Prisma.MailRolloutCohortMemberCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortMemberPayload>
+          }
+          createMany: {
+            args: Prisma.MailRolloutCohortMemberCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MailRolloutCohortMemberCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortMemberPayload>[]
+          }
+          delete: {
+            args: Prisma.MailRolloutCohortMemberDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortMemberPayload>
+          }
+          update: {
+            args: Prisma.MailRolloutCohortMemberUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortMemberPayload>
+          }
+          deleteMany: {
+            args: Prisma.MailRolloutCohortMemberDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MailRolloutCohortMemberUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MailRolloutCohortMemberUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortMemberPayload>[]
+          }
+          upsert: {
+            args: Prisma.MailRolloutCohortMemberUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutCohortMemberPayload>
+          }
+          aggregate: {
+            args: Prisma.MailRolloutCohortMemberAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMailRolloutCohortMember>
+          }
+          groupBy: {
+            args: Prisma.MailRolloutCohortMemberGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MailRolloutCohortMemberGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MailRolloutCohortMemberCountArgs<ExtArgs>
+            result: $Utils.Optional<MailRolloutCohortMemberCountAggregateOutputType> | number
+          }
+        }
+      }
+      MailRolloutRule: {
+        payload: Prisma.$MailRolloutRulePayload<ExtArgs>
+        fields: Prisma.MailRolloutRuleFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MailRolloutRuleFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutRulePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MailRolloutRuleFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutRulePayload>
+          }
+          findFirst: {
+            args: Prisma.MailRolloutRuleFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutRulePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MailRolloutRuleFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutRulePayload>
+          }
+          findMany: {
+            args: Prisma.MailRolloutRuleFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutRulePayload>[]
+          }
+          create: {
+            args: Prisma.MailRolloutRuleCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutRulePayload>
+          }
+          createMany: {
+            args: Prisma.MailRolloutRuleCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MailRolloutRuleCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutRulePayload>[]
+          }
+          delete: {
+            args: Prisma.MailRolloutRuleDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutRulePayload>
+          }
+          update: {
+            args: Prisma.MailRolloutRuleUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutRulePayload>
+          }
+          deleteMany: {
+            args: Prisma.MailRolloutRuleDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MailRolloutRuleUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MailRolloutRuleUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutRulePayload>[]
+          }
+          upsert: {
+            args: Prisma.MailRolloutRuleUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRolloutRulePayload>
+          }
+          aggregate: {
+            args: Prisma.MailRolloutRuleAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMailRolloutRule>
+          }
+          groupBy: {
+            args: Prisma.MailRolloutRuleGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MailRolloutRuleGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MailRolloutRuleCountArgs<ExtArgs>
+            result: $Utils.Optional<MailRolloutRuleCountAggregateOutputType> | number
+          }
+        }
+      }
+      MailEmergencyStop: {
+        payload: Prisma.$MailEmergencyStopPayload<ExtArgs>
+        fields: Prisma.MailEmergencyStopFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MailEmergencyStopFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailEmergencyStopPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MailEmergencyStopFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailEmergencyStopPayload>
+          }
+          findFirst: {
+            args: Prisma.MailEmergencyStopFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailEmergencyStopPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MailEmergencyStopFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailEmergencyStopPayload>
+          }
+          findMany: {
+            args: Prisma.MailEmergencyStopFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailEmergencyStopPayload>[]
+          }
+          create: {
+            args: Prisma.MailEmergencyStopCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailEmergencyStopPayload>
+          }
+          createMany: {
+            args: Prisma.MailEmergencyStopCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MailEmergencyStopCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailEmergencyStopPayload>[]
+          }
+          delete: {
+            args: Prisma.MailEmergencyStopDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailEmergencyStopPayload>
+          }
+          update: {
+            args: Prisma.MailEmergencyStopUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailEmergencyStopPayload>
+          }
+          deleteMany: {
+            args: Prisma.MailEmergencyStopDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MailEmergencyStopUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MailEmergencyStopUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailEmergencyStopPayload>[]
+          }
+          upsert: {
+            args: Prisma.MailEmergencyStopUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailEmergencyStopPayload>
+          }
+          aggregate: {
+            args: Prisma.MailEmergencyStopAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMailEmergencyStop>
+          }
+          groupBy: {
+            args: Prisma.MailEmergencyStopGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MailEmergencyStopGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MailEmergencyStopCountArgs<ExtArgs>
+            result: $Utils.Optional<MailEmergencyStopCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -18674,6 +19034,10 @@ export namespace Prisma {
     mailUsageDaily?: MailUsageDailyOmit
     mailQuotaLimit?: MailQuotaLimitOmit
     mailOpsAlert?: MailOpsAlertOmit
+    mailRolloutCohort?: MailRolloutCohortOmit
+    mailRolloutCohortMember?: MailRolloutCohortMemberOmit
+    mailRolloutRule?: MailRolloutRuleOmit
+    mailEmergencyStop?: MailEmergencyStopOmit
   }
 
   /* Types for Logging */
@@ -22311,6 +22675,37 @@ export namespace Prisma {
    */
   export type MailProductIntegrationCountOutputTypeCountDeliveryEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MailProductDeliveryEventWhereInput
+  }
+
+
+  /**
+   * Count Type MailRolloutCohortCountOutputType
+   */
+
+  export type MailRolloutCohortCountOutputType = {
+    members: number
+  }
+
+  export type MailRolloutCohortCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    members?: boolean | MailRolloutCohortCountOutputTypeCountMembersArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * MailRolloutCohortCountOutputType without action
+   */
+  export type MailRolloutCohortCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohortCountOutputType
+     */
+    select?: MailRolloutCohortCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * MailRolloutCohortCountOutputType without action
+   */
+  export type MailRolloutCohortCountOutputTypeCountMembersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailRolloutCohortMemberWhereInput
   }
 
 
@@ -236742,6 +237137,4313 @@ export namespace Prisma {
 
 
   /**
+   * Model MailRolloutCohort
+   */
+
+  export type AggregateMailRolloutCohort = {
+    _count: MailRolloutCohortCountAggregateOutputType | null
+    _min: MailRolloutCohortMinAggregateOutputType | null
+    _max: MailRolloutCohortMaxAggregateOutputType | null
+  }
+
+  export type MailRolloutCohortMinAggregateOutputType = {
+    id: string | null
+    key: string | null
+    name: string | null
+    description: string | null
+    createdBy: string | null
+    createdAt: Date | null
+  }
+
+  export type MailRolloutCohortMaxAggregateOutputType = {
+    id: string | null
+    key: string | null
+    name: string | null
+    description: string | null
+    createdBy: string | null
+    createdAt: Date | null
+  }
+
+  export type MailRolloutCohortCountAggregateOutputType = {
+    id: number
+    key: number
+    name: number
+    description: number
+    createdBy: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type MailRolloutCohortMinAggregateInputType = {
+    id?: true
+    key?: true
+    name?: true
+    description?: true
+    createdBy?: true
+    createdAt?: true
+  }
+
+  export type MailRolloutCohortMaxAggregateInputType = {
+    id?: true
+    key?: true
+    name?: true
+    description?: true
+    createdBy?: true
+    createdAt?: true
+  }
+
+  export type MailRolloutCohortCountAggregateInputType = {
+    id?: true
+    key?: true
+    name?: true
+    description?: true
+    createdBy?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type MailRolloutCohortAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailRolloutCohort to aggregate.
+     */
+    where?: MailRolloutCohortWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailRolloutCohorts to fetch.
+     */
+    orderBy?: MailRolloutCohortOrderByWithRelationInput | MailRolloutCohortOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MailRolloutCohortWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailRolloutCohorts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailRolloutCohorts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MailRolloutCohorts
+    **/
+    _count?: true | MailRolloutCohortCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MailRolloutCohortMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MailRolloutCohortMaxAggregateInputType
+  }
+
+  export type GetMailRolloutCohortAggregateType<T extends MailRolloutCohortAggregateArgs> = {
+        [P in keyof T & keyof AggregateMailRolloutCohort]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMailRolloutCohort[P]>
+      : GetScalarType<T[P], AggregateMailRolloutCohort[P]>
+  }
+
+
+
+
+  export type MailRolloutCohortGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailRolloutCohortWhereInput
+    orderBy?: MailRolloutCohortOrderByWithAggregationInput | MailRolloutCohortOrderByWithAggregationInput[]
+    by: MailRolloutCohortScalarFieldEnum[] | MailRolloutCohortScalarFieldEnum
+    having?: MailRolloutCohortScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MailRolloutCohortCountAggregateInputType | true
+    _min?: MailRolloutCohortMinAggregateInputType
+    _max?: MailRolloutCohortMaxAggregateInputType
+  }
+
+  export type MailRolloutCohortGroupByOutputType = {
+    id: string
+    key: string
+    name: string
+    description: string | null
+    createdBy: string
+    createdAt: Date
+    _count: MailRolloutCohortCountAggregateOutputType | null
+    _min: MailRolloutCohortMinAggregateOutputType | null
+    _max: MailRolloutCohortMaxAggregateOutputType | null
+  }
+
+  type GetMailRolloutCohortGroupByPayload<T extends MailRolloutCohortGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MailRolloutCohortGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MailRolloutCohortGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MailRolloutCohortGroupByOutputType[P]>
+            : GetScalarType<T[P], MailRolloutCohortGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MailRolloutCohortSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    key?: boolean
+    name?: boolean
+    description?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    members?: boolean | MailRolloutCohort$membersArgs<ExtArgs>
+    _count?: boolean | MailRolloutCohortCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailRolloutCohort"]>
+
+  export type MailRolloutCohortSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    key?: boolean
+    name?: boolean
+    description?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["mailRolloutCohort"]>
+
+  export type MailRolloutCohortSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    key?: boolean
+    name?: boolean
+    description?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["mailRolloutCohort"]>
+
+  export type MailRolloutCohortSelectScalar = {
+    id?: boolean
+    key?: boolean
+    name?: boolean
+    description?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+  }
+
+  export type MailRolloutCohortOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "key" | "name" | "description" | "createdBy" | "createdAt", ExtArgs["result"]["mailRolloutCohort"]>
+  export type MailRolloutCohortInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    members?: boolean | MailRolloutCohort$membersArgs<ExtArgs>
+    _count?: boolean | MailRolloutCohortCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type MailRolloutCohortIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type MailRolloutCohortIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $MailRolloutCohortPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MailRolloutCohort"
+    objects: {
+      members: Prisma.$MailRolloutCohortMemberPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      key: string
+      name: string
+      description: string | null
+      createdBy: string
+      createdAt: Date
+    }, ExtArgs["result"]["mailRolloutCohort"]>
+    composites: {}
+  }
+
+  type MailRolloutCohortGetPayload<S extends boolean | null | undefined | MailRolloutCohortDefaultArgs> = $Result.GetResult<Prisma.$MailRolloutCohortPayload, S>
+
+  type MailRolloutCohortCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MailRolloutCohortFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MailRolloutCohortCountAggregateInputType | true
+    }
+
+  export interface MailRolloutCohortDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MailRolloutCohort'], meta: { name: 'MailRolloutCohort' } }
+    /**
+     * Find zero or one MailRolloutCohort that matches the filter.
+     * @param {MailRolloutCohortFindUniqueArgs} args - Arguments to find a MailRolloutCohort
+     * @example
+     * // Get one MailRolloutCohort
+     * const mailRolloutCohort = await prisma.mailRolloutCohort.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MailRolloutCohortFindUniqueArgs>(args: SelectSubset<T, MailRolloutCohortFindUniqueArgs<ExtArgs>>): Prisma__MailRolloutCohortClient<$Result.GetResult<Prisma.$MailRolloutCohortPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MailRolloutCohort that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MailRolloutCohortFindUniqueOrThrowArgs} args - Arguments to find a MailRolloutCohort
+     * @example
+     * // Get one MailRolloutCohort
+     * const mailRolloutCohort = await prisma.mailRolloutCohort.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MailRolloutCohortFindUniqueOrThrowArgs>(args: SelectSubset<T, MailRolloutCohortFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MailRolloutCohortClient<$Result.GetResult<Prisma.$MailRolloutCohortPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailRolloutCohort that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutCohortFindFirstArgs} args - Arguments to find a MailRolloutCohort
+     * @example
+     * // Get one MailRolloutCohort
+     * const mailRolloutCohort = await prisma.mailRolloutCohort.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MailRolloutCohortFindFirstArgs>(args?: SelectSubset<T, MailRolloutCohortFindFirstArgs<ExtArgs>>): Prisma__MailRolloutCohortClient<$Result.GetResult<Prisma.$MailRolloutCohortPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailRolloutCohort that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutCohortFindFirstOrThrowArgs} args - Arguments to find a MailRolloutCohort
+     * @example
+     * // Get one MailRolloutCohort
+     * const mailRolloutCohort = await prisma.mailRolloutCohort.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MailRolloutCohortFindFirstOrThrowArgs>(args?: SelectSubset<T, MailRolloutCohortFindFirstOrThrowArgs<ExtArgs>>): Prisma__MailRolloutCohortClient<$Result.GetResult<Prisma.$MailRolloutCohortPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MailRolloutCohorts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutCohortFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MailRolloutCohorts
+     * const mailRolloutCohorts = await prisma.mailRolloutCohort.findMany()
+     * 
+     * // Get first 10 MailRolloutCohorts
+     * const mailRolloutCohorts = await prisma.mailRolloutCohort.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const mailRolloutCohortWithIdOnly = await prisma.mailRolloutCohort.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MailRolloutCohortFindManyArgs>(args?: SelectSubset<T, MailRolloutCohortFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailRolloutCohortPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MailRolloutCohort.
+     * @param {MailRolloutCohortCreateArgs} args - Arguments to create a MailRolloutCohort.
+     * @example
+     * // Create one MailRolloutCohort
+     * const MailRolloutCohort = await prisma.mailRolloutCohort.create({
+     *   data: {
+     *     // ... data to create a MailRolloutCohort
+     *   }
+     * })
+     * 
+     */
+    create<T extends MailRolloutCohortCreateArgs>(args: SelectSubset<T, MailRolloutCohortCreateArgs<ExtArgs>>): Prisma__MailRolloutCohortClient<$Result.GetResult<Prisma.$MailRolloutCohortPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MailRolloutCohorts.
+     * @param {MailRolloutCohortCreateManyArgs} args - Arguments to create many MailRolloutCohorts.
+     * @example
+     * // Create many MailRolloutCohorts
+     * const mailRolloutCohort = await prisma.mailRolloutCohort.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MailRolloutCohortCreateManyArgs>(args?: SelectSubset<T, MailRolloutCohortCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MailRolloutCohorts and returns the data saved in the database.
+     * @param {MailRolloutCohortCreateManyAndReturnArgs} args - Arguments to create many MailRolloutCohorts.
+     * @example
+     * // Create many MailRolloutCohorts
+     * const mailRolloutCohort = await prisma.mailRolloutCohort.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MailRolloutCohorts and only return the `id`
+     * const mailRolloutCohortWithIdOnly = await prisma.mailRolloutCohort.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MailRolloutCohortCreateManyAndReturnArgs>(args?: SelectSubset<T, MailRolloutCohortCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailRolloutCohortPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MailRolloutCohort.
+     * @param {MailRolloutCohortDeleteArgs} args - Arguments to delete one MailRolloutCohort.
+     * @example
+     * // Delete one MailRolloutCohort
+     * const MailRolloutCohort = await prisma.mailRolloutCohort.delete({
+     *   where: {
+     *     // ... filter to delete one MailRolloutCohort
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MailRolloutCohortDeleteArgs>(args: SelectSubset<T, MailRolloutCohortDeleteArgs<ExtArgs>>): Prisma__MailRolloutCohortClient<$Result.GetResult<Prisma.$MailRolloutCohortPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MailRolloutCohort.
+     * @param {MailRolloutCohortUpdateArgs} args - Arguments to update one MailRolloutCohort.
+     * @example
+     * // Update one MailRolloutCohort
+     * const mailRolloutCohort = await prisma.mailRolloutCohort.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MailRolloutCohortUpdateArgs>(args: SelectSubset<T, MailRolloutCohortUpdateArgs<ExtArgs>>): Prisma__MailRolloutCohortClient<$Result.GetResult<Prisma.$MailRolloutCohortPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MailRolloutCohorts.
+     * @param {MailRolloutCohortDeleteManyArgs} args - Arguments to filter MailRolloutCohorts to delete.
+     * @example
+     * // Delete a few MailRolloutCohorts
+     * const { count } = await prisma.mailRolloutCohort.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MailRolloutCohortDeleteManyArgs>(args?: SelectSubset<T, MailRolloutCohortDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailRolloutCohorts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutCohortUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MailRolloutCohorts
+     * const mailRolloutCohort = await prisma.mailRolloutCohort.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MailRolloutCohortUpdateManyArgs>(args: SelectSubset<T, MailRolloutCohortUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailRolloutCohorts and returns the data updated in the database.
+     * @param {MailRolloutCohortUpdateManyAndReturnArgs} args - Arguments to update many MailRolloutCohorts.
+     * @example
+     * // Update many MailRolloutCohorts
+     * const mailRolloutCohort = await prisma.mailRolloutCohort.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MailRolloutCohorts and only return the `id`
+     * const mailRolloutCohortWithIdOnly = await prisma.mailRolloutCohort.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MailRolloutCohortUpdateManyAndReturnArgs>(args: SelectSubset<T, MailRolloutCohortUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailRolloutCohortPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MailRolloutCohort.
+     * @param {MailRolloutCohortUpsertArgs} args - Arguments to update or create a MailRolloutCohort.
+     * @example
+     * // Update or create a MailRolloutCohort
+     * const mailRolloutCohort = await prisma.mailRolloutCohort.upsert({
+     *   create: {
+     *     // ... data to create a MailRolloutCohort
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MailRolloutCohort we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MailRolloutCohortUpsertArgs>(args: SelectSubset<T, MailRolloutCohortUpsertArgs<ExtArgs>>): Prisma__MailRolloutCohortClient<$Result.GetResult<Prisma.$MailRolloutCohortPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MailRolloutCohorts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutCohortCountArgs} args - Arguments to filter MailRolloutCohorts to count.
+     * @example
+     * // Count the number of MailRolloutCohorts
+     * const count = await prisma.mailRolloutCohort.count({
+     *   where: {
+     *     // ... the filter for the MailRolloutCohorts we want to count
+     *   }
+     * })
+    **/
+    count<T extends MailRolloutCohortCountArgs>(
+      args?: Subset<T, MailRolloutCohortCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MailRolloutCohortCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MailRolloutCohort.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutCohortAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MailRolloutCohortAggregateArgs>(args: Subset<T, MailRolloutCohortAggregateArgs>): Prisma.PrismaPromise<GetMailRolloutCohortAggregateType<T>>
+
+    /**
+     * Group by MailRolloutCohort.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutCohortGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MailRolloutCohortGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MailRolloutCohortGroupByArgs['orderBy'] }
+        : { orderBy?: MailRolloutCohortGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MailRolloutCohortGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMailRolloutCohortGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MailRolloutCohort model
+   */
+  readonly fields: MailRolloutCohortFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MailRolloutCohort.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MailRolloutCohortClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    members<T extends MailRolloutCohort$membersArgs<ExtArgs> = {}>(args?: Subset<T, MailRolloutCohort$membersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailRolloutCohortMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MailRolloutCohort model
+   */
+  interface MailRolloutCohortFieldRefs {
+    readonly id: FieldRef<"MailRolloutCohort", 'String'>
+    readonly key: FieldRef<"MailRolloutCohort", 'String'>
+    readonly name: FieldRef<"MailRolloutCohort", 'String'>
+    readonly description: FieldRef<"MailRolloutCohort", 'String'>
+    readonly createdBy: FieldRef<"MailRolloutCohort", 'String'>
+    readonly createdAt: FieldRef<"MailRolloutCohort", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MailRolloutCohort findUnique
+   */
+  export type MailRolloutCohortFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohort
+     */
+    select?: MailRolloutCohortSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohort
+     */
+    omit?: MailRolloutCohortOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortInclude<ExtArgs> | null
+    /**
+     * Filter, which MailRolloutCohort to fetch.
+     */
+    where: MailRolloutCohortWhereUniqueInput
+  }
+
+  /**
+   * MailRolloutCohort findUniqueOrThrow
+   */
+  export type MailRolloutCohortFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohort
+     */
+    select?: MailRolloutCohortSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohort
+     */
+    omit?: MailRolloutCohortOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortInclude<ExtArgs> | null
+    /**
+     * Filter, which MailRolloutCohort to fetch.
+     */
+    where: MailRolloutCohortWhereUniqueInput
+  }
+
+  /**
+   * MailRolloutCohort findFirst
+   */
+  export type MailRolloutCohortFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohort
+     */
+    select?: MailRolloutCohortSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohort
+     */
+    omit?: MailRolloutCohortOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortInclude<ExtArgs> | null
+    /**
+     * Filter, which MailRolloutCohort to fetch.
+     */
+    where?: MailRolloutCohortWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailRolloutCohorts to fetch.
+     */
+    orderBy?: MailRolloutCohortOrderByWithRelationInput | MailRolloutCohortOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailRolloutCohorts.
+     */
+    cursor?: MailRolloutCohortWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailRolloutCohorts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailRolloutCohorts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailRolloutCohorts.
+     */
+    distinct?: MailRolloutCohortScalarFieldEnum | MailRolloutCohortScalarFieldEnum[]
+  }
+
+  /**
+   * MailRolloutCohort findFirstOrThrow
+   */
+  export type MailRolloutCohortFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohort
+     */
+    select?: MailRolloutCohortSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohort
+     */
+    omit?: MailRolloutCohortOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortInclude<ExtArgs> | null
+    /**
+     * Filter, which MailRolloutCohort to fetch.
+     */
+    where?: MailRolloutCohortWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailRolloutCohorts to fetch.
+     */
+    orderBy?: MailRolloutCohortOrderByWithRelationInput | MailRolloutCohortOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailRolloutCohorts.
+     */
+    cursor?: MailRolloutCohortWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailRolloutCohorts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailRolloutCohorts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailRolloutCohorts.
+     */
+    distinct?: MailRolloutCohortScalarFieldEnum | MailRolloutCohortScalarFieldEnum[]
+  }
+
+  /**
+   * MailRolloutCohort findMany
+   */
+  export type MailRolloutCohortFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohort
+     */
+    select?: MailRolloutCohortSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohort
+     */
+    omit?: MailRolloutCohortOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortInclude<ExtArgs> | null
+    /**
+     * Filter, which MailRolloutCohorts to fetch.
+     */
+    where?: MailRolloutCohortWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailRolloutCohorts to fetch.
+     */
+    orderBy?: MailRolloutCohortOrderByWithRelationInput | MailRolloutCohortOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MailRolloutCohorts.
+     */
+    cursor?: MailRolloutCohortWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailRolloutCohorts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailRolloutCohorts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailRolloutCohorts.
+     */
+    distinct?: MailRolloutCohortScalarFieldEnum | MailRolloutCohortScalarFieldEnum[]
+  }
+
+  /**
+   * MailRolloutCohort create
+   */
+  export type MailRolloutCohortCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohort
+     */
+    select?: MailRolloutCohortSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohort
+     */
+    omit?: MailRolloutCohortOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MailRolloutCohort.
+     */
+    data: XOR<MailRolloutCohortCreateInput, MailRolloutCohortUncheckedCreateInput>
+  }
+
+  /**
+   * MailRolloutCohort createMany
+   */
+  export type MailRolloutCohortCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MailRolloutCohorts.
+     */
+    data: MailRolloutCohortCreateManyInput | MailRolloutCohortCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailRolloutCohort createManyAndReturn
+   */
+  export type MailRolloutCohortCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohort
+     */
+    select?: MailRolloutCohortSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohort
+     */
+    omit?: MailRolloutCohortOmit<ExtArgs> | null
+    /**
+     * The data used to create many MailRolloutCohorts.
+     */
+    data: MailRolloutCohortCreateManyInput | MailRolloutCohortCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailRolloutCohort update
+   */
+  export type MailRolloutCohortUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohort
+     */
+    select?: MailRolloutCohortSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohort
+     */
+    omit?: MailRolloutCohortOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MailRolloutCohort.
+     */
+    data: XOR<MailRolloutCohortUpdateInput, MailRolloutCohortUncheckedUpdateInput>
+    /**
+     * Choose, which MailRolloutCohort to update.
+     */
+    where: MailRolloutCohortWhereUniqueInput
+  }
+
+  /**
+   * MailRolloutCohort updateMany
+   */
+  export type MailRolloutCohortUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MailRolloutCohorts.
+     */
+    data: XOR<MailRolloutCohortUpdateManyMutationInput, MailRolloutCohortUncheckedUpdateManyInput>
+    /**
+     * Filter which MailRolloutCohorts to update
+     */
+    where?: MailRolloutCohortWhereInput
+    /**
+     * Limit how many MailRolloutCohorts to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailRolloutCohort updateManyAndReturn
+   */
+  export type MailRolloutCohortUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohort
+     */
+    select?: MailRolloutCohortSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohort
+     */
+    omit?: MailRolloutCohortOmit<ExtArgs> | null
+    /**
+     * The data used to update MailRolloutCohorts.
+     */
+    data: XOR<MailRolloutCohortUpdateManyMutationInput, MailRolloutCohortUncheckedUpdateManyInput>
+    /**
+     * Filter which MailRolloutCohorts to update
+     */
+    where?: MailRolloutCohortWhereInput
+    /**
+     * Limit how many MailRolloutCohorts to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailRolloutCohort upsert
+   */
+  export type MailRolloutCohortUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohort
+     */
+    select?: MailRolloutCohortSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohort
+     */
+    omit?: MailRolloutCohortOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MailRolloutCohort to update in case it exists.
+     */
+    where: MailRolloutCohortWhereUniqueInput
+    /**
+     * In case the MailRolloutCohort found by the `where` argument doesn't exist, create a new MailRolloutCohort with this data.
+     */
+    create: XOR<MailRolloutCohortCreateInput, MailRolloutCohortUncheckedCreateInput>
+    /**
+     * In case the MailRolloutCohort was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MailRolloutCohortUpdateInput, MailRolloutCohortUncheckedUpdateInput>
+  }
+
+  /**
+   * MailRolloutCohort delete
+   */
+  export type MailRolloutCohortDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohort
+     */
+    select?: MailRolloutCohortSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohort
+     */
+    omit?: MailRolloutCohortOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortInclude<ExtArgs> | null
+    /**
+     * Filter which MailRolloutCohort to delete.
+     */
+    where: MailRolloutCohortWhereUniqueInput
+  }
+
+  /**
+   * MailRolloutCohort deleteMany
+   */
+  export type MailRolloutCohortDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailRolloutCohorts to delete
+     */
+    where?: MailRolloutCohortWhereInput
+    /**
+     * Limit how many MailRolloutCohorts to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailRolloutCohort.members
+   */
+  export type MailRolloutCohort$membersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohortMember
+     */
+    select?: MailRolloutCohortMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohortMember
+     */
+    omit?: MailRolloutCohortMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortMemberInclude<ExtArgs> | null
+    where?: MailRolloutCohortMemberWhereInput
+    orderBy?: MailRolloutCohortMemberOrderByWithRelationInput | MailRolloutCohortMemberOrderByWithRelationInput[]
+    cursor?: MailRolloutCohortMemberWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MailRolloutCohortMemberScalarFieldEnum | MailRolloutCohortMemberScalarFieldEnum[]
+  }
+
+  /**
+   * MailRolloutCohort without action
+   */
+  export type MailRolloutCohortDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohort
+     */
+    select?: MailRolloutCohortSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohort
+     */
+    omit?: MailRolloutCohortOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MailRolloutCohortMember
+   */
+
+  export type AggregateMailRolloutCohortMember = {
+    _count: MailRolloutCohortMemberCountAggregateOutputType | null
+    _min: MailRolloutCohortMemberMinAggregateOutputType | null
+    _max: MailRolloutCohortMemberMaxAggregateOutputType | null
+  }
+
+  export type MailRolloutCohortMemberMinAggregateOutputType = {
+    id: string | null
+    cohortId: string | null
+    adminUserId: string | null
+    addedBy: string | null
+    addedAt: Date | null
+    removedAt: Date | null
+    removedBy: string | null
+  }
+
+  export type MailRolloutCohortMemberMaxAggregateOutputType = {
+    id: string | null
+    cohortId: string | null
+    adminUserId: string | null
+    addedBy: string | null
+    addedAt: Date | null
+    removedAt: Date | null
+    removedBy: string | null
+  }
+
+  export type MailRolloutCohortMemberCountAggregateOutputType = {
+    id: number
+    cohortId: number
+    adminUserId: number
+    addedBy: number
+    addedAt: number
+    removedAt: number
+    removedBy: number
+    _all: number
+  }
+
+
+  export type MailRolloutCohortMemberMinAggregateInputType = {
+    id?: true
+    cohortId?: true
+    adminUserId?: true
+    addedBy?: true
+    addedAt?: true
+    removedAt?: true
+    removedBy?: true
+  }
+
+  export type MailRolloutCohortMemberMaxAggregateInputType = {
+    id?: true
+    cohortId?: true
+    adminUserId?: true
+    addedBy?: true
+    addedAt?: true
+    removedAt?: true
+    removedBy?: true
+  }
+
+  export type MailRolloutCohortMemberCountAggregateInputType = {
+    id?: true
+    cohortId?: true
+    adminUserId?: true
+    addedBy?: true
+    addedAt?: true
+    removedAt?: true
+    removedBy?: true
+    _all?: true
+  }
+
+  export type MailRolloutCohortMemberAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailRolloutCohortMember to aggregate.
+     */
+    where?: MailRolloutCohortMemberWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailRolloutCohortMembers to fetch.
+     */
+    orderBy?: MailRolloutCohortMemberOrderByWithRelationInput | MailRolloutCohortMemberOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MailRolloutCohortMemberWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailRolloutCohortMembers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailRolloutCohortMembers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MailRolloutCohortMembers
+    **/
+    _count?: true | MailRolloutCohortMemberCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MailRolloutCohortMemberMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MailRolloutCohortMemberMaxAggregateInputType
+  }
+
+  export type GetMailRolloutCohortMemberAggregateType<T extends MailRolloutCohortMemberAggregateArgs> = {
+        [P in keyof T & keyof AggregateMailRolloutCohortMember]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMailRolloutCohortMember[P]>
+      : GetScalarType<T[P], AggregateMailRolloutCohortMember[P]>
+  }
+
+
+
+
+  export type MailRolloutCohortMemberGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailRolloutCohortMemberWhereInput
+    orderBy?: MailRolloutCohortMemberOrderByWithAggregationInput | MailRolloutCohortMemberOrderByWithAggregationInput[]
+    by: MailRolloutCohortMemberScalarFieldEnum[] | MailRolloutCohortMemberScalarFieldEnum
+    having?: MailRolloutCohortMemberScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MailRolloutCohortMemberCountAggregateInputType | true
+    _min?: MailRolloutCohortMemberMinAggregateInputType
+    _max?: MailRolloutCohortMemberMaxAggregateInputType
+  }
+
+  export type MailRolloutCohortMemberGroupByOutputType = {
+    id: string
+    cohortId: string
+    adminUserId: string
+    addedBy: string
+    addedAt: Date
+    removedAt: Date | null
+    removedBy: string | null
+    _count: MailRolloutCohortMemberCountAggregateOutputType | null
+    _min: MailRolloutCohortMemberMinAggregateOutputType | null
+    _max: MailRolloutCohortMemberMaxAggregateOutputType | null
+  }
+
+  type GetMailRolloutCohortMemberGroupByPayload<T extends MailRolloutCohortMemberGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MailRolloutCohortMemberGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MailRolloutCohortMemberGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MailRolloutCohortMemberGroupByOutputType[P]>
+            : GetScalarType<T[P], MailRolloutCohortMemberGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MailRolloutCohortMemberSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    cohortId?: boolean
+    adminUserId?: boolean
+    addedBy?: boolean
+    addedAt?: boolean
+    removedAt?: boolean
+    removedBy?: boolean
+    cohort?: boolean | MailRolloutCohortDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailRolloutCohortMember"]>
+
+  export type MailRolloutCohortMemberSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    cohortId?: boolean
+    adminUserId?: boolean
+    addedBy?: boolean
+    addedAt?: boolean
+    removedAt?: boolean
+    removedBy?: boolean
+    cohort?: boolean | MailRolloutCohortDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailRolloutCohortMember"]>
+
+  export type MailRolloutCohortMemberSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    cohortId?: boolean
+    adminUserId?: boolean
+    addedBy?: boolean
+    addedAt?: boolean
+    removedAt?: boolean
+    removedBy?: boolean
+    cohort?: boolean | MailRolloutCohortDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailRolloutCohortMember"]>
+
+  export type MailRolloutCohortMemberSelectScalar = {
+    id?: boolean
+    cohortId?: boolean
+    adminUserId?: boolean
+    addedBy?: boolean
+    addedAt?: boolean
+    removedAt?: boolean
+    removedBy?: boolean
+  }
+
+  export type MailRolloutCohortMemberOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "cohortId" | "adminUserId" | "addedBy" | "addedAt" | "removedAt" | "removedBy", ExtArgs["result"]["mailRolloutCohortMember"]>
+  export type MailRolloutCohortMemberInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    cohort?: boolean | MailRolloutCohortDefaultArgs<ExtArgs>
+  }
+  export type MailRolloutCohortMemberIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    cohort?: boolean | MailRolloutCohortDefaultArgs<ExtArgs>
+  }
+  export type MailRolloutCohortMemberIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    cohort?: boolean | MailRolloutCohortDefaultArgs<ExtArgs>
+  }
+
+  export type $MailRolloutCohortMemberPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MailRolloutCohortMember"
+    objects: {
+      cohort: Prisma.$MailRolloutCohortPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      cohortId: string
+      adminUserId: string
+      addedBy: string
+      addedAt: Date
+      removedAt: Date | null
+      removedBy: string | null
+    }, ExtArgs["result"]["mailRolloutCohortMember"]>
+    composites: {}
+  }
+
+  type MailRolloutCohortMemberGetPayload<S extends boolean | null | undefined | MailRolloutCohortMemberDefaultArgs> = $Result.GetResult<Prisma.$MailRolloutCohortMemberPayload, S>
+
+  type MailRolloutCohortMemberCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MailRolloutCohortMemberFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MailRolloutCohortMemberCountAggregateInputType | true
+    }
+
+  export interface MailRolloutCohortMemberDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MailRolloutCohortMember'], meta: { name: 'MailRolloutCohortMember' } }
+    /**
+     * Find zero or one MailRolloutCohortMember that matches the filter.
+     * @param {MailRolloutCohortMemberFindUniqueArgs} args - Arguments to find a MailRolloutCohortMember
+     * @example
+     * // Get one MailRolloutCohortMember
+     * const mailRolloutCohortMember = await prisma.mailRolloutCohortMember.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MailRolloutCohortMemberFindUniqueArgs>(args: SelectSubset<T, MailRolloutCohortMemberFindUniqueArgs<ExtArgs>>): Prisma__MailRolloutCohortMemberClient<$Result.GetResult<Prisma.$MailRolloutCohortMemberPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MailRolloutCohortMember that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MailRolloutCohortMemberFindUniqueOrThrowArgs} args - Arguments to find a MailRolloutCohortMember
+     * @example
+     * // Get one MailRolloutCohortMember
+     * const mailRolloutCohortMember = await prisma.mailRolloutCohortMember.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MailRolloutCohortMemberFindUniqueOrThrowArgs>(args: SelectSubset<T, MailRolloutCohortMemberFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MailRolloutCohortMemberClient<$Result.GetResult<Prisma.$MailRolloutCohortMemberPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailRolloutCohortMember that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutCohortMemberFindFirstArgs} args - Arguments to find a MailRolloutCohortMember
+     * @example
+     * // Get one MailRolloutCohortMember
+     * const mailRolloutCohortMember = await prisma.mailRolloutCohortMember.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MailRolloutCohortMemberFindFirstArgs>(args?: SelectSubset<T, MailRolloutCohortMemberFindFirstArgs<ExtArgs>>): Prisma__MailRolloutCohortMemberClient<$Result.GetResult<Prisma.$MailRolloutCohortMemberPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailRolloutCohortMember that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutCohortMemberFindFirstOrThrowArgs} args - Arguments to find a MailRolloutCohortMember
+     * @example
+     * // Get one MailRolloutCohortMember
+     * const mailRolloutCohortMember = await prisma.mailRolloutCohortMember.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MailRolloutCohortMemberFindFirstOrThrowArgs>(args?: SelectSubset<T, MailRolloutCohortMemberFindFirstOrThrowArgs<ExtArgs>>): Prisma__MailRolloutCohortMemberClient<$Result.GetResult<Prisma.$MailRolloutCohortMemberPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MailRolloutCohortMembers that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutCohortMemberFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MailRolloutCohortMembers
+     * const mailRolloutCohortMembers = await prisma.mailRolloutCohortMember.findMany()
+     * 
+     * // Get first 10 MailRolloutCohortMembers
+     * const mailRolloutCohortMembers = await prisma.mailRolloutCohortMember.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const mailRolloutCohortMemberWithIdOnly = await prisma.mailRolloutCohortMember.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MailRolloutCohortMemberFindManyArgs>(args?: SelectSubset<T, MailRolloutCohortMemberFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailRolloutCohortMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MailRolloutCohortMember.
+     * @param {MailRolloutCohortMemberCreateArgs} args - Arguments to create a MailRolloutCohortMember.
+     * @example
+     * // Create one MailRolloutCohortMember
+     * const MailRolloutCohortMember = await prisma.mailRolloutCohortMember.create({
+     *   data: {
+     *     // ... data to create a MailRolloutCohortMember
+     *   }
+     * })
+     * 
+     */
+    create<T extends MailRolloutCohortMemberCreateArgs>(args: SelectSubset<T, MailRolloutCohortMemberCreateArgs<ExtArgs>>): Prisma__MailRolloutCohortMemberClient<$Result.GetResult<Prisma.$MailRolloutCohortMemberPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MailRolloutCohortMembers.
+     * @param {MailRolloutCohortMemberCreateManyArgs} args - Arguments to create many MailRolloutCohortMembers.
+     * @example
+     * // Create many MailRolloutCohortMembers
+     * const mailRolloutCohortMember = await prisma.mailRolloutCohortMember.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MailRolloutCohortMemberCreateManyArgs>(args?: SelectSubset<T, MailRolloutCohortMemberCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MailRolloutCohortMembers and returns the data saved in the database.
+     * @param {MailRolloutCohortMemberCreateManyAndReturnArgs} args - Arguments to create many MailRolloutCohortMembers.
+     * @example
+     * // Create many MailRolloutCohortMembers
+     * const mailRolloutCohortMember = await prisma.mailRolloutCohortMember.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MailRolloutCohortMembers and only return the `id`
+     * const mailRolloutCohortMemberWithIdOnly = await prisma.mailRolloutCohortMember.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MailRolloutCohortMemberCreateManyAndReturnArgs>(args?: SelectSubset<T, MailRolloutCohortMemberCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailRolloutCohortMemberPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MailRolloutCohortMember.
+     * @param {MailRolloutCohortMemberDeleteArgs} args - Arguments to delete one MailRolloutCohortMember.
+     * @example
+     * // Delete one MailRolloutCohortMember
+     * const MailRolloutCohortMember = await prisma.mailRolloutCohortMember.delete({
+     *   where: {
+     *     // ... filter to delete one MailRolloutCohortMember
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MailRolloutCohortMemberDeleteArgs>(args: SelectSubset<T, MailRolloutCohortMemberDeleteArgs<ExtArgs>>): Prisma__MailRolloutCohortMemberClient<$Result.GetResult<Prisma.$MailRolloutCohortMemberPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MailRolloutCohortMember.
+     * @param {MailRolloutCohortMemberUpdateArgs} args - Arguments to update one MailRolloutCohortMember.
+     * @example
+     * // Update one MailRolloutCohortMember
+     * const mailRolloutCohortMember = await prisma.mailRolloutCohortMember.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MailRolloutCohortMemberUpdateArgs>(args: SelectSubset<T, MailRolloutCohortMemberUpdateArgs<ExtArgs>>): Prisma__MailRolloutCohortMemberClient<$Result.GetResult<Prisma.$MailRolloutCohortMemberPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MailRolloutCohortMembers.
+     * @param {MailRolloutCohortMemberDeleteManyArgs} args - Arguments to filter MailRolloutCohortMembers to delete.
+     * @example
+     * // Delete a few MailRolloutCohortMembers
+     * const { count } = await prisma.mailRolloutCohortMember.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MailRolloutCohortMemberDeleteManyArgs>(args?: SelectSubset<T, MailRolloutCohortMemberDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailRolloutCohortMembers.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutCohortMemberUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MailRolloutCohortMembers
+     * const mailRolloutCohortMember = await prisma.mailRolloutCohortMember.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MailRolloutCohortMemberUpdateManyArgs>(args: SelectSubset<T, MailRolloutCohortMemberUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailRolloutCohortMembers and returns the data updated in the database.
+     * @param {MailRolloutCohortMemberUpdateManyAndReturnArgs} args - Arguments to update many MailRolloutCohortMembers.
+     * @example
+     * // Update many MailRolloutCohortMembers
+     * const mailRolloutCohortMember = await prisma.mailRolloutCohortMember.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MailRolloutCohortMembers and only return the `id`
+     * const mailRolloutCohortMemberWithIdOnly = await prisma.mailRolloutCohortMember.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MailRolloutCohortMemberUpdateManyAndReturnArgs>(args: SelectSubset<T, MailRolloutCohortMemberUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailRolloutCohortMemberPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MailRolloutCohortMember.
+     * @param {MailRolloutCohortMemberUpsertArgs} args - Arguments to update or create a MailRolloutCohortMember.
+     * @example
+     * // Update or create a MailRolloutCohortMember
+     * const mailRolloutCohortMember = await prisma.mailRolloutCohortMember.upsert({
+     *   create: {
+     *     // ... data to create a MailRolloutCohortMember
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MailRolloutCohortMember we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MailRolloutCohortMemberUpsertArgs>(args: SelectSubset<T, MailRolloutCohortMemberUpsertArgs<ExtArgs>>): Prisma__MailRolloutCohortMemberClient<$Result.GetResult<Prisma.$MailRolloutCohortMemberPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MailRolloutCohortMembers.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutCohortMemberCountArgs} args - Arguments to filter MailRolloutCohortMembers to count.
+     * @example
+     * // Count the number of MailRolloutCohortMembers
+     * const count = await prisma.mailRolloutCohortMember.count({
+     *   where: {
+     *     // ... the filter for the MailRolloutCohortMembers we want to count
+     *   }
+     * })
+    **/
+    count<T extends MailRolloutCohortMemberCountArgs>(
+      args?: Subset<T, MailRolloutCohortMemberCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MailRolloutCohortMemberCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MailRolloutCohortMember.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutCohortMemberAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MailRolloutCohortMemberAggregateArgs>(args: Subset<T, MailRolloutCohortMemberAggregateArgs>): Prisma.PrismaPromise<GetMailRolloutCohortMemberAggregateType<T>>
+
+    /**
+     * Group by MailRolloutCohortMember.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutCohortMemberGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MailRolloutCohortMemberGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MailRolloutCohortMemberGroupByArgs['orderBy'] }
+        : { orderBy?: MailRolloutCohortMemberGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MailRolloutCohortMemberGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMailRolloutCohortMemberGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MailRolloutCohortMember model
+   */
+  readonly fields: MailRolloutCohortMemberFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MailRolloutCohortMember.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MailRolloutCohortMemberClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    cohort<T extends MailRolloutCohortDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MailRolloutCohortDefaultArgs<ExtArgs>>): Prisma__MailRolloutCohortClient<$Result.GetResult<Prisma.$MailRolloutCohortPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MailRolloutCohortMember model
+   */
+  interface MailRolloutCohortMemberFieldRefs {
+    readonly id: FieldRef<"MailRolloutCohortMember", 'String'>
+    readonly cohortId: FieldRef<"MailRolloutCohortMember", 'String'>
+    readonly adminUserId: FieldRef<"MailRolloutCohortMember", 'String'>
+    readonly addedBy: FieldRef<"MailRolloutCohortMember", 'String'>
+    readonly addedAt: FieldRef<"MailRolloutCohortMember", 'DateTime'>
+    readonly removedAt: FieldRef<"MailRolloutCohortMember", 'DateTime'>
+    readonly removedBy: FieldRef<"MailRolloutCohortMember", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MailRolloutCohortMember findUnique
+   */
+  export type MailRolloutCohortMemberFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohortMember
+     */
+    select?: MailRolloutCohortMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohortMember
+     */
+    omit?: MailRolloutCohortMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortMemberInclude<ExtArgs> | null
+    /**
+     * Filter, which MailRolloutCohortMember to fetch.
+     */
+    where: MailRolloutCohortMemberWhereUniqueInput
+  }
+
+  /**
+   * MailRolloutCohortMember findUniqueOrThrow
+   */
+  export type MailRolloutCohortMemberFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohortMember
+     */
+    select?: MailRolloutCohortMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohortMember
+     */
+    omit?: MailRolloutCohortMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortMemberInclude<ExtArgs> | null
+    /**
+     * Filter, which MailRolloutCohortMember to fetch.
+     */
+    where: MailRolloutCohortMemberWhereUniqueInput
+  }
+
+  /**
+   * MailRolloutCohortMember findFirst
+   */
+  export type MailRolloutCohortMemberFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohortMember
+     */
+    select?: MailRolloutCohortMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohortMember
+     */
+    omit?: MailRolloutCohortMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortMemberInclude<ExtArgs> | null
+    /**
+     * Filter, which MailRolloutCohortMember to fetch.
+     */
+    where?: MailRolloutCohortMemberWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailRolloutCohortMembers to fetch.
+     */
+    orderBy?: MailRolloutCohortMemberOrderByWithRelationInput | MailRolloutCohortMemberOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailRolloutCohortMembers.
+     */
+    cursor?: MailRolloutCohortMemberWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailRolloutCohortMembers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailRolloutCohortMembers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailRolloutCohortMembers.
+     */
+    distinct?: MailRolloutCohortMemberScalarFieldEnum | MailRolloutCohortMemberScalarFieldEnum[]
+  }
+
+  /**
+   * MailRolloutCohortMember findFirstOrThrow
+   */
+  export type MailRolloutCohortMemberFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohortMember
+     */
+    select?: MailRolloutCohortMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohortMember
+     */
+    omit?: MailRolloutCohortMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortMemberInclude<ExtArgs> | null
+    /**
+     * Filter, which MailRolloutCohortMember to fetch.
+     */
+    where?: MailRolloutCohortMemberWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailRolloutCohortMembers to fetch.
+     */
+    orderBy?: MailRolloutCohortMemberOrderByWithRelationInput | MailRolloutCohortMemberOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailRolloutCohortMembers.
+     */
+    cursor?: MailRolloutCohortMemberWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailRolloutCohortMembers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailRolloutCohortMembers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailRolloutCohortMembers.
+     */
+    distinct?: MailRolloutCohortMemberScalarFieldEnum | MailRolloutCohortMemberScalarFieldEnum[]
+  }
+
+  /**
+   * MailRolloutCohortMember findMany
+   */
+  export type MailRolloutCohortMemberFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohortMember
+     */
+    select?: MailRolloutCohortMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohortMember
+     */
+    omit?: MailRolloutCohortMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortMemberInclude<ExtArgs> | null
+    /**
+     * Filter, which MailRolloutCohortMembers to fetch.
+     */
+    where?: MailRolloutCohortMemberWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailRolloutCohortMembers to fetch.
+     */
+    orderBy?: MailRolloutCohortMemberOrderByWithRelationInput | MailRolloutCohortMemberOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MailRolloutCohortMembers.
+     */
+    cursor?: MailRolloutCohortMemberWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailRolloutCohortMembers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailRolloutCohortMembers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailRolloutCohortMembers.
+     */
+    distinct?: MailRolloutCohortMemberScalarFieldEnum | MailRolloutCohortMemberScalarFieldEnum[]
+  }
+
+  /**
+   * MailRolloutCohortMember create
+   */
+  export type MailRolloutCohortMemberCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohortMember
+     */
+    select?: MailRolloutCohortMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohortMember
+     */
+    omit?: MailRolloutCohortMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortMemberInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MailRolloutCohortMember.
+     */
+    data: XOR<MailRolloutCohortMemberCreateInput, MailRolloutCohortMemberUncheckedCreateInput>
+  }
+
+  /**
+   * MailRolloutCohortMember createMany
+   */
+  export type MailRolloutCohortMemberCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MailRolloutCohortMembers.
+     */
+    data: MailRolloutCohortMemberCreateManyInput | MailRolloutCohortMemberCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailRolloutCohortMember createManyAndReturn
+   */
+  export type MailRolloutCohortMemberCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohortMember
+     */
+    select?: MailRolloutCohortMemberSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohortMember
+     */
+    omit?: MailRolloutCohortMemberOmit<ExtArgs> | null
+    /**
+     * The data used to create many MailRolloutCohortMembers.
+     */
+    data: MailRolloutCohortMemberCreateManyInput | MailRolloutCohortMemberCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortMemberIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MailRolloutCohortMember update
+   */
+  export type MailRolloutCohortMemberUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohortMember
+     */
+    select?: MailRolloutCohortMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohortMember
+     */
+    omit?: MailRolloutCohortMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortMemberInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MailRolloutCohortMember.
+     */
+    data: XOR<MailRolloutCohortMemberUpdateInput, MailRolloutCohortMemberUncheckedUpdateInput>
+    /**
+     * Choose, which MailRolloutCohortMember to update.
+     */
+    where: MailRolloutCohortMemberWhereUniqueInput
+  }
+
+  /**
+   * MailRolloutCohortMember updateMany
+   */
+  export type MailRolloutCohortMemberUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MailRolloutCohortMembers.
+     */
+    data: XOR<MailRolloutCohortMemberUpdateManyMutationInput, MailRolloutCohortMemberUncheckedUpdateManyInput>
+    /**
+     * Filter which MailRolloutCohortMembers to update
+     */
+    where?: MailRolloutCohortMemberWhereInput
+    /**
+     * Limit how many MailRolloutCohortMembers to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailRolloutCohortMember updateManyAndReturn
+   */
+  export type MailRolloutCohortMemberUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohortMember
+     */
+    select?: MailRolloutCohortMemberSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohortMember
+     */
+    omit?: MailRolloutCohortMemberOmit<ExtArgs> | null
+    /**
+     * The data used to update MailRolloutCohortMembers.
+     */
+    data: XOR<MailRolloutCohortMemberUpdateManyMutationInput, MailRolloutCohortMemberUncheckedUpdateManyInput>
+    /**
+     * Filter which MailRolloutCohortMembers to update
+     */
+    where?: MailRolloutCohortMemberWhereInput
+    /**
+     * Limit how many MailRolloutCohortMembers to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortMemberIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MailRolloutCohortMember upsert
+   */
+  export type MailRolloutCohortMemberUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohortMember
+     */
+    select?: MailRolloutCohortMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohortMember
+     */
+    omit?: MailRolloutCohortMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortMemberInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MailRolloutCohortMember to update in case it exists.
+     */
+    where: MailRolloutCohortMemberWhereUniqueInput
+    /**
+     * In case the MailRolloutCohortMember found by the `where` argument doesn't exist, create a new MailRolloutCohortMember with this data.
+     */
+    create: XOR<MailRolloutCohortMemberCreateInput, MailRolloutCohortMemberUncheckedCreateInput>
+    /**
+     * In case the MailRolloutCohortMember was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MailRolloutCohortMemberUpdateInput, MailRolloutCohortMemberUncheckedUpdateInput>
+  }
+
+  /**
+   * MailRolloutCohortMember delete
+   */
+  export type MailRolloutCohortMemberDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohortMember
+     */
+    select?: MailRolloutCohortMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohortMember
+     */
+    omit?: MailRolloutCohortMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortMemberInclude<ExtArgs> | null
+    /**
+     * Filter which MailRolloutCohortMember to delete.
+     */
+    where: MailRolloutCohortMemberWhereUniqueInput
+  }
+
+  /**
+   * MailRolloutCohortMember deleteMany
+   */
+  export type MailRolloutCohortMemberDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailRolloutCohortMembers to delete
+     */
+    where?: MailRolloutCohortMemberWhereInput
+    /**
+     * Limit how many MailRolloutCohortMembers to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailRolloutCohortMember without action
+   */
+  export type MailRolloutCohortMemberDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutCohortMember
+     */
+    select?: MailRolloutCohortMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutCohortMember
+     */
+    omit?: MailRolloutCohortMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailRolloutCohortMemberInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MailRolloutRule
+   */
+
+  export type AggregateMailRolloutRule = {
+    _count: MailRolloutRuleCountAggregateOutputType | null
+    _min: MailRolloutRuleMinAggregateOutputType | null
+    _max: MailRolloutRuleMaxAggregateOutputType | null
+  }
+
+  export type MailRolloutRuleMinAggregateOutputType = {
+    id: string | null
+    environment: string | null
+    capability: string | null
+    scopeType: string | null
+    scopeId: string | null
+    effect: string | null
+    reason: string | null
+    createdBy: string | null
+    createdAt: Date | null
+    revokedAt: Date | null
+    revokedBy: string | null
+  }
+
+  export type MailRolloutRuleMaxAggregateOutputType = {
+    id: string | null
+    environment: string | null
+    capability: string | null
+    scopeType: string | null
+    scopeId: string | null
+    effect: string | null
+    reason: string | null
+    createdBy: string | null
+    createdAt: Date | null
+    revokedAt: Date | null
+    revokedBy: string | null
+  }
+
+  export type MailRolloutRuleCountAggregateOutputType = {
+    id: number
+    environment: number
+    capability: number
+    scopeType: number
+    scopeId: number
+    effect: number
+    reason: number
+    createdBy: number
+    createdAt: number
+    revokedAt: number
+    revokedBy: number
+    _all: number
+  }
+
+
+  export type MailRolloutRuleMinAggregateInputType = {
+    id?: true
+    environment?: true
+    capability?: true
+    scopeType?: true
+    scopeId?: true
+    effect?: true
+    reason?: true
+    createdBy?: true
+    createdAt?: true
+    revokedAt?: true
+    revokedBy?: true
+  }
+
+  export type MailRolloutRuleMaxAggregateInputType = {
+    id?: true
+    environment?: true
+    capability?: true
+    scopeType?: true
+    scopeId?: true
+    effect?: true
+    reason?: true
+    createdBy?: true
+    createdAt?: true
+    revokedAt?: true
+    revokedBy?: true
+  }
+
+  export type MailRolloutRuleCountAggregateInputType = {
+    id?: true
+    environment?: true
+    capability?: true
+    scopeType?: true
+    scopeId?: true
+    effect?: true
+    reason?: true
+    createdBy?: true
+    createdAt?: true
+    revokedAt?: true
+    revokedBy?: true
+    _all?: true
+  }
+
+  export type MailRolloutRuleAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailRolloutRule to aggregate.
+     */
+    where?: MailRolloutRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailRolloutRules to fetch.
+     */
+    orderBy?: MailRolloutRuleOrderByWithRelationInput | MailRolloutRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MailRolloutRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailRolloutRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailRolloutRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MailRolloutRules
+    **/
+    _count?: true | MailRolloutRuleCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MailRolloutRuleMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MailRolloutRuleMaxAggregateInputType
+  }
+
+  export type GetMailRolloutRuleAggregateType<T extends MailRolloutRuleAggregateArgs> = {
+        [P in keyof T & keyof AggregateMailRolloutRule]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMailRolloutRule[P]>
+      : GetScalarType<T[P], AggregateMailRolloutRule[P]>
+  }
+
+
+
+
+  export type MailRolloutRuleGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailRolloutRuleWhereInput
+    orderBy?: MailRolloutRuleOrderByWithAggregationInput | MailRolloutRuleOrderByWithAggregationInput[]
+    by: MailRolloutRuleScalarFieldEnum[] | MailRolloutRuleScalarFieldEnum
+    having?: MailRolloutRuleScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MailRolloutRuleCountAggregateInputType | true
+    _min?: MailRolloutRuleMinAggregateInputType
+    _max?: MailRolloutRuleMaxAggregateInputType
+  }
+
+  export type MailRolloutRuleGroupByOutputType = {
+    id: string
+    environment: string
+    capability: string
+    scopeType: string
+    scopeId: string | null
+    effect: string
+    reason: string
+    createdBy: string
+    createdAt: Date
+    revokedAt: Date | null
+    revokedBy: string | null
+    _count: MailRolloutRuleCountAggregateOutputType | null
+    _min: MailRolloutRuleMinAggregateOutputType | null
+    _max: MailRolloutRuleMaxAggregateOutputType | null
+  }
+
+  type GetMailRolloutRuleGroupByPayload<T extends MailRolloutRuleGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MailRolloutRuleGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MailRolloutRuleGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MailRolloutRuleGroupByOutputType[P]>
+            : GetScalarType<T[P], MailRolloutRuleGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MailRolloutRuleSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    environment?: boolean
+    capability?: boolean
+    scopeType?: boolean
+    scopeId?: boolean
+    effect?: boolean
+    reason?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    revokedAt?: boolean
+    revokedBy?: boolean
+  }, ExtArgs["result"]["mailRolloutRule"]>
+
+  export type MailRolloutRuleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    environment?: boolean
+    capability?: boolean
+    scopeType?: boolean
+    scopeId?: boolean
+    effect?: boolean
+    reason?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    revokedAt?: boolean
+    revokedBy?: boolean
+  }, ExtArgs["result"]["mailRolloutRule"]>
+
+  export type MailRolloutRuleSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    environment?: boolean
+    capability?: boolean
+    scopeType?: boolean
+    scopeId?: boolean
+    effect?: boolean
+    reason?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    revokedAt?: boolean
+    revokedBy?: boolean
+  }, ExtArgs["result"]["mailRolloutRule"]>
+
+  export type MailRolloutRuleSelectScalar = {
+    id?: boolean
+    environment?: boolean
+    capability?: boolean
+    scopeType?: boolean
+    scopeId?: boolean
+    effect?: boolean
+    reason?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    revokedAt?: boolean
+    revokedBy?: boolean
+  }
+
+  export type MailRolloutRuleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "environment" | "capability" | "scopeType" | "scopeId" | "effect" | "reason" | "createdBy" | "createdAt" | "revokedAt" | "revokedBy", ExtArgs["result"]["mailRolloutRule"]>
+
+  export type $MailRolloutRulePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MailRolloutRule"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      environment: string
+      capability: string
+      scopeType: string
+      scopeId: string | null
+      effect: string
+      reason: string
+      createdBy: string
+      createdAt: Date
+      revokedAt: Date | null
+      revokedBy: string | null
+    }, ExtArgs["result"]["mailRolloutRule"]>
+    composites: {}
+  }
+
+  type MailRolloutRuleGetPayload<S extends boolean | null | undefined | MailRolloutRuleDefaultArgs> = $Result.GetResult<Prisma.$MailRolloutRulePayload, S>
+
+  type MailRolloutRuleCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MailRolloutRuleFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MailRolloutRuleCountAggregateInputType | true
+    }
+
+  export interface MailRolloutRuleDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MailRolloutRule'], meta: { name: 'MailRolloutRule' } }
+    /**
+     * Find zero or one MailRolloutRule that matches the filter.
+     * @param {MailRolloutRuleFindUniqueArgs} args - Arguments to find a MailRolloutRule
+     * @example
+     * // Get one MailRolloutRule
+     * const mailRolloutRule = await prisma.mailRolloutRule.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MailRolloutRuleFindUniqueArgs>(args: SelectSubset<T, MailRolloutRuleFindUniqueArgs<ExtArgs>>): Prisma__MailRolloutRuleClient<$Result.GetResult<Prisma.$MailRolloutRulePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MailRolloutRule that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MailRolloutRuleFindUniqueOrThrowArgs} args - Arguments to find a MailRolloutRule
+     * @example
+     * // Get one MailRolloutRule
+     * const mailRolloutRule = await prisma.mailRolloutRule.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MailRolloutRuleFindUniqueOrThrowArgs>(args: SelectSubset<T, MailRolloutRuleFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MailRolloutRuleClient<$Result.GetResult<Prisma.$MailRolloutRulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailRolloutRule that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutRuleFindFirstArgs} args - Arguments to find a MailRolloutRule
+     * @example
+     * // Get one MailRolloutRule
+     * const mailRolloutRule = await prisma.mailRolloutRule.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MailRolloutRuleFindFirstArgs>(args?: SelectSubset<T, MailRolloutRuleFindFirstArgs<ExtArgs>>): Prisma__MailRolloutRuleClient<$Result.GetResult<Prisma.$MailRolloutRulePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailRolloutRule that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutRuleFindFirstOrThrowArgs} args - Arguments to find a MailRolloutRule
+     * @example
+     * // Get one MailRolloutRule
+     * const mailRolloutRule = await prisma.mailRolloutRule.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MailRolloutRuleFindFirstOrThrowArgs>(args?: SelectSubset<T, MailRolloutRuleFindFirstOrThrowArgs<ExtArgs>>): Prisma__MailRolloutRuleClient<$Result.GetResult<Prisma.$MailRolloutRulePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MailRolloutRules that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutRuleFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MailRolloutRules
+     * const mailRolloutRules = await prisma.mailRolloutRule.findMany()
+     * 
+     * // Get first 10 MailRolloutRules
+     * const mailRolloutRules = await prisma.mailRolloutRule.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const mailRolloutRuleWithIdOnly = await prisma.mailRolloutRule.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MailRolloutRuleFindManyArgs>(args?: SelectSubset<T, MailRolloutRuleFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailRolloutRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MailRolloutRule.
+     * @param {MailRolloutRuleCreateArgs} args - Arguments to create a MailRolloutRule.
+     * @example
+     * // Create one MailRolloutRule
+     * const MailRolloutRule = await prisma.mailRolloutRule.create({
+     *   data: {
+     *     // ... data to create a MailRolloutRule
+     *   }
+     * })
+     * 
+     */
+    create<T extends MailRolloutRuleCreateArgs>(args: SelectSubset<T, MailRolloutRuleCreateArgs<ExtArgs>>): Prisma__MailRolloutRuleClient<$Result.GetResult<Prisma.$MailRolloutRulePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MailRolloutRules.
+     * @param {MailRolloutRuleCreateManyArgs} args - Arguments to create many MailRolloutRules.
+     * @example
+     * // Create many MailRolloutRules
+     * const mailRolloutRule = await prisma.mailRolloutRule.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MailRolloutRuleCreateManyArgs>(args?: SelectSubset<T, MailRolloutRuleCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MailRolloutRules and returns the data saved in the database.
+     * @param {MailRolloutRuleCreateManyAndReturnArgs} args - Arguments to create many MailRolloutRules.
+     * @example
+     * // Create many MailRolloutRules
+     * const mailRolloutRule = await prisma.mailRolloutRule.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MailRolloutRules and only return the `id`
+     * const mailRolloutRuleWithIdOnly = await prisma.mailRolloutRule.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MailRolloutRuleCreateManyAndReturnArgs>(args?: SelectSubset<T, MailRolloutRuleCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailRolloutRulePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MailRolloutRule.
+     * @param {MailRolloutRuleDeleteArgs} args - Arguments to delete one MailRolloutRule.
+     * @example
+     * // Delete one MailRolloutRule
+     * const MailRolloutRule = await prisma.mailRolloutRule.delete({
+     *   where: {
+     *     // ... filter to delete one MailRolloutRule
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MailRolloutRuleDeleteArgs>(args: SelectSubset<T, MailRolloutRuleDeleteArgs<ExtArgs>>): Prisma__MailRolloutRuleClient<$Result.GetResult<Prisma.$MailRolloutRulePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MailRolloutRule.
+     * @param {MailRolloutRuleUpdateArgs} args - Arguments to update one MailRolloutRule.
+     * @example
+     * // Update one MailRolloutRule
+     * const mailRolloutRule = await prisma.mailRolloutRule.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MailRolloutRuleUpdateArgs>(args: SelectSubset<T, MailRolloutRuleUpdateArgs<ExtArgs>>): Prisma__MailRolloutRuleClient<$Result.GetResult<Prisma.$MailRolloutRulePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MailRolloutRules.
+     * @param {MailRolloutRuleDeleteManyArgs} args - Arguments to filter MailRolloutRules to delete.
+     * @example
+     * // Delete a few MailRolloutRules
+     * const { count } = await prisma.mailRolloutRule.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MailRolloutRuleDeleteManyArgs>(args?: SelectSubset<T, MailRolloutRuleDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailRolloutRules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutRuleUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MailRolloutRules
+     * const mailRolloutRule = await prisma.mailRolloutRule.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MailRolloutRuleUpdateManyArgs>(args: SelectSubset<T, MailRolloutRuleUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailRolloutRules and returns the data updated in the database.
+     * @param {MailRolloutRuleUpdateManyAndReturnArgs} args - Arguments to update many MailRolloutRules.
+     * @example
+     * // Update many MailRolloutRules
+     * const mailRolloutRule = await prisma.mailRolloutRule.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MailRolloutRules and only return the `id`
+     * const mailRolloutRuleWithIdOnly = await prisma.mailRolloutRule.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MailRolloutRuleUpdateManyAndReturnArgs>(args: SelectSubset<T, MailRolloutRuleUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailRolloutRulePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MailRolloutRule.
+     * @param {MailRolloutRuleUpsertArgs} args - Arguments to update or create a MailRolloutRule.
+     * @example
+     * // Update or create a MailRolloutRule
+     * const mailRolloutRule = await prisma.mailRolloutRule.upsert({
+     *   create: {
+     *     // ... data to create a MailRolloutRule
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MailRolloutRule we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MailRolloutRuleUpsertArgs>(args: SelectSubset<T, MailRolloutRuleUpsertArgs<ExtArgs>>): Prisma__MailRolloutRuleClient<$Result.GetResult<Prisma.$MailRolloutRulePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MailRolloutRules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutRuleCountArgs} args - Arguments to filter MailRolloutRules to count.
+     * @example
+     * // Count the number of MailRolloutRules
+     * const count = await prisma.mailRolloutRule.count({
+     *   where: {
+     *     // ... the filter for the MailRolloutRules we want to count
+     *   }
+     * })
+    **/
+    count<T extends MailRolloutRuleCountArgs>(
+      args?: Subset<T, MailRolloutRuleCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MailRolloutRuleCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MailRolloutRule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutRuleAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MailRolloutRuleAggregateArgs>(args: Subset<T, MailRolloutRuleAggregateArgs>): Prisma.PrismaPromise<GetMailRolloutRuleAggregateType<T>>
+
+    /**
+     * Group by MailRolloutRule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRolloutRuleGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MailRolloutRuleGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MailRolloutRuleGroupByArgs['orderBy'] }
+        : { orderBy?: MailRolloutRuleGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MailRolloutRuleGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMailRolloutRuleGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MailRolloutRule model
+   */
+  readonly fields: MailRolloutRuleFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MailRolloutRule.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MailRolloutRuleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MailRolloutRule model
+   */
+  interface MailRolloutRuleFieldRefs {
+    readonly id: FieldRef<"MailRolloutRule", 'String'>
+    readonly environment: FieldRef<"MailRolloutRule", 'String'>
+    readonly capability: FieldRef<"MailRolloutRule", 'String'>
+    readonly scopeType: FieldRef<"MailRolloutRule", 'String'>
+    readonly scopeId: FieldRef<"MailRolloutRule", 'String'>
+    readonly effect: FieldRef<"MailRolloutRule", 'String'>
+    readonly reason: FieldRef<"MailRolloutRule", 'String'>
+    readonly createdBy: FieldRef<"MailRolloutRule", 'String'>
+    readonly createdAt: FieldRef<"MailRolloutRule", 'DateTime'>
+    readonly revokedAt: FieldRef<"MailRolloutRule", 'DateTime'>
+    readonly revokedBy: FieldRef<"MailRolloutRule", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MailRolloutRule findUnique
+   */
+  export type MailRolloutRuleFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutRule
+     */
+    select?: MailRolloutRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutRule
+     */
+    omit?: MailRolloutRuleOmit<ExtArgs> | null
+    /**
+     * Filter, which MailRolloutRule to fetch.
+     */
+    where: MailRolloutRuleWhereUniqueInput
+  }
+
+  /**
+   * MailRolloutRule findUniqueOrThrow
+   */
+  export type MailRolloutRuleFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutRule
+     */
+    select?: MailRolloutRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutRule
+     */
+    omit?: MailRolloutRuleOmit<ExtArgs> | null
+    /**
+     * Filter, which MailRolloutRule to fetch.
+     */
+    where: MailRolloutRuleWhereUniqueInput
+  }
+
+  /**
+   * MailRolloutRule findFirst
+   */
+  export type MailRolloutRuleFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutRule
+     */
+    select?: MailRolloutRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutRule
+     */
+    omit?: MailRolloutRuleOmit<ExtArgs> | null
+    /**
+     * Filter, which MailRolloutRule to fetch.
+     */
+    where?: MailRolloutRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailRolloutRules to fetch.
+     */
+    orderBy?: MailRolloutRuleOrderByWithRelationInput | MailRolloutRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailRolloutRules.
+     */
+    cursor?: MailRolloutRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailRolloutRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailRolloutRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailRolloutRules.
+     */
+    distinct?: MailRolloutRuleScalarFieldEnum | MailRolloutRuleScalarFieldEnum[]
+  }
+
+  /**
+   * MailRolloutRule findFirstOrThrow
+   */
+  export type MailRolloutRuleFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutRule
+     */
+    select?: MailRolloutRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutRule
+     */
+    omit?: MailRolloutRuleOmit<ExtArgs> | null
+    /**
+     * Filter, which MailRolloutRule to fetch.
+     */
+    where?: MailRolloutRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailRolloutRules to fetch.
+     */
+    orderBy?: MailRolloutRuleOrderByWithRelationInput | MailRolloutRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailRolloutRules.
+     */
+    cursor?: MailRolloutRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailRolloutRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailRolloutRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailRolloutRules.
+     */
+    distinct?: MailRolloutRuleScalarFieldEnum | MailRolloutRuleScalarFieldEnum[]
+  }
+
+  /**
+   * MailRolloutRule findMany
+   */
+  export type MailRolloutRuleFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutRule
+     */
+    select?: MailRolloutRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutRule
+     */
+    omit?: MailRolloutRuleOmit<ExtArgs> | null
+    /**
+     * Filter, which MailRolloutRules to fetch.
+     */
+    where?: MailRolloutRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailRolloutRules to fetch.
+     */
+    orderBy?: MailRolloutRuleOrderByWithRelationInput | MailRolloutRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MailRolloutRules.
+     */
+    cursor?: MailRolloutRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailRolloutRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailRolloutRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailRolloutRules.
+     */
+    distinct?: MailRolloutRuleScalarFieldEnum | MailRolloutRuleScalarFieldEnum[]
+  }
+
+  /**
+   * MailRolloutRule create
+   */
+  export type MailRolloutRuleCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutRule
+     */
+    select?: MailRolloutRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutRule
+     */
+    omit?: MailRolloutRuleOmit<ExtArgs> | null
+    /**
+     * The data needed to create a MailRolloutRule.
+     */
+    data: XOR<MailRolloutRuleCreateInput, MailRolloutRuleUncheckedCreateInput>
+  }
+
+  /**
+   * MailRolloutRule createMany
+   */
+  export type MailRolloutRuleCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MailRolloutRules.
+     */
+    data: MailRolloutRuleCreateManyInput | MailRolloutRuleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailRolloutRule createManyAndReturn
+   */
+  export type MailRolloutRuleCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutRule
+     */
+    select?: MailRolloutRuleSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutRule
+     */
+    omit?: MailRolloutRuleOmit<ExtArgs> | null
+    /**
+     * The data used to create many MailRolloutRules.
+     */
+    data: MailRolloutRuleCreateManyInput | MailRolloutRuleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailRolloutRule update
+   */
+  export type MailRolloutRuleUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutRule
+     */
+    select?: MailRolloutRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutRule
+     */
+    omit?: MailRolloutRuleOmit<ExtArgs> | null
+    /**
+     * The data needed to update a MailRolloutRule.
+     */
+    data: XOR<MailRolloutRuleUpdateInput, MailRolloutRuleUncheckedUpdateInput>
+    /**
+     * Choose, which MailRolloutRule to update.
+     */
+    where: MailRolloutRuleWhereUniqueInput
+  }
+
+  /**
+   * MailRolloutRule updateMany
+   */
+  export type MailRolloutRuleUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MailRolloutRules.
+     */
+    data: XOR<MailRolloutRuleUpdateManyMutationInput, MailRolloutRuleUncheckedUpdateManyInput>
+    /**
+     * Filter which MailRolloutRules to update
+     */
+    where?: MailRolloutRuleWhereInput
+    /**
+     * Limit how many MailRolloutRules to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailRolloutRule updateManyAndReturn
+   */
+  export type MailRolloutRuleUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutRule
+     */
+    select?: MailRolloutRuleSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutRule
+     */
+    omit?: MailRolloutRuleOmit<ExtArgs> | null
+    /**
+     * The data used to update MailRolloutRules.
+     */
+    data: XOR<MailRolloutRuleUpdateManyMutationInput, MailRolloutRuleUncheckedUpdateManyInput>
+    /**
+     * Filter which MailRolloutRules to update
+     */
+    where?: MailRolloutRuleWhereInput
+    /**
+     * Limit how many MailRolloutRules to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailRolloutRule upsert
+   */
+  export type MailRolloutRuleUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutRule
+     */
+    select?: MailRolloutRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutRule
+     */
+    omit?: MailRolloutRuleOmit<ExtArgs> | null
+    /**
+     * The filter to search for the MailRolloutRule to update in case it exists.
+     */
+    where: MailRolloutRuleWhereUniqueInput
+    /**
+     * In case the MailRolloutRule found by the `where` argument doesn't exist, create a new MailRolloutRule with this data.
+     */
+    create: XOR<MailRolloutRuleCreateInput, MailRolloutRuleUncheckedCreateInput>
+    /**
+     * In case the MailRolloutRule was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MailRolloutRuleUpdateInput, MailRolloutRuleUncheckedUpdateInput>
+  }
+
+  /**
+   * MailRolloutRule delete
+   */
+  export type MailRolloutRuleDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutRule
+     */
+    select?: MailRolloutRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutRule
+     */
+    omit?: MailRolloutRuleOmit<ExtArgs> | null
+    /**
+     * Filter which MailRolloutRule to delete.
+     */
+    where: MailRolloutRuleWhereUniqueInput
+  }
+
+  /**
+   * MailRolloutRule deleteMany
+   */
+  export type MailRolloutRuleDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailRolloutRules to delete
+     */
+    where?: MailRolloutRuleWhereInput
+    /**
+     * Limit how many MailRolloutRules to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailRolloutRule without action
+   */
+  export type MailRolloutRuleDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRolloutRule
+     */
+    select?: MailRolloutRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRolloutRule
+     */
+    omit?: MailRolloutRuleOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MailEmergencyStop
+   */
+
+  export type AggregateMailEmergencyStop = {
+    _count: MailEmergencyStopCountAggregateOutputType | null
+    _min: MailEmergencyStopMinAggregateOutputType | null
+    _max: MailEmergencyStopMaxAggregateOutputType | null
+  }
+
+  export type MailEmergencyStopMinAggregateOutputType = {
+    id: string | null
+    environment: string | null
+    scope: string | null
+    organizationId: string | null
+    reason: string | null
+    activatedBy: string | null
+    activatedAt: Date | null
+    releasedAt: Date | null
+    releasedBy: string | null
+  }
+
+  export type MailEmergencyStopMaxAggregateOutputType = {
+    id: string | null
+    environment: string | null
+    scope: string | null
+    organizationId: string | null
+    reason: string | null
+    activatedBy: string | null
+    activatedAt: Date | null
+    releasedAt: Date | null
+    releasedBy: string | null
+  }
+
+  export type MailEmergencyStopCountAggregateOutputType = {
+    id: number
+    environment: number
+    scope: number
+    organizationId: number
+    reason: number
+    activatedBy: number
+    activatedAt: number
+    releasedAt: number
+    releasedBy: number
+    _all: number
+  }
+
+
+  export type MailEmergencyStopMinAggregateInputType = {
+    id?: true
+    environment?: true
+    scope?: true
+    organizationId?: true
+    reason?: true
+    activatedBy?: true
+    activatedAt?: true
+    releasedAt?: true
+    releasedBy?: true
+  }
+
+  export type MailEmergencyStopMaxAggregateInputType = {
+    id?: true
+    environment?: true
+    scope?: true
+    organizationId?: true
+    reason?: true
+    activatedBy?: true
+    activatedAt?: true
+    releasedAt?: true
+    releasedBy?: true
+  }
+
+  export type MailEmergencyStopCountAggregateInputType = {
+    id?: true
+    environment?: true
+    scope?: true
+    organizationId?: true
+    reason?: true
+    activatedBy?: true
+    activatedAt?: true
+    releasedAt?: true
+    releasedBy?: true
+    _all?: true
+  }
+
+  export type MailEmergencyStopAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailEmergencyStop to aggregate.
+     */
+    where?: MailEmergencyStopWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailEmergencyStops to fetch.
+     */
+    orderBy?: MailEmergencyStopOrderByWithRelationInput | MailEmergencyStopOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MailEmergencyStopWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailEmergencyStops from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailEmergencyStops.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MailEmergencyStops
+    **/
+    _count?: true | MailEmergencyStopCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MailEmergencyStopMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MailEmergencyStopMaxAggregateInputType
+  }
+
+  export type GetMailEmergencyStopAggregateType<T extends MailEmergencyStopAggregateArgs> = {
+        [P in keyof T & keyof AggregateMailEmergencyStop]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMailEmergencyStop[P]>
+      : GetScalarType<T[P], AggregateMailEmergencyStop[P]>
+  }
+
+
+
+
+  export type MailEmergencyStopGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailEmergencyStopWhereInput
+    orderBy?: MailEmergencyStopOrderByWithAggregationInput | MailEmergencyStopOrderByWithAggregationInput[]
+    by: MailEmergencyStopScalarFieldEnum[] | MailEmergencyStopScalarFieldEnum
+    having?: MailEmergencyStopScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MailEmergencyStopCountAggregateInputType | true
+    _min?: MailEmergencyStopMinAggregateInputType
+    _max?: MailEmergencyStopMaxAggregateInputType
+  }
+
+  export type MailEmergencyStopGroupByOutputType = {
+    id: string
+    environment: string
+    scope: string
+    organizationId: string | null
+    reason: string
+    activatedBy: string
+    activatedAt: Date
+    releasedAt: Date | null
+    releasedBy: string | null
+    _count: MailEmergencyStopCountAggregateOutputType | null
+    _min: MailEmergencyStopMinAggregateOutputType | null
+    _max: MailEmergencyStopMaxAggregateOutputType | null
+  }
+
+  type GetMailEmergencyStopGroupByPayload<T extends MailEmergencyStopGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MailEmergencyStopGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MailEmergencyStopGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MailEmergencyStopGroupByOutputType[P]>
+            : GetScalarType<T[P], MailEmergencyStopGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MailEmergencyStopSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    environment?: boolean
+    scope?: boolean
+    organizationId?: boolean
+    reason?: boolean
+    activatedBy?: boolean
+    activatedAt?: boolean
+    releasedAt?: boolean
+    releasedBy?: boolean
+  }, ExtArgs["result"]["mailEmergencyStop"]>
+
+  export type MailEmergencyStopSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    environment?: boolean
+    scope?: boolean
+    organizationId?: boolean
+    reason?: boolean
+    activatedBy?: boolean
+    activatedAt?: boolean
+    releasedAt?: boolean
+    releasedBy?: boolean
+  }, ExtArgs["result"]["mailEmergencyStop"]>
+
+  export type MailEmergencyStopSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    environment?: boolean
+    scope?: boolean
+    organizationId?: boolean
+    reason?: boolean
+    activatedBy?: boolean
+    activatedAt?: boolean
+    releasedAt?: boolean
+    releasedBy?: boolean
+  }, ExtArgs["result"]["mailEmergencyStop"]>
+
+  export type MailEmergencyStopSelectScalar = {
+    id?: boolean
+    environment?: boolean
+    scope?: boolean
+    organizationId?: boolean
+    reason?: boolean
+    activatedBy?: boolean
+    activatedAt?: boolean
+    releasedAt?: boolean
+    releasedBy?: boolean
+  }
+
+  export type MailEmergencyStopOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "environment" | "scope" | "organizationId" | "reason" | "activatedBy" | "activatedAt" | "releasedAt" | "releasedBy", ExtArgs["result"]["mailEmergencyStop"]>
+
+  export type $MailEmergencyStopPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MailEmergencyStop"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      environment: string
+      scope: string
+      organizationId: string | null
+      reason: string
+      activatedBy: string
+      activatedAt: Date
+      releasedAt: Date | null
+      releasedBy: string | null
+    }, ExtArgs["result"]["mailEmergencyStop"]>
+    composites: {}
+  }
+
+  type MailEmergencyStopGetPayload<S extends boolean | null | undefined | MailEmergencyStopDefaultArgs> = $Result.GetResult<Prisma.$MailEmergencyStopPayload, S>
+
+  type MailEmergencyStopCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MailEmergencyStopFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MailEmergencyStopCountAggregateInputType | true
+    }
+
+  export interface MailEmergencyStopDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MailEmergencyStop'], meta: { name: 'MailEmergencyStop' } }
+    /**
+     * Find zero or one MailEmergencyStop that matches the filter.
+     * @param {MailEmergencyStopFindUniqueArgs} args - Arguments to find a MailEmergencyStop
+     * @example
+     * // Get one MailEmergencyStop
+     * const mailEmergencyStop = await prisma.mailEmergencyStop.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MailEmergencyStopFindUniqueArgs>(args: SelectSubset<T, MailEmergencyStopFindUniqueArgs<ExtArgs>>): Prisma__MailEmergencyStopClient<$Result.GetResult<Prisma.$MailEmergencyStopPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MailEmergencyStop that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MailEmergencyStopFindUniqueOrThrowArgs} args - Arguments to find a MailEmergencyStop
+     * @example
+     * // Get one MailEmergencyStop
+     * const mailEmergencyStop = await prisma.mailEmergencyStop.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MailEmergencyStopFindUniqueOrThrowArgs>(args: SelectSubset<T, MailEmergencyStopFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MailEmergencyStopClient<$Result.GetResult<Prisma.$MailEmergencyStopPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailEmergencyStop that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailEmergencyStopFindFirstArgs} args - Arguments to find a MailEmergencyStop
+     * @example
+     * // Get one MailEmergencyStop
+     * const mailEmergencyStop = await prisma.mailEmergencyStop.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MailEmergencyStopFindFirstArgs>(args?: SelectSubset<T, MailEmergencyStopFindFirstArgs<ExtArgs>>): Prisma__MailEmergencyStopClient<$Result.GetResult<Prisma.$MailEmergencyStopPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailEmergencyStop that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailEmergencyStopFindFirstOrThrowArgs} args - Arguments to find a MailEmergencyStop
+     * @example
+     * // Get one MailEmergencyStop
+     * const mailEmergencyStop = await prisma.mailEmergencyStop.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MailEmergencyStopFindFirstOrThrowArgs>(args?: SelectSubset<T, MailEmergencyStopFindFirstOrThrowArgs<ExtArgs>>): Prisma__MailEmergencyStopClient<$Result.GetResult<Prisma.$MailEmergencyStopPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MailEmergencyStops that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailEmergencyStopFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MailEmergencyStops
+     * const mailEmergencyStops = await prisma.mailEmergencyStop.findMany()
+     * 
+     * // Get first 10 MailEmergencyStops
+     * const mailEmergencyStops = await prisma.mailEmergencyStop.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const mailEmergencyStopWithIdOnly = await prisma.mailEmergencyStop.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MailEmergencyStopFindManyArgs>(args?: SelectSubset<T, MailEmergencyStopFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailEmergencyStopPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MailEmergencyStop.
+     * @param {MailEmergencyStopCreateArgs} args - Arguments to create a MailEmergencyStop.
+     * @example
+     * // Create one MailEmergencyStop
+     * const MailEmergencyStop = await prisma.mailEmergencyStop.create({
+     *   data: {
+     *     // ... data to create a MailEmergencyStop
+     *   }
+     * })
+     * 
+     */
+    create<T extends MailEmergencyStopCreateArgs>(args: SelectSubset<T, MailEmergencyStopCreateArgs<ExtArgs>>): Prisma__MailEmergencyStopClient<$Result.GetResult<Prisma.$MailEmergencyStopPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MailEmergencyStops.
+     * @param {MailEmergencyStopCreateManyArgs} args - Arguments to create many MailEmergencyStops.
+     * @example
+     * // Create many MailEmergencyStops
+     * const mailEmergencyStop = await prisma.mailEmergencyStop.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MailEmergencyStopCreateManyArgs>(args?: SelectSubset<T, MailEmergencyStopCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MailEmergencyStops and returns the data saved in the database.
+     * @param {MailEmergencyStopCreateManyAndReturnArgs} args - Arguments to create many MailEmergencyStops.
+     * @example
+     * // Create many MailEmergencyStops
+     * const mailEmergencyStop = await prisma.mailEmergencyStop.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MailEmergencyStops and only return the `id`
+     * const mailEmergencyStopWithIdOnly = await prisma.mailEmergencyStop.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MailEmergencyStopCreateManyAndReturnArgs>(args?: SelectSubset<T, MailEmergencyStopCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailEmergencyStopPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MailEmergencyStop.
+     * @param {MailEmergencyStopDeleteArgs} args - Arguments to delete one MailEmergencyStop.
+     * @example
+     * // Delete one MailEmergencyStop
+     * const MailEmergencyStop = await prisma.mailEmergencyStop.delete({
+     *   where: {
+     *     // ... filter to delete one MailEmergencyStop
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MailEmergencyStopDeleteArgs>(args: SelectSubset<T, MailEmergencyStopDeleteArgs<ExtArgs>>): Prisma__MailEmergencyStopClient<$Result.GetResult<Prisma.$MailEmergencyStopPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MailEmergencyStop.
+     * @param {MailEmergencyStopUpdateArgs} args - Arguments to update one MailEmergencyStop.
+     * @example
+     * // Update one MailEmergencyStop
+     * const mailEmergencyStop = await prisma.mailEmergencyStop.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MailEmergencyStopUpdateArgs>(args: SelectSubset<T, MailEmergencyStopUpdateArgs<ExtArgs>>): Prisma__MailEmergencyStopClient<$Result.GetResult<Prisma.$MailEmergencyStopPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MailEmergencyStops.
+     * @param {MailEmergencyStopDeleteManyArgs} args - Arguments to filter MailEmergencyStops to delete.
+     * @example
+     * // Delete a few MailEmergencyStops
+     * const { count } = await prisma.mailEmergencyStop.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MailEmergencyStopDeleteManyArgs>(args?: SelectSubset<T, MailEmergencyStopDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailEmergencyStops.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailEmergencyStopUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MailEmergencyStops
+     * const mailEmergencyStop = await prisma.mailEmergencyStop.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MailEmergencyStopUpdateManyArgs>(args: SelectSubset<T, MailEmergencyStopUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailEmergencyStops and returns the data updated in the database.
+     * @param {MailEmergencyStopUpdateManyAndReturnArgs} args - Arguments to update many MailEmergencyStops.
+     * @example
+     * // Update many MailEmergencyStops
+     * const mailEmergencyStop = await prisma.mailEmergencyStop.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MailEmergencyStops and only return the `id`
+     * const mailEmergencyStopWithIdOnly = await prisma.mailEmergencyStop.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MailEmergencyStopUpdateManyAndReturnArgs>(args: SelectSubset<T, MailEmergencyStopUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailEmergencyStopPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MailEmergencyStop.
+     * @param {MailEmergencyStopUpsertArgs} args - Arguments to update or create a MailEmergencyStop.
+     * @example
+     * // Update or create a MailEmergencyStop
+     * const mailEmergencyStop = await prisma.mailEmergencyStop.upsert({
+     *   create: {
+     *     // ... data to create a MailEmergencyStop
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MailEmergencyStop we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MailEmergencyStopUpsertArgs>(args: SelectSubset<T, MailEmergencyStopUpsertArgs<ExtArgs>>): Prisma__MailEmergencyStopClient<$Result.GetResult<Prisma.$MailEmergencyStopPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MailEmergencyStops.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailEmergencyStopCountArgs} args - Arguments to filter MailEmergencyStops to count.
+     * @example
+     * // Count the number of MailEmergencyStops
+     * const count = await prisma.mailEmergencyStop.count({
+     *   where: {
+     *     // ... the filter for the MailEmergencyStops we want to count
+     *   }
+     * })
+    **/
+    count<T extends MailEmergencyStopCountArgs>(
+      args?: Subset<T, MailEmergencyStopCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MailEmergencyStopCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MailEmergencyStop.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailEmergencyStopAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MailEmergencyStopAggregateArgs>(args: Subset<T, MailEmergencyStopAggregateArgs>): Prisma.PrismaPromise<GetMailEmergencyStopAggregateType<T>>
+
+    /**
+     * Group by MailEmergencyStop.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailEmergencyStopGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MailEmergencyStopGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MailEmergencyStopGroupByArgs['orderBy'] }
+        : { orderBy?: MailEmergencyStopGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MailEmergencyStopGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMailEmergencyStopGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MailEmergencyStop model
+   */
+  readonly fields: MailEmergencyStopFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MailEmergencyStop.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MailEmergencyStopClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MailEmergencyStop model
+   */
+  interface MailEmergencyStopFieldRefs {
+    readonly id: FieldRef<"MailEmergencyStop", 'String'>
+    readonly environment: FieldRef<"MailEmergencyStop", 'String'>
+    readonly scope: FieldRef<"MailEmergencyStop", 'String'>
+    readonly organizationId: FieldRef<"MailEmergencyStop", 'String'>
+    readonly reason: FieldRef<"MailEmergencyStop", 'String'>
+    readonly activatedBy: FieldRef<"MailEmergencyStop", 'String'>
+    readonly activatedAt: FieldRef<"MailEmergencyStop", 'DateTime'>
+    readonly releasedAt: FieldRef<"MailEmergencyStop", 'DateTime'>
+    readonly releasedBy: FieldRef<"MailEmergencyStop", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MailEmergencyStop findUnique
+   */
+  export type MailEmergencyStopFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailEmergencyStop
+     */
+    select?: MailEmergencyStopSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailEmergencyStop
+     */
+    omit?: MailEmergencyStopOmit<ExtArgs> | null
+    /**
+     * Filter, which MailEmergencyStop to fetch.
+     */
+    where: MailEmergencyStopWhereUniqueInput
+  }
+
+  /**
+   * MailEmergencyStop findUniqueOrThrow
+   */
+  export type MailEmergencyStopFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailEmergencyStop
+     */
+    select?: MailEmergencyStopSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailEmergencyStop
+     */
+    omit?: MailEmergencyStopOmit<ExtArgs> | null
+    /**
+     * Filter, which MailEmergencyStop to fetch.
+     */
+    where: MailEmergencyStopWhereUniqueInput
+  }
+
+  /**
+   * MailEmergencyStop findFirst
+   */
+  export type MailEmergencyStopFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailEmergencyStop
+     */
+    select?: MailEmergencyStopSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailEmergencyStop
+     */
+    omit?: MailEmergencyStopOmit<ExtArgs> | null
+    /**
+     * Filter, which MailEmergencyStop to fetch.
+     */
+    where?: MailEmergencyStopWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailEmergencyStops to fetch.
+     */
+    orderBy?: MailEmergencyStopOrderByWithRelationInput | MailEmergencyStopOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailEmergencyStops.
+     */
+    cursor?: MailEmergencyStopWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailEmergencyStops from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailEmergencyStops.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailEmergencyStops.
+     */
+    distinct?: MailEmergencyStopScalarFieldEnum | MailEmergencyStopScalarFieldEnum[]
+  }
+
+  /**
+   * MailEmergencyStop findFirstOrThrow
+   */
+  export type MailEmergencyStopFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailEmergencyStop
+     */
+    select?: MailEmergencyStopSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailEmergencyStop
+     */
+    omit?: MailEmergencyStopOmit<ExtArgs> | null
+    /**
+     * Filter, which MailEmergencyStop to fetch.
+     */
+    where?: MailEmergencyStopWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailEmergencyStops to fetch.
+     */
+    orderBy?: MailEmergencyStopOrderByWithRelationInput | MailEmergencyStopOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailEmergencyStops.
+     */
+    cursor?: MailEmergencyStopWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailEmergencyStops from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailEmergencyStops.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailEmergencyStops.
+     */
+    distinct?: MailEmergencyStopScalarFieldEnum | MailEmergencyStopScalarFieldEnum[]
+  }
+
+  /**
+   * MailEmergencyStop findMany
+   */
+  export type MailEmergencyStopFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailEmergencyStop
+     */
+    select?: MailEmergencyStopSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailEmergencyStop
+     */
+    omit?: MailEmergencyStopOmit<ExtArgs> | null
+    /**
+     * Filter, which MailEmergencyStops to fetch.
+     */
+    where?: MailEmergencyStopWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailEmergencyStops to fetch.
+     */
+    orderBy?: MailEmergencyStopOrderByWithRelationInput | MailEmergencyStopOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MailEmergencyStops.
+     */
+    cursor?: MailEmergencyStopWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailEmergencyStops from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailEmergencyStops.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailEmergencyStops.
+     */
+    distinct?: MailEmergencyStopScalarFieldEnum | MailEmergencyStopScalarFieldEnum[]
+  }
+
+  /**
+   * MailEmergencyStop create
+   */
+  export type MailEmergencyStopCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailEmergencyStop
+     */
+    select?: MailEmergencyStopSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailEmergencyStop
+     */
+    omit?: MailEmergencyStopOmit<ExtArgs> | null
+    /**
+     * The data needed to create a MailEmergencyStop.
+     */
+    data: XOR<MailEmergencyStopCreateInput, MailEmergencyStopUncheckedCreateInput>
+  }
+
+  /**
+   * MailEmergencyStop createMany
+   */
+  export type MailEmergencyStopCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MailEmergencyStops.
+     */
+    data: MailEmergencyStopCreateManyInput | MailEmergencyStopCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailEmergencyStop createManyAndReturn
+   */
+  export type MailEmergencyStopCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailEmergencyStop
+     */
+    select?: MailEmergencyStopSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailEmergencyStop
+     */
+    omit?: MailEmergencyStopOmit<ExtArgs> | null
+    /**
+     * The data used to create many MailEmergencyStops.
+     */
+    data: MailEmergencyStopCreateManyInput | MailEmergencyStopCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailEmergencyStop update
+   */
+  export type MailEmergencyStopUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailEmergencyStop
+     */
+    select?: MailEmergencyStopSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailEmergencyStop
+     */
+    omit?: MailEmergencyStopOmit<ExtArgs> | null
+    /**
+     * The data needed to update a MailEmergencyStop.
+     */
+    data: XOR<MailEmergencyStopUpdateInput, MailEmergencyStopUncheckedUpdateInput>
+    /**
+     * Choose, which MailEmergencyStop to update.
+     */
+    where: MailEmergencyStopWhereUniqueInput
+  }
+
+  /**
+   * MailEmergencyStop updateMany
+   */
+  export type MailEmergencyStopUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MailEmergencyStops.
+     */
+    data: XOR<MailEmergencyStopUpdateManyMutationInput, MailEmergencyStopUncheckedUpdateManyInput>
+    /**
+     * Filter which MailEmergencyStops to update
+     */
+    where?: MailEmergencyStopWhereInput
+    /**
+     * Limit how many MailEmergencyStops to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailEmergencyStop updateManyAndReturn
+   */
+  export type MailEmergencyStopUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailEmergencyStop
+     */
+    select?: MailEmergencyStopSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailEmergencyStop
+     */
+    omit?: MailEmergencyStopOmit<ExtArgs> | null
+    /**
+     * The data used to update MailEmergencyStops.
+     */
+    data: XOR<MailEmergencyStopUpdateManyMutationInput, MailEmergencyStopUncheckedUpdateManyInput>
+    /**
+     * Filter which MailEmergencyStops to update
+     */
+    where?: MailEmergencyStopWhereInput
+    /**
+     * Limit how many MailEmergencyStops to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailEmergencyStop upsert
+   */
+  export type MailEmergencyStopUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailEmergencyStop
+     */
+    select?: MailEmergencyStopSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailEmergencyStop
+     */
+    omit?: MailEmergencyStopOmit<ExtArgs> | null
+    /**
+     * The filter to search for the MailEmergencyStop to update in case it exists.
+     */
+    where: MailEmergencyStopWhereUniqueInput
+    /**
+     * In case the MailEmergencyStop found by the `where` argument doesn't exist, create a new MailEmergencyStop with this data.
+     */
+    create: XOR<MailEmergencyStopCreateInput, MailEmergencyStopUncheckedCreateInput>
+    /**
+     * In case the MailEmergencyStop was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MailEmergencyStopUpdateInput, MailEmergencyStopUncheckedUpdateInput>
+  }
+
+  /**
+   * MailEmergencyStop delete
+   */
+  export type MailEmergencyStopDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailEmergencyStop
+     */
+    select?: MailEmergencyStopSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailEmergencyStop
+     */
+    omit?: MailEmergencyStopOmit<ExtArgs> | null
+    /**
+     * Filter which MailEmergencyStop to delete.
+     */
+    where: MailEmergencyStopWhereUniqueInput
+  }
+
+  /**
+   * MailEmergencyStop deleteMany
+   */
+  export type MailEmergencyStopDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailEmergencyStops to delete
+     */
+    where?: MailEmergencyStopWhereInput
+    /**
+     * Limit how many MailEmergencyStops to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailEmergencyStop without action
+   */
+  export type MailEmergencyStopDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailEmergencyStop
+     */
+    select?: MailEmergencyStopSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailEmergencyStop
+     */
+    omit?: MailEmergencyStopOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -240078,6 +244780,63 @@ export namespace Prisma {
   };
 
   export type MailOpsAlertScalarFieldEnum = (typeof MailOpsAlertScalarFieldEnum)[keyof typeof MailOpsAlertScalarFieldEnum]
+
+
+  export const MailRolloutCohortScalarFieldEnum: {
+    id: 'id',
+    key: 'key',
+    name: 'name',
+    description: 'description',
+    createdBy: 'createdBy',
+    createdAt: 'createdAt'
+  };
+
+  export type MailRolloutCohortScalarFieldEnum = (typeof MailRolloutCohortScalarFieldEnum)[keyof typeof MailRolloutCohortScalarFieldEnum]
+
+
+  export const MailRolloutCohortMemberScalarFieldEnum: {
+    id: 'id',
+    cohortId: 'cohortId',
+    adminUserId: 'adminUserId',
+    addedBy: 'addedBy',
+    addedAt: 'addedAt',
+    removedAt: 'removedAt',
+    removedBy: 'removedBy'
+  };
+
+  export type MailRolloutCohortMemberScalarFieldEnum = (typeof MailRolloutCohortMemberScalarFieldEnum)[keyof typeof MailRolloutCohortMemberScalarFieldEnum]
+
+
+  export const MailRolloutRuleScalarFieldEnum: {
+    id: 'id',
+    environment: 'environment',
+    capability: 'capability',
+    scopeType: 'scopeType',
+    scopeId: 'scopeId',
+    effect: 'effect',
+    reason: 'reason',
+    createdBy: 'createdBy',
+    createdAt: 'createdAt',
+    revokedAt: 'revokedAt',
+    revokedBy: 'revokedBy'
+  };
+
+  export type MailRolloutRuleScalarFieldEnum = (typeof MailRolloutRuleScalarFieldEnum)[keyof typeof MailRolloutRuleScalarFieldEnum]
+
+
+  export const MailEmergencyStopScalarFieldEnum: {
+    id: 'id',
+    environment: 'environment',
+    scope: 'scope',
+    organizationId: 'organizationId',
+    reason: 'reason',
+    activatedBy: 'activatedBy',
+    activatedAt: 'activatedAt',
+    releasedAt: 'releasedAt',
+    releasedBy: 'releasedBy'
+  };
+
+  export type MailEmergencyStopScalarFieldEnum = (typeof MailEmergencyStopScalarFieldEnum)[keyof typeof MailEmergencyStopScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -260011,6 +264770,285 @@ export namespace Prisma {
     acknowledgedAt?: DateTimeNullableWithAggregatesFilter<"MailOpsAlert"> | Date | string | null
     acknowledgedBy?: StringNullableWithAggregatesFilter<"MailOpsAlert"> | string | null
     resolvedAt?: DateTimeNullableWithAggregatesFilter<"MailOpsAlert"> | Date | string | null
+  }
+
+  export type MailRolloutCohortWhereInput = {
+    AND?: MailRolloutCohortWhereInput | MailRolloutCohortWhereInput[]
+    OR?: MailRolloutCohortWhereInput[]
+    NOT?: MailRolloutCohortWhereInput | MailRolloutCohortWhereInput[]
+    id?: UuidFilter<"MailRolloutCohort"> | string
+    key?: StringFilter<"MailRolloutCohort"> | string
+    name?: StringFilter<"MailRolloutCohort"> | string
+    description?: StringNullableFilter<"MailRolloutCohort"> | string | null
+    createdBy?: StringFilter<"MailRolloutCohort"> | string
+    createdAt?: DateTimeFilter<"MailRolloutCohort"> | Date | string
+    members?: MailRolloutCohortMemberListRelationFilter
+  }
+
+  export type MailRolloutCohortOrderByWithRelationInput = {
+    id?: SortOrder
+    key?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    members?: MailRolloutCohortMemberOrderByRelationAggregateInput
+  }
+
+  export type MailRolloutCohortWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    key?: string
+    AND?: MailRolloutCohortWhereInput | MailRolloutCohortWhereInput[]
+    OR?: MailRolloutCohortWhereInput[]
+    NOT?: MailRolloutCohortWhereInput | MailRolloutCohortWhereInput[]
+    name?: StringFilter<"MailRolloutCohort"> | string
+    description?: StringNullableFilter<"MailRolloutCohort"> | string | null
+    createdBy?: StringFilter<"MailRolloutCohort"> | string
+    createdAt?: DateTimeFilter<"MailRolloutCohort"> | Date | string
+    members?: MailRolloutCohortMemberListRelationFilter
+  }, "id" | "key">
+
+  export type MailRolloutCohortOrderByWithAggregationInput = {
+    id?: SortOrder
+    key?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    _count?: MailRolloutCohortCountOrderByAggregateInput
+    _max?: MailRolloutCohortMaxOrderByAggregateInput
+    _min?: MailRolloutCohortMinOrderByAggregateInput
+  }
+
+  export type MailRolloutCohortScalarWhereWithAggregatesInput = {
+    AND?: MailRolloutCohortScalarWhereWithAggregatesInput | MailRolloutCohortScalarWhereWithAggregatesInput[]
+    OR?: MailRolloutCohortScalarWhereWithAggregatesInput[]
+    NOT?: MailRolloutCohortScalarWhereWithAggregatesInput | MailRolloutCohortScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MailRolloutCohort"> | string
+    key?: StringWithAggregatesFilter<"MailRolloutCohort"> | string
+    name?: StringWithAggregatesFilter<"MailRolloutCohort"> | string
+    description?: StringNullableWithAggregatesFilter<"MailRolloutCohort"> | string | null
+    createdBy?: StringWithAggregatesFilter<"MailRolloutCohort"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"MailRolloutCohort"> | Date | string
+  }
+
+  export type MailRolloutCohortMemberWhereInput = {
+    AND?: MailRolloutCohortMemberWhereInput | MailRolloutCohortMemberWhereInput[]
+    OR?: MailRolloutCohortMemberWhereInput[]
+    NOT?: MailRolloutCohortMemberWhereInput | MailRolloutCohortMemberWhereInput[]
+    id?: UuidFilter<"MailRolloutCohortMember"> | string
+    cohortId?: UuidFilter<"MailRolloutCohortMember"> | string
+    adminUserId?: StringFilter<"MailRolloutCohortMember"> | string
+    addedBy?: StringFilter<"MailRolloutCohortMember"> | string
+    addedAt?: DateTimeFilter<"MailRolloutCohortMember"> | Date | string
+    removedAt?: DateTimeNullableFilter<"MailRolloutCohortMember"> | Date | string | null
+    removedBy?: StringNullableFilter<"MailRolloutCohortMember"> | string | null
+    cohort?: XOR<MailRolloutCohortScalarRelationFilter, MailRolloutCohortWhereInput>
+  }
+
+  export type MailRolloutCohortMemberOrderByWithRelationInput = {
+    id?: SortOrder
+    cohortId?: SortOrder
+    adminUserId?: SortOrder
+    addedBy?: SortOrder
+    addedAt?: SortOrder
+    removedAt?: SortOrderInput | SortOrder
+    removedBy?: SortOrderInput | SortOrder
+    cohort?: MailRolloutCohortOrderByWithRelationInput
+  }
+
+  export type MailRolloutCohortMemberWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: MailRolloutCohortMemberWhereInput | MailRolloutCohortMemberWhereInput[]
+    OR?: MailRolloutCohortMemberWhereInput[]
+    NOT?: MailRolloutCohortMemberWhereInput | MailRolloutCohortMemberWhereInput[]
+    cohortId?: UuidFilter<"MailRolloutCohortMember"> | string
+    adminUserId?: StringFilter<"MailRolloutCohortMember"> | string
+    addedBy?: StringFilter<"MailRolloutCohortMember"> | string
+    addedAt?: DateTimeFilter<"MailRolloutCohortMember"> | Date | string
+    removedAt?: DateTimeNullableFilter<"MailRolloutCohortMember"> | Date | string | null
+    removedBy?: StringNullableFilter<"MailRolloutCohortMember"> | string | null
+    cohort?: XOR<MailRolloutCohortScalarRelationFilter, MailRolloutCohortWhereInput>
+  }, "id">
+
+  export type MailRolloutCohortMemberOrderByWithAggregationInput = {
+    id?: SortOrder
+    cohortId?: SortOrder
+    adminUserId?: SortOrder
+    addedBy?: SortOrder
+    addedAt?: SortOrder
+    removedAt?: SortOrderInput | SortOrder
+    removedBy?: SortOrderInput | SortOrder
+    _count?: MailRolloutCohortMemberCountOrderByAggregateInput
+    _max?: MailRolloutCohortMemberMaxOrderByAggregateInput
+    _min?: MailRolloutCohortMemberMinOrderByAggregateInput
+  }
+
+  export type MailRolloutCohortMemberScalarWhereWithAggregatesInput = {
+    AND?: MailRolloutCohortMemberScalarWhereWithAggregatesInput | MailRolloutCohortMemberScalarWhereWithAggregatesInput[]
+    OR?: MailRolloutCohortMemberScalarWhereWithAggregatesInput[]
+    NOT?: MailRolloutCohortMemberScalarWhereWithAggregatesInput | MailRolloutCohortMemberScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MailRolloutCohortMember"> | string
+    cohortId?: UuidWithAggregatesFilter<"MailRolloutCohortMember"> | string
+    adminUserId?: StringWithAggregatesFilter<"MailRolloutCohortMember"> | string
+    addedBy?: StringWithAggregatesFilter<"MailRolloutCohortMember"> | string
+    addedAt?: DateTimeWithAggregatesFilter<"MailRolloutCohortMember"> | Date | string
+    removedAt?: DateTimeNullableWithAggregatesFilter<"MailRolloutCohortMember"> | Date | string | null
+    removedBy?: StringNullableWithAggregatesFilter<"MailRolloutCohortMember"> | string | null
+  }
+
+  export type MailRolloutRuleWhereInput = {
+    AND?: MailRolloutRuleWhereInput | MailRolloutRuleWhereInput[]
+    OR?: MailRolloutRuleWhereInput[]
+    NOT?: MailRolloutRuleWhereInput | MailRolloutRuleWhereInput[]
+    id?: UuidFilter<"MailRolloutRule"> | string
+    environment?: StringFilter<"MailRolloutRule"> | string
+    capability?: StringFilter<"MailRolloutRule"> | string
+    scopeType?: StringFilter<"MailRolloutRule"> | string
+    scopeId?: StringNullableFilter<"MailRolloutRule"> | string | null
+    effect?: StringFilter<"MailRolloutRule"> | string
+    reason?: StringFilter<"MailRolloutRule"> | string
+    createdBy?: StringFilter<"MailRolloutRule"> | string
+    createdAt?: DateTimeFilter<"MailRolloutRule"> | Date | string
+    revokedAt?: DateTimeNullableFilter<"MailRolloutRule"> | Date | string | null
+    revokedBy?: StringNullableFilter<"MailRolloutRule"> | string | null
+  }
+
+  export type MailRolloutRuleOrderByWithRelationInput = {
+    id?: SortOrder
+    environment?: SortOrder
+    capability?: SortOrder
+    scopeType?: SortOrder
+    scopeId?: SortOrderInput | SortOrder
+    effect?: SortOrder
+    reason?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    revokedAt?: SortOrderInput | SortOrder
+    revokedBy?: SortOrderInput | SortOrder
+  }
+
+  export type MailRolloutRuleWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: MailRolloutRuleWhereInput | MailRolloutRuleWhereInput[]
+    OR?: MailRolloutRuleWhereInput[]
+    NOT?: MailRolloutRuleWhereInput | MailRolloutRuleWhereInput[]
+    environment?: StringFilter<"MailRolloutRule"> | string
+    capability?: StringFilter<"MailRolloutRule"> | string
+    scopeType?: StringFilter<"MailRolloutRule"> | string
+    scopeId?: StringNullableFilter<"MailRolloutRule"> | string | null
+    effect?: StringFilter<"MailRolloutRule"> | string
+    reason?: StringFilter<"MailRolloutRule"> | string
+    createdBy?: StringFilter<"MailRolloutRule"> | string
+    createdAt?: DateTimeFilter<"MailRolloutRule"> | Date | string
+    revokedAt?: DateTimeNullableFilter<"MailRolloutRule"> | Date | string | null
+    revokedBy?: StringNullableFilter<"MailRolloutRule"> | string | null
+  }, "id">
+
+  export type MailRolloutRuleOrderByWithAggregationInput = {
+    id?: SortOrder
+    environment?: SortOrder
+    capability?: SortOrder
+    scopeType?: SortOrder
+    scopeId?: SortOrderInput | SortOrder
+    effect?: SortOrder
+    reason?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    revokedAt?: SortOrderInput | SortOrder
+    revokedBy?: SortOrderInput | SortOrder
+    _count?: MailRolloutRuleCountOrderByAggregateInput
+    _max?: MailRolloutRuleMaxOrderByAggregateInput
+    _min?: MailRolloutRuleMinOrderByAggregateInput
+  }
+
+  export type MailRolloutRuleScalarWhereWithAggregatesInput = {
+    AND?: MailRolloutRuleScalarWhereWithAggregatesInput | MailRolloutRuleScalarWhereWithAggregatesInput[]
+    OR?: MailRolloutRuleScalarWhereWithAggregatesInput[]
+    NOT?: MailRolloutRuleScalarWhereWithAggregatesInput | MailRolloutRuleScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MailRolloutRule"> | string
+    environment?: StringWithAggregatesFilter<"MailRolloutRule"> | string
+    capability?: StringWithAggregatesFilter<"MailRolloutRule"> | string
+    scopeType?: StringWithAggregatesFilter<"MailRolloutRule"> | string
+    scopeId?: StringNullableWithAggregatesFilter<"MailRolloutRule"> | string | null
+    effect?: StringWithAggregatesFilter<"MailRolloutRule"> | string
+    reason?: StringWithAggregatesFilter<"MailRolloutRule"> | string
+    createdBy?: StringWithAggregatesFilter<"MailRolloutRule"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"MailRolloutRule"> | Date | string
+    revokedAt?: DateTimeNullableWithAggregatesFilter<"MailRolloutRule"> | Date | string | null
+    revokedBy?: StringNullableWithAggregatesFilter<"MailRolloutRule"> | string | null
+  }
+
+  export type MailEmergencyStopWhereInput = {
+    AND?: MailEmergencyStopWhereInput | MailEmergencyStopWhereInput[]
+    OR?: MailEmergencyStopWhereInput[]
+    NOT?: MailEmergencyStopWhereInput | MailEmergencyStopWhereInput[]
+    id?: UuidFilter<"MailEmergencyStop"> | string
+    environment?: StringFilter<"MailEmergencyStop"> | string
+    scope?: StringFilter<"MailEmergencyStop"> | string
+    organizationId?: UuidNullableFilter<"MailEmergencyStop"> | string | null
+    reason?: StringFilter<"MailEmergencyStop"> | string
+    activatedBy?: StringFilter<"MailEmergencyStop"> | string
+    activatedAt?: DateTimeFilter<"MailEmergencyStop"> | Date | string
+    releasedAt?: DateTimeNullableFilter<"MailEmergencyStop"> | Date | string | null
+    releasedBy?: StringNullableFilter<"MailEmergencyStop"> | string | null
+  }
+
+  export type MailEmergencyStopOrderByWithRelationInput = {
+    id?: SortOrder
+    environment?: SortOrder
+    scope?: SortOrder
+    organizationId?: SortOrderInput | SortOrder
+    reason?: SortOrder
+    activatedBy?: SortOrder
+    activatedAt?: SortOrder
+    releasedAt?: SortOrderInput | SortOrder
+    releasedBy?: SortOrderInput | SortOrder
+  }
+
+  export type MailEmergencyStopWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: MailEmergencyStopWhereInput | MailEmergencyStopWhereInput[]
+    OR?: MailEmergencyStopWhereInput[]
+    NOT?: MailEmergencyStopWhereInput | MailEmergencyStopWhereInput[]
+    environment?: StringFilter<"MailEmergencyStop"> | string
+    scope?: StringFilter<"MailEmergencyStop"> | string
+    organizationId?: UuidNullableFilter<"MailEmergencyStop"> | string | null
+    reason?: StringFilter<"MailEmergencyStop"> | string
+    activatedBy?: StringFilter<"MailEmergencyStop"> | string
+    activatedAt?: DateTimeFilter<"MailEmergencyStop"> | Date | string
+    releasedAt?: DateTimeNullableFilter<"MailEmergencyStop"> | Date | string | null
+    releasedBy?: StringNullableFilter<"MailEmergencyStop"> | string | null
+  }, "id">
+
+  export type MailEmergencyStopOrderByWithAggregationInput = {
+    id?: SortOrder
+    environment?: SortOrder
+    scope?: SortOrder
+    organizationId?: SortOrderInput | SortOrder
+    reason?: SortOrder
+    activatedBy?: SortOrder
+    activatedAt?: SortOrder
+    releasedAt?: SortOrderInput | SortOrder
+    releasedBy?: SortOrderInput | SortOrder
+    _count?: MailEmergencyStopCountOrderByAggregateInput
+    _max?: MailEmergencyStopMaxOrderByAggregateInput
+    _min?: MailEmergencyStopMinOrderByAggregateInput
+  }
+
+  export type MailEmergencyStopScalarWhereWithAggregatesInput = {
+    AND?: MailEmergencyStopScalarWhereWithAggregatesInput | MailEmergencyStopScalarWhereWithAggregatesInput[]
+    OR?: MailEmergencyStopScalarWhereWithAggregatesInput[]
+    NOT?: MailEmergencyStopScalarWhereWithAggregatesInput | MailEmergencyStopScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MailEmergencyStop"> | string
+    environment?: StringWithAggregatesFilter<"MailEmergencyStop"> | string
+    scope?: StringWithAggregatesFilter<"MailEmergencyStop"> | string
+    organizationId?: UuidNullableWithAggregatesFilter<"MailEmergencyStop"> | string | null
+    reason?: StringWithAggregatesFilter<"MailEmergencyStop"> | string
+    activatedBy?: StringWithAggregatesFilter<"MailEmergencyStop"> | string
+    activatedAt?: DateTimeWithAggregatesFilter<"MailEmergencyStop"> | Date | string
+    releasedAt?: DateTimeNullableWithAggregatesFilter<"MailEmergencyStop"> | Date | string | null
+    releasedBy?: StringNullableWithAggregatesFilter<"MailEmergencyStop"> | string | null
   }
 
   export type AdminUserCreateInput = {
@@ -280402,6 +285440,324 @@ export namespace Prisma {
     resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type MailRolloutCohortCreateInput = {
+    id?: string
+    key: string
+    name: string
+    description?: string | null
+    createdBy: string
+    createdAt: Date | string
+    members?: MailRolloutCohortMemberCreateNestedManyWithoutCohortInput
+  }
+
+  export type MailRolloutCohortUncheckedCreateInput = {
+    id?: string
+    key: string
+    name: string
+    description?: string | null
+    createdBy: string
+    createdAt: Date | string
+    members?: MailRolloutCohortMemberUncheckedCreateNestedManyWithoutCohortInput
+  }
+
+  export type MailRolloutCohortUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: MailRolloutCohortMemberUpdateManyWithoutCohortNestedInput
+  }
+
+  export type MailRolloutCohortUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: MailRolloutCohortMemberUncheckedUpdateManyWithoutCohortNestedInput
+  }
+
+  export type MailRolloutCohortCreateManyInput = {
+    id?: string
+    key: string
+    name: string
+    description?: string | null
+    createdBy: string
+    createdAt: Date | string
+  }
+
+  export type MailRolloutCohortUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailRolloutCohortUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailRolloutCohortMemberCreateInput = {
+    id?: string
+    adminUserId: string
+    addedBy: string
+    addedAt: Date | string
+    removedAt?: Date | string | null
+    removedBy?: string | null
+    cohort: MailRolloutCohortCreateNestedOneWithoutMembersInput
+  }
+
+  export type MailRolloutCohortMemberUncheckedCreateInput = {
+    id?: string
+    cohortId: string
+    adminUserId: string
+    addedBy: string
+    addedAt: Date | string
+    removedAt?: Date | string | null
+    removedBy?: string | null
+  }
+
+  export type MailRolloutCohortMemberUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    addedBy?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    removedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    removedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    cohort?: MailRolloutCohortUpdateOneRequiredWithoutMembersNestedInput
+  }
+
+  export type MailRolloutCohortMemberUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    cohortId?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    addedBy?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    removedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    removedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type MailRolloutCohortMemberCreateManyInput = {
+    id?: string
+    cohortId: string
+    adminUserId: string
+    addedBy: string
+    addedAt: Date | string
+    removedAt?: Date | string | null
+    removedBy?: string | null
+  }
+
+  export type MailRolloutCohortMemberUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    addedBy?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    removedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    removedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type MailRolloutCohortMemberUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    cohortId?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    addedBy?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    removedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    removedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type MailRolloutRuleCreateInput = {
+    id?: string
+    environment: string
+    capability: string
+    scopeType: string
+    scopeId?: string | null
+    effect: string
+    reason: string
+    createdBy: string
+    createdAt: Date | string
+    revokedAt?: Date | string | null
+    revokedBy?: string | null
+  }
+
+  export type MailRolloutRuleUncheckedCreateInput = {
+    id?: string
+    environment: string
+    capability: string
+    scopeType: string
+    scopeId?: string | null
+    effect: string
+    reason: string
+    createdBy: string
+    createdAt: Date | string
+    revokedAt?: Date | string | null
+    revokedBy?: string | null
+  }
+
+  export type MailRolloutRuleUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    capability?: StringFieldUpdateOperationsInput | string
+    scopeType?: StringFieldUpdateOperationsInput | string
+    scopeId?: NullableStringFieldUpdateOperationsInput | string | null
+    effect?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type MailRolloutRuleUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    capability?: StringFieldUpdateOperationsInput | string
+    scopeType?: StringFieldUpdateOperationsInput | string
+    scopeId?: NullableStringFieldUpdateOperationsInput | string | null
+    effect?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type MailRolloutRuleCreateManyInput = {
+    id?: string
+    environment: string
+    capability: string
+    scopeType: string
+    scopeId?: string | null
+    effect: string
+    reason: string
+    createdBy: string
+    createdAt: Date | string
+    revokedAt?: Date | string | null
+    revokedBy?: string | null
+  }
+
+  export type MailRolloutRuleUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    capability?: StringFieldUpdateOperationsInput | string
+    scopeType?: StringFieldUpdateOperationsInput | string
+    scopeId?: NullableStringFieldUpdateOperationsInput | string | null
+    effect?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type MailRolloutRuleUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    capability?: StringFieldUpdateOperationsInput | string
+    scopeType?: StringFieldUpdateOperationsInput | string
+    scopeId?: NullableStringFieldUpdateOperationsInput | string | null
+    effect?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type MailEmergencyStopCreateInput = {
+    id?: string
+    environment: string
+    scope: string
+    organizationId?: string | null
+    reason: string
+    activatedBy: string
+    activatedAt: Date | string
+    releasedAt?: Date | string | null
+    releasedBy?: string | null
+  }
+
+  export type MailEmergencyStopUncheckedCreateInput = {
+    id?: string
+    environment: string
+    scope: string
+    organizationId?: string | null
+    reason: string
+    activatedBy: string
+    activatedAt: Date | string
+    releasedAt?: Date | string | null
+    releasedBy?: string | null
+  }
+
+  export type MailEmergencyStopUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    scope?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: StringFieldUpdateOperationsInput | string
+    activatedBy?: StringFieldUpdateOperationsInput | string
+    activatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    releasedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type MailEmergencyStopUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    scope?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: StringFieldUpdateOperationsInput | string
+    activatedBy?: StringFieldUpdateOperationsInput | string
+    activatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    releasedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type MailEmergencyStopCreateManyInput = {
+    id?: string
+    environment: string
+    scope: string
+    organizationId?: string | null
+    reason: string
+    activatedBy: string
+    activatedAt: Date | string
+    releasedAt?: Date | string | null
+    releasedBy?: string | null
+  }
+
+  export type MailEmergencyStopUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    scope?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: StringFieldUpdateOperationsInput | string
+    activatedBy?: StringFieldUpdateOperationsInput | string
+    activatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    releasedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type MailEmergencyStopUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    scope?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: StringFieldUpdateOperationsInput | string
+    activatedBy?: StringFieldUpdateOperationsInput | string
+    activatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    releasedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -294525,6 +299881,156 @@ export namespace Prisma {
 
   export type MailOpsAlertSumOrderByAggregateInput = {
     occurrences?: SortOrder
+  }
+
+  export type MailRolloutCohortMemberListRelationFilter = {
+    every?: MailRolloutCohortMemberWhereInput
+    some?: MailRolloutCohortMemberWhereInput
+    none?: MailRolloutCohortMemberWhereInput
+  }
+
+  export type MailRolloutCohortMemberOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MailRolloutCohortCountOrderByAggregateInput = {
+    id?: SortOrder
+    key?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MailRolloutCohortMaxOrderByAggregateInput = {
+    id?: SortOrder
+    key?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MailRolloutCohortMinOrderByAggregateInput = {
+    id?: SortOrder
+    key?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MailRolloutCohortScalarRelationFilter = {
+    is?: MailRolloutCohortWhereInput
+    isNot?: MailRolloutCohortWhereInput
+  }
+
+  export type MailRolloutCohortMemberCountOrderByAggregateInput = {
+    id?: SortOrder
+    cohortId?: SortOrder
+    adminUserId?: SortOrder
+    addedBy?: SortOrder
+    addedAt?: SortOrder
+    removedAt?: SortOrder
+    removedBy?: SortOrder
+  }
+
+  export type MailRolloutCohortMemberMaxOrderByAggregateInput = {
+    id?: SortOrder
+    cohortId?: SortOrder
+    adminUserId?: SortOrder
+    addedBy?: SortOrder
+    addedAt?: SortOrder
+    removedAt?: SortOrder
+    removedBy?: SortOrder
+  }
+
+  export type MailRolloutCohortMemberMinOrderByAggregateInput = {
+    id?: SortOrder
+    cohortId?: SortOrder
+    adminUserId?: SortOrder
+    addedBy?: SortOrder
+    addedAt?: SortOrder
+    removedAt?: SortOrder
+    removedBy?: SortOrder
+  }
+
+  export type MailRolloutRuleCountOrderByAggregateInput = {
+    id?: SortOrder
+    environment?: SortOrder
+    capability?: SortOrder
+    scopeType?: SortOrder
+    scopeId?: SortOrder
+    effect?: SortOrder
+    reason?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    revokedAt?: SortOrder
+    revokedBy?: SortOrder
+  }
+
+  export type MailRolloutRuleMaxOrderByAggregateInput = {
+    id?: SortOrder
+    environment?: SortOrder
+    capability?: SortOrder
+    scopeType?: SortOrder
+    scopeId?: SortOrder
+    effect?: SortOrder
+    reason?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    revokedAt?: SortOrder
+    revokedBy?: SortOrder
+  }
+
+  export type MailRolloutRuleMinOrderByAggregateInput = {
+    id?: SortOrder
+    environment?: SortOrder
+    capability?: SortOrder
+    scopeType?: SortOrder
+    scopeId?: SortOrder
+    effect?: SortOrder
+    reason?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    revokedAt?: SortOrder
+    revokedBy?: SortOrder
+  }
+
+  export type MailEmergencyStopCountOrderByAggregateInput = {
+    id?: SortOrder
+    environment?: SortOrder
+    scope?: SortOrder
+    organizationId?: SortOrder
+    reason?: SortOrder
+    activatedBy?: SortOrder
+    activatedAt?: SortOrder
+    releasedAt?: SortOrder
+    releasedBy?: SortOrder
+  }
+
+  export type MailEmergencyStopMaxOrderByAggregateInput = {
+    id?: SortOrder
+    environment?: SortOrder
+    scope?: SortOrder
+    organizationId?: SortOrder
+    reason?: SortOrder
+    activatedBy?: SortOrder
+    activatedAt?: SortOrder
+    releasedAt?: SortOrder
+    releasedBy?: SortOrder
+  }
+
+  export type MailEmergencyStopMinOrderByAggregateInput = {
+    id?: SortOrder
+    environment?: SortOrder
+    scope?: SortOrder
+    organizationId?: SortOrder
+    reason?: SortOrder
+    activatedBy?: SortOrder
+    activatedAt?: SortOrder
+    releasedAt?: SortOrder
+    releasedBy?: SortOrder
   }
 
   export type AdminSessionCreateNestedManyWithoutAdminUserInput = {
@@ -309624,6 +315130,62 @@ export namespace Prisma {
 
   export type EnumMailRetentionRunStatusFieldUpdateOperationsInput = {
     set?: $Enums.MailRetentionRunStatus
+  }
+
+  export type MailRolloutCohortMemberCreateNestedManyWithoutCohortInput = {
+    create?: XOR<MailRolloutCohortMemberCreateWithoutCohortInput, MailRolloutCohortMemberUncheckedCreateWithoutCohortInput> | MailRolloutCohortMemberCreateWithoutCohortInput[] | MailRolloutCohortMemberUncheckedCreateWithoutCohortInput[]
+    connectOrCreate?: MailRolloutCohortMemberCreateOrConnectWithoutCohortInput | MailRolloutCohortMemberCreateOrConnectWithoutCohortInput[]
+    createMany?: MailRolloutCohortMemberCreateManyCohortInputEnvelope
+    connect?: MailRolloutCohortMemberWhereUniqueInput | MailRolloutCohortMemberWhereUniqueInput[]
+  }
+
+  export type MailRolloutCohortMemberUncheckedCreateNestedManyWithoutCohortInput = {
+    create?: XOR<MailRolloutCohortMemberCreateWithoutCohortInput, MailRolloutCohortMemberUncheckedCreateWithoutCohortInput> | MailRolloutCohortMemberCreateWithoutCohortInput[] | MailRolloutCohortMemberUncheckedCreateWithoutCohortInput[]
+    connectOrCreate?: MailRolloutCohortMemberCreateOrConnectWithoutCohortInput | MailRolloutCohortMemberCreateOrConnectWithoutCohortInput[]
+    createMany?: MailRolloutCohortMemberCreateManyCohortInputEnvelope
+    connect?: MailRolloutCohortMemberWhereUniqueInput | MailRolloutCohortMemberWhereUniqueInput[]
+  }
+
+  export type MailRolloutCohortMemberUpdateManyWithoutCohortNestedInput = {
+    create?: XOR<MailRolloutCohortMemberCreateWithoutCohortInput, MailRolloutCohortMemberUncheckedCreateWithoutCohortInput> | MailRolloutCohortMemberCreateWithoutCohortInput[] | MailRolloutCohortMemberUncheckedCreateWithoutCohortInput[]
+    connectOrCreate?: MailRolloutCohortMemberCreateOrConnectWithoutCohortInput | MailRolloutCohortMemberCreateOrConnectWithoutCohortInput[]
+    upsert?: MailRolloutCohortMemberUpsertWithWhereUniqueWithoutCohortInput | MailRolloutCohortMemberUpsertWithWhereUniqueWithoutCohortInput[]
+    createMany?: MailRolloutCohortMemberCreateManyCohortInputEnvelope
+    set?: MailRolloutCohortMemberWhereUniqueInput | MailRolloutCohortMemberWhereUniqueInput[]
+    disconnect?: MailRolloutCohortMemberWhereUniqueInput | MailRolloutCohortMemberWhereUniqueInput[]
+    delete?: MailRolloutCohortMemberWhereUniqueInput | MailRolloutCohortMemberWhereUniqueInput[]
+    connect?: MailRolloutCohortMemberWhereUniqueInput | MailRolloutCohortMemberWhereUniqueInput[]
+    update?: MailRolloutCohortMemberUpdateWithWhereUniqueWithoutCohortInput | MailRolloutCohortMemberUpdateWithWhereUniqueWithoutCohortInput[]
+    updateMany?: MailRolloutCohortMemberUpdateManyWithWhereWithoutCohortInput | MailRolloutCohortMemberUpdateManyWithWhereWithoutCohortInput[]
+    deleteMany?: MailRolloutCohortMemberScalarWhereInput | MailRolloutCohortMemberScalarWhereInput[]
+  }
+
+  export type MailRolloutCohortMemberUncheckedUpdateManyWithoutCohortNestedInput = {
+    create?: XOR<MailRolloutCohortMemberCreateWithoutCohortInput, MailRolloutCohortMemberUncheckedCreateWithoutCohortInput> | MailRolloutCohortMemberCreateWithoutCohortInput[] | MailRolloutCohortMemberUncheckedCreateWithoutCohortInput[]
+    connectOrCreate?: MailRolloutCohortMemberCreateOrConnectWithoutCohortInput | MailRolloutCohortMemberCreateOrConnectWithoutCohortInput[]
+    upsert?: MailRolloutCohortMemberUpsertWithWhereUniqueWithoutCohortInput | MailRolloutCohortMemberUpsertWithWhereUniqueWithoutCohortInput[]
+    createMany?: MailRolloutCohortMemberCreateManyCohortInputEnvelope
+    set?: MailRolloutCohortMemberWhereUniqueInput | MailRolloutCohortMemberWhereUniqueInput[]
+    disconnect?: MailRolloutCohortMemberWhereUniqueInput | MailRolloutCohortMemberWhereUniqueInput[]
+    delete?: MailRolloutCohortMemberWhereUniqueInput | MailRolloutCohortMemberWhereUniqueInput[]
+    connect?: MailRolloutCohortMemberWhereUniqueInput | MailRolloutCohortMemberWhereUniqueInput[]
+    update?: MailRolloutCohortMemberUpdateWithWhereUniqueWithoutCohortInput | MailRolloutCohortMemberUpdateWithWhereUniqueWithoutCohortInput[]
+    updateMany?: MailRolloutCohortMemberUpdateManyWithWhereWithoutCohortInput | MailRolloutCohortMemberUpdateManyWithWhereWithoutCohortInput[]
+    deleteMany?: MailRolloutCohortMemberScalarWhereInput | MailRolloutCohortMemberScalarWhereInput[]
+  }
+
+  export type MailRolloutCohortCreateNestedOneWithoutMembersInput = {
+    create?: XOR<MailRolloutCohortCreateWithoutMembersInput, MailRolloutCohortUncheckedCreateWithoutMembersInput>
+    connectOrCreate?: MailRolloutCohortCreateOrConnectWithoutMembersInput
+    connect?: MailRolloutCohortWhereUniqueInput
+  }
+
+  export type MailRolloutCohortUpdateOneRequiredWithoutMembersNestedInput = {
+    create?: XOR<MailRolloutCohortCreateWithoutMembersInput, MailRolloutCohortUncheckedCreateWithoutMembersInput>
+    connectOrCreate?: MailRolloutCohortCreateOrConnectWithoutMembersInput
+    upsert?: MailRolloutCohortUpsertWithoutMembersInput
+    connect?: MailRolloutCohortWhereUniqueInput
+    update?: XOR<XOR<MailRolloutCohortUpdateToOneWithWhereWithoutMembersInput, MailRolloutCohortUpdateWithoutMembersInput>, MailRolloutCohortUncheckedUpdateWithoutMembersInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -391436,6 +396998,115 @@ export namespace Prisma {
     events?: MailProductIntegrationEventUncheckedUpdateManyWithoutIntegrationNestedInput
   }
 
+  export type MailRolloutCohortMemberCreateWithoutCohortInput = {
+    id?: string
+    adminUserId: string
+    addedBy: string
+    addedAt: Date | string
+    removedAt?: Date | string | null
+    removedBy?: string | null
+  }
+
+  export type MailRolloutCohortMemberUncheckedCreateWithoutCohortInput = {
+    id?: string
+    adminUserId: string
+    addedBy: string
+    addedAt: Date | string
+    removedAt?: Date | string | null
+    removedBy?: string | null
+  }
+
+  export type MailRolloutCohortMemberCreateOrConnectWithoutCohortInput = {
+    where: MailRolloutCohortMemberWhereUniqueInput
+    create: XOR<MailRolloutCohortMemberCreateWithoutCohortInput, MailRolloutCohortMemberUncheckedCreateWithoutCohortInput>
+  }
+
+  export type MailRolloutCohortMemberCreateManyCohortInputEnvelope = {
+    data: MailRolloutCohortMemberCreateManyCohortInput | MailRolloutCohortMemberCreateManyCohortInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MailRolloutCohortMemberUpsertWithWhereUniqueWithoutCohortInput = {
+    where: MailRolloutCohortMemberWhereUniqueInput
+    update: XOR<MailRolloutCohortMemberUpdateWithoutCohortInput, MailRolloutCohortMemberUncheckedUpdateWithoutCohortInput>
+    create: XOR<MailRolloutCohortMemberCreateWithoutCohortInput, MailRolloutCohortMemberUncheckedCreateWithoutCohortInput>
+  }
+
+  export type MailRolloutCohortMemberUpdateWithWhereUniqueWithoutCohortInput = {
+    where: MailRolloutCohortMemberWhereUniqueInput
+    data: XOR<MailRolloutCohortMemberUpdateWithoutCohortInput, MailRolloutCohortMemberUncheckedUpdateWithoutCohortInput>
+  }
+
+  export type MailRolloutCohortMemberUpdateManyWithWhereWithoutCohortInput = {
+    where: MailRolloutCohortMemberScalarWhereInput
+    data: XOR<MailRolloutCohortMemberUpdateManyMutationInput, MailRolloutCohortMemberUncheckedUpdateManyWithoutCohortInput>
+  }
+
+  export type MailRolloutCohortMemberScalarWhereInput = {
+    AND?: MailRolloutCohortMemberScalarWhereInput | MailRolloutCohortMemberScalarWhereInput[]
+    OR?: MailRolloutCohortMemberScalarWhereInput[]
+    NOT?: MailRolloutCohortMemberScalarWhereInput | MailRolloutCohortMemberScalarWhereInput[]
+    id?: UuidFilter<"MailRolloutCohortMember"> | string
+    cohortId?: UuidFilter<"MailRolloutCohortMember"> | string
+    adminUserId?: StringFilter<"MailRolloutCohortMember"> | string
+    addedBy?: StringFilter<"MailRolloutCohortMember"> | string
+    addedAt?: DateTimeFilter<"MailRolloutCohortMember"> | Date | string
+    removedAt?: DateTimeNullableFilter<"MailRolloutCohortMember"> | Date | string | null
+    removedBy?: StringNullableFilter<"MailRolloutCohortMember"> | string | null
+  }
+
+  export type MailRolloutCohortCreateWithoutMembersInput = {
+    id?: string
+    key: string
+    name: string
+    description?: string | null
+    createdBy: string
+    createdAt: Date | string
+  }
+
+  export type MailRolloutCohortUncheckedCreateWithoutMembersInput = {
+    id?: string
+    key: string
+    name: string
+    description?: string | null
+    createdBy: string
+    createdAt: Date | string
+  }
+
+  export type MailRolloutCohortCreateOrConnectWithoutMembersInput = {
+    where: MailRolloutCohortWhereUniqueInput
+    create: XOR<MailRolloutCohortCreateWithoutMembersInput, MailRolloutCohortUncheckedCreateWithoutMembersInput>
+  }
+
+  export type MailRolloutCohortUpsertWithoutMembersInput = {
+    update: XOR<MailRolloutCohortUpdateWithoutMembersInput, MailRolloutCohortUncheckedUpdateWithoutMembersInput>
+    create: XOR<MailRolloutCohortCreateWithoutMembersInput, MailRolloutCohortUncheckedCreateWithoutMembersInput>
+    where?: MailRolloutCohortWhereInput
+  }
+
+  export type MailRolloutCohortUpdateToOneWithWhereWithoutMembersInput = {
+    where?: MailRolloutCohortWhereInput
+    data: XOR<MailRolloutCohortUpdateWithoutMembersInput, MailRolloutCohortUncheckedUpdateWithoutMembersInput>
+  }
+
+  export type MailRolloutCohortUpdateWithoutMembersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailRolloutCohortUncheckedUpdateWithoutMembersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type AdminSessionCreateManyAdminUserInput = {
     id?: string
     mode: string
@@ -408500,6 +414171,42 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailRolloutCohortMemberCreateManyCohortInput = {
+    id?: string
+    adminUserId: string
+    addedBy: string
+    addedAt: Date | string
+    removedAt?: Date | string | null
+    removedBy?: string | null
+  }
+
+  export type MailRolloutCohortMemberUpdateWithoutCohortInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    addedBy?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    removedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    removedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type MailRolloutCohortMemberUncheckedUpdateWithoutCohortInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    addedBy?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    removedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    removedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type MailRolloutCohortMemberUncheckedUpdateManyWithoutCohortInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    addedBy?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    removedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    removedBy?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
 

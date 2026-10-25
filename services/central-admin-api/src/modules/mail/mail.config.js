@@ -243,6 +243,11 @@ function loadMailConfig(env = process.env) {
         webhookLagSeconds: intInRange(env.MAIL_ALERT_WEBHOOK_LAG_SECONDS, 300, 30, 86400),
       },
     },
+    // M10 rollout rules. Enforcement defaults ON in production (deny unless an
+    // ALLOW rule matches) and OFF elsewhere; MAIL_ROLLOUT_ENFORCED overrides.
+    rollout: {
+      enforced: env.MAIL_ROLLOUT_ENFORCED === undefined || String(env.MAIL_ROLLOUT_ENFORCED).trim() === "" ? deploymentEnvironment(env) === "production" : flag(env.MAIL_ROLLOUT_ENFORCED),
+    },
     // Emergency stop (M9/M10). Blocks provider calls without deleting queued records.
     emergencyStop: {
       all: flag(env.MAIL_EMERGENCY_STOP_ALL),
@@ -344,6 +349,7 @@ function publicStatus(config) {
     retentionSystemDays: { ...config.retention.systemDays },
     opsAlertsEnabled: config.ops.alertsEnabled,
     metricsEndpointEnabled: config.ops.metricsToken.length >= 32,
+    rolloutEnforced: config.rollout.enforced,
     broadcastLimits: { maxRecipients: config.broadcast.maxRecipients, providerRequestsPerSecond: config.broadcast.providerRequestsPerSecond, approvalTtlDays: config.broadcast.approvalTtlDays, sharedProviderAccountAllowed: config.broadcast.allowSharedProviderAccount },
   };
 }
