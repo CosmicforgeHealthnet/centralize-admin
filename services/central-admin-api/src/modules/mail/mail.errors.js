@@ -36,6 +36,15 @@ const DEFAULT_MESSAGES = {
   MAIL_TEMPLATE_INVALID_VARIABLE: "Template uses an unsupported variable.",
   MAIL_CONSENT_REQUIRED: "Consent evidence is required.",
   MAIL_LEGAL_HOLD: "Content is under legal hold.",
+  MAIL_BROADCAST_DISABLED: "Broadcast dispatch is not enabled.",
+  MAIL_AUTOMATION_DISABLED: "Marketing automation is not enabled.",
+  MAIL_TEST_SEND_DISABLED: "Campaign test sends are not enabled.",
+  MAIL_EMERGENCY_STOP: "Sending is stopped by an emergency stop.",
+  MAIL_APPROVAL_EXPIRED: "The approval has expired. Submit the campaign for review again.",
+  MAIL_UNSUBSCRIBE_NOT_CONFIGURED: "Unsubscribe links are not configured.",
+  MAIL_INTEGRATION_UNAUTHORIZED: "Integration request is not authorized.",
+  MAIL_INTEGRATION_FORBIDDEN_CONTENT: "The payload contains content this integration may not send.",
+  MAIL_QUOTA_HARD_LIMIT: "The configured hard limit would be exceeded.",
 };
 
 const DEFAULT_STATUS = {
@@ -68,6 +77,15 @@ const DEFAULT_STATUS = {
   MAIL_PREFLIGHT_FAILED: 422,
   MAIL_ATTACHMENT_NOT_CLEAN: 422,
   MAIL_QUOTA_EXCEEDED: 429,
+  MAIL_QUOTA_HARD_LIMIT: 429,
+  MAIL_BROADCAST_DISABLED: 503,
+  MAIL_AUTOMATION_DISABLED: 503,
+  MAIL_TEST_SEND_DISABLED: 503,
+  MAIL_EMERGENCY_STOP: 503,
+  MAIL_UNSUBSCRIBE_NOT_CONFIGURED: 503,
+  MAIL_APPROVAL_EXPIRED: 409,
+  MAIL_INTEGRATION_UNAUTHORIZED: 401,
+  MAIL_INTEGRATION_FORBIDDEN_CONTENT: 422,
   MAIL_RATE_LIMITED: 429,
 };
 

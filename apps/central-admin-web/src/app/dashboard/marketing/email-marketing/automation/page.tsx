@@ -3,11 +3,11 @@
 import { Suspense } from "react";
 
 import EmailMarketingShell from "@/components/marketing/email-marketing/EmailMarketingShell";
-import AutomationNotice from "@/components/marketing/email-marketing/AutomationNotice";
+import AutomationStudio from "@/components/marketing/email-marketing/AutomationStudio";
 
 function Inner() {
 
-  return <EmailMarketingShell title="Automation">{() => <AutomationNotice />}</EmailMarketingShell>;
+  return <EmailMarketingShell title="Automation">{(org) => <AutomationStudio org={org} />}</EmailMarketingShell>;
 }
 
 export default function Page() {

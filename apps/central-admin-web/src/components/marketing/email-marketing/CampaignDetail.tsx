@@ -18,11 +18,13 @@ import {
   preflightCampaign,
   rejectCampaign,
   submitCampaign,
+  testSendCampaign,
   updateCampaign,
 } from "@/lib/mail-marketing.service";
 import { useAuthStore } from "@/stores/auth.store";
 import type { Campaign, CampaignInput, MarketingOrganization, PreflightResult } from "@/types/mail-marketing.types";
 import StepUpDialog from "./StepUpDialog";
+import CampaignDispatchPanel from "./CampaignDispatchPanel";
 import { EmBadge, EmCard, EmField, EmMessage, emBtn, emBtnOutline, emInput } from "./em-ui";
 
 const EDITABLE: Campaign["status"][] = ["DRAFT", "REJECTED", "READY_FOR_REVIEW", "APPROVED"];
@@ -122,6 +124,25 @@ export default function CampaignDetail({ org, campaignId }: { org: MarketingOrga
     onError: onErr,
   });
   const runPreflight = useMutation({ mutationFn: () => preflightCampaign(org.id, campaignId), onSuccess: setPreflight, onError: onErr });
+  const [testTo, setTestTo] = useState("");
+  const [testMsg, setTestMsg] = useState<{ text: string; tone: "info" | "error" } | null>(null);
+  const testSend = useMutation({
+    mutationFn: () => testSendCampaign(org.id, campaignId, testTo.split(/[,\s]+/).map((v) => v.trim()).filter(Boolean)),
+    onSuccess: (r) => setTestMsg({ text: r.duplicate ? "That test send is already queued." : `Test send queued for ${r.recipientCount} staff address${r.recipientCount === 1 ? "" : "es"}.`, tone: "info" }),
+    onError: (e: unknown) => {
+      const info = classifyMailError(e);
+      const reason = info.detail?.reason as string | undefined;
+      setTestMsg({
+        tone: "error",
+        text:
+          info.code === "MAIL_TEST_SEND_DISABLED" ? "Test sends are turned off for this environment."
+          : reason === "TEST_RECIPIENT_NOT_STAFF" ? "Test sends go to active staff addresses only, never to customers or external addresses."
+          : reason === "TOO_MANY_RECIPIENTS" ? "Too many test recipients."
+          : reason === "TEST_SEND_LIMIT" ? "Hourly test-send limit reached for this campaign."
+          : info.message,
+      });
+    },
+  });
   const submit = useMutation({
     mutationFn: () => submitCampaign(org.id, campaignId, campaign?.revision ?? 1),
     onSuccess: () => {
@@ -135,7 +156,7 @@ export default function CampaignDetail({ org, campaignId }: { org: MarketingOrga
       approveCampaign(org.id, campaignId, { revision: campaign?.revision ?? 1, stepUpId, comment: approveComment || undefined }),
     onSuccess: () => {
       setStepUpOpen(false);
-      setMsg({ text: "Campaign approved. Dispatch is not enabled in this release (M7).", tone: "info" });
+      setMsg({ text: campaignQ.data?.dispatchEnabled ? "Campaign approved. You can now schedule the broadcast." : "Campaign approved. Dispatch is not enabled in this environment.", tone: "info" });
       refresh();
     },
     onError: (e) => {
@@ -319,6 +340,31 @@ export default function CampaignDetail({ org, campaignId }: { org: MarketingOrga
         )}
       </EmCard>
 
+      {org.canAuthor && (
+        <EmCard title="Test send" id="cd-test-send">
+          <form
+            className="flex flex-col gap-2 text-[12px]"
+            onSubmit={(e) => {
+              e.preventDefault();
+              setTestMsg(null);
+              testSend.mutate();
+            }}
+          >
+            <p className="text-muted-foreground">Sends this campaign with sample data, marked [TEST], to staff addresses only. Leave empty to send to yourself{me?.email ? ` (${me.email})` : ""}.</p>
+            <EmField label="Staff recipients (optional, comma-separated)">
+              <input id="cd-test-to" className={emInput} value={testTo} onChange={(e) => setTestTo(e.target.value)} placeholder="colleague@company.com" />
+            </EmField>
+            <div>
+              <button type="submit" className={emBtnOutline} disabled={testSend.isPending || dirty || !campaign.templateVersionId || !campaign.senderAddressId}>
+                {testSend.isPending ? "Sending…" : "Send test"}
+              </button>
+              {dirty && <span className="ml-2 text-muted-foreground">Save changes first.</span>}
+            </div>
+            {testMsg && <EmMessage message={testMsg.text} tone={testMsg.tone} />}
+          </form>
+        </EmCard>
+      )}
+
       <EmCard title="Review" id="cd-review">
         <div className="flex flex-col gap-3 text-[12px]">
           {org.canAuthor && (campaign.status === "DRAFT" || campaign.status === "REJECTED") && (
@@ -362,6 +408,8 @@ export default function CampaignDetail({ org, campaignId }: { org: MarketingOrga
           )}
         </div>
       </EmCard>
+
+      <CampaignDispatchPanel org={org} campaign={campaign} />
 
       <EmCard title="History" id="cd-history">
         <PermissionBoundary isLoading={historyQ.isLoading} error={historyQ.error} compact>

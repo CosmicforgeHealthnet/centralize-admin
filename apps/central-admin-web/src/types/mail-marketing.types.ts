@@ -11,7 +11,8 @@ export type CampaignStatus =
   | "COMPLETE"
   | "PARTIAL"
   | "FAILED"
-  | "CANCELLED";
+  | "CANCELLED"
+  | "OUTCOME_UNKNOWN";
 
 export type ContactStatus = "ACTIVE" | "UNSUBSCRIBED" | "BOUNCED" | "COMPLAINED" | "SUPPRESSED";
 export type ConsentStatus = "PENDING_CONFIRMATION" | "GRANTED" | "WITHDRAWN";
@@ -227,6 +228,8 @@ export interface Campaign {
   approvedByAdminUserId: string | null;
   createdAt: string;
   updatedAt: string;
+  /** M7: true only when MAIL_BROADCAST_DISPATCH_ENABLED is on for this environment. */
+  dispatchEnabled?: boolean;
 }
 
 export type CampaignInput = Partial<
@@ -273,4 +276,150 @@ export interface CampaignHistory {
     createdAt: string;
   }[];
   audit: { id: string; action: string; actorAdminUserId: string | null; createdAt: string; metadata?: Record<string, unknown> | null }[];
+}
+
+// ── M7: broadcasts ────────────────────────────────────────────────────────
+export type BroadcastStatus = "SCHEDULED" | "QUEUED" | "PREPARING" | "SENDING" | "COMPLETED" | "PARTIAL" | "FAILED" | "CANCELLED" | "OUTCOME_UNKNOWN" | "PAUSED";
+
+export interface BroadcastDispatch {
+  id: string;
+  campaignId: string;
+  status: BroadcastStatus;
+  scheduledFor: string;
+  timeZone: string;
+  localSendTime: string | null;
+  provider: string;
+  providerStatus: string | null;
+  providerHandoffAt: string | null;
+  recipientCount: number;
+  excludedCount: number;
+  cancelRequestedAt: string | null;
+  pausedAt: string | null;
+  lastErrorCode: string | null;
+  completedAt: string | null;
+  ambiguousLocalTime?: boolean;
+  note?: string | null;
+}
+
+export type RecipientCounts = Record<string, number>;
+
+export interface DispatchState {
+  dispatch: BroadcastDispatch | null;
+  campaignStatus: string;
+  counts?: RecipientCounts;
+  dispatchEnabled: boolean;
+}
+
+export interface BroadcastReport {
+  dispatch: BroadcastDispatch;
+  counts: RecipientCounts;
+  totals: { handedToProvider: number; delivered: number; awaitingDeliveryEvidence: number; outcomeUnknown: number; excluded: number };
+  rates: { deliveredPercent: number | null; bouncePercent: number | null; complaintPercent: number | null; openPercentIndicative: number | null; clickPercentIndicative: number | null };
+  engagement: { opened: number; clicked: number; note: string };
+  exclusions: { reason: string; count: number }[];
+  timeline: { action: string; actor: string | null; outcome: string; at: string }[];
+}
+
+export interface BroadcastRecipient {
+  id: string;
+  contactId: string;
+  email: string;
+  status: string;
+  exclusionReason: string | null;
+  lastEventType: string | null;
+  lastEventAt: string | null;
+  openedAt: string | null;
+  clickedAt: string | null;
+}
+
+export interface BrandSettings {
+  organizationId: string;
+  confirmationSenderAddressId: string | null;
+  defaultTimeZone: string;
+  postalAddress: string | null;
+  dailyBroadcastCap: number;
+  dailyAutomationCap: number;
+  maxBroadcastRecipients: number;
+  hardMaxBroadcastRecipients: number;
+  dispatchPaused: boolean;
+  pausedReason: string | null;
+  pausedAt: string | null;
+  provider: { configured: boolean; credentialSource: string; credentialEnvName: string };
+  flags: { broadcastDispatchEnabled: boolean; automationEnabled: boolean; confirmationEmailsEnabled: boolean; emergencyStop: boolean };
+}
+
+export interface MarketingOverview {
+  campaigns: Record<string, number>;
+  recipientsLast30Days: Record<string, number>;
+  activeSuppressions: Record<string, number>;
+  automations: Record<string, number>;
+  enrollments: Record<string, number>;
+  jobs: { kind: string; status: string; count: number; oldestNextAttemptAt: string | null }[];
+  flags: { broadcastDispatchEnabled: boolean; automationEnabled: boolean; emergencyStop: boolean };
+}
+
+// ── M7: automation ────────────────────────────────────────────────────────
+export type AutomationTrigger = "CONSENT_GRANTED" | "PRODUCT_EVENT" | "SCHEDULE";
+export type AutomationStep =
+  | { id: string; type: "send_email"; templateVersionId: string; senderAddressId: string; subjectOverride?: string | null; next: string | null }
+  | { id: string; type: "delay"; minutes: number; next: string | null }
+  | { id: string; type: "condition"; condition: { field: string; op: string; value: string | string[] | null }; then: string | null; else: string | null }
+  | { id: string; type: "exit" };
+
+export interface AutomationDefinition {
+  topic: string;
+  entryStepId?: string;
+  steps: AutomationStep[];
+}
+
+export interface AutomationVersion {
+  id: string;
+  version: number;
+  status: "DRAFT" | "PENDING_REVIEW" | "PUBLISHED" | "SUPERSEDED" | "REJECTED";
+  definition: AutomationDefinition;
+  triggerConfig: Record<string, unknown>;
+  definitionSha256: string;
+  createdBy: string;
+  submittedBy: string | null;
+  reviewedBy: string | null;
+  reviewComment: string | null;
+  publishedAt: string | null;
+  createdAt: string;
+}
+
+export interface Automation {
+  id: string;
+  name: string;
+  description: string | null;
+  status: "DRAFT" | "ACTIVE" | "PAUSED" | "ARCHIVED";
+  triggerType: AutomationTrigger;
+  activeVersionId: string | null;
+  enrollmentLimit: number;
+  maxActiveEnrollments: number;
+  frequencyCapHours: number;
+  executionEnabled: boolean;
+  createdBy: string;
+  updatedAt: string;
+  versions?: AutomationVersion[];
+  enrollments?: Record<string, number>;
+}
+
+export interface AutomationEnrollment {
+  id: string;
+  contactId: string;
+  email: string;
+  version: number;
+  status: string;
+  currentStepId: string | null;
+  stepCount: number;
+  nextRunAt: string | null;
+  exitReason: string | null;
+  createdAt: string;
+}
+
+export interface ApprovedProductEvent {
+  eventType: string;
+  versions: number[];
+  product: string;
+  fields: string[];
 }

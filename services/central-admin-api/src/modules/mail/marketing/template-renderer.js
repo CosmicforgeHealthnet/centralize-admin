@@ -46,12 +46,16 @@ function inline(text) {
 }
 
 function normalizeBrand(brand = {}) {
+  // Physical postal address (required in marketing mail); plain text only.
+  // Omitted when absent so existing template hashes are unchanged.
+  const postalAddress = brand.postalAddress ? String(brand.postalAddress).replace(/[\u0000-\u001f<>{}]/g, " ").trim().slice(0, 500) : "";
   return {
     name: String(brand.name || "CosmicForge").slice(0, 80),
     primaryColor: COLOR.test(brand.primaryColor || "") ? brand.primaryColor : "#272EA7",
     textColor: COLOR.test(brand.textColor || "") ? brand.textColor : "#1F2937",
     backgroundColor: COLOR.test(brand.backgroundColor || "") ? brand.backgroundColor : "#F4F5FB",
     logoUrl: brand.logoUrl ? safeUrl(brand.logoUrl) : null,
+    ...(postalAddress ? { postalAddress } : {}),
   };
 }
 
@@ -145,8 +149,8 @@ function renderTemplate({ subject, preheader, blocks, brand }, { data = null } =
     }
   }
   // Mandatory unsubscribe footer (cannot be removed by template authors).
-  htmlParts.push(`<tr><td style="padding:16px 32px 28px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#6B7280;">You are receiving this because you opted in to {{brand_name}} updates. <a href="{{unsubscribe_url}}" style="color:${p.primaryColor};">Unsubscribe</a></td></tr>`);
-  textParts.push("You are receiving this because you opted in to {{brand_name}} updates.", "Unsubscribe: {{unsubscribe_url}}");
+  htmlParts.push(`<tr><td style="padding:16px 32px 28px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#6B7280;">You are receiving this because you opted in to {{brand_name}} updates. <a href="{{unsubscribe_url}}" style="color:${p.primaryColor};">Unsubscribe</a>${p.postalAddress ? `<br>${escapeHtml(p.postalAddress)}` : ""}</td></tr>`);
+  textParts.push("You are receiving this because you opted in to {{brand_name}} updates.", "Unsubscribe: {{unsubscribe_url}}", ...(p.postalAddress ? [p.postalAddress] : []));
   variables.add("unsubscribe_url");
   variables.add("brand_name");
 

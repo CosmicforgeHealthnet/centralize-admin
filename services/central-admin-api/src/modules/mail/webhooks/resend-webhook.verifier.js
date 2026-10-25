@@ -17,6 +17,10 @@ const ACCEPTED_EVENT_TYPES = new Set([
   "email.failed",
   "email.opened",
   "email.clicked",
+  // M7 marketing reconciliation (documented Resend event types).
+  "email.suppressed",
+  "email.scheduled",
+  "contact.updated",
 ]);
 const EVENT_ID = /^[A-Za-z0-9_.:-]{1,255}$/;
 

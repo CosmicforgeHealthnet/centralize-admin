@@ -123,12 +123,47 @@ const PATHS = [
   ["post", "/marketing/{orgId}/campaigns", "Create campaign draft", any],
   ["get", "/marketing/{orgId}/campaigns/{campaignId}", "Campaign", any],
   ["patch", "/marketing/{orgId}/campaigns/{campaignId}", "Update (revision; material edits invalidate approval)", any],
+  ["post", "/marketing/{orgId}/campaigns/{campaignId}/test-send", "Send the rendered campaign to up to 5 active staff addresses (flag-gated)", any],
   ["post", "/marketing/{orgId}/campaigns/{campaignId}/preflight", "Preflight checks", any],
   ["post", "/marketing/{orgId}/campaigns/{campaignId}/submit", "Submit for review", any],
   ["post", "/marketing/{orgId}/campaigns/{campaignId}/approve", "Approve (distinct reviewer + step-up)", any],
   ["post", "/marketing/{orgId}/campaigns/{campaignId}/reject", "Reject", any],
   ["get", "/marketing/{orgId}/campaigns/{campaignId}/history", "Approval/snapshot/audit history", any],
   ["get", "/marketing/{orgId}/campaigns/{campaignId}/snapshots/{snapshotId}", "Immutable snapshot", any],
+  // M7 broadcasts (dispatch requires MAIL_BROADCAST_DISPATCH_ENABLED)
+  ["get", "/marketing/{orgId}/settings", "Brand marketing settings, caps, provider status (no secrets)", any],
+  ["patch", "/marketing/{orgId}/settings", "Update brand settings (approvers)", any],
+  ["post", "/marketing/{orgId}/dispatch/pause", "Pause all brand dispatch (authors or approvers)", any],
+  ["post", "/marketing/{orgId}/dispatch/resume", "Resume brand dispatch (approver + step-up MARKETING_BROADCAST_OVERRIDE)", any],
+  ["post", "/marketing/{orgId}/campaigns/{campaignId}/schedule", "Schedule an APPROVED campaign (sendAt + timeZone or sendAtUtc)", one("BroadcastDispatch")],
+  ["post", "/marketing/{orgId}/campaigns/{campaignId}/cancel", "Cancel (complete before handoff; after handoff stops unsent mail only)", one("BroadcastDispatch")],
+  ["post", "/marketing/{orgId}/campaigns/{campaignId}/pause", "Pause before provider handoff", one("BroadcastDispatch")],
+  ["post", "/marketing/{orgId}/campaigns/{campaignId}/resume", "Resume a paused dispatch", one("BroadcastDispatch")],
+  ["get", "/marketing/{orgId}/campaigns/{campaignId}/dispatch", "Dispatch status and recipient counts", any],
+  ["get", "/marketing/{orgId}/campaigns/{campaignId}/report", "Delivery report (acceptance is not delivery; opens indicative)", any],
+  ["get", "/marketing/{orgId}/campaigns/{campaignId}/recipients", "Recipient outcomes (paginated)", any],
+  ["get", "/marketing/{orgId}/reports/overview", "Brand dashboard: campaigns, recipients, suppressions, automations, jobs", any],
+  ["get", "/marketing/{orgId}/reports/suppressions", "Suppression report", any],
+  // M7 automations (execution requires MAIL_AUTOMATION_ENABLED)
+  ["get", "/marketing/{orgId}/automation-events", "Approved product events usable as triggers", any],
+  ["get", "/marketing/{orgId}/automations", "List automations", any],
+  ["post", "/marketing/{orgId}/automations", "Create automation", any],
+  ["get", "/marketing/{orgId}/automations/{automationId}", "Automation with versions and enrollment counts", any],
+  ["put", "/marketing/{orgId}/automations/{automationId}/draft", "Create/update the editable draft version", any],
+  ["post", "/marketing/{orgId}/automations/{automationId}/versions/{versionId}/submit", "Submit version for review", any],
+  ["post", "/marketing/{orgId}/automations/{automationId}/versions/{versionId}/approve", "Publish (distinct approver + step-up MARKETING_AUTOMATION_PUBLISH)", any],
+  ["post", "/marketing/{orgId}/automations/{automationId}/versions/{versionId}/reject", "Reject version", any],
+  ["post", "/marketing/{orgId}/automations/{automationId}/activate", "Start execution (approvers)", any],
+  ["post", "/marketing/{orgId}/automations/{automationId}/pause", "Pause execution", any],
+  ["post", "/marketing/{orgId}/automations/{automationId}/archive", "Archive and cancel active enrollments", any],
+  ["get", "/marketing/{orgId}/automations/{automationId}/enrollments", "Enrollments (paginated)", any],
+  ["get", "/marketing/{orgId}/automations/{automationId}/history", "Audit history or one enrollment's step runs", any],
+  // M7 public recipient endpoints (signed tokens; HTML)
+  ["get", "/public/unsubscribe/{token}", "Preference / unsubscribe page", any],
+  ["post", "/public/unsubscribe/{token}", "Unsubscribe (form or RFC 8058 one-click)", any],
+  ["get", "/public/consent/confirm/{token}", "Double opt-in landing page (does not confirm)", any],
+  ["post", "/public/consent/confirm/{token}", "Confirm double opt-in", any],
+  ["post", "/webhooks/resend/brand/{slug}", "Brand marketing provider webhook (per-brand secret)", any],
 ];
 
 const SCHEMAS = {
@@ -141,6 +176,7 @@ const SCHEMAS = {
   Draft: { type: "object", properties: { id: { type: "string" }, revision: { type: "integer" }, to: { type: "array", items: ref("Party") }, cc: { type: "array", items: ref("Party") }, bcc: { type: "array", items: ref("Party") }, subject: { type: "string" }, html: { type: "string" }, status: { type: "string" } } },
   SendAccepted: { type: "object", required: ["messageId", "status"], properties: { messageId: { type: "string" }, threadId: { type: "string" }, jobId: { type: ["string", "null"] }, status: { enum: ["QUEUED", "DELIVERED"] } } },
   Entitlements: { type: "object", properties: { mailEnabled: { type: "boolean" }, sendingEnabled: { type: "boolean" }, marketingEnabled: { type: "boolean" }, mailboxes: { type: "array", items: ref("MailboxSummary") } } },
+  BroadcastDispatch: { type: "object", properties: { id: { type: "string" }, campaignId: { type: "string" }, status: { enum: ["SCHEDULED", "QUEUED", "PREPARING", "SENDING", "COMPLETED", "PARTIAL", "FAILED", "CANCELLED", "OUTCOME_UNKNOWN", "PAUSED"] }, scheduledFor: { type: "string", format: "date-time" }, timeZone: { type: "string" }, providerStatus: { type: ["string", "null"] }, recipientCount: { type: "integer" }, excludedCount: { type: "integer" }, lastErrorCode: { type: ["string", "null"] } } },
   Error: { type: "object", properties: { success: { const: false }, code: { type: "string" }, retryable: { type: "boolean" }, message: { type: "string" }, errors: { type: "array", items: { type: "object" } }, correlationId: { type: ["string", "null"] } } },
 };
 
@@ -161,7 +197,7 @@ function buildOpenApiDocument() {
   }
   return {
     openapi: "3.1.0",
-    info: { title: "CosmicForge Mail API", version: "1.0.0", description: "Corporate mail, shared support inbox and Marketing Email Studio (no live dispatch)." },
+    info: { title: "CosmicForge Mail API", version: "1.0.0", description: "Corporate mail, shared support inbox, Marketing Email Studio, broadcasts and automation (live dispatch is flag-gated and off by default)." },
     servers: [{ url: "/api/mail/v1" }],
     components: { securitySchemes: { bearerAuth: { type: "http", scheme: "bearer" } }, schemas: SCHEMAS },
     paths,

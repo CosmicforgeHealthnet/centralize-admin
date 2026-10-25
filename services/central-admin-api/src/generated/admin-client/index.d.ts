@@ -798,6 +798,51 @@ export type MarketingCampaignSnapshot = $Result.DefaultSelection<Prisma.$Marketi
  * 
  */
 export type MarketingCampaignApproval = $Result.DefaultSelection<Prisma.$MarketingCampaignApprovalPayload>
+/**
+ * Model MarketingBrandSettings
+ * 
+ */
+export type MarketingBrandSettings = $Result.DefaultSelection<Prisma.$MarketingBrandSettingsPayload>
+/**
+ * Model MarketingCampaignApprovedContact
+ * 
+ */
+export type MarketingCampaignApprovedContact = $Result.DefaultSelection<Prisma.$MarketingCampaignApprovedContactPayload>
+/**
+ * Model MarketingBroadcastDispatch
+ * 
+ */
+export type MarketingBroadcastDispatch = $Result.DefaultSelection<Prisma.$MarketingBroadcastDispatchPayload>
+/**
+ * Model MarketingBroadcastRecipient
+ * 
+ */
+export type MarketingBroadcastRecipient = $Result.DefaultSelection<Prisma.$MarketingBroadcastRecipientPayload>
+/**
+ * Model MarketingAutomation
+ * 
+ */
+export type MarketingAutomation = $Result.DefaultSelection<Prisma.$MarketingAutomationPayload>
+/**
+ * Model MarketingAutomationVersion
+ * 
+ */
+export type MarketingAutomationVersion = $Result.DefaultSelection<Prisma.$MarketingAutomationVersionPayload>
+/**
+ * Model MarketingAutomationEnrollment
+ * 
+ */
+export type MarketingAutomationEnrollment = $Result.DefaultSelection<Prisma.$MarketingAutomationEnrollmentPayload>
+/**
+ * Model MarketingAutomationStepRun
+ * 
+ */
+export type MarketingAutomationStepRun = $Result.DefaultSelection<Prisma.$MarketingAutomationStepRunPayload>
+/**
+ * Model MarketingTriggerEvent
+ * 
+ */
+export type MarketingTriggerEvent = $Result.DefaultSelection<Prisma.$MarketingTriggerEventPayload>
 
 /**
  * Enums
@@ -2121,7 +2166,8 @@ export type MailAttachmentScanStatus = (typeof MailAttachmentScanStatus)[keyof t
 export const MailJobQueue: {
   OUTBOUND: 'OUTBOUND',
   INBOUND: 'INBOUND',
-  EVENTS: 'EVENTS'
+  EVENTS: 'EVENTS',
+  MARKETING: 'MARKETING'
 };
 
 export type MailJobQueue = (typeof MailJobQueue)[keyof typeof MailJobQueue]
@@ -2237,7 +2283,8 @@ export const MarketingEmailCampaignStatus: {
   COMPLETE: 'COMPLETE',
   PARTIAL: 'PARTIAL',
   FAILED: 'FAILED',
-  CANCELLED: 'CANCELLED'
+  CANCELLED: 'CANCELLED',
+  OUTCOME_UNKNOWN: 'OUTCOME_UNKNOWN'
 };
 
 export type MarketingEmailCampaignStatus = (typeof MarketingEmailCampaignStatus)[keyof typeof MarketingEmailCampaignStatus]
@@ -2258,6 +2305,95 @@ export const MarketingCampaignSnapshotKind: {
 };
 
 export type MarketingCampaignSnapshotKind = (typeof MarketingCampaignSnapshotKind)[keyof typeof MarketingCampaignSnapshotKind]
+
+
+export const MarketingBroadcastStatus: {
+  SCHEDULED: 'SCHEDULED',
+  QUEUED: 'QUEUED',
+  PREPARING: 'PREPARING',
+  SENDING: 'SENDING',
+  COMPLETED: 'COMPLETED',
+  PARTIAL: 'PARTIAL',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED',
+  OUTCOME_UNKNOWN: 'OUTCOME_UNKNOWN',
+  PAUSED: 'PAUSED'
+};
+
+export type MarketingBroadcastStatus = (typeof MarketingBroadcastStatus)[keyof typeof MarketingBroadcastStatus]
+
+
+export const MarketingBroadcastRecipientStatus: {
+  PENDING: 'PENDING',
+  EXCLUDED: 'EXCLUDED',
+  SYNCED: 'SYNCED',
+  PROVIDER_ACCEPTED: 'PROVIDER_ACCEPTED',
+  DELIVERED: 'DELIVERED',
+  DELAYED: 'DELAYED',
+  BOUNCED: 'BOUNCED',
+  COMPLAINED: 'COMPLAINED',
+  FAILED: 'FAILED',
+  SUPPRESSED: 'SUPPRESSED',
+  UNSUBSCRIBED: 'UNSUBSCRIBED',
+  CANCELLED: 'CANCELLED',
+  OUTCOME_UNKNOWN: 'OUTCOME_UNKNOWN'
+};
+
+export type MarketingBroadcastRecipientStatus = (typeof MarketingBroadcastRecipientStatus)[keyof typeof MarketingBroadcastRecipientStatus]
+
+
+export const MarketingAutomationStatus: {
+  DRAFT: 'DRAFT',
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED',
+  ARCHIVED: 'ARCHIVED'
+};
+
+export type MarketingAutomationStatus = (typeof MarketingAutomationStatus)[keyof typeof MarketingAutomationStatus]
+
+
+export const MarketingAutomationVersionStatus: {
+  DRAFT: 'DRAFT',
+  PENDING_REVIEW: 'PENDING_REVIEW',
+  PUBLISHED: 'PUBLISHED',
+  SUPERSEDED: 'SUPERSEDED',
+  REJECTED: 'REJECTED'
+};
+
+export type MarketingAutomationVersionStatus = (typeof MarketingAutomationVersionStatus)[keyof typeof MarketingAutomationVersionStatus]
+
+
+export const MarketingAutomationEnrollmentStatus: {
+  ACTIVE: 'ACTIVE',
+  WAITING: 'WAITING',
+  COMPLETED: 'COMPLETED',
+  EXITED: 'EXITED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+};
+
+export type MarketingAutomationEnrollmentStatus = (typeof MarketingAutomationEnrollmentStatus)[keyof typeof MarketingAutomationEnrollmentStatus]
+
+
+export const MarketingAutomationStepRunStatus: {
+  RUNNING: 'RUNNING',
+  SUCCEEDED: 'SUCCEEDED',
+  SKIPPED: 'SKIPPED',
+  FAILED: 'FAILED',
+  OUTCOME_UNKNOWN: 'OUTCOME_UNKNOWN'
+};
+
+export type MarketingAutomationStepRunStatus = (typeof MarketingAutomationStepRunStatus)[keyof typeof MarketingAutomationStepRunStatus]
+
+
+export const MarketingTriggerEventStatus: {
+  RECEIVED: 'RECEIVED',
+  PROCESSED: 'PROCESSED',
+  IGNORED: 'IGNORED',
+  FAILED: 'FAILED'
+};
+
+export type MarketingTriggerEventStatus = (typeof MarketingTriggerEventStatus)[keyof typeof MarketingTriggerEventStatus]
 
 }
 
@@ -2756,6 +2892,34 @@ export const MarketingCampaignApprovalDecision: typeof $Enums.MarketingCampaignA
 export type MarketingCampaignSnapshotKind = $Enums.MarketingCampaignSnapshotKind
 
 export const MarketingCampaignSnapshotKind: typeof $Enums.MarketingCampaignSnapshotKind
+
+export type MarketingBroadcastStatus = $Enums.MarketingBroadcastStatus
+
+export const MarketingBroadcastStatus: typeof $Enums.MarketingBroadcastStatus
+
+export type MarketingBroadcastRecipientStatus = $Enums.MarketingBroadcastRecipientStatus
+
+export const MarketingBroadcastRecipientStatus: typeof $Enums.MarketingBroadcastRecipientStatus
+
+export type MarketingAutomationStatus = $Enums.MarketingAutomationStatus
+
+export const MarketingAutomationStatus: typeof $Enums.MarketingAutomationStatus
+
+export type MarketingAutomationVersionStatus = $Enums.MarketingAutomationVersionStatus
+
+export const MarketingAutomationVersionStatus: typeof $Enums.MarketingAutomationVersionStatus
+
+export type MarketingAutomationEnrollmentStatus = $Enums.MarketingAutomationEnrollmentStatus
+
+export const MarketingAutomationEnrollmentStatus: typeof $Enums.MarketingAutomationEnrollmentStatus
+
+export type MarketingAutomationStepRunStatus = $Enums.MarketingAutomationStepRunStatus
+
+export const MarketingAutomationStepRunStatus: typeof $Enums.MarketingAutomationStepRunStatus
+
+export type MarketingTriggerEventStatus = $Enums.MarketingTriggerEventStatus
+
+export const MarketingTriggerEventStatus: typeof $Enums.MarketingTriggerEventStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -4447,6 +4611,96 @@ export class PrismaClient<
     * ```
     */
   get marketingCampaignApproval(): Prisma.MarketingCampaignApprovalDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.marketingBrandSettings`: Exposes CRUD operations for the **MarketingBrandSettings** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MarketingBrandSettings
+    * const marketingBrandSettings = await prisma.marketingBrandSettings.findMany()
+    * ```
+    */
+  get marketingBrandSettings(): Prisma.MarketingBrandSettingsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.marketingCampaignApprovedContact`: Exposes CRUD operations for the **MarketingCampaignApprovedContact** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MarketingCampaignApprovedContacts
+    * const marketingCampaignApprovedContacts = await prisma.marketingCampaignApprovedContact.findMany()
+    * ```
+    */
+  get marketingCampaignApprovedContact(): Prisma.MarketingCampaignApprovedContactDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.marketingBroadcastDispatch`: Exposes CRUD operations for the **MarketingBroadcastDispatch** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MarketingBroadcastDispatches
+    * const marketingBroadcastDispatches = await prisma.marketingBroadcastDispatch.findMany()
+    * ```
+    */
+  get marketingBroadcastDispatch(): Prisma.MarketingBroadcastDispatchDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.marketingBroadcastRecipient`: Exposes CRUD operations for the **MarketingBroadcastRecipient** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MarketingBroadcastRecipients
+    * const marketingBroadcastRecipients = await prisma.marketingBroadcastRecipient.findMany()
+    * ```
+    */
+  get marketingBroadcastRecipient(): Prisma.MarketingBroadcastRecipientDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.marketingAutomation`: Exposes CRUD operations for the **MarketingAutomation** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MarketingAutomations
+    * const marketingAutomations = await prisma.marketingAutomation.findMany()
+    * ```
+    */
+  get marketingAutomation(): Prisma.MarketingAutomationDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.marketingAutomationVersion`: Exposes CRUD operations for the **MarketingAutomationVersion** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MarketingAutomationVersions
+    * const marketingAutomationVersions = await prisma.marketingAutomationVersion.findMany()
+    * ```
+    */
+  get marketingAutomationVersion(): Prisma.MarketingAutomationVersionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.marketingAutomationEnrollment`: Exposes CRUD operations for the **MarketingAutomationEnrollment** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MarketingAutomationEnrollments
+    * const marketingAutomationEnrollments = await prisma.marketingAutomationEnrollment.findMany()
+    * ```
+    */
+  get marketingAutomationEnrollment(): Prisma.MarketingAutomationEnrollmentDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.marketingAutomationStepRun`: Exposes CRUD operations for the **MarketingAutomationStepRun** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MarketingAutomationStepRuns
+    * const marketingAutomationStepRuns = await prisma.marketingAutomationStepRun.findMany()
+    * ```
+    */
+  get marketingAutomationStepRun(): Prisma.MarketingAutomationStepRunDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.marketingTriggerEvent`: Exposes CRUD operations for the **MarketingTriggerEvent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MarketingTriggerEvents
+    * const marketingTriggerEvents = await prisma.marketingTriggerEvent.findMany()
+    * ```
+    */
+  get marketingTriggerEvent(): Prisma.MarketingTriggerEventDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -5050,7 +5304,16 @@ export namespace Prisma {
     MarketingTemplateVersion: 'MarketingTemplateVersion',
     MarketingEmailCampaign: 'MarketingEmailCampaign',
     MarketingCampaignSnapshot: 'MarketingCampaignSnapshot',
-    MarketingCampaignApproval: 'MarketingCampaignApproval'
+    MarketingCampaignApproval: 'MarketingCampaignApproval',
+    MarketingBrandSettings: 'MarketingBrandSettings',
+    MarketingCampaignApprovedContact: 'MarketingCampaignApprovedContact',
+    MarketingBroadcastDispatch: 'MarketingBroadcastDispatch',
+    MarketingBroadcastRecipient: 'MarketingBroadcastRecipient',
+    MarketingAutomation: 'MarketingAutomation',
+    MarketingAutomationVersion: 'MarketingAutomationVersion',
+    MarketingAutomationEnrollment: 'MarketingAutomationEnrollment',
+    MarketingAutomationStepRun: 'MarketingAutomationStepRun',
+    MarketingTriggerEvent: 'MarketingTriggerEvent'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -5066,7 +5329,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "adminUser" | "marketing_campaigns" | "marketing_campaign_performance" | "marketing_campaign_timeline" | "marketing_campaign_team_members" | "marketing_content_items" | "marketing_content_monthly_performance" | "marketing_notification_events" | "marketing_email_templates" | "marketing_social_accounts" | "marketing_social_posts" | "marketing_social_analytics_snapshots" | "marketing_promotions" | "marketing_banners" | "marketing_analytics_snapshots" | "marketing_ad_platform_connections" | "marketing_ad_insights_raw" | "marketing_performance_snapshots" | "marketing_oauth_states" | "marketing_attributions" | "marketing_funnel_events" | "marketing_identity_links" | "marketing_attribution_decisions" | "marketing_intelligence_settings" | "marketing_intelligence_evaluation_runs" | "marketing_creative_assets" | "marketing_creative_performance_snapshots" | "marketing_creative_score_snapshots" | "marketing_recommendations" | "marketing_alerts" | "marketing_experiments" | "marketing_sync_locks" | "marketingExecutionPlan" | "marketingExecutionPlanItem" | "marketingExecutionApproval" | "marketingExecutionApprovalEvent" | "marketingExecutionRun" | "marketingExecutionJob" | "marketingProviderOperation" | "marketingProviderOperationAttempt" | "marketingExecutionStateSnapshot" | "marketingExecutionValidationIssue" | "marketingExecutionReconciliation" | "marketingExecutionPolicy" | "marketingCreativePublication" | "marketingCreativeMediaValidationEvidence" | "marketingCreativePublicationReviewEvent" | "marketingTargetingDiscovery" | "marketingExecutionAccountLock" | "marketingExecutionDeadLetterReview" | "marketingExecutionPolicyHistory" | "marketingExecutionValidationPacket" | "marketingExecutionDriftAcknowledgment" | "marketingExecutionRetryReview" | "marketingExecutionEmergencyOverride" | "marketingExecutionReconciliationJob" | "marketingExecutionCompensationLink" | "socialAccountConnection" | "socialPublishingIdentity" | "socialOAuthState" | "socialPost" | "socialPostRevision" | "socialPostTarget" | "socialPostApproval" | "socialPublication" | "socialPublicationAttempt" | "socialPublishingJob" | "socialMediaAsset" | "socialPostMedia" | "socialContact" | "socialConversation" | "socialMessage" | "socialTag" | "socialConversationTag" | "socialProviderContent" | "socialComment" | "socialEngagementEvent" | "socialEscalation" | "socialWebhookSubscription" | "socialWebhookEvent" | "socialIdentityMetricSnapshot" | "socialProviderContentMetricSnapshot" | "socialIdentitySyncState" | "socialActionJob" | "socialActionAttempt" | "socialInternalNote" | "socialSavedReply" | "socialOperationsSetting" | "adminManualMigrationLedger" | "adminSession" | "adminSessionRefreshToken" | "adminMfaEnrollment" | "adminMfaRecoveryCode" | "adminMfaChallenge" | "adminAuthEvent" | "refreshToken" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event" | "mailOrganization" | "mailDomain" | "mailMailbox" | "mailAddress" | "mailMembership" | "mailSenderGrant" | "mailProvisionRequest" | "mailThread" | "mailMessage" | "mailMessageRecipient" | "mailUserThreadState" | "mailDraft" | "mailLabel" | "mailThreadLabel" | "mailRule" | "mailAttachment" | "mailInternalNote" | "mailOutboxJob" | "mailWebhookEvent" | "mailDeliveryEvent" | "mailAuditEvent" | "mailRetentionPolicy" | "mailLegalHold" | "mailStepUpVerification" | "mailBreakGlassRequest" | "marketingContact" | "marketingConsent" | "marketingSuppression" | "marketingAudience" | "marketingAudienceContact" | "marketingSegment" | "marketingEmailTemplate" | "marketingTemplateVersion" | "marketingEmailCampaign" | "marketingCampaignSnapshot" | "marketingCampaignApproval"
+      modelProps: "adminUser" | "marketing_campaigns" | "marketing_campaign_performance" | "marketing_campaign_timeline" | "marketing_campaign_team_members" | "marketing_content_items" | "marketing_content_monthly_performance" | "marketing_notification_events" | "marketing_email_templates" | "marketing_social_accounts" | "marketing_social_posts" | "marketing_social_analytics_snapshots" | "marketing_promotions" | "marketing_banners" | "marketing_analytics_snapshots" | "marketing_ad_platform_connections" | "marketing_ad_insights_raw" | "marketing_performance_snapshots" | "marketing_oauth_states" | "marketing_attributions" | "marketing_funnel_events" | "marketing_identity_links" | "marketing_attribution_decisions" | "marketing_intelligence_settings" | "marketing_intelligence_evaluation_runs" | "marketing_creative_assets" | "marketing_creative_performance_snapshots" | "marketing_creative_score_snapshots" | "marketing_recommendations" | "marketing_alerts" | "marketing_experiments" | "marketing_sync_locks" | "marketingExecutionPlan" | "marketingExecutionPlanItem" | "marketingExecutionApproval" | "marketingExecutionApprovalEvent" | "marketingExecutionRun" | "marketingExecutionJob" | "marketingProviderOperation" | "marketingProviderOperationAttempt" | "marketingExecutionStateSnapshot" | "marketingExecutionValidationIssue" | "marketingExecutionReconciliation" | "marketingExecutionPolicy" | "marketingCreativePublication" | "marketingCreativeMediaValidationEvidence" | "marketingCreativePublicationReviewEvent" | "marketingTargetingDiscovery" | "marketingExecutionAccountLock" | "marketingExecutionDeadLetterReview" | "marketingExecutionPolicyHistory" | "marketingExecutionValidationPacket" | "marketingExecutionDriftAcknowledgment" | "marketingExecutionRetryReview" | "marketingExecutionEmergencyOverride" | "marketingExecutionReconciliationJob" | "marketingExecutionCompensationLink" | "socialAccountConnection" | "socialPublishingIdentity" | "socialOAuthState" | "socialPost" | "socialPostRevision" | "socialPostTarget" | "socialPostApproval" | "socialPublication" | "socialPublicationAttempt" | "socialPublishingJob" | "socialMediaAsset" | "socialPostMedia" | "socialContact" | "socialConversation" | "socialMessage" | "socialTag" | "socialConversationTag" | "socialProviderContent" | "socialComment" | "socialEngagementEvent" | "socialEscalation" | "socialWebhookSubscription" | "socialWebhookEvent" | "socialIdentityMetricSnapshot" | "socialProviderContentMetricSnapshot" | "socialIdentitySyncState" | "socialActionJob" | "socialActionAttempt" | "socialInternalNote" | "socialSavedReply" | "socialOperationsSetting" | "adminManualMigrationLedger" | "adminSession" | "adminSessionRefreshToken" | "adminMfaEnrollment" | "adminMfaRecoveryCode" | "adminMfaChallenge" | "adminAuthEvent" | "refreshToken" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event" | "mailOrganization" | "mailDomain" | "mailMailbox" | "mailAddress" | "mailMembership" | "mailSenderGrant" | "mailProvisionRequest" | "mailThread" | "mailMessage" | "mailMessageRecipient" | "mailUserThreadState" | "mailDraft" | "mailLabel" | "mailThreadLabel" | "mailRule" | "mailAttachment" | "mailInternalNote" | "mailOutboxJob" | "mailWebhookEvent" | "mailDeliveryEvent" | "mailAuditEvent" | "mailRetentionPolicy" | "mailLegalHold" | "mailStepUpVerification" | "mailBreakGlassRequest" | "marketingContact" | "marketingConsent" | "marketingSuppression" | "marketingAudience" | "marketingAudienceContact" | "marketingSegment" | "marketingEmailTemplate" | "marketingTemplateVersion" | "marketingEmailCampaign" | "marketingCampaignSnapshot" | "marketingCampaignApproval" | "marketingBrandSettings" | "marketingCampaignApprovedContact" | "marketingBroadcastDispatch" | "marketingBroadcastRecipient" | "marketingAutomation" | "marketingAutomationVersion" | "marketingAutomationEnrollment" | "marketingAutomationStepRun" | "marketingTriggerEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -16688,6 +16951,672 @@ export namespace Prisma {
           }
         }
       }
+      MarketingBrandSettings: {
+        payload: Prisma.$MarketingBrandSettingsPayload<ExtArgs>
+        fields: Prisma.MarketingBrandSettingsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MarketingBrandSettingsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBrandSettingsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MarketingBrandSettingsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBrandSettingsPayload>
+          }
+          findFirst: {
+            args: Prisma.MarketingBrandSettingsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBrandSettingsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MarketingBrandSettingsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBrandSettingsPayload>
+          }
+          findMany: {
+            args: Prisma.MarketingBrandSettingsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBrandSettingsPayload>[]
+          }
+          create: {
+            args: Prisma.MarketingBrandSettingsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBrandSettingsPayload>
+          }
+          createMany: {
+            args: Prisma.MarketingBrandSettingsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MarketingBrandSettingsCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBrandSettingsPayload>[]
+          }
+          delete: {
+            args: Prisma.MarketingBrandSettingsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBrandSettingsPayload>
+          }
+          update: {
+            args: Prisma.MarketingBrandSettingsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBrandSettingsPayload>
+          }
+          deleteMany: {
+            args: Prisma.MarketingBrandSettingsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MarketingBrandSettingsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MarketingBrandSettingsUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBrandSettingsPayload>[]
+          }
+          upsert: {
+            args: Prisma.MarketingBrandSettingsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBrandSettingsPayload>
+          }
+          aggregate: {
+            args: Prisma.MarketingBrandSettingsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMarketingBrandSettings>
+          }
+          groupBy: {
+            args: Prisma.MarketingBrandSettingsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MarketingBrandSettingsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MarketingBrandSettingsCountArgs<ExtArgs>
+            result: $Utils.Optional<MarketingBrandSettingsCountAggregateOutputType> | number
+          }
+        }
+      }
+      MarketingCampaignApprovedContact: {
+        payload: Prisma.$MarketingCampaignApprovedContactPayload<ExtArgs>
+        fields: Prisma.MarketingCampaignApprovedContactFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MarketingCampaignApprovedContactFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignApprovedContactPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MarketingCampaignApprovedContactFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignApprovedContactPayload>
+          }
+          findFirst: {
+            args: Prisma.MarketingCampaignApprovedContactFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignApprovedContactPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MarketingCampaignApprovedContactFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignApprovedContactPayload>
+          }
+          findMany: {
+            args: Prisma.MarketingCampaignApprovedContactFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignApprovedContactPayload>[]
+          }
+          create: {
+            args: Prisma.MarketingCampaignApprovedContactCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignApprovedContactPayload>
+          }
+          createMany: {
+            args: Prisma.MarketingCampaignApprovedContactCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MarketingCampaignApprovedContactCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignApprovedContactPayload>[]
+          }
+          delete: {
+            args: Prisma.MarketingCampaignApprovedContactDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignApprovedContactPayload>
+          }
+          update: {
+            args: Prisma.MarketingCampaignApprovedContactUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignApprovedContactPayload>
+          }
+          deleteMany: {
+            args: Prisma.MarketingCampaignApprovedContactDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MarketingCampaignApprovedContactUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MarketingCampaignApprovedContactUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignApprovedContactPayload>[]
+          }
+          upsert: {
+            args: Prisma.MarketingCampaignApprovedContactUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignApprovedContactPayload>
+          }
+          aggregate: {
+            args: Prisma.MarketingCampaignApprovedContactAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMarketingCampaignApprovedContact>
+          }
+          groupBy: {
+            args: Prisma.MarketingCampaignApprovedContactGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MarketingCampaignApprovedContactGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MarketingCampaignApprovedContactCountArgs<ExtArgs>
+            result: $Utils.Optional<MarketingCampaignApprovedContactCountAggregateOutputType> | number
+          }
+        }
+      }
+      MarketingBroadcastDispatch: {
+        payload: Prisma.$MarketingBroadcastDispatchPayload<ExtArgs>
+        fields: Prisma.MarketingBroadcastDispatchFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MarketingBroadcastDispatchFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastDispatchPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MarketingBroadcastDispatchFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastDispatchPayload>
+          }
+          findFirst: {
+            args: Prisma.MarketingBroadcastDispatchFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastDispatchPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MarketingBroadcastDispatchFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastDispatchPayload>
+          }
+          findMany: {
+            args: Prisma.MarketingBroadcastDispatchFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastDispatchPayload>[]
+          }
+          create: {
+            args: Prisma.MarketingBroadcastDispatchCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastDispatchPayload>
+          }
+          createMany: {
+            args: Prisma.MarketingBroadcastDispatchCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MarketingBroadcastDispatchCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastDispatchPayload>[]
+          }
+          delete: {
+            args: Prisma.MarketingBroadcastDispatchDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastDispatchPayload>
+          }
+          update: {
+            args: Prisma.MarketingBroadcastDispatchUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastDispatchPayload>
+          }
+          deleteMany: {
+            args: Prisma.MarketingBroadcastDispatchDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MarketingBroadcastDispatchUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MarketingBroadcastDispatchUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastDispatchPayload>[]
+          }
+          upsert: {
+            args: Prisma.MarketingBroadcastDispatchUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastDispatchPayload>
+          }
+          aggregate: {
+            args: Prisma.MarketingBroadcastDispatchAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMarketingBroadcastDispatch>
+          }
+          groupBy: {
+            args: Prisma.MarketingBroadcastDispatchGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MarketingBroadcastDispatchGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MarketingBroadcastDispatchCountArgs<ExtArgs>
+            result: $Utils.Optional<MarketingBroadcastDispatchCountAggregateOutputType> | number
+          }
+        }
+      }
+      MarketingBroadcastRecipient: {
+        payload: Prisma.$MarketingBroadcastRecipientPayload<ExtArgs>
+        fields: Prisma.MarketingBroadcastRecipientFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MarketingBroadcastRecipientFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastRecipientPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MarketingBroadcastRecipientFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastRecipientPayload>
+          }
+          findFirst: {
+            args: Prisma.MarketingBroadcastRecipientFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastRecipientPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MarketingBroadcastRecipientFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastRecipientPayload>
+          }
+          findMany: {
+            args: Prisma.MarketingBroadcastRecipientFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastRecipientPayload>[]
+          }
+          create: {
+            args: Prisma.MarketingBroadcastRecipientCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastRecipientPayload>
+          }
+          createMany: {
+            args: Prisma.MarketingBroadcastRecipientCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MarketingBroadcastRecipientCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastRecipientPayload>[]
+          }
+          delete: {
+            args: Prisma.MarketingBroadcastRecipientDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastRecipientPayload>
+          }
+          update: {
+            args: Prisma.MarketingBroadcastRecipientUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastRecipientPayload>
+          }
+          deleteMany: {
+            args: Prisma.MarketingBroadcastRecipientDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MarketingBroadcastRecipientUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MarketingBroadcastRecipientUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastRecipientPayload>[]
+          }
+          upsert: {
+            args: Prisma.MarketingBroadcastRecipientUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingBroadcastRecipientPayload>
+          }
+          aggregate: {
+            args: Prisma.MarketingBroadcastRecipientAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMarketingBroadcastRecipient>
+          }
+          groupBy: {
+            args: Prisma.MarketingBroadcastRecipientGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MarketingBroadcastRecipientGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MarketingBroadcastRecipientCountArgs<ExtArgs>
+            result: $Utils.Optional<MarketingBroadcastRecipientCountAggregateOutputType> | number
+          }
+        }
+      }
+      MarketingAutomation: {
+        payload: Prisma.$MarketingAutomationPayload<ExtArgs>
+        fields: Prisma.MarketingAutomationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MarketingAutomationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MarketingAutomationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationPayload>
+          }
+          findFirst: {
+            args: Prisma.MarketingAutomationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MarketingAutomationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationPayload>
+          }
+          findMany: {
+            args: Prisma.MarketingAutomationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationPayload>[]
+          }
+          create: {
+            args: Prisma.MarketingAutomationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationPayload>
+          }
+          createMany: {
+            args: Prisma.MarketingAutomationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MarketingAutomationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationPayload>[]
+          }
+          delete: {
+            args: Prisma.MarketingAutomationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationPayload>
+          }
+          update: {
+            args: Prisma.MarketingAutomationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationPayload>
+          }
+          deleteMany: {
+            args: Prisma.MarketingAutomationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MarketingAutomationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MarketingAutomationUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationPayload>[]
+          }
+          upsert: {
+            args: Prisma.MarketingAutomationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationPayload>
+          }
+          aggregate: {
+            args: Prisma.MarketingAutomationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMarketingAutomation>
+          }
+          groupBy: {
+            args: Prisma.MarketingAutomationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MarketingAutomationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MarketingAutomationCountArgs<ExtArgs>
+            result: $Utils.Optional<MarketingAutomationCountAggregateOutputType> | number
+          }
+        }
+      }
+      MarketingAutomationVersion: {
+        payload: Prisma.$MarketingAutomationVersionPayload<ExtArgs>
+        fields: Prisma.MarketingAutomationVersionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MarketingAutomationVersionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationVersionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MarketingAutomationVersionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationVersionPayload>
+          }
+          findFirst: {
+            args: Prisma.MarketingAutomationVersionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationVersionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MarketingAutomationVersionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationVersionPayload>
+          }
+          findMany: {
+            args: Prisma.MarketingAutomationVersionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationVersionPayload>[]
+          }
+          create: {
+            args: Prisma.MarketingAutomationVersionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationVersionPayload>
+          }
+          createMany: {
+            args: Prisma.MarketingAutomationVersionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MarketingAutomationVersionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationVersionPayload>[]
+          }
+          delete: {
+            args: Prisma.MarketingAutomationVersionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationVersionPayload>
+          }
+          update: {
+            args: Prisma.MarketingAutomationVersionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationVersionPayload>
+          }
+          deleteMany: {
+            args: Prisma.MarketingAutomationVersionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MarketingAutomationVersionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MarketingAutomationVersionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationVersionPayload>[]
+          }
+          upsert: {
+            args: Prisma.MarketingAutomationVersionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationVersionPayload>
+          }
+          aggregate: {
+            args: Prisma.MarketingAutomationVersionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMarketingAutomationVersion>
+          }
+          groupBy: {
+            args: Prisma.MarketingAutomationVersionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MarketingAutomationVersionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MarketingAutomationVersionCountArgs<ExtArgs>
+            result: $Utils.Optional<MarketingAutomationVersionCountAggregateOutputType> | number
+          }
+        }
+      }
+      MarketingAutomationEnrollment: {
+        payload: Prisma.$MarketingAutomationEnrollmentPayload<ExtArgs>
+        fields: Prisma.MarketingAutomationEnrollmentFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MarketingAutomationEnrollmentFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationEnrollmentPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MarketingAutomationEnrollmentFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationEnrollmentPayload>
+          }
+          findFirst: {
+            args: Prisma.MarketingAutomationEnrollmentFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationEnrollmentPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MarketingAutomationEnrollmentFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationEnrollmentPayload>
+          }
+          findMany: {
+            args: Prisma.MarketingAutomationEnrollmentFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationEnrollmentPayload>[]
+          }
+          create: {
+            args: Prisma.MarketingAutomationEnrollmentCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationEnrollmentPayload>
+          }
+          createMany: {
+            args: Prisma.MarketingAutomationEnrollmentCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MarketingAutomationEnrollmentCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationEnrollmentPayload>[]
+          }
+          delete: {
+            args: Prisma.MarketingAutomationEnrollmentDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationEnrollmentPayload>
+          }
+          update: {
+            args: Prisma.MarketingAutomationEnrollmentUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationEnrollmentPayload>
+          }
+          deleteMany: {
+            args: Prisma.MarketingAutomationEnrollmentDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MarketingAutomationEnrollmentUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MarketingAutomationEnrollmentUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationEnrollmentPayload>[]
+          }
+          upsert: {
+            args: Prisma.MarketingAutomationEnrollmentUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationEnrollmentPayload>
+          }
+          aggregate: {
+            args: Prisma.MarketingAutomationEnrollmentAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMarketingAutomationEnrollment>
+          }
+          groupBy: {
+            args: Prisma.MarketingAutomationEnrollmentGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MarketingAutomationEnrollmentGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MarketingAutomationEnrollmentCountArgs<ExtArgs>
+            result: $Utils.Optional<MarketingAutomationEnrollmentCountAggregateOutputType> | number
+          }
+        }
+      }
+      MarketingAutomationStepRun: {
+        payload: Prisma.$MarketingAutomationStepRunPayload<ExtArgs>
+        fields: Prisma.MarketingAutomationStepRunFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MarketingAutomationStepRunFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationStepRunPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MarketingAutomationStepRunFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationStepRunPayload>
+          }
+          findFirst: {
+            args: Prisma.MarketingAutomationStepRunFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationStepRunPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MarketingAutomationStepRunFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationStepRunPayload>
+          }
+          findMany: {
+            args: Prisma.MarketingAutomationStepRunFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationStepRunPayload>[]
+          }
+          create: {
+            args: Prisma.MarketingAutomationStepRunCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationStepRunPayload>
+          }
+          createMany: {
+            args: Prisma.MarketingAutomationStepRunCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MarketingAutomationStepRunCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationStepRunPayload>[]
+          }
+          delete: {
+            args: Prisma.MarketingAutomationStepRunDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationStepRunPayload>
+          }
+          update: {
+            args: Prisma.MarketingAutomationStepRunUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationStepRunPayload>
+          }
+          deleteMany: {
+            args: Prisma.MarketingAutomationStepRunDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MarketingAutomationStepRunUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MarketingAutomationStepRunUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationStepRunPayload>[]
+          }
+          upsert: {
+            args: Prisma.MarketingAutomationStepRunUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingAutomationStepRunPayload>
+          }
+          aggregate: {
+            args: Prisma.MarketingAutomationStepRunAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMarketingAutomationStepRun>
+          }
+          groupBy: {
+            args: Prisma.MarketingAutomationStepRunGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MarketingAutomationStepRunGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MarketingAutomationStepRunCountArgs<ExtArgs>
+            result: $Utils.Optional<MarketingAutomationStepRunCountAggregateOutputType> | number
+          }
+        }
+      }
+      MarketingTriggerEvent: {
+        payload: Prisma.$MarketingTriggerEventPayload<ExtArgs>
+        fields: Prisma.MarketingTriggerEventFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MarketingTriggerEventFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingTriggerEventPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MarketingTriggerEventFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingTriggerEventPayload>
+          }
+          findFirst: {
+            args: Prisma.MarketingTriggerEventFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingTriggerEventPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MarketingTriggerEventFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingTriggerEventPayload>
+          }
+          findMany: {
+            args: Prisma.MarketingTriggerEventFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingTriggerEventPayload>[]
+          }
+          create: {
+            args: Prisma.MarketingTriggerEventCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingTriggerEventPayload>
+          }
+          createMany: {
+            args: Prisma.MarketingTriggerEventCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MarketingTriggerEventCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingTriggerEventPayload>[]
+          }
+          delete: {
+            args: Prisma.MarketingTriggerEventDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingTriggerEventPayload>
+          }
+          update: {
+            args: Prisma.MarketingTriggerEventUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingTriggerEventPayload>
+          }
+          deleteMany: {
+            args: Prisma.MarketingTriggerEventDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MarketingTriggerEventUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MarketingTriggerEventUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingTriggerEventPayload>[]
+          }
+          upsert: {
+            args: Prisma.MarketingTriggerEventUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingTriggerEventPayload>
+          }
+          aggregate: {
+            args: Prisma.MarketingTriggerEventAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMarketingTriggerEvent>
+          }
+          groupBy: {
+            args: Prisma.MarketingTriggerEventGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MarketingTriggerEventGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MarketingTriggerEventCountArgs<ExtArgs>
+            result: $Utils.Optional<MarketingTriggerEventCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -16968,6 +17897,15 @@ export namespace Prisma {
     marketingEmailCampaign?: MarketingEmailCampaignOmit
     marketingCampaignSnapshot?: MarketingCampaignSnapshotOmit
     marketingCampaignApproval?: MarketingCampaignApprovalOmit
+    marketingBrandSettings?: MarketingBrandSettingsOmit
+    marketingCampaignApprovedContact?: MarketingCampaignApprovedContactOmit
+    marketingBroadcastDispatch?: MarketingBroadcastDispatchOmit
+    marketingBroadcastRecipient?: MarketingBroadcastRecipientOmit
+    marketingAutomation?: MarketingAutomationOmit
+    marketingAutomationVersion?: MarketingAutomationVersionOmit
+    marketingAutomationEnrollment?: MarketingAutomationEnrollmentOmit
+    marketingAutomationStepRun?: MarketingAutomationStepRunOmit
+    marketingTriggerEvent?: MarketingTriggerEventOmit
   }
 
   /* Types for Logging */
@@ -19612,6 +20550,7 @@ export namespace Prisma {
     marketingAudiences: number
     marketingTemplates: number
     marketingCampaigns: number
+    marketingAutomations: number
   }
 
   export type MailOrganizationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -19625,6 +20564,7 @@ export namespace Prisma {
     marketingAudiences?: boolean | MailOrganizationCountOutputTypeCountMarketingAudiencesArgs
     marketingTemplates?: boolean | MailOrganizationCountOutputTypeCountMarketingTemplatesArgs
     marketingCampaigns?: boolean | MailOrganizationCountOutputTypeCountMarketingCampaignsArgs
+    marketingAutomations?: boolean | MailOrganizationCountOutputTypeCountMarketingAutomationsArgs
   }
 
   // Custom InputTypes
@@ -19706,6 +20646,13 @@ export namespace Prisma {
    */
   export type MailOrganizationCountOutputTypeCountMarketingCampaignsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MarketingEmailCampaignWhereInput
+  }
+
+  /**
+   * MailOrganizationCountOutputType without action
+   */
+  export type MailOrganizationCountOutputTypeCountMarketingAutomationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingAutomationWhereInput
   }
 
 
@@ -20144,11 +21091,15 @@ export namespace Prisma {
   export type MarketingContactCountOutputType = {
     consents: number
     audiences: number
+    broadcastRecipients: number
+    automationEnrollments: number
   }
 
   export type MarketingContactCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     consents?: boolean | MarketingContactCountOutputTypeCountConsentsArgs
     audiences?: boolean | MarketingContactCountOutputTypeCountAudiencesArgs
+    broadcastRecipients?: boolean | MarketingContactCountOutputTypeCountBroadcastRecipientsArgs
+    automationEnrollments?: boolean | MarketingContactCountOutputTypeCountAutomationEnrollmentsArgs
   }
 
   // Custom InputTypes
@@ -20174,6 +21125,20 @@ export namespace Prisma {
    */
   export type MarketingContactCountOutputTypeCountAudiencesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MarketingAudienceContactWhereInput
+  }
+
+  /**
+   * MarketingContactCountOutputType without action
+   */
+  export type MarketingContactCountOutputTypeCountBroadcastRecipientsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingBroadcastRecipientWhereInput
+  }
+
+  /**
+   * MarketingContactCountOutputType without action
+   */
+  export type MarketingContactCountOutputTypeCountAutomationEnrollmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingAutomationEnrollmentWhereInput
   }
 
 
@@ -20365,10 +21330,12 @@ export namespace Prisma {
 
   export type MarketingCampaignSnapshotCountOutputType = {
     approvals: number
+    approvedContacts: number
   }
 
   export type MarketingCampaignSnapshotCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     approvals?: boolean | MarketingCampaignSnapshotCountOutputTypeCountApprovalsArgs
+    approvedContacts?: boolean | MarketingCampaignSnapshotCountOutputTypeCountApprovedContactsArgs
   }
 
   // Custom InputTypes
@@ -20387,6 +21354,146 @@ export namespace Prisma {
    */
   export type MarketingCampaignSnapshotCountOutputTypeCountApprovalsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MarketingCampaignApprovalWhereInput
+  }
+
+  /**
+   * MarketingCampaignSnapshotCountOutputType without action
+   */
+  export type MarketingCampaignSnapshotCountOutputTypeCountApprovedContactsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingCampaignApprovedContactWhereInput
+  }
+
+
+  /**
+   * Count Type MarketingBroadcastDispatchCountOutputType
+   */
+
+  export type MarketingBroadcastDispatchCountOutputType = {
+    recipients: number
+  }
+
+  export type MarketingBroadcastDispatchCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    recipients?: boolean | MarketingBroadcastDispatchCountOutputTypeCountRecipientsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * MarketingBroadcastDispatchCountOutputType without action
+   */
+  export type MarketingBroadcastDispatchCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastDispatchCountOutputType
+     */
+    select?: MarketingBroadcastDispatchCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * MarketingBroadcastDispatchCountOutputType without action
+   */
+  export type MarketingBroadcastDispatchCountOutputTypeCountRecipientsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingBroadcastRecipientWhereInput
+  }
+
+
+  /**
+   * Count Type MarketingAutomationCountOutputType
+   */
+
+  export type MarketingAutomationCountOutputType = {
+    versions: number
+    enrollments: number
+  }
+
+  export type MarketingAutomationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    versions?: boolean | MarketingAutomationCountOutputTypeCountVersionsArgs
+    enrollments?: boolean | MarketingAutomationCountOutputTypeCountEnrollmentsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * MarketingAutomationCountOutputType without action
+   */
+  export type MarketingAutomationCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationCountOutputType
+     */
+    select?: MarketingAutomationCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * MarketingAutomationCountOutputType without action
+   */
+  export type MarketingAutomationCountOutputTypeCountVersionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingAutomationVersionWhereInput
+  }
+
+  /**
+   * MarketingAutomationCountOutputType without action
+   */
+  export type MarketingAutomationCountOutputTypeCountEnrollmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingAutomationEnrollmentWhereInput
+  }
+
+
+  /**
+   * Count Type MarketingAutomationVersionCountOutputType
+   */
+
+  export type MarketingAutomationVersionCountOutputType = {
+    enrollments: number
+  }
+
+  export type MarketingAutomationVersionCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    enrollments?: boolean | MarketingAutomationVersionCountOutputTypeCountEnrollmentsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * MarketingAutomationVersionCountOutputType without action
+   */
+  export type MarketingAutomationVersionCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationVersionCountOutputType
+     */
+    select?: MarketingAutomationVersionCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * MarketingAutomationVersionCountOutputType without action
+   */
+  export type MarketingAutomationVersionCountOutputTypeCountEnrollmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingAutomationEnrollmentWhereInput
+  }
+
+
+  /**
+   * Count Type MarketingAutomationEnrollmentCountOutputType
+   */
+
+  export type MarketingAutomationEnrollmentCountOutputType = {
+    stepRuns: number
+  }
+
+  export type MarketingAutomationEnrollmentCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    stepRuns?: boolean | MarketingAutomationEnrollmentCountOutputTypeCountStepRunsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * MarketingAutomationEnrollmentCountOutputType without action
+   */
+  export type MarketingAutomationEnrollmentCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationEnrollmentCountOutputType
+     */
+    select?: MarketingAutomationEnrollmentCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * MarketingAutomationEnrollmentCountOutputType without action
+   */
+  export type MarketingAutomationEnrollmentCountOutputTypeCountStepRunsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingAutomationStepRunWhereInput
   }
 
 
@@ -170607,6 +171714,8 @@ export namespace Prisma {
     marketingAudiences?: boolean | MailOrganization$marketingAudiencesArgs<ExtArgs>
     marketingTemplates?: boolean | MailOrganization$marketingTemplatesArgs<ExtArgs>
     marketingCampaigns?: boolean | MailOrganization$marketingCampaignsArgs<ExtArgs>
+    marketingBrandSettings?: boolean | MailOrganization$marketingBrandSettingsArgs<ExtArgs>
+    marketingAutomations?: boolean | MailOrganization$marketingAutomationsArgs<ExtArgs>
     _count?: boolean | MailOrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["mailOrganization"]>
 
@@ -170655,6 +171764,8 @@ export namespace Prisma {
     marketingAudiences?: boolean | MailOrganization$marketingAudiencesArgs<ExtArgs>
     marketingTemplates?: boolean | MailOrganization$marketingTemplatesArgs<ExtArgs>
     marketingCampaigns?: boolean | MailOrganization$marketingCampaignsArgs<ExtArgs>
+    marketingBrandSettings?: boolean | MailOrganization$marketingBrandSettingsArgs<ExtArgs>
+    marketingAutomations?: boolean | MailOrganization$marketingAutomationsArgs<ExtArgs>
     _count?: boolean | MailOrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MailOrganizationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -170673,6 +171784,8 @@ export namespace Prisma {
       marketingAudiences: Prisma.$MarketingAudiencePayload<ExtArgs>[]
       marketingTemplates: Prisma.$MarketingEmailTemplatePayload<ExtArgs>[]
       marketingCampaigns: Prisma.$MarketingEmailCampaignPayload<ExtArgs>[]
+      marketingBrandSettings: Prisma.$MarketingBrandSettingsPayload<ExtArgs> | null
+      marketingAutomations: Prisma.$MarketingAutomationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -171087,6 +172200,8 @@ export namespace Prisma {
     marketingAudiences<T extends MailOrganization$marketingAudiencesArgs<ExtArgs> = {}>(args?: Subset<T, MailOrganization$marketingAudiencesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingAudiencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     marketingTemplates<T extends MailOrganization$marketingTemplatesArgs<ExtArgs> = {}>(args?: Subset<T, MailOrganization$marketingTemplatesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingEmailTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     marketingCampaigns<T extends MailOrganization$marketingCampaignsArgs<ExtArgs> = {}>(args?: Subset<T, MailOrganization$marketingCampaignsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingEmailCampaignPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    marketingBrandSettings<T extends MailOrganization$marketingBrandSettingsArgs<ExtArgs> = {}>(args?: Subset<T, MailOrganization$marketingBrandSettingsArgs<ExtArgs>>): Prisma__MarketingBrandSettingsClient<$Result.GetResult<Prisma.$MarketingBrandSettingsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    marketingAutomations<T extends MailOrganization$marketingAutomationsArgs<ExtArgs> = {}>(args?: Subset<T, MailOrganization$marketingAutomationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingAutomationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -171754,6 +172869,49 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: MarketingEmailCampaignScalarFieldEnum | MarketingEmailCampaignScalarFieldEnum[]
+  }
+
+  /**
+   * MailOrganization.marketingBrandSettings
+   */
+  export type MailOrganization$marketingBrandSettingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBrandSettings
+     */
+    select?: MarketingBrandSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBrandSettings
+     */
+    omit?: MarketingBrandSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBrandSettingsInclude<ExtArgs> | null
+    where?: MarketingBrandSettingsWhereInput
+  }
+
+  /**
+   * MailOrganization.marketingAutomations
+   */
+  export type MailOrganization$marketingAutomationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomation
+     */
+    select?: MarketingAutomationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomation
+     */
+    omit?: MarketingAutomationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationInclude<ExtArgs> | null
+    where?: MarketingAutomationWhereInput
+    orderBy?: MarketingAutomationOrderByWithRelationInput | MarketingAutomationOrderByWithRelationInput[]
+    cursor?: MarketingAutomationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MarketingAutomationScalarFieldEnum | MarketingAutomationScalarFieldEnum[]
   }
 
   /**
@@ -201254,6 +202412,8 @@ export namespace Prisma {
     organization?: boolean | MailOrganizationDefaultArgs<ExtArgs>
     consents?: boolean | MarketingContact$consentsArgs<ExtArgs>
     audiences?: boolean | MarketingContact$audiencesArgs<ExtArgs>
+    broadcastRecipients?: boolean | MarketingContact$broadcastRecipientsArgs<ExtArgs>
+    automationEnrollments?: boolean | MarketingContact$automationEnrollmentsArgs<ExtArgs>
     _count?: boolean | MarketingContactCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["marketingContact"]>
 
@@ -201306,6 +202466,8 @@ export namespace Prisma {
     organization?: boolean | MailOrganizationDefaultArgs<ExtArgs>
     consents?: boolean | MarketingContact$consentsArgs<ExtArgs>
     audiences?: boolean | MarketingContact$audiencesArgs<ExtArgs>
+    broadcastRecipients?: boolean | MarketingContact$broadcastRecipientsArgs<ExtArgs>
+    automationEnrollments?: boolean | MarketingContact$automationEnrollmentsArgs<ExtArgs>
     _count?: boolean | MarketingContactCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MarketingContactIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -201321,6 +202483,8 @@ export namespace Prisma {
       organization: Prisma.$MailOrganizationPayload<ExtArgs>
       consents: Prisma.$MarketingConsentPayload<ExtArgs>[]
       audiences: Prisma.$MarketingAudienceContactPayload<ExtArgs>[]
+      broadcastRecipients: Prisma.$MarketingBroadcastRecipientPayload<ExtArgs>[]
+      automationEnrollments: Prisma.$MarketingAutomationEnrollmentPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -201731,6 +202895,8 @@ export namespace Prisma {
     organization<T extends MailOrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MailOrganizationDefaultArgs<ExtArgs>>): Prisma__MailOrganizationClient<$Result.GetResult<Prisma.$MailOrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     consents<T extends MarketingContact$consentsArgs<ExtArgs> = {}>(args?: Subset<T, MarketingContact$consentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingConsentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     audiences<T extends MarketingContact$audiencesArgs<ExtArgs> = {}>(args?: Subset<T, MarketingContact$audiencesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingAudienceContactPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    broadcastRecipients<T extends MarketingContact$broadcastRecipientsArgs<ExtArgs> = {}>(args?: Subset<T, MarketingContact$broadcastRecipientsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingBroadcastRecipientPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    automationEnrollments<T extends MarketingContact$automationEnrollmentsArgs<ExtArgs> = {}>(args?: Subset<T, MarketingContact$automationEnrollmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingAutomationEnrollmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -202217,6 +203383,54 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: MarketingAudienceContactScalarFieldEnum | MarketingAudienceContactScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingContact.broadcastRecipients
+   */
+  export type MarketingContact$broadcastRecipientsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastRecipient
+     */
+    select?: MarketingBroadcastRecipientSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastRecipient
+     */
+    omit?: MarketingBroadcastRecipientOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastRecipientInclude<ExtArgs> | null
+    where?: MarketingBroadcastRecipientWhereInput
+    orderBy?: MarketingBroadcastRecipientOrderByWithRelationInput | MarketingBroadcastRecipientOrderByWithRelationInput[]
+    cursor?: MarketingBroadcastRecipientWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MarketingBroadcastRecipientScalarFieldEnum | MarketingBroadcastRecipientScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingContact.automationEnrollments
+   */
+  export type MarketingContact$automationEnrollmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationEnrollment
+     */
+    select?: MarketingAutomationEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationEnrollment
+     */
+    omit?: MarketingAutomationEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationEnrollmentInclude<ExtArgs> | null
+    where?: MarketingAutomationEnrollmentWhereInput
+    orderBy?: MarketingAutomationEnrollmentOrderByWithRelationInput | MarketingAutomationEnrollmentOrderByWithRelationInput[]
+    cursor?: MarketingAutomationEnrollmentWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MarketingAutomationEnrollmentScalarFieldEnum | MarketingAutomationEnrollmentScalarFieldEnum[]
   }
 
   /**
@@ -210660,6 +211874,7 @@ export namespace Prisma {
     segment?: boolean | MarketingEmailCampaign$segmentArgs<ExtArgs>
     approvals?: boolean | MarketingEmailCampaign$approvalsArgs<ExtArgs>
     snapshots?: boolean | MarketingEmailCampaign$snapshotsArgs<ExtArgs>
+    dispatch?: boolean | MarketingEmailCampaign$dispatchArgs<ExtArgs>
     _count?: boolean | MarketingEmailCampaignCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["marketingEmailCampaign"]>
 
@@ -210754,6 +211969,7 @@ export namespace Prisma {
     segment?: boolean | MarketingEmailCampaign$segmentArgs<ExtArgs>
     approvals?: boolean | MarketingEmailCampaign$approvalsArgs<ExtArgs>
     snapshots?: boolean | MarketingEmailCampaign$snapshotsArgs<ExtArgs>
+    dispatch?: boolean | MarketingEmailCampaign$dispatchArgs<ExtArgs>
     _count?: boolean | MarketingEmailCampaignCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MarketingEmailCampaignIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -210778,6 +211994,7 @@ export namespace Prisma {
       segment: Prisma.$MarketingSegmentPayload<ExtArgs> | null
       approvals: Prisma.$MarketingCampaignApprovalPayload<ExtArgs>[]
       snapshots: Prisma.$MarketingCampaignSnapshotPayload<ExtArgs>[]
+      dispatch: Prisma.$MarketingBroadcastDispatchPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -211202,6 +212419,7 @@ export namespace Prisma {
     segment<T extends MarketingEmailCampaign$segmentArgs<ExtArgs> = {}>(args?: Subset<T, MarketingEmailCampaign$segmentArgs<ExtArgs>>): Prisma__MarketingSegmentClient<$Result.GetResult<Prisma.$MarketingSegmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     approvals<T extends MarketingEmailCampaign$approvalsArgs<ExtArgs> = {}>(args?: Subset<T, MarketingEmailCampaign$approvalsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingCampaignApprovalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     snapshots<T extends MarketingEmailCampaign$snapshotsArgs<ExtArgs> = {}>(args?: Subset<T, MarketingEmailCampaign$snapshotsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingCampaignSnapshotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    dispatch<T extends MarketingEmailCampaign$dispatchArgs<ExtArgs> = {}>(args?: Subset<T, MarketingEmailCampaign$dispatchArgs<ExtArgs>>): Prisma__MarketingBroadcastDispatchClient<$Result.GetResult<Prisma.$MarketingBroadcastDispatchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -211759,6 +212977,25 @@ export namespace Prisma {
   }
 
   /**
+   * MarketingEmailCampaign.dispatch
+   */
+  export type MarketingEmailCampaign$dispatchArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastDispatch
+     */
+    select?: MarketingBroadcastDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastDispatch
+     */
+    omit?: MarketingBroadcastDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastDispatchInclude<ExtArgs> | null
+    where?: MarketingBroadcastDispatchWhereInput
+  }
+
+  /**
    * MarketingEmailCampaign without action
    */
   export type MarketingEmailCampaignDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -212069,6 +213306,7 @@ export namespace Prisma {
     createdAt?: boolean
     campaign?: boolean | MarketingEmailCampaignDefaultArgs<ExtArgs>
     approvals?: boolean | MarketingCampaignSnapshot$approvalsArgs<ExtArgs>
+    approvedContacts?: boolean | MarketingCampaignSnapshot$approvedContactsArgs<ExtArgs>
     _count?: boolean | MarketingCampaignSnapshotCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["marketingCampaignSnapshot"]>
 
@@ -212135,6 +213373,7 @@ export namespace Prisma {
   export type MarketingCampaignSnapshotInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     campaign?: boolean | MarketingEmailCampaignDefaultArgs<ExtArgs>
     approvals?: boolean | MarketingCampaignSnapshot$approvalsArgs<ExtArgs>
+    approvedContacts?: boolean | MarketingCampaignSnapshot$approvedContactsArgs<ExtArgs>
     _count?: boolean | MarketingCampaignSnapshotCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MarketingCampaignSnapshotIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -212149,6 +213388,7 @@ export namespace Prisma {
     objects: {
       campaign: Prisma.$MarketingEmailCampaignPayload<ExtArgs>
       approvals: Prisma.$MarketingCampaignApprovalPayload<ExtArgs>[]
+      approvedContacts: Prisma.$MarketingCampaignApprovedContactPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -212563,6 +213803,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     campaign<T extends MarketingEmailCampaignDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MarketingEmailCampaignDefaultArgs<ExtArgs>>): Prisma__MarketingEmailCampaignClient<$Result.GetResult<Prisma.$MarketingEmailCampaignPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     approvals<T extends MarketingCampaignSnapshot$approvalsArgs<ExtArgs> = {}>(args?: Subset<T, MarketingCampaignSnapshot$approvalsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingCampaignApprovalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    approvedContacts<T extends MarketingCampaignSnapshot$approvedContactsArgs<ExtArgs> = {}>(args?: Subset<T, MarketingCampaignSnapshot$approvedContactsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingCampaignApprovedContactPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -213030,6 +214271,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: MarketingCampaignApprovalScalarFieldEnum | MarketingCampaignApprovalScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingCampaignSnapshot.approvedContacts
+   */
+  export type MarketingCampaignSnapshot$approvedContactsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignApprovedContact
+     */
+    select?: MarketingCampaignApprovedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignApprovedContact
+     */
+    omit?: MarketingCampaignApprovedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignApprovedContactInclude<ExtArgs> | null
+    where?: MarketingCampaignApprovedContactWhereInput
+    orderBy?: MarketingCampaignApprovedContactOrderByWithRelationInput | MarketingCampaignApprovedContactOrderByWithRelationInput[]
+    cursor?: MarketingCampaignApprovedContactWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MarketingCampaignApprovedContactScalarFieldEnum | MarketingCampaignApprovedContactScalarFieldEnum[]
   }
 
   /**
@@ -214224,6 +215489,11155 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: MarketingCampaignApprovalInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MarketingBrandSettings
+   */
+
+  export type AggregateMarketingBrandSettings = {
+    _count: MarketingBrandSettingsCountAggregateOutputType | null
+    _avg: MarketingBrandSettingsAvgAggregateOutputType | null
+    _sum: MarketingBrandSettingsSumAggregateOutputType | null
+    _min: MarketingBrandSettingsMinAggregateOutputType | null
+    _max: MarketingBrandSettingsMaxAggregateOutputType | null
+  }
+
+  export type MarketingBrandSettingsAvgAggregateOutputType = {
+    dailyBroadcastCap: number | null
+    dailyAutomationCap: number | null
+    maxBroadcastRecipients: number | null
+  }
+
+  export type MarketingBrandSettingsSumAggregateOutputType = {
+    dailyBroadcastCap: number | null
+    dailyAutomationCap: number | null
+    maxBroadcastRecipients: number | null
+  }
+
+  export type MarketingBrandSettingsMinAggregateOutputType = {
+    organizationId: string | null
+    confirmationSenderId: string | null
+    defaultTimeZone: string | null
+    postalAddress: string | null
+    dailyBroadcastCap: number | null
+    dailyAutomationCap: number | null
+    maxBroadcastRecipients: number | null
+    dispatchPaused: boolean | null
+    pausedReason: string | null
+    pausedAt: Date | null
+    pausedBy: string | null
+    updatedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MarketingBrandSettingsMaxAggregateOutputType = {
+    organizationId: string | null
+    confirmationSenderId: string | null
+    defaultTimeZone: string | null
+    postalAddress: string | null
+    dailyBroadcastCap: number | null
+    dailyAutomationCap: number | null
+    maxBroadcastRecipients: number | null
+    dispatchPaused: boolean | null
+    pausedReason: string | null
+    pausedAt: Date | null
+    pausedBy: string | null
+    updatedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MarketingBrandSettingsCountAggregateOutputType = {
+    organizationId: number
+    confirmationSenderId: number
+    defaultTimeZone: number
+    postalAddress: number
+    dailyBroadcastCap: number
+    dailyAutomationCap: number
+    maxBroadcastRecipients: number
+    dispatchPaused: number
+    pausedReason: number
+    pausedAt: number
+    pausedBy: number
+    updatedBy: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MarketingBrandSettingsAvgAggregateInputType = {
+    dailyBroadcastCap?: true
+    dailyAutomationCap?: true
+    maxBroadcastRecipients?: true
+  }
+
+  export type MarketingBrandSettingsSumAggregateInputType = {
+    dailyBroadcastCap?: true
+    dailyAutomationCap?: true
+    maxBroadcastRecipients?: true
+  }
+
+  export type MarketingBrandSettingsMinAggregateInputType = {
+    organizationId?: true
+    confirmationSenderId?: true
+    defaultTimeZone?: true
+    postalAddress?: true
+    dailyBroadcastCap?: true
+    dailyAutomationCap?: true
+    maxBroadcastRecipients?: true
+    dispatchPaused?: true
+    pausedReason?: true
+    pausedAt?: true
+    pausedBy?: true
+    updatedBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MarketingBrandSettingsMaxAggregateInputType = {
+    organizationId?: true
+    confirmationSenderId?: true
+    defaultTimeZone?: true
+    postalAddress?: true
+    dailyBroadcastCap?: true
+    dailyAutomationCap?: true
+    maxBroadcastRecipients?: true
+    dispatchPaused?: true
+    pausedReason?: true
+    pausedAt?: true
+    pausedBy?: true
+    updatedBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MarketingBrandSettingsCountAggregateInputType = {
+    organizationId?: true
+    confirmationSenderId?: true
+    defaultTimeZone?: true
+    postalAddress?: true
+    dailyBroadcastCap?: true
+    dailyAutomationCap?: true
+    maxBroadcastRecipients?: true
+    dispatchPaused?: true
+    pausedReason?: true
+    pausedAt?: true
+    pausedBy?: true
+    updatedBy?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MarketingBrandSettingsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingBrandSettings to aggregate.
+     */
+    where?: MarketingBrandSettingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingBrandSettings to fetch.
+     */
+    orderBy?: MarketingBrandSettingsOrderByWithRelationInput | MarketingBrandSettingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MarketingBrandSettingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingBrandSettings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingBrandSettings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MarketingBrandSettings
+    **/
+    _count?: true | MarketingBrandSettingsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MarketingBrandSettingsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MarketingBrandSettingsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MarketingBrandSettingsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MarketingBrandSettingsMaxAggregateInputType
+  }
+
+  export type GetMarketingBrandSettingsAggregateType<T extends MarketingBrandSettingsAggregateArgs> = {
+        [P in keyof T & keyof AggregateMarketingBrandSettings]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMarketingBrandSettings[P]>
+      : GetScalarType<T[P], AggregateMarketingBrandSettings[P]>
+  }
+
+
+
+
+  export type MarketingBrandSettingsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingBrandSettingsWhereInput
+    orderBy?: MarketingBrandSettingsOrderByWithAggregationInput | MarketingBrandSettingsOrderByWithAggregationInput[]
+    by: MarketingBrandSettingsScalarFieldEnum[] | MarketingBrandSettingsScalarFieldEnum
+    having?: MarketingBrandSettingsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MarketingBrandSettingsCountAggregateInputType | true
+    _avg?: MarketingBrandSettingsAvgAggregateInputType
+    _sum?: MarketingBrandSettingsSumAggregateInputType
+    _min?: MarketingBrandSettingsMinAggregateInputType
+    _max?: MarketingBrandSettingsMaxAggregateInputType
+  }
+
+  export type MarketingBrandSettingsGroupByOutputType = {
+    organizationId: string
+    confirmationSenderId: string | null
+    defaultTimeZone: string
+    postalAddress: string | null
+    dailyBroadcastCap: number
+    dailyAutomationCap: number
+    maxBroadcastRecipients: number
+    dispatchPaused: boolean
+    pausedReason: string | null
+    pausedAt: Date | null
+    pausedBy: string | null
+    updatedBy: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: MarketingBrandSettingsCountAggregateOutputType | null
+    _avg: MarketingBrandSettingsAvgAggregateOutputType | null
+    _sum: MarketingBrandSettingsSumAggregateOutputType | null
+    _min: MarketingBrandSettingsMinAggregateOutputType | null
+    _max: MarketingBrandSettingsMaxAggregateOutputType | null
+  }
+
+  type GetMarketingBrandSettingsGroupByPayload<T extends MarketingBrandSettingsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MarketingBrandSettingsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MarketingBrandSettingsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MarketingBrandSettingsGroupByOutputType[P]>
+            : GetScalarType<T[P], MarketingBrandSettingsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MarketingBrandSettingsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    organizationId?: boolean
+    confirmationSenderId?: boolean
+    defaultTimeZone?: boolean
+    postalAddress?: boolean
+    dailyBroadcastCap?: boolean
+    dailyAutomationCap?: boolean
+    maxBroadcastRecipients?: boolean
+    dispatchPaused?: boolean
+    pausedReason?: boolean
+    pausedAt?: boolean
+    pausedBy?: boolean
+    updatedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    organization?: boolean | MailOrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingBrandSettings"]>
+
+  export type MarketingBrandSettingsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    organizationId?: boolean
+    confirmationSenderId?: boolean
+    defaultTimeZone?: boolean
+    postalAddress?: boolean
+    dailyBroadcastCap?: boolean
+    dailyAutomationCap?: boolean
+    maxBroadcastRecipients?: boolean
+    dispatchPaused?: boolean
+    pausedReason?: boolean
+    pausedAt?: boolean
+    pausedBy?: boolean
+    updatedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    organization?: boolean | MailOrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingBrandSettings"]>
+
+  export type MarketingBrandSettingsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    organizationId?: boolean
+    confirmationSenderId?: boolean
+    defaultTimeZone?: boolean
+    postalAddress?: boolean
+    dailyBroadcastCap?: boolean
+    dailyAutomationCap?: boolean
+    maxBroadcastRecipients?: boolean
+    dispatchPaused?: boolean
+    pausedReason?: boolean
+    pausedAt?: boolean
+    pausedBy?: boolean
+    updatedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    organization?: boolean | MailOrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingBrandSettings"]>
+
+  export type MarketingBrandSettingsSelectScalar = {
+    organizationId?: boolean
+    confirmationSenderId?: boolean
+    defaultTimeZone?: boolean
+    postalAddress?: boolean
+    dailyBroadcastCap?: boolean
+    dailyAutomationCap?: boolean
+    maxBroadcastRecipients?: boolean
+    dispatchPaused?: boolean
+    pausedReason?: boolean
+    pausedAt?: boolean
+    pausedBy?: boolean
+    updatedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type MarketingBrandSettingsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"organizationId" | "confirmationSenderId" | "defaultTimeZone" | "postalAddress" | "dailyBroadcastCap" | "dailyAutomationCap" | "maxBroadcastRecipients" | "dispatchPaused" | "pausedReason" | "pausedAt" | "pausedBy" | "updatedBy" | "createdAt" | "updatedAt", ExtArgs["result"]["marketingBrandSettings"]>
+  export type MarketingBrandSettingsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | MailOrganizationDefaultArgs<ExtArgs>
+  }
+  export type MarketingBrandSettingsIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | MailOrganizationDefaultArgs<ExtArgs>
+  }
+  export type MarketingBrandSettingsIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | MailOrganizationDefaultArgs<ExtArgs>
+  }
+
+  export type $MarketingBrandSettingsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MarketingBrandSettings"
+    objects: {
+      organization: Prisma.$MailOrganizationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      organizationId: string
+      confirmationSenderId: string | null
+      defaultTimeZone: string
+      postalAddress: string | null
+      dailyBroadcastCap: number
+      dailyAutomationCap: number
+      maxBroadcastRecipients: number
+      dispatchPaused: boolean
+      pausedReason: string | null
+      pausedAt: Date | null
+      pausedBy: string | null
+      updatedBy: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["marketingBrandSettings"]>
+    composites: {}
+  }
+
+  type MarketingBrandSettingsGetPayload<S extends boolean | null | undefined | MarketingBrandSettingsDefaultArgs> = $Result.GetResult<Prisma.$MarketingBrandSettingsPayload, S>
+
+  type MarketingBrandSettingsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MarketingBrandSettingsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MarketingBrandSettingsCountAggregateInputType | true
+    }
+
+  export interface MarketingBrandSettingsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MarketingBrandSettings'], meta: { name: 'MarketingBrandSettings' } }
+    /**
+     * Find zero or one MarketingBrandSettings that matches the filter.
+     * @param {MarketingBrandSettingsFindUniqueArgs} args - Arguments to find a MarketingBrandSettings
+     * @example
+     * // Get one MarketingBrandSettings
+     * const marketingBrandSettings = await prisma.marketingBrandSettings.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MarketingBrandSettingsFindUniqueArgs>(args: SelectSubset<T, MarketingBrandSettingsFindUniqueArgs<ExtArgs>>): Prisma__MarketingBrandSettingsClient<$Result.GetResult<Prisma.$MarketingBrandSettingsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MarketingBrandSettings that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MarketingBrandSettingsFindUniqueOrThrowArgs} args - Arguments to find a MarketingBrandSettings
+     * @example
+     * // Get one MarketingBrandSettings
+     * const marketingBrandSettings = await prisma.marketingBrandSettings.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MarketingBrandSettingsFindUniqueOrThrowArgs>(args: SelectSubset<T, MarketingBrandSettingsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MarketingBrandSettingsClient<$Result.GetResult<Prisma.$MarketingBrandSettingsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarketingBrandSettings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBrandSettingsFindFirstArgs} args - Arguments to find a MarketingBrandSettings
+     * @example
+     * // Get one MarketingBrandSettings
+     * const marketingBrandSettings = await prisma.marketingBrandSettings.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MarketingBrandSettingsFindFirstArgs>(args?: SelectSubset<T, MarketingBrandSettingsFindFirstArgs<ExtArgs>>): Prisma__MarketingBrandSettingsClient<$Result.GetResult<Prisma.$MarketingBrandSettingsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarketingBrandSettings that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBrandSettingsFindFirstOrThrowArgs} args - Arguments to find a MarketingBrandSettings
+     * @example
+     * // Get one MarketingBrandSettings
+     * const marketingBrandSettings = await prisma.marketingBrandSettings.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MarketingBrandSettingsFindFirstOrThrowArgs>(args?: SelectSubset<T, MarketingBrandSettingsFindFirstOrThrowArgs<ExtArgs>>): Prisma__MarketingBrandSettingsClient<$Result.GetResult<Prisma.$MarketingBrandSettingsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MarketingBrandSettings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBrandSettingsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MarketingBrandSettings
+     * const marketingBrandSettings = await prisma.marketingBrandSettings.findMany()
+     * 
+     * // Get first 10 MarketingBrandSettings
+     * const marketingBrandSettings = await prisma.marketingBrandSettings.findMany({ take: 10 })
+     * 
+     * // Only select the `organizationId`
+     * const marketingBrandSettingsWithOrganizationIdOnly = await prisma.marketingBrandSettings.findMany({ select: { organizationId: true } })
+     * 
+     */
+    findMany<T extends MarketingBrandSettingsFindManyArgs>(args?: SelectSubset<T, MarketingBrandSettingsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingBrandSettingsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MarketingBrandSettings.
+     * @param {MarketingBrandSettingsCreateArgs} args - Arguments to create a MarketingBrandSettings.
+     * @example
+     * // Create one MarketingBrandSettings
+     * const MarketingBrandSettings = await prisma.marketingBrandSettings.create({
+     *   data: {
+     *     // ... data to create a MarketingBrandSettings
+     *   }
+     * })
+     * 
+     */
+    create<T extends MarketingBrandSettingsCreateArgs>(args: SelectSubset<T, MarketingBrandSettingsCreateArgs<ExtArgs>>): Prisma__MarketingBrandSettingsClient<$Result.GetResult<Prisma.$MarketingBrandSettingsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MarketingBrandSettings.
+     * @param {MarketingBrandSettingsCreateManyArgs} args - Arguments to create many MarketingBrandSettings.
+     * @example
+     * // Create many MarketingBrandSettings
+     * const marketingBrandSettings = await prisma.marketingBrandSettings.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MarketingBrandSettingsCreateManyArgs>(args?: SelectSubset<T, MarketingBrandSettingsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MarketingBrandSettings and returns the data saved in the database.
+     * @param {MarketingBrandSettingsCreateManyAndReturnArgs} args - Arguments to create many MarketingBrandSettings.
+     * @example
+     * // Create many MarketingBrandSettings
+     * const marketingBrandSettings = await prisma.marketingBrandSettings.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MarketingBrandSettings and only return the `organizationId`
+     * const marketingBrandSettingsWithOrganizationIdOnly = await prisma.marketingBrandSettings.createManyAndReturn({
+     *   select: { organizationId: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MarketingBrandSettingsCreateManyAndReturnArgs>(args?: SelectSubset<T, MarketingBrandSettingsCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingBrandSettingsPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MarketingBrandSettings.
+     * @param {MarketingBrandSettingsDeleteArgs} args - Arguments to delete one MarketingBrandSettings.
+     * @example
+     * // Delete one MarketingBrandSettings
+     * const MarketingBrandSettings = await prisma.marketingBrandSettings.delete({
+     *   where: {
+     *     // ... filter to delete one MarketingBrandSettings
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MarketingBrandSettingsDeleteArgs>(args: SelectSubset<T, MarketingBrandSettingsDeleteArgs<ExtArgs>>): Prisma__MarketingBrandSettingsClient<$Result.GetResult<Prisma.$MarketingBrandSettingsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MarketingBrandSettings.
+     * @param {MarketingBrandSettingsUpdateArgs} args - Arguments to update one MarketingBrandSettings.
+     * @example
+     * // Update one MarketingBrandSettings
+     * const marketingBrandSettings = await prisma.marketingBrandSettings.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MarketingBrandSettingsUpdateArgs>(args: SelectSubset<T, MarketingBrandSettingsUpdateArgs<ExtArgs>>): Prisma__MarketingBrandSettingsClient<$Result.GetResult<Prisma.$MarketingBrandSettingsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MarketingBrandSettings.
+     * @param {MarketingBrandSettingsDeleteManyArgs} args - Arguments to filter MarketingBrandSettings to delete.
+     * @example
+     * // Delete a few MarketingBrandSettings
+     * const { count } = await prisma.marketingBrandSettings.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MarketingBrandSettingsDeleteManyArgs>(args?: SelectSubset<T, MarketingBrandSettingsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingBrandSettings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBrandSettingsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MarketingBrandSettings
+     * const marketingBrandSettings = await prisma.marketingBrandSettings.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MarketingBrandSettingsUpdateManyArgs>(args: SelectSubset<T, MarketingBrandSettingsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingBrandSettings and returns the data updated in the database.
+     * @param {MarketingBrandSettingsUpdateManyAndReturnArgs} args - Arguments to update many MarketingBrandSettings.
+     * @example
+     * // Update many MarketingBrandSettings
+     * const marketingBrandSettings = await prisma.marketingBrandSettings.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MarketingBrandSettings and only return the `organizationId`
+     * const marketingBrandSettingsWithOrganizationIdOnly = await prisma.marketingBrandSettings.updateManyAndReturn({
+     *   select: { organizationId: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MarketingBrandSettingsUpdateManyAndReturnArgs>(args: SelectSubset<T, MarketingBrandSettingsUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingBrandSettingsPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MarketingBrandSettings.
+     * @param {MarketingBrandSettingsUpsertArgs} args - Arguments to update or create a MarketingBrandSettings.
+     * @example
+     * // Update or create a MarketingBrandSettings
+     * const marketingBrandSettings = await prisma.marketingBrandSettings.upsert({
+     *   create: {
+     *     // ... data to create a MarketingBrandSettings
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MarketingBrandSettings we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MarketingBrandSettingsUpsertArgs>(args: SelectSubset<T, MarketingBrandSettingsUpsertArgs<ExtArgs>>): Prisma__MarketingBrandSettingsClient<$Result.GetResult<Prisma.$MarketingBrandSettingsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MarketingBrandSettings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBrandSettingsCountArgs} args - Arguments to filter MarketingBrandSettings to count.
+     * @example
+     * // Count the number of MarketingBrandSettings
+     * const count = await prisma.marketingBrandSettings.count({
+     *   where: {
+     *     // ... the filter for the MarketingBrandSettings we want to count
+     *   }
+     * })
+    **/
+    count<T extends MarketingBrandSettingsCountArgs>(
+      args?: Subset<T, MarketingBrandSettingsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MarketingBrandSettingsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MarketingBrandSettings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBrandSettingsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MarketingBrandSettingsAggregateArgs>(args: Subset<T, MarketingBrandSettingsAggregateArgs>): Prisma.PrismaPromise<GetMarketingBrandSettingsAggregateType<T>>
+
+    /**
+     * Group by MarketingBrandSettings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBrandSettingsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MarketingBrandSettingsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MarketingBrandSettingsGroupByArgs['orderBy'] }
+        : { orderBy?: MarketingBrandSettingsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MarketingBrandSettingsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMarketingBrandSettingsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MarketingBrandSettings model
+   */
+  readonly fields: MarketingBrandSettingsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MarketingBrandSettings.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MarketingBrandSettingsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    organization<T extends MailOrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MailOrganizationDefaultArgs<ExtArgs>>): Prisma__MailOrganizationClient<$Result.GetResult<Prisma.$MailOrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MarketingBrandSettings model
+   */
+  interface MarketingBrandSettingsFieldRefs {
+    readonly organizationId: FieldRef<"MarketingBrandSettings", 'String'>
+    readonly confirmationSenderId: FieldRef<"MarketingBrandSettings", 'String'>
+    readonly defaultTimeZone: FieldRef<"MarketingBrandSettings", 'String'>
+    readonly postalAddress: FieldRef<"MarketingBrandSettings", 'String'>
+    readonly dailyBroadcastCap: FieldRef<"MarketingBrandSettings", 'Int'>
+    readonly dailyAutomationCap: FieldRef<"MarketingBrandSettings", 'Int'>
+    readonly maxBroadcastRecipients: FieldRef<"MarketingBrandSettings", 'Int'>
+    readonly dispatchPaused: FieldRef<"MarketingBrandSettings", 'Boolean'>
+    readonly pausedReason: FieldRef<"MarketingBrandSettings", 'String'>
+    readonly pausedAt: FieldRef<"MarketingBrandSettings", 'DateTime'>
+    readonly pausedBy: FieldRef<"MarketingBrandSettings", 'String'>
+    readonly updatedBy: FieldRef<"MarketingBrandSettings", 'String'>
+    readonly createdAt: FieldRef<"MarketingBrandSettings", 'DateTime'>
+    readonly updatedAt: FieldRef<"MarketingBrandSettings", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MarketingBrandSettings findUnique
+   */
+  export type MarketingBrandSettingsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBrandSettings
+     */
+    select?: MarketingBrandSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBrandSettings
+     */
+    omit?: MarketingBrandSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBrandSettingsInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingBrandSettings to fetch.
+     */
+    where: MarketingBrandSettingsWhereUniqueInput
+  }
+
+  /**
+   * MarketingBrandSettings findUniqueOrThrow
+   */
+  export type MarketingBrandSettingsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBrandSettings
+     */
+    select?: MarketingBrandSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBrandSettings
+     */
+    omit?: MarketingBrandSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBrandSettingsInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingBrandSettings to fetch.
+     */
+    where: MarketingBrandSettingsWhereUniqueInput
+  }
+
+  /**
+   * MarketingBrandSettings findFirst
+   */
+  export type MarketingBrandSettingsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBrandSettings
+     */
+    select?: MarketingBrandSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBrandSettings
+     */
+    omit?: MarketingBrandSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBrandSettingsInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingBrandSettings to fetch.
+     */
+    where?: MarketingBrandSettingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingBrandSettings to fetch.
+     */
+    orderBy?: MarketingBrandSettingsOrderByWithRelationInput | MarketingBrandSettingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingBrandSettings.
+     */
+    cursor?: MarketingBrandSettingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingBrandSettings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingBrandSettings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingBrandSettings.
+     */
+    distinct?: MarketingBrandSettingsScalarFieldEnum | MarketingBrandSettingsScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingBrandSettings findFirstOrThrow
+   */
+  export type MarketingBrandSettingsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBrandSettings
+     */
+    select?: MarketingBrandSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBrandSettings
+     */
+    omit?: MarketingBrandSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBrandSettingsInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingBrandSettings to fetch.
+     */
+    where?: MarketingBrandSettingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingBrandSettings to fetch.
+     */
+    orderBy?: MarketingBrandSettingsOrderByWithRelationInput | MarketingBrandSettingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingBrandSettings.
+     */
+    cursor?: MarketingBrandSettingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingBrandSettings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingBrandSettings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingBrandSettings.
+     */
+    distinct?: MarketingBrandSettingsScalarFieldEnum | MarketingBrandSettingsScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingBrandSettings findMany
+   */
+  export type MarketingBrandSettingsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBrandSettings
+     */
+    select?: MarketingBrandSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBrandSettings
+     */
+    omit?: MarketingBrandSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBrandSettingsInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingBrandSettings to fetch.
+     */
+    where?: MarketingBrandSettingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingBrandSettings to fetch.
+     */
+    orderBy?: MarketingBrandSettingsOrderByWithRelationInput | MarketingBrandSettingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MarketingBrandSettings.
+     */
+    cursor?: MarketingBrandSettingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingBrandSettings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingBrandSettings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingBrandSettings.
+     */
+    distinct?: MarketingBrandSettingsScalarFieldEnum | MarketingBrandSettingsScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingBrandSettings create
+   */
+  export type MarketingBrandSettingsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBrandSettings
+     */
+    select?: MarketingBrandSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBrandSettings
+     */
+    omit?: MarketingBrandSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBrandSettingsInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MarketingBrandSettings.
+     */
+    data: XOR<MarketingBrandSettingsCreateInput, MarketingBrandSettingsUncheckedCreateInput>
+  }
+
+  /**
+   * MarketingBrandSettings createMany
+   */
+  export type MarketingBrandSettingsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MarketingBrandSettings.
+     */
+    data: MarketingBrandSettingsCreateManyInput | MarketingBrandSettingsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MarketingBrandSettings createManyAndReturn
+   */
+  export type MarketingBrandSettingsCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBrandSettings
+     */
+    select?: MarketingBrandSettingsSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBrandSettings
+     */
+    omit?: MarketingBrandSettingsOmit<ExtArgs> | null
+    /**
+     * The data used to create many MarketingBrandSettings.
+     */
+    data: MarketingBrandSettingsCreateManyInput | MarketingBrandSettingsCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBrandSettingsIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarketingBrandSettings update
+   */
+  export type MarketingBrandSettingsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBrandSettings
+     */
+    select?: MarketingBrandSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBrandSettings
+     */
+    omit?: MarketingBrandSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBrandSettingsInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MarketingBrandSettings.
+     */
+    data: XOR<MarketingBrandSettingsUpdateInput, MarketingBrandSettingsUncheckedUpdateInput>
+    /**
+     * Choose, which MarketingBrandSettings to update.
+     */
+    where: MarketingBrandSettingsWhereUniqueInput
+  }
+
+  /**
+   * MarketingBrandSettings updateMany
+   */
+  export type MarketingBrandSettingsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MarketingBrandSettings.
+     */
+    data: XOR<MarketingBrandSettingsUpdateManyMutationInput, MarketingBrandSettingsUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingBrandSettings to update
+     */
+    where?: MarketingBrandSettingsWhereInput
+    /**
+     * Limit how many MarketingBrandSettings to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingBrandSettings updateManyAndReturn
+   */
+  export type MarketingBrandSettingsUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBrandSettings
+     */
+    select?: MarketingBrandSettingsSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBrandSettings
+     */
+    omit?: MarketingBrandSettingsOmit<ExtArgs> | null
+    /**
+     * The data used to update MarketingBrandSettings.
+     */
+    data: XOR<MarketingBrandSettingsUpdateManyMutationInput, MarketingBrandSettingsUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingBrandSettings to update
+     */
+    where?: MarketingBrandSettingsWhereInput
+    /**
+     * Limit how many MarketingBrandSettings to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBrandSettingsIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarketingBrandSettings upsert
+   */
+  export type MarketingBrandSettingsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBrandSettings
+     */
+    select?: MarketingBrandSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBrandSettings
+     */
+    omit?: MarketingBrandSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBrandSettingsInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MarketingBrandSettings to update in case it exists.
+     */
+    where: MarketingBrandSettingsWhereUniqueInput
+    /**
+     * In case the MarketingBrandSettings found by the `where` argument doesn't exist, create a new MarketingBrandSettings with this data.
+     */
+    create: XOR<MarketingBrandSettingsCreateInput, MarketingBrandSettingsUncheckedCreateInput>
+    /**
+     * In case the MarketingBrandSettings was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MarketingBrandSettingsUpdateInput, MarketingBrandSettingsUncheckedUpdateInput>
+  }
+
+  /**
+   * MarketingBrandSettings delete
+   */
+  export type MarketingBrandSettingsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBrandSettings
+     */
+    select?: MarketingBrandSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBrandSettings
+     */
+    omit?: MarketingBrandSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBrandSettingsInclude<ExtArgs> | null
+    /**
+     * Filter which MarketingBrandSettings to delete.
+     */
+    where: MarketingBrandSettingsWhereUniqueInput
+  }
+
+  /**
+   * MarketingBrandSettings deleteMany
+   */
+  export type MarketingBrandSettingsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingBrandSettings to delete
+     */
+    where?: MarketingBrandSettingsWhereInput
+    /**
+     * Limit how many MarketingBrandSettings to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingBrandSettings without action
+   */
+  export type MarketingBrandSettingsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBrandSettings
+     */
+    select?: MarketingBrandSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBrandSettings
+     */
+    omit?: MarketingBrandSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBrandSettingsInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MarketingCampaignApprovedContact
+   */
+
+  export type AggregateMarketingCampaignApprovedContact = {
+    _count: MarketingCampaignApprovedContactCountAggregateOutputType | null
+    _min: MarketingCampaignApprovedContactMinAggregateOutputType | null
+    _max: MarketingCampaignApprovedContactMaxAggregateOutputType | null
+  }
+
+  export type MarketingCampaignApprovedContactMinAggregateOutputType = {
+    snapshotId: string | null
+    contactId: string | null
+    createdAt: Date | null
+  }
+
+  export type MarketingCampaignApprovedContactMaxAggregateOutputType = {
+    snapshotId: string | null
+    contactId: string | null
+    createdAt: Date | null
+  }
+
+  export type MarketingCampaignApprovedContactCountAggregateOutputType = {
+    snapshotId: number
+    contactId: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type MarketingCampaignApprovedContactMinAggregateInputType = {
+    snapshotId?: true
+    contactId?: true
+    createdAt?: true
+  }
+
+  export type MarketingCampaignApprovedContactMaxAggregateInputType = {
+    snapshotId?: true
+    contactId?: true
+    createdAt?: true
+  }
+
+  export type MarketingCampaignApprovedContactCountAggregateInputType = {
+    snapshotId?: true
+    contactId?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type MarketingCampaignApprovedContactAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingCampaignApprovedContact to aggregate.
+     */
+    where?: MarketingCampaignApprovedContactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingCampaignApprovedContacts to fetch.
+     */
+    orderBy?: MarketingCampaignApprovedContactOrderByWithRelationInput | MarketingCampaignApprovedContactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MarketingCampaignApprovedContactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingCampaignApprovedContacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingCampaignApprovedContacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MarketingCampaignApprovedContacts
+    **/
+    _count?: true | MarketingCampaignApprovedContactCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MarketingCampaignApprovedContactMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MarketingCampaignApprovedContactMaxAggregateInputType
+  }
+
+  export type GetMarketingCampaignApprovedContactAggregateType<T extends MarketingCampaignApprovedContactAggregateArgs> = {
+        [P in keyof T & keyof AggregateMarketingCampaignApprovedContact]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMarketingCampaignApprovedContact[P]>
+      : GetScalarType<T[P], AggregateMarketingCampaignApprovedContact[P]>
+  }
+
+
+
+
+  export type MarketingCampaignApprovedContactGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingCampaignApprovedContactWhereInput
+    orderBy?: MarketingCampaignApprovedContactOrderByWithAggregationInput | MarketingCampaignApprovedContactOrderByWithAggregationInput[]
+    by: MarketingCampaignApprovedContactScalarFieldEnum[] | MarketingCampaignApprovedContactScalarFieldEnum
+    having?: MarketingCampaignApprovedContactScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MarketingCampaignApprovedContactCountAggregateInputType | true
+    _min?: MarketingCampaignApprovedContactMinAggregateInputType
+    _max?: MarketingCampaignApprovedContactMaxAggregateInputType
+  }
+
+  export type MarketingCampaignApprovedContactGroupByOutputType = {
+    snapshotId: string
+    contactId: string
+    createdAt: Date
+    _count: MarketingCampaignApprovedContactCountAggregateOutputType | null
+    _min: MarketingCampaignApprovedContactMinAggregateOutputType | null
+    _max: MarketingCampaignApprovedContactMaxAggregateOutputType | null
+  }
+
+  type GetMarketingCampaignApprovedContactGroupByPayload<T extends MarketingCampaignApprovedContactGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MarketingCampaignApprovedContactGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MarketingCampaignApprovedContactGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MarketingCampaignApprovedContactGroupByOutputType[P]>
+            : GetScalarType<T[P], MarketingCampaignApprovedContactGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MarketingCampaignApprovedContactSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    snapshotId?: boolean
+    contactId?: boolean
+    createdAt?: boolean
+    snapshot?: boolean | MarketingCampaignSnapshotDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingCampaignApprovedContact"]>
+
+  export type MarketingCampaignApprovedContactSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    snapshotId?: boolean
+    contactId?: boolean
+    createdAt?: boolean
+    snapshot?: boolean | MarketingCampaignSnapshotDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingCampaignApprovedContact"]>
+
+  export type MarketingCampaignApprovedContactSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    snapshotId?: boolean
+    contactId?: boolean
+    createdAt?: boolean
+    snapshot?: boolean | MarketingCampaignSnapshotDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingCampaignApprovedContact"]>
+
+  export type MarketingCampaignApprovedContactSelectScalar = {
+    snapshotId?: boolean
+    contactId?: boolean
+    createdAt?: boolean
+  }
+
+  export type MarketingCampaignApprovedContactOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"snapshotId" | "contactId" | "createdAt", ExtArgs["result"]["marketingCampaignApprovedContact"]>
+  export type MarketingCampaignApprovedContactInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    snapshot?: boolean | MarketingCampaignSnapshotDefaultArgs<ExtArgs>
+  }
+  export type MarketingCampaignApprovedContactIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    snapshot?: boolean | MarketingCampaignSnapshotDefaultArgs<ExtArgs>
+  }
+  export type MarketingCampaignApprovedContactIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    snapshot?: boolean | MarketingCampaignSnapshotDefaultArgs<ExtArgs>
+  }
+
+  export type $MarketingCampaignApprovedContactPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MarketingCampaignApprovedContact"
+    objects: {
+      snapshot: Prisma.$MarketingCampaignSnapshotPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      snapshotId: string
+      contactId: string
+      createdAt: Date
+    }, ExtArgs["result"]["marketingCampaignApprovedContact"]>
+    composites: {}
+  }
+
+  type MarketingCampaignApprovedContactGetPayload<S extends boolean | null | undefined | MarketingCampaignApprovedContactDefaultArgs> = $Result.GetResult<Prisma.$MarketingCampaignApprovedContactPayload, S>
+
+  type MarketingCampaignApprovedContactCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MarketingCampaignApprovedContactFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MarketingCampaignApprovedContactCountAggregateInputType | true
+    }
+
+  export interface MarketingCampaignApprovedContactDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MarketingCampaignApprovedContact'], meta: { name: 'MarketingCampaignApprovedContact' } }
+    /**
+     * Find zero or one MarketingCampaignApprovedContact that matches the filter.
+     * @param {MarketingCampaignApprovedContactFindUniqueArgs} args - Arguments to find a MarketingCampaignApprovedContact
+     * @example
+     * // Get one MarketingCampaignApprovedContact
+     * const marketingCampaignApprovedContact = await prisma.marketingCampaignApprovedContact.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MarketingCampaignApprovedContactFindUniqueArgs>(args: SelectSubset<T, MarketingCampaignApprovedContactFindUniqueArgs<ExtArgs>>): Prisma__MarketingCampaignApprovedContactClient<$Result.GetResult<Prisma.$MarketingCampaignApprovedContactPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MarketingCampaignApprovedContact that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MarketingCampaignApprovedContactFindUniqueOrThrowArgs} args - Arguments to find a MarketingCampaignApprovedContact
+     * @example
+     * // Get one MarketingCampaignApprovedContact
+     * const marketingCampaignApprovedContact = await prisma.marketingCampaignApprovedContact.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MarketingCampaignApprovedContactFindUniqueOrThrowArgs>(args: SelectSubset<T, MarketingCampaignApprovedContactFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MarketingCampaignApprovedContactClient<$Result.GetResult<Prisma.$MarketingCampaignApprovedContactPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarketingCampaignApprovedContact that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignApprovedContactFindFirstArgs} args - Arguments to find a MarketingCampaignApprovedContact
+     * @example
+     * // Get one MarketingCampaignApprovedContact
+     * const marketingCampaignApprovedContact = await prisma.marketingCampaignApprovedContact.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MarketingCampaignApprovedContactFindFirstArgs>(args?: SelectSubset<T, MarketingCampaignApprovedContactFindFirstArgs<ExtArgs>>): Prisma__MarketingCampaignApprovedContactClient<$Result.GetResult<Prisma.$MarketingCampaignApprovedContactPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarketingCampaignApprovedContact that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignApprovedContactFindFirstOrThrowArgs} args - Arguments to find a MarketingCampaignApprovedContact
+     * @example
+     * // Get one MarketingCampaignApprovedContact
+     * const marketingCampaignApprovedContact = await prisma.marketingCampaignApprovedContact.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MarketingCampaignApprovedContactFindFirstOrThrowArgs>(args?: SelectSubset<T, MarketingCampaignApprovedContactFindFirstOrThrowArgs<ExtArgs>>): Prisma__MarketingCampaignApprovedContactClient<$Result.GetResult<Prisma.$MarketingCampaignApprovedContactPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MarketingCampaignApprovedContacts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignApprovedContactFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MarketingCampaignApprovedContacts
+     * const marketingCampaignApprovedContacts = await prisma.marketingCampaignApprovedContact.findMany()
+     * 
+     * // Get first 10 MarketingCampaignApprovedContacts
+     * const marketingCampaignApprovedContacts = await prisma.marketingCampaignApprovedContact.findMany({ take: 10 })
+     * 
+     * // Only select the `snapshotId`
+     * const marketingCampaignApprovedContactWithSnapshotIdOnly = await prisma.marketingCampaignApprovedContact.findMany({ select: { snapshotId: true } })
+     * 
+     */
+    findMany<T extends MarketingCampaignApprovedContactFindManyArgs>(args?: SelectSubset<T, MarketingCampaignApprovedContactFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingCampaignApprovedContactPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MarketingCampaignApprovedContact.
+     * @param {MarketingCampaignApprovedContactCreateArgs} args - Arguments to create a MarketingCampaignApprovedContact.
+     * @example
+     * // Create one MarketingCampaignApprovedContact
+     * const MarketingCampaignApprovedContact = await prisma.marketingCampaignApprovedContact.create({
+     *   data: {
+     *     // ... data to create a MarketingCampaignApprovedContact
+     *   }
+     * })
+     * 
+     */
+    create<T extends MarketingCampaignApprovedContactCreateArgs>(args: SelectSubset<T, MarketingCampaignApprovedContactCreateArgs<ExtArgs>>): Prisma__MarketingCampaignApprovedContactClient<$Result.GetResult<Prisma.$MarketingCampaignApprovedContactPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MarketingCampaignApprovedContacts.
+     * @param {MarketingCampaignApprovedContactCreateManyArgs} args - Arguments to create many MarketingCampaignApprovedContacts.
+     * @example
+     * // Create many MarketingCampaignApprovedContacts
+     * const marketingCampaignApprovedContact = await prisma.marketingCampaignApprovedContact.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MarketingCampaignApprovedContactCreateManyArgs>(args?: SelectSubset<T, MarketingCampaignApprovedContactCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MarketingCampaignApprovedContacts and returns the data saved in the database.
+     * @param {MarketingCampaignApprovedContactCreateManyAndReturnArgs} args - Arguments to create many MarketingCampaignApprovedContacts.
+     * @example
+     * // Create many MarketingCampaignApprovedContacts
+     * const marketingCampaignApprovedContact = await prisma.marketingCampaignApprovedContact.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MarketingCampaignApprovedContacts and only return the `snapshotId`
+     * const marketingCampaignApprovedContactWithSnapshotIdOnly = await prisma.marketingCampaignApprovedContact.createManyAndReturn({
+     *   select: { snapshotId: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MarketingCampaignApprovedContactCreateManyAndReturnArgs>(args?: SelectSubset<T, MarketingCampaignApprovedContactCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingCampaignApprovedContactPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MarketingCampaignApprovedContact.
+     * @param {MarketingCampaignApprovedContactDeleteArgs} args - Arguments to delete one MarketingCampaignApprovedContact.
+     * @example
+     * // Delete one MarketingCampaignApprovedContact
+     * const MarketingCampaignApprovedContact = await prisma.marketingCampaignApprovedContact.delete({
+     *   where: {
+     *     // ... filter to delete one MarketingCampaignApprovedContact
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MarketingCampaignApprovedContactDeleteArgs>(args: SelectSubset<T, MarketingCampaignApprovedContactDeleteArgs<ExtArgs>>): Prisma__MarketingCampaignApprovedContactClient<$Result.GetResult<Prisma.$MarketingCampaignApprovedContactPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MarketingCampaignApprovedContact.
+     * @param {MarketingCampaignApprovedContactUpdateArgs} args - Arguments to update one MarketingCampaignApprovedContact.
+     * @example
+     * // Update one MarketingCampaignApprovedContact
+     * const marketingCampaignApprovedContact = await prisma.marketingCampaignApprovedContact.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MarketingCampaignApprovedContactUpdateArgs>(args: SelectSubset<T, MarketingCampaignApprovedContactUpdateArgs<ExtArgs>>): Prisma__MarketingCampaignApprovedContactClient<$Result.GetResult<Prisma.$MarketingCampaignApprovedContactPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MarketingCampaignApprovedContacts.
+     * @param {MarketingCampaignApprovedContactDeleteManyArgs} args - Arguments to filter MarketingCampaignApprovedContacts to delete.
+     * @example
+     * // Delete a few MarketingCampaignApprovedContacts
+     * const { count } = await prisma.marketingCampaignApprovedContact.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MarketingCampaignApprovedContactDeleteManyArgs>(args?: SelectSubset<T, MarketingCampaignApprovedContactDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingCampaignApprovedContacts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignApprovedContactUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MarketingCampaignApprovedContacts
+     * const marketingCampaignApprovedContact = await prisma.marketingCampaignApprovedContact.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MarketingCampaignApprovedContactUpdateManyArgs>(args: SelectSubset<T, MarketingCampaignApprovedContactUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingCampaignApprovedContacts and returns the data updated in the database.
+     * @param {MarketingCampaignApprovedContactUpdateManyAndReturnArgs} args - Arguments to update many MarketingCampaignApprovedContacts.
+     * @example
+     * // Update many MarketingCampaignApprovedContacts
+     * const marketingCampaignApprovedContact = await prisma.marketingCampaignApprovedContact.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MarketingCampaignApprovedContacts and only return the `snapshotId`
+     * const marketingCampaignApprovedContactWithSnapshotIdOnly = await prisma.marketingCampaignApprovedContact.updateManyAndReturn({
+     *   select: { snapshotId: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MarketingCampaignApprovedContactUpdateManyAndReturnArgs>(args: SelectSubset<T, MarketingCampaignApprovedContactUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingCampaignApprovedContactPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MarketingCampaignApprovedContact.
+     * @param {MarketingCampaignApprovedContactUpsertArgs} args - Arguments to update or create a MarketingCampaignApprovedContact.
+     * @example
+     * // Update or create a MarketingCampaignApprovedContact
+     * const marketingCampaignApprovedContact = await prisma.marketingCampaignApprovedContact.upsert({
+     *   create: {
+     *     // ... data to create a MarketingCampaignApprovedContact
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MarketingCampaignApprovedContact we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MarketingCampaignApprovedContactUpsertArgs>(args: SelectSubset<T, MarketingCampaignApprovedContactUpsertArgs<ExtArgs>>): Prisma__MarketingCampaignApprovedContactClient<$Result.GetResult<Prisma.$MarketingCampaignApprovedContactPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MarketingCampaignApprovedContacts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignApprovedContactCountArgs} args - Arguments to filter MarketingCampaignApprovedContacts to count.
+     * @example
+     * // Count the number of MarketingCampaignApprovedContacts
+     * const count = await prisma.marketingCampaignApprovedContact.count({
+     *   where: {
+     *     // ... the filter for the MarketingCampaignApprovedContacts we want to count
+     *   }
+     * })
+    **/
+    count<T extends MarketingCampaignApprovedContactCountArgs>(
+      args?: Subset<T, MarketingCampaignApprovedContactCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MarketingCampaignApprovedContactCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MarketingCampaignApprovedContact.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignApprovedContactAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MarketingCampaignApprovedContactAggregateArgs>(args: Subset<T, MarketingCampaignApprovedContactAggregateArgs>): Prisma.PrismaPromise<GetMarketingCampaignApprovedContactAggregateType<T>>
+
+    /**
+     * Group by MarketingCampaignApprovedContact.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignApprovedContactGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MarketingCampaignApprovedContactGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MarketingCampaignApprovedContactGroupByArgs['orderBy'] }
+        : { orderBy?: MarketingCampaignApprovedContactGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MarketingCampaignApprovedContactGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMarketingCampaignApprovedContactGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MarketingCampaignApprovedContact model
+   */
+  readonly fields: MarketingCampaignApprovedContactFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MarketingCampaignApprovedContact.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MarketingCampaignApprovedContactClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    snapshot<T extends MarketingCampaignSnapshotDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MarketingCampaignSnapshotDefaultArgs<ExtArgs>>): Prisma__MarketingCampaignSnapshotClient<$Result.GetResult<Prisma.$MarketingCampaignSnapshotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MarketingCampaignApprovedContact model
+   */
+  interface MarketingCampaignApprovedContactFieldRefs {
+    readonly snapshotId: FieldRef<"MarketingCampaignApprovedContact", 'String'>
+    readonly contactId: FieldRef<"MarketingCampaignApprovedContact", 'String'>
+    readonly createdAt: FieldRef<"MarketingCampaignApprovedContact", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MarketingCampaignApprovedContact findUnique
+   */
+  export type MarketingCampaignApprovedContactFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignApprovedContact
+     */
+    select?: MarketingCampaignApprovedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignApprovedContact
+     */
+    omit?: MarketingCampaignApprovedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignApprovedContactInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingCampaignApprovedContact to fetch.
+     */
+    where: MarketingCampaignApprovedContactWhereUniqueInput
+  }
+
+  /**
+   * MarketingCampaignApprovedContact findUniqueOrThrow
+   */
+  export type MarketingCampaignApprovedContactFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignApprovedContact
+     */
+    select?: MarketingCampaignApprovedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignApprovedContact
+     */
+    omit?: MarketingCampaignApprovedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignApprovedContactInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingCampaignApprovedContact to fetch.
+     */
+    where: MarketingCampaignApprovedContactWhereUniqueInput
+  }
+
+  /**
+   * MarketingCampaignApprovedContact findFirst
+   */
+  export type MarketingCampaignApprovedContactFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignApprovedContact
+     */
+    select?: MarketingCampaignApprovedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignApprovedContact
+     */
+    omit?: MarketingCampaignApprovedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignApprovedContactInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingCampaignApprovedContact to fetch.
+     */
+    where?: MarketingCampaignApprovedContactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingCampaignApprovedContacts to fetch.
+     */
+    orderBy?: MarketingCampaignApprovedContactOrderByWithRelationInput | MarketingCampaignApprovedContactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingCampaignApprovedContacts.
+     */
+    cursor?: MarketingCampaignApprovedContactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingCampaignApprovedContacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingCampaignApprovedContacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingCampaignApprovedContacts.
+     */
+    distinct?: MarketingCampaignApprovedContactScalarFieldEnum | MarketingCampaignApprovedContactScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingCampaignApprovedContact findFirstOrThrow
+   */
+  export type MarketingCampaignApprovedContactFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignApprovedContact
+     */
+    select?: MarketingCampaignApprovedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignApprovedContact
+     */
+    omit?: MarketingCampaignApprovedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignApprovedContactInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingCampaignApprovedContact to fetch.
+     */
+    where?: MarketingCampaignApprovedContactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingCampaignApprovedContacts to fetch.
+     */
+    orderBy?: MarketingCampaignApprovedContactOrderByWithRelationInput | MarketingCampaignApprovedContactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingCampaignApprovedContacts.
+     */
+    cursor?: MarketingCampaignApprovedContactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingCampaignApprovedContacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingCampaignApprovedContacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingCampaignApprovedContacts.
+     */
+    distinct?: MarketingCampaignApprovedContactScalarFieldEnum | MarketingCampaignApprovedContactScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingCampaignApprovedContact findMany
+   */
+  export type MarketingCampaignApprovedContactFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignApprovedContact
+     */
+    select?: MarketingCampaignApprovedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignApprovedContact
+     */
+    omit?: MarketingCampaignApprovedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignApprovedContactInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingCampaignApprovedContacts to fetch.
+     */
+    where?: MarketingCampaignApprovedContactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingCampaignApprovedContacts to fetch.
+     */
+    orderBy?: MarketingCampaignApprovedContactOrderByWithRelationInput | MarketingCampaignApprovedContactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MarketingCampaignApprovedContacts.
+     */
+    cursor?: MarketingCampaignApprovedContactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingCampaignApprovedContacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingCampaignApprovedContacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingCampaignApprovedContacts.
+     */
+    distinct?: MarketingCampaignApprovedContactScalarFieldEnum | MarketingCampaignApprovedContactScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingCampaignApprovedContact create
+   */
+  export type MarketingCampaignApprovedContactCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignApprovedContact
+     */
+    select?: MarketingCampaignApprovedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignApprovedContact
+     */
+    omit?: MarketingCampaignApprovedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignApprovedContactInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MarketingCampaignApprovedContact.
+     */
+    data: XOR<MarketingCampaignApprovedContactCreateInput, MarketingCampaignApprovedContactUncheckedCreateInput>
+  }
+
+  /**
+   * MarketingCampaignApprovedContact createMany
+   */
+  export type MarketingCampaignApprovedContactCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MarketingCampaignApprovedContacts.
+     */
+    data: MarketingCampaignApprovedContactCreateManyInput | MarketingCampaignApprovedContactCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MarketingCampaignApprovedContact createManyAndReturn
+   */
+  export type MarketingCampaignApprovedContactCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignApprovedContact
+     */
+    select?: MarketingCampaignApprovedContactSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignApprovedContact
+     */
+    omit?: MarketingCampaignApprovedContactOmit<ExtArgs> | null
+    /**
+     * The data used to create many MarketingCampaignApprovedContacts.
+     */
+    data: MarketingCampaignApprovedContactCreateManyInput | MarketingCampaignApprovedContactCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignApprovedContactIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarketingCampaignApprovedContact update
+   */
+  export type MarketingCampaignApprovedContactUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignApprovedContact
+     */
+    select?: MarketingCampaignApprovedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignApprovedContact
+     */
+    omit?: MarketingCampaignApprovedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignApprovedContactInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MarketingCampaignApprovedContact.
+     */
+    data: XOR<MarketingCampaignApprovedContactUpdateInput, MarketingCampaignApprovedContactUncheckedUpdateInput>
+    /**
+     * Choose, which MarketingCampaignApprovedContact to update.
+     */
+    where: MarketingCampaignApprovedContactWhereUniqueInput
+  }
+
+  /**
+   * MarketingCampaignApprovedContact updateMany
+   */
+  export type MarketingCampaignApprovedContactUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MarketingCampaignApprovedContacts.
+     */
+    data: XOR<MarketingCampaignApprovedContactUpdateManyMutationInput, MarketingCampaignApprovedContactUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingCampaignApprovedContacts to update
+     */
+    where?: MarketingCampaignApprovedContactWhereInput
+    /**
+     * Limit how many MarketingCampaignApprovedContacts to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingCampaignApprovedContact updateManyAndReturn
+   */
+  export type MarketingCampaignApprovedContactUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignApprovedContact
+     */
+    select?: MarketingCampaignApprovedContactSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignApprovedContact
+     */
+    omit?: MarketingCampaignApprovedContactOmit<ExtArgs> | null
+    /**
+     * The data used to update MarketingCampaignApprovedContacts.
+     */
+    data: XOR<MarketingCampaignApprovedContactUpdateManyMutationInput, MarketingCampaignApprovedContactUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingCampaignApprovedContacts to update
+     */
+    where?: MarketingCampaignApprovedContactWhereInput
+    /**
+     * Limit how many MarketingCampaignApprovedContacts to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignApprovedContactIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarketingCampaignApprovedContact upsert
+   */
+  export type MarketingCampaignApprovedContactUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignApprovedContact
+     */
+    select?: MarketingCampaignApprovedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignApprovedContact
+     */
+    omit?: MarketingCampaignApprovedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignApprovedContactInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MarketingCampaignApprovedContact to update in case it exists.
+     */
+    where: MarketingCampaignApprovedContactWhereUniqueInput
+    /**
+     * In case the MarketingCampaignApprovedContact found by the `where` argument doesn't exist, create a new MarketingCampaignApprovedContact with this data.
+     */
+    create: XOR<MarketingCampaignApprovedContactCreateInput, MarketingCampaignApprovedContactUncheckedCreateInput>
+    /**
+     * In case the MarketingCampaignApprovedContact was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MarketingCampaignApprovedContactUpdateInput, MarketingCampaignApprovedContactUncheckedUpdateInput>
+  }
+
+  /**
+   * MarketingCampaignApprovedContact delete
+   */
+  export type MarketingCampaignApprovedContactDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignApprovedContact
+     */
+    select?: MarketingCampaignApprovedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignApprovedContact
+     */
+    omit?: MarketingCampaignApprovedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignApprovedContactInclude<ExtArgs> | null
+    /**
+     * Filter which MarketingCampaignApprovedContact to delete.
+     */
+    where: MarketingCampaignApprovedContactWhereUniqueInput
+  }
+
+  /**
+   * MarketingCampaignApprovedContact deleteMany
+   */
+  export type MarketingCampaignApprovedContactDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingCampaignApprovedContacts to delete
+     */
+    where?: MarketingCampaignApprovedContactWhereInput
+    /**
+     * Limit how many MarketingCampaignApprovedContacts to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingCampaignApprovedContact without action
+   */
+  export type MarketingCampaignApprovedContactDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignApprovedContact
+     */
+    select?: MarketingCampaignApprovedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingCampaignApprovedContact
+     */
+    omit?: MarketingCampaignApprovedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignApprovedContactInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MarketingBroadcastDispatch
+   */
+
+  export type AggregateMarketingBroadcastDispatch = {
+    _count: MarketingBroadcastDispatchCountAggregateOutputType | null
+    _avg: MarketingBroadcastDispatchAvgAggregateOutputType | null
+    _sum: MarketingBroadcastDispatchSumAggregateOutputType | null
+    _min: MarketingBroadcastDispatchMinAggregateOutputType | null
+    _max: MarketingBroadcastDispatchMaxAggregateOutputType | null
+  }
+
+  export type MarketingBroadcastDispatchAvgAggregateOutputType = {
+    recipientCount: number | null
+    excludedCount: number | null
+    revision: number | null
+  }
+
+  export type MarketingBroadcastDispatchSumAggregateOutputType = {
+    recipientCount: number | null
+    excludedCount: number | null
+    revision: number | null
+  }
+
+  export type MarketingBroadcastDispatchMinAggregateOutputType = {
+    id: string | null
+    campaignId: string | null
+    organizationId: string | null
+    approvalSnapshotId: string | null
+    status: $Enums.MarketingBroadcastStatus | null
+    scheduledFor: Date | null
+    timeZone: string | null
+    localSendTime: string | null
+    provider: string | null
+    providerSegmentId: string | null
+    providerBroadcastId: string | null
+    providerStatus: string | null
+    providerCreateAttemptAt: Date | null
+    providerSendAttemptAt: Date | null
+    providerSentAt: Date | null
+    recipientCount: number | null
+    excludedCount: number | null
+    eligibilitySha256: string | null
+    contentSha256: string | null
+    scheduledByAdminUserId: string | null
+    cancelRequestedAt: Date | null
+    cancelRequestedBy: string | null
+    pausedAt: Date | null
+    pausedBy: string | null
+    lastErrorCode: string | null
+    lastErrorMessage: string | null
+    completedAt: Date | null
+    revision: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MarketingBroadcastDispatchMaxAggregateOutputType = {
+    id: string | null
+    campaignId: string | null
+    organizationId: string | null
+    approvalSnapshotId: string | null
+    status: $Enums.MarketingBroadcastStatus | null
+    scheduledFor: Date | null
+    timeZone: string | null
+    localSendTime: string | null
+    provider: string | null
+    providerSegmentId: string | null
+    providerBroadcastId: string | null
+    providerStatus: string | null
+    providerCreateAttemptAt: Date | null
+    providerSendAttemptAt: Date | null
+    providerSentAt: Date | null
+    recipientCount: number | null
+    excludedCount: number | null
+    eligibilitySha256: string | null
+    contentSha256: string | null
+    scheduledByAdminUserId: string | null
+    cancelRequestedAt: Date | null
+    cancelRequestedBy: string | null
+    pausedAt: Date | null
+    pausedBy: string | null
+    lastErrorCode: string | null
+    lastErrorMessage: string | null
+    completedAt: Date | null
+    revision: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MarketingBroadcastDispatchCountAggregateOutputType = {
+    id: number
+    campaignId: number
+    organizationId: number
+    approvalSnapshotId: number
+    status: number
+    scheduledFor: number
+    timeZone: number
+    localSendTime: number
+    provider: number
+    providerSegmentId: number
+    providerBroadcastId: number
+    providerStatus: number
+    providerCreateAttemptAt: number
+    providerSendAttemptAt: number
+    providerSentAt: number
+    recipientCount: number
+    excludedCount: number
+    eligibilitySha256: number
+    contentSha256: number
+    scheduledByAdminUserId: number
+    cancelRequestedAt: number
+    cancelRequestedBy: number
+    pausedAt: number
+    pausedBy: number
+    lastErrorCode: number
+    lastErrorMessage: number
+    completedAt: number
+    revision: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MarketingBroadcastDispatchAvgAggregateInputType = {
+    recipientCount?: true
+    excludedCount?: true
+    revision?: true
+  }
+
+  export type MarketingBroadcastDispatchSumAggregateInputType = {
+    recipientCount?: true
+    excludedCount?: true
+    revision?: true
+  }
+
+  export type MarketingBroadcastDispatchMinAggregateInputType = {
+    id?: true
+    campaignId?: true
+    organizationId?: true
+    approvalSnapshotId?: true
+    status?: true
+    scheduledFor?: true
+    timeZone?: true
+    localSendTime?: true
+    provider?: true
+    providerSegmentId?: true
+    providerBroadcastId?: true
+    providerStatus?: true
+    providerCreateAttemptAt?: true
+    providerSendAttemptAt?: true
+    providerSentAt?: true
+    recipientCount?: true
+    excludedCount?: true
+    eligibilitySha256?: true
+    contentSha256?: true
+    scheduledByAdminUserId?: true
+    cancelRequestedAt?: true
+    cancelRequestedBy?: true
+    pausedAt?: true
+    pausedBy?: true
+    lastErrorCode?: true
+    lastErrorMessage?: true
+    completedAt?: true
+    revision?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MarketingBroadcastDispatchMaxAggregateInputType = {
+    id?: true
+    campaignId?: true
+    organizationId?: true
+    approvalSnapshotId?: true
+    status?: true
+    scheduledFor?: true
+    timeZone?: true
+    localSendTime?: true
+    provider?: true
+    providerSegmentId?: true
+    providerBroadcastId?: true
+    providerStatus?: true
+    providerCreateAttemptAt?: true
+    providerSendAttemptAt?: true
+    providerSentAt?: true
+    recipientCount?: true
+    excludedCount?: true
+    eligibilitySha256?: true
+    contentSha256?: true
+    scheduledByAdminUserId?: true
+    cancelRequestedAt?: true
+    cancelRequestedBy?: true
+    pausedAt?: true
+    pausedBy?: true
+    lastErrorCode?: true
+    lastErrorMessage?: true
+    completedAt?: true
+    revision?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MarketingBroadcastDispatchCountAggregateInputType = {
+    id?: true
+    campaignId?: true
+    organizationId?: true
+    approvalSnapshotId?: true
+    status?: true
+    scheduledFor?: true
+    timeZone?: true
+    localSendTime?: true
+    provider?: true
+    providerSegmentId?: true
+    providerBroadcastId?: true
+    providerStatus?: true
+    providerCreateAttemptAt?: true
+    providerSendAttemptAt?: true
+    providerSentAt?: true
+    recipientCount?: true
+    excludedCount?: true
+    eligibilitySha256?: true
+    contentSha256?: true
+    scheduledByAdminUserId?: true
+    cancelRequestedAt?: true
+    cancelRequestedBy?: true
+    pausedAt?: true
+    pausedBy?: true
+    lastErrorCode?: true
+    lastErrorMessage?: true
+    completedAt?: true
+    revision?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MarketingBroadcastDispatchAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingBroadcastDispatch to aggregate.
+     */
+    where?: MarketingBroadcastDispatchWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingBroadcastDispatches to fetch.
+     */
+    orderBy?: MarketingBroadcastDispatchOrderByWithRelationInput | MarketingBroadcastDispatchOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MarketingBroadcastDispatchWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingBroadcastDispatches from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingBroadcastDispatches.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MarketingBroadcastDispatches
+    **/
+    _count?: true | MarketingBroadcastDispatchCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MarketingBroadcastDispatchAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MarketingBroadcastDispatchSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MarketingBroadcastDispatchMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MarketingBroadcastDispatchMaxAggregateInputType
+  }
+
+  export type GetMarketingBroadcastDispatchAggregateType<T extends MarketingBroadcastDispatchAggregateArgs> = {
+        [P in keyof T & keyof AggregateMarketingBroadcastDispatch]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMarketingBroadcastDispatch[P]>
+      : GetScalarType<T[P], AggregateMarketingBroadcastDispatch[P]>
+  }
+
+
+
+
+  export type MarketingBroadcastDispatchGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingBroadcastDispatchWhereInput
+    orderBy?: MarketingBroadcastDispatchOrderByWithAggregationInput | MarketingBroadcastDispatchOrderByWithAggregationInput[]
+    by: MarketingBroadcastDispatchScalarFieldEnum[] | MarketingBroadcastDispatchScalarFieldEnum
+    having?: MarketingBroadcastDispatchScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MarketingBroadcastDispatchCountAggregateInputType | true
+    _avg?: MarketingBroadcastDispatchAvgAggregateInputType
+    _sum?: MarketingBroadcastDispatchSumAggregateInputType
+    _min?: MarketingBroadcastDispatchMinAggregateInputType
+    _max?: MarketingBroadcastDispatchMaxAggregateInputType
+  }
+
+  export type MarketingBroadcastDispatchGroupByOutputType = {
+    id: string
+    campaignId: string
+    organizationId: string
+    approvalSnapshotId: string
+    status: $Enums.MarketingBroadcastStatus
+    scheduledFor: Date
+    timeZone: string
+    localSendTime: string | null
+    provider: string
+    providerSegmentId: string | null
+    providerBroadcastId: string | null
+    providerStatus: string | null
+    providerCreateAttemptAt: Date | null
+    providerSendAttemptAt: Date | null
+    providerSentAt: Date | null
+    recipientCount: number
+    excludedCount: number
+    eligibilitySha256: string | null
+    contentSha256: string
+    scheduledByAdminUserId: string
+    cancelRequestedAt: Date | null
+    cancelRequestedBy: string | null
+    pausedAt: Date | null
+    pausedBy: string | null
+    lastErrorCode: string | null
+    lastErrorMessage: string | null
+    completedAt: Date | null
+    revision: number
+    createdAt: Date
+    updatedAt: Date
+    _count: MarketingBroadcastDispatchCountAggregateOutputType | null
+    _avg: MarketingBroadcastDispatchAvgAggregateOutputType | null
+    _sum: MarketingBroadcastDispatchSumAggregateOutputType | null
+    _min: MarketingBroadcastDispatchMinAggregateOutputType | null
+    _max: MarketingBroadcastDispatchMaxAggregateOutputType | null
+  }
+
+  type GetMarketingBroadcastDispatchGroupByPayload<T extends MarketingBroadcastDispatchGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MarketingBroadcastDispatchGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MarketingBroadcastDispatchGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MarketingBroadcastDispatchGroupByOutputType[P]>
+            : GetScalarType<T[P], MarketingBroadcastDispatchGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MarketingBroadcastDispatchSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    campaignId?: boolean
+    organizationId?: boolean
+    approvalSnapshotId?: boolean
+    status?: boolean
+    scheduledFor?: boolean
+    timeZone?: boolean
+    localSendTime?: boolean
+    provider?: boolean
+    providerSegmentId?: boolean
+    providerBroadcastId?: boolean
+    providerStatus?: boolean
+    providerCreateAttemptAt?: boolean
+    providerSendAttemptAt?: boolean
+    providerSentAt?: boolean
+    recipientCount?: boolean
+    excludedCount?: boolean
+    eligibilitySha256?: boolean
+    contentSha256?: boolean
+    scheduledByAdminUserId?: boolean
+    cancelRequestedAt?: boolean
+    cancelRequestedBy?: boolean
+    pausedAt?: boolean
+    pausedBy?: boolean
+    lastErrorCode?: boolean
+    lastErrorMessage?: boolean
+    completedAt?: boolean
+    revision?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    campaign?: boolean | MarketingEmailCampaignDefaultArgs<ExtArgs>
+    recipients?: boolean | MarketingBroadcastDispatch$recipientsArgs<ExtArgs>
+    _count?: boolean | MarketingBroadcastDispatchCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingBroadcastDispatch"]>
+
+  export type MarketingBroadcastDispatchSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    campaignId?: boolean
+    organizationId?: boolean
+    approvalSnapshotId?: boolean
+    status?: boolean
+    scheduledFor?: boolean
+    timeZone?: boolean
+    localSendTime?: boolean
+    provider?: boolean
+    providerSegmentId?: boolean
+    providerBroadcastId?: boolean
+    providerStatus?: boolean
+    providerCreateAttemptAt?: boolean
+    providerSendAttemptAt?: boolean
+    providerSentAt?: boolean
+    recipientCount?: boolean
+    excludedCount?: boolean
+    eligibilitySha256?: boolean
+    contentSha256?: boolean
+    scheduledByAdminUserId?: boolean
+    cancelRequestedAt?: boolean
+    cancelRequestedBy?: boolean
+    pausedAt?: boolean
+    pausedBy?: boolean
+    lastErrorCode?: boolean
+    lastErrorMessage?: boolean
+    completedAt?: boolean
+    revision?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    campaign?: boolean | MarketingEmailCampaignDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingBroadcastDispatch"]>
+
+  export type MarketingBroadcastDispatchSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    campaignId?: boolean
+    organizationId?: boolean
+    approvalSnapshotId?: boolean
+    status?: boolean
+    scheduledFor?: boolean
+    timeZone?: boolean
+    localSendTime?: boolean
+    provider?: boolean
+    providerSegmentId?: boolean
+    providerBroadcastId?: boolean
+    providerStatus?: boolean
+    providerCreateAttemptAt?: boolean
+    providerSendAttemptAt?: boolean
+    providerSentAt?: boolean
+    recipientCount?: boolean
+    excludedCount?: boolean
+    eligibilitySha256?: boolean
+    contentSha256?: boolean
+    scheduledByAdminUserId?: boolean
+    cancelRequestedAt?: boolean
+    cancelRequestedBy?: boolean
+    pausedAt?: boolean
+    pausedBy?: boolean
+    lastErrorCode?: boolean
+    lastErrorMessage?: boolean
+    completedAt?: boolean
+    revision?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    campaign?: boolean | MarketingEmailCampaignDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingBroadcastDispatch"]>
+
+  export type MarketingBroadcastDispatchSelectScalar = {
+    id?: boolean
+    campaignId?: boolean
+    organizationId?: boolean
+    approvalSnapshotId?: boolean
+    status?: boolean
+    scheduledFor?: boolean
+    timeZone?: boolean
+    localSendTime?: boolean
+    provider?: boolean
+    providerSegmentId?: boolean
+    providerBroadcastId?: boolean
+    providerStatus?: boolean
+    providerCreateAttemptAt?: boolean
+    providerSendAttemptAt?: boolean
+    providerSentAt?: boolean
+    recipientCount?: boolean
+    excludedCount?: boolean
+    eligibilitySha256?: boolean
+    contentSha256?: boolean
+    scheduledByAdminUserId?: boolean
+    cancelRequestedAt?: boolean
+    cancelRequestedBy?: boolean
+    pausedAt?: boolean
+    pausedBy?: boolean
+    lastErrorCode?: boolean
+    lastErrorMessage?: boolean
+    completedAt?: boolean
+    revision?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type MarketingBroadcastDispatchOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "campaignId" | "organizationId" | "approvalSnapshotId" | "status" | "scheduledFor" | "timeZone" | "localSendTime" | "provider" | "providerSegmentId" | "providerBroadcastId" | "providerStatus" | "providerCreateAttemptAt" | "providerSendAttemptAt" | "providerSentAt" | "recipientCount" | "excludedCount" | "eligibilitySha256" | "contentSha256" | "scheduledByAdminUserId" | "cancelRequestedAt" | "cancelRequestedBy" | "pausedAt" | "pausedBy" | "lastErrorCode" | "lastErrorMessage" | "completedAt" | "revision" | "createdAt" | "updatedAt", ExtArgs["result"]["marketingBroadcastDispatch"]>
+  export type MarketingBroadcastDispatchInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    campaign?: boolean | MarketingEmailCampaignDefaultArgs<ExtArgs>
+    recipients?: boolean | MarketingBroadcastDispatch$recipientsArgs<ExtArgs>
+    _count?: boolean | MarketingBroadcastDispatchCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type MarketingBroadcastDispatchIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    campaign?: boolean | MarketingEmailCampaignDefaultArgs<ExtArgs>
+  }
+  export type MarketingBroadcastDispatchIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    campaign?: boolean | MarketingEmailCampaignDefaultArgs<ExtArgs>
+  }
+
+  export type $MarketingBroadcastDispatchPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MarketingBroadcastDispatch"
+    objects: {
+      campaign: Prisma.$MarketingEmailCampaignPayload<ExtArgs>
+      recipients: Prisma.$MarketingBroadcastRecipientPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      campaignId: string
+      organizationId: string
+      approvalSnapshotId: string
+      status: $Enums.MarketingBroadcastStatus
+      scheduledFor: Date
+      timeZone: string
+      localSendTime: string | null
+      provider: string
+      providerSegmentId: string | null
+      providerBroadcastId: string | null
+      providerStatus: string | null
+      providerCreateAttemptAt: Date | null
+      providerSendAttemptAt: Date | null
+      providerSentAt: Date | null
+      recipientCount: number
+      excludedCount: number
+      eligibilitySha256: string | null
+      contentSha256: string
+      scheduledByAdminUserId: string
+      cancelRequestedAt: Date | null
+      cancelRequestedBy: string | null
+      pausedAt: Date | null
+      pausedBy: string | null
+      lastErrorCode: string | null
+      lastErrorMessage: string | null
+      completedAt: Date | null
+      revision: number
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["marketingBroadcastDispatch"]>
+    composites: {}
+  }
+
+  type MarketingBroadcastDispatchGetPayload<S extends boolean | null | undefined | MarketingBroadcastDispatchDefaultArgs> = $Result.GetResult<Prisma.$MarketingBroadcastDispatchPayload, S>
+
+  type MarketingBroadcastDispatchCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MarketingBroadcastDispatchFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MarketingBroadcastDispatchCountAggregateInputType | true
+    }
+
+  export interface MarketingBroadcastDispatchDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MarketingBroadcastDispatch'], meta: { name: 'MarketingBroadcastDispatch' } }
+    /**
+     * Find zero or one MarketingBroadcastDispatch that matches the filter.
+     * @param {MarketingBroadcastDispatchFindUniqueArgs} args - Arguments to find a MarketingBroadcastDispatch
+     * @example
+     * // Get one MarketingBroadcastDispatch
+     * const marketingBroadcastDispatch = await prisma.marketingBroadcastDispatch.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MarketingBroadcastDispatchFindUniqueArgs>(args: SelectSubset<T, MarketingBroadcastDispatchFindUniqueArgs<ExtArgs>>): Prisma__MarketingBroadcastDispatchClient<$Result.GetResult<Prisma.$MarketingBroadcastDispatchPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MarketingBroadcastDispatch that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MarketingBroadcastDispatchFindUniqueOrThrowArgs} args - Arguments to find a MarketingBroadcastDispatch
+     * @example
+     * // Get one MarketingBroadcastDispatch
+     * const marketingBroadcastDispatch = await prisma.marketingBroadcastDispatch.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MarketingBroadcastDispatchFindUniqueOrThrowArgs>(args: SelectSubset<T, MarketingBroadcastDispatchFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MarketingBroadcastDispatchClient<$Result.GetResult<Prisma.$MarketingBroadcastDispatchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarketingBroadcastDispatch that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBroadcastDispatchFindFirstArgs} args - Arguments to find a MarketingBroadcastDispatch
+     * @example
+     * // Get one MarketingBroadcastDispatch
+     * const marketingBroadcastDispatch = await prisma.marketingBroadcastDispatch.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MarketingBroadcastDispatchFindFirstArgs>(args?: SelectSubset<T, MarketingBroadcastDispatchFindFirstArgs<ExtArgs>>): Prisma__MarketingBroadcastDispatchClient<$Result.GetResult<Prisma.$MarketingBroadcastDispatchPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarketingBroadcastDispatch that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBroadcastDispatchFindFirstOrThrowArgs} args - Arguments to find a MarketingBroadcastDispatch
+     * @example
+     * // Get one MarketingBroadcastDispatch
+     * const marketingBroadcastDispatch = await prisma.marketingBroadcastDispatch.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MarketingBroadcastDispatchFindFirstOrThrowArgs>(args?: SelectSubset<T, MarketingBroadcastDispatchFindFirstOrThrowArgs<ExtArgs>>): Prisma__MarketingBroadcastDispatchClient<$Result.GetResult<Prisma.$MarketingBroadcastDispatchPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MarketingBroadcastDispatches that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBroadcastDispatchFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MarketingBroadcastDispatches
+     * const marketingBroadcastDispatches = await prisma.marketingBroadcastDispatch.findMany()
+     * 
+     * // Get first 10 MarketingBroadcastDispatches
+     * const marketingBroadcastDispatches = await prisma.marketingBroadcastDispatch.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const marketingBroadcastDispatchWithIdOnly = await prisma.marketingBroadcastDispatch.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MarketingBroadcastDispatchFindManyArgs>(args?: SelectSubset<T, MarketingBroadcastDispatchFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingBroadcastDispatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MarketingBroadcastDispatch.
+     * @param {MarketingBroadcastDispatchCreateArgs} args - Arguments to create a MarketingBroadcastDispatch.
+     * @example
+     * // Create one MarketingBroadcastDispatch
+     * const MarketingBroadcastDispatch = await prisma.marketingBroadcastDispatch.create({
+     *   data: {
+     *     // ... data to create a MarketingBroadcastDispatch
+     *   }
+     * })
+     * 
+     */
+    create<T extends MarketingBroadcastDispatchCreateArgs>(args: SelectSubset<T, MarketingBroadcastDispatchCreateArgs<ExtArgs>>): Prisma__MarketingBroadcastDispatchClient<$Result.GetResult<Prisma.$MarketingBroadcastDispatchPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MarketingBroadcastDispatches.
+     * @param {MarketingBroadcastDispatchCreateManyArgs} args - Arguments to create many MarketingBroadcastDispatches.
+     * @example
+     * // Create many MarketingBroadcastDispatches
+     * const marketingBroadcastDispatch = await prisma.marketingBroadcastDispatch.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MarketingBroadcastDispatchCreateManyArgs>(args?: SelectSubset<T, MarketingBroadcastDispatchCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MarketingBroadcastDispatches and returns the data saved in the database.
+     * @param {MarketingBroadcastDispatchCreateManyAndReturnArgs} args - Arguments to create many MarketingBroadcastDispatches.
+     * @example
+     * // Create many MarketingBroadcastDispatches
+     * const marketingBroadcastDispatch = await prisma.marketingBroadcastDispatch.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MarketingBroadcastDispatches and only return the `id`
+     * const marketingBroadcastDispatchWithIdOnly = await prisma.marketingBroadcastDispatch.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MarketingBroadcastDispatchCreateManyAndReturnArgs>(args?: SelectSubset<T, MarketingBroadcastDispatchCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingBroadcastDispatchPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MarketingBroadcastDispatch.
+     * @param {MarketingBroadcastDispatchDeleteArgs} args - Arguments to delete one MarketingBroadcastDispatch.
+     * @example
+     * // Delete one MarketingBroadcastDispatch
+     * const MarketingBroadcastDispatch = await prisma.marketingBroadcastDispatch.delete({
+     *   where: {
+     *     // ... filter to delete one MarketingBroadcastDispatch
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MarketingBroadcastDispatchDeleteArgs>(args: SelectSubset<T, MarketingBroadcastDispatchDeleteArgs<ExtArgs>>): Prisma__MarketingBroadcastDispatchClient<$Result.GetResult<Prisma.$MarketingBroadcastDispatchPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MarketingBroadcastDispatch.
+     * @param {MarketingBroadcastDispatchUpdateArgs} args - Arguments to update one MarketingBroadcastDispatch.
+     * @example
+     * // Update one MarketingBroadcastDispatch
+     * const marketingBroadcastDispatch = await prisma.marketingBroadcastDispatch.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MarketingBroadcastDispatchUpdateArgs>(args: SelectSubset<T, MarketingBroadcastDispatchUpdateArgs<ExtArgs>>): Prisma__MarketingBroadcastDispatchClient<$Result.GetResult<Prisma.$MarketingBroadcastDispatchPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MarketingBroadcastDispatches.
+     * @param {MarketingBroadcastDispatchDeleteManyArgs} args - Arguments to filter MarketingBroadcastDispatches to delete.
+     * @example
+     * // Delete a few MarketingBroadcastDispatches
+     * const { count } = await prisma.marketingBroadcastDispatch.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MarketingBroadcastDispatchDeleteManyArgs>(args?: SelectSubset<T, MarketingBroadcastDispatchDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingBroadcastDispatches.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBroadcastDispatchUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MarketingBroadcastDispatches
+     * const marketingBroadcastDispatch = await prisma.marketingBroadcastDispatch.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MarketingBroadcastDispatchUpdateManyArgs>(args: SelectSubset<T, MarketingBroadcastDispatchUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingBroadcastDispatches and returns the data updated in the database.
+     * @param {MarketingBroadcastDispatchUpdateManyAndReturnArgs} args - Arguments to update many MarketingBroadcastDispatches.
+     * @example
+     * // Update many MarketingBroadcastDispatches
+     * const marketingBroadcastDispatch = await prisma.marketingBroadcastDispatch.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MarketingBroadcastDispatches and only return the `id`
+     * const marketingBroadcastDispatchWithIdOnly = await prisma.marketingBroadcastDispatch.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MarketingBroadcastDispatchUpdateManyAndReturnArgs>(args: SelectSubset<T, MarketingBroadcastDispatchUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingBroadcastDispatchPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MarketingBroadcastDispatch.
+     * @param {MarketingBroadcastDispatchUpsertArgs} args - Arguments to update or create a MarketingBroadcastDispatch.
+     * @example
+     * // Update or create a MarketingBroadcastDispatch
+     * const marketingBroadcastDispatch = await prisma.marketingBroadcastDispatch.upsert({
+     *   create: {
+     *     // ... data to create a MarketingBroadcastDispatch
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MarketingBroadcastDispatch we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MarketingBroadcastDispatchUpsertArgs>(args: SelectSubset<T, MarketingBroadcastDispatchUpsertArgs<ExtArgs>>): Prisma__MarketingBroadcastDispatchClient<$Result.GetResult<Prisma.$MarketingBroadcastDispatchPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MarketingBroadcastDispatches.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBroadcastDispatchCountArgs} args - Arguments to filter MarketingBroadcastDispatches to count.
+     * @example
+     * // Count the number of MarketingBroadcastDispatches
+     * const count = await prisma.marketingBroadcastDispatch.count({
+     *   where: {
+     *     // ... the filter for the MarketingBroadcastDispatches we want to count
+     *   }
+     * })
+    **/
+    count<T extends MarketingBroadcastDispatchCountArgs>(
+      args?: Subset<T, MarketingBroadcastDispatchCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MarketingBroadcastDispatchCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MarketingBroadcastDispatch.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBroadcastDispatchAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MarketingBroadcastDispatchAggregateArgs>(args: Subset<T, MarketingBroadcastDispatchAggregateArgs>): Prisma.PrismaPromise<GetMarketingBroadcastDispatchAggregateType<T>>
+
+    /**
+     * Group by MarketingBroadcastDispatch.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBroadcastDispatchGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MarketingBroadcastDispatchGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MarketingBroadcastDispatchGroupByArgs['orderBy'] }
+        : { orderBy?: MarketingBroadcastDispatchGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MarketingBroadcastDispatchGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMarketingBroadcastDispatchGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MarketingBroadcastDispatch model
+   */
+  readonly fields: MarketingBroadcastDispatchFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MarketingBroadcastDispatch.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MarketingBroadcastDispatchClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    campaign<T extends MarketingEmailCampaignDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MarketingEmailCampaignDefaultArgs<ExtArgs>>): Prisma__MarketingEmailCampaignClient<$Result.GetResult<Prisma.$MarketingEmailCampaignPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    recipients<T extends MarketingBroadcastDispatch$recipientsArgs<ExtArgs> = {}>(args?: Subset<T, MarketingBroadcastDispatch$recipientsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingBroadcastRecipientPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MarketingBroadcastDispatch model
+   */
+  interface MarketingBroadcastDispatchFieldRefs {
+    readonly id: FieldRef<"MarketingBroadcastDispatch", 'String'>
+    readonly campaignId: FieldRef<"MarketingBroadcastDispatch", 'String'>
+    readonly organizationId: FieldRef<"MarketingBroadcastDispatch", 'String'>
+    readonly approvalSnapshotId: FieldRef<"MarketingBroadcastDispatch", 'String'>
+    readonly status: FieldRef<"MarketingBroadcastDispatch", 'MarketingBroadcastStatus'>
+    readonly scheduledFor: FieldRef<"MarketingBroadcastDispatch", 'DateTime'>
+    readonly timeZone: FieldRef<"MarketingBroadcastDispatch", 'String'>
+    readonly localSendTime: FieldRef<"MarketingBroadcastDispatch", 'String'>
+    readonly provider: FieldRef<"MarketingBroadcastDispatch", 'String'>
+    readonly providerSegmentId: FieldRef<"MarketingBroadcastDispatch", 'String'>
+    readonly providerBroadcastId: FieldRef<"MarketingBroadcastDispatch", 'String'>
+    readonly providerStatus: FieldRef<"MarketingBroadcastDispatch", 'String'>
+    readonly providerCreateAttemptAt: FieldRef<"MarketingBroadcastDispatch", 'DateTime'>
+    readonly providerSendAttemptAt: FieldRef<"MarketingBroadcastDispatch", 'DateTime'>
+    readonly providerSentAt: FieldRef<"MarketingBroadcastDispatch", 'DateTime'>
+    readonly recipientCount: FieldRef<"MarketingBroadcastDispatch", 'Int'>
+    readonly excludedCount: FieldRef<"MarketingBroadcastDispatch", 'Int'>
+    readonly eligibilitySha256: FieldRef<"MarketingBroadcastDispatch", 'String'>
+    readonly contentSha256: FieldRef<"MarketingBroadcastDispatch", 'String'>
+    readonly scheduledByAdminUserId: FieldRef<"MarketingBroadcastDispatch", 'String'>
+    readonly cancelRequestedAt: FieldRef<"MarketingBroadcastDispatch", 'DateTime'>
+    readonly cancelRequestedBy: FieldRef<"MarketingBroadcastDispatch", 'String'>
+    readonly pausedAt: FieldRef<"MarketingBroadcastDispatch", 'DateTime'>
+    readonly pausedBy: FieldRef<"MarketingBroadcastDispatch", 'String'>
+    readonly lastErrorCode: FieldRef<"MarketingBroadcastDispatch", 'String'>
+    readonly lastErrorMessage: FieldRef<"MarketingBroadcastDispatch", 'String'>
+    readonly completedAt: FieldRef<"MarketingBroadcastDispatch", 'DateTime'>
+    readonly revision: FieldRef<"MarketingBroadcastDispatch", 'Int'>
+    readonly createdAt: FieldRef<"MarketingBroadcastDispatch", 'DateTime'>
+    readonly updatedAt: FieldRef<"MarketingBroadcastDispatch", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MarketingBroadcastDispatch findUnique
+   */
+  export type MarketingBroadcastDispatchFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastDispatch
+     */
+    select?: MarketingBroadcastDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastDispatch
+     */
+    omit?: MarketingBroadcastDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastDispatchInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingBroadcastDispatch to fetch.
+     */
+    where: MarketingBroadcastDispatchWhereUniqueInput
+  }
+
+  /**
+   * MarketingBroadcastDispatch findUniqueOrThrow
+   */
+  export type MarketingBroadcastDispatchFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastDispatch
+     */
+    select?: MarketingBroadcastDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastDispatch
+     */
+    omit?: MarketingBroadcastDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastDispatchInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingBroadcastDispatch to fetch.
+     */
+    where: MarketingBroadcastDispatchWhereUniqueInput
+  }
+
+  /**
+   * MarketingBroadcastDispatch findFirst
+   */
+  export type MarketingBroadcastDispatchFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastDispatch
+     */
+    select?: MarketingBroadcastDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastDispatch
+     */
+    omit?: MarketingBroadcastDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastDispatchInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingBroadcastDispatch to fetch.
+     */
+    where?: MarketingBroadcastDispatchWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingBroadcastDispatches to fetch.
+     */
+    orderBy?: MarketingBroadcastDispatchOrderByWithRelationInput | MarketingBroadcastDispatchOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingBroadcastDispatches.
+     */
+    cursor?: MarketingBroadcastDispatchWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingBroadcastDispatches from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingBroadcastDispatches.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingBroadcastDispatches.
+     */
+    distinct?: MarketingBroadcastDispatchScalarFieldEnum | MarketingBroadcastDispatchScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingBroadcastDispatch findFirstOrThrow
+   */
+  export type MarketingBroadcastDispatchFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastDispatch
+     */
+    select?: MarketingBroadcastDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastDispatch
+     */
+    omit?: MarketingBroadcastDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastDispatchInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingBroadcastDispatch to fetch.
+     */
+    where?: MarketingBroadcastDispatchWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingBroadcastDispatches to fetch.
+     */
+    orderBy?: MarketingBroadcastDispatchOrderByWithRelationInput | MarketingBroadcastDispatchOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingBroadcastDispatches.
+     */
+    cursor?: MarketingBroadcastDispatchWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingBroadcastDispatches from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingBroadcastDispatches.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingBroadcastDispatches.
+     */
+    distinct?: MarketingBroadcastDispatchScalarFieldEnum | MarketingBroadcastDispatchScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingBroadcastDispatch findMany
+   */
+  export type MarketingBroadcastDispatchFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastDispatch
+     */
+    select?: MarketingBroadcastDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastDispatch
+     */
+    omit?: MarketingBroadcastDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastDispatchInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingBroadcastDispatches to fetch.
+     */
+    where?: MarketingBroadcastDispatchWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingBroadcastDispatches to fetch.
+     */
+    orderBy?: MarketingBroadcastDispatchOrderByWithRelationInput | MarketingBroadcastDispatchOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MarketingBroadcastDispatches.
+     */
+    cursor?: MarketingBroadcastDispatchWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingBroadcastDispatches from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingBroadcastDispatches.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingBroadcastDispatches.
+     */
+    distinct?: MarketingBroadcastDispatchScalarFieldEnum | MarketingBroadcastDispatchScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingBroadcastDispatch create
+   */
+  export type MarketingBroadcastDispatchCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastDispatch
+     */
+    select?: MarketingBroadcastDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastDispatch
+     */
+    omit?: MarketingBroadcastDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastDispatchInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MarketingBroadcastDispatch.
+     */
+    data: XOR<MarketingBroadcastDispatchCreateInput, MarketingBroadcastDispatchUncheckedCreateInput>
+  }
+
+  /**
+   * MarketingBroadcastDispatch createMany
+   */
+  export type MarketingBroadcastDispatchCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MarketingBroadcastDispatches.
+     */
+    data: MarketingBroadcastDispatchCreateManyInput | MarketingBroadcastDispatchCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MarketingBroadcastDispatch createManyAndReturn
+   */
+  export type MarketingBroadcastDispatchCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastDispatch
+     */
+    select?: MarketingBroadcastDispatchSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastDispatch
+     */
+    omit?: MarketingBroadcastDispatchOmit<ExtArgs> | null
+    /**
+     * The data used to create many MarketingBroadcastDispatches.
+     */
+    data: MarketingBroadcastDispatchCreateManyInput | MarketingBroadcastDispatchCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastDispatchIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarketingBroadcastDispatch update
+   */
+  export type MarketingBroadcastDispatchUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastDispatch
+     */
+    select?: MarketingBroadcastDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastDispatch
+     */
+    omit?: MarketingBroadcastDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastDispatchInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MarketingBroadcastDispatch.
+     */
+    data: XOR<MarketingBroadcastDispatchUpdateInput, MarketingBroadcastDispatchUncheckedUpdateInput>
+    /**
+     * Choose, which MarketingBroadcastDispatch to update.
+     */
+    where: MarketingBroadcastDispatchWhereUniqueInput
+  }
+
+  /**
+   * MarketingBroadcastDispatch updateMany
+   */
+  export type MarketingBroadcastDispatchUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MarketingBroadcastDispatches.
+     */
+    data: XOR<MarketingBroadcastDispatchUpdateManyMutationInput, MarketingBroadcastDispatchUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingBroadcastDispatches to update
+     */
+    where?: MarketingBroadcastDispatchWhereInput
+    /**
+     * Limit how many MarketingBroadcastDispatches to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingBroadcastDispatch updateManyAndReturn
+   */
+  export type MarketingBroadcastDispatchUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastDispatch
+     */
+    select?: MarketingBroadcastDispatchSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastDispatch
+     */
+    omit?: MarketingBroadcastDispatchOmit<ExtArgs> | null
+    /**
+     * The data used to update MarketingBroadcastDispatches.
+     */
+    data: XOR<MarketingBroadcastDispatchUpdateManyMutationInput, MarketingBroadcastDispatchUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingBroadcastDispatches to update
+     */
+    where?: MarketingBroadcastDispatchWhereInput
+    /**
+     * Limit how many MarketingBroadcastDispatches to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastDispatchIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarketingBroadcastDispatch upsert
+   */
+  export type MarketingBroadcastDispatchUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastDispatch
+     */
+    select?: MarketingBroadcastDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastDispatch
+     */
+    omit?: MarketingBroadcastDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastDispatchInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MarketingBroadcastDispatch to update in case it exists.
+     */
+    where: MarketingBroadcastDispatchWhereUniqueInput
+    /**
+     * In case the MarketingBroadcastDispatch found by the `where` argument doesn't exist, create a new MarketingBroadcastDispatch with this data.
+     */
+    create: XOR<MarketingBroadcastDispatchCreateInput, MarketingBroadcastDispatchUncheckedCreateInput>
+    /**
+     * In case the MarketingBroadcastDispatch was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MarketingBroadcastDispatchUpdateInput, MarketingBroadcastDispatchUncheckedUpdateInput>
+  }
+
+  /**
+   * MarketingBroadcastDispatch delete
+   */
+  export type MarketingBroadcastDispatchDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastDispatch
+     */
+    select?: MarketingBroadcastDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastDispatch
+     */
+    omit?: MarketingBroadcastDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastDispatchInclude<ExtArgs> | null
+    /**
+     * Filter which MarketingBroadcastDispatch to delete.
+     */
+    where: MarketingBroadcastDispatchWhereUniqueInput
+  }
+
+  /**
+   * MarketingBroadcastDispatch deleteMany
+   */
+  export type MarketingBroadcastDispatchDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingBroadcastDispatches to delete
+     */
+    where?: MarketingBroadcastDispatchWhereInput
+    /**
+     * Limit how many MarketingBroadcastDispatches to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingBroadcastDispatch.recipients
+   */
+  export type MarketingBroadcastDispatch$recipientsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastRecipient
+     */
+    select?: MarketingBroadcastRecipientSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastRecipient
+     */
+    omit?: MarketingBroadcastRecipientOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastRecipientInclude<ExtArgs> | null
+    where?: MarketingBroadcastRecipientWhereInput
+    orderBy?: MarketingBroadcastRecipientOrderByWithRelationInput | MarketingBroadcastRecipientOrderByWithRelationInput[]
+    cursor?: MarketingBroadcastRecipientWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MarketingBroadcastRecipientScalarFieldEnum | MarketingBroadcastRecipientScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingBroadcastDispatch without action
+   */
+  export type MarketingBroadcastDispatchDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastDispatch
+     */
+    select?: MarketingBroadcastDispatchSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastDispatch
+     */
+    omit?: MarketingBroadcastDispatchOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastDispatchInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MarketingBroadcastRecipient
+   */
+
+  export type AggregateMarketingBroadcastRecipient = {
+    _count: MarketingBroadcastRecipientCountAggregateOutputType | null
+    _min: MarketingBroadcastRecipientMinAggregateOutputType | null
+    _max: MarketingBroadcastRecipientMaxAggregateOutputType | null
+  }
+
+  export type MarketingBroadcastRecipientMinAggregateOutputType = {
+    id: string | null
+    dispatchId: string | null
+    organizationId: string | null
+    contactId: string | null
+    email: string | null
+    status: $Enums.MarketingBroadcastRecipientStatus | null
+    exclusionReason: string | null
+    providerContactId: string | null
+    providerEmailId: string | null
+    syncedAt: Date | null
+    acceptedAt: Date | null
+    lastEventType: string | null
+    lastEventAt: Date | null
+    openedAt: Date | null
+    clickedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MarketingBroadcastRecipientMaxAggregateOutputType = {
+    id: string | null
+    dispatchId: string | null
+    organizationId: string | null
+    contactId: string | null
+    email: string | null
+    status: $Enums.MarketingBroadcastRecipientStatus | null
+    exclusionReason: string | null
+    providerContactId: string | null
+    providerEmailId: string | null
+    syncedAt: Date | null
+    acceptedAt: Date | null
+    lastEventType: string | null
+    lastEventAt: Date | null
+    openedAt: Date | null
+    clickedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MarketingBroadcastRecipientCountAggregateOutputType = {
+    id: number
+    dispatchId: number
+    organizationId: number
+    contactId: number
+    email: number
+    status: number
+    exclusionReason: number
+    providerContactId: number
+    providerEmailId: number
+    syncedAt: number
+    acceptedAt: number
+    lastEventType: number
+    lastEventAt: number
+    openedAt: number
+    clickedAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MarketingBroadcastRecipientMinAggregateInputType = {
+    id?: true
+    dispatchId?: true
+    organizationId?: true
+    contactId?: true
+    email?: true
+    status?: true
+    exclusionReason?: true
+    providerContactId?: true
+    providerEmailId?: true
+    syncedAt?: true
+    acceptedAt?: true
+    lastEventType?: true
+    lastEventAt?: true
+    openedAt?: true
+    clickedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MarketingBroadcastRecipientMaxAggregateInputType = {
+    id?: true
+    dispatchId?: true
+    organizationId?: true
+    contactId?: true
+    email?: true
+    status?: true
+    exclusionReason?: true
+    providerContactId?: true
+    providerEmailId?: true
+    syncedAt?: true
+    acceptedAt?: true
+    lastEventType?: true
+    lastEventAt?: true
+    openedAt?: true
+    clickedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MarketingBroadcastRecipientCountAggregateInputType = {
+    id?: true
+    dispatchId?: true
+    organizationId?: true
+    contactId?: true
+    email?: true
+    status?: true
+    exclusionReason?: true
+    providerContactId?: true
+    providerEmailId?: true
+    syncedAt?: true
+    acceptedAt?: true
+    lastEventType?: true
+    lastEventAt?: true
+    openedAt?: true
+    clickedAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MarketingBroadcastRecipientAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingBroadcastRecipient to aggregate.
+     */
+    where?: MarketingBroadcastRecipientWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingBroadcastRecipients to fetch.
+     */
+    orderBy?: MarketingBroadcastRecipientOrderByWithRelationInput | MarketingBroadcastRecipientOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MarketingBroadcastRecipientWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingBroadcastRecipients from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingBroadcastRecipients.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MarketingBroadcastRecipients
+    **/
+    _count?: true | MarketingBroadcastRecipientCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MarketingBroadcastRecipientMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MarketingBroadcastRecipientMaxAggregateInputType
+  }
+
+  export type GetMarketingBroadcastRecipientAggregateType<T extends MarketingBroadcastRecipientAggregateArgs> = {
+        [P in keyof T & keyof AggregateMarketingBroadcastRecipient]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMarketingBroadcastRecipient[P]>
+      : GetScalarType<T[P], AggregateMarketingBroadcastRecipient[P]>
+  }
+
+
+
+
+  export type MarketingBroadcastRecipientGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingBroadcastRecipientWhereInput
+    orderBy?: MarketingBroadcastRecipientOrderByWithAggregationInput | MarketingBroadcastRecipientOrderByWithAggregationInput[]
+    by: MarketingBroadcastRecipientScalarFieldEnum[] | MarketingBroadcastRecipientScalarFieldEnum
+    having?: MarketingBroadcastRecipientScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MarketingBroadcastRecipientCountAggregateInputType | true
+    _min?: MarketingBroadcastRecipientMinAggregateInputType
+    _max?: MarketingBroadcastRecipientMaxAggregateInputType
+  }
+
+  export type MarketingBroadcastRecipientGroupByOutputType = {
+    id: string
+    dispatchId: string
+    organizationId: string
+    contactId: string
+    email: string
+    status: $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason: string | null
+    providerContactId: string | null
+    providerEmailId: string | null
+    syncedAt: Date | null
+    acceptedAt: Date | null
+    lastEventType: string | null
+    lastEventAt: Date | null
+    openedAt: Date | null
+    clickedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: MarketingBroadcastRecipientCountAggregateOutputType | null
+    _min: MarketingBroadcastRecipientMinAggregateOutputType | null
+    _max: MarketingBroadcastRecipientMaxAggregateOutputType | null
+  }
+
+  type GetMarketingBroadcastRecipientGroupByPayload<T extends MarketingBroadcastRecipientGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MarketingBroadcastRecipientGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MarketingBroadcastRecipientGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MarketingBroadcastRecipientGroupByOutputType[P]>
+            : GetScalarType<T[P], MarketingBroadcastRecipientGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MarketingBroadcastRecipientSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    dispatchId?: boolean
+    organizationId?: boolean
+    contactId?: boolean
+    email?: boolean
+    status?: boolean
+    exclusionReason?: boolean
+    providerContactId?: boolean
+    providerEmailId?: boolean
+    syncedAt?: boolean
+    acceptedAt?: boolean
+    lastEventType?: boolean
+    lastEventAt?: boolean
+    openedAt?: boolean
+    clickedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    dispatch?: boolean | MarketingBroadcastDispatchDefaultArgs<ExtArgs>
+    contact?: boolean | MarketingContactDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingBroadcastRecipient"]>
+
+  export type MarketingBroadcastRecipientSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    dispatchId?: boolean
+    organizationId?: boolean
+    contactId?: boolean
+    email?: boolean
+    status?: boolean
+    exclusionReason?: boolean
+    providerContactId?: boolean
+    providerEmailId?: boolean
+    syncedAt?: boolean
+    acceptedAt?: boolean
+    lastEventType?: boolean
+    lastEventAt?: boolean
+    openedAt?: boolean
+    clickedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    dispatch?: boolean | MarketingBroadcastDispatchDefaultArgs<ExtArgs>
+    contact?: boolean | MarketingContactDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingBroadcastRecipient"]>
+
+  export type MarketingBroadcastRecipientSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    dispatchId?: boolean
+    organizationId?: boolean
+    contactId?: boolean
+    email?: boolean
+    status?: boolean
+    exclusionReason?: boolean
+    providerContactId?: boolean
+    providerEmailId?: boolean
+    syncedAt?: boolean
+    acceptedAt?: boolean
+    lastEventType?: boolean
+    lastEventAt?: boolean
+    openedAt?: boolean
+    clickedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    dispatch?: boolean | MarketingBroadcastDispatchDefaultArgs<ExtArgs>
+    contact?: boolean | MarketingContactDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingBroadcastRecipient"]>
+
+  export type MarketingBroadcastRecipientSelectScalar = {
+    id?: boolean
+    dispatchId?: boolean
+    organizationId?: boolean
+    contactId?: boolean
+    email?: boolean
+    status?: boolean
+    exclusionReason?: boolean
+    providerContactId?: boolean
+    providerEmailId?: boolean
+    syncedAt?: boolean
+    acceptedAt?: boolean
+    lastEventType?: boolean
+    lastEventAt?: boolean
+    openedAt?: boolean
+    clickedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type MarketingBroadcastRecipientOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "dispatchId" | "organizationId" | "contactId" | "email" | "status" | "exclusionReason" | "providerContactId" | "providerEmailId" | "syncedAt" | "acceptedAt" | "lastEventType" | "lastEventAt" | "openedAt" | "clickedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["marketingBroadcastRecipient"]>
+  export type MarketingBroadcastRecipientInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    dispatch?: boolean | MarketingBroadcastDispatchDefaultArgs<ExtArgs>
+    contact?: boolean | MarketingContactDefaultArgs<ExtArgs>
+  }
+  export type MarketingBroadcastRecipientIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    dispatch?: boolean | MarketingBroadcastDispatchDefaultArgs<ExtArgs>
+    contact?: boolean | MarketingContactDefaultArgs<ExtArgs>
+  }
+  export type MarketingBroadcastRecipientIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    dispatch?: boolean | MarketingBroadcastDispatchDefaultArgs<ExtArgs>
+    contact?: boolean | MarketingContactDefaultArgs<ExtArgs>
+  }
+
+  export type $MarketingBroadcastRecipientPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MarketingBroadcastRecipient"
+    objects: {
+      dispatch: Prisma.$MarketingBroadcastDispatchPayload<ExtArgs>
+      contact: Prisma.$MarketingContactPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      dispatchId: string
+      organizationId: string
+      contactId: string
+      email: string
+      status: $Enums.MarketingBroadcastRecipientStatus
+      exclusionReason: string | null
+      providerContactId: string | null
+      providerEmailId: string | null
+      syncedAt: Date | null
+      acceptedAt: Date | null
+      lastEventType: string | null
+      lastEventAt: Date | null
+      openedAt: Date | null
+      clickedAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["marketingBroadcastRecipient"]>
+    composites: {}
+  }
+
+  type MarketingBroadcastRecipientGetPayload<S extends boolean | null | undefined | MarketingBroadcastRecipientDefaultArgs> = $Result.GetResult<Prisma.$MarketingBroadcastRecipientPayload, S>
+
+  type MarketingBroadcastRecipientCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MarketingBroadcastRecipientFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MarketingBroadcastRecipientCountAggregateInputType | true
+    }
+
+  export interface MarketingBroadcastRecipientDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MarketingBroadcastRecipient'], meta: { name: 'MarketingBroadcastRecipient' } }
+    /**
+     * Find zero or one MarketingBroadcastRecipient that matches the filter.
+     * @param {MarketingBroadcastRecipientFindUniqueArgs} args - Arguments to find a MarketingBroadcastRecipient
+     * @example
+     * // Get one MarketingBroadcastRecipient
+     * const marketingBroadcastRecipient = await prisma.marketingBroadcastRecipient.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MarketingBroadcastRecipientFindUniqueArgs>(args: SelectSubset<T, MarketingBroadcastRecipientFindUniqueArgs<ExtArgs>>): Prisma__MarketingBroadcastRecipientClient<$Result.GetResult<Prisma.$MarketingBroadcastRecipientPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MarketingBroadcastRecipient that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MarketingBroadcastRecipientFindUniqueOrThrowArgs} args - Arguments to find a MarketingBroadcastRecipient
+     * @example
+     * // Get one MarketingBroadcastRecipient
+     * const marketingBroadcastRecipient = await prisma.marketingBroadcastRecipient.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MarketingBroadcastRecipientFindUniqueOrThrowArgs>(args: SelectSubset<T, MarketingBroadcastRecipientFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MarketingBroadcastRecipientClient<$Result.GetResult<Prisma.$MarketingBroadcastRecipientPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarketingBroadcastRecipient that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBroadcastRecipientFindFirstArgs} args - Arguments to find a MarketingBroadcastRecipient
+     * @example
+     * // Get one MarketingBroadcastRecipient
+     * const marketingBroadcastRecipient = await prisma.marketingBroadcastRecipient.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MarketingBroadcastRecipientFindFirstArgs>(args?: SelectSubset<T, MarketingBroadcastRecipientFindFirstArgs<ExtArgs>>): Prisma__MarketingBroadcastRecipientClient<$Result.GetResult<Prisma.$MarketingBroadcastRecipientPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarketingBroadcastRecipient that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBroadcastRecipientFindFirstOrThrowArgs} args - Arguments to find a MarketingBroadcastRecipient
+     * @example
+     * // Get one MarketingBroadcastRecipient
+     * const marketingBroadcastRecipient = await prisma.marketingBroadcastRecipient.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MarketingBroadcastRecipientFindFirstOrThrowArgs>(args?: SelectSubset<T, MarketingBroadcastRecipientFindFirstOrThrowArgs<ExtArgs>>): Prisma__MarketingBroadcastRecipientClient<$Result.GetResult<Prisma.$MarketingBroadcastRecipientPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MarketingBroadcastRecipients that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBroadcastRecipientFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MarketingBroadcastRecipients
+     * const marketingBroadcastRecipients = await prisma.marketingBroadcastRecipient.findMany()
+     * 
+     * // Get first 10 MarketingBroadcastRecipients
+     * const marketingBroadcastRecipients = await prisma.marketingBroadcastRecipient.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const marketingBroadcastRecipientWithIdOnly = await prisma.marketingBroadcastRecipient.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MarketingBroadcastRecipientFindManyArgs>(args?: SelectSubset<T, MarketingBroadcastRecipientFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingBroadcastRecipientPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MarketingBroadcastRecipient.
+     * @param {MarketingBroadcastRecipientCreateArgs} args - Arguments to create a MarketingBroadcastRecipient.
+     * @example
+     * // Create one MarketingBroadcastRecipient
+     * const MarketingBroadcastRecipient = await prisma.marketingBroadcastRecipient.create({
+     *   data: {
+     *     // ... data to create a MarketingBroadcastRecipient
+     *   }
+     * })
+     * 
+     */
+    create<T extends MarketingBroadcastRecipientCreateArgs>(args: SelectSubset<T, MarketingBroadcastRecipientCreateArgs<ExtArgs>>): Prisma__MarketingBroadcastRecipientClient<$Result.GetResult<Prisma.$MarketingBroadcastRecipientPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MarketingBroadcastRecipients.
+     * @param {MarketingBroadcastRecipientCreateManyArgs} args - Arguments to create many MarketingBroadcastRecipients.
+     * @example
+     * // Create many MarketingBroadcastRecipients
+     * const marketingBroadcastRecipient = await prisma.marketingBroadcastRecipient.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MarketingBroadcastRecipientCreateManyArgs>(args?: SelectSubset<T, MarketingBroadcastRecipientCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MarketingBroadcastRecipients and returns the data saved in the database.
+     * @param {MarketingBroadcastRecipientCreateManyAndReturnArgs} args - Arguments to create many MarketingBroadcastRecipients.
+     * @example
+     * // Create many MarketingBroadcastRecipients
+     * const marketingBroadcastRecipient = await prisma.marketingBroadcastRecipient.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MarketingBroadcastRecipients and only return the `id`
+     * const marketingBroadcastRecipientWithIdOnly = await prisma.marketingBroadcastRecipient.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MarketingBroadcastRecipientCreateManyAndReturnArgs>(args?: SelectSubset<T, MarketingBroadcastRecipientCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingBroadcastRecipientPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MarketingBroadcastRecipient.
+     * @param {MarketingBroadcastRecipientDeleteArgs} args - Arguments to delete one MarketingBroadcastRecipient.
+     * @example
+     * // Delete one MarketingBroadcastRecipient
+     * const MarketingBroadcastRecipient = await prisma.marketingBroadcastRecipient.delete({
+     *   where: {
+     *     // ... filter to delete one MarketingBroadcastRecipient
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MarketingBroadcastRecipientDeleteArgs>(args: SelectSubset<T, MarketingBroadcastRecipientDeleteArgs<ExtArgs>>): Prisma__MarketingBroadcastRecipientClient<$Result.GetResult<Prisma.$MarketingBroadcastRecipientPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MarketingBroadcastRecipient.
+     * @param {MarketingBroadcastRecipientUpdateArgs} args - Arguments to update one MarketingBroadcastRecipient.
+     * @example
+     * // Update one MarketingBroadcastRecipient
+     * const marketingBroadcastRecipient = await prisma.marketingBroadcastRecipient.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MarketingBroadcastRecipientUpdateArgs>(args: SelectSubset<T, MarketingBroadcastRecipientUpdateArgs<ExtArgs>>): Prisma__MarketingBroadcastRecipientClient<$Result.GetResult<Prisma.$MarketingBroadcastRecipientPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MarketingBroadcastRecipients.
+     * @param {MarketingBroadcastRecipientDeleteManyArgs} args - Arguments to filter MarketingBroadcastRecipients to delete.
+     * @example
+     * // Delete a few MarketingBroadcastRecipients
+     * const { count } = await prisma.marketingBroadcastRecipient.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MarketingBroadcastRecipientDeleteManyArgs>(args?: SelectSubset<T, MarketingBroadcastRecipientDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingBroadcastRecipients.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBroadcastRecipientUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MarketingBroadcastRecipients
+     * const marketingBroadcastRecipient = await prisma.marketingBroadcastRecipient.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MarketingBroadcastRecipientUpdateManyArgs>(args: SelectSubset<T, MarketingBroadcastRecipientUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingBroadcastRecipients and returns the data updated in the database.
+     * @param {MarketingBroadcastRecipientUpdateManyAndReturnArgs} args - Arguments to update many MarketingBroadcastRecipients.
+     * @example
+     * // Update many MarketingBroadcastRecipients
+     * const marketingBroadcastRecipient = await prisma.marketingBroadcastRecipient.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MarketingBroadcastRecipients and only return the `id`
+     * const marketingBroadcastRecipientWithIdOnly = await prisma.marketingBroadcastRecipient.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MarketingBroadcastRecipientUpdateManyAndReturnArgs>(args: SelectSubset<T, MarketingBroadcastRecipientUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingBroadcastRecipientPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MarketingBroadcastRecipient.
+     * @param {MarketingBroadcastRecipientUpsertArgs} args - Arguments to update or create a MarketingBroadcastRecipient.
+     * @example
+     * // Update or create a MarketingBroadcastRecipient
+     * const marketingBroadcastRecipient = await prisma.marketingBroadcastRecipient.upsert({
+     *   create: {
+     *     // ... data to create a MarketingBroadcastRecipient
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MarketingBroadcastRecipient we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MarketingBroadcastRecipientUpsertArgs>(args: SelectSubset<T, MarketingBroadcastRecipientUpsertArgs<ExtArgs>>): Prisma__MarketingBroadcastRecipientClient<$Result.GetResult<Prisma.$MarketingBroadcastRecipientPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MarketingBroadcastRecipients.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBroadcastRecipientCountArgs} args - Arguments to filter MarketingBroadcastRecipients to count.
+     * @example
+     * // Count the number of MarketingBroadcastRecipients
+     * const count = await prisma.marketingBroadcastRecipient.count({
+     *   where: {
+     *     // ... the filter for the MarketingBroadcastRecipients we want to count
+     *   }
+     * })
+    **/
+    count<T extends MarketingBroadcastRecipientCountArgs>(
+      args?: Subset<T, MarketingBroadcastRecipientCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MarketingBroadcastRecipientCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MarketingBroadcastRecipient.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBroadcastRecipientAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MarketingBroadcastRecipientAggregateArgs>(args: Subset<T, MarketingBroadcastRecipientAggregateArgs>): Prisma.PrismaPromise<GetMarketingBroadcastRecipientAggregateType<T>>
+
+    /**
+     * Group by MarketingBroadcastRecipient.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingBroadcastRecipientGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MarketingBroadcastRecipientGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MarketingBroadcastRecipientGroupByArgs['orderBy'] }
+        : { orderBy?: MarketingBroadcastRecipientGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MarketingBroadcastRecipientGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMarketingBroadcastRecipientGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MarketingBroadcastRecipient model
+   */
+  readonly fields: MarketingBroadcastRecipientFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MarketingBroadcastRecipient.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MarketingBroadcastRecipientClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    dispatch<T extends MarketingBroadcastDispatchDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MarketingBroadcastDispatchDefaultArgs<ExtArgs>>): Prisma__MarketingBroadcastDispatchClient<$Result.GetResult<Prisma.$MarketingBroadcastDispatchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    contact<T extends MarketingContactDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MarketingContactDefaultArgs<ExtArgs>>): Prisma__MarketingContactClient<$Result.GetResult<Prisma.$MarketingContactPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MarketingBroadcastRecipient model
+   */
+  interface MarketingBroadcastRecipientFieldRefs {
+    readonly id: FieldRef<"MarketingBroadcastRecipient", 'String'>
+    readonly dispatchId: FieldRef<"MarketingBroadcastRecipient", 'String'>
+    readonly organizationId: FieldRef<"MarketingBroadcastRecipient", 'String'>
+    readonly contactId: FieldRef<"MarketingBroadcastRecipient", 'String'>
+    readonly email: FieldRef<"MarketingBroadcastRecipient", 'String'>
+    readonly status: FieldRef<"MarketingBroadcastRecipient", 'MarketingBroadcastRecipientStatus'>
+    readonly exclusionReason: FieldRef<"MarketingBroadcastRecipient", 'String'>
+    readonly providerContactId: FieldRef<"MarketingBroadcastRecipient", 'String'>
+    readonly providerEmailId: FieldRef<"MarketingBroadcastRecipient", 'String'>
+    readonly syncedAt: FieldRef<"MarketingBroadcastRecipient", 'DateTime'>
+    readonly acceptedAt: FieldRef<"MarketingBroadcastRecipient", 'DateTime'>
+    readonly lastEventType: FieldRef<"MarketingBroadcastRecipient", 'String'>
+    readonly lastEventAt: FieldRef<"MarketingBroadcastRecipient", 'DateTime'>
+    readonly openedAt: FieldRef<"MarketingBroadcastRecipient", 'DateTime'>
+    readonly clickedAt: FieldRef<"MarketingBroadcastRecipient", 'DateTime'>
+    readonly createdAt: FieldRef<"MarketingBroadcastRecipient", 'DateTime'>
+    readonly updatedAt: FieldRef<"MarketingBroadcastRecipient", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MarketingBroadcastRecipient findUnique
+   */
+  export type MarketingBroadcastRecipientFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastRecipient
+     */
+    select?: MarketingBroadcastRecipientSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastRecipient
+     */
+    omit?: MarketingBroadcastRecipientOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastRecipientInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingBroadcastRecipient to fetch.
+     */
+    where: MarketingBroadcastRecipientWhereUniqueInput
+  }
+
+  /**
+   * MarketingBroadcastRecipient findUniqueOrThrow
+   */
+  export type MarketingBroadcastRecipientFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastRecipient
+     */
+    select?: MarketingBroadcastRecipientSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastRecipient
+     */
+    omit?: MarketingBroadcastRecipientOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastRecipientInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingBroadcastRecipient to fetch.
+     */
+    where: MarketingBroadcastRecipientWhereUniqueInput
+  }
+
+  /**
+   * MarketingBroadcastRecipient findFirst
+   */
+  export type MarketingBroadcastRecipientFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastRecipient
+     */
+    select?: MarketingBroadcastRecipientSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastRecipient
+     */
+    omit?: MarketingBroadcastRecipientOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastRecipientInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingBroadcastRecipient to fetch.
+     */
+    where?: MarketingBroadcastRecipientWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingBroadcastRecipients to fetch.
+     */
+    orderBy?: MarketingBroadcastRecipientOrderByWithRelationInput | MarketingBroadcastRecipientOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingBroadcastRecipients.
+     */
+    cursor?: MarketingBroadcastRecipientWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingBroadcastRecipients from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingBroadcastRecipients.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingBroadcastRecipients.
+     */
+    distinct?: MarketingBroadcastRecipientScalarFieldEnum | MarketingBroadcastRecipientScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingBroadcastRecipient findFirstOrThrow
+   */
+  export type MarketingBroadcastRecipientFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastRecipient
+     */
+    select?: MarketingBroadcastRecipientSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastRecipient
+     */
+    omit?: MarketingBroadcastRecipientOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastRecipientInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingBroadcastRecipient to fetch.
+     */
+    where?: MarketingBroadcastRecipientWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingBroadcastRecipients to fetch.
+     */
+    orderBy?: MarketingBroadcastRecipientOrderByWithRelationInput | MarketingBroadcastRecipientOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingBroadcastRecipients.
+     */
+    cursor?: MarketingBroadcastRecipientWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingBroadcastRecipients from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingBroadcastRecipients.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingBroadcastRecipients.
+     */
+    distinct?: MarketingBroadcastRecipientScalarFieldEnum | MarketingBroadcastRecipientScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingBroadcastRecipient findMany
+   */
+  export type MarketingBroadcastRecipientFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastRecipient
+     */
+    select?: MarketingBroadcastRecipientSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastRecipient
+     */
+    omit?: MarketingBroadcastRecipientOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastRecipientInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingBroadcastRecipients to fetch.
+     */
+    where?: MarketingBroadcastRecipientWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingBroadcastRecipients to fetch.
+     */
+    orderBy?: MarketingBroadcastRecipientOrderByWithRelationInput | MarketingBroadcastRecipientOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MarketingBroadcastRecipients.
+     */
+    cursor?: MarketingBroadcastRecipientWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingBroadcastRecipients from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingBroadcastRecipients.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingBroadcastRecipients.
+     */
+    distinct?: MarketingBroadcastRecipientScalarFieldEnum | MarketingBroadcastRecipientScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingBroadcastRecipient create
+   */
+  export type MarketingBroadcastRecipientCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastRecipient
+     */
+    select?: MarketingBroadcastRecipientSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastRecipient
+     */
+    omit?: MarketingBroadcastRecipientOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastRecipientInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MarketingBroadcastRecipient.
+     */
+    data: XOR<MarketingBroadcastRecipientCreateInput, MarketingBroadcastRecipientUncheckedCreateInput>
+  }
+
+  /**
+   * MarketingBroadcastRecipient createMany
+   */
+  export type MarketingBroadcastRecipientCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MarketingBroadcastRecipients.
+     */
+    data: MarketingBroadcastRecipientCreateManyInput | MarketingBroadcastRecipientCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MarketingBroadcastRecipient createManyAndReturn
+   */
+  export type MarketingBroadcastRecipientCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastRecipient
+     */
+    select?: MarketingBroadcastRecipientSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastRecipient
+     */
+    omit?: MarketingBroadcastRecipientOmit<ExtArgs> | null
+    /**
+     * The data used to create many MarketingBroadcastRecipients.
+     */
+    data: MarketingBroadcastRecipientCreateManyInput | MarketingBroadcastRecipientCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastRecipientIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarketingBroadcastRecipient update
+   */
+  export type MarketingBroadcastRecipientUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastRecipient
+     */
+    select?: MarketingBroadcastRecipientSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastRecipient
+     */
+    omit?: MarketingBroadcastRecipientOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastRecipientInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MarketingBroadcastRecipient.
+     */
+    data: XOR<MarketingBroadcastRecipientUpdateInput, MarketingBroadcastRecipientUncheckedUpdateInput>
+    /**
+     * Choose, which MarketingBroadcastRecipient to update.
+     */
+    where: MarketingBroadcastRecipientWhereUniqueInput
+  }
+
+  /**
+   * MarketingBroadcastRecipient updateMany
+   */
+  export type MarketingBroadcastRecipientUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MarketingBroadcastRecipients.
+     */
+    data: XOR<MarketingBroadcastRecipientUpdateManyMutationInput, MarketingBroadcastRecipientUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingBroadcastRecipients to update
+     */
+    where?: MarketingBroadcastRecipientWhereInput
+    /**
+     * Limit how many MarketingBroadcastRecipients to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingBroadcastRecipient updateManyAndReturn
+   */
+  export type MarketingBroadcastRecipientUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastRecipient
+     */
+    select?: MarketingBroadcastRecipientSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastRecipient
+     */
+    omit?: MarketingBroadcastRecipientOmit<ExtArgs> | null
+    /**
+     * The data used to update MarketingBroadcastRecipients.
+     */
+    data: XOR<MarketingBroadcastRecipientUpdateManyMutationInput, MarketingBroadcastRecipientUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingBroadcastRecipients to update
+     */
+    where?: MarketingBroadcastRecipientWhereInput
+    /**
+     * Limit how many MarketingBroadcastRecipients to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastRecipientIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarketingBroadcastRecipient upsert
+   */
+  export type MarketingBroadcastRecipientUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastRecipient
+     */
+    select?: MarketingBroadcastRecipientSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastRecipient
+     */
+    omit?: MarketingBroadcastRecipientOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastRecipientInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MarketingBroadcastRecipient to update in case it exists.
+     */
+    where: MarketingBroadcastRecipientWhereUniqueInput
+    /**
+     * In case the MarketingBroadcastRecipient found by the `where` argument doesn't exist, create a new MarketingBroadcastRecipient with this data.
+     */
+    create: XOR<MarketingBroadcastRecipientCreateInput, MarketingBroadcastRecipientUncheckedCreateInput>
+    /**
+     * In case the MarketingBroadcastRecipient was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MarketingBroadcastRecipientUpdateInput, MarketingBroadcastRecipientUncheckedUpdateInput>
+  }
+
+  /**
+   * MarketingBroadcastRecipient delete
+   */
+  export type MarketingBroadcastRecipientDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastRecipient
+     */
+    select?: MarketingBroadcastRecipientSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastRecipient
+     */
+    omit?: MarketingBroadcastRecipientOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastRecipientInclude<ExtArgs> | null
+    /**
+     * Filter which MarketingBroadcastRecipient to delete.
+     */
+    where: MarketingBroadcastRecipientWhereUniqueInput
+  }
+
+  /**
+   * MarketingBroadcastRecipient deleteMany
+   */
+  export type MarketingBroadcastRecipientDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingBroadcastRecipients to delete
+     */
+    where?: MarketingBroadcastRecipientWhereInput
+    /**
+     * Limit how many MarketingBroadcastRecipients to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingBroadcastRecipient without action
+   */
+  export type MarketingBroadcastRecipientDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingBroadcastRecipient
+     */
+    select?: MarketingBroadcastRecipientSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingBroadcastRecipient
+     */
+    omit?: MarketingBroadcastRecipientOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingBroadcastRecipientInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MarketingAutomation
+   */
+
+  export type AggregateMarketingAutomation = {
+    _count: MarketingAutomationCountAggregateOutputType | null
+    _avg: MarketingAutomationAvgAggregateOutputType | null
+    _sum: MarketingAutomationSumAggregateOutputType | null
+    _min: MarketingAutomationMinAggregateOutputType | null
+    _max: MarketingAutomationMaxAggregateOutputType | null
+  }
+
+  export type MarketingAutomationAvgAggregateOutputType = {
+    enrollmentLimit: number | null
+    maxActiveEnrollments: number | null
+    frequencyCapHours: number | null
+    revision: number | null
+  }
+
+  export type MarketingAutomationSumAggregateOutputType = {
+    enrollmentLimit: number | null
+    maxActiveEnrollments: number | null
+    frequencyCapHours: number | null
+    revision: number | null
+  }
+
+  export type MarketingAutomationMinAggregateOutputType = {
+    id: string | null
+    organizationId: string | null
+    name: string | null
+    description: string | null
+    status: $Enums.MarketingAutomationStatus | null
+    triggerType: string | null
+    activeVersionId: string | null
+    enrollmentLimit: number | null
+    maxActiveEnrollments: number | null
+    frequencyCapHours: number | null
+    createdByAdminUserId: string | null
+    updatedByAdminUserId: string | null
+    revision: number | null
+    lastScheduledRunAt: Date | null
+    activatedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MarketingAutomationMaxAggregateOutputType = {
+    id: string | null
+    organizationId: string | null
+    name: string | null
+    description: string | null
+    status: $Enums.MarketingAutomationStatus | null
+    triggerType: string | null
+    activeVersionId: string | null
+    enrollmentLimit: number | null
+    maxActiveEnrollments: number | null
+    frequencyCapHours: number | null
+    createdByAdminUserId: string | null
+    updatedByAdminUserId: string | null
+    revision: number | null
+    lastScheduledRunAt: Date | null
+    activatedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MarketingAutomationCountAggregateOutputType = {
+    id: number
+    organizationId: number
+    name: number
+    description: number
+    status: number
+    triggerType: number
+    activeVersionId: number
+    enrollmentLimit: number
+    maxActiveEnrollments: number
+    frequencyCapHours: number
+    createdByAdminUserId: number
+    updatedByAdminUserId: number
+    revision: number
+    lastScheduledRunAt: number
+    activatedAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MarketingAutomationAvgAggregateInputType = {
+    enrollmentLimit?: true
+    maxActiveEnrollments?: true
+    frequencyCapHours?: true
+    revision?: true
+  }
+
+  export type MarketingAutomationSumAggregateInputType = {
+    enrollmentLimit?: true
+    maxActiveEnrollments?: true
+    frequencyCapHours?: true
+    revision?: true
+  }
+
+  export type MarketingAutomationMinAggregateInputType = {
+    id?: true
+    organizationId?: true
+    name?: true
+    description?: true
+    status?: true
+    triggerType?: true
+    activeVersionId?: true
+    enrollmentLimit?: true
+    maxActiveEnrollments?: true
+    frequencyCapHours?: true
+    createdByAdminUserId?: true
+    updatedByAdminUserId?: true
+    revision?: true
+    lastScheduledRunAt?: true
+    activatedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MarketingAutomationMaxAggregateInputType = {
+    id?: true
+    organizationId?: true
+    name?: true
+    description?: true
+    status?: true
+    triggerType?: true
+    activeVersionId?: true
+    enrollmentLimit?: true
+    maxActiveEnrollments?: true
+    frequencyCapHours?: true
+    createdByAdminUserId?: true
+    updatedByAdminUserId?: true
+    revision?: true
+    lastScheduledRunAt?: true
+    activatedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MarketingAutomationCountAggregateInputType = {
+    id?: true
+    organizationId?: true
+    name?: true
+    description?: true
+    status?: true
+    triggerType?: true
+    activeVersionId?: true
+    enrollmentLimit?: true
+    maxActiveEnrollments?: true
+    frequencyCapHours?: true
+    createdByAdminUserId?: true
+    updatedByAdminUserId?: true
+    revision?: true
+    lastScheduledRunAt?: true
+    activatedAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MarketingAutomationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingAutomation to aggregate.
+     */
+    where?: MarketingAutomationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingAutomations to fetch.
+     */
+    orderBy?: MarketingAutomationOrderByWithRelationInput | MarketingAutomationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MarketingAutomationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingAutomations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingAutomations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MarketingAutomations
+    **/
+    _count?: true | MarketingAutomationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MarketingAutomationAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MarketingAutomationSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MarketingAutomationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MarketingAutomationMaxAggregateInputType
+  }
+
+  export type GetMarketingAutomationAggregateType<T extends MarketingAutomationAggregateArgs> = {
+        [P in keyof T & keyof AggregateMarketingAutomation]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMarketingAutomation[P]>
+      : GetScalarType<T[P], AggregateMarketingAutomation[P]>
+  }
+
+
+
+
+  export type MarketingAutomationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingAutomationWhereInput
+    orderBy?: MarketingAutomationOrderByWithAggregationInput | MarketingAutomationOrderByWithAggregationInput[]
+    by: MarketingAutomationScalarFieldEnum[] | MarketingAutomationScalarFieldEnum
+    having?: MarketingAutomationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MarketingAutomationCountAggregateInputType | true
+    _avg?: MarketingAutomationAvgAggregateInputType
+    _sum?: MarketingAutomationSumAggregateInputType
+    _min?: MarketingAutomationMinAggregateInputType
+    _max?: MarketingAutomationMaxAggregateInputType
+  }
+
+  export type MarketingAutomationGroupByOutputType = {
+    id: string
+    organizationId: string
+    name: string
+    description: string | null
+    status: $Enums.MarketingAutomationStatus
+    triggerType: string
+    activeVersionId: string | null
+    enrollmentLimit: number
+    maxActiveEnrollments: number
+    frequencyCapHours: number
+    createdByAdminUserId: string
+    updatedByAdminUserId: string
+    revision: number
+    lastScheduledRunAt: Date | null
+    activatedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: MarketingAutomationCountAggregateOutputType | null
+    _avg: MarketingAutomationAvgAggregateOutputType | null
+    _sum: MarketingAutomationSumAggregateOutputType | null
+    _min: MarketingAutomationMinAggregateOutputType | null
+    _max: MarketingAutomationMaxAggregateOutputType | null
+  }
+
+  type GetMarketingAutomationGroupByPayload<T extends MarketingAutomationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MarketingAutomationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MarketingAutomationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MarketingAutomationGroupByOutputType[P]>
+            : GetScalarType<T[P], MarketingAutomationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MarketingAutomationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    name?: boolean
+    description?: boolean
+    status?: boolean
+    triggerType?: boolean
+    activeVersionId?: boolean
+    enrollmentLimit?: boolean
+    maxActiveEnrollments?: boolean
+    frequencyCapHours?: boolean
+    createdByAdminUserId?: boolean
+    updatedByAdminUserId?: boolean
+    revision?: boolean
+    lastScheduledRunAt?: boolean
+    activatedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    organization?: boolean | MailOrganizationDefaultArgs<ExtArgs>
+    versions?: boolean | MarketingAutomation$versionsArgs<ExtArgs>
+    enrollments?: boolean | MarketingAutomation$enrollmentsArgs<ExtArgs>
+    _count?: boolean | MarketingAutomationCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingAutomation"]>
+
+  export type MarketingAutomationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    name?: boolean
+    description?: boolean
+    status?: boolean
+    triggerType?: boolean
+    activeVersionId?: boolean
+    enrollmentLimit?: boolean
+    maxActiveEnrollments?: boolean
+    frequencyCapHours?: boolean
+    createdByAdminUserId?: boolean
+    updatedByAdminUserId?: boolean
+    revision?: boolean
+    lastScheduledRunAt?: boolean
+    activatedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    organization?: boolean | MailOrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingAutomation"]>
+
+  export type MarketingAutomationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    name?: boolean
+    description?: boolean
+    status?: boolean
+    triggerType?: boolean
+    activeVersionId?: boolean
+    enrollmentLimit?: boolean
+    maxActiveEnrollments?: boolean
+    frequencyCapHours?: boolean
+    createdByAdminUserId?: boolean
+    updatedByAdminUserId?: boolean
+    revision?: boolean
+    lastScheduledRunAt?: boolean
+    activatedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    organization?: boolean | MailOrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingAutomation"]>
+
+  export type MarketingAutomationSelectScalar = {
+    id?: boolean
+    organizationId?: boolean
+    name?: boolean
+    description?: boolean
+    status?: boolean
+    triggerType?: boolean
+    activeVersionId?: boolean
+    enrollmentLimit?: boolean
+    maxActiveEnrollments?: boolean
+    frequencyCapHours?: boolean
+    createdByAdminUserId?: boolean
+    updatedByAdminUserId?: boolean
+    revision?: boolean
+    lastScheduledRunAt?: boolean
+    activatedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type MarketingAutomationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "name" | "description" | "status" | "triggerType" | "activeVersionId" | "enrollmentLimit" | "maxActiveEnrollments" | "frequencyCapHours" | "createdByAdminUserId" | "updatedByAdminUserId" | "revision" | "lastScheduledRunAt" | "activatedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["marketingAutomation"]>
+  export type MarketingAutomationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | MailOrganizationDefaultArgs<ExtArgs>
+    versions?: boolean | MarketingAutomation$versionsArgs<ExtArgs>
+    enrollments?: boolean | MarketingAutomation$enrollmentsArgs<ExtArgs>
+    _count?: boolean | MarketingAutomationCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type MarketingAutomationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | MailOrganizationDefaultArgs<ExtArgs>
+  }
+  export type MarketingAutomationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | MailOrganizationDefaultArgs<ExtArgs>
+  }
+
+  export type $MarketingAutomationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MarketingAutomation"
+    objects: {
+      organization: Prisma.$MailOrganizationPayload<ExtArgs>
+      versions: Prisma.$MarketingAutomationVersionPayload<ExtArgs>[]
+      enrollments: Prisma.$MarketingAutomationEnrollmentPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      organizationId: string
+      name: string
+      description: string | null
+      status: $Enums.MarketingAutomationStatus
+      triggerType: string
+      activeVersionId: string | null
+      enrollmentLimit: number
+      maxActiveEnrollments: number
+      frequencyCapHours: number
+      createdByAdminUserId: string
+      updatedByAdminUserId: string
+      revision: number
+      lastScheduledRunAt: Date | null
+      activatedAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["marketingAutomation"]>
+    composites: {}
+  }
+
+  type MarketingAutomationGetPayload<S extends boolean | null | undefined | MarketingAutomationDefaultArgs> = $Result.GetResult<Prisma.$MarketingAutomationPayload, S>
+
+  type MarketingAutomationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MarketingAutomationFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MarketingAutomationCountAggregateInputType | true
+    }
+
+  export interface MarketingAutomationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MarketingAutomation'], meta: { name: 'MarketingAutomation' } }
+    /**
+     * Find zero or one MarketingAutomation that matches the filter.
+     * @param {MarketingAutomationFindUniqueArgs} args - Arguments to find a MarketingAutomation
+     * @example
+     * // Get one MarketingAutomation
+     * const marketingAutomation = await prisma.marketingAutomation.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MarketingAutomationFindUniqueArgs>(args: SelectSubset<T, MarketingAutomationFindUniqueArgs<ExtArgs>>): Prisma__MarketingAutomationClient<$Result.GetResult<Prisma.$MarketingAutomationPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MarketingAutomation that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MarketingAutomationFindUniqueOrThrowArgs} args - Arguments to find a MarketingAutomation
+     * @example
+     * // Get one MarketingAutomation
+     * const marketingAutomation = await prisma.marketingAutomation.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MarketingAutomationFindUniqueOrThrowArgs>(args: SelectSubset<T, MarketingAutomationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MarketingAutomationClient<$Result.GetResult<Prisma.$MarketingAutomationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarketingAutomation that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationFindFirstArgs} args - Arguments to find a MarketingAutomation
+     * @example
+     * // Get one MarketingAutomation
+     * const marketingAutomation = await prisma.marketingAutomation.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MarketingAutomationFindFirstArgs>(args?: SelectSubset<T, MarketingAutomationFindFirstArgs<ExtArgs>>): Prisma__MarketingAutomationClient<$Result.GetResult<Prisma.$MarketingAutomationPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarketingAutomation that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationFindFirstOrThrowArgs} args - Arguments to find a MarketingAutomation
+     * @example
+     * // Get one MarketingAutomation
+     * const marketingAutomation = await prisma.marketingAutomation.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MarketingAutomationFindFirstOrThrowArgs>(args?: SelectSubset<T, MarketingAutomationFindFirstOrThrowArgs<ExtArgs>>): Prisma__MarketingAutomationClient<$Result.GetResult<Prisma.$MarketingAutomationPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MarketingAutomations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MarketingAutomations
+     * const marketingAutomations = await prisma.marketingAutomation.findMany()
+     * 
+     * // Get first 10 MarketingAutomations
+     * const marketingAutomations = await prisma.marketingAutomation.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const marketingAutomationWithIdOnly = await prisma.marketingAutomation.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MarketingAutomationFindManyArgs>(args?: SelectSubset<T, MarketingAutomationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingAutomationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MarketingAutomation.
+     * @param {MarketingAutomationCreateArgs} args - Arguments to create a MarketingAutomation.
+     * @example
+     * // Create one MarketingAutomation
+     * const MarketingAutomation = await prisma.marketingAutomation.create({
+     *   data: {
+     *     // ... data to create a MarketingAutomation
+     *   }
+     * })
+     * 
+     */
+    create<T extends MarketingAutomationCreateArgs>(args: SelectSubset<T, MarketingAutomationCreateArgs<ExtArgs>>): Prisma__MarketingAutomationClient<$Result.GetResult<Prisma.$MarketingAutomationPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MarketingAutomations.
+     * @param {MarketingAutomationCreateManyArgs} args - Arguments to create many MarketingAutomations.
+     * @example
+     * // Create many MarketingAutomations
+     * const marketingAutomation = await prisma.marketingAutomation.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MarketingAutomationCreateManyArgs>(args?: SelectSubset<T, MarketingAutomationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MarketingAutomations and returns the data saved in the database.
+     * @param {MarketingAutomationCreateManyAndReturnArgs} args - Arguments to create many MarketingAutomations.
+     * @example
+     * // Create many MarketingAutomations
+     * const marketingAutomation = await prisma.marketingAutomation.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MarketingAutomations and only return the `id`
+     * const marketingAutomationWithIdOnly = await prisma.marketingAutomation.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MarketingAutomationCreateManyAndReturnArgs>(args?: SelectSubset<T, MarketingAutomationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingAutomationPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MarketingAutomation.
+     * @param {MarketingAutomationDeleteArgs} args - Arguments to delete one MarketingAutomation.
+     * @example
+     * // Delete one MarketingAutomation
+     * const MarketingAutomation = await prisma.marketingAutomation.delete({
+     *   where: {
+     *     // ... filter to delete one MarketingAutomation
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MarketingAutomationDeleteArgs>(args: SelectSubset<T, MarketingAutomationDeleteArgs<ExtArgs>>): Prisma__MarketingAutomationClient<$Result.GetResult<Prisma.$MarketingAutomationPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MarketingAutomation.
+     * @param {MarketingAutomationUpdateArgs} args - Arguments to update one MarketingAutomation.
+     * @example
+     * // Update one MarketingAutomation
+     * const marketingAutomation = await prisma.marketingAutomation.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MarketingAutomationUpdateArgs>(args: SelectSubset<T, MarketingAutomationUpdateArgs<ExtArgs>>): Prisma__MarketingAutomationClient<$Result.GetResult<Prisma.$MarketingAutomationPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MarketingAutomations.
+     * @param {MarketingAutomationDeleteManyArgs} args - Arguments to filter MarketingAutomations to delete.
+     * @example
+     * // Delete a few MarketingAutomations
+     * const { count } = await prisma.marketingAutomation.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MarketingAutomationDeleteManyArgs>(args?: SelectSubset<T, MarketingAutomationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingAutomations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MarketingAutomations
+     * const marketingAutomation = await prisma.marketingAutomation.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MarketingAutomationUpdateManyArgs>(args: SelectSubset<T, MarketingAutomationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingAutomations and returns the data updated in the database.
+     * @param {MarketingAutomationUpdateManyAndReturnArgs} args - Arguments to update many MarketingAutomations.
+     * @example
+     * // Update many MarketingAutomations
+     * const marketingAutomation = await prisma.marketingAutomation.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MarketingAutomations and only return the `id`
+     * const marketingAutomationWithIdOnly = await prisma.marketingAutomation.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MarketingAutomationUpdateManyAndReturnArgs>(args: SelectSubset<T, MarketingAutomationUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingAutomationPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MarketingAutomation.
+     * @param {MarketingAutomationUpsertArgs} args - Arguments to update or create a MarketingAutomation.
+     * @example
+     * // Update or create a MarketingAutomation
+     * const marketingAutomation = await prisma.marketingAutomation.upsert({
+     *   create: {
+     *     // ... data to create a MarketingAutomation
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MarketingAutomation we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MarketingAutomationUpsertArgs>(args: SelectSubset<T, MarketingAutomationUpsertArgs<ExtArgs>>): Prisma__MarketingAutomationClient<$Result.GetResult<Prisma.$MarketingAutomationPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MarketingAutomations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationCountArgs} args - Arguments to filter MarketingAutomations to count.
+     * @example
+     * // Count the number of MarketingAutomations
+     * const count = await prisma.marketingAutomation.count({
+     *   where: {
+     *     // ... the filter for the MarketingAutomations we want to count
+     *   }
+     * })
+    **/
+    count<T extends MarketingAutomationCountArgs>(
+      args?: Subset<T, MarketingAutomationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MarketingAutomationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MarketingAutomation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MarketingAutomationAggregateArgs>(args: Subset<T, MarketingAutomationAggregateArgs>): Prisma.PrismaPromise<GetMarketingAutomationAggregateType<T>>
+
+    /**
+     * Group by MarketingAutomation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MarketingAutomationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MarketingAutomationGroupByArgs['orderBy'] }
+        : { orderBy?: MarketingAutomationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MarketingAutomationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMarketingAutomationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MarketingAutomation model
+   */
+  readonly fields: MarketingAutomationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MarketingAutomation.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MarketingAutomationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    organization<T extends MailOrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MailOrganizationDefaultArgs<ExtArgs>>): Prisma__MailOrganizationClient<$Result.GetResult<Prisma.$MailOrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    versions<T extends MarketingAutomation$versionsArgs<ExtArgs> = {}>(args?: Subset<T, MarketingAutomation$versionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingAutomationVersionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    enrollments<T extends MarketingAutomation$enrollmentsArgs<ExtArgs> = {}>(args?: Subset<T, MarketingAutomation$enrollmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingAutomationEnrollmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MarketingAutomation model
+   */
+  interface MarketingAutomationFieldRefs {
+    readonly id: FieldRef<"MarketingAutomation", 'String'>
+    readonly organizationId: FieldRef<"MarketingAutomation", 'String'>
+    readonly name: FieldRef<"MarketingAutomation", 'String'>
+    readonly description: FieldRef<"MarketingAutomation", 'String'>
+    readonly status: FieldRef<"MarketingAutomation", 'MarketingAutomationStatus'>
+    readonly triggerType: FieldRef<"MarketingAutomation", 'String'>
+    readonly activeVersionId: FieldRef<"MarketingAutomation", 'String'>
+    readonly enrollmentLimit: FieldRef<"MarketingAutomation", 'Int'>
+    readonly maxActiveEnrollments: FieldRef<"MarketingAutomation", 'Int'>
+    readonly frequencyCapHours: FieldRef<"MarketingAutomation", 'Int'>
+    readonly createdByAdminUserId: FieldRef<"MarketingAutomation", 'String'>
+    readonly updatedByAdminUserId: FieldRef<"MarketingAutomation", 'String'>
+    readonly revision: FieldRef<"MarketingAutomation", 'Int'>
+    readonly lastScheduledRunAt: FieldRef<"MarketingAutomation", 'DateTime'>
+    readonly activatedAt: FieldRef<"MarketingAutomation", 'DateTime'>
+    readonly createdAt: FieldRef<"MarketingAutomation", 'DateTime'>
+    readonly updatedAt: FieldRef<"MarketingAutomation", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MarketingAutomation findUnique
+   */
+  export type MarketingAutomationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomation
+     */
+    select?: MarketingAutomationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomation
+     */
+    omit?: MarketingAutomationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingAutomation to fetch.
+     */
+    where: MarketingAutomationWhereUniqueInput
+  }
+
+  /**
+   * MarketingAutomation findUniqueOrThrow
+   */
+  export type MarketingAutomationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomation
+     */
+    select?: MarketingAutomationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomation
+     */
+    omit?: MarketingAutomationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingAutomation to fetch.
+     */
+    where: MarketingAutomationWhereUniqueInput
+  }
+
+  /**
+   * MarketingAutomation findFirst
+   */
+  export type MarketingAutomationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomation
+     */
+    select?: MarketingAutomationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomation
+     */
+    omit?: MarketingAutomationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingAutomation to fetch.
+     */
+    where?: MarketingAutomationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingAutomations to fetch.
+     */
+    orderBy?: MarketingAutomationOrderByWithRelationInput | MarketingAutomationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingAutomations.
+     */
+    cursor?: MarketingAutomationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingAutomations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingAutomations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingAutomations.
+     */
+    distinct?: MarketingAutomationScalarFieldEnum | MarketingAutomationScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingAutomation findFirstOrThrow
+   */
+  export type MarketingAutomationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomation
+     */
+    select?: MarketingAutomationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomation
+     */
+    omit?: MarketingAutomationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingAutomation to fetch.
+     */
+    where?: MarketingAutomationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingAutomations to fetch.
+     */
+    orderBy?: MarketingAutomationOrderByWithRelationInput | MarketingAutomationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingAutomations.
+     */
+    cursor?: MarketingAutomationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingAutomations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingAutomations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingAutomations.
+     */
+    distinct?: MarketingAutomationScalarFieldEnum | MarketingAutomationScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingAutomation findMany
+   */
+  export type MarketingAutomationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomation
+     */
+    select?: MarketingAutomationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomation
+     */
+    omit?: MarketingAutomationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingAutomations to fetch.
+     */
+    where?: MarketingAutomationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingAutomations to fetch.
+     */
+    orderBy?: MarketingAutomationOrderByWithRelationInput | MarketingAutomationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MarketingAutomations.
+     */
+    cursor?: MarketingAutomationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingAutomations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingAutomations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingAutomations.
+     */
+    distinct?: MarketingAutomationScalarFieldEnum | MarketingAutomationScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingAutomation create
+   */
+  export type MarketingAutomationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomation
+     */
+    select?: MarketingAutomationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomation
+     */
+    omit?: MarketingAutomationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MarketingAutomation.
+     */
+    data: XOR<MarketingAutomationCreateInput, MarketingAutomationUncheckedCreateInput>
+  }
+
+  /**
+   * MarketingAutomation createMany
+   */
+  export type MarketingAutomationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MarketingAutomations.
+     */
+    data: MarketingAutomationCreateManyInput | MarketingAutomationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MarketingAutomation createManyAndReturn
+   */
+  export type MarketingAutomationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomation
+     */
+    select?: MarketingAutomationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomation
+     */
+    omit?: MarketingAutomationOmit<ExtArgs> | null
+    /**
+     * The data used to create many MarketingAutomations.
+     */
+    data: MarketingAutomationCreateManyInput | MarketingAutomationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarketingAutomation update
+   */
+  export type MarketingAutomationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomation
+     */
+    select?: MarketingAutomationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomation
+     */
+    omit?: MarketingAutomationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MarketingAutomation.
+     */
+    data: XOR<MarketingAutomationUpdateInput, MarketingAutomationUncheckedUpdateInput>
+    /**
+     * Choose, which MarketingAutomation to update.
+     */
+    where: MarketingAutomationWhereUniqueInput
+  }
+
+  /**
+   * MarketingAutomation updateMany
+   */
+  export type MarketingAutomationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MarketingAutomations.
+     */
+    data: XOR<MarketingAutomationUpdateManyMutationInput, MarketingAutomationUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingAutomations to update
+     */
+    where?: MarketingAutomationWhereInput
+    /**
+     * Limit how many MarketingAutomations to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingAutomation updateManyAndReturn
+   */
+  export type MarketingAutomationUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomation
+     */
+    select?: MarketingAutomationSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomation
+     */
+    omit?: MarketingAutomationOmit<ExtArgs> | null
+    /**
+     * The data used to update MarketingAutomations.
+     */
+    data: XOR<MarketingAutomationUpdateManyMutationInput, MarketingAutomationUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingAutomations to update
+     */
+    where?: MarketingAutomationWhereInput
+    /**
+     * Limit how many MarketingAutomations to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarketingAutomation upsert
+   */
+  export type MarketingAutomationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomation
+     */
+    select?: MarketingAutomationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomation
+     */
+    omit?: MarketingAutomationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MarketingAutomation to update in case it exists.
+     */
+    where: MarketingAutomationWhereUniqueInput
+    /**
+     * In case the MarketingAutomation found by the `where` argument doesn't exist, create a new MarketingAutomation with this data.
+     */
+    create: XOR<MarketingAutomationCreateInput, MarketingAutomationUncheckedCreateInput>
+    /**
+     * In case the MarketingAutomation was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MarketingAutomationUpdateInput, MarketingAutomationUncheckedUpdateInput>
+  }
+
+  /**
+   * MarketingAutomation delete
+   */
+  export type MarketingAutomationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomation
+     */
+    select?: MarketingAutomationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomation
+     */
+    omit?: MarketingAutomationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationInclude<ExtArgs> | null
+    /**
+     * Filter which MarketingAutomation to delete.
+     */
+    where: MarketingAutomationWhereUniqueInput
+  }
+
+  /**
+   * MarketingAutomation deleteMany
+   */
+  export type MarketingAutomationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingAutomations to delete
+     */
+    where?: MarketingAutomationWhereInput
+    /**
+     * Limit how many MarketingAutomations to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingAutomation.versions
+   */
+  export type MarketingAutomation$versionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationVersion
+     */
+    select?: MarketingAutomationVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationVersion
+     */
+    omit?: MarketingAutomationVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationVersionInclude<ExtArgs> | null
+    where?: MarketingAutomationVersionWhereInput
+    orderBy?: MarketingAutomationVersionOrderByWithRelationInput | MarketingAutomationVersionOrderByWithRelationInput[]
+    cursor?: MarketingAutomationVersionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MarketingAutomationVersionScalarFieldEnum | MarketingAutomationVersionScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingAutomation.enrollments
+   */
+  export type MarketingAutomation$enrollmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationEnrollment
+     */
+    select?: MarketingAutomationEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationEnrollment
+     */
+    omit?: MarketingAutomationEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationEnrollmentInclude<ExtArgs> | null
+    where?: MarketingAutomationEnrollmentWhereInput
+    orderBy?: MarketingAutomationEnrollmentOrderByWithRelationInput | MarketingAutomationEnrollmentOrderByWithRelationInput[]
+    cursor?: MarketingAutomationEnrollmentWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MarketingAutomationEnrollmentScalarFieldEnum | MarketingAutomationEnrollmentScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingAutomation without action
+   */
+  export type MarketingAutomationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomation
+     */
+    select?: MarketingAutomationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomation
+     */
+    omit?: MarketingAutomationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MarketingAutomationVersion
+   */
+
+  export type AggregateMarketingAutomationVersion = {
+    _count: MarketingAutomationVersionCountAggregateOutputType | null
+    _avg: MarketingAutomationVersionAvgAggregateOutputType | null
+    _sum: MarketingAutomationVersionSumAggregateOutputType | null
+    _min: MarketingAutomationVersionMinAggregateOutputType | null
+    _max: MarketingAutomationVersionMaxAggregateOutputType | null
+  }
+
+  export type MarketingAutomationVersionAvgAggregateOutputType = {
+    version: number | null
+  }
+
+  export type MarketingAutomationVersionSumAggregateOutputType = {
+    version: number | null
+  }
+
+  export type MarketingAutomationVersionMinAggregateOutputType = {
+    id: string | null
+    automationId: string | null
+    version: number | null
+    status: $Enums.MarketingAutomationVersionStatus | null
+    definitionSha256: string | null
+    createdByAdminUserId: string | null
+    submittedByAdminUserId: string | null
+    submittedAt: Date | null
+    reviewedByAdminUserId: string | null
+    reviewedAt: Date | null
+    reviewComment: string | null
+    stepUpId: string | null
+    publishedAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type MarketingAutomationVersionMaxAggregateOutputType = {
+    id: string | null
+    automationId: string | null
+    version: number | null
+    status: $Enums.MarketingAutomationVersionStatus | null
+    definitionSha256: string | null
+    createdByAdminUserId: string | null
+    submittedByAdminUserId: string | null
+    submittedAt: Date | null
+    reviewedByAdminUserId: string | null
+    reviewedAt: Date | null
+    reviewComment: string | null
+    stepUpId: string | null
+    publishedAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type MarketingAutomationVersionCountAggregateOutputType = {
+    id: number
+    automationId: number
+    version: number
+    status: number
+    definition: number
+    triggerConfig: number
+    definitionSha256: number
+    createdByAdminUserId: number
+    submittedByAdminUserId: number
+    submittedAt: number
+    reviewedByAdminUserId: number
+    reviewedAt: number
+    reviewComment: number
+    stepUpId: number
+    publishedAt: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type MarketingAutomationVersionAvgAggregateInputType = {
+    version?: true
+  }
+
+  export type MarketingAutomationVersionSumAggregateInputType = {
+    version?: true
+  }
+
+  export type MarketingAutomationVersionMinAggregateInputType = {
+    id?: true
+    automationId?: true
+    version?: true
+    status?: true
+    definitionSha256?: true
+    createdByAdminUserId?: true
+    submittedByAdminUserId?: true
+    submittedAt?: true
+    reviewedByAdminUserId?: true
+    reviewedAt?: true
+    reviewComment?: true
+    stepUpId?: true
+    publishedAt?: true
+    createdAt?: true
+  }
+
+  export type MarketingAutomationVersionMaxAggregateInputType = {
+    id?: true
+    automationId?: true
+    version?: true
+    status?: true
+    definitionSha256?: true
+    createdByAdminUserId?: true
+    submittedByAdminUserId?: true
+    submittedAt?: true
+    reviewedByAdminUserId?: true
+    reviewedAt?: true
+    reviewComment?: true
+    stepUpId?: true
+    publishedAt?: true
+    createdAt?: true
+  }
+
+  export type MarketingAutomationVersionCountAggregateInputType = {
+    id?: true
+    automationId?: true
+    version?: true
+    status?: true
+    definition?: true
+    triggerConfig?: true
+    definitionSha256?: true
+    createdByAdminUserId?: true
+    submittedByAdminUserId?: true
+    submittedAt?: true
+    reviewedByAdminUserId?: true
+    reviewedAt?: true
+    reviewComment?: true
+    stepUpId?: true
+    publishedAt?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type MarketingAutomationVersionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingAutomationVersion to aggregate.
+     */
+    where?: MarketingAutomationVersionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingAutomationVersions to fetch.
+     */
+    orderBy?: MarketingAutomationVersionOrderByWithRelationInput | MarketingAutomationVersionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MarketingAutomationVersionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingAutomationVersions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingAutomationVersions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MarketingAutomationVersions
+    **/
+    _count?: true | MarketingAutomationVersionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MarketingAutomationVersionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MarketingAutomationVersionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MarketingAutomationVersionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MarketingAutomationVersionMaxAggregateInputType
+  }
+
+  export type GetMarketingAutomationVersionAggregateType<T extends MarketingAutomationVersionAggregateArgs> = {
+        [P in keyof T & keyof AggregateMarketingAutomationVersion]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMarketingAutomationVersion[P]>
+      : GetScalarType<T[P], AggregateMarketingAutomationVersion[P]>
+  }
+
+
+
+
+  export type MarketingAutomationVersionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingAutomationVersionWhereInput
+    orderBy?: MarketingAutomationVersionOrderByWithAggregationInput | MarketingAutomationVersionOrderByWithAggregationInput[]
+    by: MarketingAutomationVersionScalarFieldEnum[] | MarketingAutomationVersionScalarFieldEnum
+    having?: MarketingAutomationVersionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MarketingAutomationVersionCountAggregateInputType | true
+    _avg?: MarketingAutomationVersionAvgAggregateInputType
+    _sum?: MarketingAutomationVersionSumAggregateInputType
+    _min?: MarketingAutomationVersionMinAggregateInputType
+    _max?: MarketingAutomationVersionMaxAggregateInputType
+  }
+
+  export type MarketingAutomationVersionGroupByOutputType = {
+    id: string
+    automationId: string
+    version: number
+    status: $Enums.MarketingAutomationVersionStatus
+    definition: JsonValue
+    triggerConfig: JsonValue
+    definitionSha256: string
+    createdByAdminUserId: string
+    submittedByAdminUserId: string | null
+    submittedAt: Date | null
+    reviewedByAdminUserId: string | null
+    reviewedAt: Date | null
+    reviewComment: string | null
+    stepUpId: string | null
+    publishedAt: Date | null
+    createdAt: Date
+    _count: MarketingAutomationVersionCountAggregateOutputType | null
+    _avg: MarketingAutomationVersionAvgAggregateOutputType | null
+    _sum: MarketingAutomationVersionSumAggregateOutputType | null
+    _min: MarketingAutomationVersionMinAggregateOutputType | null
+    _max: MarketingAutomationVersionMaxAggregateOutputType | null
+  }
+
+  type GetMarketingAutomationVersionGroupByPayload<T extends MarketingAutomationVersionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MarketingAutomationVersionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MarketingAutomationVersionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MarketingAutomationVersionGroupByOutputType[P]>
+            : GetScalarType<T[P], MarketingAutomationVersionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MarketingAutomationVersionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    automationId?: boolean
+    version?: boolean
+    status?: boolean
+    definition?: boolean
+    triggerConfig?: boolean
+    definitionSha256?: boolean
+    createdByAdminUserId?: boolean
+    submittedByAdminUserId?: boolean
+    submittedAt?: boolean
+    reviewedByAdminUserId?: boolean
+    reviewedAt?: boolean
+    reviewComment?: boolean
+    stepUpId?: boolean
+    publishedAt?: boolean
+    createdAt?: boolean
+    automation?: boolean | MarketingAutomationDefaultArgs<ExtArgs>
+    enrollments?: boolean | MarketingAutomationVersion$enrollmentsArgs<ExtArgs>
+    _count?: boolean | MarketingAutomationVersionCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingAutomationVersion"]>
+
+  export type MarketingAutomationVersionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    automationId?: boolean
+    version?: boolean
+    status?: boolean
+    definition?: boolean
+    triggerConfig?: boolean
+    definitionSha256?: boolean
+    createdByAdminUserId?: boolean
+    submittedByAdminUserId?: boolean
+    submittedAt?: boolean
+    reviewedByAdminUserId?: boolean
+    reviewedAt?: boolean
+    reviewComment?: boolean
+    stepUpId?: boolean
+    publishedAt?: boolean
+    createdAt?: boolean
+    automation?: boolean | MarketingAutomationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingAutomationVersion"]>
+
+  export type MarketingAutomationVersionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    automationId?: boolean
+    version?: boolean
+    status?: boolean
+    definition?: boolean
+    triggerConfig?: boolean
+    definitionSha256?: boolean
+    createdByAdminUserId?: boolean
+    submittedByAdminUserId?: boolean
+    submittedAt?: boolean
+    reviewedByAdminUserId?: boolean
+    reviewedAt?: boolean
+    reviewComment?: boolean
+    stepUpId?: boolean
+    publishedAt?: boolean
+    createdAt?: boolean
+    automation?: boolean | MarketingAutomationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingAutomationVersion"]>
+
+  export type MarketingAutomationVersionSelectScalar = {
+    id?: boolean
+    automationId?: boolean
+    version?: boolean
+    status?: boolean
+    definition?: boolean
+    triggerConfig?: boolean
+    definitionSha256?: boolean
+    createdByAdminUserId?: boolean
+    submittedByAdminUserId?: boolean
+    submittedAt?: boolean
+    reviewedByAdminUserId?: boolean
+    reviewedAt?: boolean
+    reviewComment?: boolean
+    stepUpId?: boolean
+    publishedAt?: boolean
+    createdAt?: boolean
+  }
+
+  export type MarketingAutomationVersionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "automationId" | "version" | "status" | "definition" | "triggerConfig" | "definitionSha256" | "createdByAdminUserId" | "submittedByAdminUserId" | "submittedAt" | "reviewedByAdminUserId" | "reviewedAt" | "reviewComment" | "stepUpId" | "publishedAt" | "createdAt", ExtArgs["result"]["marketingAutomationVersion"]>
+  export type MarketingAutomationVersionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    automation?: boolean | MarketingAutomationDefaultArgs<ExtArgs>
+    enrollments?: boolean | MarketingAutomationVersion$enrollmentsArgs<ExtArgs>
+    _count?: boolean | MarketingAutomationVersionCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type MarketingAutomationVersionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    automation?: boolean | MarketingAutomationDefaultArgs<ExtArgs>
+  }
+  export type MarketingAutomationVersionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    automation?: boolean | MarketingAutomationDefaultArgs<ExtArgs>
+  }
+
+  export type $MarketingAutomationVersionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MarketingAutomationVersion"
+    objects: {
+      automation: Prisma.$MarketingAutomationPayload<ExtArgs>
+      enrollments: Prisma.$MarketingAutomationEnrollmentPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      automationId: string
+      version: number
+      status: $Enums.MarketingAutomationVersionStatus
+      definition: Prisma.JsonValue
+      triggerConfig: Prisma.JsonValue
+      definitionSha256: string
+      createdByAdminUserId: string
+      submittedByAdminUserId: string | null
+      submittedAt: Date | null
+      reviewedByAdminUserId: string | null
+      reviewedAt: Date | null
+      reviewComment: string | null
+      stepUpId: string | null
+      publishedAt: Date | null
+      createdAt: Date
+    }, ExtArgs["result"]["marketingAutomationVersion"]>
+    composites: {}
+  }
+
+  type MarketingAutomationVersionGetPayload<S extends boolean | null | undefined | MarketingAutomationVersionDefaultArgs> = $Result.GetResult<Prisma.$MarketingAutomationVersionPayload, S>
+
+  type MarketingAutomationVersionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MarketingAutomationVersionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MarketingAutomationVersionCountAggregateInputType | true
+    }
+
+  export interface MarketingAutomationVersionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MarketingAutomationVersion'], meta: { name: 'MarketingAutomationVersion' } }
+    /**
+     * Find zero or one MarketingAutomationVersion that matches the filter.
+     * @param {MarketingAutomationVersionFindUniqueArgs} args - Arguments to find a MarketingAutomationVersion
+     * @example
+     * // Get one MarketingAutomationVersion
+     * const marketingAutomationVersion = await prisma.marketingAutomationVersion.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MarketingAutomationVersionFindUniqueArgs>(args: SelectSubset<T, MarketingAutomationVersionFindUniqueArgs<ExtArgs>>): Prisma__MarketingAutomationVersionClient<$Result.GetResult<Prisma.$MarketingAutomationVersionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MarketingAutomationVersion that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MarketingAutomationVersionFindUniqueOrThrowArgs} args - Arguments to find a MarketingAutomationVersion
+     * @example
+     * // Get one MarketingAutomationVersion
+     * const marketingAutomationVersion = await prisma.marketingAutomationVersion.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MarketingAutomationVersionFindUniqueOrThrowArgs>(args: SelectSubset<T, MarketingAutomationVersionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MarketingAutomationVersionClient<$Result.GetResult<Prisma.$MarketingAutomationVersionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarketingAutomationVersion that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationVersionFindFirstArgs} args - Arguments to find a MarketingAutomationVersion
+     * @example
+     * // Get one MarketingAutomationVersion
+     * const marketingAutomationVersion = await prisma.marketingAutomationVersion.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MarketingAutomationVersionFindFirstArgs>(args?: SelectSubset<T, MarketingAutomationVersionFindFirstArgs<ExtArgs>>): Prisma__MarketingAutomationVersionClient<$Result.GetResult<Prisma.$MarketingAutomationVersionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarketingAutomationVersion that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationVersionFindFirstOrThrowArgs} args - Arguments to find a MarketingAutomationVersion
+     * @example
+     * // Get one MarketingAutomationVersion
+     * const marketingAutomationVersion = await prisma.marketingAutomationVersion.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MarketingAutomationVersionFindFirstOrThrowArgs>(args?: SelectSubset<T, MarketingAutomationVersionFindFirstOrThrowArgs<ExtArgs>>): Prisma__MarketingAutomationVersionClient<$Result.GetResult<Prisma.$MarketingAutomationVersionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MarketingAutomationVersions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationVersionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MarketingAutomationVersions
+     * const marketingAutomationVersions = await prisma.marketingAutomationVersion.findMany()
+     * 
+     * // Get first 10 MarketingAutomationVersions
+     * const marketingAutomationVersions = await prisma.marketingAutomationVersion.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const marketingAutomationVersionWithIdOnly = await prisma.marketingAutomationVersion.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MarketingAutomationVersionFindManyArgs>(args?: SelectSubset<T, MarketingAutomationVersionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingAutomationVersionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MarketingAutomationVersion.
+     * @param {MarketingAutomationVersionCreateArgs} args - Arguments to create a MarketingAutomationVersion.
+     * @example
+     * // Create one MarketingAutomationVersion
+     * const MarketingAutomationVersion = await prisma.marketingAutomationVersion.create({
+     *   data: {
+     *     // ... data to create a MarketingAutomationVersion
+     *   }
+     * })
+     * 
+     */
+    create<T extends MarketingAutomationVersionCreateArgs>(args: SelectSubset<T, MarketingAutomationVersionCreateArgs<ExtArgs>>): Prisma__MarketingAutomationVersionClient<$Result.GetResult<Prisma.$MarketingAutomationVersionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MarketingAutomationVersions.
+     * @param {MarketingAutomationVersionCreateManyArgs} args - Arguments to create many MarketingAutomationVersions.
+     * @example
+     * // Create many MarketingAutomationVersions
+     * const marketingAutomationVersion = await prisma.marketingAutomationVersion.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MarketingAutomationVersionCreateManyArgs>(args?: SelectSubset<T, MarketingAutomationVersionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MarketingAutomationVersions and returns the data saved in the database.
+     * @param {MarketingAutomationVersionCreateManyAndReturnArgs} args - Arguments to create many MarketingAutomationVersions.
+     * @example
+     * // Create many MarketingAutomationVersions
+     * const marketingAutomationVersion = await prisma.marketingAutomationVersion.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MarketingAutomationVersions and only return the `id`
+     * const marketingAutomationVersionWithIdOnly = await prisma.marketingAutomationVersion.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MarketingAutomationVersionCreateManyAndReturnArgs>(args?: SelectSubset<T, MarketingAutomationVersionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingAutomationVersionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MarketingAutomationVersion.
+     * @param {MarketingAutomationVersionDeleteArgs} args - Arguments to delete one MarketingAutomationVersion.
+     * @example
+     * // Delete one MarketingAutomationVersion
+     * const MarketingAutomationVersion = await prisma.marketingAutomationVersion.delete({
+     *   where: {
+     *     // ... filter to delete one MarketingAutomationVersion
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MarketingAutomationVersionDeleteArgs>(args: SelectSubset<T, MarketingAutomationVersionDeleteArgs<ExtArgs>>): Prisma__MarketingAutomationVersionClient<$Result.GetResult<Prisma.$MarketingAutomationVersionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MarketingAutomationVersion.
+     * @param {MarketingAutomationVersionUpdateArgs} args - Arguments to update one MarketingAutomationVersion.
+     * @example
+     * // Update one MarketingAutomationVersion
+     * const marketingAutomationVersion = await prisma.marketingAutomationVersion.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MarketingAutomationVersionUpdateArgs>(args: SelectSubset<T, MarketingAutomationVersionUpdateArgs<ExtArgs>>): Prisma__MarketingAutomationVersionClient<$Result.GetResult<Prisma.$MarketingAutomationVersionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MarketingAutomationVersions.
+     * @param {MarketingAutomationVersionDeleteManyArgs} args - Arguments to filter MarketingAutomationVersions to delete.
+     * @example
+     * // Delete a few MarketingAutomationVersions
+     * const { count } = await prisma.marketingAutomationVersion.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MarketingAutomationVersionDeleteManyArgs>(args?: SelectSubset<T, MarketingAutomationVersionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingAutomationVersions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationVersionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MarketingAutomationVersions
+     * const marketingAutomationVersion = await prisma.marketingAutomationVersion.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MarketingAutomationVersionUpdateManyArgs>(args: SelectSubset<T, MarketingAutomationVersionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingAutomationVersions and returns the data updated in the database.
+     * @param {MarketingAutomationVersionUpdateManyAndReturnArgs} args - Arguments to update many MarketingAutomationVersions.
+     * @example
+     * // Update many MarketingAutomationVersions
+     * const marketingAutomationVersion = await prisma.marketingAutomationVersion.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MarketingAutomationVersions and only return the `id`
+     * const marketingAutomationVersionWithIdOnly = await prisma.marketingAutomationVersion.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MarketingAutomationVersionUpdateManyAndReturnArgs>(args: SelectSubset<T, MarketingAutomationVersionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingAutomationVersionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MarketingAutomationVersion.
+     * @param {MarketingAutomationVersionUpsertArgs} args - Arguments to update or create a MarketingAutomationVersion.
+     * @example
+     * // Update or create a MarketingAutomationVersion
+     * const marketingAutomationVersion = await prisma.marketingAutomationVersion.upsert({
+     *   create: {
+     *     // ... data to create a MarketingAutomationVersion
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MarketingAutomationVersion we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MarketingAutomationVersionUpsertArgs>(args: SelectSubset<T, MarketingAutomationVersionUpsertArgs<ExtArgs>>): Prisma__MarketingAutomationVersionClient<$Result.GetResult<Prisma.$MarketingAutomationVersionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MarketingAutomationVersions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationVersionCountArgs} args - Arguments to filter MarketingAutomationVersions to count.
+     * @example
+     * // Count the number of MarketingAutomationVersions
+     * const count = await prisma.marketingAutomationVersion.count({
+     *   where: {
+     *     // ... the filter for the MarketingAutomationVersions we want to count
+     *   }
+     * })
+    **/
+    count<T extends MarketingAutomationVersionCountArgs>(
+      args?: Subset<T, MarketingAutomationVersionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MarketingAutomationVersionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MarketingAutomationVersion.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationVersionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MarketingAutomationVersionAggregateArgs>(args: Subset<T, MarketingAutomationVersionAggregateArgs>): Prisma.PrismaPromise<GetMarketingAutomationVersionAggregateType<T>>
+
+    /**
+     * Group by MarketingAutomationVersion.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationVersionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MarketingAutomationVersionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MarketingAutomationVersionGroupByArgs['orderBy'] }
+        : { orderBy?: MarketingAutomationVersionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MarketingAutomationVersionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMarketingAutomationVersionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MarketingAutomationVersion model
+   */
+  readonly fields: MarketingAutomationVersionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MarketingAutomationVersion.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MarketingAutomationVersionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    automation<T extends MarketingAutomationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MarketingAutomationDefaultArgs<ExtArgs>>): Prisma__MarketingAutomationClient<$Result.GetResult<Prisma.$MarketingAutomationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    enrollments<T extends MarketingAutomationVersion$enrollmentsArgs<ExtArgs> = {}>(args?: Subset<T, MarketingAutomationVersion$enrollmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingAutomationEnrollmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MarketingAutomationVersion model
+   */
+  interface MarketingAutomationVersionFieldRefs {
+    readonly id: FieldRef<"MarketingAutomationVersion", 'String'>
+    readonly automationId: FieldRef<"MarketingAutomationVersion", 'String'>
+    readonly version: FieldRef<"MarketingAutomationVersion", 'Int'>
+    readonly status: FieldRef<"MarketingAutomationVersion", 'MarketingAutomationVersionStatus'>
+    readonly definition: FieldRef<"MarketingAutomationVersion", 'Json'>
+    readonly triggerConfig: FieldRef<"MarketingAutomationVersion", 'Json'>
+    readonly definitionSha256: FieldRef<"MarketingAutomationVersion", 'String'>
+    readonly createdByAdminUserId: FieldRef<"MarketingAutomationVersion", 'String'>
+    readonly submittedByAdminUserId: FieldRef<"MarketingAutomationVersion", 'String'>
+    readonly submittedAt: FieldRef<"MarketingAutomationVersion", 'DateTime'>
+    readonly reviewedByAdminUserId: FieldRef<"MarketingAutomationVersion", 'String'>
+    readonly reviewedAt: FieldRef<"MarketingAutomationVersion", 'DateTime'>
+    readonly reviewComment: FieldRef<"MarketingAutomationVersion", 'String'>
+    readonly stepUpId: FieldRef<"MarketingAutomationVersion", 'String'>
+    readonly publishedAt: FieldRef<"MarketingAutomationVersion", 'DateTime'>
+    readonly createdAt: FieldRef<"MarketingAutomationVersion", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MarketingAutomationVersion findUnique
+   */
+  export type MarketingAutomationVersionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationVersion
+     */
+    select?: MarketingAutomationVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationVersion
+     */
+    omit?: MarketingAutomationVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationVersionInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingAutomationVersion to fetch.
+     */
+    where: MarketingAutomationVersionWhereUniqueInput
+  }
+
+  /**
+   * MarketingAutomationVersion findUniqueOrThrow
+   */
+  export type MarketingAutomationVersionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationVersion
+     */
+    select?: MarketingAutomationVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationVersion
+     */
+    omit?: MarketingAutomationVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationVersionInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingAutomationVersion to fetch.
+     */
+    where: MarketingAutomationVersionWhereUniqueInput
+  }
+
+  /**
+   * MarketingAutomationVersion findFirst
+   */
+  export type MarketingAutomationVersionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationVersion
+     */
+    select?: MarketingAutomationVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationVersion
+     */
+    omit?: MarketingAutomationVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationVersionInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingAutomationVersion to fetch.
+     */
+    where?: MarketingAutomationVersionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingAutomationVersions to fetch.
+     */
+    orderBy?: MarketingAutomationVersionOrderByWithRelationInput | MarketingAutomationVersionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingAutomationVersions.
+     */
+    cursor?: MarketingAutomationVersionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingAutomationVersions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingAutomationVersions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingAutomationVersions.
+     */
+    distinct?: MarketingAutomationVersionScalarFieldEnum | MarketingAutomationVersionScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingAutomationVersion findFirstOrThrow
+   */
+  export type MarketingAutomationVersionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationVersion
+     */
+    select?: MarketingAutomationVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationVersion
+     */
+    omit?: MarketingAutomationVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationVersionInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingAutomationVersion to fetch.
+     */
+    where?: MarketingAutomationVersionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingAutomationVersions to fetch.
+     */
+    orderBy?: MarketingAutomationVersionOrderByWithRelationInput | MarketingAutomationVersionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingAutomationVersions.
+     */
+    cursor?: MarketingAutomationVersionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingAutomationVersions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingAutomationVersions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingAutomationVersions.
+     */
+    distinct?: MarketingAutomationVersionScalarFieldEnum | MarketingAutomationVersionScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingAutomationVersion findMany
+   */
+  export type MarketingAutomationVersionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationVersion
+     */
+    select?: MarketingAutomationVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationVersion
+     */
+    omit?: MarketingAutomationVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationVersionInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingAutomationVersions to fetch.
+     */
+    where?: MarketingAutomationVersionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingAutomationVersions to fetch.
+     */
+    orderBy?: MarketingAutomationVersionOrderByWithRelationInput | MarketingAutomationVersionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MarketingAutomationVersions.
+     */
+    cursor?: MarketingAutomationVersionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingAutomationVersions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingAutomationVersions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingAutomationVersions.
+     */
+    distinct?: MarketingAutomationVersionScalarFieldEnum | MarketingAutomationVersionScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingAutomationVersion create
+   */
+  export type MarketingAutomationVersionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationVersion
+     */
+    select?: MarketingAutomationVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationVersion
+     */
+    omit?: MarketingAutomationVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationVersionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MarketingAutomationVersion.
+     */
+    data: XOR<MarketingAutomationVersionCreateInput, MarketingAutomationVersionUncheckedCreateInput>
+  }
+
+  /**
+   * MarketingAutomationVersion createMany
+   */
+  export type MarketingAutomationVersionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MarketingAutomationVersions.
+     */
+    data: MarketingAutomationVersionCreateManyInput | MarketingAutomationVersionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MarketingAutomationVersion createManyAndReturn
+   */
+  export type MarketingAutomationVersionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationVersion
+     */
+    select?: MarketingAutomationVersionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationVersion
+     */
+    omit?: MarketingAutomationVersionOmit<ExtArgs> | null
+    /**
+     * The data used to create many MarketingAutomationVersions.
+     */
+    data: MarketingAutomationVersionCreateManyInput | MarketingAutomationVersionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationVersionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarketingAutomationVersion update
+   */
+  export type MarketingAutomationVersionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationVersion
+     */
+    select?: MarketingAutomationVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationVersion
+     */
+    omit?: MarketingAutomationVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationVersionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MarketingAutomationVersion.
+     */
+    data: XOR<MarketingAutomationVersionUpdateInput, MarketingAutomationVersionUncheckedUpdateInput>
+    /**
+     * Choose, which MarketingAutomationVersion to update.
+     */
+    where: MarketingAutomationVersionWhereUniqueInput
+  }
+
+  /**
+   * MarketingAutomationVersion updateMany
+   */
+  export type MarketingAutomationVersionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MarketingAutomationVersions.
+     */
+    data: XOR<MarketingAutomationVersionUpdateManyMutationInput, MarketingAutomationVersionUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingAutomationVersions to update
+     */
+    where?: MarketingAutomationVersionWhereInput
+    /**
+     * Limit how many MarketingAutomationVersions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingAutomationVersion updateManyAndReturn
+   */
+  export type MarketingAutomationVersionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationVersion
+     */
+    select?: MarketingAutomationVersionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationVersion
+     */
+    omit?: MarketingAutomationVersionOmit<ExtArgs> | null
+    /**
+     * The data used to update MarketingAutomationVersions.
+     */
+    data: XOR<MarketingAutomationVersionUpdateManyMutationInput, MarketingAutomationVersionUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingAutomationVersions to update
+     */
+    where?: MarketingAutomationVersionWhereInput
+    /**
+     * Limit how many MarketingAutomationVersions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationVersionIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarketingAutomationVersion upsert
+   */
+  export type MarketingAutomationVersionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationVersion
+     */
+    select?: MarketingAutomationVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationVersion
+     */
+    omit?: MarketingAutomationVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationVersionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MarketingAutomationVersion to update in case it exists.
+     */
+    where: MarketingAutomationVersionWhereUniqueInput
+    /**
+     * In case the MarketingAutomationVersion found by the `where` argument doesn't exist, create a new MarketingAutomationVersion with this data.
+     */
+    create: XOR<MarketingAutomationVersionCreateInput, MarketingAutomationVersionUncheckedCreateInput>
+    /**
+     * In case the MarketingAutomationVersion was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MarketingAutomationVersionUpdateInput, MarketingAutomationVersionUncheckedUpdateInput>
+  }
+
+  /**
+   * MarketingAutomationVersion delete
+   */
+  export type MarketingAutomationVersionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationVersion
+     */
+    select?: MarketingAutomationVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationVersion
+     */
+    omit?: MarketingAutomationVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationVersionInclude<ExtArgs> | null
+    /**
+     * Filter which MarketingAutomationVersion to delete.
+     */
+    where: MarketingAutomationVersionWhereUniqueInput
+  }
+
+  /**
+   * MarketingAutomationVersion deleteMany
+   */
+  export type MarketingAutomationVersionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingAutomationVersions to delete
+     */
+    where?: MarketingAutomationVersionWhereInput
+    /**
+     * Limit how many MarketingAutomationVersions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingAutomationVersion.enrollments
+   */
+  export type MarketingAutomationVersion$enrollmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationEnrollment
+     */
+    select?: MarketingAutomationEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationEnrollment
+     */
+    omit?: MarketingAutomationEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationEnrollmentInclude<ExtArgs> | null
+    where?: MarketingAutomationEnrollmentWhereInput
+    orderBy?: MarketingAutomationEnrollmentOrderByWithRelationInput | MarketingAutomationEnrollmentOrderByWithRelationInput[]
+    cursor?: MarketingAutomationEnrollmentWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MarketingAutomationEnrollmentScalarFieldEnum | MarketingAutomationEnrollmentScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingAutomationVersion without action
+   */
+  export type MarketingAutomationVersionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationVersion
+     */
+    select?: MarketingAutomationVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationVersion
+     */
+    omit?: MarketingAutomationVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationVersionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MarketingAutomationEnrollment
+   */
+
+  export type AggregateMarketingAutomationEnrollment = {
+    _count: MarketingAutomationEnrollmentCountAggregateOutputType | null
+    _avg: MarketingAutomationEnrollmentAvgAggregateOutputType | null
+    _sum: MarketingAutomationEnrollmentSumAggregateOutputType | null
+    _min: MarketingAutomationEnrollmentMinAggregateOutputType | null
+    _max: MarketingAutomationEnrollmentMaxAggregateOutputType | null
+  }
+
+  export type MarketingAutomationEnrollmentAvgAggregateOutputType = {
+    stepCount: number | null
+  }
+
+  export type MarketingAutomationEnrollmentSumAggregateOutputType = {
+    stepCount: number | null
+  }
+
+  export type MarketingAutomationEnrollmentMinAggregateOutputType = {
+    id: string | null
+    automationId: string | null
+    versionId: string | null
+    organizationId: string | null
+    contactId: string | null
+    status: $Enums.MarketingAutomationEnrollmentStatus | null
+    dedupeKey: string | null
+    triggerEventId: string | null
+    currentStepId: string | null
+    stepCount: number | null
+    nextRunAt: Date | null
+    exitReason: string | null
+    completedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MarketingAutomationEnrollmentMaxAggregateOutputType = {
+    id: string | null
+    automationId: string | null
+    versionId: string | null
+    organizationId: string | null
+    contactId: string | null
+    status: $Enums.MarketingAutomationEnrollmentStatus | null
+    dedupeKey: string | null
+    triggerEventId: string | null
+    currentStepId: string | null
+    stepCount: number | null
+    nextRunAt: Date | null
+    exitReason: string | null
+    completedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MarketingAutomationEnrollmentCountAggregateOutputType = {
+    id: number
+    automationId: number
+    versionId: number
+    organizationId: number
+    contactId: number
+    status: number
+    dedupeKey: number
+    triggerEventId: number
+    currentStepId: number
+    stepCount: number
+    nextRunAt: number
+    exitReason: number
+    context: number
+    completedAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MarketingAutomationEnrollmentAvgAggregateInputType = {
+    stepCount?: true
+  }
+
+  export type MarketingAutomationEnrollmentSumAggregateInputType = {
+    stepCount?: true
+  }
+
+  export type MarketingAutomationEnrollmentMinAggregateInputType = {
+    id?: true
+    automationId?: true
+    versionId?: true
+    organizationId?: true
+    contactId?: true
+    status?: true
+    dedupeKey?: true
+    triggerEventId?: true
+    currentStepId?: true
+    stepCount?: true
+    nextRunAt?: true
+    exitReason?: true
+    completedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MarketingAutomationEnrollmentMaxAggregateInputType = {
+    id?: true
+    automationId?: true
+    versionId?: true
+    organizationId?: true
+    contactId?: true
+    status?: true
+    dedupeKey?: true
+    triggerEventId?: true
+    currentStepId?: true
+    stepCount?: true
+    nextRunAt?: true
+    exitReason?: true
+    completedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MarketingAutomationEnrollmentCountAggregateInputType = {
+    id?: true
+    automationId?: true
+    versionId?: true
+    organizationId?: true
+    contactId?: true
+    status?: true
+    dedupeKey?: true
+    triggerEventId?: true
+    currentStepId?: true
+    stepCount?: true
+    nextRunAt?: true
+    exitReason?: true
+    context?: true
+    completedAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MarketingAutomationEnrollmentAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingAutomationEnrollment to aggregate.
+     */
+    where?: MarketingAutomationEnrollmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingAutomationEnrollments to fetch.
+     */
+    orderBy?: MarketingAutomationEnrollmentOrderByWithRelationInput | MarketingAutomationEnrollmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MarketingAutomationEnrollmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingAutomationEnrollments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingAutomationEnrollments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MarketingAutomationEnrollments
+    **/
+    _count?: true | MarketingAutomationEnrollmentCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MarketingAutomationEnrollmentAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MarketingAutomationEnrollmentSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MarketingAutomationEnrollmentMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MarketingAutomationEnrollmentMaxAggregateInputType
+  }
+
+  export type GetMarketingAutomationEnrollmentAggregateType<T extends MarketingAutomationEnrollmentAggregateArgs> = {
+        [P in keyof T & keyof AggregateMarketingAutomationEnrollment]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMarketingAutomationEnrollment[P]>
+      : GetScalarType<T[P], AggregateMarketingAutomationEnrollment[P]>
+  }
+
+
+
+
+  export type MarketingAutomationEnrollmentGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingAutomationEnrollmentWhereInput
+    orderBy?: MarketingAutomationEnrollmentOrderByWithAggregationInput | MarketingAutomationEnrollmentOrderByWithAggregationInput[]
+    by: MarketingAutomationEnrollmentScalarFieldEnum[] | MarketingAutomationEnrollmentScalarFieldEnum
+    having?: MarketingAutomationEnrollmentScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MarketingAutomationEnrollmentCountAggregateInputType | true
+    _avg?: MarketingAutomationEnrollmentAvgAggregateInputType
+    _sum?: MarketingAutomationEnrollmentSumAggregateInputType
+    _min?: MarketingAutomationEnrollmentMinAggregateInputType
+    _max?: MarketingAutomationEnrollmentMaxAggregateInputType
+  }
+
+  export type MarketingAutomationEnrollmentGroupByOutputType = {
+    id: string
+    automationId: string
+    versionId: string
+    organizationId: string
+    contactId: string
+    status: $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey: string
+    triggerEventId: string | null
+    currentStepId: string | null
+    stepCount: number
+    nextRunAt: Date | null
+    exitReason: string | null
+    context: JsonValue | null
+    completedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: MarketingAutomationEnrollmentCountAggregateOutputType | null
+    _avg: MarketingAutomationEnrollmentAvgAggregateOutputType | null
+    _sum: MarketingAutomationEnrollmentSumAggregateOutputType | null
+    _min: MarketingAutomationEnrollmentMinAggregateOutputType | null
+    _max: MarketingAutomationEnrollmentMaxAggregateOutputType | null
+  }
+
+  type GetMarketingAutomationEnrollmentGroupByPayload<T extends MarketingAutomationEnrollmentGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MarketingAutomationEnrollmentGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MarketingAutomationEnrollmentGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MarketingAutomationEnrollmentGroupByOutputType[P]>
+            : GetScalarType<T[P], MarketingAutomationEnrollmentGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MarketingAutomationEnrollmentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    automationId?: boolean
+    versionId?: boolean
+    organizationId?: boolean
+    contactId?: boolean
+    status?: boolean
+    dedupeKey?: boolean
+    triggerEventId?: boolean
+    currentStepId?: boolean
+    stepCount?: boolean
+    nextRunAt?: boolean
+    exitReason?: boolean
+    context?: boolean
+    completedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    automation?: boolean | MarketingAutomationDefaultArgs<ExtArgs>
+    version?: boolean | MarketingAutomationVersionDefaultArgs<ExtArgs>
+    contact?: boolean | MarketingContactDefaultArgs<ExtArgs>
+    stepRuns?: boolean | MarketingAutomationEnrollment$stepRunsArgs<ExtArgs>
+    _count?: boolean | MarketingAutomationEnrollmentCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingAutomationEnrollment"]>
+
+  export type MarketingAutomationEnrollmentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    automationId?: boolean
+    versionId?: boolean
+    organizationId?: boolean
+    contactId?: boolean
+    status?: boolean
+    dedupeKey?: boolean
+    triggerEventId?: boolean
+    currentStepId?: boolean
+    stepCount?: boolean
+    nextRunAt?: boolean
+    exitReason?: boolean
+    context?: boolean
+    completedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    automation?: boolean | MarketingAutomationDefaultArgs<ExtArgs>
+    version?: boolean | MarketingAutomationVersionDefaultArgs<ExtArgs>
+    contact?: boolean | MarketingContactDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingAutomationEnrollment"]>
+
+  export type MarketingAutomationEnrollmentSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    automationId?: boolean
+    versionId?: boolean
+    organizationId?: boolean
+    contactId?: boolean
+    status?: boolean
+    dedupeKey?: boolean
+    triggerEventId?: boolean
+    currentStepId?: boolean
+    stepCount?: boolean
+    nextRunAt?: boolean
+    exitReason?: boolean
+    context?: boolean
+    completedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    automation?: boolean | MarketingAutomationDefaultArgs<ExtArgs>
+    version?: boolean | MarketingAutomationVersionDefaultArgs<ExtArgs>
+    contact?: boolean | MarketingContactDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingAutomationEnrollment"]>
+
+  export type MarketingAutomationEnrollmentSelectScalar = {
+    id?: boolean
+    automationId?: boolean
+    versionId?: boolean
+    organizationId?: boolean
+    contactId?: boolean
+    status?: boolean
+    dedupeKey?: boolean
+    triggerEventId?: boolean
+    currentStepId?: boolean
+    stepCount?: boolean
+    nextRunAt?: boolean
+    exitReason?: boolean
+    context?: boolean
+    completedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type MarketingAutomationEnrollmentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "automationId" | "versionId" | "organizationId" | "contactId" | "status" | "dedupeKey" | "triggerEventId" | "currentStepId" | "stepCount" | "nextRunAt" | "exitReason" | "context" | "completedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["marketingAutomationEnrollment"]>
+  export type MarketingAutomationEnrollmentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    automation?: boolean | MarketingAutomationDefaultArgs<ExtArgs>
+    version?: boolean | MarketingAutomationVersionDefaultArgs<ExtArgs>
+    contact?: boolean | MarketingContactDefaultArgs<ExtArgs>
+    stepRuns?: boolean | MarketingAutomationEnrollment$stepRunsArgs<ExtArgs>
+    _count?: boolean | MarketingAutomationEnrollmentCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type MarketingAutomationEnrollmentIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    automation?: boolean | MarketingAutomationDefaultArgs<ExtArgs>
+    version?: boolean | MarketingAutomationVersionDefaultArgs<ExtArgs>
+    contact?: boolean | MarketingContactDefaultArgs<ExtArgs>
+  }
+  export type MarketingAutomationEnrollmentIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    automation?: boolean | MarketingAutomationDefaultArgs<ExtArgs>
+    version?: boolean | MarketingAutomationVersionDefaultArgs<ExtArgs>
+    contact?: boolean | MarketingContactDefaultArgs<ExtArgs>
+  }
+
+  export type $MarketingAutomationEnrollmentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MarketingAutomationEnrollment"
+    objects: {
+      automation: Prisma.$MarketingAutomationPayload<ExtArgs>
+      version: Prisma.$MarketingAutomationVersionPayload<ExtArgs>
+      contact: Prisma.$MarketingContactPayload<ExtArgs>
+      stepRuns: Prisma.$MarketingAutomationStepRunPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      automationId: string
+      versionId: string
+      organizationId: string
+      contactId: string
+      status: $Enums.MarketingAutomationEnrollmentStatus
+      dedupeKey: string
+      triggerEventId: string | null
+      currentStepId: string | null
+      stepCount: number
+      nextRunAt: Date | null
+      exitReason: string | null
+      context: Prisma.JsonValue | null
+      completedAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["marketingAutomationEnrollment"]>
+    composites: {}
+  }
+
+  type MarketingAutomationEnrollmentGetPayload<S extends boolean | null | undefined | MarketingAutomationEnrollmentDefaultArgs> = $Result.GetResult<Prisma.$MarketingAutomationEnrollmentPayload, S>
+
+  type MarketingAutomationEnrollmentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MarketingAutomationEnrollmentFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MarketingAutomationEnrollmentCountAggregateInputType | true
+    }
+
+  export interface MarketingAutomationEnrollmentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MarketingAutomationEnrollment'], meta: { name: 'MarketingAutomationEnrollment' } }
+    /**
+     * Find zero or one MarketingAutomationEnrollment that matches the filter.
+     * @param {MarketingAutomationEnrollmentFindUniqueArgs} args - Arguments to find a MarketingAutomationEnrollment
+     * @example
+     * // Get one MarketingAutomationEnrollment
+     * const marketingAutomationEnrollment = await prisma.marketingAutomationEnrollment.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MarketingAutomationEnrollmentFindUniqueArgs>(args: SelectSubset<T, MarketingAutomationEnrollmentFindUniqueArgs<ExtArgs>>): Prisma__MarketingAutomationEnrollmentClient<$Result.GetResult<Prisma.$MarketingAutomationEnrollmentPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MarketingAutomationEnrollment that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MarketingAutomationEnrollmentFindUniqueOrThrowArgs} args - Arguments to find a MarketingAutomationEnrollment
+     * @example
+     * // Get one MarketingAutomationEnrollment
+     * const marketingAutomationEnrollment = await prisma.marketingAutomationEnrollment.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MarketingAutomationEnrollmentFindUniqueOrThrowArgs>(args: SelectSubset<T, MarketingAutomationEnrollmentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MarketingAutomationEnrollmentClient<$Result.GetResult<Prisma.$MarketingAutomationEnrollmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarketingAutomationEnrollment that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationEnrollmentFindFirstArgs} args - Arguments to find a MarketingAutomationEnrollment
+     * @example
+     * // Get one MarketingAutomationEnrollment
+     * const marketingAutomationEnrollment = await prisma.marketingAutomationEnrollment.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MarketingAutomationEnrollmentFindFirstArgs>(args?: SelectSubset<T, MarketingAutomationEnrollmentFindFirstArgs<ExtArgs>>): Prisma__MarketingAutomationEnrollmentClient<$Result.GetResult<Prisma.$MarketingAutomationEnrollmentPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarketingAutomationEnrollment that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationEnrollmentFindFirstOrThrowArgs} args - Arguments to find a MarketingAutomationEnrollment
+     * @example
+     * // Get one MarketingAutomationEnrollment
+     * const marketingAutomationEnrollment = await prisma.marketingAutomationEnrollment.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MarketingAutomationEnrollmentFindFirstOrThrowArgs>(args?: SelectSubset<T, MarketingAutomationEnrollmentFindFirstOrThrowArgs<ExtArgs>>): Prisma__MarketingAutomationEnrollmentClient<$Result.GetResult<Prisma.$MarketingAutomationEnrollmentPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MarketingAutomationEnrollments that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationEnrollmentFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MarketingAutomationEnrollments
+     * const marketingAutomationEnrollments = await prisma.marketingAutomationEnrollment.findMany()
+     * 
+     * // Get first 10 MarketingAutomationEnrollments
+     * const marketingAutomationEnrollments = await prisma.marketingAutomationEnrollment.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const marketingAutomationEnrollmentWithIdOnly = await prisma.marketingAutomationEnrollment.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MarketingAutomationEnrollmentFindManyArgs>(args?: SelectSubset<T, MarketingAutomationEnrollmentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingAutomationEnrollmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MarketingAutomationEnrollment.
+     * @param {MarketingAutomationEnrollmentCreateArgs} args - Arguments to create a MarketingAutomationEnrollment.
+     * @example
+     * // Create one MarketingAutomationEnrollment
+     * const MarketingAutomationEnrollment = await prisma.marketingAutomationEnrollment.create({
+     *   data: {
+     *     // ... data to create a MarketingAutomationEnrollment
+     *   }
+     * })
+     * 
+     */
+    create<T extends MarketingAutomationEnrollmentCreateArgs>(args: SelectSubset<T, MarketingAutomationEnrollmentCreateArgs<ExtArgs>>): Prisma__MarketingAutomationEnrollmentClient<$Result.GetResult<Prisma.$MarketingAutomationEnrollmentPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MarketingAutomationEnrollments.
+     * @param {MarketingAutomationEnrollmentCreateManyArgs} args - Arguments to create many MarketingAutomationEnrollments.
+     * @example
+     * // Create many MarketingAutomationEnrollments
+     * const marketingAutomationEnrollment = await prisma.marketingAutomationEnrollment.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MarketingAutomationEnrollmentCreateManyArgs>(args?: SelectSubset<T, MarketingAutomationEnrollmentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MarketingAutomationEnrollments and returns the data saved in the database.
+     * @param {MarketingAutomationEnrollmentCreateManyAndReturnArgs} args - Arguments to create many MarketingAutomationEnrollments.
+     * @example
+     * // Create many MarketingAutomationEnrollments
+     * const marketingAutomationEnrollment = await prisma.marketingAutomationEnrollment.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MarketingAutomationEnrollments and only return the `id`
+     * const marketingAutomationEnrollmentWithIdOnly = await prisma.marketingAutomationEnrollment.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MarketingAutomationEnrollmentCreateManyAndReturnArgs>(args?: SelectSubset<T, MarketingAutomationEnrollmentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingAutomationEnrollmentPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MarketingAutomationEnrollment.
+     * @param {MarketingAutomationEnrollmentDeleteArgs} args - Arguments to delete one MarketingAutomationEnrollment.
+     * @example
+     * // Delete one MarketingAutomationEnrollment
+     * const MarketingAutomationEnrollment = await prisma.marketingAutomationEnrollment.delete({
+     *   where: {
+     *     // ... filter to delete one MarketingAutomationEnrollment
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MarketingAutomationEnrollmentDeleteArgs>(args: SelectSubset<T, MarketingAutomationEnrollmentDeleteArgs<ExtArgs>>): Prisma__MarketingAutomationEnrollmentClient<$Result.GetResult<Prisma.$MarketingAutomationEnrollmentPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MarketingAutomationEnrollment.
+     * @param {MarketingAutomationEnrollmentUpdateArgs} args - Arguments to update one MarketingAutomationEnrollment.
+     * @example
+     * // Update one MarketingAutomationEnrollment
+     * const marketingAutomationEnrollment = await prisma.marketingAutomationEnrollment.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MarketingAutomationEnrollmentUpdateArgs>(args: SelectSubset<T, MarketingAutomationEnrollmentUpdateArgs<ExtArgs>>): Prisma__MarketingAutomationEnrollmentClient<$Result.GetResult<Prisma.$MarketingAutomationEnrollmentPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MarketingAutomationEnrollments.
+     * @param {MarketingAutomationEnrollmentDeleteManyArgs} args - Arguments to filter MarketingAutomationEnrollments to delete.
+     * @example
+     * // Delete a few MarketingAutomationEnrollments
+     * const { count } = await prisma.marketingAutomationEnrollment.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MarketingAutomationEnrollmentDeleteManyArgs>(args?: SelectSubset<T, MarketingAutomationEnrollmentDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingAutomationEnrollments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationEnrollmentUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MarketingAutomationEnrollments
+     * const marketingAutomationEnrollment = await prisma.marketingAutomationEnrollment.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MarketingAutomationEnrollmentUpdateManyArgs>(args: SelectSubset<T, MarketingAutomationEnrollmentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingAutomationEnrollments and returns the data updated in the database.
+     * @param {MarketingAutomationEnrollmentUpdateManyAndReturnArgs} args - Arguments to update many MarketingAutomationEnrollments.
+     * @example
+     * // Update many MarketingAutomationEnrollments
+     * const marketingAutomationEnrollment = await prisma.marketingAutomationEnrollment.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MarketingAutomationEnrollments and only return the `id`
+     * const marketingAutomationEnrollmentWithIdOnly = await prisma.marketingAutomationEnrollment.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MarketingAutomationEnrollmentUpdateManyAndReturnArgs>(args: SelectSubset<T, MarketingAutomationEnrollmentUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingAutomationEnrollmentPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MarketingAutomationEnrollment.
+     * @param {MarketingAutomationEnrollmentUpsertArgs} args - Arguments to update or create a MarketingAutomationEnrollment.
+     * @example
+     * // Update or create a MarketingAutomationEnrollment
+     * const marketingAutomationEnrollment = await prisma.marketingAutomationEnrollment.upsert({
+     *   create: {
+     *     // ... data to create a MarketingAutomationEnrollment
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MarketingAutomationEnrollment we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MarketingAutomationEnrollmentUpsertArgs>(args: SelectSubset<T, MarketingAutomationEnrollmentUpsertArgs<ExtArgs>>): Prisma__MarketingAutomationEnrollmentClient<$Result.GetResult<Prisma.$MarketingAutomationEnrollmentPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MarketingAutomationEnrollments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationEnrollmentCountArgs} args - Arguments to filter MarketingAutomationEnrollments to count.
+     * @example
+     * // Count the number of MarketingAutomationEnrollments
+     * const count = await prisma.marketingAutomationEnrollment.count({
+     *   where: {
+     *     // ... the filter for the MarketingAutomationEnrollments we want to count
+     *   }
+     * })
+    **/
+    count<T extends MarketingAutomationEnrollmentCountArgs>(
+      args?: Subset<T, MarketingAutomationEnrollmentCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MarketingAutomationEnrollmentCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MarketingAutomationEnrollment.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationEnrollmentAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MarketingAutomationEnrollmentAggregateArgs>(args: Subset<T, MarketingAutomationEnrollmentAggregateArgs>): Prisma.PrismaPromise<GetMarketingAutomationEnrollmentAggregateType<T>>
+
+    /**
+     * Group by MarketingAutomationEnrollment.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationEnrollmentGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MarketingAutomationEnrollmentGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MarketingAutomationEnrollmentGroupByArgs['orderBy'] }
+        : { orderBy?: MarketingAutomationEnrollmentGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MarketingAutomationEnrollmentGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMarketingAutomationEnrollmentGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MarketingAutomationEnrollment model
+   */
+  readonly fields: MarketingAutomationEnrollmentFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MarketingAutomationEnrollment.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MarketingAutomationEnrollmentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    automation<T extends MarketingAutomationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MarketingAutomationDefaultArgs<ExtArgs>>): Prisma__MarketingAutomationClient<$Result.GetResult<Prisma.$MarketingAutomationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    version<T extends MarketingAutomationVersionDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MarketingAutomationVersionDefaultArgs<ExtArgs>>): Prisma__MarketingAutomationVersionClient<$Result.GetResult<Prisma.$MarketingAutomationVersionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    contact<T extends MarketingContactDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MarketingContactDefaultArgs<ExtArgs>>): Prisma__MarketingContactClient<$Result.GetResult<Prisma.$MarketingContactPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    stepRuns<T extends MarketingAutomationEnrollment$stepRunsArgs<ExtArgs> = {}>(args?: Subset<T, MarketingAutomationEnrollment$stepRunsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingAutomationStepRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MarketingAutomationEnrollment model
+   */
+  interface MarketingAutomationEnrollmentFieldRefs {
+    readonly id: FieldRef<"MarketingAutomationEnrollment", 'String'>
+    readonly automationId: FieldRef<"MarketingAutomationEnrollment", 'String'>
+    readonly versionId: FieldRef<"MarketingAutomationEnrollment", 'String'>
+    readonly organizationId: FieldRef<"MarketingAutomationEnrollment", 'String'>
+    readonly contactId: FieldRef<"MarketingAutomationEnrollment", 'String'>
+    readonly status: FieldRef<"MarketingAutomationEnrollment", 'MarketingAutomationEnrollmentStatus'>
+    readonly dedupeKey: FieldRef<"MarketingAutomationEnrollment", 'String'>
+    readonly triggerEventId: FieldRef<"MarketingAutomationEnrollment", 'String'>
+    readonly currentStepId: FieldRef<"MarketingAutomationEnrollment", 'String'>
+    readonly stepCount: FieldRef<"MarketingAutomationEnrollment", 'Int'>
+    readonly nextRunAt: FieldRef<"MarketingAutomationEnrollment", 'DateTime'>
+    readonly exitReason: FieldRef<"MarketingAutomationEnrollment", 'String'>
+    readonly context: FieldRef<"MarketingAutomationEnrollment", 'Json'>
+    readonly completedAt: FieldRef<"MarketingAutomationEnrollment", 'DateTime'>
+    readonly createdAt: FieldRef<"MarketingAutomationEnrollment", 'DateTime'>
+    readonly updatedAt: FieldRef<"MarketingAutomationEnrollment", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MarketingAutomationEnrollment findUnique
+   */
+  export type MarketingAutomationEnrollmentFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationEnrollment
+     */
+    select?: MarketingAutomationEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationEnrollment
+     */
+    omit?: MarketingAutomationEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationEnrollmentInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingAutomationEnrollment to fetch.
+     */
+    where: MarketingAutomationEnrollmentWhereUniqueInput
+  }
+
+  /**
+   * MarketingAutomationEnrollment findUniqueOrThrow
+   */
+  export type MarketingAutomationEnrollmentFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationEnrollment
+     */
+    select?: MarketingAutomationEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationEnrollment
+     */
+    omit?: MarketingAutomationEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationEnrollmentInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingAutomationEnrollment to fetch.
+     */
+    where: MarketingAutomationEnrollmentWhereUniqueInput
+  }
+
+  /**
+   * MarketingAutomationEnrollment findFirst
+   */
+  export type MarketingAutomationEnrollmentFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationEnrollment
+     */
+    select?: MarketingAutomationEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationEnrollment
+     */
+    omit?: MarketingAutomationEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationEnrollmentInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingAutomationEnrollment to fetch.
+     */
+    where?: MarketingAutomationEnrollmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingAutomationEnrollments to fetch.
+     */
+    orderBy?: MarketingAutomationEnrollmentOrderByWithRelationInput | MarketingAutomationEnrollmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingAutomationEnrollments.
+     */
+    cursor?: MarketingAutomationEnrollmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingAutomationEnrollments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingAutomationEnrollments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingAutomationEnrollments.
+     */
+    distinct?: MarketingAutomationEnrollmentScalarFieldEnum | MarketingAutomationEnrollmentScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingAutomationEnrollment findFirstOrThrow
+   */
+  export type MarketingAutomationEnrollmentFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationEnrollment
+     */
+    select?: MarketingAutomationEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationEnrollment
+     */
+    omit?: MarketingAutomationEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationEnrollmentInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingAutomationEnrollment to fetch.
+     */
+    where?: MarketingAutomationEnrollmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingAutomationEnrollments to fetch.
+     */
+    orderBy?: MarketingAutomationEnrollmentOrderByWithRelationInput | MarketingAutomationEnrollmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingAutomationEnrollments.
+     */
+    cursor?: MarketingAutomationEnrollmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingAutomationEnrollments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingAutomationEnrollments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingAutomationEnrollments.
+     */
+    distinct?: MarketingAutomationEnrollmentScalarFieldEnum | MarketingAutomationEnrollmentScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingAutomationEnrollment findMany
+   */
+  export type MarketingAutomationEnrollmentFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationEnrollment
+     */
+    select?: MarketingAutomationEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationEnrollment
+     */
+    omit?: MarketingAutomationEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationEnrollmentInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingAutomationEnrollments to fetch.
+     */
+    where?: MarketingAutomationEnrollmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingAutomationEnrollments to fetch.
+     */
+    orderBy?: MarketingAutomationEnrollmentOrderByWithRelationInput | MarketingAutomationEnrollmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MarketingAutomationEnrollments.
+     */
+    cursor?: MarketingAutomationEnrollmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingAutomationEnrollments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingAutomationEnrollments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingAutomationEnrollments.
+     */
+    distinct?: MarketingAutomationEnrollmentScalarFieldEnum | MarketingAutomationEnrollmentScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingAutomationEnrollment create
+   */
+  export type MarketingAutomationEnrollmentCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationEnrollment
+     */
+    select?: MarketingAutomationEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationEnrollment
+     */
+    omit?: MarketingAutomationEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationEnrollmentInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MarketingAutomationEnrollment.
+     */
+    data: XOR<MarketingAutomationEnrollmentCreateInput, MarketingAutomationEnrollmentUncheckedCreateInput>
+  }
+
+  /**
+   * MarketingAutomationEnrollment createMany
+   */
+  export type MarketingAutomationEnrollmentCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MarketingAutomationEnrollments.
+     */
+    data: MarketingAutomationEnrollmentCreateManyInput | MarketingAutomationEnrollmentCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MarketingAutomationEnrollment createManyAndReturn
+   */
+  export type MarketingAutomationEnrollmentCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationEnrollment
+     */
+    select?: MarketingAutomationEnrollmentSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationEnrollment
+     */
+    omit?: MarketingAutomationEnrollmentOmit<ExtArgs> | null
+    /**
+     * The data used to create many MarketingAutomationEnrollments.
+     */
+    data: MarketingAutomationEnrollmentCreateManyInput | MarketingAutomationEnrollmentCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationEnrollmentIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarketingAutomationEnrollment update
+   */
+  export type MarketingAutomationEnrollmentUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationEnrollment
+     */
+    select?: MarketingAutomationEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationEnrollment
+     */
+    omit?: MarketingAutomationEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationEnrollmentInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MarketingAutomationEnrollment.
+     */
+    data: XOR<MarketingAutomationEnrollmentUpdateInput, MarketingAutomationEnrollmentUncheckedUpdateInput>
+    /**
+     * Choose, which MarketingAutomationEnrollment to update.
+     */
+    where: MarketingAutomationEnrollmentWhereUniqueInput
+  }
+
+  /**
+   * MarketingAutomationEnrollment updateMany
+   */
+  export type MarketingAutomationEnrollmentUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MarketingAutomationEnrollments.
+     */
+    data: XOR<MarketingAutomationEnrollmentUpdateManyMutationInput, MarketingAutomationEnrollmentUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingAutomationEnrollments to update
+     */
+    where?: MarketingAutomationEnrollmentWhereInput
+    /**
+     * Limit how many MarketingAutomationEnrollments to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingAutomationEnrollment updateManyAndReturn
+   */
+  export type MarketingAutomationEnrollmentUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationEnrollment
+     */
+    select?: MarketingAutomationEnrollmentSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationEnrollment
+     */
+    omit?: MarketingAutomationEnrollmentOmit<ExtArgs> | null
+    /**
+     * The data used to update MarketingAutomationEnrollments.
+     */
+    data: XOR<MarketingAutomationEnrollmentUpdateManyMutationInput, MarketingAutomationEnrollmentUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingAutomationEnrollments to update
+     */
+    where?: MarketingAutomationEnrollmentWhereInput
+    /**
+     * Limit how many MarketingAutomationEnrollments to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationEnrollmentIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarketingAutomationEnrollment upsert
+   */
+  export type MarketingAutomationEnrollmentUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationEnrollment
+     */
+    select?: MarketingAutomationEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationEnrollment
+     */
+    omit?: MarketingAutomationEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationEnrollmentInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MarketingAutomationEnrollment to update in case it exists.
+     */
+    where: MarketingAutomationEnrollmentWhereUniqueInput
+    /**
+     * In case the MarketingAutomationEnrollment found by the `where` argument doesn't exist, create a new MarketingAutomationEnrollment with this data.
+     */
+    create: XOR<MarketingAutomationEnrollmentCreateInput, MarketingAutomationEnrollmentUncheckedCreateInput>
+    /**
+     * In case the MarketingAutomationEnrollment was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MarketingAutomationEnrollmentUpdateInput, MarketingAutomationEnrollmentUncheckedUpdateInput>
+  }
+
+  /**
+   * MarketingAutomationEnrollment delete
+   */
+  export type MarketingAutomationEnrollmentDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationEnrollment
+     */
+    select?: MarketingAutomationEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationEnrollment
+     */
+    omit?: MarketingAutomationEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationEnrollmentInclude<ExtArgs> | null
+    /**
+     * Filter which MarketingAutomationEnrollment to delete.
+     */
+    where: MarketingAutomationEnrollmentWhereUniqueInput
+  }
+
+  /**
+   * MarketingAutomationEnrollment deleteMany
+   */
+  export type MarketingAutomationEnrollmentDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingAutomationEnrollments to delete
+     */
+    where?: MarketingAutomationEnrollmentWhereInput
+    /**
+     * Limit how many MarketingAutomationEnrollments to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingAutomationEnrollment.stepRuns
+   */
+  export type MarketingAutomationEnrollment$stepRunsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationStepRun
+     */
+    select?: MarketingAutomationStepRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationStepRun
+     */
+    omit?: MarketingAutomationStepRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationStepRunInclude<ExtArgs> | null
+    where?: MarketingAutomationStepRunWhereInput
+    orderBy?: MarketingAutomationStepRunOrderByWithRelationInput | MarketingAutomationStepRunOrderByWithRelationInput[]
+    cursor?: MarketingAutomationStepRunWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MarketingAutomationStepRunScalarFieldEnum | MarketingAutomationStepRunScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingAutomationEnrollment without action
+   */
+  export type MarketingAutomationEnrollmentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationEnrollment
+     */
+    select?: MarketingAutomationEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationEnrollment
+     */
+    omit?: MarketingAutomationEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationEnrollmentInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MarketingAutomationStepRun
+   */
+
+  export type AggregateMarketingAutomationStepRun = {
+    _count: MarketingAutomationStepRunCountAggregateOutputType | null
+    _avg: MarketingAutomationStepRunAvgAggregateOutputType | null
+    _sum: MarketingAutomationStepRunSumAggregateOutputType | null
+    _min: MarketingAutomationStepRunMinAggregateOutputType | null
+    _max: MarketingAutomationStepRunMaxAggregateOutputType | null
+  }
+
+  export type MarketingAutomationStepRunAvgAggregateOutputType = {
+    sequence: number | null
+  }
+
+  export type MarketingAutomationStepRunSumAggregateOutputType = {
+    sequence: number | null
+  }
+
+  export type MarketingAutomationStepRunMinAggregateOutputType = {
+    id: string | null
+    enrollmentId: string | null
+    organizationId: string | null
+    stepId: string | null
+    stepType: string | null
+    sequence: number | null
+    status: $Enums.MarketingAutomationStepRunStatus | null
+    idempotencyKey: string | null
+    recipientEmail: string | null
+    templateVersionId: string | null
+    providerMessageId: string | null
+    firstAttemptAt: Date | null
+    deliveryStatus: string | null
+    errorCode: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MarketingAutomationStepRunMaxAggregateOutputType = {
+    id: string | null
+    enrollmentId: string | null
+    organizationId: string | null
+    stepId: string | null
+    stepType: string | null
+    sequence: number | null
+    status: $Enums.MarketingAutomationStepRunStatus | null
+    idempotencyKey: string | null
+    recipientEmail: string | null
+    templateVersionId: string | null
+    providerMessageId: string | null
+    firstAttemptAt: Date | null
+    deliveryStatus: string | null
+    errorCode: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MarketingAutomationStepRunCountAggregateOutputType = {
+    id: number
+    enrollmentId: number
+    organizationId: number
+    stepId: number
+    stepType: number
+    sequence: number
+    status: number
+    idempotencyKey: number
+    recipientEmail: number
+    templateVersionId: number
+    providerMessageId: number
+    firstAttemptAt: number
+    deliveryStatus: number
+    outcome: number
+    errorCode: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MarketingAutomationStepRunAvgAggregateInputType = {
+    sequence?: true
+  }
+
+  export type MarketingAutomationStepRunSumAggregateInputType = {
+    sequence?: true
+  }
+
+  export type MarketingAutomationStepRunMinAggregateInputType = {
+    id?: true
+    enrollmentId?: true
+    organizationId?: true
+    stepId?: true
+    stepType?: true
+    sequence?: true
+    status?: true
+    idempotencyKey?: true
+    recipientEmail?: true
+    templateVersionId?: true
+    providerMessageId?: true
+    firstAttemptAt?: true
+    deliveryStatus?: true
+    errorCode?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MarketingAutomationStepRunMaxAggregateInputType = {
+    id?: true
+    enrollmentId?: true
+    organizationId?: true
+    stepId?: true
+    stepType?: true
+    sequence?: true
+    status?: true
+    idempotencyKey?: true
+    recipientEmail?: true
+    templateVersionId?: true
+    providerMessageId?: true
+    firstAttemptAt?: true
+    deliveryStatus?: true
+    errorCode?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MarketingAutomationStepRunCountAggregateInputType = {
+    id?: true
+    enrollmentId?: true
+    organizationId?: true
+    stepId?: true
+    stepType?: true
+    sequence?: true
+    status?: true
+    idempotencyKey?: true
+    recipientEmail?: true
+    templateVersionId?: true
+    providerMessageId?: true
+    firstAttemptAt?: true
+    deliveryStatus?: true
+    outcome?: true
+    errorCode?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MarketingAutomationStepRunAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingAutomationStepRun to aggregate.
+     */
+    where?: MarketingAutomationStepRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingAutomationStepRuns to fetch.
+     */
+    orderBy?: MarketingAutomationStepRunOrderByWithRelationInput | MarketingAutomationStepRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MarketingAutomationStepRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingAutomationStepRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingAutomationStepRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MarketingAutomationStepRuns
+    **/
+    _count?: true | MarketingAutomationStepRunCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MarketingAutomationStepRunAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MarketingAutomationStepRunSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MarketingAutomationStepRunMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MarketingAutomationStepRunMaxAggregateInputType
+  }
+
+  export type GetMarketingAutomationStepRunAggregateType<T extends MarketingAutomationStepRunAggregateArgs> = {
+        [P in keyof T & keyof AggregateMarketingAutomationStepRun]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMarketingAutomationStepRun[P]>
+      : GetScalarType<T[P], AggregateMarketingAutomationStepRun[P]>
+  }
+
+
+
+
+  export type MarketingAutomationStepRunGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingAutomationStepRunWhereInput
+    orderBy?: MarketingAutomationStepRunOrderByWithAggregationInput | MarketingAutomationStepRunOrderByWithAggregationInput[]
+    by: MarketingAutomationStepRunScalarFieldEnum[] | MarketingAutomationStepRunScalarFieldEnum
+    having?: MarketingAutomationStepRunScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MarketingAutomationStepRunCountAggregateInputType | true
+    _avg?: MarketingAutomationStepRunAvgAggregateInputType
+    _sum?: MarketingAutomationStepRunSumAggregateInputType
+    _min?: MarketingAutomationStepRunMinAggregateInputType
+    _max?: MarketingAutomationStepRunMaxAggregateInputType
+  }
+
+  export type MarketingAutomationStepRunGroupByOutputType = {
+    id: string
+    enrollmentId: string
+    organizationId: string
+    stepId: string
+    stepType: string
+    sequence: number
+    status: $Enums.MarketingAutomationStepRunStatus
+    idempotencyKey: string | null
+    recipientEmail: string | null
+    templateVersionId: string | null
+    providerMessageId: string | null
+    firstAttemptAt: Date | null
+    deliveryStatus: string | null
+    outcome: JsonValue | null
+    errorCode: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: MarketingAutomationStepRunCountAggregateOutputType | null
+    _avg: MarketingAutomationStepRunAvgAggregateOutputType | null
+    _sum: MarketingAutomationStepRunSumAggregateOutputType | null
+    _min: MarketingAutomationStepRunMinAggregateOutputType | null
+    _max: MarketingAutomationStepRunMaxAggregateOutputType | null
+  }
+
+  type GetMarketingAutomationStepRunGroupByPayload<T extends MarketingAutomationStepRunGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MarketingAutomationStepRunGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MarketingAutomationStepRunGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MarketingAutomationStepRunGroupByOutputType[P]>
+            : GetScalarType<T[P], MarketingAutomationStepRunGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MarketingAutomationStepRunSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    enrollmentId?: boolean
+    organizationId?: boolean
+    stepId?: boolean
+    stepType?: boolean
+    sequence?: boolean
+    status?: boolean
+    idempotencyKey?: boolean
+    recipientEmail?: boolean
+    templateVersionId?: boolean
+    providerMessageId?: boolean
+    firstAttemptAt?: boolean
+    deliveryStatus?: boolean
+    outcome?: boolean
+    errorCode?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    enrollment?: boolean | MarketingAutomationEnrollmentDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingAutomationStepRun"]>
+
+  export type MarketingAutomationStepRunSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    enrollmentId?: boolean
+    organizationId?: boolean
+    stepId?: boolean
+    stepType?: boolean
+    sequence?: boolean
+    status?: boolean
+    idempotencyKey?: boolean
+    recipientEmail?: boolean
+    templateVersionId?: boolean
+    providerMessageId?: boolean
+    firstAttemptAt?: boolean
+    deliveryStatus?: boolean
+    outcome?: boolean
+    errorCode?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    enrollment?: boolean | MarketingAutomationEnrollmentDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingAutomationStepRun"]>
+
+  export type MarketingAutomationStepRunSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    enrollmentId?: boolean
+    organizationId?: boolean
+    stepId?: boolean
+    stepType?: boolean
+    sequence?: boolean
+    status?: boolean
+    idempotencyKey?: boolean
+    recipientEmail?: boolean
+    templateVersionId?: boolean
+    providerMessageId?: boolean
+    firstAttemptAt?: boolean
+    deliveryStatus?: boolean
+    outcome?: boolean
+    errorCode?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    enrollment?: boolean | MarketingAutomationEnrollmentDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingAutomationStepRun"]>
+
+  export type MarketingAutomationStepRunSelectScalar = {
+    id?: boolean
+    enrollmentId?: boolean
+    organizationId?: boolean
+    stepId?: boolean
+    stepType?: boolean
+    sequence?: boolean
+    status?: boolean
+    idempotencyKey?: boolean
+    recipientEmail?: boolean
+    templateVersionId?: boolean
+    providerMessageId?: boolean
+    firstAttemptAt?: boolean
+    deliveryStatus?: boolean
+    outcome?: boolean
+    errorCode?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type MarketingAutomationStepRunOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "enrollmentId" | "organizationId" | "stepId" | "stepType" | "sequence" | "status" | "idempotencyKey" | "recipientEmail" | "templateVersionId" | "providerMessageId" | "firstAttemptAt" | "deliveryStatus" | "outcome" | "errorCode" | "createdAt" | "updatedAt", ExtArgs["result"]["marketingAutomationStepRun"]>
+  export type MarketingAutomationStepRunInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    enrollment?: boolean | MarketingAutomationEnrollmentDefaultArgs<ExtArgs>
+  }
+  export type MarketingAutomationStepRunIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    enrollment?: boolean | MarketingAutomationEnrollmentDefaultArgs<ExtArgs>
+  }
+  export type MarketingAutomationStepRunIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    enrollment?: boolean | MarketingAutomationEnrollmentDefaultArgs<ExtArgs>
+  }
+
+  export type $MarketingAutomationStepRunPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MarketingAutomationStepRun"
+    objects: {
+      enrollment: Prisma.$MarketingAutomationEnrollmentPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      enrollmentId: string
+      organizationId: string
+      stepId: string
+      stepType: string
+      sequence: number
+      status: $Enums.MarketingAutomationStepRunStatus
+      idempotencyKey: string | null
+      recipientEmail: string | null
+      templateVersionId: string | null
+      providerMessageId: string | null
+      firstAttemptAt: Date | null
+      deliveryStatus: string | null
+      outcome: Prisma.JsonValue | null
+      errorCode: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["marketingAutomationStepRun"]>
+    composites: {}
+  }
+
+  type MarketingAutomationStepRunGetPayload<S extends boolean | null | undefined | MarketingAutomationStepRunDefaultArgs> = $Result.GetResult<Prisma.$MarketingAutomationStepRunPayload, S>
+
+  type MarketingAutomationStepRunCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MarketingAutomationStepRunFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MarketingAutomationStepRunCountAggregateInputType | true
+    }
+
+  export interface MarketingAutomationStepRunDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MarketingAutomationStepRun'], meta: { name: 'MarketingAutomationStepRun' } }
+    /**
+     * Find zero or one MarketingAutomationStepRun that matches the filter.
+     * @param {MarketingAutomationStepRunFindUniqueArgs} args - Arguments to find a MarketingAutomationStepRun
+     * @example
+     * // Get one MarketingAutomationStepRun
+     * const marketingAutomationStepRun = await prisma.marketingAutomationStepRun.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MarketingAutomationStepRunFindUniqueArgs>(args: SelectSubset<T, MarketingAutomationStepRunFindUniqueArgs<ExtArgs>>): Prisma__MarketingAutomationStepRunClient<$Result.GetResult<Prisma.$MarketingAutomationStepRunPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MarketingAutomationStepRun that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MarketingAutomationStepRunFindUniqueOrThrowArgs} args - Arguments to find a MarketingAutomationStepRun
+     * @example
+     * // Get one MarketingAutomationStepRun
+     * const marketingAutomationStepRun = await prisma.marketingAutomationStepRun.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MarketingAutomationStepRunFindUniqueOrThrowArgs>(args: SelectSubset<T, MarketingAutomationStepRunFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MarketingAutomationStepRunClient<$Result.GetResult<Prisma.$MarketingAutomationStepRunPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarketingAutomationStepRun that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationStepRunFindFirstArgs} args - Arguments to find a MarketingAutomationStepRun
+     * @example
+     * // Get one MarketingAutomationStepRun
+     * const marketingAutomationStepRun = await prisma.marketingAutomationStepRun.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MarketingAutomationStepRunFindFirstArgs>(args?: SelectSubset<T, MarketingAutomationStepRunFindFirstArgs<ExtArgs>>): Prisma__MarketingAutomationStepRunClient<$Result.GetResult<Prisma.$MarketingAutomationStepRunPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarketingAutomationStepRun that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationStepRunFindFirstOrThrowArgs} args - Arguments to find a MarketingAutomationStepRun
+     * @example
+     * // Get one MarketingAutomationStepRun
+     * const marketingAutomationStepRun = await prisma.marketingAutomationStepRun.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MarketingAutomationStepRunFindFirstOrThrowArgs>(args?: SelectSubset<T, MarketingAutomationStepRunFindFirstOrThrowArgs<ExtArgs>>): Prisma__MarketingAutomationStepRunClient<$Result.GetResult<Prisma.$MarketingAutomationStepRunPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MarketingAutomationStepRuns that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationStepRunFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MarketingAutomationStepRuns
+     * const marketingAutomationStepRuns = await prisma.marketingAutomationStepRun.findMany()
+     * 
+     * // Get first 10 MarketingAutomationStepRuns
+     * const marketingAutomationStepRuns = await prisma.marketingAutomationStepRun.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const marketingAutomationStepRunWithIdOnly = await prisma.marketingAutomationStepRun.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MarketingAutomationStepRunFindManyArgs>(args?: SelectSubset<T, MarketingAutomationStepRunFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingAutomationStepRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MarketingAutomationStepRun.
+     * @param {MarketingAutomationStepRunCreateArgs} args - Arguments to create a MarketingAutomationStepRun.
+     * @example
+     * // Create one MarketingAutomationStepRun
+     * const MarketingAutomationStepRun = await prisma.marketingAutomationStepRun.create({
+     *   data: {
+     *     // ... data to create a MarketingAutomationStepRun
+     *   }
+     * })
+     * 
+     */
+    create<T extends MarketingAutomationStepRunCreateArgs>(args: SelectSubset<T, MarketingAutomationStepRunCreateArgs<ExtArgs>>): Prisma__MarketingAutomationStepRunClient<$Result.GetResult<Prisma.$MarketingAutomationStepRunPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MarketingAutomationStepRuns.
+     * @param {MarketingAutomationStepRunCreateManyArgs} args - Arguments to create many MarketingAutomationStepRuns.
+     * @example
+     * // Create many MarketingAutomationStepRuns
+     * const marketingAutomationStepRun = await prisma.marketingAutomationStepRun.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MarketingAutomationStepRunCreateManyArgs>(args?: SelectSubset<T, MarketingAutomationStepRunCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MarketingAutomationStepRuns and returns the data saved in the database.
+     * @param {MarketingAutomationStepRunCreateManyAndReturnArgs} args - Arguments to create many MarketingAutomationStepRuns.
+     * @example
+     * // Create many MarketingAutomationStepRuns
+     * const marketingAutomationStepRun = await prisma.marketingAutomationStepRun.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MarketingAutomationStepRuns and only return the `id`
+     * const marketingAutomationStepRunWithIdOnly = await prisma.marketingAutomationStepRun.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MarketingAutomationStepRunCreateManyAndReturnArgs>(args?: SelectSubset<T, MarketingAutomationStepRunCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingAutomationStepRunPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MarketingAutomationStepRun.
+     * @param {MarketingAutomationStepRunDeleteArgs} args - Arguments to delete one MarketingAutomationStepRun.
+     * @example
+     * // Delete one MarketingAutomationStepRun
+     * const MarketingAutomationStepRun = await prisma.marketingAutomationStepRun.delete({
+     *   where: {
+     *     // ... filter to delete one MarketingAutomationStepRun
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MarketingAutomationStepRunDeleteArgs>(args: SelectSubset<T, MarketingAutomationStepRunDeleteArgs<ExtArgs>>): Prisma__MarketingAutomationStepRunClient<$Result.GetResult<Prisma.$MarketingAutomationStepRunPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MarketingAutomationStepRun.
+     * @param {MarketingAutomationStepRunUpdateArgs} args - Arguments to update one MarketingAutomationStepRun.
+     * @example
+     * // Update one MarketingAutomationStepRun
+     * const marketingAutomationStepRun = await prisma.marketingAutomationStepRun.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MarketingAutomationStepRunUpdateArgs>(args: SelectSubset<T, MarketingAutomationStepRunUpdateArgs<ExtArgs>>): Prisma__MarketingAutomationStepRunClient<$Result.GetResult<Prisma.$MarketingAutomationStepRunPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MarketingAutomationStepRuns.
+     * @param {MarketingAutomationStepRunDeleteManyArgs} args - Arguments to filter MarketingAutomationStepRuns to delete.
+     * @example
+     * // Delete a few MarketingAutomationStepRuns
+     * const { count } = await prisma.marketingAutomationStepRun.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MarketingAutomationStepRunDeleteManyArgs>(args?: SelectSubset<T, MarketingAutomationStepRunDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingAutomationStepRuns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationStepRunUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MarketingAutomationStepRuns
+     * const marketingAutomationStepRun = await prisma.marketingAutomationStepRun.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MarketingAutomationStepRunUpdateManyArgs>(args: SelectSubset<T, MarketingAutomationStepRunUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingAutomationStepRuns and returns the data updated in the database.
+     * @param {MarketingAutomationStepRunUpdateManyAndReturnArgs} args - Arguments to update many MarketingAutomationStepRuns.
+     * @example
+     * // Update many MarketingAutomationStepRuns
+     * const marketingAutomationStepRun = await prisma.marketingAutomationStepRun.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MarketingAutomationStepRuns and only return the `id`
+     * const marketingAutomationStepRunWithIdOnly = await prisma.marketingAutomationStepRun.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MarketingAutomationStepRunUpdateManyAndReturnArgs>(args: SelectSubset<T, MarketingAutomationStepRunUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingAutomationStepRunPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MarketingAutomationStepRun.
+     * @param {MarketingAutomationStepRunUpsertArgs} args - Arguments to update or create a MarketingAutomationStepRun.
+     * @example
+     * // Update or create a MarketingAutomationStepRun
+     * const marketingAutomationStepRun = await prisma.marketingAutomationStepRun.upsert({
+     *   create: {
+     *     // ... data to create a MarketingAutomationStepRun
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MarketingAutomationStepRun we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MarketingAutomationStepRunUpsertArgs>(args: SelectSubset<T, MarketingAutomationStepRunUpsertArgs<ExtArgs>>): Prisma__MarketingAutomationStepRunClient<$Result.GetResult<Prisma.$MarketingAutomationStepRunPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MarketingAutomationStepRuns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationStepRunCountArgs} args - Arguments to filter MarketingAutomationStepRuns to count.
+     * @example
+     * // Count the number of MarketingAutomationStepRuns
+     * const count = await prisma.marketingAutomationStepRun.count({
+     *   where: {
+     *     // ... the filter for the MarketingAutomationStepRuns we want to count
+     *   }
+     * })
+    **/
+    count<T extends MarketingAutomationStepRunCountArgs>(
+      args?: Subset<T, MarketingAutomationStepRunCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MarketingAutomationStepRunCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MarketingAutomationStepRun.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationStepRunAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MarketingAutomationStepRunAggregateArgs>(args: Subset<T, MarketingAutomationStepRunAggregateArgs>): Prisma.PrismaPromise<GetMarketingAutomationStepRunAggregateType<T>>
+
+    /**
+     * Group by MarketingAutomationStepRun.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingAutomationStepRunGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MarketingAutomationStepRunGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MarketingAutomationStepRunGroupByArgs['orderBy'] }
+        : { orderBy?: MarketingAutomationStepRunGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MarketingAutomationStepRunGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMarketingAutomationStepRunGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MarketingAutomationStepRun model
+   */
+  readonly fields: MarketingAutomationStepRunFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MarketingAutomationStepRun.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MarketingAutomationStepRunClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    enrollment<T extends MarketingAutomationEnrollmentDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MarketingAutomationEnrollmentDefaultArgs<ExtArgs>>): Prisma__MarketingAutomationEnrollmentClient<$Result.GetResult<Prisma.$MarketingAutomationEnrollmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MarketingAutomationStepRun model
+   */
+  interface MarketingAutomationStepRunFieldRefs {
+    readonly id: FieldRef<"MarketingAutomationStepRun", 'String'>
+    readonly enrollmentId: FieldRef<"MarketingAutomationStepRun", 'String'>
+    readonly organizationId: FieldRef<"MarketingAutomationStepRun", 'String'>
+    readonly stepId: FieldRef<"MarketingAutomationStepRun", 'String'>
+    readonly stepType: FieldRef<"MarketingAutomationStepRun", 'String'>
+    readonly sequence: FieldRef<"MarketingAutomationStepRun", 'Int'>
+    readonly status: FieldRef<"MarketingAutomationStepRun", 'MarketingAutomationStepRunStatus'>
+    readonly idempotencyKey: FieldRef<"MarketingAutomationStepRun", 'String'>
+    readonly recipientEmail: FieldRef<"MarketingAutomationStepRun", 'String'>
+    readonly templateVersionId: FieldRef<"MarketingAutomationStepRun", 'String'>
+    readonly providerMessageId: FieldRef<"MarketingAutomationStepRun", 'String'>
+    readonly firstAttemptAt: FieldRef<"MarketingAutomationStepRun", 'DateTime'>
+    readonly deliveryStatus: FieldRef<"MarketingAutomationStepRun", 'String'>
+    readonly outcome: FieldRef<"MarketingAutomationStepRun", 'Json'>
+    readonly errorCode: FieldRef<"MarketingAutomationStepRun", 'String'>
+    readonly createdAt: FieldRef<"MarketingAutomationStepRun", 'DateTime'>
+    readonly updatedAt: FieldRef<"MarketingAutomationStepRun", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MarketingAutomationStepRun findUnique
+   */
+  export type MarketingAutomationStepRunFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationStepRun
+     */
+    select?: MarketingAutomationStepRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationStepRun
+     */
+    omit?: MarketingAutomationStepRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationStepRunInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingAutomationStepRun to fetch.
+     */
+    where: MarketingAutomationStepRunWhereUniqueInput
+  }
+
+  /**
+   * MarketingAutomationStepRun findUniqueOrThrow
+   */
+  export type MarketingAutomationStepRunFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationStepRun
+     */
+    select?: MarketingAutomationStepRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationStepRun
+     */
+    omit?: MarketingAutomationStepRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationStepRunInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingAutomationStepRun to fetch.
+     */
+    where: MarketingAutomationStepRunWhereUniqueInput
+  }
+
+  /**
+   * MarketingAutomationStepRun findFirst
+   */
+  export type MarketingAutomationStepRunFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationStepRun
+     */
+    select?: MarketingAutomationStepRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationStepRun
+     */
+    omit?: MarketingAutomationStepRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationStepRunInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingAutomationStepRun to fetch.
+     */
+    where?: MarketingAutomationStepRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingAutomationStepRuns to fetch.
+     */
+    orderBy?: MarketingAutomationStepRunOrderByWithRelationInput | MarketingAutomationStepRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingAutomationStepRuns.
+     */
+    cursor?: MarketingAutomationStepRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingAutomationStepRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingAutomationStepRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingAutomationStepRuns.
+     */
+    distinct?: MarketingAutomationStepRunScalarFieldEnum | MarketingAutomationStepRunScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingAutomationStepRun findFirstOrThrow
+   */
+  export type MarketingAutomationStepRunFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationStepRun
+     */
+    select?: MarketingAutomationStepRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationStepRun
+     */
+    omit?: MarketingAutomationStepRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationStepRunInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingAutomationStepRun to fetch.
+     */
+    where?: MarketingAutomationStepRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingAutomationStepRuns to fetch.
+     */
+    orderBy?: MarketingAutomationStepRunOrderByWithRelationInput | MarketingAutomationStepRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingAutomationStepRuns.
+     */
+    cursor?: MarketingAutomationStepRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingAutomationStepRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingAutomationStepRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingAutomationStepRuns.
+     */
+    distinct?: MarketingAutomationStepRunScalarFieldEnum | MarketingAutomationStepRunScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingAutomationStepRun findMany
+   */
+  export type MarketingAutomationStepRunFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationStepRun
+     */
+    select?: MarketingAutomationStepRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationStepRun
+     */
+    omit?: MarketingAutomationStepRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationStepRunInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingAutomationStepRuns to fetch.
+     */
+    where?: MarketingAutomationStepRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingAutomationStepRuns to fetch.
+     */
+    orderBy?: MarketingAutomationStepRunOrderByWithRelationInput | MarketingAutomationStepRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MarketingAutomationStepRuns.
+     */
+    cursor?: MarketingAutomationStepRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingAutomationStepRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingAutomationStepRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingAutomationStepRuns.
+     */
+    distinct?: MarketingAutomationStepRunScalarFieldEnum | MarketingAutomationStepRunScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingAutomationStepRun create
+   */
+  export type MarketingAutomationStepRunCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationStepRun
+     */
+    select?: MarketingAutomationStepRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationStepRun
+     */
+    omit?: MarketingAutomationStepRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationStepRunInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MarketingAutomationStepRun.
+     */
+    data: XOR<MarketingAutomationStepRunCreateInput, MarketingAutomationStepRunUncheckedCreateInput>
+  }
+
+  /**
+   * MarketingAutomationStepRun createMany
+   */
+  export type MarketingAutomationStepRunCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MarketingAutomationStepRuns.
+     */
+    data: MarketingAutomationStepRunCreateManyInput | MarketingAutomationStepRunCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MarketingAutomationStepRun createManyAndReturn
+   */
+  export type MarketingAutomationStepRunCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationStepRun
+     */
+    select?: MarketingAutomationStepRunSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationStepRun
+     */
+    omit?: MarketingAutomationStepRunOmit<ExtArgs> | null
+    /**
+     * The data used to create many MarketingAutomationStepRuns.
+     */
+    data: MarketingAutomationStepRunCreateManyInput | MarketingAutomationStepRunCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationStepRunIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarketingAutomationStepRun update
+   */
+  export type MarketingAutomationStepRunUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationStepRun
+     */
+    select?: MarketingAutomationStepRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationStepRun
+     */
+    omit?: MarketingAutomationStepRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationStepRunInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MarketingAutomationStepRun.
+     */
+    data: XOR<MarketingAutomationStepRunUpdateInput, MarketingAutomationStepRunUncheckedUpdateInput>
+    /**
+     * Choose, which MarketingAutomationStepRun to update.
+     */
+    where: MarketingAutomationStepRunWhereUniqueInput
+  }
+
+  /**
+   * MarketingAutomationStepRun updateMany
+   */
+  export type MarketingAutomationStepRunUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MarketingAutomationStepRuns.
+     */
+    data: XOR<MarketingAutomationStepRunUpdateManyMutationInput, MarketingAutomationStepRunUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingAutomationStepRuns to update
+     */
+    where?: MarketingAutomationStepRunWhereInput
+    /**
+     * Limit how many MarketingAutomationStepRuns to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingAutomationStepRun updateManyAndReturn
+   */
+  export type MarketingAutomationStepRunUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationStepRun
+     */
+    select?: MarketingAutomationStepRunSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationStepRun
+     */
+    omit?: MarketingAutomationStepRunOmit<ExtArgs> | null
+    /**
+     * The data used to update MarketingAutomationStepRuns.
+     */
+    data: XOR<MarketingAutomationStepRunUpdateManyMutationInput, MarketingAutomationStepRunUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingAutomationStepRuns to update
+     */
+    where?: MarketingAutomationStepRunWhereInput
+    /**
+     * Limit how many MarketingAutomationStepRuns to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationStepRunIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarketingAutomationStepRun upsert
+   */
+  export type MarketingAutomationStepRunUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationStepRun
+     */
+    select?: MarketingAutomationStepRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationStepRun
+     */
+    omit?: MarketingAutomationStepRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationStepRunInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MarketingAutomationStepRun to update in case it exists.
+     */
+    where: MarketingAutomationStepRunWhereUniqueInput
+    /**
+     * In case the MarketingAutomationStepRun found by the `where` argument doesn't exist, create a new MarketingAutomationStepRun with this data.
+     */
+    create: XOR<MarketingAutomationStepRunCreateInput, MarketingAutomationStepRunUncheckedCreateInput>
+    /**
+     * In case the MarketingAutomationStepRun was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MarketingAutomationStepRunUpdateInput, MarketingAutomationStepRunUncheckedUpdateInput>
+  }
+
+  /**
+   * MarketingAutomationStepRun delete
+   */
+  export type MarketingAutomationStepRunDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationStepRun
+     */
+    select?: MarketingAutomationStepRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationStepRun
+     */
+    omit?: MarketingAutomationStepRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationStepRunInclude<ExtArgs> | null
+    /**
+     * Filter which MarketingAutomationStepRun to delete.
+     */
+    where: MarketingAutomationStepRunWhereUniqueInput
+  }
+
+  /**
+   * MarketingAutomationStepRun deleteMany
+   */
+  export type MarketingAutomationStepRunDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingAutomationStepRuns to delete
+     */
+    where?: MarketingAutomationStepRunWhereInput
+    /**
+     * Limit how many MarketingAutomationStepRuns to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingAutomationStepRun without action
+   */
+  export type MarketingAutomationStepRunDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingAutomationStepRun
+     */
+    select?: MarketingAutomationStepRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingAutomationStepRun
+     */
+    omit?: MarketingAutomationStepRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingAutomationStepRunInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MarketingTriggerEvent
+   */
+
+  export type AggregateMarketingTriggerEvent = {
+    _count: MarketingTriggerEventCountAggregateOutputType | null
+    _min: MarketingTriggerEventMinAggregateOutputType | null
+    _max: MarketingTriggerEventMaxAggregateOutputType | null
+  }
+
+  export type MarketingTriggerEventMinAggregateOutputType = {
+    id: string | null
+    organizationId: string | null
+    source: string | null
+    eventType: string | null
+    eventId: string | null
+    contactId: string | null
+    status: $Enums.MarketingTriggerEventStatus | null
+    error: string | null
+    occurredAt: Date | null
+    receivedAt: Date | null
+    processedAt: Date | null
+  }
+
+  export type MarketingTriggerEventMaxAggregateOutputType = {
+    id: string | null
+    organizationId: string | null
+    source: string | null
+    eventType: string | null
+    eventId: string | null
+    contactId: string | null
+    status: $Enums.MarketingTriggerEventStatus | null
+    error: string | null
+    occurredAt: Date | null
+    receivedAt: Date | null
+    processedAt: Date | null
+  }
+
+  export type MarketingTriggerEventCountAggregateOutputType = {
+    id: number
+    organizationId: number
+    source: number
+    eventType: number
+    eventId: number
+    contactId: number
+    payload: number
+    status: number
+    error: number
+    occurredAt: number
+    receivedAt: number
+    processedAt: number
+    _all: number
+  }
+
+
+  export type MarketingTriggerEventMinAggregateInputType = {
+    id?: true
+    organizationId?: true
+    source?: true
+    eventType?: true
+    eventId?: true
+    contactId?: true
+    status?: true
+    error?: true
+    occurredAt?: true
+    receivedAt?: true
+    processedAt?: true
+  }
+
+  export type MarketingTriggerEventMaxAggregateInputType = {
+    id?: true
+    organizationId?: true
+    source?: true
+    eventType?: true
+    eventId?: true
+    contactId?: true
+    status?: true
+    error?: true
+    occurredAt?: true
+    receivedAt?: true
+    processedAt?: true
+  }
+
+  export type MarketingTriggerEventCountAggregateInputType = {
+    id?: true
+    organizationId?: true
+    source?: true
+    eventType?: true
+    eventId?: true
+    contactId?: true
+    payload?: true
+    status?: true
+    error?: true
+    occurredAt?: true
+    receivedAt?: true
+    processedAt?: true
+    _all?: true
+  }
+
+  export type MarketingTriggerEventAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingTriggerEvent to aggregate.
+     */
+    where?: MarketingTriggerEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingTriggerEvents to fetch.
+     */
+    orderBy?: MarketingTriggerEventOrderByWithRelationInput | MarketingTriggerEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MarketingTriggerEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingTriggerEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingTriggerEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MarketingTriggerEvents
+    **/
+    _count?: true | MarketingTriggerEventCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MarketingTriggerEventMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MarketingTriggerEventMaxAggregateInputType
+  }
+
+  export type GetMarketingTriggerEventAggregateType<T extends MarketingTriggerEventAggregateArgs> = {
+        [P in keyof T & keyof AggregateMarketingTriggerEvent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMarketingTriggerEvent[P]>
+      : GetScalarType<T[P], AggregateMarketingTriggerEvent[P]>
+  }
+
+
+
+
+  export type MarketingTriggerEventGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingTriggerEventWhereInput
+    orderBy?: MarketingTriggerEventOrderByWithAggregationInput | MarketingTriggerEventOrderByWithAggregationInput[]
+    by: MarketingTriggerEventScalarFieldEnum[] | MarketingTriggerEventScalarFieldEnum
+    having?: MarketingTriggerEventScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MarketingTriggerEventCountAggregateInputType | true
+    _min?: MarketingTriggerEventMinAggregateInputType
+    _max?: MarketingTriggerEventMaxAggregateInputType
+  }
+
+  export type MarketingTriggerEventGroupByOutputType = {
+    id: string
+    organizationId: string
+    source: string
+    eventType: string
+    eventId: string
+    contactId: string | null
+    payload: JsonValue | null
+    status: $Enums.MarketingTriggerEventStatus
+    error: string | null
+    occurredAt: Date
+    receivedAt: Date
+    processedAt: Date | null
+    _count: MarketingTriggerEventCountAggregateOutputType | null
+    _min: MarketingTriggerEventMinAggregateOutputType | null
+    _max: MarketingTriggerEventMaxAggregateOutputType | null
+  }
+
+  type GetMarketingTriggerEventGroupByPayload<T extends MarketingTriggerEventGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MarketingTriggerEventGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MarketingTriggerEventGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MarketingTriggerEventGroupByOutputType[P]>
+            : GetScalarType<T[P], MarketingTriggerEventGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MarketingTriggerEventSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    source?: boolean
+    eventType?: boolean
+    eventId?: boolean
+    contactId?: boolean
+    payload?: boolean
+    status?: boolean
+    error?: boolean
+    occurredAt?: boolean
+    receivedAt?: boolean
+    processedAt?: boolean
+  }, ExtArgs["result"]["marketingTriggerEvent"]>
+
+  export type MarketingTriggerEventSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    source?: boolean
+    eventType?: boolean
+    eventId?: boolean
+    contactId?: boolean
+    payload?: boolean
+    status?: boolean
+    error?: boolean
+    occurredAt?: boolean
+    receivedAt?: boolean
+    processedAt?: boolean
+  }, ExtArgs["result"]["marketingTriggerEvent"]>
+
+  export type MarketingTriggerEventSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    source?: boolean
+    eventType?: boolean
+    eventId?: boolean
+    contactId?: boolean
+    payload?: boolean
+    status?: boolean
+    error?: boolean
+    occurredAt?: boolean
+    receivedAt?: boolean
+    processedAt?: boolean
+  }, ExtArgs["result"]["marketingTriggerEvent"]>
+
+  export type MarketingTriggerEventSelectScalar = {
+    id?: boolean
+    organizationId?: boolean
+    source?: boolean
+    eventType?: boolean
+    eventId?: boolean
+    contactId?: boolean
+    payload?: boolean
+    status?: boolean
+    error?: boolean
+    occurredAt?: boolean
+    receivedAt?: boolean
+    processedAt?: boolean
+  }
+
+  export type MarketingTriggerEventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "source" | "eventType" | "eventId" | "contactId" | "payload" | "status" | "error" | "occurredAt" | "receivedAt" | "processedAt", ExtArgs["result"]["marketingTriggerEvent"]>
+
+  export type $MarketingTriggerEventPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MarketingTriggerEvent"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      organizationId: string
+      source: string
+      eventType: string
+      eventId: string
+      contactId: string | null
+      payload: Prisma.JsonValue | null
+      status: $Enums.MarketingTriggerEventStatus
+      error: string | null
+      occurredAt: Date
+      receivedAt: Date
+      processedAt: Date | null
+    }, ExtArgs["result"]["marketingTriggerEvent"]>
+    composites: {}
+  }
+
+  type MarketingTriggerEventGetPayload<S extends boolean | null | undefined | MarketingTriggerEventDefaultArgs> = $Result.GetResult<Prisma.$MarketingTriggerEventPayload, S>
+
+  type MarketingTriggerEventCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MarketingTriggerEventFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MarketingTriggerEventCountAggregateInputType | true
+    }
+
+  export interface MarketingTriggerEventDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MarketingTriggerEvent'], meta: { name: 'MarketingTriggerEvent' } }
+    /**
+     * Find zero or one MarketingTriggerEvent that matches the filter.
+     * @param {MarketingTriggerEventFindUniqueArgs} args - Arguments to find a MarketingTriggerEvent
+     * @example
+     * // Get one MarketingTriggerEvent
+     * const marketingTriggerEvent = await prisma.marketingTriggerEvent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MarketingTriggerEventFindUniqueArgs>(args: SelectSubset<T, MarketingTriggerEventFindUniqueArgs<ExtArgs>>): Prisma__MarketingTriggerEventClient<$Result.GetResult<Prisma.$MarketingTriggerEventPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MarketingTriggerEvent that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MarketingTriggerEventFindUniqueOrThrowArgs} args - Arguments to find a MarketingTriggerEvent
+     * @example
+     * // Get one MarketingTriggerEvent
+     * const marketingTriggerEvent = await prisma.marketingTriggerEvent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MarketingTriggerEventFindUniqueOrThrowArgs>(args: SelectSubset<T, MarketingTriggerEventFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MarketingTriggerEventClient<$Result.GetResult<Prisma.$MarketingTriggerEventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarketingTriggerEvent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingTriggerEventFindFirstArgs} args - Arguments to find a MarketingTriggerEvent
+     * @example
+     * // Get one MarketingTriggerEvent
+     * const marketingTriggerEvent = await prisma.marketingTriggerEvent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MarketingTriggerEventFindFirstArgs>(args?: SelectSubset<T, MarketingTriggerEventFindFirstArgs<ExtArgs>>): Prisma__MarketingTriggerEventClient<$Result.GetResult<Prisma.$MarketingTriggerEventPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarketingTriggerEvent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingTriggerEventFindFirstOrThrowArgs} args - Arguments to find a MarketingTriggerEvent
+     * @example
+     * // Get one MarketingTriggerEvent
+     * const marketingTriggerEvent = await prisma.marketingTriggerEvent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MarketingTriggerEventFindFirstOrThrowArgs>(args?: SelectSubset<T, MarketingTriggerEventFindFirstOrThrowArgs<ExtArgs>>): Prisma__MarketingTriggerEventClient<$Result.GetResult<Prisma.$MarketingTriggerEventPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MarketingTriggerEvents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingTriggerEventFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MarketingTriggerEvents
+     * const marketingTriggerEvents = await prisma.marketingTriggerEvent.findMany()
+     * 
+     * // Get first 10 MarketingTriggerEvents
+     * const marketingTriggerEvents = await prisma.marketingTriggerEvent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const marketingTriggerEventWithIdOnly = await prisma.marketingTriggerEvent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MarketingTriggerEventFindManyArgs>(args?: SelectSubset<T, MarketingTriggerEventFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingTriggerEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MarketingTriggerEvent.
+     * @param {MarketingTriggerEventCreateArgs} args - Arguments to create a MarketingTriggerEvent.
+     * @example
+     * // Create one MarketingTriggerEvent
+     * const MarketingTriggerEvent = await prisma.marketingTriggerEvent.create({
+     *   data: {
+     *     // ... data to create a MarketingTriggerEvent
+     *   }
+     * })
+     * 
+     */
+    create<T extends MarketingTriggerEventCreateArgs>(args: SelectSubset<T, MarketingTriggerEventCreateArgs<ExtArgs>>): Prisma__MarketingTriggerEventClient<$Result.GetResult<Prisma.$MarketingTriggerEventPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MarketingTriggerEvents.
+     * @param {MarketingTriggerEventCreateManyArgs} args - Arguments to create many MarketingTriggerEvents.
+     * @example
+     * // Create many MarketingTriggerEvents
+     * const marketingTriggerEvent = await prisma.marketingTriggerEvent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MarketingTriggerEventCreateManyArgs>(args?: SelectSubset<T, MarketingTriggerEventCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MarketingTriggerEvents and returns the data saved in the database.
+     * @param {MarketingTriggerEventCreateManyAndReturnArgs} args - Arguments to create many MarketingTriggerEvents.
+     * @example
+     * // Create many MarketingTriggerEvents
+     * const marketingTriggerEvent = await prisma.marketingTriggerEvent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MarketingTriggerEvents and only return the `id`
+     * const marketingTriggerEventWithIdOnly = await prisma.marketingTriggerEvent.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MarketingTriggerEventCreateManyAndReturnArgs>(args?: SelectSubset<T, MarketingTriggerEventCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingTriggerEventPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MarketingTriggerEvent.
+     * @param {MarketingTriggerEventDeleteArgs} args - Arguments to delete one MarketingTriggerEvent.
+     * @example
+     * // Delete one MarketingTriggerEvent
+     * const MarketingTriggerEvent = await prisma.marketingTriggerEvent.delete({
+     *   where: {
+     *     // ... filter to delete one MarketingTriggerEvent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MarketingTriggerEventDeleteArgs>(args: SelectSubset<T, MarketingTriggerEventDeleteArgs<ExtArgs>>): Prisma__MarketingTriggerEventClient<$Result.GetResult<Prisma.$MarketingTriggerEventPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MarketingTriggerEvent.
+     * @param {MarketingTriggerEventUpdateArgs} args - Arguments to update one MarketingTriggerEvent.
+     * @example
+     * // Update one MarketingTriggerEvent
+     * const marketingTriggerEvent = await prisma.marketingTriggerEvent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MarketingTriggerEventUpdateArgs>(args: SelectSubset<T, MarketingTriggerEventUpdateArgs<ExtArgs>>): Prisma__MarketingTriggerEventClient<$Result.GetResult<Prisma.$MarketingTriggerEventPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MarketingTriggerEvents.
+     * @param {MarketingTriggerEventDeleteManyArgs} args - Arguments to filter MarketingTriggerEvents to delete.
+     * @example
+     * // Delete a few MarketingTriggerEvents
+     * const { count } = await prisma.marketingTriggerEvent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MarketingTriggerEventDeleteManyArgs>(args?: SelectSubset<T, MarketingTriggerEventDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingTriggerEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingTriggerEventUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MarketingTriggerEvents
+     * const marketingTriggerEvent = await prisma.marketingTriggerEvent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MarketingTriggerEventUpdateManyArgs>(args: SelectSubset<T, MarketingTriggerEventUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingTriggerEvents and returns the data updated in the database.
+     * @param {MarketingTriggerEventUpdateManyAndReturnArgs} args - Arguments to update many MarketingTriggerEvents.
+     * @example
+     * // Update many MarketingTriggerEvents
+     * const marketingTriggerEvent = await prisma.marketingTriggerEvent.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MarketingTriggerEvents and only return the `id`
+     * const marketingTriggerEventWithIdOnly = await prisma.marketingTriggerEvent.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MarketingTriggerEventUpdateManyAndReturnArgs>(args: SelectSubset<T, MarketingTriggerEventUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingTriggerEventPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MarketingTriggerEvent.
+     * @param {MarketingTriggerEventUpsertArgs} args - Arguments to update or create a MarketingTriggerEvent.
+     * @example
+     * // Update or create a MarketingTriggerEvent
+     * const marketingTriggerEvent = await prisma.marketingTriggerEvent.upsert({
+     *   create: {
+     *     // ... data to create a MarketingTriggerEvent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MarketingTriggerEvent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MarketingTriggerEventUpsertArgs>(args: SelectSubset<T, MarketingTriggerEventUpsertArgs<ExtArgs>>): Prisma__MarketingTriggerEventClient<$Result.GetResult<Prisma.$MarketingTriggerEventPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MarketingTriggerEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingTriggerEventCountArgs} args - Arguments to filter MarketingTriggerEvents to count.
+     * @example
+     * // Count the number of MarketingTriggerEvents
+     * const count = await prisma.marketingTriggerEvent.count({
+     *   where: {
+     *     // ... the filter for the MarketingTriggerEvents we want to count
+     *   }
+     * })
+    **/
+    count<T extends MarketingTriggerEventCountArgs>(
+      args?: Subset<T, MarketingTriggerEventCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MarketingTriggerEventCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MarketingTriggerEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingTriggerEventAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MarketingTriggerEventAggregateArgs>(args: Subset<T, MarketingTriggerEventAggregateArgs>): Prisma.PrismaPromise<GetMarketingTriggerEventAggregateType<T>>
+
+    /**
+     * Group by MarketingTriggerEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingTriggerEventGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MarketingTriggerEventGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MarketingTriggerEventGroupByArgs['orderBy'] }
+        : { orderBy?: MarketingTriggerEventGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MarketingTriggerEventGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMarketingTriggerEventGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MarketingTriggerEvent model
+   */
+  readonly fields: MarketingTriggerEventFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MarketingTriggerEvent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MarketingTriggerEventClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MarketingTriggerEvent model
+   */
+  interface MarketingTriggerEventFieldRefs {
+    readonly id: FieldRef<"MarketingTriggerEvent", 'String'>
+    readonly organizationId: FieldRef<"MarketingTriggerEvent", 'String'>
+    readonly source: FieldRef<"MarketingTriggerEvent", 'String'>
+    readonly eventType: FieldRef<"MarketingTriggerEvent", 'String'>
+    readonly eventId: FieldRef<"MarketingTriggerEvent", 'String'>
+    readonly contactId: FieldRef<"MarketingTriggerEvent", 'String'>
+    readonly payload: FieldRef<"MarketingTriggerEvent", 'Json'>
+    readonly status: FieldRef<"MarketingTriggerEvent", 'MarketingTriggerEventStatus'>
+    readonly error: FieldRef<"MarketingTriggerEvent", 'String'>
+    readonly occurredAt: FieldRef<"MarketingTriggerEvent", 'DateTime'>
+    readonly receivedAt: FieldRef<"MarketingTriggerEvent", 'DateTime'>
+    readonly processedAt: FieldRef<"MarketingTriggerEvent", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MarketingTriggerEvent findUnique
+   */
+  export type MarketingTriggerEventFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingTriggerEvent
+     */
+    select?: MarketingTriggerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingTriggerEvent
+     */
+    omit?: MarketingTriggerEventOmit<ExtArgs> | null
+    /**
+     * Filter, which MarketingTriggerEvent to fetch.
+     */
+    where: MarketingTriggerEventWhereUniqueInput
+  }
+
+  /**
+   * MarketingTriggerEvent findUniqueOrThrow
+   */
+  export type MarketingTriggerEventFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingTriggerEvent
+     */
+    select?: MarketingTriggerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingTriggerEvent
+     */
+    omit?: MarketingTriggerEventOmit<ExtArgs> | null
+    /**
+     * Filter, which MarketingTriggerEvent to fetch.
+     */
+    where: MarketingTriggerEventWhereUniqueInput
+  }
+
+  /**
+   * MarketingTriggerEvent findFirst
+   */
+  export type MarketingTriggerEventFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingTriggerEvent
+     */
+    select?: MarketingTriggerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingTriggerEvent
+     */
+    omit?: MarketingTriggerEventOmit<ExtArgs> | null
+    /**
+     * Filter, which MarketingTriggerEvent to fetch.
+     */
+    where?: MarketingTriggerEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingTriggerEvents to fetch.
+     */
+    orderBy?: MarketingTriggerEventOrderByWithRelationInput | MarketingTriggerEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingTriggerEvents.
+     */
+    cursor?: MarketingTriggerEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingTriggerEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingTriggerEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingTriggerEvents.
+     */
+    distinct?: MarketingTriggerEventScalarFieldEnum | MarketingTriggerEventScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingTriggerEvent findFirstOrThrow
+   */
+  export type MarketingTriggerEventFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingTriggerEvent
+     */
+    select?: MarketingTriggerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingTriggerEvent
+     */
+    omit?: MarketingTriggerEventOmit<ExtArgs> | null
+    /**
+     * Filter, which MarketingTriggerEvent to fetch.
+     */
+    where?: MarketingTriggerEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingTriggerEvents to fetch.
+     */
+    orderBy?: MarketingTriggerEventOrderByWithRelationInput | MarketingTriggerEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingTriggerEvents.
+     */
+    cursor?: MarketingTriggerEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingTriggerEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingTriggerEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingTriggerEvents.
+     */
+    distinct?: MarketingTriggerEventScalarFieldEnum | MarketingTriggerEventScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingTriggerEvent findMany
+   */
+  export type MarketingTriggerEventFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingTriggerEvent
+     */
+    select?: MarketingTriggerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingTriggerEvent
+     */
+    omit?: MarketingTriggerEventOmit<ExtArgs> | null
+    /**
+     * Filter, which MarketingTriggerEvents to fetch.
+     */
+    where?: MarketingTriggerEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingTriggerEvents to fetch.
+     */
+    orderBy?: MarketingTriggerEventOrderByWithRelationInput | MarketingTriggerEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MarketingTriggerEvents.
+     */
+    cursor?: MarketingTriggerEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingTriggerEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingTriggerEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingTriggerEvents.
+     */
+    distinct?: MarketingTriggerEventScalarFieldEnum | MarketingTriggerEventScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingTriggerEvent create
+   */
+  export type MarketingTriggerEventCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingTriggerEvent
+     */
+    select?: MarketingTriggerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingTriggerEvent
+     */
+    omit?: MarketingTriggerEventOmit<ExtArgs> | null
+    /**
+     * The data needed to create a MarketingTriggerEvent.
+     */
+    data: XOR<MarketingTriggerEventCreateInput, MarketingTriggerEventUncheckedCreateInput>
+  }
+
+  /**
+   * MarketingTriggerEvent createMany
+   */
+  export type MarketingTriggerEventCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MarketingTriggerEvents.
+     */
+    data: MarketingTriggerEventCreateManyInput | MarketingTriggerEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MarketingTriggerEvent createManyAndReturn
+   */
+  export type MarketingTriggerEventCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingTriggerEvent
+     */
+    select?: MarketingTriggerEventSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingTriggerEvent
+     */
+    omit?: MarketingTriggerEventOmit<ExtArgs> | null
+    /**
+     * The data used to create many MarketingTriggerEvents.
+     */
+    data: MarketingTriggerEventCreateManyInput | MarketingTriggerEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MarketingTriggerEvent update
+   */
+  export type MarketingTriggerEventUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingTriggerEvent
+     */
+    select?: MarketingTriggerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingTriggerEvent
+     */
+    omit?: MarketingTriggerEventOmit<ExtArgs> | null
+    /**
+     * The data needed to update a MarketingTriggerEvent.
+     */
+    data: XOR<MarketingTriggerEventUpdateInput, MarketingTriggerEventUncheckedUpdateInput>
+    /**
+     * Choose, which MarketingTriggerEvent to update.
+     */
+    where: MarketingTriggerEventWhereUniqueInput
+  }
+
+  /**
+   * MarketingTriggerEvent updateMany
+   */
+  export type MarketingTriggerEventUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MarketingTriggerEvents.
+     */
+    data: XOR<MarketingTriggerEventUpdateManyMutationInput, MarketingTriggerEventUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingTriggerEvents to update
+     */
+    where?: MarketingTriggerEventWhereInput
+    /**
+     * Limit how many MarketingTriggerEvents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingTriggerEvent updateManyAndReturn
+   */
+  export type MarketingTriggerEventUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingTriggerEvent
+     */
+    select?: MarketingTriggerEventSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingTriggerEvent
+     */
+    omit?: MarketingTriggerEventOmit<ExtArgs> | null
+    /**
+     * The data used to update MarketingTriggerEvents.
+     */
+    data: XOR<MarketingTriggerEventUpdateManyMutationInput, MarketingTriggerEventUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingTriggerEvents to update
+     */
+    where?: MarketingTriggerEventWhereInput
+    /**
+     * Limit how many MarketingTriggerEvents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingTriggerEvent upsert
+   */
+  export type MarketingTriggerEventUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingTriggerEvent
+     */
+    select?: MarketingTriggerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingTriggerEvent
+     */
+    omit?: MarketingTriggerEventOmit<ExtArgs> | null
+    /**
+     * The filter to search for the MarketingTriggerEvent to update in case it exists.
+     */
+    where: MarketingTriggerEventWhereUniqueInput
+    /**
+     * In case the MarketingTriggerEvent found by the `where` argument doesn't exist, create a new MarketingTriggerEvent with this data.
+     */
+    create: XOR<MarketingTriggerEventCreateInput, MarketingTriggerEventUncheckedCreateInput>
+    /**
+     * In case the MarketingTriggerEvent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MarketingTriggerEventUpdateInput, MarketingTriggerEventUncheckedUpdateInput>
+  }
+
+  /**
+   * MarketingTriggerEvent delete
+   */
+  export type MarketingTriggerEventDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingTriggerEvent
+     */
+    select?: MarketingTriggerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingTriggerEvent
+     */
+    omit?: MarketingTriggerEventOmit<ExtArgs> | null
+    /**
+     * Filter which MarketingTriggerEvent to delete.
+     */
+    where: MarketingTriggerEventWhereUniqueInput
+  }
+
+  /**
+   * MarketingTriggerEvent deleteMany
+   */
+  export type MarketingTriggerEventDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingTriggerEvents to delete
+     */
+    where?: MarketingTriggerEventWhereInput
+    /**
+     * Limit how many MarketingTriggerEvents to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarketingTriggerEvent without action
+   */
+  export type MarketingTriggerEventDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingTriggerEvent
+     */
+    select?: MarketingTriggerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarketingTriggerEvent
+     */
+    omit?: MarketingTriggerEventOmit<ExtArgs> | null
   }
 
 
@@ -217221,6 +229635,202 @@ export namespace Prisma {
   export type MarketingCampaignApprovalScalarFieldEnum = (typeof MarketingCampaignApprovalScalarFieldEnum)[keyof typeof MarketingCampaignApprovalScalarFieldEnum]
 
 
+  export const MarketingBrandSettingsScalarFieldEnum: {
+    organizationId: 'organizationId',
+    confirmationSenderId: 'confirmationSenderId',
+    defaultTimeZone: 'defaultTimeZone',
+    postalAddress: 'postalAddress',
+    dailyBroadcastCap: 'dailyBroadcastCap',
+    dailyAutomationCap: 'dailyAutomationCap',
+    maxBroadcastRecipients: 'maxBroadcastRecipients',
+    dispatchPaused: 'dispatchPaused',
+    pausedReason: 'pausedReason',
+    pausedAt: 'pausedAt',
+    pausedBy: 'pausedBy',
+    updatedBy: 'updatedBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MarketingBrandSettingsScalarFieldEnum = (typeof MarketingBrandSettingsScalarFieldEnum)[keyof typeof MarketingBrandSettingsScalarFieldEnum]
+
+
+  export const MarketingCampaignApprovedContactScalarFieldEnum: {
+    snapshotId: 'snapshotId',
+    contactId: 'contactId',
+    createdAt: 'createdAt'
+  };
+
+  export type MarketingCampaignApprovedContactScalarFieldEnum = (typeof MarketingCampaignApprovedContactScalarFieldEnum)[keyof typeof MarketingCampaignApprovedContactScalarFieldEnum]
+
+
+  export const MarketingBroadcastDispatchScalarFieldEnum: {
+    id: 'id',
+    campaignId: 'campaignId',
+    organizationId: 'organizationId',
+    approvalSnapshotId: 'approvalSnapshotId',
+    status: 'status',
+    scheduledFor: 'scheduledFor',
+    timeZone: 'timeZone',
+    localSendTime: 'localSendTime',
+    provider: 'provider',
+    providerSegmentId: 'providerSegmentId',
+    providerBroadcastId: 'providerBroadcastId',
+    providerStatus: 'providerStatus',
+    providerCreateAttemptAt: 'providerCreateAttemptAt',
+    providerSendAttemptAt: 'providerSendAttemptAt',
+    providerSentAt: 'providerSentAt',
+    recipientCount: 'recipientCount',
+    excludedCount: 'excludedCount',
+    eligibilitySha256: 'eligibilitySha256',
+    contentSha256: 'contentSha256',
+    scheduledByAdminUserId: 'scheduledByAdminUserId',
+    cancelRequestedAt: 'cancelRequestedAt',
+    cancelRequestedBy: 'cancelRequestedBy',
+    pausedAt: 'pausedAt',
+    pausedBy: 'pausedBy',
+    lastErrorCode: 'lastErrorCode',
+    lastErrorMessage: 'lastErrorMessage',
+    completedAt: 'completedAt',
+    revision: 'revision',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MarketingBroadcastDispatchScalarFieldEnum = (typeof MarketingBroadcastDispatchScalarFieldEnum)[keyof typeof MarketingBroadcastDispatchScalarFieldEnum]
+
+
+  export const MarketingBroadcastRecipientScalarFieldEnum: {
+    id: 'id',
+    dispatchId: 'dispatchId',
+    organizationId: 'organizationId',
+    contactId: 'contactId',
+    email: 'email',
+    status: 'status',
+    exclusionReason: 'exclusionReason',
+    providerContactId: 'providerContactId',
+    providerEmailId: 'providerEmailId',
+    syncedAt: 'syncedAt',
+    acceptedAt: 'acceptedAt',
+    lastEventType: 'lastEventType',
+    lastEventAt: 'lastEventAt',
+    openedAt: 'openedAt',
+    clickedAt: 'clickedAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MarketingBroadcastRecipientScalarFieldEnum = (typeof MarketingBroadcastRecipientScalarFieldEnum)[keyof typeof MarketingBroadcastRecipientScalarFieldEnum]
+
+
+  export const MarketingAutomationScalarFieldEnum: {
+    id: 'id',
+    organizationId: 'organizationId',
+    name: 'name',
+    description: 'description',
+    status: 'status',
+    triggerType: 'triggerType',
+    activeVersionId: 'activeVersionId',
+    enrollmentLimit: 'enrollmentLimit',
+    maxActiveEnrollments: 'maxActiveEnrollments',
+    frequencyCapHours: 'frequencyCapHours',
+    createdByAdminUserId: 'createdByAdminUserId',
+    updatedByAdminUserId: 'updatedByAdminUserId',
+    revision: 'revision',
+    lastScheduledRunAt: 'lastScheduledRunAt',
+    activatedAt: 'activatedAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MarketingAutomationScalarFieldEnum = (typeof MarketingAutomationScalarFieldEnum)[keyof typeof MarketingAutomationScalarFieldEnum]
+
+
+  export const MarketingAutomationVersionScalarFieldEnum: {
+    id: 'id',
+    automationId: 'automationId',
+    version: 'version',
+    status: 'status',
+    definition: 'definition',
+    triggerConfig: 'triggerConfig',
+    definitionSha256: 'definitionSha256',
+    createdByAdminUserId: 'createdByAdminUserId',
+    submittedByAdminUserId: 'submittedByAdminUserId',
+    submittedAt: 'submittedAt',
+    reviewedByAdminUserId: 'reviewedByAdminUserId',
+    reviewedAt: 'reviewedAt',
+    reviewComment: 'reviewComment',
+    stepUpId: 'stepUpId',
+    publishedAt: 'publishedAt',
+    createdAt: 'createdAt'
+  };
+
+  export type MarketingAutomationVersionScalarFieldEnum = (typeof MarketingAutomationVersionScalarFieldEnum)[keyof typeof MarketingAutomationVersionScalarFieldEnum]
+
+
+  export const MarketingAutomationEnrollmentScalarFieldEnum: {
+    id: 'id',
+    automationId: 'automationId',
+    versionId: 'versionId',
+    organizationId: 'organizationId',
+    contactId: 'contactId',
+    status: 'status',
+    dedupeKey: 'dedupeKey',
+    triggerEventId: 'triggerEventId',
+    currentStepId: 'currentStepId',
+    stepCount: 'stepCount',
+    nextRunAt: 'nextRunAt',
+    exitReason: 'exitReason',
+    context: 'context',
+    completedAt: 'completedAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MarketingAutomationEnrollmentScalarFieldEnum = (typeof MarketingAutomationEnrollmentScalarFieldEnum)[keyof typeof MarketingAutomationEnrollmentScalarFieldEnum]
+
+
+  export const MarketingAutomationStepRunScalarFieldEnum: {
+    id: 'id',
+    enrollmentId: 'enrollmentId',
+    organizationId: 'organizationId',
+    stepId: 'stepId',
+    stepType: 'stepType',
+    sequence: 'sequence',
+    status: 'status',
+    idempotencyKey: 'idempotencyKey',
+    recipientEmail: 'recipientEmail',
+    templateVersionId: 'templateVersionId',
+    providerMessageId: 'providerMessageId',
+    firstAttemptAt: 'firstAttemptAt',
+    deliveryStatus: 'deliveryStatus',
+    outcome: 'outcome',
+    errorCode: 'errorCode',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MarketingAutomationStepRunScalarFieldEnum = (typeof MarketingAutomationStepRunScalarFieldEnum)[keyof typeof MarketingAutomationStepRunScalarFieldEnum]
+
+
+  export const MarketingTriggerEventScalarFieldEnum: {
+    id: 'id',
+    organizationId: 'organizationId',
+    source: 'source',
+    eventType: 'eventType',
+    eventId: 'eventId',
+    contactId: 'contactId',
+    payload: 'payload',
+    status: 'status',
+    error: 'error',
+    occurredAt: 'occurredAt',
+    receivedAt: 'receivedAt',
+    processedAt: 'processedAt'
+  };
+
+  export type MarketingTriggerEventScalarFieldEnum = (typeof MarketingTriggerEventScalarFieldEnum)[keyof typeof MarketingTriggerEventScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -219112,6 +231722,104 @@ export namespace Prisma {
    * Reference to a field of type 'MarketingCampaignApprovalDecision[]'
    */
   export type ListEnumMarketingCampaignApprovalDecisionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MarketingCampaignApprovalDecision[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'MarketingBroadcastStatus'
+   */
+  export type EnumMarketingBroadcastStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MarketingBroadcastStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'MarketingBroadcastStatus[]'
+   */
+  export type ListEnumMarketingBroadcastStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MarketingBroadcastStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'MarketingBroadcastRecipientStatus'
+   */
+  export type EnumMarketingBroadcastRecipientStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MarketingBroadcastRecipientStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'MarketingBroadcastRecipientStatus[]'
+   */
+  export type ListEnumMarketingBroadcastRecipientStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MarketingBroadcastRecipientStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'MarketingAutomationStatus'
+   */
+  export type EnumMarketingAutomationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MarketingAutomationStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'MarketingAutomationStatus[]'
+   */
+  export type ListEnumMarketingAutomationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MarketingAutomationStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'MarketingAutomationVersionStatus'
+   */
+  export type EnumMarketingAutomationVersionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MarketingAutomationVersionStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'MarketingAutomationVersionStatus[]'
+   */
+  export type ListEnumMarketingAutomationVersionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MarketingAutomationVersionStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'MarketingAutomationEnrollmentStatus'
+   */
+  export type EnumMarketingAutomationEnrollmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MarketingAutomationEnrollmentStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'MarketingAutomationEnrollmentStatus[]'
+   */
+  export type ListEnumMarketingAutomationEnrollmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MarketingAutomationEnrollmentStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'MarketingAutomationStepRunStatus'
+   */
+  export type EnumMarketingAutomationStepRunStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MarketingAutomationStepRunStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'MarketingAutomationStepRunStatus[]'
+   */
+  export type ListEnumMarketingAutomationStepRunStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MarketingAutomationStepRunStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'MarketingTriggerEventStatus'
+   */
+  export type EnumMarketingTriggerEventStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MarketingTriggerEventStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'MarketingTriggerEventStatus[]'
+   */
+  export type ListEnumMarketingTriggerEventStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MarketingTriggerEventStatus[]'>
     
 
 
@@ -231685,6 +244393,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceListRelationFilter
     marketingTemplates?: MarketingEmailTemplateListRelationFilter
     marketingCampaigns?: MarketingEmailCampaignListRelationFilter
+    marketingBrandSettings?: XOR<MarketingBrandSettingsNullableScalarRelationFilter, MarketingBrandSettingsWhereInput> | null
+    marketingAutomations?: MarketingAutomationListRelationFilter
   }
 
   export type MailOrganizationOrderByWithRelationInput = {
@@ -231706,6 +244416,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceOrderByRelationAggregateInput
     marketingTemplates?: MarketingEmailTemplateOrderByRelationAggregateInput
     marketingCampaigns?: MarketingEmailCampaignOrderByRelationAggregateInput
+    marketingBrandSettings?: MarketingBrandSettingsOrderByWithRelationInput
+    marketingAutomations?: MarketingAutomationOrderByRelationAggregateInput
   }
 
   export type MailOrganizationWhereUniqueInput = Prisma.AtLeast<{
@@ -231730,6 +244442,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceListRelationFilter
     marketingTemplates?: MarketingEmailTemplateListRelationFilter
     marketingCampaigns?: MarketingEmailCampaignListRelationFilter
+    marketingBrandSettings?: XOR<MarketingBrandSettingsNullableScalarRelationFilter, MarketingBrandSettingsWhereInput> | null
+    marketingAutomations?: MarketingAutomationListRelationFilter
   }, "id" | "slug">
 
   export type MailOrganizationOrderByWithAggregationInput = {
@@ -234204,6 +246918,8 @@ export namespace Prisma {
     organization?: XOR<MailOrganizationScalarRelationFilter, MailOrganizationWhereInput>
     consents?: MarketingConsentListRelationFilter
     audiences?: MarketingAudienceContactListRelationFilter
+    broadcastRecipients?: MarketingBroadcastRecipientListRelationFilter
+    automationEnrollments?: MarketingAutomationEnrollmentListRelationFilter
   }
 
   export type MarketingContactOrderByWithRelationInput = {
@@ -234221,6 +246937,8 @@ export namespace Prisma {
     organization?: MailOrganizationOrderByWithRelationInput
     consents?: MarketingConsentOrderByRelationAggregateInput
     audiences?: MarketingAudienceContactOrderByRelationAggregateInput
+    broadcastRecipients?: MarketingBroadcastRecipientOrderByRelationAggregateInput
+    automationEnrollments?: MarketingAutomationEnrollmentOrderByRelationAggregateInput
   }
 
   export type MarketingContactWhereUniqueInput = Prisma.AtLeast<{
@@ -234242,6 +246960,8 @@ export namespace Prisma {
     organization?: XOR<MailOrganizationScalarRelationFilter, MailOrganizationWhereInput>
     consents?: MarketingConsentListRelationFilter
     audiences?: MarketingAudienceContactListRelationFilter
+    broadcastRecipients?: MarketingBroadcastRecipientListRelationFilter
+    automationEnrollments?: MarketingAutomationEnrollmentListRelationFilter
   }, "id" | "organizationId_email">
 
   export type MarketingContactOrderByWithAggregationInput = {
@@ -234903,6 +247623,7 @@ export namespace Prisma {
     segment?: XOR<MarketingSegmentNullableScalarRelationFilter, MarketingSegmentWhereInput> | null
     approvals?: MarketingCampaignApprovalListRelationFilter
     snapshots?: MarketingCampaignSnapshotListRelationFilter
+    dispatch?: XOR<MarketingBroadcastDispatchNullableScalarRelationFilter, MarketingBroadcastDispatchWhereInput> | null
   }
 
   export type MarketingEmailCampaignOrderByWithRelationInput = {
@@ -234934,6 +247655,7 @@ export namespace Prisma {
     segment?: MarketingSegmentOrderByWithRelationInput
     approvals?: MarketingCampaignApprovalOrderByRelationAggregateInput
     snapshots?: MarketingCampaignSnapshotOrderByRelationAggregateInput
+    dispatch?: MarketingBroadcastDispatchOrderByWithRelationInput
   }
 
   export type MarketingEmailCampaignWhereUniqueInput = Prisma.AtLeast<{
@@ -234968,6 +247690,7 @@ export namespace Prisma {
     segment?: XOR<MarketingSegmentNullableScalarRelationFilter, MarketingSegmentWhereInput> | null
     approvals?: MarketingCampaignApprovalListRelationFilter
     snapshots?: MarketingCampaignSnapshotListRelationFilter
+    dispatch?: XOR<MarketingBroadcastDispatchNullableScalarRelationFilter, MarketingBroadcastDispatchWhereInput> | null
   }, "id">
 
   export type MarketingEmailCampaignOrderByWithAggregationInput = {
@@ -235050,6 +247773,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"MarketingCampaignSnapshot"> | Date | string
     campaign?: XOR<MarketingEmailCampaignScalarRelationFilter, MarketingEmailCampaignWhereInput>
     approvals?: MarketingCampaignApprovalListRelationFilter
+    approvedContacts?: MarketingCampaignApprovedContactListRelationFilter
   }
 
   export type MarketingCampaignSnapshotOrderByWithRelationInput = {
@@ -235071,6 +247795,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     campaign?: MarketingEmailCampaignOrderByWithRelationInput
     approvals?: MarketingCampaignApprovalOrderByRelationAggregateInput
+    approvedContacts?: MarketingCampaignApprovedContactOrderByRelationAggregateInput
   }
 
   export type MarketingCampaignSnapshotWhereUniqueInput = Prisma.AtLeast<{
@@ -235096,6 +247821,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"MarketingCampaignSnapshot"> | Date | string
     campaign?: XOR<MarketingEmailCampaignScalarRelationFilter, MarketingEmailCampaignWhereInput>
     approvals?: MarketingCampaignApprovalListRelationFilter
+    approvedContacts?: MarketingCampaignApprovedContactListRelationFilter
   }, "id" | "campaignId_revision_kind">
 
   export type MarketingCampaignSnapshotOrderByWithAggregationInput = {
@@ -235222,6 +247948,1026 @@ export namespace Prisma {
     snapshotId?: UuidNullableWithAggregatesFilter<"MarketingCampaignApproval"> | string | null
     comment?: StringNullableWithAggregatesFilter<"MarketingCampaignApproval"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"MarketingCampaignApproval"> | Date | string
+  }
+
+  export type MarketingBrandSettingsWhereInput = {
+    AND?: MarketingBrandSettingsWhereInput | MarketingBrandSettingsWhereInput[]
+    OR?: MarketingBrandSettingsWhereInput[]
+    NOT?: MarketingBrandSettingsWhereInput | MarketingBrandSettingsWhereInput[]
+    organizationId?: UuidFilter<"MarketingBrandSettings"> | string
+    confirmationSenderId?: UuidNullableFilter<"MarketingBrandSettings"> | string | null
+    defaultTimeZone?: StringFilter<"MarketingBrandSettings"> | string
+    postalAddress?: StringNullableFilter<"MarketingBrandSettings"> | string | null
+    dailyBroadcastCap?: IntFilter<"MarketingBrandSettings"> | number
+    dailyAutomationCap?: IntFilter<"MarketingBrandSettings"> | number
+    maxBroadcastRecipients?: IntFilter<"MarketingBrandSettings"> | number
+    dispatchPaused?: BoolFilter<"MarketingBrandSettings"> | boolean
+    pausedReason?: StringNullableFilter<"MarketingBrandSettings"> | string | null
+    pausedAt?: DateTimeNullableFilter<"MarketingBrandSettings"> | Date | string | null
+    pausedBy?: StringNullableFilter<"MarketingBrandSettings"> | string | null
+    updatedBy?: StringNullableFilter<"MarketingBrandSettings"> | string | null
+    createdAt?: DateTimeFilter<"MarketingBrandSettings"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingBrandSettings"> | Date | string
+    organization?: XOR<MailOrganizationScalarRelationFilter, MailOrganizationWhereInput>
+  }
+
+  export type MarketingBrandSettingsOrderByWithRelationInput = {
+    organizationId?: SortOrder
+    confirmationSenderId?: SortOrderInput | SortOrder
+    defaultTimeZone?: SortOrder
+    postalAddress?: SortOrderInput | SortOrder
+    dailyBroadcastCap?: SortOrder
+    dailyAutomationCap?: SortOrder
+    maxBroadcastRecipients?: SortOrder
+    dispatchPaused?: SortOrder
+    pausedReason?: SortOrderInput | SortOrder
+    pausedAt?: SortOrderInput | SortOrder
+    pausedBy?: SortOrderInput | SortOrder
+    updatedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    organization?: MailOrganizationOrderByWithRelationInput
+  }
+
+  export type MarketingBrandSettingsWhereUniqueInput = Prisma.AtLeast<{
+    organizationId?: string
+    AND?: MarketingBrandSettingsWhereInput | MarketingBrandSettingsWhereInput[]
+    OR?: MarketingBrandSettingsWhereInput[]
+    NOT?: MarketingBrandSettingsWhereInput | MarketingBrandSettingsWhereInput[]
+    confirmationSenderId?: UuidNullableFilter<"MarketingBrandSettings"> | string | null
+    defaultTimeZone?: StringFilter<"MarketingBrandSettings"> | string
+    postalAddress?: StringNullableFilter<"MarketingBrandSettings"> | string | null
+    dailyBroadcastCap?: IntFilter<"MarketingBrandSettings"> | number
+    dailyAutomationCap?: IntFilter<"MarketingBrandSettings"> | number
+    maxBroadcastRecipients?: IntFilter<"MarketingBrandSettings"> | number
+    dispatchPaused?: BoolFilter<"MarketingBrandSettings"> | boolean
+    pausedReason?: StringNullableFilter<"MarketingBrandSettings"> | string | null
+    pausedAt?: DateTimeNullableFilter<"MarketingBrandSettings"> | Date | string | null
+    pausedBy?: StringNullableFilter<"MarketingBrandSettings"> | string | null
+    updatedBy?: StringNullableFilter<"MarketingBrandSettings"> | string | null
+    createdAt?: DateTimeFilter<"MarketingBrandSettings"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingBrandSettings"> | Date | string
+    organization?: XOR<MailOrganizationScalarRelationFilter, MailOrganizationWhereInput>
+  }, "organizationId">
+
+  export type MarketingBrandSettingsOrderByWithAggregationInput = {
+    organizationId?: SortOrder
+    confirmationSenderId?: SortOrderInput | SortOrder
+    defaultTimeZone?: SortOrder
+    postalAddress?: SortOrderInput | SortOrder
+    dailyBroadcastCap?: SortOrder
+    dailyAutomationCap?: SortOrder
+    maxBroadcastRecipients?: SortOrder
+    dispatchPaused?: SortOrder
+    pausedReason?: SortOrderInput | SortOrder
+    pausedAt?: SortOrderInput | SortOrder
+    pausedBy?: SortOrderInput | SortOrder
+    updatedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MarketingBrandSettingsCountOrderByAggregateInput
+    _avg?: MarketingBrandSettingsAvgOrderByAggregateInput
+    _max?: MarketingBrandSettingsMaxOrderByAggregateInput
+    _min?: MarketingBrandSettingsMinOrderByAggregateInput
+    _sum?: MarketingBrandSettingsSumOrderByAggregateInput
+  }
+
+  export type MarketingBrandSettingsScalarWhereWithAggregatesInput = {
+    AND?: MarketingBrandSettingsScalarWhereWithAggregatesInput | MarketingBrandSettingsScalarWhereWithAggregatesInput[]
+    OR?: MarketingBrandSettingsScalarWhereWithAggregatesInput[]
+    NOT?: MarketingBrandSettingsScalarWhereWithAggregatesInput | MarketingBrandSettingsScalarWhereWithAggregatesInput[]
+    organizationId?: UuidWithAggregatesFilter<"MarketingBrandSettings"> | string
+    confirmationSenderId?: UuidNullableWithAggregatesFilter<"MarketingBrandSettings"> | string | null
+    defaultTimeZone?: StringWithAggregatesFilter<"MarketingBrandSettings"> | string
+    postalAddress?: StringNullableWithAggregatesFilter<"MarketingBrandSettings"> | string | null
+    dailyBroadcastCap?: IntWithAggregatesFilter<"MarketingBrandSettings"> | number
+    dailyAutomationCap?: IntWithAggregatesFilter<"MarketingBrandSettings"> | number
+    maxBroadcastRecipients?: IntWithAggregatesFilter<"MarketingBrandSettings"> | number
+    dispatchPaused?: BoolWithAggregatesFilter<"MarketingBrandSettings"> | boolean
+    pausedReason?: StringNullableWithAggregatesFilter<"MarketingBrandSettings"> | string | null
+    pausedAt?: DateTimeNullableWithAggregatesFilter<"MarketingBrandSettings"> | Date | string | null
+    pausedBy?: StringNullableWithAggregatesFilter<"MarketingBrandSettings"> | string | null
+    updatedBy?: StringNullableWithAggregatesFilter<"MarketingBrandSettings"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"MarketingBrandSettings"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MarketingBrandSettings"> | Date | string
+  }
+
+  export type MarketingCampaignApprovedContactWhereInput = {
+    AND?: MarketingCampaignApprovedContactWhereInput | MarketingCampaignApprovedContactWhereInput[]
+    OR?: MarketingCampaignApprovedContactWhereInput[]
+    NOT?: MarketingCampaignApprovedContactWhereInput | MarketingCampaignApprovedContactWhereInput[]
+    snapshotId?: UuidFilter<"MarketingCampaignApprovedContact"> | string
+    contactId?: UuidFilter<"MarketingCampaignApprovedContact"> | string
+    createdAt?: DateTimeFilter<"MarketingCampaignApprovedContact"> | Date | string
+    snapshot?: XOR<MarketingCampaignSnapshotScalarRelationFilter, MarketingCampaignSnapshotWhereInput>
+  }
+
+  export type MarketingCampaignApprovedContactOrderByWithRelationInput = {
+    snapshotId?: SortOrder
+    contactId?: SortOrder
+    createdAt?: SortOrder
+    snapshot?: MarketingCampaignSnapshotOrderByWithRelationInput
+  }
+
+  export type MarketingCampaignApprovedContactWhereUniqueInput = Prisma.AtLeast<{
+    snapshotId_contactId?: MarketingCampaignApprovedContactSnapshotIdContactIdCompoundUniqueInput
+    AND?: MarketingCampaignApprovedContactWhereInput | MarketingCampaignApprovedContactWhereInput[]
+    OR?: MarketingCampaignApprovedContactWhereInput[]
+    NOT?: MarketingCampaignApprovedContactWhereInput | MarketingCampaignApprovedContactWhereInput[]
+    snapshotId?: UuidFilter<"MarketingCampaignApprovedContact"> | string
+    contactId?: UuidFilter<"MarketingCampaignApprovedContact"> | string
+    createdAt?: DateTimeFilter<"MarketingCampaignApprovedContact"> | Date | string
+    snapshot?: XOR<MarketingCampaignSnapshotScalarRelationFilter, MarketingCampaignSnapshotWhereInput>
+  }, "snapshotId_contactId">
+
+  export type MarketingCampaignApprovedContactOrderByWithAggregationInput = {
+    snapshotId?: SortOrder
+    contactId?: SortOrder
+    createdAt?: SortOrder
+    _count?: MarketingCampaignApprovedContactCountOrderByAggregateInput
+    _max?: MarketingCampaignApprovedContactMaxOrderByAggregateInput
+    _min?: MarketingCampaignApprovedContactMinOrderByAggregateInput
+  }
+
+  export type MarketingCampaignApprovedContactScalarWhereWithAggregatesInput = {
+    AND?: MarketingCampaignApprovedContactScalarWhereWithAggregatesInput | MarketingCampaignApprovedContactScalarWhereWithAggregatesInput[]
+    OR?: MarketingCampaignApprovedContactScalarWhereWithAggregatesInput[]
+    NOT?: MarketingCampaignApprovedContactScalarWhereWithAggregatesInput | MarketingCampaignApprovedContactScalarWhereWithAggregatesInput[]
+    snapshotId?: UuidWithAggregatesFilter<"MarketingCampaignApprovedContact"> | string
+    contactId?: UuidWithAggregatesFilter<"MarketingCampaignApprovedContact"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"MarketingCampaignApprovedContact"> | Date | string
+  }
+
+  export type MarketingBroadcastDispatchWhereInput = {
+    AND?: MarketingBroadcastDispatchWhereInput | MarketingBroadcastDispatchWhereInput[]
+    OR?: MarketingBroadcastDispatchWhereInput[]
+    NOT?: MarketingBroadcastDispatchWhereInput | MarketingBroadcastDispatchWhereInput[]
+    id?: UuidFilter<"MarketingBroadcastDispatch"> | string
+    campaignId?: UuidFilter<"MarketingBroadcastDispatch"> | string
+    organizationId?: UuidFilter<"MarketingBroadcastDispatch"> | string
+    approvalSnapshotId?: UuidFilter<"MarketingBroadcastDispatch"> | string
+    status?: EnumMarketingBroadcastStatusFilter<"MarketingBroadcastDispatch"> | $Enums.MarketingBroadcastStatus
+    scheduledFor?: DateTimeFilter<"MarketingBroadcastDispatch"> | Date | string
+    timeZone?: StringFilter<"MarketingBroadcastDispatch"> | string
+    localSendTime?: StringNullableFilter<"MarketingBroadcastDispatch"> | string | null
+    provider?: StringFilter<"MarketingBroadcastDispatch"> | string
+    providerSegmentId?: StringNullableFilter<"MarketingBroadcastDispatch"> | string | null
+    providerBroadcastId?: StringNullableFilter<"MarketingBroadcastDispatch"> | string | null
+    providerStatus?: StringNullableFilter<"MarketingBroadcastDispatch"> | string | null
+    providerCreateAttemptAt?: DateTimeNullableFilter<"MarketingBroadcastDispatch"> | Date | string | null
+    providerSendAttemptAt?: DateTimeNullableFilter<"MarketingBroadcastDispatch"> | Date | string | null
+    providerSentAt?: DateTimeNullableFilter<"MarketingBroadcastDispatch"> | Date | string | null
+    recipientCount?: IntFilter<"MarketingBroadcastDispatch"> | number
+    excludedCount?: IntFilter<"MarketingBroadcastDispatch"> | number
+    eligibilitySha256?: StringNullableFilter<"MarketingBroadcastDispatch"> | string | null
+    contentSha256?: StringFilter<"MarketingBroadcastDispatch"> | string
+    scheduledByAdminUserId?: StringFilter<"MarketingBroadcastDispatch"> | string
+    cancelRequestedAt?: DateTimeNullableFilter<"MarketingBroadcastDispatch"> | Date | string | null
+    cancelRequestedBy?: StringNullableFilter<"MarketingBroadcastDispatch"> | string | null
+    pausedAt?: DateTimeNullableFilter<"MarketingBroadcastDispatch"> | Date | string | null
+    pausedBy?: StringNullableFilter<"MarketingBroadcastDispatch"> | string | null
+    lastErrorCode?: StringNullableFilter<"MarketingBroadcastDispatch"> | string | null
+    lastErrorMessage?: StringNullableFilter<"MarketingBroadcastDispatch"> | string | null
+    completedAt?: DateTimeNullableFilter<"MarketingBroadcastDispatch"> | Date | string | null
+    revision?: IntFilter<"MarketingBroadcastDispatch"> | number
+    createdAt?: DateTimeFilter<"MarketingBroadcastDispatch"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingBroadcastDispatch"> | Date | string
+    campaign?: XOR<MarketingEmailCampaignScalarRelationFilter, MarketingEmailCampaignWhereInput>
+    recipients?: MarketingBroadcastRecipientListRelationFilter
+  }
+
+  export type MarketingBroadcastDispatchOrderByWithRelationInput = {
+    id?: SortOrder
+    campaignId?: SortOrder
+    organizationId?: SortOrder
+    approvalSnapshotId?: SortOrder
+    status?: SortOrder
+    scheduledFor?: SortOrder
+    timeZone?: SortOrder
+    localSendTime?: SortOrderInput | SortOrder
+    provider?: SortOrder
+    providerSegmentId?: SortOrderInput | SortOrder
+    providerBroadcastId?: SortOrderInput | SortOrder
+    providerStatus?: SortOrderInput | SortOrder
+    providerCreateAttemptAt?: SortOrderInput | SortOrder
+    providerSendAttemptAt?: SortOrderInput | SortOrder
+    providerSentAt?: SortOrderInput | SortOrder
+    recipientCount?: SortOrder
+    excludedCount?: SortOrder
+    eligibilitySha256?: SortOrderInput | SortOrder
+    contentSha256?: SortOrder
+    scheduledByAdminUserId?: SortOrder
+    cancelRequestedAt?: SortOrderInput | SortOrder
+    cancelRequestedBy?: SortOrderInput | SortOrder
+    pausedAt?: SortOrderInput | SortOrder
+    pausedBy?: SortOrderInput | SortOrder
+    lastErrorCode?: SortOrderInput | SortOrder
+    lastErrorMessage?: SortOrderInput | SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    revision?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    campaign?: MarketingEmailCampaignOrderByWithRelationInput
+    recipients?: MarketingBroadcastRecipientOrderByRelationAggregateInput
+  }
+
+  export type MarketingBroadcastDispatchWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    campaignId?: string
+    AND?: MarketingBroadcastDispatchWhereInput | MarketingBroadcastDispatchWhereInput[]
+    OR?: MarketingBroadcastDispatchWhereInput[]
+    NOT?: MarketingBroadcastDispatchWhereInput | MarketingBroadcastDispatchWhereInput[]
+    organizationId?: UuidFilter<"MarketingBroadcastDispatch"> | string
+    approvalSnapshotId?: UuidFilter<"MarketingBroadcastDispatch"> | string
+    status?: EnumMarketingBroadcastStatusFilter<"MarketingBroadcastDispatch"> | $Enums.MarketingBroadcastStatus
+    scheduledFor?: DateTimeFilter<"MarketingBroadcastDispatch"> | Date | string
+    timeZone?: StringFilter<"MarketingBroadcastDispatch"> | string
+    localSendTime?: StringNullableFilter<"MarketingBroadcastDispatch"> | string | null
+    provider?: StringFilter<"MarketingBroadcastDispatch"> | string
+    providerSegmentId?: StringNullableFilter<"MarketingBroadcastDispatch"> | string | null
+    providerBroadcastId?: StringNullableFilter<"MarketingBroadcastDispatch"> | string | null
+    providerStatus?: StringNullableFilter<"MarketingBroadcastDispatch"> | string | null
+    providerCreateAttemptAt?: DateTimeNullableFilter<"MarketingBroadcastDispatch"> | Date | string | null
+    providerSendAttemptAt?: DateTimeNullableFilter<"MarketingBroadcastDispatch"> | Date | string | null
+    providerSentAt?: DateTimeNullableFilter<"MarketingBroadcastDispatch"> | Date | string | null
+    recipientCount?: IntFilter<"MarketingBroadcastDispatch"> | number
+    excludedCount?: IntFilter<"MarketingBroadcastDispatch"> | number
+    eligibilitySha256?: StringNullableFilter<"MarketingBroadcastDispatch"> | string | null
+    contentSha256?: StringFilter<"MarketingBroadcastDispatch"> | string
+    scheduledByAdminUserId?: StringFilter<"MarketingBroadcastDispatch"> | string
+    cancelRequestedAt?: DateTimeNullableFilter<"MarketingBroadcastDispatch"> | Date | string | null
+    cancelRequestedBy?: StringNullableFilter<"MarketingBroadcastDispatch"> | string | null
+    pausedAt?: DateTimeNullableFilter<"MarketingBroadcastDispatch"> | Date | string | null
+    pausedBy?: StringNullableFilter<"MarketingBroadcastDispatch"> | string | null
+    lastErrorCode?: StringNullableFilter<"MarketingBroadcastDispatch"> | string | null
+    lastErrorMessage?: StringNullableFilter<"MarketingBroadcastDispatch"> | string | null
+    completedAt?: DateTimeNullableFilter<"MarketingBroadcastDispatch"> | Date | string | null
+    revision?: IntFilter<"MarketingBroadcastDispatch"> | number
+    createdAt?: DateTimeFilter<"MarketingBroadcastDispatch"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingBroadcastDispatch"> | Date | string
+    campaign?: XOR<MarketingEmailCampaignScalarRelationFilter, MarketingEmailCampaignWhereInput>
+    recipients?: MarketingBroadcastRecipientListRelationFilter
+  }, "id" | "campaignId">
+
+  export type MarketingBroadcastDispatchOrderByWithAggregationInput = {
+    id?: SortOrder
+    campaignId?: SortOrder
+    organizationId?: SortOrder
+    approvalSnapshotId?: SortOrder
+    status?: SortOrder
+    scheduledFor?: SortOrder
+    timeZone?: SortOrder
+    localSendTime?: SortOrderInput | SortOrder
+    provider?: SortOrder
+    providerSegmentId?: SortOrderInput | SortOrder
+    providerBroadcastId?: SortOrderInput | SortOrder
+    providerStatus?: SortOrderInput | SortOrder
+    providerCreateAttemptAt?: SortOrderInput | SortOrder
+    providerSendAttemptAt?: SortOrderInput | SortOrder
+    providerSentAt?: SortOrderInput | SortOrder
+    recipientCount?: SortOrder
+    excludedCount?: SortOrder
+    eligibilitySha256?: SortOrderInput | SortOrder
+    contentSha256?: SortOrder
+    scheduledByAdminUserId?: SortOrder
+    cancelRequestedAt?: SortOrderInput | SortOrder
+    cancelRequestedBy?: SortOrderInput | SortOrder
+    pausedAt?: SortOrderInput | SortOrder
+    pausedBy?: SortOrderInput | SortOrder
+    lastErrorCode?: SortOrderInput | SortOrder
+    lastErrorMessage?: SortOrderInput | SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    revision?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MarketingBroadcastDispatchCountOrderByAggregateInput
+    _avg?: MarketingBroadcastDispatchAvgOrderByAggregateInput
+    _max?: MarketingBroadcastDispatchMaxOrderByAggregateInput
+    _min?: MarketingBroadcastDispatchMinOrderByAggregateInput
+    _sum?: MarketingBroadcastDispatchSumOrderByAggregateInput
+  }
+
+  export type MarketingBroadcastDispatchScalarWhereWithAggregatesInput = {
+    AND?: MarketingBroadcastDispatchScalarWhereWithAggregatesInput | MarketingBroadcastDispatchScalarWhereWithAggregatesInput[]
+    OR?: MarketingBroadcastDispatchScalarWhereWithAggregatesInput[]
+    NOT?: MarketingBroadcastDispatchScalarWhereWithAggregatesInput | MarketingBroadcastDispatchScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MarketingBroadcastDispatch"> | string
+    campaignId?: UuidWithAggregatesFilter<"MarketingBroadcastDispatch"> | string
+    organizationId?: UuidWithAggregatesFilter<"MarketingBroadcastDispatch"> | string
+    approvalSnapshotId?: UuidWithAggregatesFilter<"MarketingBroadcastDispatch"> | string
+    status?: EnumMarketingBroadcastStatusWithAggregatesFilter<"MarketingBroadcastDispatch"> | $Enums.MarketingBroadcastStatus
+    scheduledFor?: DateTimeWithAggregatesFilter<"MarketingBroadcastDispatch"> | Date | string
+    timeZone?: StringWithAggregatesFilter<"MarketingBroadcastDispatch"> | string
+    localSendTime?: StringNullableWithAggregatesFilter<"MarketingBroadcastDispatch"> | string | null
+    provider?: StringWithAggregatesFilter<"MarketingBroadcastDispatch"> | string
+    providerSegmentId?: StringNullableWithAggregatesFilter<"MarketingBroadcastDispatch"> | string | null
+    providerBroadcastId?: StringNullableWithAggregatesFilter<"MarketingBroadcastDispatch"> | string | null
+    providerStatus?: StringNullableWithAggregatesFilter<"MarketingBroadcastDispatch"> | string | null
+    providerCreateAttemptAt?: DateTimeNullableWithAggregatesFilter<"MarketingBroadcastDispatch"> | Date | string | null
+    providerSendAttemptAt?: DateTimeNullableWithAggregatesFilter<"MarketingBroadcastDispatch"> | Date | string | null
+    providerSentAt?: DateTimeNullableWithAggregatesFilter<"MarketingBroadcastDispatch"> | Date | string | null
+    recipientCount?: IntWithAggregatesFilter<"MarketingBroadcastDispatch"> | number
+    excludedCount?: IntWithAggregatesFilter<"MarketingBroadcastDispatch"> | number
+    eligibilitySha256?: StringNullableWithAggregatesFilter<"MarketingBroadcastDispatch"> | string | null
+    contentSha256?: StringWithAggregatesFilter<"MarketingBroadcastDispatch"> | string
+    scheduledByAdminUserId?: StringWithAggregatesFilter<"MarketingBroadcastDispatch"> | string
+    cancelRequestedAt?: DateTimeNullableWithAggregatesFilter<"MarketingBroadcastDispatch"> | Date | string | null
+    cancelRequestedBy?: StringNullableWithAggregatesFilter<"MarketingBroadcastDispatch"> | string | null
+    pausedAt?: DateTimeNullableWithAggregatesFilter<"MarketingBroadcastDispatch"> | Date | string | null
+    pausedBy?: StringNullableWithAggregatesFilter<"MarketingBroadcastDispatch"> | string | null
+    lastErrorCode?: StringNullableWithAggregatesFilter<"MarketingBroadcastDispatch"> | string | null
+    lastErrorMessage?: StringNullableWithAggregatesFilter<"MarketingBroadcastDispatch"> | string | null
+    completedAt?: DateTimeNullableWithAggregatesFilter<"MarketingBroadcastDispatch"> | Date | string | null
+    revision?: IntWithAggregatesFilter<"MarketingBroadcastDispatch"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"MarketingBroadcastDispatch"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MarketingBroadcastDispatch"> | Date | string
+  }
+
+  export type MarketingBroadcastRecipientWhereInput = {
+    AND?: MarketingBroadcastRecipientWhereInput | MarketingBroadcastRecipientWhereInput[]
+    OR?: MarketingBroadcastRecipientWhereInput[]
+    NOT?: MarketingBroadcastRecipientWhereInput | MarketingBroadcastRecipientWhereInput[]
+    id?: UuidFilter<"MarketingBroadcastRecipient"> | string
+    dispatchId?: UuidFilter<"MarketingBroadcastRecipient"> | string
+    organizationId?: UuidFilter<"MarketingBroadcastRecipient"> | string
+    contactId?: UuidFilter<"MarketingBroadcastRecipient"> | string
+    email?: StringFilter<"MarketingBroadcastRecipient"> | string
+    status?: EnumMarketingBroadcastRecipientStatusFilter<"MarketingBroadcastRecipient"> | $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: StringNullableFilter<"MarketingBroadcastRecipient"> | string | null
+    providerContactId?: StringNullableFilter<"MarketingBroadcastRecipient"> | string | null
+    providerEmailId?: StringNullableFilter<"MarketingBroadcastRecipient"> | string | null
+    syncedAt?: DateTimeNullableFilter<"MarketingBroadcastRecipient"> | Date | string | null
+    acceptedAt?: DateTimeNullableFilter<"MarketingBroadcastRecipient"> | Date | string | null
+    lastEventType?: StringNullableFilter<"MarketingBroadcastRecipient"> | string | null
+    lastEventAt?: DateTimeNullableFilter<"MarketingBroadcastRecipient"> | Date | string | null
+    openedAt?: DateTimeNullableFilter<"MarketingBroadcastRecipient"> | Date | string | null
+    clickedAt?: DateTimeNullableFilter<"MarketingBroadcastRecipient"> | Date | string | null
+    createdAt?: DateTimeFilter<"MarketingBroadcastRecipient"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingBroadcastRecipient"> | Date | string
+    dispatch?: XOR<MarketingBroadcastDispatchScalarRelationFilter, MarketingBroadcastDispatchWhereInput>
+    contact?: XOR<MarketingContactScalarRelationFilter, MarketingContactWhereInput>
+  }
+
+  export type MarketingBroadcastRecipientOrderByWithRelationInput = {
+    id?: SortOrder
+    dispatchId?: SortOrder
+    organizationId?: SortOrder
+    contactId?: SortOrder
+    email?: SortOrder
+    status?: SortOrder
+    exclusionReason?: SortOrderInput | SortOrder
+    providerContactId?: SortOrderInput | SortOrder
+    providerEmailId?: SortOrderInput | SortOrder
+    syncedAt?: SortOrderInput | SortOrder
+    acceptedAt?: SortOrderInput | SortOrder
+    lastEventType?: SortOrderInput | SortOrder
+    lastEventAt?: SortOrderInput | SortOrder
+    openedAt?: SortOrderInput | SortOrder
+    clickedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    dispatch?: MarketingBroadcastDispatchOrderByWithRelationInput
+    contact?: MarketingContactOrderByWithRelationInput
+  }
+
+  export type MarketingBroadcastRecipientWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    dispatchId_contactId?: MarketingBroadcastRecipientDispatchIdContactIdCompoundUniqueInput
+    AND?: MarketingBroadcastRecipientWhereInput | MarketingBroadcastRecipientWhereInput[]
+    OR?: MarketingBroadcastRecipientWhereInput[]
+    NOT?: MarketingBroadcastRecipientWhereInput | MarketingBroadcastRecipientWhereInput[]
+    dispatchId?: UuidFilter<"MarketingBroadcastRecipient"> | string
+    organizationId?: UuidFilter<"MarketingBroadcastRecipient"> | string
+    contactId?: UuidFilter<"MarketingBroadcastRecipient"> | string
+    email?: StringFilter<"MarketingBroadcastRecipient"> | string
+    status?: EnumMarketingBroadcastRecipientStatusFilter<"MarketingBroadcastRecipient"> | $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: StringNullableFilter<"MarketingBroadcastRecipient"> | string | null
+    providerContactId?: StringNullableFilter<"MarketingBroadcastRecipient"> | string | null
+    providerEmailId?: StringNullableFilter<"MarketingBroadcastRecipient"> | string | null
+    syncedAt?: DateTimeNullableFilter<"MarketingBroadcastRecipient"> | Date | string | null
+    acceptedAt?: DateTimeNullableFilter<"MarketingBroadcastRecipient"> | Date | string | null
+    lastEventType?: StringNullableFilter<"MarketingBroadcastRecipient"> | string | null
+    lastEventAt?: DateTimeNullableFilter<"MarketingBroadcastRecipient"> | Date | string | null
+    openedAt?: DateTimeNullableFilter<"MarketingBroadcastRecipient"> | Date | string | null
+    clickedAt?: DateTimeNullableFilter<"MarketingBroadcastRecipient"> | Date | string | null
+    createdAt?: DateTimeFilter<"MarketingBroadcastRecipient"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingBroadcastRecipient"> | Date | string
+    dispatch?: XOR<MarketingBroadcastDispatchScalarRelationFilter, MarketingBroadcastDispatchWhereInput>
+    contact?: XOR<MarketingContactScalarRelationFilter, MarketingContactWhereInput>
+  }, "id" | "dispatchId_contactId">
+
+  export type MarketingBroadcastRecipientOrderByWithAggregationInput = {
+    id?: SortOrder
+    dispatchId?: SortOrder
+    organizationId?: SortOrder
+    contactId?: SortOrder
+    email?: SortOrder
+    status?: SortOrder
+    exclusionReason?: SortOrderInput | SortOrder
+    providerContactId?: SortOrderInput | SortOrder
+    providerEmailId?: SortOrderInput | SortOrder
+    syncedAt?: SortOrderInput | SortOrder
+    acceptedAt?: SortOrderInput | SortOrder
+    lastEventType?: SortOrderInput | SortOrder
+    lastEventAt?: SortOrderInput | SortOrder
+    openedAt?: SortOrderInput | SortOrder
+    clickedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MarketingBroadcastRecipientCountOrderByAggregateInput
+    _max?: MarketingBroadcastRecipientMaxOrderByAggregateInput
+    _min?: MarketingBroadcastRecipientMinOrderByAggregateInput
+  }
+
+  export type MarketingBroadcastRecipientScalarWhereWithAggregatesInput = {
+    AND?: MarketingBroadcastRecipientScalarWhereWithAggregatesInput | MarketingBroadcastRecipientScalarWhereWithAggregatesInput[]
+    OR?: MarketingBroadcastRecipientScalarWhereWithAggregatesInput[]
+    NOT?: MarketingBroadcastRecipientScalarWhereWithAggregatesInput | MarketingBroadcastRecipientScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MarketingBroadcastRecipient"> | string
+    dispatchId?: UuidWithAggregatesFilter<"MarketingBroadcastRecipient"> | string
+    organizationId?: UuidWithAggregatesFilter<"MarketingBroadcastRecipient"> | string
+    contactId?: UuidWithAggregatesFilter<"MarketingBroadcastRecipient"> | string
+    email?: StringWithAggregatesFilter<"MarketingBroadcastRecipient"> | string
+    status?: EnumMarketingBroadcastRecipientStatusWithAggregatesFilter<"MarketingBroadcastRecipient"> | $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: StringNullableWithAggregatesFilter<"MarketingBroadcastRecipient"> | string | null
+    providerContactId?: StringNullableWithAggregatesFilter<"MarketingBroadcastRecipient"> | string | null
+    providerEmailId?: StringNullableWithAggregatesFilter<"MarketingBroadcastRecipient"> | string | null
+    syncedAt?: DateTimeNullableWithAggregatesFilter<"MarketingBroadcastRecipient"> | Date | string | null
+    acceptedAt?: DateTimeNullableWithAggregatesFilter<"MarketingBroadcastRecipient"> | Date | string | null
+    lastEventType?: StringNullableWithAggregatesFilter<"MarketingBroadcastRecipient"> | string | null
+    lastEventAt?: DateTimeNullableWithAggregatesFilter<"MarketingBroadcastRecipient"> | Date | string | null
+    openedAt?: DateTimeNullableWithAggregatesFilter<"MarketingBroadcastRecipient"> | Date | string | null
+    clickedAt?: DateTimeNullableWithAggregatesFilter<"MarketingBroadcastRecipient"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"MarketingBroadcastRecipient"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MarketingBroadcastRecipient"> | Date | string
+  }
+
+  export type MarketingAutomationWhereInput = {
+    AND?: MarketingAutomationWhereInput | MarketingAutomationWhereInput[]
+    OR?: MarketingAutomationWhereInput[]
+    NOT?: MarketingAutomationWhereInput | MarketingAutomationWhereInput[]
+    id?: UuidFilter<"MarketingAutomation"> | string
+    organizationId?: UuidFilter<"MarketingAutomation"> | string
+    name?: StringFilter<"MarketingAutomation"> | string
+    description?: StringNullableFilter<"MarketingAutomation"> | string | null
+    status?: EnumMarketingAutomationStatusFilter<"MarketingAutomation"> | $Enums.MarketingAutomationStatus
+    triggerType?: StringFilter<"MarketingAutomation"> | string
+    activeVersionId?: UuidNullableFilter<"MarketingAutomation"> | string | null
+    enrollmentLimit?: IntFilter<"MarketingAutomation"> | number
+    maxActiveEnrollments?: IntFilter<"MarketingAutomation"> | number
+    frequencyCapHours?: IntFilter<"MarketingAutomation"> | number
+    createdByAdminUserId?: StringFilter<"MarketingAutomation"> | string
+    updatedByAdminUserId?: StringFilter<"MarketingAutomation"> | string
+    revision?: IntFilter<"MarketingAutomation"> | number
+    lastScheduledRunAt?: DateTimeNullableFilter<"MarketingAutomation"> | Date | string | null
+    activatedAt?: DateTimeNullableFilter<"MarketingAutomation"> | Date | string | null
+    createdAt?: DateTimeFilter<"MarketingAutomation"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingAutomation"> | Date | string
+    organization?: XOR<MailOrganizationScalarRelationFilter, MailOrganizationWhereInput>
+    versions?: MarketingAutomationVersionListRelationFilter
+    enrollments?: MarketingAutomationEnrollmentListRelationFilter
+  }
+
+  export type MarketingAutomationOrderByWithRelationInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    status?: SortOrder
+    triggerType?: SortOrder
+    activeVersionId?: SortOrderInput | SortOrder
+    enrollmentLimit?: SortOrder
+    maxActiveEnrollments?: SortOrder
+    frequencyCapHours?: SortOrder
+    createdByAdminUserId?: SortOrder
+    updatedByAdminUserId?: SortOrder
+    revision?: SortOrder
+    lastScheduledRunAt?: SortOrderInput | SortOrder
+    activatedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    organization?: MailOrganizationOrderByWithRelationInput
+    versions?: MarketingAutomationVersionOrderByRelationAggregateInput
+    enrollments?: MarketingAutomationEnrollmentOrderByRelationAggregateInput
+  }
+
+  export type MarketingAutomationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    organizationId_name?: MarketingAutomationOrganizationIdNameCompoundUniqueInput
+    AND?: MarketingAutomationWhereInput | MarketingAutomationWhereInput[]
+    OR?: MarketingAutomationWhereInput[]
+    NOT?: MarketingAutomationWhereInput | MarketingAutomationWhereInput[]
+    organizationId?: UuidFilter<"MarketingAutomation"> | string
+    name?: StringFilter<"MarketingAutomation"> | string
+    description?: StringNullableFilter<"MarketingAutomation"> | string | null
+    status?: EnumMarketingAutomationStatusFilter<"MarketingAutomation"> | $Enums.MarketingAutomationStatus
+    triggerType?: StringFilter<"MarketingAutomation"> | string
+    activeVersionId?: UuidNullableFilter<"MarketingAutomation"> | string | null
+    enrollmentLimit?: IntFilter<"MarketingAutomation"> | number
+    maxActiveEnrollments?: IntFilter<"MarketingAutomation"> | number
+    frequencyCapHours?: IntFilter<"MarketingAutomation"> | number
+    createdByAdminUserId?: StringFilter<"MarketingAutomation"> | string
+    updatedByAdminUserId?: StringFilter<"MarketingAutomation"> | string
+    revision?: IntFilter<"MarketingAutomation"> | number
+    lastScheduledRunAt?: DateTimeNullableFilter<"MarketingAutomation"> | Date | string | null
+    activatedAt?: DateTimeNullableFilter<"MarketingAutomation"> | Date | string | null
+    createdAt?: DateTimeFilter<"MarketingAutomation"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingAutomation"> | Date | string
+    organization?: XOR<MailOrganizationScalarRelationFilter, MailOrganizationWhereInput>
+    versions?: MarketingAutomationVersionListRelationFilter
+    enrollments?: MarketingAutomationEnrollmentListRelationFilter
+  }, "id" | "organizationId_name">
+
+  export type MarketingAutomationOrderByWithAggregationInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    status?: SortOrder
+    triggerType?: SortOrder
+    activeVersionId?: SortOrderInput | SortOrder
+    enrollmentLimit?: SortOrder
+    maxActiveEnrollments?: SortOrder
+    frequencyCapHours?: SortOrder
+    createdByAdminUserId?: SortOrder
+    updatedByAdminUserId?: SortOrder
+    revision?: SortOrder
+    lastScheduledRunAt?: SortOrderInput | SortOrder
+    activatedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MarketingAutomationCountOrderByAggregateInput
+    _avg?: MarketingAutomationAvgOrderByAggregateInput
+    _max?: MarketingAutomationMaxOrderByAggregateInput
+    _min?: MarketingAutomationMinOrderByAggregateInput
+    _sum?: MarketingAutomationSumOrderByAggregateInput
+  }
+
+  export type MarketingAutomationScalarWhereWithAggregatesInput = {
+    AND?: MarketingAutomationScalarWhereWithAggregatesInput | MarketingAutomationScalarWhereWithAggregatesInput[]
+    OR?: MarketingAutomationScalarWhereWithAggregatesInput[]
+    NOT?: MarketingAutomationScalarWhereWithAggregatesInput | MarketingAutomationScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MarketingAutomation"> | string
+    organizationId?: UuidWithAggregatesFilter<"MarketingAutomation"> | string
+    name?: StringWithAggregatesFilter<"MarketingAutomation"> | string
+    description?: StringNullableWithAggregatesFilter<"MarketingAutomation"> | string | null
+    status?: EnumMarketingAutomationStatusWithAggregatesFilter<"MarketingAutomation"> | $Enums.MarketingAutomationStatus
+    triggerType?: StringWithAggregatesFilter<"MarketingAutomation"> | string
+    activeVersionId?: UuidNullableWithAggregatesFilter<"MarketingAutomation"> | string | null
+    enrollmentLimit?: IntWithAggregatesFilter<"MarketingAutomation"> | number
+    maxActiveEnrollments?: IntWithAggregatesFilter<"MarketingAutomation"> | number
+    frequencyCapHours?: IntWithAggregatesFilter<"MarketingAutomation"> | number
+    createdByAdminUserId?: StringWithAggregatesFilter<"MarketingAutomation"> | string
+    updatedByAdminUserId?: StringWithAggregatesFilter<"MarketingAutomation"> | string
+    revision?: IntWithAggregatesFilter<"MarketingAutomation"> | number
+    lastScheduledRunAt?: DateTimeNullableWithAggregatesFilter<"MarketingAutomation"> | Date | string | null
+    activatedAt?: DateTimeNullableWithAggregatesFilter<"MarketingAutomation"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"MarketingAutomation"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MarketingAutomation"> | Date | string
+  }
+
+  export type MarketingAutomationVersionWhereInput = {
+    AND?: MarketingAutomationVersionWhereInput | MarketingAutomationVersionWhereInput[]
+    OR?: MarketingAutomationVersionWhereInput[]
+    NOT?: MarketingAutomationVersionWhereInput | MarketingAutomationVersionWhereInput[]
+    id?: UuidFilter<"MarketingAutomationVersion"> | string
+    automationId?: UuidFilter<"MarketingAutomationVersion"> | string
+    version?: IntFilter<"MarketingAutomationVersion"> | number
+    status?: EnumMarketingAutomationVersionStatusFilter<"MarketingAutomationVersion"> | $Enums.MarketingAutomationVersionStatus
+    definition?: JsonFilter<"MarketingAutomationVersion">
+    triggerConfig?: JsonFilter<"MarketingAutomationVersion">
+    definitionSha256?: StringFilter<"MarketingAutomationVersion"> | string
+    createdByAdminUserId?: StringFilter<"MarketingAutomationVersion"> | string
+    submittedByAdminUserId?: StringNullableFilter<"MarketingAutomationVersion"> | string | null
+    submittedAt?: DateTimeNullableFilter<"MarketingAutomationVersion"> | Date | string | null
+    reviewedByAdminUserId?: StringNullableFilter<"MarketingAutomationVersion"> | string | null
+    reviewedAt?: DateTimeNullableFilter<"MarketingAutomationVersion"> | Date | string | null
+    reviewComment?: StringNullableFilter<"MarketingAutomationVersion"> | string | null
+    stepUpId?: UuidNullableFilter<"MarketingAutomationVersion"> | string | null
+    publishedAt?: DateTimeNullableFilter<"MarketingAutomationVersion"> | Date | string | null
+    createdAt?: DateTimeFilter<"MarketingAutomationVersion"> | Date | string
+    automation?: XOR<MarketingAutomationScalarRelationFilter, MarketingAutomationWhereInput>
+    enrollments?: MarketingAutomationEnrollmentListRelationFilter
+  }
+
+  export type MarketingAutomationVersionOrderByWithRelationInput = {
+    id?: SortOrder
+    automationId?: SortOrder
+    version?: SortOrder
+    status?: SortOrder
+    definition?: SortOrder
+    triggerConfig?: SortOrder
+    definitionSha256?: SortOrder
+    createdByAdminUserId?: SortOrder
+    submittedByAdminUserId?: SortOrderInput | SortOrder
+    submittedAt?: SortOrderInput | SortOrder
+    reviewedByAdminUserId?: SortOrderInput | SortOrder
+    reviewedAt?: SortOrderInput | SortOrder
+    reviewComment?: SortOrderInput | SortOrder
+    stepUpId?: SortOrderInput | SortOrder
+    publishedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    automation?: MarketingAutomationOrderByWithRelationInput
+    enrollments?: MarketingAutomationEnrollmentOrderByRelationAggregateInput
+  }
+
+  export type MarketingAutomationVersionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    automationId_version?: MarketingAutomationVersionAutomationIdVersionCompoundUniqueInput
+    AND?: MarketingAutomationVersionWhereInput | MarketingAutomationVersionWhereInput[]
+    OR?: MarketingAutomationVersionWhereInput[]
+    NOT?: MarketingAutomationVersionWhereInput | MarketingAutomationVersionWhereInput[]
+    automationId?: UuidFilter<"MarketingAutomationVersion"> | string
+    version?: IntFilter<"MarketingAutomationVersion"> | number
+    status?: EnumMarketingAutomationVersionStatusFilter<"MarketingAutomationVersion"> | $Enums.MarketingAutomationVersionStatus
+    definition?: JsonFilter<"MarketingAutomationVersion">
+    triggerConfig?: JsonFilter<"MarketingAutomationVersion">
+    definitionSha256?: StringFilter<"MarketingAutomationVersion"> | string
+    createdByAdminUserId?: StringFilter<"MarketingAutomationVersion"> | string
+    submittedByAdminUserId?: StringNullableFilter<"MarketingAutomationVersion"> | string | null
+    submittedAt?: DateTimeNullableFilter<"MarketingAutomationVersion"> | Date | string | null
+    reviewedByAdminUserId?: StringNullableFilter<"MarketingAutomationVersion"> | string | null
+    reviewedAt?: DateTimeNullableFilter<"MarketingAutomationVersion"> | Date | string | null
+    reviewComment?: StringNullableFilter<"MarketingAutomationVersion"> | string | null
+    stepUpId?: UuidNullableFilter<"MarketingAutomationVersion"> | string | null
+    publishedAt?: DateTimeNullableFilter<"MarketingAutomationVersion"> | Date | string | null
+    createdAt?: DateTimeFilter<"MarketingAutomationVersion"> | Date | string
+    automation?: XOR<MarketingAutomationScalarRelationFilter, MarketingAutomationWhereInput>
+    enrollments?: MarketingAutomationEnrollmentListRelationFilter
+  }, "id" | "automationId_version">
+
+  export type MarketingAutomationVersionOrderByWithAggregationInput = {
+    id?: SortOrder
+    automationId?: SortOrder
+    version?: SortOrder
+    status?: SortOrder
+    definition?: SortOrder
+    triggerConfig?: SortOrder
+    definitionSha256?: SortOrder
+    createdByAdminUserId?: SortOrder
+    submittedByAdminUserId?: SortOrderInput | SortOrder
+    submittedAt?: SortOrderInput | SortOrder
+    reviewedByAdminUserId?: SortOrderInput | SortOrder
+    reviewedAt?: SortOrderInput | SortOrder
+    reviewComment?: SortOrderInput | SortOrder
+    stepUpId?: SortOrderInput | SortOrder
+    publishedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: MarketingAutomationVersionCountOrderByAggregateInput
+    _avg?: MarketingAutomationVersionAvgOrderByAggregateInput
+    _max?: MarketingAutomationVersionMaxOrderByAggregateInput
+    _min?: MarketingAutomationVersionMinOrderByAggregateInput
+    _sum?: MarketingAutomationVersionSumOrderByAggregateInput
+  }
+
+  export type MarketingAutomationVersionScalarWhereWithAggregatesInput = {
+    AND?: MarketingAutomationVersionScalarWhereWithAggregatesInput | MarketingAutomationVersionScalarWhereWithAggregatesInput[]
+    OR?: MarketingAutomationVersionScalarWhereWithAggregatesInput[]
+    NOT?: MarketingAutomationVersionScalarWhereWithAggregatesInput | MarketingAutomationVersionScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MarketingAutomationVersion"> | string
+    automationId?: UuidWithAggregatesFilter<"MarketingAutomationVersion"> | string
+    version?: IntWithAggregatesFilter<"MarketingAutomationVersion"> | number
+    status?: EnumMarketingAutomationVersionStatusWithAggregatesFilter<"MarketingAutomationVersion"> | $Enums.MarketingAutomationVersionStatus
+    definition?: JsonWithAggregatesFilter<"MarketingAutomationVersion">
+    triggerConfig?: JsonWithAggregatesFilter<"MarketingAutomationVersion">
+    definitionSha256?: StringWithAggregatesFilter<"MarketingAutomationVersion"> | string
+    createdByAdminUserId?: StringWithAggregatesFilter<"MarketingAutomationVersion"> | string
+    submittedByAdminUserId?: StringNullableWithAggregatesFilter<"MarketingAutomationVersion"> | string | null
+    submittedAt?: DateTimeNullableWithAggregatesFilter<"MarketingAutomationVersion"> | Date | string | null
+    reviewedByAdminUserId?: StringNullableWithAggregatesFilter<"MarketingAutomationVersion"> | string | null
+    reviewedAt?: DateTimeNullableWithAggregatesFilter<"MarketingAutomationVersion"> | Date | string | null
+    reviewComment?: StringNullableWithAggregatesFilter<"MarketingAutomationVersion"> | string | null
+    stepUpId?: UuidNullableWithAggregatesFilter<"MarketingAutomationVersion"> | string | null
+    publishedAt?: DateTimeNullableWithAggregatesFilter<"MarketingAutomationVersion"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"MarketingAutomationVersion"> | Date | string
+  }
+
+  export type MarketingAutomationEnrollmentWhereInput = {
+    AND?: MarketingAutomationEnrollmentWhereInput | MarketingAutomationEnrollmentWhereInput[]
+    OR?: MarketingAutomationEnrollmentWhereInput[]
+    NOT?: MarketingAutomationEnrollmentWhereInput | MarketingAutomationEnrollmentWhereInput[]
+    id?: UuidFilter<"MarketingAutomationEnrollment"> | string
+    automationId?: UuidFilter<"MarketingAutomationEnrollment"> | string
+    versionId?: UuidFilter<"MarketingAutomationEnrollment"> | string
+    organizationId?: UuidFilter<"MarketingAutomationEnrollment"> | string
+    contactId?: UuidFilter<"MarketingAutomationEnrollment"> | string
+    status?: EnumMarketingAutomationEnrollmentStatusFilter<"MarketingAutomationEnrollment"> | $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey?: StringFilter<"MarketingAutomationEnrollment"> | string
+    triggerEventId?: UuidNullableFilter<"MarketingAutomationEnrollment"> | string | null
+    currentStepId?: StringNullableFilter<"MarketingAutomationEnrollment"> | string | null
+    stepCount?: IntFilter<"MarketingAutomationEnrollment"> | number
+    nextRunAt?: DateTimeNullableFilter<"MarketingAutomationEnrollment"> | Date | string | null
+    exitReason?: StringNullableFilter<"MarketingAutomationEnrollment"> | string | null
+    context?: JsonNullableFilter<"MarketingAutomationEnrollment">
+    completedAt?: DateTimeNullableFilter<"MarketingAutomationEnrollment"> | Date | string | null
+    createdAt?: DateTimeFilter<"MarketingAutomationEnrollment"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingAutomationEnrollment"> | Date | string
+    automation?: XOR<MarketingAutomationScalarRelationFilter, MarketingAutomationWhereInput>
+    version?: XOR<MarketingAutomationVersionScalarRelationFilter, MarketingAutomationVersionWhereInput>
+    contact?: XOR<MarketingContactScalarRelationFilter, MarketingContactWhereInput>
+    stepRuns?: MarketingAutomationStepRunListRelationFilter
+  }
+
+  export type MarketingAutomationEnrollmentOrderByWithRelationInput = {
+    id?: SortOrder
+    automationId?: SortOrder
+    versionId?: SortOrder
+    organizationId?: SortOrder
+    contactId?: SortOrder
+    status?: SortOrder
+    dedupeKey?: SortOrder
+    triggerEventId?: SortOrderInput | SortOrder
+    currentStepId?: SortOrderInput | SortOrder
+    stepCount?: SortOrder
+    nextRunAt?: SortOrderInput | SortOrder
+    exitReason?: SortOrderInput | SortOrder
+    context?: SortOrderInput | SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    automation?: MarketingAutomationOrderByWithRelationInput
+    version?: MarketingAutomationVersionOrderByWithRelationInput
+    contact?: MarketingContactOrderByWithRelationInput
+    stepRuns?: MarketingAutomationStepRunOrderByRelationAggregateInput
+  }
+
+  export type MarketingAutomationEnrollmentWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    automationId_dedupeKey?: MarketingAutomationEnrollmentAutomationIdDedupeKeyCompoundUniqueInput
+    AND?: MarketingAutomationEnrollmentWhereInput | MarketingAutomationEnrollmentWhereInput[]
+    OR?: MarketingAutomationEnrollmentWhereInput[]
+    NOT?: MarketingAutomationEnrollmentWhereInput | MarketingAutomationEnrollmentWhereInput[]
+    automationId?: UuidFilter<"MarketingAutomationEnrollment"> | string
+    versionId?: UuidFilter<"MarketingAutomationEnrollment"> | string
+    organizationId?: UuidFilter<"MarketingAutomationEnrollment"> | string
+    contactId?: UuidFilter<"MarketingAutomationEnrollment"> | string
+    status?: EnumMarketingAutomationEnrollmentStatusFilter<"MarketingAutomationEnrollment"> | $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey?: StringFilter<"MarketingAutomationEnrollment"> | string
+    triggerEventId?: UuidNullableFilter<"MarketingAutomationEnrollment"> | string | null
+    currentStepId?: StringNullableFilter<"MarketingAutomationEnrollment"> | string | null
+    stepCount?: IntFilter<"MarketingAutomationEnrollment"> | number
+    nextRunAt?: DateTimeNullableFilter<"MarketingAutomationEnrollment"> | Date | string | null
+    exitReason?: StringNullableFilter<"MarketingAutomationEnrollment"> | string | null
+    context?: JsonNullableFilter<"MarketingAutomationEnrollment">
+    completedAt?: DateTimeNullableFilter<"MarketingAutomationEnrollment"> | Date | string | null
+    createdAt?: DateTimeFilter<"MarketingAutomationEnrollment"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingAutomationEnrollment"> | Date | string
+    automation?: XOR<MarketingAutomationScalarRelationFilter, MarketingAutomationWhereInput>
+    version?: XOR<MarketingAutomationVersionScalarRelationFilter, MarketingAutomationVersionWhereInput>
+    contact?: XOR<MarketingContactScalarRelationFilter, MarketingContactWhereInput>
+    stepRuns?: MarketingAutomationStepRunListRelationFilter
+  }, "id" | "automationId_dedupeKey">
+
+  export type MarketingAutomationEnrollmentOrderByWithAggregationInput = {
+    id?: SortOrder
+    automationId?: SortOrder
+    versionId?: SortOrder
+    organizationId?: SortOrder
+    contactId?: SortOrder
+    status?: SortOrder
+    dedupeKey?: SortOrder
+    triggerEventId?: SortOrderInput | SortOrder
+    currentStepId?: SortOrderInput | SortOrder
+    stepCount?: SortOrder
+    nextRunAt?: SortOrderInput | SortOrder
+    exitReason?: SortOrderInput | SortOrder
+    context?: SortOrderInput | SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MarketingAutomationEnrollmentCountOrderByAggregateInput
+    _avg?: MarketingAutomationEnrollmentAvgOrderByAggregateInput
+    _max?: MarketingAutomationEnrollmentMaxOrderByAggregateInput
+    _min?: MarketingAutomationEnrollmentMinOrderByAggregateInput
+    _sum?: MarketingAutomationEnrollmentSumOrderByAggregateInput
+  }
+
+  export type MarketingAutomationEnrollmentScalarWhereWithAggregatesInput = {
+    AND?: MarketingAutomationEnrollmentScalarWhereWithAggregatesInput | MarketingAutomationEnrollmentScalarWhereWithAggregatesInput[]
+    OR?: MarketingAutomationEnrollmentScalarWhereWithAggregatesInput[]
+    NOT?: MarketingAutomationEnrollmentScalarWhereWithAggregatesInput | MarketingAutomationEnrollmentScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MarketingAutomationEnrollment"> | string
+    automationId?: UuidWithAggregatesFilter<"MarketingAutomationEnrollment"> | string
+    versionId?: UuidWithAggregatesFilter<"MarketingAutomationEnrollment"> | string
+    organizationId?: UuidWithAggregatesFilter<"MarketingAutomationEnrollment"> | string
+    contactId?: UuidWithAggregatesFilter<"MarketingAutomationEnrollment"> | string
+    status?: EnumMarketingAutomationEnrollmentStatusWithAggregatesFilter<"MarketingAutomationEnrollment"> | $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey?: StringWithAggregatesFilter<"MarketingAutomationEnrollment"> | string
+    triggerEventId?: UuidNullableWithAggregatesFilter<"MarketingAutomationEnrollment"> | string | null
+    currentStepId?: StringNullableWithAggregatesFilter<"MarketingAutomationEnrollment"> | string | null
+    stepCount?: IntWithAggregatesFilter<"MarketingAutomationEnrollment"> | number
+    nextRunAt?: DateTimeNullableWithAggregatesFilter<"MarketingAutomationEnrollment"> | Date | string | null
+    exitReason?: StringNullableWithAggregatesFilter<"MarketingAutomationEnrollment"> | string | null
+    context?: JsonNullableWithAggregatesFilter<"MarketingAutomationEnrollment">
+    completedAt?: DateTimeNullableWithAggregatesFilter<"MarketingAutomationEnrollment"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"MarketingAutomationEnrollment"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MarketingAutomationEnrollment"> | Date | string
+  }
+
+  export type MarketingAutomationStepRunWhereInput = {
+    AND?: MarketingAutomationStepRunWhereInput | MarketingAutomationStepRunWhereInput[]
+    OR?: MarketingAutomationStepRunWhereInput[]
+    NOT?: MarketingAutomationStepRunWhereInput | MarketingAutomationStepRunWhereInput[]
+    id?: UuidFilter<"MarketingAutomationStepRun"> | string
+    enrollmentId?: UuidFilter<"MarketingAutomationStepRun"> | string
+    organizationId?: UuidFilter<"MarketingAutomationStepRun"> | string
+    stepId?: StringFilter<"MarketingAutomationStepRun"> | string
+    stepType?: StringFilter<"MarketingAutomationStepRun"> | string
+    sequence?: IntFilter<"MarketingAutomationStepRun"> | number
+    status?: EnumMarketingAutomationStepRunStatusFilter<"MarketingAutomationStepRun"> | $Enums.MarketingAutomationStepRunStatus
+    idempotencyKey?: StringNullableFilter<"MarketingAutomationStepRun"> | string | null
+    recipientEmail?: StringNullableFilter<"MarketingAutomationStepRun"> | string | null
+    templateVersionId?: UuidNullableFilter<"MarketingAutomationStepRun"> | string | null
+    providerMessageId?: StringNullableFilter<"MarketingAutomationStepRun"> | string | null
+    firstAttemptAt?: DateTimeNullableFilter<"MarketingAutomationStepRun"> | Date | string | null
+    deliveryStatus?: StringNullableFilter<"MarketingAutomationStepRun"> | string | null
+    outcome?: JsonNullableFilter<"MarketingAutomationStepRun">
+    errorCode?: StringNullableFilter<"MarketingAutomationStepRun"> | string | null
+    createdAt?: DateTimeFilter<"MarketingAutomationStepRun"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingAutomationStepRun"> | Date | string
+    enrollment?: XOR<MarketingAutomationEnrollmentScalarRelationFilter, MarketingAutomationEnrollmentWhereInput>
+  }
+
+  export type MarketingAutomationStepRunOrderByWithRelationInput = {
+    id?: SortOrder
+    enrollmentId?: SortOrder
+    organizationId?: SortOrder
+    stepId?: SortOrder
+    stepType?: SortOrder
+    sequence?: SortOrder
+    status?: SortOrder
+    idempotencyKey?: SortOrderInput | SortOrder
+    recipientEmail?: SortOrderInput | SortOrder
+    templateVersionId?: SortOrderInput | SortOrder
+    providerMessageId?: SortOrderInput | SortOrder
+    firstAttemptAt?: SortOrderInput | SortOrder
+    deliveryStatus?: SortOrderInput | SortOrder
+    outcome?: SortOrderInput | SortOrder
+    errorCode?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    enrollment?: MarketingAutomationEnrollmentOrderByWithRelationInput
+  }
+
+  export type MarketingAutomationStepRunWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    idempotencyKey?: string
+    enrollmentId_sequence?: MarketingAutomationStepRunEnrollmentIdSequenceCompoundUniqueInput
+    AND?: MarketingAutomationStepRunWhereInput | MarketingAutomationStepRunWhereInput[]
+    OR?: MarketingAutomationStepRunWhereInput[]
+    NOT?: MarketingAutomationStepRunWhereInput | MarketingAutomationStepRunWhereInput[]
+    enrollmentId?: UuidFilter<"MarketingAutomationStepRun"> | string
+    organizationId?: UuidFilter<"MarketingAutomationStepRun"> | string
+    stepId?: StringFilter<"MarketingAutomationStepRun"> | string
+    stepType?: StringFilter<"MarketingAutomationStepRun"> | string
+    sequence?: IntFilter<"MarketingAutomationStepRun"> | number
+    status?: EnumMarketingAutomationStepRunStatusFilter<"MarketingAutomationStepRun"> | $Enums.MarketingAutomationStepRunStatus
+    recipientEmail?: StringNullableFilter<"MarketingAutomationStepRun"> | string | null
+    templateVersionId?: UuidNullableFilter<"MarketingAutomationStepRun"> | string | null
+    providerMessageId?: StringNullableFilter<"MarketingAutomationStepRun"> | string | null
+    firstAttemptAt?: DateTimeNullableFilter<"MarketingAutomationStepRun"> | Date | string | null
+    deliveryStatus?: StringNullableFilter<"MarketingAutomationStepRun"> | string | null
+    outcome?: JsonNullableFilter<"MarketingAutomationStepRun">
+    errorCode?: StringNullableFilter<"MarketingAutomationStepRun"> | string | null
+    createdAt?: DateTimeFilter<"MarketingAutomationStepRun"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingAutomationStepRun"> | Date | string
+    enrollment?: XOR<MarketingAutomationEnrollmentScalarRelationFilter, MarketingAutomationEnrollmentWhereInput>
+  }, "id" | "idempotencyKey" | "enrollmentId_sequence">
+
+  export type MarketingAutomationStepRunOrderByWithAggregationInput = {
+    id?: SortOrder
+    enrollmentId?: SortOrder
+    organizationId?: SortOrder
+    stepId?: SortOrder
+    stepType?: SortOrder
+    sequence?: SortOrder
+    status?: SortOrder
+    idempotencyKey?: SortOrderInput | SortOrder
+    recipientEmail?: SortOrderInput | SortOrder
+    templateVersionId?: SortOrderInput | SortOrder
+    providerMessageId?: SortOrderInput | SortOrder
+    firstAttemptAt?: SortOrderInput | SortOrder
+    deliveryStatus?: SortOrderInput | SortOrder
+    outcome?: SortOrderInput | SortOrder
+    errorCode?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MarketingAutomationStepRunCountOrderByAggregateInput
+    _avg?: MarketingAutomationStepRunAvgOrderByAggregateInput
+    _max?: MarketingAutomationStepRunMaxOrderByAggregateInput
+    _min?: MarketingAutomationStepRunMinOrderByAggregateInput
+    _sum?: MarketingAutomationStepRunSumOrderByAggregateInput
+  }
+
+  export type MarketingAutomationStepRunScalarWhereWithAggregatesInput = {
+    AND?: MarketingAutomationStepRunScalarWhereWithAggregatesInput | MarketingAutomationStepRunScalarWhereWithAggregatesInput[]
+    OR?: MarketingAutomationStepRunScalarWhereWithAggregatesInput[]
+    NOT?: MarketingAutomationStepRunScalarWhereWithAggregatesInput | MarketingAutomationStepRunScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MarketingAutomationStepRun"> | string
+    enrollmentId?: UuidWithAggregatesFilter<"MarketingAutomationStepRun"> | string
+    organizationId?: UuidWithAggregatesFilter<"MarketingAutomationStepRun"> | string
+    stepId?: StringWithAggregatesFilter<"MarketingAutomationStepRun"> | string
+    stepType?: StringWithAggregatesFilter<"MarketingAutomationStepRun"> | string
+    sequence?: IntWithAggregatesFilter<"MarketingAutomationStepRun"> | number
+    status?: EnumMarketingAutomationStepRunStatusWithAggregatesFilter<"MarketingAutomationStepRun"> | $Enums.MarketingAutomationStepRunStatus
+    idempotencyKey?: StringNullableWithAggregatesFilter<"MarketingAutomationStepRun"> | string | null
+    recipientEmail?: StringNullableWithAggregatesFilter<"MarketingAutomationStepRun"> | string | null
+    templateVersionId?: UuidNullableWithAggregatesFilter<"MarketingAutomationStepRun"> | string | null
+    providerMessageId?: StringNullableWithAggregatesFilter<"MarketingAutomationStepRun"> | string | null
+    firstAttemptAt?: DateTimeNullableWithAggregatesFilter<"MarketingAutomationStepRun"> | Date | string | null
+    deliveryStatus?: StringNullableWithAggregatesFilter<"MarketingAutomationStepRun"> | string | null
+    outcome?: JsonNullableWithAggregatesFilter<"MarketingAutomationStepRun">
+    errorCode?: StringNullableWithAggregatesFilter<"MarketingAutomationStepRun"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"MarketingAutomationStepRun"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MarketingAutomationStepRun"> | Date | string
+  }
+
+  export type MarketingTriggerEventWhereInput = {
+    AND?: MarketingTriggerEventWhereInput | MarketingTriggerEventWhereInput[]
+    OR?: MarketingTriggerEventWhereInput[]
+    NOT?: MarketingTriggerEventWhereInput | MarketingTriggerEventWhereInput[]
+    id?: UuidFilter<"MarketingTriggerEvent"> | string
+    organizationId?: UuidFilter<"MarketingTriggerEvent"> | string
+    source?: StringFilter<"MarketingTriggerEvent"> | string
+    eventType?: StringFilter<"MarketingTriggerEvent"> | string
+    eventId?: StringFilter<"MarketingTriggerEvent"> | string
+    contactId?: UuidNullableFilter<"MarketingTriggerEvent"> | string | null
+    payload?: JsonNullableFilter<"MarketingTriggerEvent">
+    status?: EnumMarketingTriggerEventStatusFilter<"MarketingTriggerEvent"> | $Enums.MarketingTriggerEventStatus
+    error?: StringNullableFilter<"MarketingTriggerEvent"> | string | null
+    occurredAt?: DateTimeFilter<"MarketingTriggerEvent"> | Date | string
+    receivedAt?: DateTimeFilter<"MarketingTriggerEvent"> | Date | string
+    processedAt?: DateTimeNullableFilter<"MarketingTriggerEvent"> | Date | string | null
+  }
+
+  export type MarketingTriggerEventOrderByWithRelationInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    source?: SortOrder
+    eventType?: SortOrder
+    eventId?: SortOrder
+    contactId?: SortOrderInput | SortOrder
+    payload?: SortOrderInput | SortOrder
+    status?: SortOrder
+    error?: SortOrderInput | SortOrder
+    occurredAt?: SortOrder
+    receivedAt?: SortOrder
+    processedAt?: SortOrderInput | SortOrder
+  }
+
+  export type MarketingTriggerEventWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    organizationId_source_eventId?: MarketingTriggerEventOrganizationIdSourceEventIdCompoundUniqueInput
+    AND?: MarketingTriggerEventWhereInput | MarketingTriggerEventWhereInput[]
+    OR?: MarketingTriggerEventWhereInput[]
+    NOT?: MarketingTriggerEventWhereInput | MarketingTriggerEventWhereInput[]
+    organizationId?: UuidFilter<"MarketingTriggerEvent"> | string
+    source?: StringFilter<"MarketingTriggerEvent"> | string
+    eventType?: StringFilter<"MarketingTriggerEvent"> | string
+    eventId?: StringFilter<"MarketingTriggerEvent"> | string
+    contactId?: UuidNullableFilter<"MarketingTriggerEvent"> | string | null
+    payload?: JsonNullableFilter<"MarketingTriggerEvent">
+    status?: EnumMarketingTriggerEventStatusFilter<"MarketingTriggerEvent"> | $Enums.MarketingTriggerEventStatus
+    error?: StringNullableFilter<"MarketingTriggerEvent"> | string | null
+    occurredAt?: DateTimeFilter<"MarketingTriggerEvent"> | Date | string
+    receivedAt?: DateTimeFilter<"MarketingTriggerEvent"> | Date | string
+    processedAt?: DateTimeNullableFilter<"MarketingTriggerEvent"> | Date | string | null
+  }, "id" | "organizationId_source_eventId">
+
+  export type MarketingTriggerEventOrderByWithAggregationInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    source?: SortOrder
+    eventType?: SortOrder
+    eventId?: SortOrder
+    contactId?: SortOrderInput | SortOrder
+    payload?: SortOrderInput | SortOrder
+    status?: SortOrder
+    error?: SortOrderInput | SortOrder
+    occurredAt?: SortOrder
+    receivedAt?: SortOrder
+    processedAt?: SortOrderInput | SortOrder
+    _count?: MarketingTriggerEventCountOrderByAggregateInput
+    _max?: MarketingTriggerEventMaxOrderByAggregateInput
+    _min?: MarketingTriggerEventMinOrderByAggregateInput
+  }
+
+  export type MarketingTriggerEventScalarWhereWithAggregatesInput = {
+    AND?: MarketingTriggerEventScalarWhereWithAggregatesInput | MarketingTriggerEventScalarWhereWithAggregatesInput[]
+    OR?: MarketingTriggerEventScalarWhereWithAggregatesInput[]
+    NOT?: MarketingTriggerEventScalarWhereWithAggregatesInput | MarketingTriggerEventScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MarketingTriggerEvent"> | string
+    organizationId?: UuidWithAggregatesFilter<"MarketingTriggerEvent"> | string
+    source?: StringWithAggregatesFilter<"MarketingTriggerEvent"> | string
+    eventType?: StringWithAggregatesFilter<"MarketingTriggerEvent"> | string
+    eventId?: StringWithAggregatesFilter<"MarketingTriggerEvent"> | string
+    contactId?: UuidNullableWithAggregatesFilter<"MarketingTriggerEvent"> | string | null
+    payload?: JsonNullableWithAggregatesFilter<"MarketingTriggerEvent">
+    status?: EnumMarketingTriggerEventStatusWithAggregatesFilter<"MarketingTriggerEvent"> | $Enums.MarketingTriggerEventStatus
+    error?: StringNullableWithAggregatesFilter<"MarketingTriggerEvent"> | string | null
+    occurredAt?: DateTimeWithAggregatesFilter<"MarketingTriggerEvent"> | Date | string
+    receivedAt?: DateTimeWithAggregatesFilter<"MarketingTriggerEvent"> | Date | string
+    processedAt?: DateTimeNullableWithAggregatesFilter<"MarketingTriggerEvent"> | Date | string | null
   }
 
   export type AdminUserCreateInput = {
@@ -249505,6 +263251,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceCreateNestedManyWithoutOrganizationInput
     marketingTemplates?: MarketingEmailTemplateCreateNestedManyWithoutOrganizationInput
     marketingCampaigns?: MarketingEmailCampaignCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationUncheckedCreateInput = {
@@ -249526,6 +263274,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUncheckedCreateNestedManyWithoutOrganizationInput
     marketingTemplates?: MarketingEmailTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     marketingCampaigns?: MarketingEmailCampaignUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationUpdateInput = {
@@ -249547,6 +263297,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUpdateManyWithoutOrganizationNestedInput
     marketingTemplates?: MarketingEmailTemplateUpdateManyWithoutOrganizationNestedInput
     marketingCampaigns?: MarketingEmailCampaignUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MailOrganizationUncheckedUpdateInput = {
@@ -249568,6 +263320,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingTemplates?: MarketingEmailTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingCampaigns?: MarketingEmailCampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MailOrganizationCreateManyInput = {
@@ -252364,6 +266118,8 @@ export namespace Prisma {
     organization: MailOrganizationCreateNestedOneWithoutMarketingContactsInput
     consents?: MarketingConsentCreateNestedManyWithoutContactInput
     audiences?: MarketingAudienceContactCreateNestedManyWithoutContactInput
+    broadcastRecipients?: MarketingBroadcastRecipientCreateNestedManyWithoutContactInput
+    automationEnrollments?: MarketingAutomationEnrollmentCreateNestedManyWithoutContactInput
   }
 
   export type MarketingContactUncheckedCreateInput = {
@@ -252380,6 +266136,8 @@ export namespace Prisma {
     updatedAt?: Date | string
     consents?: MarketingConsentUncheckedCreateNestedManyWithoutContactInput
     audiences?: MarketingAudienceContactUncheckedCreateNestedManyWithoutContactInput
+    broadcastRecipients?: MarketingBroadcastRecipientUncheckedCreateNestedManyWithoutContactInput
+    automationEnrollments?: MarketingAutomationEnrollmentUncheckedCreateNestedManyWithoutContactInput
   }
 
   export type MarketingContactUpdateInput = {
@@ -252396,6 +266154,8 @@ export namespace Prisma {
     organization?: MailOrganizationUpdateOneRequiredWithoutMarketingContactsNestedInput
     consents?: MarketingConsentUpdateManyWithoutContactNestedInput
     audiences?: MarketingAudienceContactUpdateManyWithoutContactNestedInput
+    broadcastRecipients?: MarketingBroadcastRecipientUpdateManyWithoutContactNestedInput
+    automationEnrollments?: MarketingAutomationEnrollmentUpdateManyWithoutContactNestedInput
   }
 
   export type MarketingContactUncheckedUpdateInput = {
@@ -252412,6 +266172,8 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     consents?: MarketingConsentUncheckedUpdateManyWithoutContactNestedInput
     audiences?: MarketingAudienceContactUncheckedUpdateManyWithoutContactNestedInput
+    broadcastRecipients?: MarketingBroadcastRecipientUncheckedUpdateManyWithoutContactNestedInput
+    automationEnrollments?: MarketingAutomationEnrollmentUncheckedUpdateManyWithoutContactNestedInput
   }
 
   export type MarketingContactCreateManyInput = {
@@ -253141,6 +266903,7 @@ export namespace Prisma {
     segment?: MarketingSegmentCreateNestedOneWithoutCampaignsInput
     approvals?: MarketingCampaignApprovalCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotCreateNestedManyWithoutCampaignInput
+    dispatch?: MarketingBroadcastDispatchCreateNestedOneWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignUncheckedCreateInput = {
@@ -253168,6 +266931,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     approvals?: MarketingCampaignApprovalUncheckedCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotUncheckedCreateNestedManyWithoutCampaignInput
+    dispatch?: MarketingBroadcastDispatchUncheckedCreateNestedOneWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignUpdateInput = {
@@ -253195,6 +266959,7 @@ export namespace Prisma {
     segment?: MarketingSegmentUpdateOneWithoutCampaignsNestedInput
     approvals?: MarketingCampaignApprovalUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUpdateManyWithoutCampaignNestedInput
+    dispatch?: MarketingBroadcastDispatchUpdateOneWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateInput = {
@@ -253222,6 +266987,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     approvals?: MarketingCampaignApprovalUncheckedUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUncheckedUpdateManyWithoutCampaignNestedInput
+    dispatch?: MarketingBroadcastDispatchUncheckedUpdateOneWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignCreateManyInput = {
@@ -253313,6 +267079,7 @@ export namespace Prisma {
     createdAt?: Date | string
     campaign: MarketingEmailCampaignCreateNestedOneWithoutSnapshotsInput
     approvals?: MarketingCampaignApprovalCreateNestedManyWithoutSnapshotInput
+    approvedContacts?: MarketingCampaignApprovedContactCreateNestedManyWithoutSnapshotInput
   }
 
   export type MarketingCampaignSnapshotUncheckedCreateInput = {
@@ -253333,6 +267100,7 @@ export namespace Prisma {
     createdBy: string
     createdAt?: Date | string
     approvals?: MarketingCampaignApprovalUncheckedCreateNestedManyWithoutSnapshotInput
+    approvedContacts?: MarketingCampaignApprovedContactUncheckedCreateNestedManyWithoutSnapshotInput
   }
 
   export type MarketingCampaignSnapshotUpdateInput = {
@@ -253353,6 +267121,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     campaign?: MarketingEmailCampaignUpdateOneRequiredWithoutSnapshotsNestedInput
     approvals?: MarketingCampaignApprovalUpdateManyWithoutSnapshotNestedInput
+    approvedContacts?: MarketingCampaignApprovedContactUpdateManyWithoutSnapshotNestedInput
   }
 
   export type MarketingCampaignSnapshotUncheckedUpdateInput = {
@@ -253373,6 +267142,7 @@ export namespace Prisma {
     createdBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     approvals?: MarketingCampaignApprovalUncheckedUpdateManyWithoutSnapshotNestedInput
+    approvedContacts?: MarketingCampaignApprovedContactUncheckedUpdateManyWithoutSnapshotNestedInput
   }
 
   export type MarketingCampaignSnapshotCreateManyInput = {
@@ -253511,6 +267281,1198 @@ export namespace Prisma {
     snapshotId?: NullableStringFieldUpdateOperationsInput | string | null
     comment?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingBrandSettingsCreateInput = {
+    confirmationSenderId?: string | null
+    defaultTimeZone?: string
+    postalAddress?: string | null
+    dailyBroadcastCap?: number
+    dailyAutomationCap?: number
+    maxBroadcastRecipients?: number
+    dispatchPaused?: boolean
+    pausedReason?: string | null
+    pausedAt?: Date | string | null
+    pausedBy?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: MailOrganizationCreateNestedOneWithoutMarketingBrandSettingsInput
+  }
+
+  export type MarketingBrandSettingsUncheckedCreateInput = {
+    organizationId: string
+    confirmationSenderId?: string | null
+    defaultTimeZone?: string
+    postalAddress?: string | null
+    dailyBroadcastCap?: number
+    dailyAutomationCap?: number
+    maxBroadcastRecipients?: number
+    dispatchPaused?: boolean
+    pausedReason?: string | null
+    pausedAt?: Date | string | null
+    pausedBy?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingBrandSettingsUpdateInput = {
+    confirmationSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultTimeZone?: StringFieldUpdateOperationsInput | string
+    postalAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyBroadcastCap?: IntFieldUpdateOperationsInput | number
+    dailyAutomationCap?: IntFieldUpdateOperationsInput | number
+    maxBroadcastRecipients?: IntFieldUpdateOperationsInput | number
+    dispatchPaused?: BoolFieldUpdateOperationsInput | boolean
+    pausedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    pausedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: MailOrganizationUpdateOneRequiredWithoutMarketingBrandSettingsNestedInput
+  }
+
+  export type MarketingBrandSettingsUncheckedUpdateInput = {
+    organizationId?: StringFieldUpdateOperationsInput | string
+    confirmationSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultTimeZone?: StringFieldUpdateOperationsInput | string
+    postalAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyBroadcastCap?: IntFieldUpdateOperationsInput | number
+    dailyAutomationCap?: IntFieldUpdateOperationsInput | number
+    maxBroadcastRecipients?: IntFieldUpdateOperationsInput | number
+    dispatchPaused?: BoolFieldUpdateOperationsInput | boolean
+    pausedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    pausedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingBrandSettingsCreateManyInput = {
+    organizationId: string
+    confirmationSenderId?: string | null
+    defaultTimeZone?: string
+    postalAddress?: string | null
+    dailyBroadcastCap?: number
+    dailyAutomationCap?: number
+    maxBroadcastRecipients?: number
+    dispatchPaused?: boolean
+    pausedReason?: string | null
+    pausedAt?: Date | string | null
+    pausedBy?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingBrandSettingsUpdateManyMutationInput = {
+    confirmationSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultTimeZone?: StringFieldUpdateOperationsInput | string
+    postalAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyBroadcastCap?: IntFieldUpdateOperationsInput | number
+    dailyAutomationCap?: IntFieldUpdateOperationsInput | number
+    maxBroadcastRecipients?: IntFieldUpdateOperationsInput | number
+    dispatchPaused?: BoolFieldUpdateOperationsInput | boolean
+    pausedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    pausedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingBrandSettingsUncheckedUpdateManyInput = {
+    organizationId?: StringFieldUpdateOperationsInput | string
+    confirmationSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultTimeZone?: StringFieldUpdateOperationsInput | string
+    postalAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyBroadcastCap?: IntFieldUpdateOperationsInput | number
+    dailyAutomationCap?: IntFieldUpdateOperationsInput | number
+    maxBroadcastRecipients?: IntFieldUpdateOperationsInput | number
+    dispatchPaused?: BoolFieldUpdateOperationsInput | boolean
+    pausedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    pausedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingCampaignApprovedContactCreateInput = {
+    contactId: string
+    createdAt?: Date | string
+    snapshot: MarketingCampaignSnapshotCreateNestedOneWithoutApprovedContactsInput
+  }
+
+  export type MarketingCampaignApprovedContactUncheckedCreateInput = {
+    snapshotId: string
+    contactId: string
+    createdAt?: Date | string
+  }
+
+  export type MarketingCampaignApprovedContactUpdateInput = {
+    contactId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    snapshot?: MarketingCampaignSnapshotUpdateOneRequiredWithoutApprovedContactsNestedInput
+  }
+
+  export type MarketingCampaignApprovedContactUncheckedUpdateInput = {
+    snapshotId?: StringFieldUpdateOperationsInput | string
+    contactId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingCampaignApprovedContactCreateManyInput = {
+    snapshotId: string
+    contactId: string
+    createdAt?: Date | string
+  }
+
+  export type MarketingCampaignApprovedContactUpdateManyMutationInput = {
+    contactId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingCampaignApprovedContactUncheckedUpdateManyInput = {
+    snapshotId?: StringFieldUpdateOperationsInput | string
+    contactId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingBroadcastDispatchCreateInput = {
+    id?: string
+    organizationId: string
+    approvalSnapshotId: string
+    status?: $Enums.MarketingBroadcastStatus
+    scheduledFor: Date | string
+    timeZone: string
+    localSendTime?: string | null
+    provider?: string
+    providerSegmentId?: string | null
+    providerBroadcastId?: string | null
+    providerStatus?: string | null
+    providerCreateAttemptAt?: Date | string | null
+    providerSendAttemptAt?: Date | string | null
+    providerSentAt?: Date | string | null
+    recipientCount?: number
+    excludedCount?: number
+    eligibilitySha256?: string | null
+    contentSha256: string
+    scheduledByAdminUserId: string
+    cancelRequestedAt?: Date | string | null
+    cancelRequestedBy?: string | null
+    pausedAt?: Date | string | null
+    pausedBy?: string | null
+    lastErrorCode?: string | null
+    lastErrorMessage?: string | null
+    completedAt?: Date | string | null
+    revision?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    campaign: MarketingEmailCampaignCreateNestedOneWithoutDispatchInput
+    recipients?: MarketingBroadcastRecipientCreateNestedManyWithoutDispatchInput
+  }
+
+  export type MarketingBroadcastDispatchUncheckedCreateInput = {
+    id?: string
+    campaignId: string
+    organizationId: string
+    approvalSnapshotId: string
+    status?: $Enums.MarketingBroadcastStatus
+    scheduledFor: Date | string
+    timeZone: string
+    localSendTime?: string | null
+    provider?: string
+    providerSegmentId?: string | null
+    providerBroadcastId?: string | null
+    providerStatus?: string | null
+    providerCreateAttemptAt?: Date | string | null
+    providerSendAttemptAt?: Date | string | null
+    providerSentAt?: Date | string | null
+    recipientCount?: number
+    excludedCount?: number
+    eligibilitySha256?: string | null
+    contentSha256: string
+    scheduledByAdminUserId: string
+    cancelRequestedAt?: Date | string | null
+    cancelRequestedBy?: string | null
+    pausedAt?: Date | string | null
+    pausedBy?: string | null
+    lastErrorCode?: string | null
+    lastErrorMessage?: string | null
+    completedAt?: Date | string | null
+    revision?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    recipients?: MarketingBroadcastRecipientUncheckedCreateNestedManyWithoutDispatchInput
+  }
+
+  export type MarketingBroadcastDispatchUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    approvalSnapshotId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingBroadcastStatusFieldUpdateOperationsInput | $Enums.MarketingBroadcastStatus
+    scheduledFor?: DateTimeFieldUpdateOperationsInput | Date | string
+    timeZone?: StringFieldUpdateOperationsInput | string
+    localSendTime?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerSegmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerBroadcastId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    providerCreateAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    providerSendAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    providerSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    recipientCount?: IntFieldUpdateOperationsInput | number
+    excludedCount?: IntFieldUpdateOperationsInput | number
+    eligibilitySha256?: NullableStringFieldUpdateOperationsInput | string | null
+    contentSha256?: StringFieldUpdateOperationsInput | string
+    scheduledByAdminUserId?: StringFieldUpdateOperationsInput | string
+    cancelRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelRequestedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    pausedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revision?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    campaign?: MarketingEmailCampaignUpdateOneRequiredWithoutDispatchNestedInput
+    recipients?: MarketingBroadcastRecipientUpdateManyWithoutDispatchNestedInput
+  }
+
+  export type MarketingBroadcastDispatchUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    campaignId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    approvalSnapshotId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingBroadcastStatusFieldUpdateOperationsInput | $Enums.MarketingBroadcastStatus
+    scheduledFor?: DateTimeFieldUpdateOperationsInput | Date | string
+    timeZone?: StringFieldUpdateOperationsInput | string
+    localSendTime?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerSegmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerBroadcastId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    providerCreateAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    providerSendAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    providerSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    recipientCount?: IntFieldUpdateOperationsInput | number
+    excludedCount?: IntFieldUpdateOperationsInput | number
+    eligibilitySha256?: NullableStringFieldUpdateOperationsInput | string | null
+    contentSha256?: StringFieldUpdateOperationsInput | string
+    scheduledByAdminUserId?: StringFieldUpdateOperationsInput | string
+    cancelRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelRequestedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    pausedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revision?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    recipients?: MarketingBroadcastRecipientUncheckedUpdateManyWithoutDispatchNestedInput
+  }
+
+  export type MarketingBroadcastDispatchCreateManyInput = {
+    id?: string
+    campaignId: string
+    organizationId: string
+    approvalSnapshotId: string
+    status?: $Enums.MarketingBroadcastStatus
+    scheduledFor: Date | string
+    timeZone: string
+    localSendTime?: string | null
+    provider?: string
+    providerSegmentId?: string | null
+    providerBroadcastId?: string | null
+    providerStatus?: string | null
+    providerCreateAttemptAt?: Date | string | null
+    providerSendAttemptAt?: Date | string | null
+    providerSentAt?: Date | string | null
+    recipientCount?: number
+    excludedCount?: number
+    eligibilitySha256?: string | null
+    contentSha256: string
+    scheduledByAdminUserId: string
+    cancelRequestedAt?: Date | string | null
+    cancelRequestedBy?: string | null
+    pausedAt?: Date | string | null
+    pausedBy?: string | null
+    lastErrorCode?: string | null
+    lastErrorMessage?: string | null
+    completedAt?: Date | string | null
+    revision?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingBroadcastDispatchUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    approvalSnapshotId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingBroadcastStatusFieldUpdateOperationsInput | $Enums.MarketingBroadcastStatus
+    scheduledFor?: DateTimeFieldUpdateOperationsInput | Date | string
+    timeZone?: StringFieldUpdateOperationsInput | string
+    localSendTime?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerSegmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerBroadcastId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    providerCreateAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    providerSendAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    providerSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    recipientCount?: IntFieldUpdateOperationsInput | number
+    excludedCount?: IntFieldUpdateOperationsInput | number
+    eligibilitySha256?: NullableStringFieldUpdateOperationsInput | string | null
+    contentSha256?: StringFieldUpdateOperationsInput | string
+    scheduledByAdminUserId?: StringFieldUpdateOperationsInput | string
+    cancelRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelRequestedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    pausedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revision?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingBroadcastDispatchUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    campaignId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    approvalSnapshotId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingBroadcastStatusFieldUpdateOperationsInput | $Enums.MarketingBroadcastStatus
+    scheduledFor?: DateTimeFieldUpdateOperationsInput | Date | string
+    timeZone?: StringFieldUpdateOperationsInput | string
+    localSendTime?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerSegmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerBroadcastId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    providerCreateAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    providerSendAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    providerSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    recipientCount?: IntFieldUpdateOperationsInput | number
+    excludedCount?: IntFieldUpdateOperationsInput | number
+    eligibilitySha256?: NullableStringFieldUpdateOperationsInput | string | null
+    contentSha256?: StringFieldUpdateOperationsInput | string
+    scheduledByAdminUserId?: StringFieldUpdateOperationsInput | string
+    cancelRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelRequestedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    pausedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revision?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingBroadcastRecipientCreateInput = {
+    id?: string
+    organizationId: string
+    email: string
+    status?: $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: string | null
+    providerContactId?: string | null
+    providerEmailId?: string | null
+    syncedAt?: Date | string | null
+    acceptedAt?: Date | string | null
+    lastEventType?: string | null
+    lastEventAt?: Date | string | null
+    openedAt?: Date | string | null
+    clickedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    dispatch: MarketingBroadcastDispatchCreateNestedOneWithoutRecipientsInput
+    contact: MarketingContactCreateNestedOneWithoutBroadcastRecipientsInput
+  }
+
+  export type MarketingBroadcastRecipientUncheckedCreateInput = {
+    id?: string
+    dispatchId: string
+    organizationId: string
+    contactId: string
+    email: string
+    status?: $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: string | null
+    providerContactId?: string | null
+    providerEmailId?: string | null
+    syncedAt?: Date | string | null
+    acceptedAt?: Date | string | null
+    lastEventType?: string | null
+    lastEventAt?: Date | string | null
+    openedAt?: Date | string | null
+    clickedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingBroadcastRecipientUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingBroadcastRecipientStatusFieldUpdateOperationsInput | $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    providerContactId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerEmailId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastEventType?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    openedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    clickedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dispatch?: MarketingBroadcastDispatchUpdateOneRequiredWithoutRecipientsNestedInput
+    contact?: MarketingContactUpdateOneRequiredWithoutBroadcastRecipientsNestedInput
+  }
+
+  export type MarketingBroadcastRecipientUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dispatchId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    contactId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingBroadcastRecipientStatusFieldUpdateOperationsInput | $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    providerContactId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerEmailId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastEventType?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    openedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    clickedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingBroadcastRecipientCreateManyInput = {
+    id?: string
+    dispatchId: string
+    organizationId: string
+    contactId: string
+    email: string
+    status?: $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: string | null
+    providerContactId?: string | null
+    providerEmailId?: string | null
+    syncedAt?: Date | string | null
+    acceptedAt?: Date | string | null
+    lastEventType?: string | null
+    lastEventAt?: Date | string | null
+    openedAt?: Date | string | null
+    clickedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingBroadcastRecipientUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingBroadcastRecipientStatusFieldUpdateOperationsInput | $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    providerContactId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerEmailId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastEventType?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    openedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    clickedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingBroadcastRecipientUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dispatchId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    contactId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingBroadcastRecipientStatusFieldUpdateOperationsInput | $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    providerContactId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerEmailId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastEventType?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    openedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    clickedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingAutomationCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    status?: $Enums.MarketingAutomationStatus
+    triggerType: string
+    activeVersionId?: string | null
+    enrollmentLimit?: number
+    maxActiveEnrollments?: number
+    frequencyCapHours?: number
+    createdByAdminUserId: string
+    updatedByAdminUserId: string
+    revision?: number
+    lastScheduledRunAt?: Date | string | null
+    activatedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: MailOrganizationCreateNestedOneWithoutMarketingAutomationsInput
+    versions?: MarketingAutomationVersionCreateNestedManyWithoutAutomationInput
+    enrollments?: MarketingAutomationEnrollmentCreateNestedManyWithoutAutomationInput
+  }
+
+  export type MarketingAutomationUncheckedCreateInput = {
+    id?: string
+    organizationId: string
+    name: string
+    description?: string | null
+    status?: $Enums.MarketingAutomationStatus
+    triggerType: string
+    activeVersionId?: string | null
+    enrollmentLimit?: number
+    maxActiveEnrollments?: number
+    frequencyCapHours?: number
+    createdByAdminUserId: string
+    updatedByAdminUserId: string
+    revision?: number
+    lastScheduledRunAt?: Date | string | null
+    activatedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    versions?: MarketingAutomationVersionUncheckedCreateNestedManyWithoutAutomationInput
+    enrollments?: MarketingAutomationEnrollmentUncheckedCreateNestedManyWithoutAutomationInput
+  }
+
+  export type MarketingAutomationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumMarketingAutomationStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationStatus
+    triggerType?: StringFieldUpdateOperationsInput | string
+    activeVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    enrollmentLimit?: IntFieldUpdateOperationsInput | number
+    maxActiveEnrollments?: IntFieldUpdateOperationsInput | number
+    frequencyCapHours?: IntFieldUpdateOperationsInput | number
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    updatedByAdminUserId?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+    lastScheduledRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: MailOrganizationUpdateOneRequiredWithoutMarketingAutomationsNestedInput
+    versions?: MarketingAutomationVersionUpdateManyWithoutAutomationNestedInput
+    enrollments?: MarketingAutomationEnrollmentUpdateManyWithoutAutomationNestedInput
+  }
+
+  export type MarketingAutomationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumMarketingAutomationStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationStatus
+    triggerType?: StringFieldUpdateOperationsInput | string
+    activeVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    enrollmentLimit?: IntFieldUpdateOperationsInput | number
+    maxActiveEnrollments?: IntFieldUpdateOperationsInput | number
+    frequencyCapHours?: IntFieldUpdateOperationsInput | number
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    updatedByAdminUserId?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+    lastScheduledRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    versions?: MarketingAutomationVersionUncheckedUpdateManyWithoutAutomationNestedInput
+    enrollments?: MarketingAutomationEnrollmentUncheckedUpdateManyWithoutAutomationNestedInput
+  }
+
+  export type MarketingAutomationCreateManyInput = {
+    id?: string
+    organizationId: string
+    name: string
+    description?: string | null
+    status?: $Enums.MarketingAutomationStatus
+    triggerType: string
+    activeVersionId?: string | null
+    enrollmentLimit?: number
+    maxActiveEnrollments?: number
+    frequencyCapHours?: number
+    createdByAdminUserId: string
+    updatedByAdminUserId: string
+    revision?: number
+    lastScheduledRunAt?: Date | string | null
+    activatedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingAutomationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumMarketingAutomationStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationStatus
+    triggerType?: StringFieldUpdateOperationsInput | string
+    activeVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    enrollmentLimit?: IntFieldUpdateOperationsInput | number
+    maxActiveEnrollments?: IntFieldUpdateOperationsInput | number
+    frequencyCapHours?: IntFieldUpdateOperationsInput | number
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    updatedByAdminUserId?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+    lastScheduledRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingAutomationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumMarketingAutomationStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationStatus
+    triggerType?: StringFieldUpdateOperationsInput | string
+    activeVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    enrollmentLimit?: IntFieldUpdateOperationsInput | number
+    maxActiveEnrollments?: IntFieldUpdateOperationsInput | number
+    frequencyCapHours?: IntFieldUpdateOperationsInput | number
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    updatedByAdminUserId?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+    lastScheduledRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingAutomationVersionCreateInput = {
+    id?: string
+    version: number
+    status?: $Enums.MarketingAutomationVersionStatus
+    definition: JsonNullValueInput | InputJsonValue
+    triggerConfig: JsonNullValueInput | InputJsonValue
+    definitionSha256: string
+    createdByAdminUserId: string
+    submittedByAdminUserId?: string | null
+    submittedAt?: Date | string | null
+    reviewedByAdminUserId?: string | null
+    reviewedAt?: Date | string | null
+    reviewComment?: string | null
+    stepUpId?: string | null
+    publishedAt?: Date | string | null
+    createdAt?: Date | string
+    automation: MarketingAutomationCreateNestedOneWithoutVersionsInput
+    enrollments?: MarketingAutomationEnrollmentCreateNestedManyWithoutVersionInput
+  }
+
+  export type MarketingAutomationVersionUncheckedCreateInput = {
+    id?: string
+    automationId: string
+    version: number
+    status?: $Enums.MarketingAutomationVersionStatus
+    definition: JsonNullValueInput | InputJsonValue
+    triggerConfig: JsonNullValueInput | InputJsonValue
+    definitionSha256: string
+    createdByAdminUserId: string
+    submittedByAdminUserId?: string | null
+    submittedAt?: Date | string | null
+    reviewedByAdminUserId?: string | null
+    reviewedAt?: Date | string | null
+    reviewComment?: string | null
+    stepUpId?: string | null
+    publishedAt?: Date | string | null
+    createdAt?: Date | string
+    enrollments?: MarketingAutomationEnrollmentUncheckedCreateNestedManyWithoutVersionInput
+  }
+
+  export type MarketingAutomationVersionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumMarketingAutomationVersionStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationVersionStatus
+    definition?: JsonNullValueInput | InputJsonValue
+    triggerConfig?: JsonNullValueInput | InputJsonValue
+    definitionSha256?: StringFieldUpdateOperationsInput | string
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    submittedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
+    stepUpId?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    automation?: MarketingAutomationUpdateOneRequiredWithoutVersionsNestedInput
+    enrollments?: MarketingAutomationEnrollmentUpdateManyWithoutVersionNestedInput
+  }
+
+  export type MarketingAutomationVersionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    automationId?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumMarketingAutomationVersionStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationVersionStatus
+    definition?: JsonNullValueInput | InputJsonValue
+    triggerConfig?: JsonNullValueInput | InputJsonValue
+    definitionSha256?: StringFieldUpdateOperationsInput | string
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    submittedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
+    stepUpId?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    enrollments?: MarketingAutomationEnrollmentUncheckedUpdateManyWithoutVersionNestedInput
+  }
+
+  export type MarketingAutomationVersionCreateManyInput = {
+    id?: string
+    automationId: string
+    version: number
+    status?: $Enums.MarketingAutomationVersionStatus
+    definition: JsonNullValueInput | InputJsonValue
+    triggerConfig: JsonNullValueInput | InputJsonValue
+    definitionSha256: string
+    createdByAdminUserId: string
+    submittedByAdminUserId?: string | null
+    submittedAt?: Date | string | null
+    reviewedByAdminUserId?: string | null
+    reviewedAt?: Date | string | null
+    reviewComment?: string | null
+    stepUpId?: string | null
+    publishedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type MarketingAutomationVersionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumMarketingAutomationVersionStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationVersionStatus
+    definition?: JsonNullValueInput | InputJsonValue
+    triggerConfig?: JsonNullValueInput | InputJsonValue
+    definitionSha256?: StringFieldUpdateOperationsInput | string
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    submittedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
+    stepUpId?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingAutomationVersionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    automationId?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumMarketingAutomationVersionStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationVersionStatus
+    definition?: JsonNullValueInput | InputJsonValue
+    triggerConfig?: JsonNullValueInput | InputJsonValue
+    definitionSha256?: StringFieldUpdateOperationsInput | string
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    submittedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
+    stepUpId?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingAutomationEnrollmentCreateInput = {
+    id?: string
+    organizationId: string
+    status?: $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey: string
+    triggerEventId?: string | null
+    currentStepId?: string | null
+    stepCount?: number
+    nextRunAt?: Date | string | null
+    exitReason?: string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    automation: MarketingAutomationCreateNestedOneWithoutEnrollmentsInput
+    version: MarketingAutomationVersionCreateNestedOneWithoutEnrollmentsInput
+    contact: MarketingContactCreateNestedOneWithoutAutomationEnrollmentsInput
+    stepRuns?: MarketingAutomationStepRunCreateNestedManyWithoutEnrollmentInput
+  }
+
+  export type MarketingAutomationEnrollmentUncheckedCreateInput = {
+    id?: string
+    automationId: string
+    versionId: string
+    organizationId: string
+    contactId: string
+    status?: $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey: string
+    triggerEventId?: string | null
+    currentStepId?: string | null
+    stepCount?: number
+    nextRunAt?: Date | string | null
+    exitReason?: string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    stepRuns?: MarketingAutomationStepRunUncheckedCreateNestedManyWithoutEnrollmentInput
+  }
+
+  export type MarketingAutomationEnrollmentUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingAutomationEnrollmentStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey?: StringFieldUpdateOperationsInput | string
+    triggerEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    currentStepId?: NullableStringFieldUpdateOperationsInput | string | null
+    stepCount?: IntFieldUpdateOperationsInput | number
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    exitReason?: NullableStringFieldUpdateOperationsInput | string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    automation?: MarketingAutomationUpdateOneRequiredWithoutEnrollmentsNestedInput
+    version?: MarketingAutomationVersionUpdateOneRequiredWithoutEnrollmentsNestedInput
+    contact?: MarketingContactUpdateOneRequiredWithoutAutomationEnrollmentsNestedInput
+    stepRuns?: MarketingAutomationStepRunUpdateManyWithoutEnrollmentNestedInput
+  }
+
+  export type MarketingAutomationEnrollmentUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    automationId?: StringFieldUpdateOperationsInput | string
+    versionId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    contactId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingAutomationEnrollmentStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey?: StringFieldUpdateOperationsInput | string
+    triggerEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    currentStepId?: NullableStringFieldUpdateOperationsInput | string | null
+    stepCount?: IntFieldUpdateOperationsInput | number
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    exitReason?: NullableStringFieldUpdateOperationsInput | string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    stepRuns?: MarketingAutomationStepRunUncheckedUpdateManyWithoutEnrollmentNestedInput
+  }
+
+  export type MarketingAutomationEnrollmentCreateManyInput = {
+    id?: string
+    automationId: string
+    versionId: string
+    organizationId: string
+    contactId: string
+    status?: $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey: string
+    triggerEventId?: string | null
+    currentStepId?: string | null
+    stepCount?: number
+    nextRunAt?: Date | string | null
+    exitReason?: string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingAutomationEnrollmentUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingAutomationEnrollmentStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey?: StringFieldUpdateOperationsInput | string
+    triggerEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    currentStepId?: NullableStringFieldUpdateOperationsInput | string | null
+    stepCount?: IntFieldUpdateOperationsInput | number
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    exitReason?: NullableStringFieldUpdateOperationsInput | string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingAutomationEnrollmentUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    automationId?: StringFieldUpdateOperationsInput | string
+    versionId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    contactId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingAutomationEnrollmentStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey?: StringFieldUpdateOperationsInput | string
+    triggerEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    currentStepId?: NullableStringFieldUpdateOperationsInput | string | null
+    stepCount?: IntFieldUpdateOperationsInput | number
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    exitReason?: NullableStringFieldUpdateOperationsInput | string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingAutomationStepRunCreateInput = {
+    id?: string
+    organizationId: string
+    stepId: string
+    stepType: string
+    sequence: number
+    status?: $Enums.MarketingAutomationStepRunStatus
+    idempotencyKey?: string | null
+    recipientEmail?: string | null
+    templateVersionId?: string | null
+    providerMessageId?: string | null
+    firstAttemptAt?: Date | string | null
+    deliveryStatus?: string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    errorCode?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    enrollment: MarketingAutomationEnrollmentCreateNestedOneWithoutStepRunsInput
+  }
+
+  export type MarketingAutomationStepRunUncheckedCreateInput = {
+    id?: string
+    enrollmentId: string
+    organizationId: string
+    stepId: string
+    stepType: string
+    sequence: number
+    status?: $Enums.MarketingAutomationStepRunStatus
+    idempotencyKey?: string | null
+    recipientEmail?: string | null
+    templateVersionId?: string | null
+    providerMessageId?: string | null
+    firstAttemptAt?: Date | string | null
+    deliveryStatus?: string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    errorCode?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingAutomationStepRunUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    stepId?: StringFieldUpdateOperationsInput | string
+    stepType?: StringFieldUpdateOperationsInput | string
+    sequence?: IntFieldUpdateOperationsInput | number
+    status?: EnumMarketingAutomationStepRunStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationStepRunStatus
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    templateVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    firstAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    enrollment?: MarketingAutomationEnrollmentUpdateOneRequiredWithoutStepRunsNestedInput
+  }
+
+  export type MarketingAutomationStepRunUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    enrollmentId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    stepId?: StringFieldUpdateOperationsInput | string
+    stepType?: StringFieldUpdateOperationsInput | string
+    sequence?: IntFieldUpdateOperationsInput | number
+    status?: EnumMarketingAutomationStepRunStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationStepRunStatus
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    templateVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    firstAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingAutomationStepRunCreateManyInput = {
+    id?: string
+    enrollmentId: string
+    organizationId: string
+    stepId: string
+    stepType: string
+    sequence: number
+    status?: $Enums.MarketingAutomationStepRunStatus
+    idempotencyKey?: string | null
+    recipientEmail?: string | null
+    templateVersionId?: string | null
+    providerMessageId?: string | null
+    firstAttemptAt?: Date | string | null
+    deliveryStatus?: string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    errorCode?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingAutomationStepRunUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    stepId?: StringFieldUpdateOperationsInput | string
+    stepType?: StringFieldUpdateOperationsInput | string
+    sequence?: IntFieldUpdateOperationsInput | number
+    status?: EnumMarketingAutomationStepRunStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationStepRunStatus
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    templateVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    firstAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingAutomationStepRunUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    enrollmentId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    stepId?: StringFieldUpdateOperationsInput | string
+    stepType?: StringFieldUpdateOperationsInput | string
+    sequence?: IntFieldUpdateOperationsInput | number
+    status?: EnumMarketingAutomationStepRunStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationStepRunStatus
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    templateVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    firstAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingTriggerEventCreateInput = {
+    id?: string
+    organizationId: string
+    source: string
+    eventType: string
+    eventId: string
+    contactId?: string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    status?: $Enums.MarketingTriggerEventStatus
+    error?: string | null
+    occurredAt: Date | string
+    receivedAt?: Date | string
+    processedAt?: Date | string | null
+  }
+
+  export type MarketingTriggerEventUncheckedCreateInput = {
+    id?: string
+    organizationId: string
+    source: string
+    eventType: string
+    eventId: string
+    contactId?: string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    status?: $Enums.MarketingTriggerEventStatus
+    error?: string | null
+    occurredAt: Date | string
+    receivedAt?: Date | string
+    processedAt?: Date | string | null
+  }
+
+  export type MarketingTriggerEventUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    contactId?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    status?: EnumMarketingTriggerEventStatusFieldUpdateOperationsInput | $Enums.MarketingTriggerEventStatus
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type MarketingTriggerEventUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    contactId?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    status?: EnumMarketingTriggerEventStatusFieldUpdateOperationsInput | $Enums.MarketingTriggerEventStatus
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type MarketingTriggerEventCreateManyInput = {
+    id?: string
+    organizationId: string
+    source: string
+    eventType: string
+    eventId: string
+    contactId?: string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    status?: $Enums.MarketingTriggerEventStatus
+    error?: string | null
+    occurredAt: Date | string
+    receivedAt?: Date | string
+    processedAt?: Date | string | null
+  }
+
+  export type MarketingTriggerEventUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    contactId?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    status?: EnumMarketingTriggerEventStatusFieldUpdateOperationsInput | $Enums.MarketingTriggerEventStatus
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type MarketingTriggerEventUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    contactId?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    status?: EnumMarketingTriggerEventStatusFieldUpdateOperationsInput | $Enums.MarketingTriggerEventStatus
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -263622,6 +278584,17 @@ export namespace Prisma {
     none?: MarketingEmailCampaignWhereInput
   }
 
+  export type MarketingBrandSettingsNullableScalarRelationFilter = {
+    is?: MarketingBrandSettingsWhereInput | null
+    isNot?: MarketingBrandSettingsWhereInput | null
+  }
+
+  export type MarketingAutomationListRelationFilter = {
+    every?: MarketingAutomationWhereInput
+    some?: MarketingAutomationWhereInput
+    none?: MarketingAutomationWhereInput
+  }
+
   export type MailDomainOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -263655,6 +278628,10 @@ export namespace Prisma {
   }
 
   export type MarketingEmailCampaignOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MarketingAutomationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -265553,11 +280530,31 @@ export namespace Prisma {
     none?: MarketingAudienceContactWhereInput
   }
 
+  export type MarketingBroadcastRecipientListRelationFilter = {
+    every?: MarketingBroadcastRecipientWhereInput
+    some?: MarketingBroadcastRecipientWhereInput
+    none?: MarketingBroadcastRecipientWhereInput
+  }
+
+  export type MarketingAutomationEnrollmentListRelationFilter = {
+    every?: MarketingAutomationEnrollmentWhereInput
+    some?: MarketingAutomationEnrollmentWhereInput
+    none?: MarketingAutomationEnrollmentWhereInput
+  }
+
   export type MarketingConsentOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
   export type MarketingAudienceContactOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MarketingBroadcastRecipientOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MarketingAutomationEnrollmentOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -266048,6 +281045,11 @@ export namespace Prisma {
     none?: MarketingCampaignSnapshotWhereInput
   }
 
+  export type MarketingBroadcastDispatchNullableScalarRelationFilter = {
+    is?: MarketingBroadcastDispatchWhereInput | null
+    isNot?: MarketingBroadcastDispatchWhereInput | null
+  }
+
   export type MarketingCampaignApprovalOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -266161,6 +281163,16 @@ export namespace Prisma {
   export type MarketingEmailCampaignScalarRelationFilter = {
     is?: MarketingEmailCampaignWhereInput
     isNot?: MarketingEmailCampaignWhereInput
+  }
+
+  export type MarketingCampaignApprovedContactListRelationFilter = {
+    every?: MarketingCampaignApprovedContactWhereInput
+    some?: MarketingCampaignApprovedContactWhereInput
+    none?: MarketingCampaignApprovedContactWhereInput
+  }
+
+  export type MarketingCampaignApprovedContactOrderByRelationAggregateInput = {
+    _count?: SortOrder
   }
 
   export type MarketingCampaignSnapshotCampaignIdRevisionKindCompoundUniqueInput = {
@@ -266310,6 +281322,765 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumMarketingCampaignApprovalDecisionFilter<$PrismaModel>
     _max?: NestedEnumMarketingCampaignApprovalDecisionFilter<$PrismaModel>
+  }
+
+  export type MarketingBrandSettingsCountOrderByAggregateInput = {
+    organizationId?: SortOrder
+    confirmationSenderId?: SortOrder
+    defaultTimeZone?: SortOrder
+    postalAddress?: SortOrder
+    dailyBroadcastCap?: SortOrder
+    dailyAutomationCap?: SortOrder
+    maxBroadcastRecipients?: SortOrder
+    dispatchPaused?: SortOrder
+    pausedReason?: SortOrder
+    pausedAt?: SortOrder
+    pausedBy?: SortOrder
+    updatedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingBrandSettingsAvgOrderByAggregateInput = {
+    dailyBroadcastCap?: SortOrder
+    dailyAutomationCap?: SortOrder
+    maxBroadcastRecipients?: SortOrder
+  }
+
+  export type MarketingBrandSettingsMaxOrderByAggregateInput = {
+    organizationId?: SortOrder
+    confirmationSenderId?: SortOrder
+    defaultTimeZone?: SortOrder
+    postalAddress?: SortOrder
+    dailyBroadcastCap?: SortOrder
+    dailyAutomationCap?: SortOrder
+    maxBroadcastRecipients?: SortOrder
+    dispatchPaused?: SortOrder
+    pausedReason?: SortOrder
+    pausedAt?: SortOrder
+    pausedBy?: SortOrder
+    updatedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingBrandSettingsMinOrderByAggregateInput = {
+    organizationId?: SortOrder
+    confirmationSenderId?: SortOrder
+    defaultTimeZone?: SortOrder
+    postalAddress?: SortOrder
+    dailyBroadcastCap?: SortOrder
+    dailyAutomationCap?: SortOrder
+    maxBroadcastRecipients?: SortOrder
+    dispatchPaused?: SortOrder
+    pausedReason?: SortOrder
+    pausedAt?: SortOrder
+    pausedBy?: SortOrder
+    updatedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingBrandSettingsSumOrderByAggregateInput = {
+    dailyBroadcastCap?: SortOrder
+    dailyAutomationCap?: SortOrder
+    maxBroadcastRecipients?: SortOrder
+  }
+
+  export type MarketingCampaignSnapshotScalarRelationFilter = {
+    is?: MarketingCampaignSnapshotWhereInput
+    isNot?: MarketingCampaignSnapshotWhereInput
+  }
+
+  export type MarketingCampaignApprovedContactSnapshotIdContactIdCompoundUniqueInput = {
+    snapshotId: string
+    contactId: string
+  }
+
+  export type MarketingCampaignApprovedContactCountOrderByAggregateInput = {
+    snapshotId?: SortOrder
+    contactId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MarketingCampaignApprovedContactMaxOrderByAggregateInput = {
+    snapshotId?: SortOrder
+    contactId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MarketingCampaignApprovedContactMinOrderByAggregateInput = {
+    snapshotId?: SortOrder
+    contactId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EnumMarketingBroadcastStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingBroadcastStatus | EnumMarketingBroadcastStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingBroadcastStatus[] | ListEnumMarketingBroadcastStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingBroadcastStatus[] | ListEnumMarketingBroadcastStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingBroadcastStatusFilter<$PrismaModel> | $Enums.MarketingBroadcastStatus
+  }
+
+  export type MarketingBroadcastDispatchCountOrderByAggregateInput = {
+    id?: SortOrder
+    campaignId?: SortOrder
+    organizationId?: SortOrder
+    approvalSnapshotId?: SortOrder
+    status?: SortOrder
+    scheduledFor?: SortOrder
+    timeZone?: SortOrder
+    localSendTime?: SortOrder
+    provider?: SortOrder
+    providerSegmentId?: SortOrder
+    providerBroadcastId?: SortOrder
+    providerStatus?: SortOrder
+    providerCreateAttemptAt?: SortOrder
+    providerSendAttemptAt?: SortOrder
+    providerSentAt?: SortOrder
+    recipientCount?: SortOrder
+    excludedCount?: SortOrder
+    eligibilitySha256?: SortOrder
+    contentSha256?: SortOrder
+    scheduledByAdminUserId?: SortOrder
+    cancelRequestedAt?: SortOrder
+    cancelRequestedBy?: SortOrder
+    pausedAt?: SortOrder
+    pausedBy?: SortOrder
+    lastErrorCode?: SortOrder
+    lastErrorMessage?: SortOrder
+    completedAt?: SortOrder
+    revision?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingBroadcastDispatchAvgOrderByAggregateInput = {
+    recipientCount?: SortOrder
+    excludedCount?: SortOrder
+    revision?: SortOrder
+  }
+
+  export type MarketingBroadcastDispatchMaxOrderByAggregateInput = {
+    id?: SortOrder
+    campaignId?: SortOrder
+    organizationId?: SortOrder
+    approvalSnapshotId?: SortOrder
+    status?: SortOrder
+    scheduledFor?: SortOrder
+    timeZone?: SortOrder
+    localSendTime?: SortOrder
+    provider?: SortOrder
+    providerSegmentId?: SortOrder
+    providerBroadcastId?: SortOrder
+    providerStatus?: SortOrder
+    providerCreateAttemptAt?: SortOrder
+    providerSendAttemptAt?: SortOrder
+    providerSentAt?: SortOrder
+    recipientCount?: SortOrder
+    excludedCount?: SortOrder
+    eligibilitySha256?: SortOrder
+    contentSha256?: SortOrder
+    scheduledByAdminUserId?: SortOrder
+    cancelRequestedAt?: SortOrder
+    cancelRequestedBy?: SortOrder
+    pausedAt?: SortOrder
+    pausedBy?: SortOrder
+    lastErrorCode?: SortOrder
+    lastErrorMessage?: SortOrder
+    completedAt?: SortOrder
+    revision?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingBroadcastDispatchMinOrderByAggregateInput = {
+    id?: SortOrder
+    campaignId?: SortOrder
+    organizationId?: SortOrder
+    approvalSnapshotId?: SortOrder
+    status?: SortOrder
+    scheduledFor?: SortOrder
+    timeZone?: SortOrder
+    localSendTime?: SortOrder
+    provider?: SortOrder
+    providerSegmentId?: SortOrder
+    providerBroadcastId?: SortOrder
+    providerStatus?: SortOrder
+    providerCreateAttemptAt?: SortOrder
+    providerSendAttemptAt?: SortOrder
+    providerSentAt?: SortOrder
+    recipientCount?: SortOrder
+    excludedCount?: SortOrder
+    eligibilitySha256?: SortOrder
+    contentSha256?: SortOrder
+    scheduledByAdminUserId?: SortOrder
+    cancelRequestedAt?: SortOrder
+    cancelRequestedBy?: SortOrder
+    pausedAt?: SortOrder
+    pausedBy?: SortOrder
+    lastErrorCode?: SortOrder
+    lastErrorMessage?: SortOrder
+    completedAt?: SortOrder
+    revision?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingBroadcastDispatchSumOrderByAggregateInput = {
+    recipientCount?: SortOrder
+    excludedCount?: SortOrder
+    revision?: SortOrder
+  }
+
+  export type EnumMarketingBroadcastStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingBroadcastStatus | EnumMarketingBroadcastStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingBroadcastStatus[] | ListEnumMarketingBroadcastStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingBroadcastStatus[] | ListEnumMarketingBroadcastStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingBroadcastStatusWithAggregatesFilter<$PrismaModel> | $Enums.MarketingBroadcastStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMarketingBroadcastStatusFilter<$PrismaModel>
+    _max?: NestedEnumMarketingBroadcastStatusFilter<$PrismaModel>
+  }
+
+  export type EnumMarketingBroadcastRecipientStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingBroadcastRecipientStatus | EnumMarketingBroadcastRecipientStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingBroadcastRecipientStatus[] | ListEnumMarketingBroadcastRecipientStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingBroadcastRecipientStatus[] | ListEnumMarketingBroadcastRecipientStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingBroadcastRecipientStatusFilter<$PrismaModel> | $Enums.MarketingBroadcastRecipientStatus
+  }
+
+  export type MarketingBroadcastDispatchScalarRelationFilter = {
+    is?: MarketingBroadcastDispatchWhereInput
+    isNot?: MarketingBroadcastDispatchWhereInput
+  }
+
+  export type MarketingBroadcastRecipientDispatchIdContactIdCompoundUniqueInput = {
+    dispatchId: string
+    contactId: string
+  }
+
+  export type MarketingBroadcastRecipientCountOrderByAggregateInput = {
+    id?: SortOrder
+    dispatchId?: SortOrder
+    organizationId?: SortOrder
+    contactId?: SortOrder
+    email?: SortOrder
+    status?: SortOrder
+    exclusionReason?: SortOrder
+    providerContactId?: SortOrder
+    providerEmailId?: SortOrder
+    syncedAt?: SortOrder
+    acceptedAt?: SortOrder
+    lastEventType?: SortOrder
+    lastEventAt?: SortOrder
+    openedAt?: SortOrder
+    clickedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingBroadcastRecipientMaxOrderByAggregateInput = {
+    id?: SortOrder
+    dispatchId?: SortOrder
+    organizationId?: SortOrder
+    contactId?: SortOrder
+    email?: SortOrder
+    status?: SortOrder
+    exclusionReason?: SortOrder
+    providerContactId?: SortOrder
+    providerEmailId?: SortOrder
+    syncedAt?: SortOrder
+    acceptedAt?: SortOrder
+    lastEventType?: SortOrder
+    lastEventAt?: SortOrder
+    openedAt?: SortOrder
+    clickedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingBroadcastRecipientMinOrderByAggregateInput = {
+    id?: SortOrder
+    dispatchId?: SortOrder
+    organizationId?: SortOrder
+    contactId?: SortOrder
+    email?: SortOrder
+    status?: SortOrder
+    exclusionReason?: SortOrder
+    providerContactId?: SortOrder
+    providerEmailId?: SortOrder
+    syncedAt?: SortOrder
+    acceptedAt?: SortOrder
+    lastEventType?: SortOrder
+    lastEventAt?: SortOrder
+    openedAt?: SortOrder
+    clickedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumMarketingBroadcastRecipientStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingBroadcastRecipientStatus | EnumMarketingBroadcastRecipientStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingBroadcastRecipientStatus[] | ListEnumMarketingBroadcastRecipientStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingBroadcastRecipientStatus[] | ListEnumMarketingBroadcastRecipientStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingBroadcastRecipientStatusWithAggregatesFilter<$PrismaModel> | $Enums.MarketingBroadcastRecipientStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMarketingBroadcastRecipientStatusFilter<$PrismaModel>
+    _max?: NestedEnumMarketingBroadcastRecipientStatusFilter<$PrismaModel>
+  }
+
+  export type EnumMarketingAutomationStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingAutomationStatus | EnumMarketingAutomationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingAutomationStatus[] | ListEnumMarketingAutomationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingAutomationStatus[] | ListEnumMarketingAutomationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingAutomationStatusFilter<$PrismaModel> | $Enums.MarketingAutomationStatus
+  }
+
+  export type MarketingAutomationVersionListRelationFilter = {
+    every?: MarketingAutomationVersionWhereInput
+    some?: MarketingAutomationVersionWhereInput
+    none?: MarketingAutomationVersionWhereInput
+  }
+
+  export type MarketingAutomationVersionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MarketingAutomationOrganizationIdNameCompoundUniqueInput = {
+    organizationId: string
+    name: string
+  }
+
+  export type MarketingAutomationCountOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    status?: SortOrder
+    triggerType?: SortOrder
+    activeVersionId?: SortOrder
+    enrollmentLimit?: SortOrder
+    maxActiveEnrollments?: SortOrder
+    frequencyCapHours?: SortOrder
+    createdByAdminUserId?: SortOrder
+    updatedByAdminUserId?: SortOrder
+    revision?: SortOrder
+    lastScheduledRunAt?: SortOrder
+    activatedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingAutomationAvgOrderByAggregateInput = {
+    enrollmentLimit?: SortOrder
+    maxActiveEnrollments?: SortOrder
+    frequencyCapHours?: SortOrder
+    revision?: SortOrder
+  }
+
+  export type MarketingAutomationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    status?: SortOrder
+    triggerType?: SortOrder
+    activeVersionId?: SortOrder
+    enrollmentLimit?: SortOrder
+    maxActiveEnrollments?: SortOrder
+    frequencyCapHours?: SortOrder
+    createdByAdminUserId?: SortOrder
+    updatedByAdminUserId?: SortOrder
+    revision?: SortOrder
+    lastScheduledRunAt?: SortOrder
+    activatedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingAutomationMinOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    status?: SortOrder
+    triggerType?: SortOrder
+    activeVersionId?: SortOrder
+    enrollmentLimit?: SortOrder
+    maxActiveEnrollments?: SortOrder
+    frequencyCapHours?: SortOrder
+    createdByAdminUserId?: SortOrder
+    updatedByAdminUserId?: SortOrder
+    revision?: SortOrder
+    lastScheduledRunAt?: SortOrder
+    activatedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingAutomationSumOrderByAggregateInput = {
+    enrollmentLimit?: SortOrder
+    maxActiveEnrollments?: SortOrder
+    frequencyCapHours?: SortOrder
+    revision?: SortOrder
+  }
+
+  export type EnumMarketingAutomationStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingAutomationStatus | EnumMarketingAutomationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingAutomationStatus[] | ListEnumMarketingAutomationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingAutomationStatus[] | ListEnumMarketingAutomationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingAutomationStatusWithAggregatesFilter<$PrismaModel> | $Enums.MarketingAutomationStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMarketingAutomationStatusFilter<$PrismaModel>
+    _max?: NestedEnumMarketingAutomationStatusFilter<$PrismaModel>
+  }
+
+  export type EnumMarketingAutomationVersionStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingAutomationVersionStatus | EnumMarketingAutomationVersionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingAutomationVersionStatus[] | ListEnumMarketingAutomationVersionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingAutomationVersionStatus[] | ListEnumMarketingAutomationVersionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingAutomationVersionStatusFilter<$PrismaModel> | $Enums.MarketingAutomationVersionStatus
+  }
+
+  export type MarketingAutomationScalarRelationFilter = {
+    is?: MarketingAutomationWhereInput
+    isNot?: MarketingAutomationWhereInput
+  }
+
+  export type MarketingAutomationVersionAutomationIdVersionCompoundUniqueInput = {
+    automationId: string
+    version: number
+  }
+
+  export type MarketingAutomationVersionCountOrderByAggregateInput = {
+    id?: SortOrder
+    automationId?: SortOrder
+    version?: SortOrder
+    status?: SortOrder
+    definition?: SortOrder
+    triggerConfig?: SortOrder
+    definitionSha256?: SortOrder
+    createdByAdminUserId?: SortOrder
+    submittedByAdminUserId?: SortOrder
+    submittedAt?: SortOrder
+    reviewedByAdminUserId?: SortOrder
+    reviewedAt?: SortOrder
+    reviewComment?: SortOrder
+    stepUpId?: SortOrder
+    publishedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MarketingAutomationVersionAvgOrderByAggregateInput = {
+    version?: SortOrder
+  }
+
+  export type MarketingAutomationVersionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    automationId?: SortOrder
+    version?: SortOrder
+    status?: SortOrder
+    definitionSha256?: SortOrder
+    createdByAdminUserId?: SortOrder
+    submittedByAdminUserId?: SortOrder
+    submittedAt?: SortOrder
+    reviewedByAdminUserId?: SortOrder
+    reviewedAt?: SortOrder
+    reviewComment?: SortOrder
+    stepUpId?: SortOrder
+    publishedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MarketingAutomationVersionMinOrderByAggregateInput = {
+    id?: SortOrder
+    automationId?: SortOrder
+    version?: SortOrder
+    status?: SortOrder
+    definitionSha256?: SortOrder
+    createdByAdminUserId?: SortOrder
+    submittedByAdminUserId?: SortOrder
+    submittedAt?: SortOrder
+    reviewedByAdminUserId?: SortOrder
+    reviewedAt?: SortOrder
+    reviewComment?: SortOrder
+    stepUpId?: SortOrder
+    publishedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MarketingAutomationVersionSumOrderByAggregateInput = {
+    version?: SortOrder
+  }
+
+  export type EnumMarketingAutomationVersionStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingAutomationVersionStatus | EnumMarketingAutomationVersionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingAutomationVersionStatus[] | ListEnumMarketingAutomationVersionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingAutomationVersionStatus[] | ListEnumMarketingAutomationVersionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingAutomationVersionStatusWithAggregatesFilter<$PrismaModel> | $Enums.MarketingAutomationVersionStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMarketingAutomationVersionStatusFilter<$PrismaModel>
+    _max?: NestedEnumMarketingAutomationVersionStatusFilter<$PrismaModel>
+  }
+
+  export type EnumMarketingAutomationEnrollmentStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingAutomationEnrollmentStatus | EnumMarketingAutomationEnrollmentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingAutomationEnrollmentStatus[] | ListEnumMarketingAutomationEnrollmentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingAutomationEnrollmentStatus[] | ListEnumMarketingAutomationEnrollmentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingAutomationEnrollmentStatusFilter<$PrismaModel> | $Enums.MarketingAutomationEnrollmentStatus
+  }
+
+  export type MarketingAutomationVersionScalarRelationFilter = {
+    is?: MarketingAutomationVersionWhereInput
+    isNot?: MarketingAutomationVersionWhereInput
+  }
+
+  export type MarketingAutomationStepRunListRelationFilter = {
+    every?: MarketingAutomationStepRunWhereInput
+    some?: MarketingAutomationStepRunWhereInput
+    none?: MarketingAutomationStepRunWhereInput
+  }
+
+  export type MarketingAutomationStepRunOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MarketingAutomationEnrollmentAutomationIdDedupeKeyCompoundUniqueInput = {
+    automationId: string
+    dedupeKey: string
+  }
+
+  export type MarketingAutomationEnrollmentCountOrderByAggregateInput = {
+    id?: SortOrder
+    automationId?: SortOrder
+    versionId?: SortOrder
+    organizationId?: SortOrder
+    contactId?: SortOrder
+    status?: SortOrder
+    dedupeKey?: SortOrder
+    triggerEventId?: SortOrder
+    currentStepId?: SortOrder
+    stepCount?: SortOrder
+    nextRunAt?: SortOrder
+    exitReason?: SortOrder
+    context?: SortOrder
+    completedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingAutomationEnrollmentAvgOrderByAggregateInput = {
+    stepCount?: SortOrder
+  }
+
+  export type MarketingAutomationEnrollmentMaxOrderByAggregateInput = {
+    id?: SortOrder
+    automationId?: SortOrder
+    versionId?: SortOrder
+    organizationId?: SortOrder
+    contactId?: SortOrder
+    status?: SortOrder
+    dedupeKey?: SortOrder
+    triggerEventId?: SortOrder
+    currentStepId?: SortOrder
+    stepCount?: SortOrder
+    nextRunAt?: SortOrder
+    exitReason?: SortOrder
+    completedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingAutomationEnrollmentMinOrderByAggregateInput = {
+    id?: SortOrder
+    automationId?: SortOrder
+    versionId?: SortOrder
+    organizationId?: SortOrder
+    contactId?: SortOrder
+    status?: SortOrder
+    dedupeKey?: SortOrder
+    triggerEventId?: SortOrder
+    currentStepId?: SortOrder
+    stepCount?: SortOrder
+    nextRunAt?: SortOrder
+    exitReason?: SortOrder
+    completedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingAutomationEnrollmentSumOrderByAggregateInput = {
+    stepCount?: SortOrder
+  }
+
+  export type EnumMarketingAutomationEnrollmentStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingAutomationEnrollmentStatus | EnumMarketingAutomationEnrollmentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingAutomationEnrollmentStatus[] | ListEnumMarketingAutomationEnrollmentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingAutomationEnrollmentStatus[] | ListEnumMarketingAutomationEnrollmentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingAutomationEnrollmentStatusWithAggregatesFilter<$PrismaModel> | $Enums.MarketingAutomationEnrollmentStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMarketingAutomationEnrollmentStatusFilter<$PrismaModel>
+    _max?: NestedEnumMarketingAutomationEnrollmentStatusFilter<$PrismaModel>
+  }
+
+  export type EnumMarketingAutomationStepRunStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingAutomationStepRunStatus | EnumMarketingAutomationStepRunStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingAutomationStepRunStatus[] | ListEnumMarketingAutomationStepRunStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingAutomationStepRunStatus[] | ListEnumMarketingAutomationStepRunStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingAutomationStepRunStatusFilter<$PrismaModel> | $Enums.MarketingAutomationStepRunStatus
+  }
+
+  export type MarketingAutomationEnrollmentScalarRelationFilter = {
+    is?: MarketingAutomationEnrollmentWhereInput
+    isNot?: MarketingAutomationEnrollmentWhereInput
+  }
+
+  export type MarketingAutomationStepRunEnrollmentIdSequenceCompoundUniqueInput = {
+    enrollmentId: string
+    sequence: number
+  }
+
+  export type MarketingAutomationStepRunCountOrderByAggregateInput = {
+    id?: SortOrder
+    enrollmentId?: SortOrder
+    organizationId?: SortOrder
+    stepId?: SortOrder
+    stepType?: SortOrder
+    sequence?: SortOrder
+    status?: SortOrder
+    idempotencyKey?: SortOrder
+    recipientEmail?: SortOrder
+    templateVersionId?: SortOrder
+    providerMessageId?: SortOrder
+    firstAttemptAt?: SortOrder
+    deliveryStatus?: SortOrder
+    outcome?: SortOrder
+    errorCode?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingAutomationStepRunAvgOrderByAggregateInput = {
+    sequence?: SortOrder
+  }
+
+  export type MarketingAutomationStepRunMaxOrderByAggregateInput = {
+    id?: SortOrder
+    enrollmentId?: SortOrder
+    organizationId?: SortOrder
+    stepId?: SortOrder
+    stepType?: SortOrder
+    sequence?: SortOrder
+    status?: SortOrder
+    idempotencyKey?: SortOrder
+    recipientEmail?: SortOrder
+    templateVersionId?: SortOrder
+    providerMessageId?: SortOrder
+    firstAttemptAt?: SortOrder
+    deliveryStatus?: SortOrder
+    errorCode?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingAutomationStepRunMinOrderByAggregateInput = {
+    id?: SortOrder
+    enrollmentId?: SortOrder
+    organizationId?: SortOrder
+    stepId?: SortOrder
+    stepType?: SortOrder
+    sequence?: SortOrder
+    status?: SortOrder
+    idempotencyKey?: SortOrder
+    recipientEmail?: SortOrder
+    templateVersionId?: SortOrder
+    providerMessageId?: SortOrder
+    firstAttemptAt?: SortOrder
+    deliveryStatus?: SortOrder
+    errorCode?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingAutomationStepRunSumOrderByAggregateInput = {
+    sequence?: SortOrder
+  }
+
+  export type EnumMarketingAutomationStepRunStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingAutomationStepRunStatus | EnumMarketingAutomationStepRunStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingAutomationStepRunStatus[] | ListEnumMarketingAutomationStepRunStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingAutomationStepRunStatus[] | ListEnumMarketingAutomationStepRunStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingAutomationStepRunStatusWithAggregatesFilter<$PrismaModel> | $Enums.MarketingAutomationStepRunStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMarketingAutomationStepRunStatusFilter<$PrismaModel>
+    _max?: NestedEnumMarketingAutomationStepRunStatusFilter<$PrismaModel>
+  }
+
+  export type EnumMarketingTriggerEventStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingTriggerEventStatus | EnumMarketingTriggerEventStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingTriggerEventStatus[] | ListEnumMarketingTriggerEventStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingTriggerEventStatus[] | ListEnumMarketingTriggerEventStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingTriggerEventStatusFilter<$PrismaModel> | $Enums.MarketingTriggerEventStatus
+  }
+
+  export type MarketingTriggerEventOrganizationIdSourceEventIdCompoundUniqueInput = {
+    organizationId: string
+    source: string
+    eventId: string
+  }
+
+  export type MarketingTriggerEventCountOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    source?: SortOrder
+    eventType?: SortOrder
+    eventId?: SortOrder
+    contactId?: SortOrder
+    payload?: SortOrder
+    status?: SortOrder
+    error?: SortOrder
+    occurredAt?: SortOrder
+    receivedAt?: SortOrder
+    processedAt?: SortOrder
+  }
+
+  export type MarketingTriggerEventMaxOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    source?: SortOrder
+    eventType?: SortOrder
+    eventId?: SortOrder
+    contactId?: SortOrder
+    status?: SortOrder
+    error?: SortOrder
+    occurredAt?: SortOrder
+    receivedAt?: SortOrder
+    processedAt?: SortOrder
+  }
+
+  export type MarketingTriggerEventMinOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    source?: SortOrder
+    eventType?: SortOrder
+    eventId?: SortOrder
+    contactId?: SortOrder
+    status?: SortOrder
+    error?: SortOrder
+    occurredAt?: SortOrder
+    receivedAt?: SortOrder
+    processedAt?: SortOrder
+  }
+
+  export type EnumMarketingTriggerEventStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingTriggerEventStatus | EnumMarketingTriggerEventStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingTriggerEventStatus[] | ListEnumMarketingTriggerEventStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingTriggerEventStatus[] | ListEnumMarketingTriggerEventStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingTriggerEventStatusWithAggregatesFilter<$PrismaModel> | $Enums.MarketingTriggerEventStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMarketingTriggerEventStatusFilter<$PrismaModel>
+    _max?: NestedEnumMarketingTriggerEventStatusFilter<$PrismaModel>
   }
 
   export type AdminSessionCreateNestedManyWithoutAdminUserInput = {
@@ -277654,6 +293425,19 @@ export namespace Prisma {
     connect?: MarketingEmailCampaignWhereUniqueInput | MarketingEmailCampaignWhereUniqueInput[]
   }
 
+  export type MarketingBrandSettingsCreateNestedOneWithoutOrganizationInput = {
+    create?: XOR<MarketingBrandSettingsCreateWithoutOrganizationInput, MarketingBrandSettingsUncheckedCreateWithoutOrganizationInput>
+    connectOrCreate?: MarketingBrandSettingsCreateOrConnectWithoutOrganizationInput
+    connect?: MarketingBrandSettingsWhereUniqueInput
+  }
+
+  export type MarketingAutomationCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<MarketingAutomationCreateWithoutOrganizationInput, MarketingAutomationUncheckedCreateWithoutOrganizationInput> | MarketingAutomationCreateWithoutOrganizationInput[] | MarketingAutomationUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: MarketingAutomationCreateOrConnectWithoutOrganizationInput | MarketingAutomationCreateOrConnectWithoutOrganizationInput[]
+    createMany?: MarketingAutomationCreateManyOrganizationInputEnvelope
+    connect?: MarketingAutomationWhereUniqueInput | MarketingAutomationWhereUniqueInput[]
+  }
+
   export type MailDomainUncheckedCreateNestedManyWithoutOrganizationInput = {
     create?: XOR<MailDomainCreateWithoutOrganizationInput, MailDomainUncheckedCreateWithoutOrganizationInput> | MailDomainCreateWithoutOrganizationInput[] | MailDomainUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: MailDomainCreateOrConnectWithoutOrganizationInput | MailDomainCreateOrConnectWithoutOrganizationInput[]
@@ -277722,6 +293506,19 @@ export namespace Prisma {
     connectOrCreate?: MarketingEmailCampaignCreateOrConnectWithoutOrganizationInput | MarketingEmailCampaignCreateOrConnectWithoutOrganizationInput[]
     createMany?: MarketingEmailCampaignCreateManyOrganizationInputEnvelope
     connect?: MarketingEmailCampaignWhereUniqueInput | MarketingEmailCampaignWhereUniqueInput[]
+  }
+
+  export type MarketingBrandSettingsUncheckedCreateNestedOneWithoutOrganizationInput = {
+    create?: XOR<MarketingBrandSettingsCreateWithoutOrganizationInput, MarketingBrandSettingsUncheckedCreateWithoutOrganizationInput>
+    connectOrCreate?: MarketingBrandSettingsCreateOrConnectWithoutOrganizationInput
+    connect?: MarketingBrandSettingsWhereUniqueInput
+  }
+
+  export type MarketingAutomationUncheckedCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<MarketingAutomationCreateWithoutOrganizationInput, MarketingAutomationUncheckedCreateWithoutOrganizationInput> | MarketingAutomationCreateWithoutOrganizationInput[] | MarketingAutomationUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: MarketingAutomationCreateOrConnectWithoutOrganizationInput | MarketingAutomationCreateOrConnectWithoutOrganizationInput[]
+    createMany?: MarketingAutomationCreateManyOrganizationInputEnvelope
+    connect?: MarketingAutomationWhereUniqueInput | MarketingAutomationWhereUniqueInput[]
   }
 
   export type EnumMailOrganizationKindFieldUpdateOperationsInput = {
@@ -277872,6 +293669,30 @@ export namespace Prisma {
     deleteMany?: MarketingEmailCampaignScalarWhereInput | MarketingEmailCampaignScalarWhereInput[]
   }
 
+  export type MarketingBrandSettingsUpdateOneWithoutOrganizationNestedInput = {
+    create?: XOR<MarketingBrandSettingsCreateWithoutOrganizationInput, MarketingBrandSettingsUncheckedCreateWithoutOrganizationInput>
+    connectOrCreate?: MarketingBrandSettingsCreateOrConnectWithoutOrganizationInput
+    upsert?: MarketingBrandSettingsUpsertWithoutOrganizationInput
+    disconnect?: MarketingBrandSettingsWhereInput | boolean
+    delete?: MarketingBrandSettingsWhereInput | boolean
+    connect?: MarketingBrandSettingsWhereUniqueInput
+    update?: XOR<XOR<MarketingBrandSettingsUpdateToOneWithWhereWithoutOrganizationInput, MarketingBrandSettingsUpdateWithoutOrganizationInput>, MarketingBrandSettingsUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type MarketingAutomationUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<MarketingAutomationCreateWithoutOrganizationInput, MarketingAutomationUncheckedCreateWithoutOrganizationInput> | MarketingAutomationCreateWithoutOrganizationInput[] | MarketingAutomationUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: MarketingAutomationCreateOrConnectWithoutOrganizationInput | MarketingAutomationCreateOrConnectWithoutOrganizationInput[]
+    upsert?: MarketingAutomationUpsertWithWhereUniqueWithoutOrganizationInput | MarketingAutomationUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: MarketingAutomationCreateManyOrganizationInputEnvelope
+    set?: MarketingAutomationWhereUniqueInput | MarketingAutomationWhereUniqueInput[]
+    disconnect?: MarketingAutomationWhereUniqueInput | MarketingAutomationWhereUniqueInput[]
+    delete?: MarketingAutomationWhereUniqueInput | MarketingAutomationWhereUniqueInput[]
+    connect?: MarketingAutomationWhereUniqueInput | MarketingAutomationWhereUniqueInput[]
+    update?: MarketingAutomationUpdateWithWhereUniqueWithoutOrganizationInput | MarketingAutomationUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: MarketingAutomationUpdateManyWithWhereWithoutOrganizationInput | MarketingAutomationUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: MarketingAutomationScalarWhereInput | MarketingAutomationScalarWhereInput[]
+  }
+
   export type MailDomainUncheckedUpdateManyWithoutOrganizationNestedInput = {
     create?: XOR<MailDomainCreateWithoutOrganizationInput, MailDomainUncheckedCreateWithoutOrganizationInput> | MailDomainCreateWithoutOrganizationInput[] | MailDomainUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: MailDomainCreateOrConnectWithoutOrganizationInput | MailDomainCreateOrConnectWithoutOrganizationInput[]
@@ -278010,6 +293831,30 @@ export namespace Prisma {
     update?: MarketingEmailCampaignUpdateWithWhereUniqueWithoutOrganizationInput | MarketingEmailCampaignUpdateWithWhereUniqueWithoutOrganizationInput[]
     updateMany?: MarketingEmailCampaignUpdateManyWithWhereWithoutOrganizationInput | MarketingEmailCampaignUpdateManyWithWhereWithoutOrganizationInput[]
     deleteMany?: MarketingEmailCampaignScalarWhereInput | MarketingEmailCampaignScalarWhereInput[]
+  }
+
+  export type MarketingBrandSettingsUncheckedUpdateOneWithoutOrganizationNestedInput = {
+    create?: XOR<MarketingBrandSettingsCreateWithoutOrganizationInput, MarketingBrandSettingsUncheckedCreateWithoutOrganizationInput>
+    connectOrCreate?: MarketingBrandSettingsCreateOrConnectWithoutOrganizationInput
+    upsert?: MarketingBrandSettingsUpsertWithoutOrganizationInput
+    disconnect?: MarketingBrandSettingsWhereInput | boolean
+    delete?: MarketingBrandSettingsWhereInput | boolean
+    connect?: MarketingBrandSettingsWhereUniqueInput
+    update?: XOR<XOR<MarketingBrandSettingsUpdateToOneWithWhereWithoutOrganizationInput, MarketingBrandSettingsUpdateWithoutOrganizationInput>, MarketingBrandSettingsUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type MarketingAutomationUncheckedUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<MarketingAutomationCreateWithoutOrganizationInput, MarketingAutomationUncheckedCreateWithoutOrganizationInput> | MarketingAutomationCreateWithoutOrganizationInput[] | MarketingAutomationUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: MarketingAutomationCreateOrConnectWithoutOrganizationInput | MarketingAutomationCreateOrConnectWithoutOrganizationInput[]
+    upsert?: MarketingAutomationUpsertWithWhereUniqueWithoutOrganizationInput | MarketingAutomationUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: MarketingAutomationCreateManyOrganizationInputEnvelope
+    set?: MarketingAutomationWhereUniqueInput | MarketingAutomationWhereUniqueInput[]
+    disconnect?: MarketingAutomationWhereUniqueInput | MarketingAutomationWhereUniqueInput[]
+    delete?: MarketingAutomationWhereUniqueInput | MarketingAutomationWhereUniqueInput[]
+    connect?: MarketingAutomationWhereUniqueInput | MarketingAutomationWhereUniqueInput[]
+    update?: MarketingAutomationUpdateWithWhereUniqueWithoutOrganizationInput | MarketingAutomationUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: MarketingAutomationUpdateManyWithWhereWithoutOrganizationInput | MarketingAutomationUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: MarketingAutomationScalarWhereInput | MarketingAutomationScalarWhereInput[]
   }
 
   export type MailOrganizationCreateNestedOneWithoutDomainsInput = {
@@ -279892,6 +295737,20 @@ export namespace Prisma {
     connect?: MarketingAudienceContactWhereUniqueInput | MarketingAudienceContactWhereUniqueInput[]
   }
 
+  export type MarketingBroadcastRecipientCreateNestedManyWithoutContactInput = {
+    create?: XOR<MarketingBroadcastRecipientCreateWithoutContactInput, MarketingBroadcastRecipientUncheckedCreateWithoutContactInput> | MarketingBroadcastRecipientCreateWithoutContactInput[] | MarketingBroadcastRecipientUncheckedCreateWithoutContactInput[]
+    connectOrCreate?: MarketingBroadcastRecipientCreateOrConnectWithoutContactInput | MarketingBroadcastRecipientCreateOrConnectWithoutContactInput[]
+    createMany?: MarketingBroadcastRecipientCreateManyContactInputEnvelope
+    connect?: MarketingBroadcastRecipientWhereUniqueInput | MarketingBroadcastRecipientWhereUniqueInput[]
+  }
+
+  export type MarketingAutomationEnrollmentCreateNestedManyWithoutContactInput = {
+    create?: XOR<MarketingAutomationEnrollmentCreateWithoutContactInput, MarketingAutomationEnrollmentUncheckedCreateWithoutContactInput> | MarketingAutomationEnrollmentCreateWithoutContactInput[] | MarketingAutomationEnrollmentUncheckedCreateWithoutContactInput[]
+    connectOrCreate?: MarketingAutomationEnrollmentCreateOrConnectWithoutContactInput | MarketingAutomationEnrollmentCreateOrConnectWithoutContactInput[]
+    createMany?: MarketingAutomationEnrollmentCreateManyContactInputEnvelope
+    connect?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+  }
+
   export type MarketingConsentUncheckedCreateNestedManyWithoutContactInput = {
     create?: XOR<MarketingConsentCreateWithoutContactInput, MarketingConsentUncheckedCreateWithoutContactInput> | MarketingConsentCreateWithoutContactInput[] | MarketingConsentUncheckedCreateWithoutContactInput[]
     connectOrCreate?: MarketingConsentCreateOrConnectWithoutContactInput | MarketingConsentCreateOrConnectWithoutContactInput[]
@@ -279904,6 +295763,20 @@ export namespace Prisma {
     connectOrCreate?: MarketingAudienceContactCreateOrConnectWithoutContactInput | MarketingAudienceContactCreateOrConnectWithoutContactInput[]
     createMany?: MarketingAudienceContactCreateManyContactInputEnvelope
     connect?: MarketingAudienceContactWhereUniqueInput | MarketingAudienceContactWhereUniqueInput[]
+  }
+
+  export type MarketingBroadcastRecipientUncheckedCreateNestedManyWithoutContactInput = {
+    create?: XOR<MarketingBroadcastRecipientCreateWithoutContactInput, MarketingBroadcastRecipientUncheckedCreateWithoutContactInput> | MarketingBroadcastRecipientCreateWithoutContactInput[] | MarketingBroadcastRecipientUncheckedCreateWithoutContactInput[]
+    connectOrCreate?: MarketingBroadcastRecipientCreateOrConnectWithoutContactInput | MarketingBroadcastRecipientCreateOrConnectWithoutContactInput[]
+    createMany?: MarketingBroadcastRecipientCreateManyContactInputEnvelope
+    connect?: MarketingBroadcastRecipientWhereUniqueInput | MarketingBroadcastRecipientWhereUniqueInput[]
+  }
+
+  export type MarketingAutomationEnrollmentUncheckedCreateNestedManyWithoutContactInput = {
+    create?: XOR<MarketingAutomationEnrollmentCreateWithoutContactInput, MarketingAutomationEnrollmentUncheckedCreateWithoutContactInput> | MarketingAutomationEnrollmentCreateWithoutContactInput[] | MarketingAutomationEnrollmentUncheckedCreateWithoutContactInput[]
+    connectOrCreate?: MarketingAutomationEnrollmentCreateOrConnectWithoutContactInput | MarketingAutomationEnrollmentCreateOrConnectWithoutContactInput[]
+    createMany?: MarketingAutomationEnrollmentCreateManyContactInputEnvelope
+    connect?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
   }
 
   export type EnumMarketingContactStatusFieldUpdateOperationsInput = {
@@ -279946,6 +295819,34 @@ export namespace Prisma {
     deleteMany?: MarketingAudienceContactScalarWhereInput | MarketingAudienceContactScalarWhereInput[]
   }
 
+  export type MarketingBroadcastRecipientUpdateManyWithoutContactNestedInput = {
+    create?: XOR<MarketingBroadcastRecipientCreateWithoutContactInput, MarketingBroadcastRecipientUncheckedCreateWithoutContactInput> | MarketingBroadcastRecipientCreateWithoutContactInput[] | MarketingBroadcastRecipientUncheckedCreateWithoutContactInput[]
+    connectOrCreate?: MarketingBroadcastRecipientCreateOrConnectWithoutContactInput | MarketingBroadcastRecipientCreateOrConnectWithoutContactInput[]
+    upsert?: MarketingBroadcastRecipientUpsertWithWhereUniqueWithoutContactInput | MarketingBroadcastRecipientUpsertWithWhereUniqueWithoutContactInput[]
+    createMany?: MarketingBroadcastRecipientCreateManyContactInputEnvelope
+    set?: MarketingBroadcastRecipientWhereUniqueInput | MarketingBroadcastRecipientWhereUniqueInput[]
+    disconnect?: MarketingBroadcastRecipientWhereUniqueInput | MarketingBroadcastRecipientWhereUniqueInput[]
+    delete?: MarketingBroadcastRecipientWhereUniqueInput | MarketingBroadcastRecipientWhereUniqueInput[]
+    connect?: MarketingBroadcastRecipientWhereUniqueInput | MarketingBroadcastRecipientWhereUniqueInput[]
+    update?: MarketingBroadcastRecipientUpdateWithWhereUniqueWithoutContactInput | MarketingBroadcastRecipientUpdateWithWhereUniqueWithoutContactInput[]
+    updateMany?: MarketingBroadcastRecipientUpdateManyWithWhereWithoutContactInput | MarketingBroadcastRecipientUpdateManyWithWhereWithoutContactInput[]
+    deleteMany?: MarketingBroadcastRecipientScalarWhereInput | MarketingBroadcastRecipientScalarWhereInput[]
+  }
+
+  export type MarketingAutomationEnrollmentUpdateManyWithoutContactNestedInput = {
+    create?: XOR<MarketingAutomationEnrollmentCreateWithoutContactInput, MarketingAutomationEnrollmentUncheckedCreateWithoutContactInput> | MarketingAutomationEnrollmentCreateWithoutContactInput[] | MarketingAutomationEnrollmentUncheckedCreateWithoutContactInput[]
+    connectOrCreate?: MarketingAutomationEnrollmentCreateOrConnectWithoutContactInput | MarketingAutomationEnrollmentCreateOrConnectWithoutContactInput[]
+    upsert?: MarketingAutomationEnrollmentUpsertWithWhereUniqueWithoutContactInput | MarketingAutomationEnrollmentUpsertWithWhereUniqueWithoutContactInput[]
+    createMany?: MarketingAutomationEnrollmentCreateManyContactInputEnvelope
+    set?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    disconnect?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    delete?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    connect?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    update?: MarketingAutomationEnrollmentUpdateWithWhereUniqueWithoutContactInput | MarketingAutomationEnrollmentUpdateWithWhereUniqueWithoutContactInput[]
+    updateMany?: MarketingAutomationEnrollmentUpdateManyWithWhereWithoutContactInput | MarketingAutomationEnrollmentUpdateManyWithWhereWithoutContactInput[]
+    deleteMany?: MarketingAutomationEnrollmentScalarWhereInput | MarketingAutomationEnrollmentScalarWhereInput[]
+  }
+
   export type MarketingConsentUncheckedUpdateManyWithoutContactNestedInput = {
     create?: XOR<MarketingConsentCreateWithoutContactInput, MarketingConsentUncheckedCreateWithoutContactInput> | MarketingConsentCreateWithoutContactInput[] | MarketingConsentUncheckedCreateWithoutContactInput[]
     connectOrCreate?: MarketingConsentCreateOrConnectWithoutContactInput | MarketingConsentCreateOrConnectWithoutContactInput[]
@@ -279972,6 +295873,34 @@ export namespace Prisma {
     update?: MarketingAudienceContactUpdateWithWhereUniqueWithoutContactInput | MarketingAudienceContactUpdateWithWhereUniqueWithoutContactInput[]
     updateMany?: MarketingAudienceContactUpdateManyWithWhereWithoutContactInput | MarketingAudienceContactUpdateManyWithWhereWithoutContactInput[]
     deleteMany?: MarketingAudienceContactScalarWhereInput | MarketingAudienceContactScalarWhereInput[]
+  }
+
+  export type MarketingBroadcastRecipientUncheckedUpdateManyWithoutContactNestedInput = {
+    create?: XOR<MarketingBroadcastRecipientCreateWithoutContactInput, MarketingBroadcastRecipientUncheckedCreateWithoutContactInput> | MarketingBroadcastRecipientCreateWithoutContactInput[] | MarketingBroadcastRecipientUncheckedCreateWithoutContactInput[]
+    connectOrCreate?: MarketingBroadcastRecipientCreateOrConnectWithoutContactInput | MarketingBroadcastRecipientCreateOrConnectWithoutContactInput[]
+    upsert?: MarketingBroadcastRecipientUpsertWithWhereUniqueWithoutContactInput | MarketingBroadcastRecipientUpsertWithWhereUniqueWithoutContactInput[]
+    createMany?: MarketingBroadcastRecipientCreateManyContactInputEnvelope
+    set?: MarketingBroadcastRecipientWhereUniqueInput | MarketingBroadcastRecipientWhereUniqueInput[]
+    disconnect?: MarketingBroadcastRecipientWhereUniqueInput | MarketingBroadcastRecipientWhereUniqueInput[]
+    delete?: MarketingBroadcastRecipientWhereUniqueInput | MarketingBroadcastRecipientWhereUniqueInput[]
+    connect?: MarketingBroadcastRecipientWhereUniqueInput | MarketingBroadcastRecipientWhereUniqueInput[]
+    update?: MarketingBroadcastRecipientUpdateWithWhereUniqueWithoutContactInput | MarketingBroadcastRecipientUpdateWithWhereUniqueWithoutContactInput[]
+    updateMany?: MarketingBroadcastRecipientUpdateManyWithWhereWithoutContactInput | MarketingBroadcastRecipientUpdateManyWithWhereWithoutContactInput[]
+    deleteMany?: MarketingBroadcastRecipientScalarWhereInput | MarketingBroadcastRecipientScalarWhereInput[]
+  }
+
+  export type MarketingAutomationEnrollmentUncheckedUpdateManyWithoutContactNestedInput = {
+    create?: XOR<MarketingAutomationEnrollmentCreateWithoutContactInput, MarketingAutomationEnrollmentUncheckedCreateWithoutContactInput> | MarketingAutomationEnrollmentCreateWithoutContactInput[] | MarketingAutomationEnrollmentUncheckedCreateWithoutContactInput[]
+    connectOrCreate?: MarketingAutomationEnrollmentCreateOrConnectWithoutContactInput | MarketingAutomationEnrollmentCreateOrConnectWithoutContactInput[]
+    upsert?: MarketingAutomationEnrollmentUpsertWithWhereUniqueWithoutContactInput | MarketingAutomationEnrollmentUpsertWithWhereUniqueWithoutContactInput[]
+    createMany?: MarketingAutomationEnrollmentCreateManyContactInputEnvelope
+    set?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    disconnect?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    delete?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    connect?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    update?: MarketingAutomationEnrollmentUpdateWithWhereUniqueWithoutContactInput | MarketingAutomationEnrollmentUpdateWithWhereUniqueWithoutContactInput[]
+    updateMany?: MarketingAutomationEnrollmentUpdateManyWithWhereWithoutContactInput | MarketingAutomationEnrollmentUpdateManyWithWhereWithoutContactInput[]
+    deleteMany?: MarketingAutomationEnrollmentScalarWhereInput | MarketingAutomationEnrollmentScalarWhereInput[]
   }
 
   export type MarketingContactCreateNestedOneWithoutConsentsInput = {
@@ -280383,6 +296312,12 @@ export namespace Prisma {
     connect?: MarketingCampaignSnapshotWhereUniqueInput | MarketingCampaignSnapshotWhereUniqueInput[]
   }
 
+  export type MarketingBroadcastDispatchCreateNestedOneWithoutCampaignInput = {
+    create?: XOR<MarketingBroadcastDispatchCreateWithoutCampaignInput, MarketingBroadcastDispatchUncheckedCreateWithoutCampaignInput>
+    connectOrCreate?: MarketingBroadcastDispatchCreateOrConnectWithoutCampaignInput
+    connect?: MarketingBroadcastDispatchWhereUniqueInput
+  }
+
   export type MarketingCampaignApprovalUncheckedCreateNestedManyWithoutCampaignInput = {
     create?: XOR<MarketingCampaignApprovalCreateWithoutCampaignInput, MarketingCampaignApprovalUncheckedCreateWithoutCampaignInput> | MarketingCampaignApprovalCreateWithoutCampaignInput[] | MarketingCampaignApprovalUncheckedCreateWithoutCampaignInput[]
     connectOrCreate?: MarketingCampaignApprovalCreateOrConnectWithoutCampaignInput | MarketingCampaignApprovalCreateOrConnectWithoutCampaignInput[]
@@ -280395,6 +296330,12 @@ export namespace Prisma {
     connectOrCreate?: MarketingCampaignSnapshotCreateOrConnectWithoutCampaignInput | MarketingCampaignSnapshotCreateOrConnectWithoutCampaignInput[]
     createMany?: MarketingCampaignSnapshotCreateManyCampaignInputEnvelope
     connect?: MarketingCampaignSnapshotWhereUniqueInput | MarketingCampaignSnapshotWhereUniqueInput[]
+  }
+
+  export type MarketingBroadcastDispatchUncheckedCreateNestedOneWithoutCampaignInput = {
+    create?: XOR<MarketingBroadcastDispatchCreateWithoutCampaignInput, MarketingBroadcastDispatchUncheckedCreateWithoutCampaignInput>
+    connectOrCreate?: MarketingBroadcastDispatchCreateOrConnectWithoutCampaignInput
+    connect?: MarketingBroadcastDispatchWhereUniqueInput
   }
 
   export type EnumMarketingEmailCampaignStatusFieldUpdateOperationsInput = {
@@ -280467,6 +296408,16 @@ export namespace Prisma {
     deleteMany?: MarketingCampaignSnapshotScalarWhereInput | MarketingCampaignSnapshotScalarWhereInput[]
   }
 
+  export type MarketingBroadcastDispatchUpdateOneWithoutCampaignNestedInput = {
+    create?: XOR<MarketingBroadcastDispatchCreateWithoutCampaignInput, MarketingBroadcastDispatchUncheckedCreateWithoutCampaignInput>
+    connectOrCreate?: MarketingBroadcastDispatchCreateOrConnectWithoutCampaignInput
+    upsert?: MarketingBroadcastDispatchUpsertWithoutCampaignInput
+    disconnect?: MarketingBroadcastDispatchWhereInput | boolean
+    delete?: MarketingBroadcastDispatchWhereInput | boolean
+    connect?: MarketingBroadcastDispatchWhereUniqueInput
+    update?: XOR<XOR<MarketingBroadcastDispatchUpdateToOneWithWhereWithoutCampaignInput, MarketingBroadcastDispatchUpdateWithoutCampaignInput>, MarketingBroadcastDispatchUncheckedUpdateWithoutCampaignInput>
+  }
+
   export type MarketingCampaignApprovalUncheckedUpdateManyWithoutCampaignNestedInput = {
     create?: XOR<MarketingCampaignApprovalCreateWithoutCampaignInput, MarketingCampaignApprovalUncheckedCreateWithoutCampaignInput> | MarketingCampaignApprovalCreateWithoutCampaignInput[] | MarketingCampaignApprovalUncheckedCreateWithoutCampaignInput[]
     connectOrCreate?: MarketingCampaignApprovalCreateOrConnectWithoutCampaignInput | MarketingCampaignApprovalCreateOrConnectWithoutCampaignInput[]
@@ -280495,6 +296446,16 @@ export namespace Prisma {
     deleteMany?: MarketingCampaignSnapshotScalarWhereInput | MarketingCampaignSnapshotScalarWhereInput[]
   }
 
+  export type MarketingBroadcastDispatchUncheckedUpdateOneWithoutCampaignNestedInput = {
+    create?: XOR<MarketingBroadcastDispatchCreateWithoutCampaignInput, MarketingBroadcastDispatchUncheckedCreateWithoutCampaignInput>
+    connectOrCreate?: MarketingBroadcastDispatchCreateOrConnectWithoutCampaignInput
+    upsert?: MarketingBroadcastDispatchUpsertWithoutCampaignInput
+    disconnect?: MarketingBroadcastDispatchWhereInput | boolean
+    delete?: MarketingBroadcastDispatchWhereInput | boolean
+    connect?: MarketingBroadcastDispatchWhereUniqueInput
+    update?: XOR<XOR<MarketingBroadcastDispatchUpdateToOneWithWhereWithoutCampaignInput, MarketingBroadcastDispatchUpdateWithoutCampaignInput>, MarketingBroadcastDispatchUncheckedUpdateWithoutCampaignInput>
+  }
+
   export type MarketingEmailCampaignCreateNestedOneWithoutSnapshotsInput = {
     create?: XOR<MarketingEmailCampaignCreateWithoutSnapshotsInput, MarketingEmailCampaignUncheckedCreateWithoutSnapshotsInput>
     connectOrCreate?: MarketingEmailCampaignCreateOrConnectWithoutSnapshotsInput
@@ -280508,11 +296469,25 @@ export namespace Prisma {
     connect?: MarketingCampaignApprovalWhereUniqueInput | MarketingCampaignApprovalWhereUniqueInput[]
   }
 
+  export type MarketingCampaignApprovedContactCreateNestedManyWithoutSnapshotInput = {
+    create?: XOR<MarketingCampaignApprovedContactCreateWithoutSnapshotInput, MarketingCampaignApprovedContactUncheckedCreateWithoutSnapshotInput> | MarketingCampaignApprovedContactCreateWithoutSnapshotInput[] | MarketingCampaignApprovedContactUncheckedCreateWithoutSnapshotInput[]
+    connectOrCreate?: MarketingCampaignApprovedContactCreateOrConnectWithoutSnapshotInput | MarketingCampaignApprovedContactCreateOrConnectWithoutSnapshotInput[]
+    createMany?: MarketingCampaignApprovedContactCreateManySnapshotInputEnvelope
+    connect?: MarketingCampaignApprovedContactWhereUniqueInput | MarketingCampaignApprovedContactWhereUniqueInput[]
+  }
+
   export type MarketingCampaignApprovalUncheckedCreateNestedManyWithoutSnapshotInput = {
     create?: XOR<MarketingCampaignApprovalCreateWithoutSnapshotInput, MarketingCampaignApprovalUncheckedCreateWithoutSnapshotInput> | MarketingCampaignApprovalCreateWithoutSnapshotInput[] | MarketingCampaignApprovalUncheckedCreateWithoutSnapshotInput[]
     connectOrCreate?: MarketingCampaignApprovalCreateOrConnectWithoutSnapshotInput | MarketingCampaignApprovalCreateOrConnectWithoutSnapshotInput[]
     createMany?: MarketingCampaignApprovalCreateManySnapshotInputEnvelope
     connect?: MarketingCampaignApprovalWhereUniqueInput | MarketingCampaignApprovalWhereUniqueInput[]
+  }
+
+  export type MarketingCampaignApprovedContactUncheckedCreateNestedManyWithoutSnapshotInput = {
+    create?: XOR<MarketingCampaignApprovedContactCreateWithoutSnapshotInput, MarketingCampaignApprovedContactUncheckedCreateWithoutSnapshotInput> | MarketingCampaignApprovedContactCreateWithoutSnapshotInput[] | MarketingCampaignApprovedContactUncheckedCreateWithoutSnapshotInput[]
+    connectOrCreate?: MarketingCampaignApprovedContactCreateOrConnectWithoutSnapshotInput | MarketingCampaignApprovedContactCreateOrConnectWithoutSnapshotInput[]
+    createMany?: MarketingCampaignApprovedContactCreateManySnapshotInputEnvelope
+    connect?: MarketingCampaignApprovedContactWhereUniqueInput | MarketingCampaignApprovedContactWhereUniqueInput[]
   }
 
   export type EnumMarketingCampaignSnapshotKindFieldUpdateOperationsInput = {
@@ -280541,6 +296516,20 @@ export namespace Prisma {
     deleteMany?: MarketingCampaignApprovalScalarWhereInput | MarketingCampaignApprovalScalarWhereInput[]
   }
 
+  export type MarketingCampaignApprovedContactUpdateManyWithoutSnapshotNestedInput = {
+    create?: XOR<MarketingCampaignApprovedContactCreateWithoutSnapshotInput, MarketingCampaignApprovedContactUncheckedCreateWithoutSnapshotInput> | MarketingCampaignApprovedContactCreateWithoutSnapshotInput[] | MarketingCampaignApprovedContactUncheckedCreateWithoutSnapshotInput[]
+    connectOrCreate?: MarketingCampaignApprovedContactCreateOrConnectWithoutSnapshotInput | MarketingCampaignApprovedContactCreateOrConnectWithoutSnapshotInput[]
+    upsert?: MarketingCampaignApprovedContactUpsertWithWhereUniqueWithoutSnapshotInput | MarketingCampaignApprovedContactUpsertWithWhereUniqueWithoutSnapshotInput[]
+    createMany?: MarketingCampaignApprovedContactCreateManySnapshotInputEnvelope
+    set?: MarketingCampaignApprovedContactWhereUniqueInput | MarketingCampaignApprovedContactWhereUniqueInput[]
+    disconnect?: MarketingCampaignApprovedContactWhereUniqueInput | MarketingCampaignApprovedContactWhereUniqueInput[]
+    delete?: MarketingCampaignApprovedContactWhereUniqueInput | MarketingCampaignApprovedContactWhereUniqueInput[]
+    connect?: MarketingCampaignApprovedContactWhereUniqueInput | MarketingCampaignApprovedContactWhereUniqueInput[]
+    update?: MarketingCampaignApprovedContactUpdateWithWhereUniqueWithoutSnapshotInput | MarketingCampaignApprovedContactUpdateWithWhereUniqueWithoutSnapshotInput[]
+    updateMany?: MarketingCampaignApprovedContactUpdateManyWithWhereWithoutSnapshotInput | MarketingCampaignApprovedContactUpdateManyWithWhereWithoutSnapshotInput[]
+    deleteMany?: MarketingCampaignApprovedContactScalarWhereInput | MarketingCampaignApprovedContactScalarWhereInput[]
+  }
+
   export type MarketingCampaignApprovalUncheckedUpdateManyWithoutSnapshotNestedInput = {
     create?: XOR<MarketingCampaignApprovalCreateWithoutSnapshotInput, MarketingCampaignApprovalUncheckedCreateWithoutSnapshotInput> | MarketingCampaignApprovalCreateWithoutSnapshotInput[] | MarketingCampaignApprovalUncheckedCreateWithoutSnapshotInput[]
     connectOrCreate?: MarketingCampaignApprovalCreateOrConnectWithoutSnapshotInput | MarketingCampaignApprovalCreateOrConnectWithoutSnapshotInput[]
@@ -280553,6 +296542,20 @@ export namespace Prisma {
     update?: MarketingCampaignApprovalUpdateWithWhereUniqueWithoutSnapshotInput | MarketingCampaignApprovalUpdateWithWhereUniqueWithoutSnapshotInput[]
     updateMany?: MarketingCampaignApprovalUpdateManyWithWhereWithoutSnapshotInput | MarketingCampaignApprovalUpdateManyWithWhereWithoutSnapshotInput[]
     deleteMany?: MarketingCampaignApprovalScalarWhereInput | MarketingCampaignApprovalScalarWhereInput[]
+  }
+
+  export type MarketingCampaignApprovedContactUncheckedUpdateManyWithoutSnapshotNestedInput = {
+    create?: XOR<MarketingCampaignApprovedContactCreateWithoutSnapshotInput, MarketingCampaignApprovedContactUncheckedCreateWithoutSnapshotInput> | MarketingCampaignApprovedContactCreateWithoutSnapshotInput[] | MarketingCampaignApprovedContactUncheckedCreateWithoutSnapshotInput[]
+    connectOrCreate?: MarketingCampaignApprovedContactCreateOrConnectWithoutSnapshotInput | MarketingCampaignApprovedContactCreateOrConnectWithoutSnapshotInput[]
+    upsert?: MarketingCampaignApprovedContactUpsertWithWhereUniqueWithoutSnapshotInput | MarketingCampaignApprovedContactUpsertWithWhereUniqueWithoutSnapshotInput[]
+    createMany?: MarketingCampaignApprovedContactCreateManySnapshotInputEnvelope
+    set?: MarketingCampaignApprovedContactWhereUniqueInput | MarketingCampaignApprovedContactWhereUniqueInput[]
+    disconnect?: MarketingCampaignApprovedContactWhereUniqueInput | MarketingCampaignApprovedContactWhereUniqueInput[]
+    delete?: MarketingCampaignApprovedContactWhereUniqueInput | MarketingCampaignApprovedContactWhereUniqueInput[]
+    connect?: MarketingCampaignApprovedContactWhereUniqueInput | MarketingCampaignApprovedContactWhereUniqueInput[]
+    update?: MarketingCampaignApprovedContactUpdateWithWhereUniqueWithoutSnapshotInput | MarketingCampaignApprovedContactUpdateWithWhereUniqueWithoutSnapshotInput[]
+    updateMany?: MarketingCampaignApprovedContactUpdateManyWithWhereWithoutSnapshotInput | MarketingCampaignApprovedContactUpdateManyWithWhereWithoutSnapshotInput[]
+    deleteMany?: MarketingCampaignApprovedContactScalarWhereInput | MarketingCampaignApprovedContactScalarWhereInput[]
   }
 
   export type MarketingEmailCampaignCreateNestedOneWithoutApprovalsInput = {
@@ -280587,6 +296590,398 @@ export namespace Prisma {
     delete?: MarketingCampaignSnapshotWhereInput | boolean
     connect?: MarketingCampaignSnapshotWhereUniqueInput
     update?: XOR<XOR<MarketingCampaignSnapshotUpdateToOneWithWhereWithoutApprovalsInput, MarketingCampaignSnapshotUpdateWithoutApprovalsInput>, MarketingCampaignSnapshotUncheckedUpdateWithoutApprovalsInput>
+  }
+
+  export type MailOrganizationCreateNestedOneWithoutMarketingBrandSettingsInput = {
+    create?: XOR<MailOrganizationCreateWithoutMarketingBrandSettingsInput, MailOrganizationUncheckedCreateWithoutMarketingBrandSettingsInput>
+    connectOrCreate?: MailOrganizationCreateOrConnectWithoutMarketingBrandSettingsInput
+    connect?: MailOrganizationWhereUniqueInput
+  }
+
+  export type MailOrganizationUpdateOneRequiredWithoutMarketingBrandSettingsNestedInput = {
+    create?: XOR<MailOrganizationCreateWithoutMarketingBrandSettingsInput, MailOrganizationUncheckedCreateWithoutMarketingBrandSettingsInput>
+    connectOrCreate?: MailOrganizationCreateOrConnectWithoutMarketingBrandSettingsInput
+    upsert?: MailOrganizationUpsertWithoutMarketingBrandSettingsInput
+    connect?: MailOrganizationWhereUniqueInput
+    update?: XOR<XOR<MailOrganizationUpdateToOneWithWhereWithoutMarketingBrandSettingsInput, MailOrganizationUpdateWithoutMarketingBrandSettingsInput>, MailOrganizationUncheckedUpdateWithoutMarketingBrandSettingsInput>
+  }
+
+  export type MarketingCampaignSnapshotCreateNestedOneWithoutApprovedContactsInput = {
+    create?: XOR<MarketingCampaignSnapshotCreateWithoutApprovedContactsInput, MarketingCampaignSnapshotUncheckedCreateWithoutApprovedContactsInput>
+    connectOrCreate?: MarketingCampaignSnapshotCreateOrConnectWithoutApprovedContactsInput
+    connect?: MarketingCampaignSnapshotWhereUniqueInput
+  }
+
+  export type MarketingCampaignSnapshotUpdateOneRequiredWithoutApprovedContactsNestedInput = {
+    create?: XOR<MarketingCampaignSnapshotCreateWithoutApprovedContactsInput, MarketingCampaignSnapshotUncheckedCreateWithoutApprovedContactsInput>
+    connectOrCreate?: MarketingCampaignSnapshotCreateOrConnectWithoutApprovedContactsInput
+    upsert?: MarketingCampaignSnapshotUpsertWithoutApprovedContactsInput
+    connect?: MarketingCampaignSnapshotWhereUniqueInput
+    update?: XOR<XOR<MarketingCampaignSnapshotUpdateToOneWithWhereWithoutApprovedContactsInput, MarketingCampaignSnapshotUpdateWithoutApprovedContactsInput>, MarketingCampaignSnapshotUncheckedUpdateWithoutApprovedContactsInput>
+  }
+
+  export type MarketingEmailCampaignCreateNestedOneWithoutDispatchInput = {
+    create?: XOR<MarketingEmailCampaignCreateWithoutDispatchInput, MarketingEmailCampaignUncheckedCreateWithoutDispatchInput>
+    connectOrCreate?: MarketingEmailCampaignCreateOrConnectWithoutDispatchInput
+    connect?: MarketingEmailCampaignWhereUniqueInput
+  }
+
+  export type MarketingBroadcastRecipientCreateNestedManyWithoutDispatchInput = {
+    create?: XOR<MarketingBroadcastRecipientCreateWithoutDispatchInput, MarketingBroadcastRecipientUncheckedCreateWithoutDispatchInput> | MarketingBroadcastRecipientCreateWithoutDispatchInput[] | MarketingBroadcastRecipientUncheckedCreateWithoutDispatchInput[]
+    connectOrCreate?: MarketingBroadcastRecipientCreateOrConnectWithoutDispatchInput | MarketingBroadcastRecipientCreateOrConnectWithoutDispatchInput[]
+    createMany?: MarketingBroadcastRecipientCreateManyDispatchInputEnvelope
+    connect?: MarketingBroadcastRecipientWhereUniqueInput | MarketingBroadcastRecipientWhereUniqueInput[]
+  }
+
+  export type MarketingBroadcastRecipientUncheckedCreateNestedManyWithoutDispatchInput = {
+    create?: XOR<MarketingBroadcastRecipientCreateWithoutDispatchInput, MarketingBroadcastRecipientUncheckedCreateWithoutDispatchInput> | MarketingBroadcastRecipientCreateWithoutDispatchInput[] | MarketingBroadcastRecipientUncheckedCreateWithoutDispatchInput[]
+    connectOrCreate?: MarketingBroadcastRecipientCreateOrConnectWithoutDispatchInput | MarketingBroadcastRecipientCreateOrConnectWithoutDispatchInput[]
+    createMany?: MarketingBroadcastRecipientCreateManyDispatchInputEnvelope
+    connect?: MarketingBroadcastRecipientWhereUniqueInput | MarketingBroadcastRecipientWhereUniqueInput[]
+  }
+
+  export type EnumMarketingBroadcastStatusFieldUpdateOperationsInput = {
+    set?: $Enums.MarketingBroadcastStatus
+  }
+
+  export type MarketingEmailCampaignUpdateOneRequiredWithoutDispatchNestedInput = {
+    create?: XOR<MarketingEmailCampaignCreateWithoutDispatchInput, MarketingEmailCampaignUncheckedCreateWithoutDispatchInput>
+    connectOrCreate?: MarketingEmailCampaignCreateOrConnectWithoutDispatchInput
+    upsert?: MarketingEmailCampaignUpsertWithoutDispatchInput
+    connect?: MarketingEmailCampaignWhereUniqueInput
+    update?: XOR<XOR<MarketingEmailCampaignUpdateToOneWithWhereWithoutDispatchInput, MarketingEmailCampaignUpdateWithoutDispatchInput>, MarketingEmailCampaignUncheckedUpdateWithoutDispatchInput>
+  }
+
+  export type MarketingBroadcastRecipientUpdateManyWithoutDispatchNestedInput = {
+    create?: XOR<MarketingBroadcastRecipientCreateWithoutDispatchInput, MarketingBroadcastRecipientUncheckedCreateWithoutDispatchInput> | MarketingBroadcastRecipientCreateWithoutDispatchInput[] | MarketingBroadcastRecipientUncheckedCreateWithoutDispatchInput[]
+    connectOrCreate?: MarketingBroadcastRecipientCreateOrConnectWithoutDispatchInput | MarketingBroadcastRecipientCreateOrConnectWithoutDispatchInput[]
+    upsert?: MarketingBroadcastRecipientUpsertWithWhereUniqueWithoutDispatchInput | MarketingBroadcastRecipientUpsertWithWhereUniqueWithoutDispatchInput[]
+    createMany?: MarketingBroadcastRecipientCreateManyDispatchInputEnvelope
+    set?: MarketingBroadcastRecipientWhereUniqueInput | MarketingBroadcastRecipientWhereUniqueInput[]
+    disconnect?: MarketingBroadcastRecipientWhereUniqueInput | MarketingBroadcastRecipientWhereUniqueInput[]
+    delete?: MarketingBroadcastRecipientWhereUniqueInput | MarketingBroadcastRecipientWhereUniqueInput[]
+    connect?: MarketingBroadcastRecipientWhereUniqueInput | MarketingBroadcastRecipientWhereUniqueInput[]
+    update?: MarketingBroadcastRecipientUpdateWithWhereUniqueWithoutDispatchInput | MarketingBroadcastRecipientUpdateWithWhereUniqueWithoutDispatchInput[]
+    updateMany?: MarketingBroadcastRecipientUpdateManyWithWhereWithoutDispatchInput | MarketingBroadcastRecipientUpdateManyWithWhereWithoutDispatchInput[]
+    deleteMany?: MarketingBroadcastRecipientScalarWhereInput | MarketingBroadcastRecipientScalarWhereInput[]
+  }
+
+  export type MarketingBroadcastRecipientUncheckedUpdateManyWithoutDispatchNestedInput = {
+    create?: XOR<MarketingBroadcastRecipientCreateWithoutDispatchInput, MarketingBroadcastRecipientUncheckedCreateWithoutDispatchInput> | MarketingBroadcastRecipientCreateWithoutDispatchInput[] | MarketingBroadcastRecipientUncheckedCreateWithoutDispatchInput[]
+    connectOrCreate?: MarketingBroadcastRecipientCreateOrConnectWithoutDispatchInput | MarketingBroadcastRecipientCreateOrConnectWithoutDispatchInput[]
+    upsert?: MarketingBroadcastRecipientUpsertWithWhereUniqueWithoutDispatchInput | MarketingBroadcastRecipientUpsertWithWhereUniqueWithoutDispatchInput[]
+    createMany?: MarketingBroadcastRecipientCreateManyDispatchInputEnvelope
+    set?: MarketingBroadcastRecipientWhereUniqueInput | MarketingBroadcastRecipientWhereUniqueInput[]
+    disconnect?: MarketingBroadcastRecipientWhereUniqueInput | MarketingBroadcastRecipientWhereUniqueInput[]
+    delete?: MarketingBroadcastRecipientWhereUniqueInput | MarketingBroadcastRecipientWhereUniqueInput[]
+    connect?: MarketingBroadcastRecipientWhereUniqueInput | MarketingBroadcastRecipientWhereUniqueInput[]
+    update?: MarketingBroadcastRecipientUpdateWithWhereUniqueWithoutDispatchInput | MarketingBroadcastRecipientUpdateWithWhereUniqueWithoutDispatchInput[]
+    updateMany?: MarketingBroadcastRecipientUpdateManyWithWhereWithoutDispatchInput | MarketingBroadcastRecipientUpdateManyWithWhereWithoutDispatchInput[]
+    deleteMany?: MarketingBroadcastRecipientScalarWhereInput | MarketingBroadcastRecipientScalarWhereInput[]
+  }
+
+  export type MarketingBroadcastDispatchCreateNestedOneWithoutRecipientsInput = {
+    create?: XOR<MarketingBroadcastDispatchCreateWithoutRecipientsInput, MarketingBroadcastDispatchUncheckedCreateWithoutRecipientsInput>
+    connectOrCreate?: MarketingBroadcastDispatchCreateOrConnectWithoutRecipientsInput
+    connect?: MarketingBroadcastDispatchWhereUniqueInput
+  }
+
+  export type MarketingContactCreateNestedOneWithoutBroadcastRecipientsInput = {
+    create?: XOR<MarketingContactCreateWithoutBroadcastRecipientsInput, MarketingContactUncheckedCreateWithoutBroadcastRecipientsInput>
+    connectOrCreate?: MarketingContactCreateOrConnectWithoutBroadcastRecipientsInput
+    connect?: MarketingContactWhereUniqueInput
+  }
+
+  export type EnumMarketingBroadcastRecipientStatusFieldUpdateOperationsInput = {
+    set?: $Enums.MarketingBroadcastRecipientStatus
+  }
+
+  export type MarketingBroadcastDispatchUpdateOneRequiredWithoutRecipientsNestedInput = {
+    create?: XOR<MarketingBroadcastDispatchCreateWithoutRecipientsInput, MarketingBroadcastDispatchUncheckedCreateWithoutRecipientsInput>
+    connectOrCreate?: MarketingBroadcastDispatchCreateOrConnectWithoutRecipientsInput
+    upsert?: MarketingBroadcastDispatchUpsertWithoutRecipientsInput
+    connect?: MarketingBroadcastDispatchWhereUniqueInput
+    update?: XOR<XOR<MarketingBroadcastDispatchUpdateToOneWithWhereWithoutRecipientsInput, MarketingBroadcastDispatchUpdateWithoutRecipientsInput>, MarketingBroadcastDispatchUncheckedUpdateWithoutRecipientsInput>
+  }
+
+  export type MarketingContactUpdateOneRequiredWithoutBroadcastRecipientsNestedInput = {
+    create?: XOR<MarketingContactCreateWithoutBroadcastRecipientsInput, MarketingContactUncheckedCreateWithoutBroadcastRecipientsInput>
+    connectOrCreate?: MarketingContactCreateOrConnectWithoutBroadcastRecipientsInput
+    upsert?: MarketingContactUpsertWithoutBroadcastRecipientsInput
+    connect?: MarketingContactWhereUniqueInput
+    update?: XOR<XOR<MarketingContactUpdateToOneWithWhereWithoutBroadcastRecipientsInput, MarketingContactUpdateWithoutBroadcastRecipientsInput>, MarketingContactUncheckedUpdateWithoutBroadcastRecipientsInput>
+  }
+
+  export type MailOrganizationCreateNestedOneWithoutMarketingAutomationsInput = {
+    create?: XOR<MailOrganizationCreateWithoutMarketingAutomationsInput, MailOrganizationUncheckedCreateWithoutMarketingAutomationsInput>
+    connectOrCreate?: MailOrganizationCreateOrConnectWithoutMarketingAutomationsInput
+    connect?: MailOrganizationWhereUniqueInput
+  }
+
+  export type MarketingAutomationVersionCreateNestedManyWithoutAutomationInput = {
+    create?: XOR<MarketingAutomationVersionCreateWithoutAutomationInput, MarketingAutomationVersionUncheckedCreateWithoutAutomationInput> | MarketingAutomationVersionCreateWithoutAutomationInput[] | MarketingAutomationVersionUncheckedCreateWithoutAutomationInput[]
+    connectOrCreate?: MarketingAutomationVersionCreateOrConnectWithoutAutomationInput | MarketingAutomationVersionCreateOrConnectWithoutAutomationInput[]
+    createMany?: MarketingAutomationVersionCreateManyAutomationInputEnvelope
+    connect?: MarketingAutomationVersionWhereUniqueInput | MarketingAutomationVersionWhereUniqueInput[]
+  }
+
+  export type MarketingAutomationEnrollmentCreateNestedManyWithoutAutomationInput = {
+    create?: XOR<MarketingAutomationEnrollmentCreateWithoutAutomationInput, MarketingAutomationEnrollmentUncheckedCreateWithoutAutomationInput> | MarketingAutomationEnrollmentCreateWithoutAutomationInput[] | MarketingAutomationEnrollmentUncheckedCreateWithoutAutomationInput[]
+    connectOrCreate?: MarketingAutomationEnrollmentCreateOrConnectWithoutAutomationInput | MarketingAutomationEnrollmentCreateOrConnectWithoutAutomationInput[]
+    createMany?: MarketingAutomationEnrollmentCreateManyAutomationInputEnvelope
+    connect?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+  }
+
+  export type MarketingAutomationVersionUncheckedCreateNestedManyWithoutAutomationInput = {
+    create?: XOR<MarketingAutomationVersionCreateWithoutAutomationInput, MarketingAutomationVersionUncheckedCreateWithoutAutomationInput> | MarketingAutomationVersionCreateWithoutAutomationInput[] | MarketingAutomationVersionUncheckedCreateWithoutAutomationInput[]
+    connectOrCreate?: MarketingAutomationVersionCreateOrConnectWithoutAutomationInput | MarketingAutomationVersionCreateOrConnectWithoutAutomationInput[]
+    createMany?: MarketingAutomationVersionCreateManyAutomationInputEnvelope
+    connect?: MarketingAutomationVersionWhereUniqueInput | MarketingAutomationVersionWhereUniqueInput[]
+  }
+
+  export type MarketingAutomationEnrollmentUncheckedCreateNestedManyWithoutAutomationInput = {
+    create?: XOR<MarketingAutomationEnrollmentCreateWithoutAutomationInput, MarketingAutomationEnrollmentUncheckedCreateWithoutAutomationInput> | MarketingAutomationEnrollmentCreateWithoutAutomationInput[] | MarketingAutomationEnrollmentUncheckedCreateWithoutAutomationInput[]
+    connectOrCreate?: MarketingAutomationEnrollmentCreateOrConnectWithoutAutomationInput | MarketingAutomationEnrollmentCreateOrConnectWithoutAutomationInput[]
+    createMany?: MarketingAutomationEnrollmentCreateManyAutomationInputEnvelope
+    connect?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+  }
+
+  export type EnumMarketingAutomationStatusFieldUpdateOperationsInput = {
+    set?: $Enums.MarketingAutomationStatus
+  }
+
+  export type MailOrganizationUpdateOneRequiredWithoutMarketingAutomationsNestedInput = {
+    create?: XOR<MailOrganizationCreateWithoutMarketingAutomationsInput, MailOrganizationUncheckedCreateWithoutMarketingAutomationsInput>
+    connectOrCreate?: MailOrganizationCreateOrConnectWithoutMarketingAutomationsInput
+    upsert?: MailOrganizationUpsertWithoutMarketingAutomationsInput
+    connect?: MailOrganizationWhereUniqueInput
+    update?: XOR<XOR<MailOrganizationUpdateToOneWithWhereWithoutMarketingAutomationsInput, MailOrganizationUpdateWithoutMarketingAutomationsInput>, MailOrganizationUncheckedUpdateWithoutMarketingAutomationsInput>
+  }
+
+  export type MarketingAutomationVersionUpdateManyWithoutAutomationNestedInput = {
+    create?: XOR<MarketingAutomationVersionCreateWithoutAutomationInput, MarketingAutomationVersionUncheckedCreateWithoutAutomationInput> | MarketingAutomationVersionCreateWithoutAutomationInput[] | MarketingAutomationVersionUncheckedCreateWithoutAutomationInput[]
+    connectOrCreate?: MarketingAutomationVersionCreateOrConnectWithoutAutomationInput | MarketingAutomationVersionCreateOrConnectWithoutAutomationInput[]
+    upsert?: MarketingAutomationVersionUpsertWithWhereUniqueWithoutAutomationInput | MarketingAutomationVersionUpsertWithWhereUniqueWithoutAutomationInput[]
+    createMany?: MarketingAutomationVersionCreateManyAutomationInputEnvelope
+    set?: MarketingAutomationVersionWhereUniqueInput | MarketingAutomationVersionWhereUniqueInput[]
+    disconnect?: MarketingAutomationVersionWhereUniqueInput | MarketingAutomationVersionWhereUniqueInput[]
+    delete?: MarketingAutomationVersionWhereUniqueInput | MarketingAutomationVersionWhereUniqueInput[]
+    connect?: MarketingAutomationVersionWhereUniqueInput | MarketingAutomationVersionWhereUniqueInput[]
+    update?: MarketingAutomationVersionUpdateWithWhereUniqueWithoutAutomationInput | MarketingAutomationVersionUpdateWithWhereUniqueWithoutAutomationInput[]
+    updateMany?: MarketingAutomationVersionUpdateManyWithWhereWithoutAutomationInput | MarketingAutomationVersionUpdateManyWithWhereWithoutAutomationInput[]
+    deleteMany?: MarketingAutomationVersionScalarWhereInput | MarketingAutomationVersionScalarWhereInput[]
+  }
+
+  export type MarketingAutomationEnrollmentUpdateManyWithoutAutomationNestedInput = {
+    create?: XOR<MarketingAutomationEnrollmentCreateWithoutAutomationInput, MarketingAutomationEnrollmentUncheckedCreateWithoutAutomationInput> | MarketingAutomationEnrollmentCreateWithoutAutomationInput[] | MarketingAutomationEnrollmentUncheckedCreateWithoutAutomationInput[]
+    connectOrCreate?: MarketingAutomationEnrollmentCreateOrConnectWithoutAutomationInput | MarketingAutomationEnrollmentCreateOrConnectWithoutAutomationInput[]
+    upsert?: MarketingAutomationEnrollmentUpsertWithWhereUniqueWithoutAutomationInput | MarketingAutomationEnrollmentUpsertWithWhereUniqueWithoutAutomationInput[]
+    createMany?: MarketingAutomationEnrollmentCreateManyAutomationInputEnvelope
+    set?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    disconnect?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    delete?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    connect?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    update?: MarketingAutomationEnrollmentUpdateWithWhereUniqueWithoutAutomationInput | MarketingAutomationEnrollmentUpdateWithWhereUniqueWithoutAutomationInput[]
+    updateMany?: MarketingAutomationEnrollmentUpdateManyWithWhereWithoutAutomationInput | MarketingAutomationEnrollmentUpdateManyWithWhereWithoutAutomationInput[]
+    deleteMany?: MarketingAutomationEnrollmentScalarWhereInput | MarketingAutomationEnrollmentScalarWhereInput[]
+  }
+
+  export type MarketingAutomationVersionUncheckedUpdateManyWithoutAutomationNestedInput = {
+    create?: XOR<MarketingAutomationVersionCreateWithoutAutomationInput, MarketingAutomationVersionUncheckedCreateWithoutAutomationInput> | MarketingAutomationVersionCreateWithoutAutomationInput[] | MarketingAutomationVersionUncheckedCreateWithoutAutomationInput[]
+    connectOrCreate?: MarketingAutomationVersionCreateOrConnectWithoutAutomationInput | MarketingAutomationVersionCreateOrConnectWithoutAutomationInput[]
+    upsert?: MarketingAutomationVersionUpsertWithWhereUniqueWithoutAutomationInput | MarketingAutomationVersionUpsertWithWhereUniqueWithoutAutomationInput[]
+    createMany?: MarketingAutomationVersionCreateManyAutomationInputEnvelope
+    set?: MarketingAutomationVersionWhereUniqueInput | MarketingAutomationVersionWhereUniqueInput[]
+    disconnect?: MarketingAutomationVersionWhereUniqueInput | MarketingAutomationVersionWhereUniqueInput[]
+    delete?: MarketingAutomationVersionWhereUniqueInput | MarketingAutomationVersionWhereUniqueInput[]
+    connect?: MarketingAutomationVersionWhereUniqueInput | MarketingAutomationVersionWhereUniqueInput[]
+    update?: MarketingAutomationVersionUpdateWithWhereUniqueWithoutAutomationInput | MarketingAutomationVersionUpdateWithWhereUniqueWithoutAutomationInput[]
+    updateMany?: MarketingAutomationVersionUpdateManyWithWhereWithoutAutomationInput | MarketingAutomationVersionUpdateManyWithWhereWithoutAutomationInput[]
+    deleteMany?: MarketingAutomationVersionScalarWhereInput | MarketingAutomationVersionScalarWhereInput[]
+  }
+
+  export type MarketingAutomationEnrollmentUncheckedUpdateManyWithoutAutomationNestedInput = {
+    create?: XOR<MarketingAutomationEnrollmentCreateWithoutAutomationInput, MarketingAutomationEnrollmentUncheckedCreateWithoutAutomationInput> | MarketingAutomationEnrollmentCreateWithoutAutomationInput[] | MarketingAutomationEnrollmentUncheckedCreateWithoutAutomationInput[]
+    connectOrCreate?: MarketingAutomationEnrollmentCreateOrConnectWithoutAutomationInput | MarketingAutomationEnrollmentCreateOrConnectWithoutAutomationInput[]
+    upsert?: MarketingAutomationEnrollmentUpsertWithWhereUniqueWithoutAutomationInput | MarketingAutomationEnrollmentUpsertWithWhereUniqueWithoutAutomationInput[]
+    createMany?: MarketingAutomationEnrollmentCreateManyAutomationInputEnvelope
+    set?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    disconnect?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    delete?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    connect?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    update?: MarketingAutomationEnrollmentUpdateWithWhereUniqueWithoutAutomationInput | MarketingAutomationEnrollmentUpdateWithWhereUniqueWithoutAutomationInput[]
+    updateMany?: MarketingAutomationEnrollmentUpdateManyWithWhereWithoutAutomationInput | MarketingAutomationEnrollmentUpdateManyWithWhereWithoutAutomationInput[]
+    deleteMany?: MarketingAutomationEnrollmentScalarWhereInput | MarketingAutomationEnrollmentScalarWhereInput[]
+  }
+
+  export type MarketingAutomationCreateNestedOneWithoutVersionsInput = {
+    create?: XOR<MarketingAutomationCreateWithoutVersionsInput, MarketingAutomationUncheckedCreateWithoutVersionsInput>
+    connectOrCreate?: MarketingAutomationCreateOrConnectWithoutVersionsInput
+    connect?: MarketingAutomationWhereUniqueInput
+  }
+
+  export type MarketingAutomationEnrollmentCreateNestedManyWithoutVersionInput = {
+    create?: XOR<MarketingAutomationEnrollmentCreateWithoutVersionInput, MarketingAutomationEnrollmentUncheckedCreateWithoutVersionInput> | MarketingAutomationEnrollmentCreateWithoutVersionInput[] | MarketingAutomationEnrollmentUncheckedCreateWithoutVersionInput[]
+    connectOrCreate?: MarketingAutomationEnrollmentCreateOrConnectWithoutVersionInput | MarketingAutomationEnrollmentCreateOrConnectWithoutVersionInput[]
+    createMany?: MarketingAutomationEnrollmentCreateManyVersionInputEnvelope
+    connect?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+  }
+
+  export type MarketingAutomationEnrollmentUncheckedCreateNestedManyWithoutVersionInput = {
+    create?: XOR<MarketingAutomationEnrollmentCreateWithoutVersionInput, MarketingAutomationEnrollmentUncheckedCreateWithoutVersionInput> | MarketingAutomationEnrollmentCreateWithoutVersionInput[] | MarketingAutomationEnrollmentUncheckedCreateWithoutVersionInput[]
+    connectOrCreate?: MarketingAutomationEnrollmentCreateOrConnectWithoutVersionInput | MarketingAutomationEnrollmentCreateOrConnectWithoutVersionInput[]
+    createMany?: MarketingAutomationEnrollmentCreateManyVersionInputEnvelope
+    connect?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+  }
+
+  export type EnumMarketingAutomationVersionStatusFieldUpdateOperationsInput = {
+    set?: $Enums.MarketingAutomationVersionStatus
+  }
+
+  export type MarketingAutomationUpdateOneRequiredWithoutVersionsNestedInput = {
+    create?: XOR<MarketingAutomationCreateWithoutVersionsInput, MarketingAutomationUncheckedCreateWithoutVersionsInput>
+    connectOrCreate?: MarketingAutomationCreateOrConnectWithoutVersionsInput
+    upsert?: MarketingAutomationUpsertWithoutVersionsInput
+    connect?: MarketingAutomationWhereUniqueInput
+    update?: XOR<XOR<MarketingAutomationUpdateToOneWithWhereWithoutVersionsInput, MarketingAutomationUpdateWithoutVersionsInput>, MarketingAutomationUncheckedUpdateWithoutVersionsInput>
+  }
+
+  export type MarketingAutomationEnrollmentUpdateManyWithoutVersionNestedInput = {
+    create?: XOR<MarketingAutomationEnrollmentCreateWithoutVersionInput, MarketingAutomationEnrollmentUncheckedCreateWithoutVersionInput> | MarketingAutomationEnrollmentCreateWithoutVersionInput[] | MarketingAutomationEnrollmentUncheckedCreateWithoutVersionInput[]
+    connectOrCreate?: MarketingAutomationEnrollmentCreateOrConnectWithoutVersionInput | MarketingAutomationEnrollmentCreateOrConnectWithoutVersionInput[]
+    upsert?: MarketingAutomationEnrollmentUpsertWithWhereUniqueWithoutVersionInput | MarketingAutomationEnrollmentUpsertWithWhereUniqueWithoutVersionInput[]
+    createMany?: MarketingAutomationEnrollmentCreateManyVersionInputEnvelope
+    set?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    disconnect?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    delete?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    connect?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    update?: MarketingAutomationEnrollmentUpdateWithWhereUniqueWithoutVersionInput | MarketingAutomationEnrollmentUpdateWithWhereUniqueWithoutVersionInput[]
+    updateMany?: MarketingAutomationEnrollmentUpdateManyWithWhereWithoutVersionInput | MarketingAutomationEnrollmentUpdateManyWithWhereWithoutVersionInput[]
+    deleteMany?: MarketingAutomationEnrollmentScalarWhereInput | MarketingAutomationEnrollmentScalarWhereInput[]
+  }
+
+  export type MarketingAutomationEnrollmentUncheckedUpdateManyWithoutVersionNestedInput = {
+    create?: XOR<MarketingAutomationEnrollmentCreateWithoutVersionInput, MarketingAutomationEnrollmentUncheckedCreateWithoutVersionInput> | MarketingAutomationEnrollmentCreateWithoutVersionInput[] | MarketingAutomationEnrollmentUncheckedCreateWithoutVersionInput[]
+    connectOrCreate?: MarketingAutomationEnrollmentCreateOrConnectWithoutVersionInput | MarketingAutomationEnrollmentCreateOrConnectWithoutVersionInput[]
+    upsert?: MarketingAutomationEnrollmentUpsertWithWhereUniqueWithoutVersionInput | MarketingAutomationEnrollmentUpsertWithWhereUniqueWithoutVersionInput[]
+    createMany?: MarketingAutomationEnrollmentCreateManyVersionInputEnvelope
+    set?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    disconnect?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    delete?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    connect?: MarketingAutomationEnrollmentWhereUniqueInput | MarketingAutomationEnrollmentWhereUniqueInput[]
+    update?: MarketingAutomationEnrollmentUpdateWithWhereUniqueWithoutVersionInput | MarketingAutomationEnrollmentUpdateWithWhereUniqueWithoutVersionInput[]
+    updateMany?: MarketingAutomationEnrollmentUpdateManyWithWhereWithoutVersionInput | MarketingAutomationEnrollmentUpdateManyWithWhereWithoutVersionInput[]
+    deleteMany?: MarketingAutomationEnrollmentScalarWhereInput | MarketingAutomationEnrollmentScalarWhereInput[]
+  }
+
+  export type MarketingAutomationCreateNestedOneWithoutEnrollmentsInput = {
+    create?: XOR<MarketingAutomationCreateWithoutEnrollmentsInput, MarketingAutomationUncheckedCreateWithoutEnrollmentsInput>
+    connectOrCreate?: MarketingAutomationCreateOrConnectWithoutEnrollmentsInput
+    connect?: MarketingAutomationWhereUniqueInput
+  }
+
+  export type MarketingAutomationVersionCreateNestedOneWithoutEnrollmentsInput = {
+    create?: XOR<MarketingAutomationVersionCreateWithoutEnrollmentsInput, MarketingAutomationVersionUncheckedCreateWithoutEnrollmentsInput>
+    connectOrCreate?: MarketingAutomationVersionCreateOrConnectWithoutEnrollmentsInput
+    connect?: MarketingAutomationVersionWhereUniqueInput
+  }
+
+  export type MarketingContactCreateNestedOneWithoutAutomationEnrollmentsInput = {
+    create?: XOR<MarketingContactCreateWithoutAutomationEnrollmentsInput, MarketingContactUncheckedCreateWithoutAutomationEnrollmentsInput>
+    connectOrCreate?: MarketingContactCreateOrConnectWithoutAutomationEnrollmentsInput
+    connect?: MarketingContactWhereUniqueInput
+  }
+
+  export type MarketingAutomationStepRunCreateNestedManyWithoutEnrollmentInput = {
+    create?: XOR<MarketingAutomationStepRunCreateWithoutEnrollmentInput, MarketingAutomationStepRunUncheckedCreateWithoutEnrollmentInput> | MarketingAutomationStepRunCreateWithoutEnrollmentInput[] | MarketingAutomationStepRunUncheckedCreateWithoutEnrollmentInput[]
+    connectOrCreate?: MarketingAutomationStepRunCreateOrConnectWithoutEnrollmentInput | MarketingAutomationStepRunCreateOrConnectWithoutEnrollmentInput[]
+    createMany?: MarketingAutomationStepRunCreateManyEnrollmentInputEnvelope
+    connect?: MarketingAutomationStepRunWhereUniqueInput | MarketingAutomationStepRunWhereUniqueInput[]
+  }
+
+  export type MarketingAutomationStepRunUncheckedCreateNestedManyWithoutEnrollmentInput = {
+    create?: XOR<MarketingAutomationStepRunCreateWithoutEnrollmentInput, MarketingAutomationStepRunUncheckedCreateWithoutEnrollmentInput> | MarketingAutomationStepRunCreateWithoutEnrollmentInput[] | MarketingAutomationStepRunUncheckedCreateWithoutEnrollmentInput[]
+    connectOrCreate?: MarketingAutomationStepRunCreateOrConnectWithoutEnrollmentInput | MarketingAutomationStepRunCreateOrConnectWithoutEnrollmentInput[]
+    createMany?: MarketingAutomationStepRunCreateManyEnrollmentInputEnvelope
+    connect?: MarketingAutomationStepRunWhereUniqueInput | MarketingAutomationStepRunWhereUniqueInput[]
+  }
+
+  export type EnumMarketingAutomationEnrollmentStatusFieldUpdateOperationsInput = {
+    set?: $Enums.MarketingAutomationEnrollmentStatus
+  }
+
+  export type MarketingAutomationUpdateOneRequiredWithoutEnrollmentsNestedInput = {
+    create?: XOR<MarketingAutomationCreateWithoutEnrollmentsInput, MarketingAutomationUncheckedCreateWithoutEnrollmentsInput>
+    connectOrCreate?: MarketingAutomationCreateOrConnectWithoutEnrollmentsInput
+    upsert?: MarketingAutomationUpsertWithoutEnrollmentsInput
+    connect?: MarketingAutomationWhereUniqueInput
+    update?: XOR<XOR<MarketingAutomationUpdateToOneWithWhereWithoutEnrollmentsInput, MarketingAutomationUpdateWithoutEnrollmentsInput>, MarketingAutomationUncheckedUpdateWithoutEnrollmentsInput>
+  }
+
+  export type MarketingAutomationVersionUpdateOneRequiredWithoutEnrollmentsNestedInput = {
+    create?: XOR<MarketingAutomationVersionCreateWithoutEnrollmentsInput, MarketingAutomationVersionUncheckedCreateWithoutEnrollmentsInput>
+    connectOrCreate?: MarketingAutomationVersionCreateOrConnectWithoutEnrollmentsInput
+    upsert?: MarketingAutomationVersionUpsertWithoutEnrollmentsInput
+    connect?: MarketingAutomationVersionWhereUniqueInput
+    update?: XOR<XOR<MarketingAutomationVersionUpdateToOneWithWhereWithoutEnrollmentsInput, MarketingAutomationVersionUpdateWithoutEnrollmentsInput>, MarketingAutomationVersionUncheckedUpdateWithoutEnrollmentsInput>
+  }
+
+  export type MarketingContactUpdateOneRequiredWithoutAutomationEnrollmentsNestedInput = {
+    create?: XOR<MarketingContactCreateWithoutAutomationEnrollmentsInput, MarketingContactUncheckedCreateWithoutAutomationEnrollmentsInput>
+    connectOrCreate?: MarketingContactCreateOrConnectWithoutAutomationEnrollmentsInput
+    upsert?: MarketingContactUpsertWithoutAutomationEnrollmentsInput
+    connect?: MarketingContactWhereUniqueInput
+    update?: XOR<XOR<MarketingContactUpdateToOneWithWhereWithoutAutomationEnrollmentsInput, MarketingContactUpdateWithoutAutomationEnrollmentsInput>, MarketingContactUncheckedUpdateWithoutAutomationEnrollmentsInput>
+  }
+
+  export type MarketingAutomationStepRunUpdateManyWithoutEnrollmentNestedInput = {
+    create?: XOR<MarketingAutomationStepRunCreateWithoutEnrollmentInput, MarketingAutomationStepRunUncheckedCreateWithoutEnrollmentInput> | MarketingAutomationStepRunCreateWithoutEnrollmentInput[] | MarketingAutomationStepRunUncheckedCreateWithoutEnrollmentInput[]
+    connectOrCreate?: MarketingAutomationStepRunCreateOrConnectWithoutEnrollmentInput | MarketingAutomationStepRunCreateOrConnectWithoutEnrollmentInput[]
+    upsert?: MarketingAutomationStepRunUpsertWithWhereUniqueWithoutEnrollmentInput | MarketingAutomationStepRunUpsertWithWhereUniqueWithoutEnrollmentInput[]
+    createMany?: MarketingAutomationStepRunCreateManyEnrollmentInputEnvelope
+    set?: MarketingAutomationStepRunWhereUniqueInput | MarketingAutomationStepRunWhereUniqueInput[]
+    disconnect?: MarketingAutomationStepRunWhereUniqueInput | MarketingAutomationStepRunWhereUniqueInput[]
+    delete?: MarketingAutomationStepRunWhereUniqueInput | MarketingAutomationStepRunWhereUniqueInput[]
+    connect?: MarketingAutomationStepRunWhereUniqueInput | MarketingAutomationStepRunWhereUniqueInput[]
+    update?: MarketingAutomationStepRunUpdateWithWhereUniqueWithoutEnrollmentInput | MarketingAutomationStepRunUpdateWithWhereUniqueWithoutEnrollmentInput[]
+    updateMany?: MarketingAutomationStepRunUpdateManyWithWhereWithoutEnrollmentInput | MarketingAutomationStepRunUpdateManyWithWhereWithoutEnrollmentInput[]
+    deleteMany?: MarketingAutomationStepRunScalarWhereInput | MarketingAutomationStepRunScalarWhereInput[]
+  }
+
+  export type MarketingAutomationStepRunUncheckedUpdateManyWithoutEnrollmentNestedInput = {
+    create?: XOR<MarketingAutomationStepRunCreateWithoutEnrollmentInput, MarketingAutomationStepRunUncheckedCreateWithoutEnrollmentInput> | MarketingAutomationStepRunCreateWithoutEnrollmentInput[] | MarketingAutomationStepRunUncheckedCreateWithoutEnrollmentInput[]
+    connectOrCreate?: MarketingAutomationStepRunCreateOrConnectWithoutEnrollmentInput | MarketingAutomationStepRunCreateOrConnectWithoutEnrollmentInput[]
+    upsert?: MarketingAutomationStepRunUpsertWithWhereUniqueWithoutEnrollmentInput | MarketingAutomationStepRunUpsertWithWhereUniqueWithoutEnrollmentInput[]
+    createMany?: MarketingAutomationStepRunCreateManyEnrollmentInputEnvelope
+    set?: MarketingAutomationStepRunWhereUniqueInput | MarketingAutomationStepRunWhereUniqueInput[]
+    disconnect?: MarketingAutomationStepRunWhereUniqueInput | MarketingAutomationStepRunWhereUniqueInput[]
+    delete?: MarketingAutomationStepRunWhereUniqueInput | MarketingAutomationStepRunWhereUniqueInput[]
+    connect?: MarketingAutomationStepRunWhereUniqueInput | MarketingAutomationStepRunWhereUniqueInput[]
+    update?: MarketingAutomationStepRunUpdateWithWhereUniqueWithoutEnrollmentInput | MarketingAutomationStepRunUpdateWithWhereUniqueWithoutEnrollmentInput[]
+    updateMany?: MarketingAutomationStepRunUpdateManyWithWhereWithoutEnrollmentInput | MarketingAutomationStepRunUpdateManyWithWhereWithoutEnrollmentInput[]
+    deleteMany?: MarketingAutomationStepRunScalarWhereInput | MarketingAutomationStepRunScalarWhereInput[]
+  }
+
+  export type MarketingAutomationEnrollmentCreateNestedOneWithoutStepRunsInput = {
+    create?: XOR<MarketingAutomationEnrollmentCreateWithoutStepRunsInput, MarketingAutomationEnrollmentUncheckedCreateWithoutStepRunsInput>
+    connectOrCreate?: MarketingAutomationEnrollmentCreateOrConnectWithoutStepRunsInput
+    connect?: MarketingAutomationEnrollmentWhereUniqueInput
+  }
+
+  export type EnumMarketingAutomationStepRunStatusFieldUpdateOperationsInput = {
+    set?: $Enums.MarketingAutomationStepRunStatus
+  }
+
+  export type MarketingAutomationEnrollmentUpdateOneRequiredWithoutStepRunsNestedInput = {
+    create?: XOR<MarketingAutomationEnrollmentCreateWithoutStepRunsInput, MarketingAutomationEnrollmentUncheckedCreateWithoutStepRunsInput>
+    connectOrCreate?: MarketingAutomationEnrollmentCreateOrConnectWithoutStepRunsInput
+    upsert?: MarketingAutomationEnrollmentUpsertWithoutStepRunsInput
+    connect?: MarketingAutomationEnrollmentWhereUniqueInput
+    update?: XOR<XOR<MarketingAutomationEnrollmentUpdateToOneWithWhereWithoutStepRunsInput, MarketingAutomationEnrollmentUpdateWithoutStepRunsInput>, MarketingAutomationEnrollmentUncheckedUpdateWithoutStepRunsInput>
+  }
+
+  export type EnumMarketingTriggerEventStatusFieldUpdateOperationsInput = {
+    set?: $Enums.MarketingTriggerEventStatus
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -283198,6 +299593,125 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumMarketingCampaignApprovalDecisionFilter<$PrismaModel>
     _max?: NestedEnumMarketingCampaignApprovalDecisionFilter<$PrismaModel>
+  }
+
+  export type NestedEnumMarketingBroadcastStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingBroadcastStatus | EnumMarketingBroadcastStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingBroadcastStatus[] | ListEnumMarketingBroadcastStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingBroadcastStatus[] | ListEnumMarketingBroadcastStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingBroadcastStatusFilter<$PrismaModel> | $Enums.MarketingBroadcastStatus
+  }
+
+  export type NestedEnumMarketingBroadcastStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingBroadcastStatus | EnumMarketingBroadcastStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingBroadcastStatus[] | ListEnumMarketingBroadcastStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingBroadcastStatus[] | ListEnumMarketingBroadcastStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingBroadcastStatusWithAggregatesFilter<$PrismaModel> | $Enums.MarketingBroadcastStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMarketingBroadcastStatusFilter<$PrismaModel>
+    _max?: NestedEnumMarketingBroadcastStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumMarketingBroadcastRecipientStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingBroadcastRecipientStatus | EnumMarketingBroadcastRecipientStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingBroadcastRecipientStatus[] | ListEnumMarketingBroadcastRecipientStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingBroadcastRecipientStatus[] | ListEnumMarketingBroadcastRecipientStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingBroadcastRecipientStatusFilter<$PrismaModel> | $Enums.MarketingBroadcastRecipientStatus
+  }
+
+  export type NestedEnumMarketingBroadcastRecipientStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingBroadcastRecipientStatus | EnumMarketingBroadcastRecipientStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingBroadcastRecipientStatus[] | ListEnumMarketingBroadcastRecipientStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingBroadcastRecipientStatus[] | ListEnumMarketingBroadcastRecipientStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingBroadcastRecipientStatusWithAggregatesFilter<$PrismaModel> | $Enums.MarketingBroadcastRecipientStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMarketingBroadcastRecipientStatusFilter<$PrismaModel>
+    _max?: NestedEnumMarketingBroadcastRecipientStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumMarketingAutomationStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingAutomationStatus | EnumMarketingAutomationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingAutomationStatus[] | ListEnumMarketingAutomationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingAutomationStatus[] | ListEnumMarketingAutomationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingAutomationStatusFilter<$PrismaModel> | $Enums.MarketingAutomationStatus
+  }
+
+  export type NestedEnumMarketingAutomationStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingAutomationStatus | EnumMarketingAutomationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingAutomationStatus[] | ListEnumMarketingAutomationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingAutomationStatus[] | ListEnumMarketingAutomationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingAutomationStatusWithAggregatesFilter<$PrismaModel> | $Enums.MarketingAutomationStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMarketingAutomationStatusFilter<$PrismaModel>
+    _max?: NestedEnumMarketingAutomationStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumMarketingAutomationVersionStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingAutomationVersionStatus | EnumMarketingAutomationVersionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingAutomationVersionStatus[] | ListEnumMarketingAutomationVersionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingAutomationVersionStatus[] | ListEnumMarketingAutomationVersionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingAutomationVersionStatusFilter<$PrismaModel> | $Enums.MarketingAutomationVersionStatus
+  }
+
+  export type NestedEnumMarketingAutomationVersionStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingAutomationVersionStatus | EnumMarketingAutomationVersionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingAutomationVersionStatus[] | ListEnumMarketingAutomationVersionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingAutomationVersionStatus[] | ListEnumMarketingAutomationVersionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingAutomationVersionStatusWithAggregatesFilter<$PrismaModel> | $Enums.MarketingAutomationVersionStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMarketingAutomationVersionStatusFilter<$PrismaModel>
+    _max?: NestedEnumMarketingAutomationVersionStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumMarketingAutomationEnrollmentStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingAutomationEnrollmentStatus | EnumMarketingAutomationEnrollmentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingAutomationEnrollmentStatus[] | ListEnumMarketingAutomationEnrollmentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingAutomationEnrollmentStatus[] | ListEnumMarketingAutomationEnrollmentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingAutomationEnrollmentStatusFilter<$PrismaModel> | $Enums.MarketingAutomationEnrollmentStatus
+  }
+
+  export type NestedEnumMarketingAutomationEnrollmentStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingAutomationEnrollmentStatus | EnumMarketingAutomationEnrollmentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingAutomationEnrollmentStatus[] | ListEnumMarketingAutomationEnrollmentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingAutomationEnrollmentStatus[] | ListEnumMarketingAutomationEnrollmentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingAutomationEnrollmentStatusWithAggregatesFilter<$PrismaModel> | $Enums.MarketingAutomationEnrollmentStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMarketingAutomationEnrollmentStatusFilter<$PrismaModel>
+    _max?: NestedEnumMarketingAutomationEnrollmentStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumMarketingAutomationStepRunStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingAutomationStepRunStatus | EnumMarketingAutomationStepRunStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingAutomationStepRunStatus[] | ListEnumMarketingAutomationStepRunStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingAutomationStepRunStatus[] | ListEnumMarketingAutomationStepRunStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingAutomationStepRunStatusFilter<$PrismaModel> | $Enums.MarketingAutomationStepRunStatus
+  }
+
+  export type NestedEnumMarketingAutomationStepRunStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingAutomationStepRunStatus | EnumMarketingAutomationStepRunStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingAutomationStepRunStatus[] | ListEnumMarketingAutomationStepRunStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingAutomationStepRunStatus[] | ListEnumMarketingAutomationStepRunStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingAutomationStepRunStatusWithAggregatesFilter<$PrismaModel> | $Enums.MarketingAutomationStepRunStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMarketingAutomationStepRunStatusFilter<$PrismaModel>
+    _max?: NestedEnumMarketingAutomationStepRunStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumMarketingTriggerEventStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingTriggerEventStatus | EnumMarketingTriggerEventStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingTriggerEventStatus[] | ListEnumMarketingTriggerEventStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingTriggerEventStatus[] | ListEnumMarketingTriggerEventStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingTriggerEventStatusFilter<$PrismaModel> | $Enums.MarketingTriggerEventStatus
+  }
+
+  export type NestedEnumMarketingTriggerEventStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MarketingTriggerEventStatus | EnumMarketingTriggerEventStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MarketingTriggerEventStatus[] | ListEnumMarketingTriggerEventStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MarketingTriggerEventStatus[] | ListEnumMarketingTriggerEventStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMarketingTriggerEventStatusWithAggregatesFilter<$PrismaModel> | $Enums.MarketingTriggerEventStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMarketingTriggerEventStatusFilter<$PrismaModel>
+    _max?: NestedEnumMarketingTriggerEventStatusFilter<$PrismaModel>
   }
 
   export type AdminSessionCreateWithoutAdminUserInput = {
@@ -348348,6 +364862,8 @@ export namespace Prisma {
     updatedAt?: Date | string
     consents?: MarketingConsentCreateNestedManyWithoutContactInput
     audiences?: MarketingAudienceContactCreateNestedManyWithoutContactInput
+    broadcastRecipients?: MarketingBroadcastRecipientCreateNestedManyWithoutContactInput
+    automationEnrollments?: MarketingAutomationEnrollmentCreateNestedManyWithoutContactInput
   }
 
   export type MarketingContactUncheckedCreateWithoutOrganizationInput = {
@@ -348363,6 +364879,8 @@ export namespace Prisma {
     updatedAt?: Date | string
     consents?: MarketingConsentUncheckedCreateNestedManyWithoutContactInput
     audiences?: MarketingAudienceContactUncheckedCreateNestedManyWithoutContactInput
+    broadcastRecipients?: MarketingBroadcastRecipientUncheckedCreateNestedManyWithoutContactInput
+    automationEnrollments?: MarketingAutomationEnrollmentUncheckedCreateNestedManyWithoutContactInput
   }
 
   export type MarketingContactCreateOrConnectWithoutOrganizationInput = {
@@ -348473,6 +364991,7 @@ export namespace Prisma {
     segment?: MarketingSegmentCreateNestedOneWithoutCampaignsInput
     approvals?: MarketingCampaignApprovalCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotCreateNestedManyWithoutCampaignInput
+    dispatch?: MarketingBroadcastDispatchCreateNestedOneWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignUncheckedCreateWithoutOrganizationInput = {
@@ -348499,6 +365018,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     approvals?: MarketingCampaignApprovalUncheckedCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotUncheckedCreateNestedManyWithoutCampaignInput
+    dispatch?: MarketingBroadcastDispatchUncheckedCreateNestedOneWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignCreateOrConnectWithoutOrganizationInput = {
@@ -348508,6 +365028,95 @@ export namespace Prisma {
 
   export type MarketingEmailCampaignCreateManyOrganizationInputEnvelope = {
     data: MarketingEmailCampaignCreateManyOrganizationInput | MarketingEmailCampaignCreateManyOrganizationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MarketingBrandSettingsCreateWithoutOrganizationInput = {
+    confirmationSenderId?: string | null
+    defaultTimeZone?: string
+    postalAddress?: string | null
+    dailyBroadcastCap?: number
+    dailyAutomationCap?: number
+    maxBroadcastRecipients?: number
+    dispatchPaused?: boolean
+    pausedReason?: string | null
+    pausedAt?: Date | string | null
+    pausedBy?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingBrandSettingsUncheckedCreateWithoutOrganizationInput = {
+    confirmationSenderId?: string | null
+    defaultTimeZone?: string
+    postalAddress?: string | null
+    dailyBroadcastCap?: number
+    dailyAutomationCap?: number
+    maxBroadcastRecipients?: number
+    dispatchPaused?: boolean
+    pausedReason?: string | null
+    pausedAt?: Date | string | null
+    pausedBy?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingBrandSettingsCreateOrConnectWithoutOrganizationInput = {
+    where: MarketingBrandSettingsWhereUniqueInput
+    create: XOR<MarketingBrandSettingsCreateWithoutOrganizationInput, MarketingBrandSettingsUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type MarketingAutomationCreateWithoutOrganizationInput = {
+    id?: string
+    name: string
+    description?: string | null
+    status?: $Enums.MarketingAutomationStatus
+    triggerType: string
+    activeVersionId?: string | null
+    enrollmentLimit?: number
+    maxActiveEnrollments?: number
+    frequencyCapHours?: number
+    createdByAdminUserId: string
+    updatedByAdminUserId: string
+    revision?: number
+    lastScheduledRunAt?: Date | string | null
+    activatedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    versions?: MarketingAutomationVersionCreateNestedManyWithoutAutomationInput
+    enrollments?: MarketingAutomationEnrollmentCreateNestedManyWithoutAutomationInput
+  }
+
+  export type MarketingAutomationUncheckedCreateWithoutOrganizationInput = {
+    id?: string
+    name: string
+    description?: string | null
+    status?: $Enums.MarketingAutomationStatus
+    triggerType: string
+    activeVersionId?: string | null
+    enrollmentLimit?: number
+    maxActiveEnrollments?: number
+    frequencyCapHours?: number
+    createdByAdminUserId: string
+    updatedByAdminUserId: string
+    revision?: number
+    lastScheduledRunAt?: Date | string | null
+    activatedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    versions?: MarketingAutomationVersionUncheckedCreateNestedManyWithoutAutomationInput
+    enrollments?: MarketingAutomationEnrollmentUncheckedCreateNestedManyWithoutAutomationInput
+  }
+
+  export type MarketingAutomationCreateOrConnectWithoutOrganizationInput = {
+    where: MarketingAutomationWhereUniqueInput
+    create: XOR<MarketingAutomationCreateWithoutOrganizationInput, MarketingAutomationUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type MarketingAutomationCreateManyOrganizationInputEnvelope = {
+    data: MarketingAutomationCreateManyOrganizationInput | MarketingAutomationCreateManyOrganizationInput[]
     skipDuplicates?: boolean
   }
 
@@ -348841,6 +365450,88 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"MarketingEmailCampaign"> | Date | string
   }
 
+  export type MarketingBrandSettingsUpsertWithoutOrganizationInput = {
+    update: XOR<MarketingBrandSettingsUpdateWithoutOrganizationInput, MarketingBrandSettingsUncheckedUpdateWithoutOrganizationInput>
+    create: XOR<MarketingBrandSettingsCreateWithoutOrganizationInput, MarketingBrandSettingsUncheckedCreateWithoutOrganizationInput>
+    where?: MarketingBrandSettingsWhereInput
+  }
+
+  export type MarketingBrandSettingsUpdateToOneWithWhereWithoutOrganizationInput = {
+    where?: MarketingBrandSettingsWhereInput
+    data: XOR<MarketingBrandSettingsUpdateWithoutOrganizationInput, MarketingBrandSettingsUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type MarketingBrandSettingsUpdateWithoutOrganizationInput = {
+    confirmationSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultTimeZone?: StringFieldUpdateOperationsInput | string
+    postalAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyBroadcastCap?: IntFieldUpdateOperationsInput | number
+    dailyAutomationCap?: IntFieldUpdateOperationsInput | number
+    maxBroadcastRecipients?: IntFieldUpdateOperationsInput | number
+    dispatchPaused?: BoolFieldUpdateOperationsInput | boolean
+    pausedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    pausedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingBrandSettingsUncheckedUpdateWithoutOrganizationInput = {
+    confirmationSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultTimeZone?: StringFieldUpdateOperationsInput | string
+    postalAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyBroadcastCap?: IntFieldUpdateOperationsInput | number
+    dailyAutomationCap?: IntFieldUpdateOperationsInput | number
+    maxBroadcastRecipients?: IntFieldUpdateOperationsInput | number
+    dispatchPaused?: BoolFieldUpdateOperationsInput | boolean
+    pausedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    pausedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingAutomationUpsertWithWhereUniqueWithoutOrganizationInput = {
+    where: MarketingAutomationWhereUniqueInput
+    update: XOR<MarketingAutomationUpdateWithoutOrganizationInput, MarketingAutomationUncheckedUpdateWithoutOrganizationInput>
+    create: XOR<MarketingAutomationCreateWithoutOrganizationInput, MarketingAutomationUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type MarketingAutomationUpdateWithWhereUniqueWithoutOrganizationInput = {
+    where: MarketingAutomationWhereUniqueInput
+    data: XOR<MarketingAutomationUpdateWithoutOrganizationInput, MarketingAutomationUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type MarketingAutomationUpdateManyWithWhereWithoutOrganizationInput = {
+    where: MarketingAutomationScalarWhereInput
+    data: XOR<MarketingAutomationUpdateManyMutationInput, MarketingAutomationUncheckedUpdateManyWithoutOrganizationInput>
+  }
+
+  export type MarketingAutomationScalarWhereInput = {
+    AND?: MarketingAutomationScalarWhereInput | MarketingAutomationScalarWhereInput[]
+    OR?: MarketingAutomationScalarWhereInput[]
+    NOT?: MarketingAutomationScalarWhereInput | MarketingAutomationScalarWhereInput[]
+    id?: UuidFilter<"MarketingAutomation"> | string
+    organizationId?: UuidFilter<"MarketingAutomation"> | string
+    name?: StringFilter<"MarketingAutomation"> | string
+    description?: StringNullableFilter<"MarketingAutomation"> | string | null
+    status?: EnumMarketingAutomationStatusFilter<"MarketingAutomation"> | $Enums.MarketingAutomationStatus
+    triggerType?: StringFilter<"MarketingAutomation"> | string
+    activeVersionId?: UuidNullableFilter<"MarketingAutomation"> | string | null
+    enrollmentLimit?: IntFilter<"MarketingAutomation"> | number
+    maxActiveEnrollments?: IntFilter<"MarketingAutomation"> | number
+    frequencyCapHours?: IntFilter<"MarketingAutomation"> | number
+    createdByAdminUserId?: StringFilter<"MarketingAutomation"> | string
+    updatedByAdminUserId?: StringFilter<"MarketingAutomation"> | string
+    revision?: IntFilter<"MarketingAutomation"> | number
+    lastScheduledRunAt?: DateTimeNullableFilter<"MarketingAutomation"> | Date | string | null
+    activatedAt?: DateTimeNullableFilter<"MarketingAutomation"> | Date | string | null
+    createdAt?: DateTimeFilter<"MarketingAutomation"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingAutomation"> | Date | string
+  }
+
   export type MailOrganizationCreateWithoutDomainsInput = {
     id?: string
     slug: string
@@ -348859,6 +365550,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceCreateNestedManyWithoutOrganizationInput
     marketingTemplates?: MarketingEmailTemplateCreateNestedManyWithoutOrganizationInput
     marketingCampaigns?: MarketingEmailCampaignCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationUncheckedCreateWithoutDomainsInput = {
@@ -348879,6 +365572,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUncheckedCreateNestedManyWithoutOrganizationInput
     marketingTemplates?: MarketingEmailTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     marketingCampaigns?: MarketingEmailCampaignUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationCreateOrConnectWithoutDomainsInput = {
@@ -348961,6 +365656,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUpdateManyWithoutOrganizationNestedInput
     marketingTemplates?: MarketingEmailTemplateUpdateManyWithoutOrganizationNestedInput
     marketingCampaigns?: MarketingEmailCampaignUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MailOrganizationUncheckedUpdateWithoutDomainsInput = {
@@ -348981,6 +365678,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingTemplates?: MarketingEmailTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingCampaigns?: MarketingEmailCampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MailAddressUpsertWithWhereUniqueWithoutDomainInput = {
@@ -349017,6 +365716,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceCreateNestedManyWithoutOrganizationInput
     marketingTemplates?: MarketingEmailTemplateCreateNestedManyWithoutOrganizationInput
     marketingCampaigns?: MarketingEmailCampaignCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationUncheckedCreateWithoutMailboxesInput = {
@@ -349037,6 +365738,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUncheckedCreateNestedManyWithoutOrganizationInput
     marketingTemplates?: MarketingEmailTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     marketingCampaigns?: MarketingEmailCampaignUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationCreateOrConnectWithoutMailboxesInput = {
@@ -349874,6 +366577,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUpdateManyWithoutOrganizationNestedInput
     marketingTemplates?: MarketingEmailTemplateUpdateManyWithoutOrganizationNestedInput
     marketingCampaigns?: MarketingEmailCampaignUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MailOrganizationUncheckedUpdateWithoutMailboxesInput = {
@@ -349894,6 +366599,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingTemplates?: MarketingEmailTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingCampaigns?: MarketingEmailCampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type AdminUserUpsertWithoutMailMailboxesOwnedInput = {
@@ -350510,6 +367217,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceCreateNestedManyWithoutOrganizationInput
     marketingTemplates?: MarketingEmailTemplateCreateNestedManyWithoutOrganizationInput
     marketingCampaigns?: MarketingEmailCampaignCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationUncheckedCreateWithoutAddressesInput = {
@@ -350530,6 +367239,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUncheckedCreateNestedManyWithoutOrganizationInput
     marketingTemplates?: MarketingEmailTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     marketingCampaigns?: MarketingEmailCampaignUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationCreateOrConnectWithoutAddressesInput = {
@@ -350789,6 +367500,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUpdateManyWithoutOrganizationNestedInput
     marketingTemplates?: MarketingEmailTemplateUpdateManyWithoutOrganizationNestedInput
     marketingCampaigns?: MarketingEmailCampaignUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MailOrganizationUncheckedUpdateWithoutAddressesInput = {
@@ -350809,6 +367522,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingTemplates?: MarketingEmailTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingCampaigns?: MarketingEmailCampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MailDomainUpsertWithoutAddressesInput = {
@@ -352424,6 +369139,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceCreateNestedManyWithoutOrganizationInput
     marketingTemplates?: MarketingEmailTemplateCreateNestedManyWithoutOrganizationInput
     marketingCampaigns?: MarketingEmailCampaignCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationUncheckedCreateWithoutProvisionRequestsInput = {
@@ -352444,6 +369161,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUncheckedCreateNestedManyWithoutOrganizationInput
     marketingTemplates?: MarketingEmailTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     marketingCampaigns?: MarketingEmailCampaignUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationCreateOrConnectWithoutProvisionRequestsInput = {
@@ -352480,6 +369199,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUpdateManyWithoutOrganizationNestedInput
     marketingTemplates?: MarketingEmailTemplateUpdateManyWithoutOrganizationNestedInput
     marketingCampaigns?: MarketingEmailCampaignUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MailOrganizationUncheckedUpdateWithoutProvisionRequestsInput = {
@@ -352500,6 +369221,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingTemplates?: MarketingEmailTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingCampaigns?: MarketingEmailCampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MailMailboxCreateWithoutThreadsInput = {
@@ -356902,6 +373625,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceCreateNestedManyWithoutOrganizationInput
     marketingTemplates?: MarketingEmailTemplateCreateNestedManyWithoutOrganizationInput
     marketingCampaigns?: MarketingEmailCampaignCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationUncheckedCreateWithoutRetentionPoliciesInput = {
@@ -356922,6 +373647,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUncheckedCreateNestedManyWithoutOrganizationInput
     marketingTemplates?: MarketingEmailTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     marketingCampaigns?: MarketingEmailCampaignUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationCreateOrConnectWithoutRetentionPoliciesInput = {
@@ -357023,6 +373750,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUpdateManyWithoutOrganizationNestedInput
     marketingTemplates?: MarketingEmailTemplateUpdateManyWithoutOrganizationNestedInput
     marketingCampaigns?: MarketingEmailCampaignUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MailOrganizationUncheckedUpdateWithoutRetentionPoliciesInput = {
@@ -357043,6 +373772,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingTemplates?: MarketingEmailTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingCampaigns?: MarketingEmailCampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MailMailboxUpsertWithoutRetentionInput = {
@@ -357134,6 +373865,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceCreateNestedManyWithoutOrganizationInput
     marketingTemplates?: MarketingEmailTemplateCreateNestedManyWithoutOrganizationInput
     marketingCampaigns?: MarketingEmailCampaignCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationUncheckedCreateWithoutLegalHoldsInput = {
@@ -357154,6 +373887,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUncheckedCreateNestedManyWithoutOrganizationInput
     marketingTemplates?: MarketingEmailTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     marketingCampaigns?: MarketingEmailCampaignUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationCreateOrConnectWithoutLegalHoldsInput = {
@@ -357255,6 +373990,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUpdateManyWithoutOrganizationNestedInput
     marketingTemplates?: MarketingEmailTemplateUpdateManyWithoutOrganizationNestedInput
     marketingCampaigns?: MarketingEmailCampaignUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MailOrganizationUncheckedUpdateWithoutLegalHoldsInput = {
@@ -357275,6 +374012,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingTemplates?: MarketingEmailTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingCampaigns?: MarketingEmailCampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MailMailboxUpsertWithoutLegalHoldsInput = {
@@ -357502,6 +374241,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceCreateNestedManyWithoutOrganizationInput
     marketingTemplates?: MarketingEmailTemplateCreateNestedManyWithoutOrganizationInput
     marketingCampaigns?: MarketingEmailCampaignCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationUncheckedCreateWithoutMarketingContactsInput = {
@@ -357522,6 +374263,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUncheckedCreateNestedManyWithoutOrganizationInput
     marketingTemplates?: MarketingEmailTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     marketingCampaigns?: MarketingEmailCampaignUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationCreateOrConnectWithoutMarketingContactsInput = {
@@ -357599,6 +374342,102 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type MarketingBroadcastRecipientCreateWithoutContactInput = {
+    id?: string
+    organizationId: string
+    email: string
+    status?: $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: string | null
+    providerContactId?: string | null
+    providerEmailId?: string | null
+    syncedAt?: Date | string | null
+    acceptedAt?: Date | string | null
+    lastEventType?: string | null
+    lastEventAt?: Date | string | null
+    openedAt?: Date | string | null
+    clickedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    dispatch: MarketingBroadcastDispatchCreateNestedOneWithoutRecipientsInput
+  }
+
+  export type MarketingBroadcastRecipientUncheckedCreateWithoutContactInput = {
+    id?: string
+    dispatchId: string
+    organizationId: string
+    email: string
+    status?: $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: string | null
+    providerContactId?: string | null
+    providerEmailId?: string | null
+    syncedAt?: Date | string | null
+    acceptedAt?: Date | string | null
+    lastEventType?: string | null
+    lastEventAt?: Date | string | null
+    openedAt?: Date | string | null
+    clickedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingBroadcastRecipientCreateOrConnectWithoutContactInput = {
+    where: MarketingBroadcastRecipientWhereUniqueInput
+    create: XOR<MarketingBroadcastRecipientCreateWithoutContactInput, MarketingBroadcastRecipientUncheckedCreateWithoutContactInput>
+  }
+
+  export type MarketingBroadcastRecipientCreateManyContactInputEnvelope = {
+    data: MarketingBroadcastRecipientCreateManyContactInput | MarketingBroadcastRecipientCreateManyContactInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MarketingAutomationEnrollmentCreateWithoutContactInput = {
+    id?: string
+    organizationId: string
+    status?: $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey: string
+    triggerEventId?: string | null
+    currentStepId?: string | null
+    stepCount?: number
+    nextRunAt?: Date | string | null
+    exitReason?: string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    automation: MarketingAutomationCreateNestedOneWithoutEnrollmentsInput
+    version: MarketingAutomationVersionCreateNestedOneWithoutEnrollmentsInput
+    stepRuns?: MarketingAutomationStepRunCreateNestedManyWithoutEnrollmentInput
+  }
+
+  export type MarketingAutomationEnrollmentUncheckedCreateWithoutContactInput = {
+    id?: string
+    automationId: string
+    versionId: string
+    organizationId: string
+    status?: $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey: string
+    triggerEventId?: string | null
+    currentStepId?: string | null
+    stepCount?: number
+    nextRunAt?: Date | string | null
+    exitReason?: string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    stepRuns?: MarketingAutomationStepRunUncheckedCreateNestedManyWithoutEnrollmentInput
+  }
+
+  export type MarketingAutomationEnrollmentCreateOrConnectWithoutContactInput = {
+    where: MarketingAutomationEnrollmentWhereUniqueInput
+    create: XOR<MarketingAutomationEnrollmentCreateWithoutContactInput, MarketingAutomationEnrollmentUncheckedCreateWithoutContactInput>
+  }
+
+  export type MarketingAutomationEnrollmentCreateManyContactInputEnvelope = {
+    data: MarketingAutomationEnrollmentCreateManyContactInput | MarketingAutomationEnrollmentCreateManyContactInput[]
+    skipDuplicates?: boolean
+  }
+
   export type MailOrganizationUpsertWithoutMarketingContactsInput = {
     update: XOR<MailOrganizationUpdateWithoutMarketingContactsInput, MailOrganizationUncheckedUpdateWithoutMarketingContactsInput>
     create: XOR<MailOrganizationCreateWithoutMarketingContactsInput, MailOrganizationUncheckedCreateWithoutMarketingContactsInput>
@@ -357628,6 +374467,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUpdateManyWithoutOrganizationNestedInput
     marketingTemplates?: MarketingEmailTemplateUpdateManyWithoutOrganizationNestedInput
     marketingCampaigns?: MarketingEmailCampaignUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MailOrganizationUncheckedUpdateWithoutMarketingContactsInput = {
@@ -357648,6 +374489,8 @@ export namespace Prisma {
     marketingAudiences?: MarketingAudienceUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingTemplates?: MarketingEmailTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingCampaigns?: MarketingEmailCampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MarketingConsentUpsertWithWhereUniqueWithoutContactInput = {
@@ -357715,6 +374558,83 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"MarketingAudienceContact"> | Date | string
   }
 
+  export type MarketingBroadcastRecipientUpsertWithWhereUniqueWithoutContactInput = {
+    where: MarketingBroadcastRecipientWhereUniqueInput
+    update: XOR<MarketingBroadcastRecipientUpdateWithoutContactInput, MarketingBroadcastRecipientUncheckedUpdateWithoutContactInput>
+    create: XOR<MarketingBroadcastRecipientCreateWithoutContactInput, MarketingBroadcastRecipientUncheckedCreateWithoutContactInput>
+  }
+
+  export type MarketingBroadcastRecipientUpdateWithWhereUniqueWithoutContactInput = {
+    where: MarketingBroadcastRecipientWhereUniqueInput
+    data: XOR<MarketingBroadcastRecipientUpdateWithoutContactInput, MarketingBroadcastRecipientUncheckedUpdateWithoutContactInput>
+  }
+
+  export type MarketingBroadcastRecipientUpdateManyWithWhereWithoutContactInput = {
+    where: MarketingBroadcastRecipientScalarWhereInput
+    data: XOR<MarketingBroadcastRecipientUpdateManyMutationInput, MarketingBroadcastRecipientUncheckedUpdateManyWithoutContactInput>
+  }
+
+  export type MarketingBroadcastRecipientScalarWhereInput = {
+    AND?: MarketingBroadcastRecipientScalarWhereInput | MarketingBroadcastRecipientScalarWhereInput[]
+    OR?: MarketingBroadcastRecipientScalarWhereInput[]
+    NOT?: MarketingBroadcastRecipientScalarWhereInput | MarketingBroadcastRecipientScalarWhereInput[]
+    id?: UuidFilter<"MarketingBroadcastRecipient"> | string
+    dispatchId?: UuidFilter<"MarketingBroadcastRecipient"> | string
+    organizationId?: UuidFilter<"MarketingBroadcastRecipient"> | string
+    contactId?: UuidFilter<"MarketingBroadcastRecipient"> | string
+    email?: StringFilter<"MarketingBroadcastRecipient"> | string
+    status?: EnumMarketingBroadcastRecipientStatusFilter<"MarketingBroadcastRecipient"> | $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: StringNullableFilter<"MarketingBroadcastRecipient"> | string | null
+    providerContactId?: StringNullableFilter<"MarketingBroadcastRecipient"> | string | null
+    providerEmailId?: StringNullableFilter<"MarketingBroadcastRecipient"> | string | null
+    syncedAt?: DateTimeNullableFilter<"MarketingBroadcastRecipient"> | Date | string | null
+    acceptedAt?: DateTimeNullableFilter<"MarketingBroadcastRecipient"> | Date | string | null
+    lastEventType?: StringNullableFilter<"MarketingBroadcastRecipient"> | string | null
+    lastEventAt?: DateTimeNullableFilter<"MarketingBroadcastRecipient"> | Date | string | null
+    openedAt?: DateTimeNullableFilter<"MarketingBroadcastRecipient"> | Date | string | null
+    clickedAt?: DateTimeNullableFilter<"MarketingBroadcastRecipient"> | Date | string | null
+    createdAt?: DateTimeFilter<"MarketingBroadcastRecipient"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingBroadcastRecipient"> | Date | string
+  }
+
+  export type MarketingAutomationEnrollmentUpsertWithWhereUniqueWithoutContactInput = {
+    where: MarketingAutomationEnrollmentWhereUniqueInput
+    update: XOR<MarketingAutomationEnrollmentUpdateWithoutContactInput, MarketingAutomationEnrollmentUncheckedUpdateWithoutContactInput>
+    create: XOR<MarketingAutomationEnrollmentCreateWithoutContactInput, MarketingAutomationEnrollmentUncheckedCreateWithoutContactInput>
+  }
+
+  export type MarketingAutomationEnrollmentUpdateWithWhereUniqueWithoutContactInput = {
+    where: MarketingAutomationEnrollmentWhereUniqueInput
+    data: XOR<MarketingAutomationEnrollmentUpdateWithoutContactInput, MarketingAutomationEnrollmentUncheckedUpdateWithoutContactInput>
+  }
+
+  export type MarketingAutomationEnrollmentUpdateManyWithWhereWithoutContactInput = {
+    where: MarketingAutomationEnrollmentScalarWhereInput
+    data: XOR<MarketingAutomationEnrollmentUpdateManyMutationInput, MarketingAutomationEnrollmentUncheckedUpdateManyWithoutContactInput>
+  }
+
+  export type MarketingAutomationEnrollmentScalarWhereInput = {
+    AND?: MarketingAutomationEnrollmentScalarWhereInput | MarketingAutomationEnrollmentScalarWhereInput[]
+    OR?: MarketingAutomationEnrollmentScalarWhereInput[]
+    NOT?: MarketingAutomationEnrollmentScalarWhereInput | MarketingAutomationEnrollmentScalarWhereInput[]
+    id?: UuidFilter<"MarketingAutomationEnrollment"> | string
+    automationId?: UuidFilter<"MarketingAutomationEnrollment"> | string
+    versionId?: UuidFilter<"MarketingAutomationEnrollment"> | string
+    organizationId?: UuidFilter<"MarketingAutomationEnrollment"> | string
+    contactId?: UuidFilter<"MarketingAutomationEnrollment"> | string
+    status?: EnumMarketingAutomationEnrollmentStatusFilter<"MarketingAutomationEnrollment"> | $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey?: StringFilter<"MarketingAutomationEnrollment"> | string
+    triggerEventId?: UuidNullableFilter<"MarketingAutomationEnrollment"> | string | null
+    currentStepId?: StringNullableFilter<"MarketingAutomationEnrollment"> | string | null
+    stepCount?: IntFilter<"MarketingAutomationEnrollment"> | number
+    nextRunAt?: DateTimeNullableFilter<"MarketingAutomationEnrollment"> | Date | string | null
+    exitReason?: StringNullableFilter<"MarketingAutomationEnrollment"> | string | null
+    context?: JsonNullableFilter<"MarketingAutomationEnrollment">
+    completedAt?: DateTimeNullableFilter<"MarketingAutomationEnrollment"> | Date | string | null
+    createdAt?: DateTimeFilter<"MarketingAutomationEnrollment"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingAutomationEnrollment"> | Date | string
+  }
+
   export type MarketingContactCreateWithoutConsentsInput = {
     id?: string
     email: string
@@ -357728,6 +374648,8 @@ export namespace Prisma {
     updatedAt?: Date | string
     organization: MailOrganizationCreateNestedOneWithoutMarketingContactsInput
     audiences?: MarketingAudienceContactCreateNestedManyWithoutContactInput
+    broadcastRecipients?: MarketingBroadcastRecipientCreateNestedManyWithoutContactInput
+    automationEnrollments?: MarketingAutomationEnrollmentCreateNestedManyWithoutContactInput
   }
 
   export type MarketingContactUncheckedCreateWithoutConsentsInput = {
@@ -357743,6 +374665,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     audiences?: MarketingAudienceContactUncheckedCreateNestedManyWithoutContactInput
+    broadcastRecipients?: MarketingBroadcastRecipientUncheckedCreateNestedManyWithoutContactInput
+    automationEnrollments?: MarketingAutomationEnrollmentUncheckedCreateNestedManyWithoutContactInput
   }
 
   export type MarketingContactCreateOrConnectWithoutConsentsInput = {
@@ -357774,6 +374698,8 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organization?: MailOrganizationUpdateOneRequiredWithoutMarketingContactsNestedInput
     audiences?: MarketingAudienceContactUpdateManyWithoutContactNestedInput
+    broadcastRecipients?: MarketingBroadcastRecipientUpdateManyWithoutContactNestedInput
+    automationEnrollments?: MarketingAutomationEnrollmentUpdateManyWithoutContactNestedInput
   }
 
   export type MarketingContactUncheckedUpdateWithoutConsentsInput = {
@@ -357789,6 +374715,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     audiences?: MarketingAudienceContactUncheckedUpdateManyWithoutContactNestedInput
+    broadcastRecipients?: MarketingBroadcastRecipientUncheckedUpdateManyWithoutContactNestedInput
+    automationEnrollments?: MarketingAutomationEnrollmentUncheckedUpdateManyWithoutContactNestedInput
   }
 
   export type MailOrganizationCreateWithoutMarketingAudiencesInput = {
@@ -357809,6 +374737,8 @@ export namespace Prisma {
     marketingContacts?: MarketingContactCreateNestedManyWithoutOrganizationInput
     marketingTemplates?: MarketingEmailTemplateCreateNestedManyWithoutOrganizationInput
     marketingCampaigns?: MarketingEmailCampaignCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationUncheckedCreateWithoutMarketingAudiencesInput = {
@@ -357829,6 +374759,8 @@ export namespace Prisma {
     marketingContacts?: MarketingContactUncheckedCreateNestedManyWithoutOrganizationInput
     marketingTemplates?: MarketingEmailTemplateUncheckedCreateNestedManyWithoutOrganizationInput
     marketingCampaigns?: MarketingEmailCampaignUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationCreateOrConnectWithoutMarketingAudiencesInput = {
@@ -357914,6 +374846,7 @@ export namespace Prisma {
     segment?: MarketingSegmentCreateNestedOneWithoutCampaignsInput
     approvals?: MarketingCampaignApprovalCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotCreateNestedManyWithoutCampaignInput
+    dispatch?: MarketingBroadcastDispatchCreateNestedOneWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignUncheckedCreateWithoutAudienceInput = {
@@ -357940,6 +374873,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     approvals?: MarketingCampaignApprovalUncheckedCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotUncheckedCreateNestedManyWithoutCampaignInput
+    dispatch?: MarketingBroadcastDispatchUncheckedCreateNestedOneWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignCreateOrConnectWithoutAudienceInput = {
@@ -357981,6 +374915,8 @@ export namespace Prisma {
     marketingContacts?: MarketingContactUpdateManyWithoutOrganizationNestedInput
     marketingTemplates?: MarketingEmailTemplateUpdateManyWithoutOrganizationNestedInput
     marketingCampaigns?: MarketingEmailCampaignUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MailOrganizationUncheckedUpdateWithoutMarketingAudiencesInput = {
@@ -358001,6 +374937,8 @@ export namespace Prisma {
     marketingContacts?: MarketingContactUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingTemplates?: MarketingEmailTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingCampaigns?: MarketingEmailCampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MarketingAudienceContactUpsertWithWhereUniqueWithoutAudienceInput = {
@@ -358111,6 +375049,8 @@ export namespace Prisma {
     updatedAt?: Date | string
     organization: MailOrganizationCreateNestedOneWithoutMarketingContactsInput
     consents?: MarketingConsentCreateNestedManyWithoutContactInput
+    broadcastRecipients?: MarketingBroadcastRecipientCreateNestedManyWithoutContactInput
+    automationEnrollments?: MarketingAutomationEnrollmentCreateNestedManyWithoutContactInput
   }
 
   export type MarketingContactUncheckedCreateWithoutAudiencesInput = {
@@ -358126,6 +375066,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     consents?: MarketingConsentUncheckedCreateNestedManyWithoutContactInput
+    broadcastRecipients?: MarketingBroadcastRecipientUncheckedCreateNestedManyWithoutContactInput
+    automationEnrollments?: MarketingAutomationEnrollmentUncheckedCreateNestedManyWithoutContactInput
   }
 
   export type MarketingContactCreateOrConnectWithoutAudiencesInput = {
@@ -358196,6 +375138,8 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organization?: MailOrganizationUpdateOneRequiredWithoutMarketingContactsNestedInput
     consents?: MarketingConsentUpdateManyWithoutContactNestedInput
+    broadcastRecipients?: MarketingBroadcastRecipientUpdateManyWithoutContactNestedInput
+    automationEnrollments?: MarketingAutomationEnrollmentUpdateManyWithoutContactNestedInput
   }
 
   export type MarketingContactUncheckedUpdateWithoutAudiencesInput = {
@@ -358211,6 +375155,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     consents?: MarketingConsentUncheckedUpdateManyWithoutContactNestedInput
+    broadcastRecipients?: MarketingBroadcastRecipientUncheckedUpdateManyWithoutContactNestedInput
+    automationEnrollments?: MarketingAutomationEnrollmentUncheckedUpdateManyWithoutContactNestedInput
   }
 
   export type MarketingAudienceCreateWithoutSegmentsInput = {
@@ -358270,6 +375216,7 @@ export namespace Prisma {
     audience?: MarketingAudienceCreateNestedOneWithoutCampaignsInput
     approvals?: MarketingCampaignApprovalCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotCreateNestedManyWithoutCampaignInput
+    dispatch?: MarketingBroadcastDispatchCreateNestedOneWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignUncheckedCreateWithoutSegmentInput = {
@@ -358296,6 +375243,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     approvals?: MarketingCampaignApprovalUncheckedCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotUncheckedCreateNestedManyWithoutCampaignInput
+    dispatch?: MarketingBroadcastDispatchUncheckedCreateNestedOneWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignCreateOrConnectWithoutSegmentInput = {
@@ -358381,6 +375329,8 @@ export namespace Prisma {
     marketingContacts?: MarketingContactCreateNestedManyWithoutOrganizationInput
     marketingAudiences?: MarketingAudienceCreateNestedManyWithoutOrganizationInput
     marketingCampaigns?: MarketingEmailCampaignCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationUncheckedCreateWithoutMarketingTemplatesInput = {
@@ -358401,6 +375351,8 @@ export namespace Prisma {
     marketingContacts?: MarketingContactUncheckedCreateNestedManyWithoutOrganizationInput
     marketingAudiences?: MarketingAudienceUncheckedCreateNestedManyWithoutOrganizationInput
     marketingCampaigns?: MarketingEmailCampaignUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationCreateOrConnectWithoutMarketingTemplatesInput = {
@@ -358479,6 +375431,8 @@ export namespace Prisma {
     marketingContacts?: MarketingContactUpdateManyWithoutOrganizationNestedInput
     marketingAudiences?: MarketingAudienceUpdateManyWithoutOrganizationNestedInput
     marketingCampaigns?: MarketingEmailCampaignUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MailOrganizationUncheckedUpdateWithoutMarketingTemplatesInput = {
@@ -358499,6 +375453,8 @@ export namespace Prisma {
     marketingContacts?: MarketingContactUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingAudiences?: MarketingAudienceUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingCampaigns?: MarketingEmailCampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MarketingTemplateVersionUpsertWithWhereUniqueWithoutTemplateInput = {
@@ -358591,6 +375547,7 @@ export namespace Prisma {
     segment?: MarketingSegmentCreateNestedOneWithoutCampaignsInput
     approvals?: MarketingCampaignApprovalCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotCreateNestedManyWithoutCampaignInput
+    dispatch?: MarketingBroadcastDispatchCreateNestedOneWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignUncheckedCreateWithoutTemplateVersionInput = {
@@ -358617,6 +375574,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     approvals?: MarketingCampaignApprovalUncheckedCreateNestedManyWithoutCampaignInput
     snapshots?: MarketingCampaignSnapshotUncheckedCreateNestedManyWithoutCampaignInput
+    dispatch?: MarketingBroadcastDispatchUncheckedCreateNestedOneWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignCreateOrConnectWithoutTemplateVersionInput = {
@@ -358700,6 +375658,8 @@ export namespace Prisma {
     marketingContacts?: MarketingContactCreateNestedManyWithoutOrganizationInput
     marketingAudiences?: MarketingAudienceCreateNestedManyWithoutOrganizationInput
     marketingTemplates?: MarketingEmailTemplateCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationUncheckedCreateWithoutMarketingCampaignsInput = {
@@ -358720,6 +375680,8 @@ export namespace Prisma {
     marketingContacts?: MarketingContactUncheckedCreateNestedManyWithoutOrganizationInput
     marketingAudiences?: MarketingAudienceUncheckedCreateNestedManyWithoutOrganizationInput
     marketingTemplates?: MarketingEmailTemplateUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedCreateNestedOneWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type MailOrganizationCreateOrConnectWithoutMarketingCampaignsInput = {
@@ -358873,6 +375835,7 @@ export namespace Prisma {
     createdBy: string
     createdAt?: Date | string
     approvals?: MarketingCampaignApprovalCreateNestedManyWithoutSnapshotInput
+    approvedContacts?: MarketingCampaignApprovedContactCreateNestedManyWithoutSnapshotInput
   }
 
   export type MarketingCampaignSnapshotUncheckedCreateWithoutCampaignInput = {
@@ -358892,6 +375855,7 @@ export namespace Prisma {
     createdBy: string
     createdAt?: Date | string
     approvals?: MarketingCampaignApprovalUncheckedCreateNestedManyWithoutSnapshotInput
+    approvedContacts?: MarketingCampaignApprovedContactUncheckedCreateNestedManyWithoutSnapshotInput
   }
 
   export type MarketingCampaignSnapshotCreateOrConnectWithoutCampaignInput = {
@@ -358902,6 +375866,77 @@ export namespace Prisma {
   export type MarketingCampaignSnapshotCreateManyCampaignInputEnvelope = {
     data: MarketingCampaignSnapshotCreateManyCampaignInput | MarketingCampaignSnapshotCreateManyCampaignInput[]
     skipDuplicates?: boolean
+  }
+
+  export type MarketingBroadcastDispatchCreateWithoutCampaignInput = {
+    id?: string
+    organizationId: string
+    approvalSnapshotId: string
+    status?: $Enums.MarketingBroadcastStatus
+    scheduledFor: Date | string
+    timeZone: string
+    localSendTime?: string | null
+    provider?: string
+    providerSegmentId?: string | null
+    providerBroadcastId?: string | null
+    providerStatus?: string | null
+    providerCreateAttemptAt?: Date | string | null
+    providerSendAttemptAt?: Date | string | null
+    providerSentAt?: Date | string | null
+    recipientCount?: number
+    excludedCount?: number
+    eligibilitySha256?: string | null
+    contentSha256: string
+    scheduledByAdminUserId: string
+    cancelRequestedAt?: Date | string | null
+    cancelRequestedBy?: string | null
+    pausedAt?: Date | string | null
+    pausedBy?: string | null
+    lastErrorCode?: string | null
+    lastErrorMessage?: string | null
+    completedAt?: Date | string | null
+    revision?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    recipients?: MarketingBroadcastRecipientCreateNestedManyWithoutDispatchInput
+  }
+
+  export type MarketingBroadcastDispatchUncheckedCreateWithoutCampaignInput = {
+    id?: string
+    organizationId: string
+    approvalSnapshotId: string
+    status?: $Enums.MarketingBroadcastStatus
+    scheduledFor: Date | string
+    timeZone: string
+    localSendTime?: string | null
+    provider?: string
+    providerSegmentId?: string | null
+    providerBroadcastId?: string | null
+    providerStatus?: string | null
+    providerCreateAttemptAt?: Date | string | null
+    providerSendAttemptAt?: Date | string | null
+    providerSentAt?: Date | string | null
+    recipientCount?: number
+    excludedCount?: number
+    eligibilitySha256?: string | null
+    contentSha256: string
+    scheduledByAdminUserId: string
+    cancelRequestedAt?: Date | string | null
+    cancelRequestedBy?: string | null
+    pausedAt?: Date | string | null
+    pausedBy?: string | null
+    lastErrorCode?: string | null
+    lastErrorMessage?: string | null
+    completedAt?: Date | string | null
+    revision?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    recipients?: MarketingBroadcastRecipientUncheckedCreateNestedManyWithoutDispatchInput
+  }
+
+  export type MarketingBroadcastDispatchCreateOrConnectWithoutCampaignInput = {
+    where: MarketingBroadcastDispatchWhereUniqueInput
+    create: XOR<MarketingBroadcastDispatchCreateWithoutCampaignInput, MarketingBroadcastDispatchUncheckedCreateWithoutCampaignInput>
   }
 
   export type MailOrganizationUpsertWithoutMarketingCampaignsInput = {
@@ -358933,6 +375968,8 @@ export namespace Prisma {
     marketingContacts?: MarketingContactUpdateManyWithoutOrganizationNestedInput
     marketingAudiences?: MarketingAudienceUpdateManyWithoutOrganizationNestedInput
     marketingTemplates?: MarketingEmailTemplateUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MailOrganizationUncheckedUpdateWithoutMarketingCampaignsInput = {
@@ -358953,6 +375990,8 @@ export namespace Prisma {
     marketingContacts?: MarketingContactUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingAudiences?: MarketingAudienceUncheckedUpdateManyWithoutOrganizationNestedInput
     marketingTemplates?: MarketingEmailTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MarketingTemplateVersionUpsertWithoutCampaignsInput = {
@@ -359139,6 +376178,83 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"MarketingCampaignSnapshot"> | Date | string
   }
 
+  export type MarketingBroadcastDispatchUpsertWithoutCampaignInput = {
+    update: XOR<MarketingBroadcastDispatchUpdateWithoutCampaignInput, MarketingBroadcastDispatchUncheckedUpdateWithoutCampaignInput>
+    create: XOR<MarketingBroadcastDispatchCreateWithoutCampaignInput, MarketingBroadcastDispatchUncheckedCreateWithoutCampaignInput>
+    where?: MarketingBroadcastDispatchWhereInput
+  }
+
+  export type MarketingBroadcastDispatchUpdateToOneWithWhereWithoutCampaignInput = {
+    where?: MarketingBroadcastDispatchWhereInput
+    data: XOR<MarketingBroadcastDispatchUpdateWithoutCampaignInput, MarketingBroadcastDispatchUncheckedUpdateWithoutCampaignInput>
+  }
+
+  export type MarketingBroadcastDispatchUpdateWithoutCampaignInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    approvalSnapshotId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingBroadcastStatusFieldUpdateOperationsInput | $Enums.MarketingBroadcastStatus
+    scheduledFor?: DateTimeFieldUpdateOperationsInput | Date | string
+    timeZone?: StringFieldUpdateOperationsInput | string
+    localSendTime?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerSegmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerBroadcastId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    providerCreateAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    providerSendAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    providerSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    recipientCount?: IntFieldUpdateOperationsInput | number
+    excludedCount?: IntFieldUpdateOperationsInput | number
+    eligibilitySha256?: NullableStringFieldUpdateOperationsInput | string | null
+    contentSha256?: StringFieldUpdateOperationsInput | string
+    scheduledByAdminUserId?: StringFieldUpdateOperationsInput | string
+    cancelRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelRequestedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    pausedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revision?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    recipients?: MarketingBroadcastRecipientUpdateManyWithoutDispatchNestedInput
+  }
+
+  export type MarketingBroadcastDispatchUncheckedUpdateWithoutCampaignInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    approvalSnapshotId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingBroadcastStatusFieldUpdateOperationsInput | $Enums.MarketingBroadcastStatus
+    scheduledFor?: DateTimeFieldUpdateOperationsInput | Date | string
+    timeZone?: StringFieldUpdateOperationsInput | string
+    localSendTime?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerSegmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerBroadcastId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    providerCreateAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    providerSendAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    providerSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    recipientCount?: IntFieldUpdateOperationsInput | number
+    excludedCount?: IntFieldUpdateOperationsInput | number
+    eligibilitySha256?: NullableStringFieldUpdateOperationsInput | string | null
+    contentSha256?: StringFieldUpdateOperationsInput | string
+    scheduledByAdminUserId?: StringFieldUpdateOperationsInput | string
+    cancelRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelRequestedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    pausedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revision?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    recipients?: MarketingBroadcastRecipientUncheckedUpdateManyWithoutDispatchNestedInput
+  }
+
   export type MarketingEmailCampaignCreateWithoutSnapshotsInput = {
     id?: string
     name: string
@@ -359163,6 +376279,7 @@ export namespace Prisma {
     audience?: MarketingAudienceCreateNestedOneWithoutCampaignsInput
     segment?: MarketingSegmentCreateNestedOneWithoutCampaignsInput
     approvals?: MarketingCampaignApprovalCreateNestedManyWithoutCampaignInput
+    dispatch?: MarketingBroadcastDispatchCreateNestedOneWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignUncheckedCreateWithoutSnapshotsInput = {
@@ -359189,6 +376306,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     approvals?: MarketingCampaignApprovalUncheckedCreateNestedManyWithoutCampaignInput
+    dispatch?: MarketingBroadcastDispatchUncheckedCreateNestedOneWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignCreateOrConnectWithoutSnapshotsInput = {
@@ -359228,6 +376346,26 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type MarketingCampaignApprovedContactCreateWithoutSnapshotInput = {
+    contactId: string
+    createdAt?: Date | string
+  }
+
+  export type MarketingCampaignApprovedContactUncheckedCreateWithoutSnapshotInput = {
+    contactId: string
+    createdAt?: Date | string
+  }
+
+  export type MarketingCampaignApprovedContactCreateOrConnectWithoutSnapshotInput = {
+    where: MarketingCampaignApprovedContactWhereUniqueInput
+    create: XOR<MarketingCampaignApprovedContactCreateWithoutSnapshotInput, MarketingCampaignApprovedContactUncheckedCreateWithoutSnapshotInput>
+  }
+
+  export type MarketingCampaignApprovedContactCreateManySnapshotInputEnvelope = {
+    data: MarketingCampaignApprovedContactCreateManySnapshotInput | MarketingCampaignApprovedContactCreateManySnapshotInput[]
+    skipDuplicates?: boolean
+  }
+
   export type MarketingEmailCampaignUpsertWithoutSnapshotsInput = {
     update: XOR<MarketingEmailCampaignUpdateWithoutSnapshotsInput, MarketingEmailCampaignUncheckedUpdateWithoutSnapshotsInput>
     create: XOR<MarketingEmailCampaignCreateWithoutSnapshotsInput, MarketingEmailCampaignUncheckedCreateWithoutSnapshotsInput>
@@ -359263,6 +376401,7 @@ export namespace Prisma {
     audience?: MarketingAudienceUpdateOneWithoutCampaignsNestedInput
     segment?: MarketingSegmentUpdateOneWithoutCampaignsNestedInput
     approvals?: MarketingCampaignApprovalUpdateManyWithoutCampaignNestedInput
+    dispatch?: MarketingBroadcastDispatchUpdateOneWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateWithoutSnapshotsInput = {
@@ -359289,6 +376428,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     approvals?: MarketingCampaignApprovalUncheckedUpdateManyWithoutCampaignNestedInput
+    dispatch?: MarketingBroadcastDispatchUncheckedUpdateOneWithoutCampaignNestedInput
   }
 
   export type MarketingCampaignApprovalUpsertWithWhereUniqueWithoutSnapshotInput = {
@@ -359305,6 +376445,31 @@ export namespace Prisma {
   export type MarketingCampaignApprovalUpdateManyWithWhereWithoutSnapshotInput = {
     where: MarketingCampaignApprovalScalarWhereInput
     data: XOR<MarketingCampaignApprovalUpdateManyMutationInput, MarketingCampaignApprovalUncheckedUpdateManyWithoutSnapshotInput>
+  }
+
+  export type MarketingCampaignApprovedContactUpsertWithWhereUniqueWithoutSnapshotInput = {
+    where: MarketingCampaignApprovedContactWhereUniqueInput
+    update: XOR<MarketingCampaignApprovedContactUpdateWithoutSnapshotInput, MarketingCampaignApprovedContactUncheckedUpdateWithoutSnapshotInput>
+    create: XOR<MarketingCampaignApprovedContactCreateWithoutSnapshotInput, MarketingCampaignApprovedContactUncheckedCreateWithoutSnapshotInput>
+  }
+
+  export type MarketingCampaignApprovedContactUpdateWithWhereUniqueWithoutSnapshotInput = {
+    where: MarketingCampaignApprovedContactWhereUniqueInput
+    data: XOR<MarketingCampaignApprovedContactUpdateWithoutSnapshotInput, MarketingCampaignApprovedContactUncheckedUpdateWithoutSnapshotInput>
+  }
+
+  export type MarketingCampaignApprovedContactUpdateManyWithWhereWithoutSnapshotInput = {
+    where: MarketingCampaignApprovedContactScalarWhereInput
+    data: XOR<MarketingCampaignApprovedContactUpdateManyMutationInput, MarketingCampaignApprovedContactUncheckedUpdateManyWithoutSnapshotInput>
+  }
+
+  export type MarketingCampaignApprovedContactScalarWhereInput = {
+    AND?: MarketingCampaignApprovedContactScalarWhereInput | MarketingCampaignApprovedContactScalarWhereInput[]
+    OR?: MarketingCampaignApprovedContactScalarWhereInput[]
+    NOT?: MarketingCampaignApprovedContactScalarWhereInput | MarketingCampaignApprovedContactScalarWhereInput[]
+    snapshotId?: UuidFilter<"MarketingCampaignApprovedContact"> | string
+    contactId?: UuidFilter<"MarketingCampaignApprovedContact"> | string
+    createdAt?: DateTimeFilter<"MarketingCampaignApprovedContact"> | Date | string
   }
 
   export type MarketingEmailCampaignCreateWithoutApprovalsInput = {
@@ -359331,6 +376496,7 @@ export namespace Prisma {
     audience?: MarketingAudienceCreateNestedOneWithoutCampaignsInput
     segment?: MarketingSegmentCreateNestedOneWithoutCampaignsInput
     snapshots?: MarketingCampaignSnapshotCreateNestedManyWithoutCampaignInput
+    dispatch?: MarketingBroadcastDispatchCreateNestedOneWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignUncheckedCreateWithoutApprovalsInput = {
@@ -359357,6 +376523,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     snapshots?: MarketingCampaignSnapshotUncheckedCreateNestedManyWithoutCampaignInput
+    dispatch?: MarketingBroadcastDispatchUncheckedCreateNestedOneWithoutCampaignInput
   }
 
   export type MarketingEmailCampaignCreateOrConnectWithoutApprovalsInput = {
@@ -359381,6 +376548,7 @@ export namespace Prisma {
     createdBy: string
     createdAt?: Date | string
     campaign: MarketingEmailCampaignCreateNestedOneWithoutSnapshotsInput
+    approvedContacts?: MarketingCampaignApprovedContactCreateNestedManyWithoutSnapshotInput
   }
 
   export type MarketingCampaignSnapshotUncheckedCreateWithoutApprovalsInput = {
@@ -359400,6 +376568,7 @@ export namespace Prisma {
     contentSha256: string
     createdBy: string
     createdAt?: Date | string
+    approvedContacts?: MarketingCampaignApprovedContactUncheckedCreateNestedManyWithoutSnapshotInput
   }
 
   export type MarketingCampaignSnapshotCreateOrConnectWithoutApprovalsInput = {
@@ -359442,6 +376611,7 @@ export namespace Prisma {
     audience?: MarketingAudienceUpdateOneWithoutCampaignsNestedInput
     segment?: MarketingSegmentUpdateOneWithoutCampaignsNestedInput
     snapshots?: MarketingCampaignSnapshotUpdateManyWithoutCampaignNestedInput
+    dispatch?: MarketingBroadcastDispatchUpdateOneWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateWithoutApprovalsInput = {
@@ -359468,6 +376638,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     snapshots?: MarketingCampaignSnapshotUncheckedUpdateManyWithoutCampaignNestedInput
+    dispatch?: MarketingBroadcastDispatchUncheckedUpdateOneWithoutCampaignNestedInput
   }
 
   export type MarketingCampaignSnapshotUpsertWithoutApprovalsInput = {
@@ -359498,6 +376669,7 @@ export namespace Prisma {
     createdBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     campaign?: MarketingEmailCampaignUpdateOneRequiredWithoutSnapshotsNestedInput
+    approvedContacts?: MarketingCampaignApprovedContactUpdateManyWithoutSnapshotNestedInput
   }
 
   export type MarketingCampaignSnapshotUncheckedUpdateWithoutApprovalsInput = {
@@ -359517,6 +376689,1500 @@ export namespace Prisma {
     contentSha256?: StringFieldUpdateOperationsInput | string
     createdBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    approvedContacts?: MarketingCampaignApprovedContactUncheckedUpdateManyWithoutSnapshotNestedInput
+  }
+
+  export type MailOrganizationCreateWithoutMarketingBrandSettingsInput = {
+    id?: string
+    slug: string
+    name: string
+    kind?: $Enums.MailOrganizationKind
+    status?: $Enums.MailRecordStatus
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    domains?: MailDomainCreateNestedManyWithoutOrganizationInput
+    addresses?: MailAddressCreateNestedManyWithoutOrganizationInput
+    mailboxes?: MailMailboxCreateNestedManyWithoutOrganizationInput
+    provisionRequests?: MailProvisionRequestCreateNestedManyWithoutOrganizationInput
+    retentionPolicies?: MailRetentionPolicyCreateNestedManyWithoutOrganizationInput
+    legalHolds?: MailLegalHoldCreateNestedManyWithoutOrganizationInput
+    marketingContacts?: MarketingContactCreateNestedManyWithoutOrganizationInput
+    marketingAudiences?: MarketingAudienceCreateNestedManyWithoutOrganizationInput
+    marketingTemplates?: MarketingEmailTemplateCreateNestedManyWithoutOrganizationInput
+    marketingCampaigns?: MarketingEmailCampaignCreateNestedManyWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type MailOrganizationUncheckedCreateWithoutMarketingBrandSettingsInput = {
+    id?: string
+    slug: string
+    name: string
+    kind?: $Enums.MailOrganizationKind
+    status?: $Enums.MailRecordStatus
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    domains?: MailDomainUncheckedCreateNestedManyWithoutOrganizationInput
+    addresses?: MailAddressUncheckedCreateNestedManyWithoutOrganizationInput
+    mailboxes?: MailMailboxUncheckedCreateNestedManyWithoutOrganizationInput
+    provisionRequests?: MailProvisionRequestUncheckedCreateNestedManyWithoutOrganizationInput
+    retentionPolicies?: MailRetentionPolicyUncheckedCreateNestedManyWithoutOrganizationInput
+    legalHolds?: MailLegalHoldUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingContacts?: MarketingContactUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingAudiences?: MarketingAudienceUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingTemplates?: MarketingEmailTemplateUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingCampaigns?: MarketingEmailCampaignUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingAutomations?: MarketingAutomationUncheckedCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type MailOrganizationCreateOrConnectWithoutMarketingBrandSettingsInput = {
+    where: MailOrganizationWhereUniqueInput
+    create: XOR<MailOrganizationCreateWithoutMarketingBrandSettingsInput, MailOrganizationUncheckedCreateWithoutMarketingBrandSettingsInput>
+  }
+
+  export type MailOrganizationUpsertWithoutMarketingBrandSettingsInput = {
+    update: XOR<MailOrganizationUpdateWithoutMarketingBrandSettingsInput, MailOrganizationUncheckedUpdateWithoutMarketingBrandSettingsInput>
+    create: XOR<MailOrganizationCreateWithoutMarketingBrandSettingsInput, MailOrganizationUncheckedCreateWithoutMarketingBrandSettingsInput>
+    where?: MailOrganizationWhereInput
+  }
+
+  export type MailOrganizationUpdateToOneWithWhereWithoutMarketingBrandSettingsInput = {
+    where?: MailOrganizationWhereInput
+    data: XOR<MailOrganizationUpdateWithoutMarketingBrandSettingsInput, MailOrganizationUncheckedUpdateWithoutMarketingBrandSettingsInput>
+  }
+
+  export type MailOrganizationUpdateWithoutMarketingBrandSettingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumMailOrganizationKindFieldUpdateOperationsInput | $Enums.MailOrganizationKind
+    status?: EnumMailRecordStatusFieldUpdateOperationsInput | $Enums.MailRecordStatus
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    domains?: MailDomainUpdateManyWithoutOrganizationNestedInput
+    addresses?: MailAddressUpdateManyWithoutOrganizationNestedInput
+    mailboxes?: MailMailboxUpdateManyWithoutOrganizationNestedInput
+    provisionRequests?: MailProvisionRequestUpdateManyWithoutOrganizationNestedInput
+    retentionPolicies?: MailRetentionPolicyUpdateManyWithoutOrganizationNestedInput
+    legalHolds?: MailLegalHoldUpdateManyWithoutOrganizationNestedInput
+    marketingContacts?: MarketingContactUpdateManyWithoutOrganizationNestedInput
+    marketingAudiences?: MarketingAudienceUpdateManyWithoutOrganizationNestedInput
+    marketingTemplates?: MarketingEmailTemplateUpdateManyWithoutOrganizationNestedInput
+    marketingCampaigns?: MarketingEmailCampaignUpdateManyWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type MailOrganizationUncheckedUpdateWithoutMarketingBrandSettingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumMailOrganizationKindFieldUpdateOperationsInput | $Enums.MailOrganizationKind
+    status?: EnumMailRecordStatusFieldUpdateOperationsInput | $Enums.MailRecordStatus
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    domains?: MailDomainUncheckedUpdateManyWithoutOrganizationNestedInput
+    addresses?: MailAddressUncheckedUpdateManyWithoutOrganizationNestedInput
+    mailboxes?: MailMailboxUncheckedUpdateManyWithoutOrganizationNestedInput
+    provisionRequests?: MailProvisionRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+    retentionPolicies?: MailRetentionPolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+    legalHolds?: MailLegalHoldUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingContacts?: MarketingContactUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingAudiences?: MarketingAudienceUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingTemplates?: MarketingEmailTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingCampaigns?: MarketingEmailCampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingAutomations?: MarketingAutomationUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type MarketingCampaignSnapshotCreateWithoutApprovedContactsInput = {
+    id?: string
+    revision: number
+    kind: $Enums.MarketingCampaignSnapshotKind
+    templateVersionId: string
+    senderAddress: string
+    replyTo?: string | null
+    subject: string
+    html: string
+    text: string
+    audienceSnapshot: JsonNullValueInput | InputJsonValue
+    eligibleCount: number
+    excludedCount: number
+    contentSha256: string
+    createdBy: string
+    createdAt?: Date | string
+    campaign: MarketingEmailCampaignCreateNestedOneWithoutSnapshotsInput
+    approvals?: MarketingCampaignApprovalCreateNestedManyWithoutSnapshotInput
+  }
+
+  export type MarketingCampaignSnapshotUncheckedCreateWithoutApprovedContactsInput = {
+    id?: string
+    campaignId: string
+    revision: number
+    kind: $Enums.MarketingCampaignSnapshotKind
+    templateVersionId: string
+    senderAddress: string
+    replyTo?: string | null
+    subject: string
+    html: string
+    text: string
+    audienceSnapshot: JsonNullValueInput | InputJsonValue
+    eligibleCount: number
+    excludedCount: number
+    contentSha256: string
+    createdBy: string
+    createdAt?: Date | string
+    approvals?: MarketingCampaignApprovalUncheckedCreateNestedManyWithoutSnapshotInput
+  }
+
+  export type MarketingCampaignSnapshotCreateOrConnectWithoutApprovedContactsInput = {
+    where: MarketingCampaignSnapshotWhereUniqueInput
+    create: XOR<MarketingCampaignSnapshotCreateWithoutApprovedContactsInput, MarketingCampaignSnapshotUncheckedCreateWithoutApprovedContactsInput>
+  }
+
+  export type MarketingCampaignSnapshotUpsertWithoutApprovedContactsInput = {
+    update: XOR<MarketingCampaignSnapshotUpdateWithoutApprovedContactsInput, MarketingCampaignSnapshotUncheckedUpdateWithoutApprovedContactsInput>
+    create: XOR<MarketingCampaignSnapshotCreateWithoutApprovedContactsInput, MarketingCampaignSnapshotUncheckedCreateWithoutApprovedContactsInput>
+    where?: MarketingCampaignSnapshotWhereInput
+  }
+
+  export type MarketingCampaignSnapshotUpdateToOneWithWhereWithoutApprovedContactsInput = {
+    where?: MarketingCampaignSnapshotWhereInput
+    data: XOR<MarketingCampaignSnapshotUpdateWithoutApprovedContactsInput, MarketingCampaignSnapshotUncheckedUpdateWithoutApprovedContactsInput>
+  }
+
+  export type MarketingCampaignSnapshotUpdateWithoutApprovedContactsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+    kind?: EnumMarketingCampaignSnapshotKindFieldUpdateOperationsInput | $Enums.MarketingCampaignSnapshotKind
+    templateVersionId?: StringFieldUpdateOperationsInput | string
+    senderAddress?: StringFieldUpdateOperationsInput | string
+    replyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    subject?: StringFieldUpdateOperationsInput | string
+    html?: StringFieldUpdateOperationsInput | string
+    text?: StringFieldUpdateOperationsInput | string
+    audienceSnapshot?: JsonNullValueInput | InputJsonValue
+    eligibleCount?: IntFieldUpdateOperationsInput | number
+    excludedCount?: IntFieldUpdateOperationsInput | number
+    contentSha256?: StringFieldUpdateOperationsInput | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    campaign?: MarketingEmailCampaignUpdateOneRequiredWithoutSnapshotsNestedInput
+    approvals?: MarketingCampaignApprovalUpdateManyWithoutSnapshotNestedInput
+  }
+
+  export type MarketingCampaignSnapshotUncheckedUpdateWithoutApprovedContactsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    campaignId?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+    kind?: EnumMarketingCampaignSnapshotKindFieldUpdateOperationsInput | $Enums.MarketingCampaignSnapshotKind
+    templateVersionId?: StringFieldUpdateOperationsInput | string
+    senderAddress?: StringFieldUpdateOperationsInput | string
+    replyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    subject?: StringFieldUpdateOperationsInput | string
+    html?: StringFieldUpdateOperationsInput | string
+    text?: StringFieldUpdateOperationsInput | string
+    audienceSnapshot?: JsonNullValueInput | InputJsonValue
+    eligibleCount?: IntFieldUpdateOperationsInput | number
+    excludedCount?: IntFieldUpdateOperationsInput | number
+    contentSha256?: StringFieldUpdateOperationsInput | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    approvals?: MarketingCampaignApprovalUncheckedUpdateManyWithoutSnapshotNestedInput
+  }
+
+  export type MarketingEmailCampaignCreateWithoutDispatchInput = {
+    id?: string
+    name: string
+    status?: $Enums.MarketingEmailCampaignStatus
+    topic: string
+    senderAddressId?: string | null
+    replyTo?: string | null
+    subjectOverride?: string | null
+    frequencyCapHours?: number
+    legacyCampaignId?: string | null
+    revision?: number
+    createdByAdminUserId: string
+    updatedByAdminUserId: string
+    submittedAt?: Date | string | null
+    submittedByAdminUserId?: string | null
+    approvedAt?: Date | string | null
+    approvedByAdminUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: MailOrganizationCreateNestedOneWithoutMarketingCampaignsInput
+    templateVersion?: MarketingTemplateVersionCreateNestedOneWithoutCampaignsInput
+    audience?: MarketingAudienceCreateNestedOneWithoutCampaignsInput
+    segment?: MarketingSegmentCreateNestedOneWithoutCampaignsInput
+    approvals?: MarketingCampaignApprovalCreateNestedManyWithoutCampaignInput
+    snapshots?: MarketingCampaignSnapshotCreateNestedManyWithoutCampaignInput
+  }
+
+  export type MarketingEmailCampaignUncheckedCreateWithoutDispatchInput = {
+    id?: string
+    organizationId: string
+    name: string
+    status?: $Enums.MarketingEmailCampaignStatus
+    topic: string
+    senderAddressId?: string | null
+    replyTo?: string | null
+    subjectOverride?: string | null
+    templateVersionId?: string | null
+    audienceId?: string | null
+    segmentId?: string | null
+    frequencyCapHours?: number
+    legacyCampaignId?: string | null
+    revision?: number
+    createdByAdminUserId: string
+    updatedByAdminUserId: string
+    submittedAt?: Date | string | null
+    submittedByAdminUserId?: string | null
+    approvedAt?: Date | string | null
+    approvedByAdminUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    approvals?: MarketingCampaignApprovalUncheckedCreateNestedManyWithoutCampaignInput
+    snapshots?: MarketingCampaignSnapshotUncheckedCreateNestedManyWithoutCampaignInput
+  }
+
+  export type MarketingEmailCampaignCreateOrConnectWithoutDispatchInput = {
+    where: MarketingEmailCampaignWhereUniqueInput
+    create: XOR<MarketingEmailCampaignCreateWithoutDispatchInput, MarketingEmailCampaignUncheckedCreateWithoutDispatchInput>
+  }
+
+  export type MarketingBroadcastRecipientCreateWithoutDispatchInput = {
+    id?: string
+    organizationId: string
+    email: string
+    status?: $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: string | null
+    providerContactId?: string | null
+    providerEmailId?: string | null
+    syncedAt?: Date | string | null
+    acceptedAt?: Date | string | null
+    lastEventType?: string | null
+    lastEventAt?: Date | string | null
+    openedAt?: Date | string | null
+    clickedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    contact: MarketingContactCreateNestedOneWithoutBroadcastRecipientsInput
+  }
+
+  export type MarketingBroadcastRecipientUncheckedCreateWithoutDispatchInput = {
+    id?: string
+    organizationId: string
+    contactId: string
+    email: string
+    status?: $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: string | null
+    providerContactId?: string | null
+    providerEmailId?: string | null
+    syncedAt?: Date | string | null
+    acceptedAt?: Date | string | null
+    lastEventType?: string | null
+    lastEventAt?: Date | string | null
+    openedAt?: Date | string | null
+    clickedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingBroadcastRecipientCreateOrConnectWithoutDispatchInput = {
+    where: MarketingBroadcastRecipientWhereUniqueInput
+    create: XOR<MarketingBroadcastRecipientCreateWithoutDispatchInput, MarketingBroadcastRecipientUncheckedCreateWithoutDispatchInput>
+  }
+
+  export type MarketingBroadcastRecipientCreateManyDispatchInputEnvelope = {
+    data: MarketingBroadcastRecipientCreateManyDispatchInput | MarketingBroadcastRecipientCreateManyDispatchInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MarketingEmailCampaignUpsertWithoutDispatchInput = {
+    update: XOR<MarketingEmailCampaignUpdateWithoutDispatchInput, MarketingEmailCampaignUncheckedUpdateWithoutDispatchInput>
+    create: XOR<MarketingEmailCampaignCreateWithoutDispatchInput, MarketingEmailCampaignUncheckedCreateWithoutDispatchInput>
+    where?: MarketingEmailCampaignWhereInput
+  }
+
+  export type MarketingEmailCampaignUpdateToOneWithWhereWithoutDispatchInput = {
+    where?: MarketingEmailCampaignWhereInput
+    data: XOR<MarketingEmailCampaignUpdateWithoutDispatchInput, MarketingEmailCampaignUncheckedUpdateWithoutDispatchInput>
+  }
+
+  export type MarketingEmailCampaignUpdateWithoutDispatchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingEmailCampaignStatusFieldUpdateOperationsInput | $Enums.MarketingEmailCampaignStatus
+    topic?: StringFieldUpdateOperationsInput | string
+    senderAddressId?: NullableStringFieldUpdateOperationsInput | string | null
+    replyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    subjectOverride?: NullableStringFieldUpdateOperationsInput | string | null
+    frequencyCapHours?: IntFieldUpdateOperationsInput | number
+    legacyCampaignId?: NullableStringFieldUpdateOperationsInput | string | null
+    revision?: IntFieldUpdateOperationsInput | number
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    updatedByAdminUserId?: StringFieldUpdateOperationsInput | string
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    submittedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: MailOrganizationUpdateOneRequiredWithoutMarketingCampaignsNestedInput
+    templateVersion?: MarketingTemplateVersionUpdateOneWithoutCampaignsNestedInput
+    audience?: MarketingAudienceUpdateOneWithoutCampaignsNestedInput
+    segment?: MarketingSegmentUpdateOneWithoutCampaignsNestedInput
+    approvals?: MarketingCampaignApprovalUpdateManyWithoutCampaignNestedInput
+    snapshots?: MarketingCampaignSnapshotUpdateManyWithoutCampaignNestedInput
+  }
+
+  export type MarketingEmailCampaignUncheckedUpdateWithoutDispatchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingEmailCampaignStatusFieldUpdateOperationsInput | $Enums.MarketingEmailCampaignStatus
+    topic?: StringFieldUpdateOperationsInput | string
+    senderAddressId?: NullableStringFieldUpdateOperationsInput | string | null
+    replyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    subjectOverride?: NullableStringFieldUpdateOperationsInput | string | null
+    templateVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    audienceId?: NullableStringFieldUpdateOperationsInput | string | null
+    segmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    frequencyCapHours?: IntFieldUpdateOperationsInput | number
+    legacyCampaignId?: NullableStringFieldUpdateOperationsInput | string | null
+    revision?: IntFieldUpdateOperationsInput | number
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    updatedByAdminUserId?: StringFieldUpdateOperationsInput | string
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    submittedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    approvals?: MarketingCampaignApprovalUncheckedUpdateManyWithoutCampaignNestedInput
+    snapshots?: MarketingCampaignSnapshotUncheckedUpdateManyWithoutCampaignNestedInput
+  }
+
+  export type MarketingBroadcastRecipientUpsertWithWhereUniqueWithoutDispatchInput = {
+    where: MarketingBroadcastRecipientWhereUniqueInput
+    update: XOR<MarketingBroadcastRecipientUpdateWithoutDispatchInput, MarketingBroadcastRecipientUncheckedUpdateWithoutDispatchInput>
+    create: XOR<MarketingBroadcastRecipientCreateWithoutDispatchInput, MarketingBroadcastRecipientUncheckedCreateWithoutDispatchInput>
+  }
+
+  export type MarketingBroadcastRecipientUpdateWithWhereUniqueWithoutDispatchInput = {
+    where: MarketingBroadcastRecipientWhereUniqueInput
+    data: XOR<MarketingBroadcastRecipientUpdateWithoutDispatchInput, MarketingBroadcastRecipientUncheckedUpdateWithoutDispatchInput>
+  }
+
+  export type MarketingBroadcastRecipientUpdateManyWithWhereWithoutDispatchInput = {
+    where: MarketingBroadcastRecipientScalarWhereInput
+    data: XOR<MarketingBroadcastRecipientUpdateManyMutationInput, MarketingBroadcastRecipientUncheckedUpdateManyWithoutDispatchInput>
+  }
+
+  export type MarketingBroadcastDispatchCreateWithoutRecipientsInput = {
+    id?: string
+    organizationId: string
+    approvalSnapshotId: string
+    status?: $Enums.MarketingBroadcastStatus
+    scheduledFor: Date | string
+    timeZone: string
+    localSendTime?: string | null
+    provider?: string
+    providerSegmentId?: string | null
+    providerBroadcastId?: string | null
+    providerStatus?: string | null
+    providerCreateAttemptAt?: Date | string | null
+    providerSendAttemptAt?: Date | string | null
+    providerSentAt?: Date | string | null
+    recipientCount?: number
+    excludedCount?: number
+    eligibilitySha256?: string | null
+    contentSha256: string
+    scheduledByAdminUserId: string
+    cancelRequestedAt?: Date | string | null
+    cancelRequestedBy?: string | null
+    pausedAt?: Date | string | null
+    pausedBy?: string | null
+    lastErrorCode?: string | null
+    lastErrorMessage?: string | null
+    completedAt?: Date | string | null
+    revision?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    campaign: MarketingEmailCampaignCreateNestedOneWithoutDispatchInput
+  }
+
+  export type MarketingBroadcastDispatchUncheckedCreateWithoutRecipientsInput = {
+    id?: string
+    campaignId: string
+    organizationId: string
+    approvalSnapshotId: string
+    status?: $Enums.MarketingBroadcastStatus
+    scheduledFor: Date | string
+    timeZone: string
+    localSendTime?: string | null
+    provider?: string
+    providerSegmentId?: string | null
+    providerBroadcastId?: string | null
+    providerStatus?: string | null
+    providerCreateAttemptAt?: Date | string | null
+    providerSendAttemptAt?: Date | string | null
+    providerSentAt?: Date | string | null
+    recipientCount?: number
+    excludedCount?: number
+    eligibilitySha256?: string | null
+    contentSha256: string
+    scheduledByAdminUserId: string
+    cancelRequestedAt?: Date | string | null
+    cancelRequestedBy?: string | null
+    pausedAt?: Date | string | null
+    pausedBy?: string | null
+    lastErrorCode?: string | null
+    lastErrorMessage?: string | null
+    completedAt?: Date | string | null
+    revision?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingBroadcastDispatchCreateOrConnectWithoutRecipientsInput = {
+    where: MarketingBroadcastDispatchWhereUniqueInput
+    create: XOR<MarketingBroadcastDispatchCreateWithoutRecipientsInput, MarketingBroadcastDispatchUncheckedCreateWithoutRecipientsInput>
+  }
+
+  export type MarketingContactCreateWithoutBroadcastRecipientsInput = {
+    id?: string
+    email: string
+    firstName?: string | null
+    lastName?: string | null
+    attributes?: NullableJsonNullValueInput | InputJsonValue
+    status?: $Enums.MarketingContactStatus
+    source: string
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: MailOrganizationCreateNestedOneWithoutMarketingContactsInput
+    consents?: MarketingConsentCreateNestedManyWithoutContactInput
+    audiences?: MarketingAudienceContactCreateNestedManyWithoutContactInput
+    automationEnrollments?: MarketingAutomationEnrollmentCreateNestedManyWithoutContactInput
+  }
+
+  export type MarketingContactUncheckedCreateWithoutBroadcastRecipientsInput = {
+    id?: string
+    organizationId: string
+    email: string
+    firstName?: string | null
+    lastName?: string | null
+    attributes?: NullableJsonNullValueInput | InputJsonValue
+    status?: $Enums.MarketingContactStatus
+    source: string
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    consents?: MarketingConsentUncheckedCreateNestedManyWithoutContactInput
+    audiences?: MarketingAudienceContactUncheckedCreateNestedManyWithoutContactInput
+    automationEnrollments?: MarketingAutomationEnrollmentUncheckedCreateNestedManyWithoutContactInput
+  }
+
+  export type MarketingContactCreateOrConnectWithoutBroadcastRecipientsInput = {
+    where: MarketingContactWhereUniqueInput
+    create: XOR<MarketingContactCreateWithoutBroadcastRecipientsInput, MarketingContactUncheckedCreateWithoutBroadcastRecipientsInput>
+  }
+
+  export type MarketingBroadcastDispatchUpsertWithoutRecipientsInput = {
+    update: XOR<MarketingBroadcastDispatchUpdateWithoutRecipientsInput, MarketingBroadcastDispatchUncheckedUpdateWithoutRecipientsInput>
+    create: XOR<MarketingBroadcastDispatchCreateWithoutRecipientsInput, MarketingBroadcastDispatchUncheckedCreateWithoutRecipientsInput>
+    where?: MarketingBroadcastDispatchWhereInput
+  }
+
+  export type MarketingBroadcastDispatchUpdateToOneWithWhereWithoutRecipientsInput = {
+    where?: MarketingBroadcastDispatchWhereInput
+    data: XOR<MarketingBroadcastDispatchUpdateWithoutRecipientsInput, MarketingBroadcastDispatchUncheckedUpdateWithoutRecipientsInput>
+  }
+
+  export type MarketingBroadcastDispatchUpdateWithoutRecipientsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    approvalSnapshotId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingBroadcastStatusFieldUpdateOperationsInput | $Enums.MarketingBroadcastStatus
+    scheduledFor?: DateTimeFieldUpdateOperationsInput | Date | string
+    timeZone?: StringFieldUpdateOperationsInput | string
+    localSendTime?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerSegmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerBroadcastId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    providerCreateAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    providerSendAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    providerSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    recipientCount?: IntFieldUpdateOperationsInput | number
+    excludedCount?: IntFieldUpdateOperationsInput | number
+    eligibilitySha256?: NullableStringFieldUpdateOperationsInput | string | null
+    contentSha256?: StringFieldUpdateOperationsInput | string
+    scheduledByAdminUserId?: StringFieldUpdateOperationsInput | string
+    cancelRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelRequestedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    pausedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revision?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    campaign?: MarketingEmailCampaignUpdateOneRequiredWithoutDispatchNestedInput
+  }
+
+  export type MarketingBroadcastDispatchUncheckedUpdateWithoutRecipientsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    campaignId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    approvalSnapshotId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingBroadcastStatusFieldUpdateOperationsInput | $Enums.MarketingBroadcastStatus
+    scheduledFor?: DateTimeFieldUpdateOperationsInput | Date | string
+    timeZone?: StringFieldUpdateOperationsInput | string
+    localSendTime?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerSegmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerBroadcastId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    providerCreateAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    providerSendAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    providerSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    recipientCount?: IntFieldUpdateOperationsInput | number
+    excludedCount?: IntFieldUpdateOperationsInput | number
+    eligibilitySha256?: NullableStringFieldUpdateOperationsInput | string | null
+    contentSha256?: StringFieldUpdateOperationsInput | string
+    scheduledByAdminUserId?: StringFieldUpdateOperationsInput | string
+    cancelRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelRequestedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    pausedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revision?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingContactUpsertWithoutBroadcastRecipientsInput = {
+    update: XOR<MarketingContactUpdateWithoutBroadcastRecipientsInput, MarketingContactUncheckedUpdateWithoutBroadcastRecipientsInput>
+    create: XOR<MarketingContactCreateWithoutBroadcastRecipientsInput, MarketingContactUncheckedCreateWithoutBroadcastRecipientsInput>
+    where?: MarketingContactWhereInput
+  }
+
+  export type MarketingContactUpdateToOneWithWhereWithoutBroadcastRecipientsInput = {
+    where?: MarketingContactWhereInput
+    data: XOR<MarketingContactUpdateWithoutBroadcastRecipientsInput, MarketingContactUncheckedUpdateWithoutBroadcastRecipientsInput>
+  }
+
+  export type MarketingContactUpdateWithoutBroadcastRecipientsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
+    attributes?: NullableJsonNullValueInput | InputJsonValue
+    status?: EnumMarketingContactStatusFieldUpdateOperationsInput | $Enums.MarketingContactStatus
+    source?: StringFieldUpdateOperationsInput | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: MailOrganizationUpdateOneRequiredWithoutMarketingContactsNestedInput
+    consents?: MarketingConsentUpdateManyWithoutContactNestedInput
+    audiences?: MarketingAudienceContactUpdateManyWithoutContactNestedInput
+    automationEnrollments?: MarketingAutomationEnrollmentUpdateManyWithoutContactNestedInput
+  }
+
+  export type MarketingContactUncheckedUpdateWithoutBroadcastRecipientsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
+    attributes?: NullableJsonNullValueInput | InputJsonValue
+    status?: EnumMarketingContactStatusFieldUpdateOperationsInput | $Enums.MarketingContactStatus
+    source?: StringFieldUpdateOperationsInput | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    consents?: MarketingConsentUncheckedUpdateManyWithoutContactNestedInput
+    audiences?: MarketingAudienceContactUncheckedUpdateManyWithoutContactNestedInput
+    automationEnrollments?: MarketingAutomationEnrollmentUncheckedUpdateManyWithoutContactNestedInput
+  }
+
+  export type MailOrganizationCreateWithoutMarketingAutomationsInput = {
+    id?: string
+    slug: string
+    name: string
+    kind?: $Enums.MailOrganizationKind
+    status?: $Enums.MailRecordStatus
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    domains?: MailDomainCreateNestedManyWithoutOrganizationInput
+    addresses?: MailAddressCreateNestedManyWithoutOrganizationInput
+    mailboxes?: MailMailboxCreateNestedManyWithoutOrganizationInput
+    provisionRequests?: MailProvisionRequestCreateNestedManyWithoutOrganizationInput
+    retentionPolicies?: MailRetentionPolicyCreateNestedManyWithoutOrganizationInput
+    legalHolds?: MailLegalHoldCreateNestedManyWithoutOrganizationInput
+    marketingContacts?: MarketingContactCreateNestedManyWithoutOrganizationInput
+    marketingAudiences?: MarketingAudienceCreateNestedManyWithoutOrganizationInput
+    marketingTemplates?: MarketingEmailTemplateCreateNestedManyWithoutOrganizationInput
+    marketingCampaigns?: MarketingEmailCampaignCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsCreateNestedOneWithoutOrganizationInput
+  }
+
+  export type MailOrganizationUncheckedCreateWithoutMarketingAutomationsInput = {
+    id?: string
+    slug: string
+    name: string
+    kind?: $Enums.MailOrganizationKind
+    status?: $Enums.MailRecordStatus
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    domains?: MailDomainUncheckedCreateNestedManyWithoutOrganizationInput
+    addresses?: MailAddressUncheckedCreateNestedManyWithoutOrganizationInput
+    mailboxes?: MailMailboxUncheckedCreateNestedManyWithoutOrganizationInput
+    provisionRequests?: MailProvisionRequestUncheckedCreateNestedManyWithoutOrganizationInput
+    retentionPolicies?: MailRetentionPolicyUncheckedCreateNestedManyWithoutOrganizationInput
+    legalHolds?: MailLegalHoldUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingContacts?: MarketingContactUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingAudiences?: MarketingAudienceUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingTemplates?: MarketingEmailTemplateUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingCampaigns?: MarketingEmailCampaignUncheckedCreateNestedManyWithoutOrganizationInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedCreateNestedOneWithoutOrganizationInput
+  }
+
+  export type MailOrganizationCreateOrConnectWithoutMarketingAutomationsInput = {
+    where: MailOrganizationWhereUniqueInput
+    create: XOR<MailOrganizationCreateWithoutMarketingAutomationsInput, MailOrganizationUncheckedCreateWithoutMarketingAutomationsInput>
+  }
+
+  export type MarketingAutomationVersionCreateWithoutAutomationInput = {
+    id?: string
+    version: number
+    status?: $Enums.MarketingAutomationVersionStatus
+    definition: JsonNullValueInput | InputJsonValue
+    triggerConfig: JsonNullValueInput | InputJsonValue
+    definitionSha256: string
+    createdByAdminUserId: string
+    submittedByAdminUserId?: string | null
+    submittedAt?: Date | string | null
+    reviewedByAdminUserId?: string | null
+    reviewedAt?: Date | string | null
+    reviewComment?: string | null
+    stepUpId?: string | null
+    publishedAt?: Date | string | null
+    createdAt?: Date | string
+    enrollments?: MarketingAutomationEnrollmentCreateNestedManyWithoutVersionInput
+  }
+
+  export type MarketingAutomationVersionUncheckedCreateWithoutAutomationInput = {
+    id?: string
+    version: number
+    status?: $Enums.MarketingAutomationVersionStatus
+    definition: JsonNullValueInput | InputJsonValue
+    triggerConfig: JsonNullValueInput | InputJsonValue
+    definitionSha256: string
+    createdByAdminUserId: string
+    submittedByAdminUserId?: string | null
+    submittedAt?: Date | string | null
+    reviewedByAdminUserId?: string | null
+    reviewedAt?: Date | string | null
+    reviewComment?: string | null
+    stepUpId?: string | null
+    publishedAt?: Date | string | null
+    createdAt?: Date | string
+    enrollments?: MarketingAutomationEnrollmentUncheckedCreateNestedManyWithoutVersionInput
+  }
+
+  export type MarketingAutomationVersionCreateOrConnectWithoutAutomationInput = {
+    where: MarketingAutomationVersionWhereUniqueInput
+    create: XOR<MarketingAutomationVersionCreateWithoutAutomationInput, MarketingAutomationVersionUncheckedCreateWithoutAutomationInput>
+  }
+
+  export type MarketingAutomationVersionCreateManyAutomationInputEnvelope = {
+    data: MarketingAutomationVersionCreateManyAutomationInput | MarketingAutomationVersionCreateManyAutomationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MarketingAutomationEnrollmentCreateWithoutAutomationInput = {
+    id?: string
+    organizationId: string
+    status?: $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey: string
+    triggerEventId?: string | null
+    currentStepId?: string | null
+    stepCount?: number
+    nextRunAt?: Date | string | null
+    exitReason?: string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    version: MarketingAutomationVersionCreateNestedOneWithoutEnrollmentsInput
+    contact: MarketingContactCreateNestedOneWithoutAutomationEnrollmentsInput
+    stepRuns?: MarketingAutomationStepRunCreateNestedManyWithoutEnrollmentInput
+  }
+
+  export type MarketingAutomationEnrollmentUncheckedCreateWithoutAutomationInput = {
+    id?: string
+    versionId: string
+    organizationId: string
+    contactId: string
+    status?: $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey: string
+    triggerEventId?: string | null
+    currentStepId?: string | null
+    stepCount?: number
+    nextRunAt?: Date | string | null
+    exitReason?: string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    stepRuns?: MarketingAutomationStepRunUncheckedCreateNestedManyWithoutEnrollmentInput
+  }
+
+  export type MarketingAutomationEnrollmentCreateOrConnectWithoutAutomationInput = {
+    where: MarketingAutomationEnrollmentWhereUniqueInput
+    create: XOR<MarketingAutomationEnrollmentCreateWithoutAutomationInput, MarketingAutomationEnrollmentUncheckedCreateWithoutAutomationInput>
+  }
+
+  export type MarketingAutomationEnrollmentCreateManyAutomationInputEnvelope = {
+    data: MarketingAutomationEnrollmentCreateManyAutomationInput | MarketingAutomationEnrollmentCreateManyAutomationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MailOrganizationUpsertWithoutMarketingAutomationsInput = {
+    update: XOR<MailOrganizationUpdateWithoutMarketingAutomationsInput, MailOrganizationUncheckedUpdateWithoutMarketingAutomationsInput>
+    create: XOR<MailOrganizationCreateWithoutMarketingAutomationsInput, MailOrganizationUncheckedCreateWithoutMarketingAutomationsInput>
+    where?: MailOrganizationWhereInput
+  }
+
+  export type MailOrganizationUpdateToOneWithWhereWithoutMarketingAutomationsInput = {
+    where?: MailOrganizationWhereInput
+    data: XOR<MailOrganizationUpdateWithoutMarketingAutomationsInput, MailOrganizationUncheckedUpdateWithoutMarketingAutomationsInput>
+  }
+
+  export type MailOrganizationUpdateWithoutMarketingAutomationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumMailOrganizationKindFieldUpdateOperationsInput | $Enums.MailOrganizationKind
+    status?: EnumMailRecordStatusFieldUpdateOperationsInput | $Enums.MailRecordStatus
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    domains?: MailDomainUpdateManyWithoutOrganizationNestedInput
+    addresses?: MailAddressUpdateManyWithoutOrganizationNestedInput
+    mailboxes?: MailMailboxUpdateManyWithoutOrganizationNestedInput
+    provisionRequests?: MailProvisionRequestUpdateManyWithoutOrganizationNestedInput
+    retentionPolicies?: MailRetentionPolicyUpdateManyWithoutOrganizationNestedInput
+    legalHolds?: MailLegalHoldUpdateManyWithoutOrganizationNestedInput
+    marketingContacts?: MarketingContactUpdateManyWithoutOrganizationNestedInput
+    marketingAudiences?: MarketingAudienceUpdateManyWithoutOrganizationNestedInput
+    marketingTemplates?: MarketingEmailTemplateUpdateManyWithoutOrganizationNestedInput
+    marketingCampaigns?: MarketingEmailCampaignUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUpdateOneWithoutOrganizationNestedInput
+  }
+
+  export type MailOrganizationUncheckedUpdateWithoutMarketingAutomationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumMailOrganizationKindFieldUpdateOperationsInput | $Enums.MailOrganizationKind
+    status?: EnumMailRecordStatusFieldUpdateOperationsInput | $Enums.MailRecordStatus
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    domains?: MailDomainUncheckedUpdateManyWithoutOrganizationNestedInput
+    addresses?: MailAddressUncheckedUpdateManyWithoutOrganizationNestedInput
+    mailboxes?: MailMailboxUncheckedUpdateManyWithoutOrganizationNestedInput
+    provisionRequests?: MailProvisionRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+    retentionPolicies?: MailRetentionPolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+    legalHolds?: MailLegalHoldUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingContacts?: MarketingContactUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingAudiences?: MarketingAudienceUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingTemplates?: MarketingEmailTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingCampaigns?: MarketingEmailCampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+    marketingBrandSettings?: MarketingBrandSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
+  }
+
+  export type MarketingAutomationVersionUpsertWithWhereUniqueWithoutAutomationInput = {
+    where: MarketingAutomationVersionWhereUniqueInput
+    update: XOR<MarketingAutomationVersionUpdateWithoutAutomationInput, MarketingAutomationVersionUncheckedUpdateWithoutAutomationInput>
+    create: XOR<MarketingAutomationVersionCreateWithoutAutomationInput, MarketingAutomationVersionUncheckedCreateWithoutAutomationInput>
+  }
+
+  export type MarketingAutomationVersionUpdateWithWhereUniqueWithoutAutomationInput = {
+    where: MarketingAutomationVersionWhereUniqueInput
+    data: XOR<MarketingAutomationVersionUpdateWithoutAutomationInput, MarketingAutomationVersionUncheckedUpdateWithoutAutomationInput>
+  }
+
+  export type MarketingAutomationVersionUpdateManyWithWhereWithoutAutomationInput = {
+    where: MarketingAutomationVersionScalarWhereInput
+    data: XOR<MarketingAutomationVersionUpdateManyMutationInput, MarketingAutomationVersionUncheckedUpdateManyWithoutAutomationInput>
+  }
+
+  export type MarketingAutomationVersionScalarWhereInput = {
+    AND?: MarketingAutomationVersionScalarWhereInput | MarketingAutomationVersionScalarWhereInput[]
+    OR?: MarketingAutomationVersionScalarWhereInput[]
+    NOT?: MarketingAutomationVersionScalarWhereInput | MarketingAutomationVersionScalarWhereInput[]
+    id?: UuidFilter<"MarketingAutomationVersion"> | string
+    automationId?: UuidFilter<"MarketingAutomationVersion"> | string
+    version?: IntFilter<"MarketingAutomationVersion"> | number
+    status?: EnumMarketingAutomationVersionStatusFilter<"MarketingAutomationVersion"> | $Enums.MarketingAutomationVersionStatus
+    definition?: JsonFilter<"MarketingAutomationVersion">
+    triggerConfig?: JsonFilter<"MarketingAutomationVersion">
+    definitionSha256?: StringFilter<"MarketingAutomationVersion"> | string
+    createdByAdminUserId?: StringFilter<"MarketingAutomationVersion"> | string
+    submittedByAdminUserId?: StringNullableFilter<"MarketingAutomationVersion"> | string | null
+    submittedAt?: DateTimeNullableFilter<"MarketingAutomationVersion"> | Date | string | null
+    reviewedByAdminUserId?: StringNullableFilter<"MarketingAutomationVersion"> | string | null
+    reviewedAt?: DateTimeNullableFilter<"MarketingAutomationVersion"> | Date | string | null
+    reviewComment?: StringNullableFilter<"MarketingAutomationVersion"> | string | null
+    stepUpId?: UuidNullableFilter<"MarketingAutomationVersion"> | string | null
+    publishedAt?: DateTimeNullableFilter<"MarketingAutomationVersion"> | Date | string | null
+    createdAt?: DateTimeFilter<"MarketingAutomationVersion"> | Date | string
+  }
+
+  export type MarketingAutomationEnrollmentUpsertWithWhereUniqueWithoutAutomationInput = {
+    where: MarketingAutomationEnrollmentWhereUniqueInput
+    update: XOR<MarketingAutomationEnrollmentUpdateWithoutAutomationInput, MarketingAutomationEnrollmentUncheckedUpdateWithoutAutomationInput>
+    create: XOR<MarketingAutomationEnrollmentCreateWithoutAutomationInput, MarketingAutomationEnrollmentUncheckedCreateWithoutAutomationInput>
+  }
+
+  export type MarketingAutomationEnrollmentUpdateWithWhereUniqueWithoutAutomationInput = {
+    where: MarketingAutomationEnrollmentWhereUniqueInput
+    data: XOR<MarketingAutomationEnrollmentUpdateWithoutAutomationInput, MarketingAutomationEnrollmentUncheckedUpdateWithoutAutomationInput>
+  }
+
+  export type MarketingAutomationEnrollmentUpdateManyWithWhereWithoutAutomationInput = {
+    where: MarketingAutomationEnrollmentScalarWhereInput
+    data: XOR<MarketingAutomationEnrollmentUpdateManyMutationInput, MarketingAutomationEnrollmentUncheckedUpdateManyWithoutAutomationInput>
+  }
+
+  export type MarketingAutomationCreateWithoutVersionsInput = {
+    id?: string
+    name: string
+    description?: string | null
+    status?: $Enums.MarketingAutomationStatus
+    triggerType: string
+    activeVersionId?: string | null
+    enrollmentLimit?: number
+    maxActiveEnrollments?: number
+    frequencyCapHours?: number
+    createdByAdminUserId: string
+    updatedByAdminUserId: string
+    revision?: number
+    lastScheduledRunAt?: Date | string | null
+    activatedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: MailOrganizationCreateNestedOneWithoutMarketingAutomationsInput
+    enrollments?: MarketingAutomationEnrollmentCreateNestedManyWithoutAutomationInput
+  }
+
+  export type MarketingAutomationUncheckedCreateWithoutVersionsInput = {
+    id?: string
+    organizationId: string
+    name: string
+    description?: string | null
+    status?: $Enums.MarketingAutomationStatus
+    triggerType: string
+    activeVersionId?: string | null
+    enrollmentLimit?: number
+    maxActiveEnrollments?: number
+    frequencyCapHours?: number
+    createdByAdminUserId: string
+    updatedByAdminUserId: string
+    revision?: number
+    lastScheduledRunAt?: Date | string | null
+    activatedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    enrollments?: MarketingAutomationEnrollmentUncheckedCreateNestedManyWithoutAutomationInput
+  }
+
+  export type MarketingAutomationCreateOrConnectWithoutVersionsInput = {
+    where: MarketingAutomationWhereUniqueInput
+    create: XOR<MarketingAutomationCreateWithoutVersionsInput, MarketingAutomationUncheckedCreateWithoutVersionsInput>
+  }
+
+  export type MarketingAutomationEnrollmentCreateWithoutVersionInput = {
+    id?: string
+    organizationId: string
+    status?: $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey: string
+    triggerEventId?: string | null
+    currentStepId?: string | null
+    stepCount?: number
+    nextRunAt?: Date | string | null
+    exitReason?: string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    automation: MarketingAutomationCreateNestedOneWithoutEnrollmentsInput
+    contact: MarketingContactCreateNestedOneWithoutAutomationEnrollmentsInput
+    stepRuns?: MarketingAutomationStepRunCreateNestedManyWithoutEnrollmentInput
+  }
+
+  export type MarketingAutomationEnrollmentUncheckedCreateWithoutVersionInput = {
+    id?: string
+    automationId: string
+    organizationId: string
+    contactId: string
+    status?: $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey: string
+    triggerEventId?: string | null
+    currentStepId?: string | null
+    stepCount?: number
+    nextRunAt?: Date | string | null
+    exitReason?: string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    stepRuns?: MarketingAutomationStepRunUncheckedCreateNestedManyWithoutEnrollmentInput
+  }
+
+  export type MarketingAutomationEnrollmentCreateOrConnectWithoutVersionInput = {
+    where: MarketingAutomationEnrollmentWhereUniqueInput
+    create: XOR<MarketingAutomationEnrollmentCreateWithoutVersionInput, MarketingAutomationEnrollmentUncheckedCreateWithoutVersionInput>
+  }
+
+  export type MarketingAutomationEnrollmentCreateManyVersionInputEnvelope = {
+    data: MarketingAutomationEnrollmentCreateManyVersionInput | MarketingAutomationEnrollmentCreateManyVersionInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MarketingAutomationUpsertWithoutVersionsInput = {
+    update: XOR<MarketingAutomationUpdateWithoutVersionsInput, MarketingAutomationUncheckedUpdateWithoutVersionsInput>
+    create: XOR<MarketingAutomationCreateWithoutVersionsInput, MarketingAutomationUncheckedCreateWithoutVersionsInput>
+    where?: MarketingAutomationWhereInput
+  }
+
+  export type MarketingAutomationUpdateToOneWithWhereWithoutVersionsInput = {
+    where?: MarketingAutomationWhereInput
+    data: XOR<MarketingAutomationUpdateWithoutVersionsInput, MarketingAutomationUncheckedUpdateWithoutVersionsInput>
+  }
+
+  export type MarketingAutomationUpdateWithoutVersionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumMarketingAutomationStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationStatus
+    triggerType?: StringFieldUpdateOperationsInput | string
+    activeVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    enrollmentLimit?: IntFieldUpdateOperationsInput | number
+    maxActiveEnrollments?: IntFieldUpdateOperationsInput | number
+    frequencyCapHours?: IntFieldUpdateOperationsInput | number
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    updatedByAdminUserId?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+    lastScheduledRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: MailOrganizationUpdateOneRequiredWithoutMarketingAutomationsNestedInput
+    enrollments?: MarketingAutomationEnrollmentUpdateManyWithoutAutomationNestedInput
+  }
+
+  export type MarketingAutomationUncheckedUpdateWithoutVersionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumMarketingAutomationStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationStatus
+    triggerType?: StringFieldUpdateOperationsInput | string
+    activeVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    enrollmentLimit?: IntFieldUpdateOperationsInput | number
+    maxActiveEnrollments?: IntFieldUpdateOperationsInput | number
+    frequencyCapHours?: IntFieldUpdateOperationsInput | number
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    updatedByAdminUserId?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+    lastScheduledRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    enrollments?: MarketingAutomationEnrollmentUncheckedUpdateManyWithoutAutomationNestedInput
+  }
+
+  export type MarketingAutomationEnrollmentUpsertWithWhereUniqueWithoutVersionInput = {
+    where: MarketingAutomationEnrollmentWhereUniqueInput
+    update: XOR<MarketingAutomationEnrollmentUpdateWithoutVersionInput, MarketingAutomationEnrollmentUncheckedUpdateWithoutVersionInput>
+    create: XOR<MarketingAutomationEnrollmentCreateWithoutVersionInput, MarketingAutomationEnrollmentUncheckedCreateWithoutVersionInput>
+  }
+
+  export type MarketingAutomationEnrollmentUpdateWithWhereUniqueWithoutVersionInput = {
+    where: MarketingAutomationEnrollmentWhereUniqueInput
+    data: XOR<MarketingAutomationEnrollmentUpdateWithoutVersionInput, MarketingAutomationEnrollmentUncheckedUpdateWithoutVersionInput>
+  }
+
+  export type MarketingAutomationEnrollmentUpdateManyWithWhereWithoutVersionInput = {
+    where: MarketingAutomationEnrollmentScalarWhereInput
+    data: XOR<MarketingAutomationEnrollmentUpdateManyMutationInput, MarketingAutomationEnrollmentUncheckedUpdateManyWithoutVersionInput>
+  }
+
+  export type MarketingAutomationCreateWithoutEnrollmentsInput = {
+    id?: string
+    name: string
+    description?: string | null
+    status?: $Enums.MarketingAutomationStatus
+    triggerType: string
+    activeVersionId?: string | null
+    enrollmentLimit?: number
+    maxActiveEnrollments?: number
+    frequencyCapHours?: number
+    createdByAdminUserId: string
+    updatedByAdminUserId: string
+    revision?: number
+    lastScheduledRunAt?: Date | string | null
+    activatedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: MailOrganizationCreateNestedOneWithoutMarketingAutomationsInput
+    versions?: MarketingAutomationVersionCreateNestedManyWithoutAutomationInput
+  }
+
+  export type MarketingAutomationUncheckedCreateWithoutEnrollmentsInput = {
+    id?: string
+    organizationId: string
+    name: string
+    description?: string | null
+    status?: $Enums.MarketingAutomationStatus
+    triggerType: string
+    activeVersionId?: string | null
+    enrollmentLimit?: number
+    maxActiveEnrollments?: number
+    frequencyCapHours?: number
+    createdByAdminUserId: string
+    updatedByAdminUserId: string
+    revision?: number
+    lastScheduledRunAt?: Date | string | null
+    activatedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    versions?: MarketingAutomationVersionUncheckedCreateNestedManyWithoutAutomationInput
+  }
+
+  export type MarketingAutomationCreateOrConnectWithoutEnrollmentsInput = {
+    where: MarketingAutomationWhereUniqueInput
+    create: XOR<MarketingAutomationCreateWithoutEnrollmentsInput, MarketingAutomationUncheckedCreateWithoutEnrollmentsInput>
+  }
+
+  export type MarketingAutomationVersionCreateWithoutEnrollmentsInput = {
+    id?: string
+    version: number
+    status?: $Enums.MarketingAutomationVersionStatus
+    definition: JsonNullValueInput | InputJsonValue
+    triggerConfig: JsonNullValueInput | InputJsonValue
+    definitionSha256: string
+    createdByAdminUserId: string
+    submittedByAdminUserId?: string | null
+    submittedAt?: Date | string | null
+    reviewedByAdminUserId?: string | null
+    reviewedAt?: Date | string | null
+    reviewComment?: string | null
+    stepUpId?: string | null
+    publishedAt?: Date | string | null
+    createdAt?: Date | string
+    automation: MarketingAutomationCreateNestedOneWithoutVersionsInput
+  }
+
+  export type MarketingAutomationVersionUncheckedCreateWithoutEnrollmentsInput = {
+    id?: string
+    automationId: string
+    version: number
+    status?: $Enums.MarketingAutomationVersionStatus
+    definition: JsonNullValueInput | InputJsonValue
+    triggerConfig: JsonNullValueInput | InputJsonValue
+    definitionSha256: string
+    createdByAdminUserId: string
+    submittedByAdminUserId?: string | null
+    submittedAt?: Date | string | null
+    reviewedByAdminUserId?: string | null
+    reviewedAt?: Date | string | null
+    reviewComment?: string | null
+    stepUpId?: string | null
+    publishedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type MarketingAutomationVersionCreateOrConnectWithoutEnrollmentsInput = {
+    where: MarketingAutomationVersionWhereUniqueInput
+    create: XOR<MarketingAutomationVersionCreateWithoutEnrollmentsInput, MarketingAutomationVersionUncheckedCreateWithoutEnrollmentsInput>
+  }
+
+  export type MarketingContactCreateWithoutAutomationEnrollmentsInput = {
+    id?: string
+    email: string
+    firstName?: string | null
+    lastName?: string | null
+    attributes?: NullableJsonNullValueInput | InputJsonValue
+    status?: $Enums.MarketingContactStatus
+    source: string
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: MailOrganizationCreateNestedOneWithoutMarketingContactsInput
+    consents?: MarketingConsentCreateNestedManyWithoutContactInput
+    audiences?: MarketingAudienceContactCreateNestedManyWithoutContactInput
+    broadcastRecipients?: MarketingBroadcastRecipientCreateNestedManyWithoutContactInput
+  }
+
+  export type MarketingContactUncheckedCreateWithoutAutomationEnrollmentsInput = {
+    id?: string
+    organizationId: string
+    email: string
+    firstName?: string | null
+    lastName?: string | null
+    attributes?: NullableJsonNullValueInput | InputJsonValue
+    status?: $Enums.MarketingContactStatus
+    source: string
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    consents?: MarketingConsentUncheckedCreateNestedManyWithoutContactInput
+    audiences?: MarketingAudienceContactUncheckedCreateNestedManyWithoutContactInput
+    broadcastRecipients?: MarketingBroadcastRecipientUncheckedCreateNestedManyWithoutContactInput
+  }
+
+  export type MarketingContactCreateOrConnectWithoutAutomationEnrollmentsInput = {
+    where: MarketingContactWhereUniqueInput
+    create: XOR<MarketingContactCreateWithoutAutomationEnrollmentsInput, MarketingContactUncheckedCreateWithoutAutomationEnrollmentsInput>
+  }
+
+  export type MarketingAutomationStepRunCreateWithoutEnrollmentInput = {
+    id?: string
+    organizationId: string
+    stepId: string
+    stepType: string
+    sequence: number
+    status?: $Enums.MarketingAutomationStepRunStatus
+    idempotencyKey?: string | null
+    recipientEmail?: string | null
+    templateVersionId?: string | null
+    providerMessageId?: string | null
+    firstAttemptAt?: Date | string | null
+    deliveryStatus?: string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    errorCode?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingAutomationStepRunUncheckedCreateWithoutEnrollmentInput = {
+    id?: string
+    organizationId: string
+    stepId: string
+    stepType: string
+    sequence: number
+    status?: $Enums.MarketingAutomationStepRunStatus
+    idempotencyKey?: string | null
+    recipientEmail?: string | null
+    templateVersionId?: string | null
+    providerMessageId?: string | null
+    firstAttemptAt?: Date | string | null
+    deliveryStatus?: string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    errorCode?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingAutomationStepRunCreateOrConnectWithoutEnrollmentInput = {
+    where: MarketingAutomationStepRunWhereUniqueInput
+    create: XOR<MarketingAutomationStepRunCreateWithoutEnrollmentInput, MarketingAutomationStepRunUncheckedCreateWithoutEnrollmentInput>
+  }
+
+  export type MarketingAutomationStepRunCreateManyEnrollmentInputEnvelope = {
+    data: MarketingAutomationStepRunCreateManyEnrollmentInput | MarketingAutomationStepRunCreateManyEnrollmentInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MarketingAutomationUpsertWithoutEnrollmentsInput = {
+    update: XOR<MarketingAutomationUpdateWithoutEnrollmentsInput, MarketingAutomationUncheckedUpdateWithoutEnrollmentsInput>
+    create: XOR<MarketingAutomationCreateWithoutEnrollmentsInput, MarketingAutomationUncheckedCreateWithoutEnrollmentsInput>
+    where?: MarketingAutomationWhereInput
+  }
+
+  export type MarketingAutomationUpdateToOneWithWhereWithoutEnrollmentsInput = {
+    where?: MarketingAutomationWhereInput
+    data: XOR<MarketingAutomationUpdateWithoutEnrollmentsInput, MarketingAutomationUncheckedUpdateWithoutEnrollmentsInput>
+  }
+
+  export type MarketingAutomationUpdateWithoutEnrollmentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumMarketingAutomationStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationStatus
+    triggerType?: StringFieldUpdateOperationsInput | string
+    activeVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    enrollmentLimit?: IntFieldUpdateOperationsInput | number
+    maxActiveEnrollments?: IntFieldUpdateOperationsInput | number
+    frequencyCapHours?: IntFieldUpdateOperationsInput | number
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    updatedByAdminUserId?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+    lastScheduledRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: MailOrganizationUpdateOneRequiredWithoutMarketingAutomationsNestedInput
+    versions?: MarketingAutomationVersionUpdateManyWithoutAutomationNestedInput
+  }
+
+  export type MarketingAutomationUncheckedUpdateWithoutEnrollmentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumMarketingAutomationStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationStatus
+    triggerType?: StringFieldUpdateOperationsInput | string
+    activeVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    enrollmentLimit?: IntFieldUpdateOperationsInput | number
+    maxActiveEnrollments?: IntFieldUpdateOperationsInput | number
+    frequencyCapHours?: IntFieldUpdateOperationsInput | number
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    updatedByAdminUserId?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+    lastScheduledRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    versions?: MarketingAutomationVersionUncheckedUpdateManyWithoutAutomationNestedInput
+  }
+
+  export type MarketingAutomationVersionUpsertWithoutEnrollmentsInput = {
+    update: XOR<MarketingAutomationVersionUpdateWithoutEnrollmentsInput, MarketingAutomationVersionUncheckedUpdateWithoutEnrollmentsInput>
+    create: XOR<MarketingAutomationVersionCreateWithoutEnrollmentsInput, MarketingAutomationVersionUncheckedCreateWithoutEnrollmentsInput>
+    where?: MarketingAutomationVersionWhereInput
+  }
+
+  export type MarketingAutomationVersionUpdateToOneWithWhereWithoutEnrollmentsInput = {
+    where?: MarketingAutomationVersionWhereInput
+    data: XOR<MarketingAutomationVersionUpdateWithoutEnrollmentsInput, MarketingAutomationVersionUncheckedUpdateWithoutEnrollmentsInput>
+  }
+
+  export type MarketingAutomationVersionUpdateWithoutEnrollmentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumMarketingAutomationVersionStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationVersionStatus
+    definition?: JsonNullValueInput | InputJsonValue
+    triggerConfig?: JsonNullValueInput | InputJsonValue
+    definitionSha256?: StringFieldUpdateOperationsInput | string
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    submittedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
+    stepUpId?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    automation?: MarketingAutomationUpdateOneRequiredWithoutVersionsNestedInput
+  }
+
+  export type MarketingAutomationVersionUncheckedUpdateWithoutEnrollmentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    automationId?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumMarketingAutomationVersionStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationVersionStatus
+    definition?: JsonNullValueInput | InputJsonValue
+    triggerConfig?: JsonNullValueInput | InputJsonValue
+    definitionSha256?: StringFieldUpdateOperationsInput | string
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    submittedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
+    stepUpId?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingContactUpsertWithoutAutomationEnrollmentsInput = {
+    update: XOR<MarketingContactUpdateWithoutAutomationEnrollmentsInput, MarketingContactUncheckedUpdateWithoutAutomationEnrollmentsInput>
+    create: XOR<MarketingContactCreateWithoutAutomationEnrollmentsInput, MarketingContactUncheckedCreateWithoutAutomationEnrollmentsInput>
+    where?: MarketingContactWhereInput
+  }
+
+  export type MarketingContactUpdateToOneWithWhereWithoutAutomationEnrollmentsInput = {
+    where?: MarketingContactWhereInput
+    data: XOR<MarketingContactUpdateWithoutAutomationEnrollmentsInput, MarketingContactUncheckedUpdateWithoutAutomationEnrollmentsInput>
+  }
+
+  export type MarketingContactUpdateWithoutAutomationEnrollmentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
+    attributes?: NullableJsonNullValueInput | InputJsonValue
+    status?: EnumMarketingContactStatusFieldUpdateOperationsInput | $Enums.MarketingContactStatus
+    source?: StringFieldUpdateOperationsInput | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: MailOrganizationUpdateOneRequiredWithoutMarketingContactsNestedInput
+    consents?: MarketingConsentUpdateManyWithoutContactNestedInput
+    audiences?: MarketingAudienceContactUpdateManyWithoutContactNestedInput
+    broadcastRecipients?: MarketingBroadcastRecipientUpdateManyWithoutContactNestedInput
+  }
+
+  export type MarketingContactUncheckedUpdateWithoutAutomationEnrollmentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
+    attributes?: NullableJsonNullValueInput | InputJsonValue
+    status?: EnumMarketingContactStatusFieldUpdateOperationsInput | $Enums.MarketingContactStatus
+    source?: StringFieldUpdateOperationsInput | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    consents?: MarketingConsentUncheckedUpdateManyWithoutContactNestedInput
+    audiences?: MarketingAudienceContactUncheckedUpdateManyWithoutContactNestedInput
+    broadcastRecipients?: MarketingBroadcastRecipientUncheckedUpdateManyWithoutContactNestedInput
+  }
+
+  export type MarketingAutomationStepRunUpsertWithWhereUniqueWithoutEnrollmentInput = {
+    where: MarketingAutomationStepRunWhereUniqueInput
+    update: XOR<MarketingAutomationStepRunUpdateWithoutEnrollmentInput, MarketingAutomationStepRunUncheckedUpdateWithoutEnrollmentInput>
+    create: XOR<MarketingAutomationStepRunCreateWithoutEnrollmentInput, MarketingAutomationStepRunUncheckedCreateWithoutEnrollmentInput>
+  }
+
+  export type MarketingAutomationStepRunUpdateWithWhereUniqueWithoutEnrollmentInput = {
+    where: MarketingAutomationStepRunWhereUniqueInput
+    data: XOR<MarketingAutomationStepRunUpdateWithoutEnrollmentInput, MarketingAutomationStepRunUncheckedUpdateWithoutEnrollmentInput>
+  }
+
+  export type MarketingAutomationStepRunUpdateManyWithWhereWithoutEnrollmentInput = {
+    where: MarketingAutomationStepRunScalarWhereInput
+    data: XOR<MarketingAutomationStepRunUpdateManyMutationInput, MarketingAutomationStepRunUncheckedUpdateManyWithoutEnrollmentInput>
+  }
+
+  export type MarketingAutomationStepRunScalarWhereInput = {
+    AND?: MarketingAutomationStepRunScalarWhereInput | MarketingAutomationStepRunScalarWhereInput[]
+    OR?: MarketingAutomationStepRunScalarWhereInput[]
+    NOT?: MarketingAutomationStepRunScalarWhereInput | MarketingAutomationStepRunScalarWhereInput[]
+    id?: UuidFilter<"MarketingAutomationStepRun"> | string
+    enrollmentId?: UuidFilter<"MarketingAutomationStepRun"> | string
+    organizationId?: UuidFilter<"MarketingAutomationStepRun"> | string
+    stepId?: StringFilter<"MarketingAutomationStepRun"> | string
+    stepType?: StringFilter<"MarketingAutomationStepRun"> | string
+    sequence?: IntFilter<"MarketingAutomationStepRun"> | number
+    status?: EnumMarketingAutomationStepRunStatusFilter<"MarketingAutomationStepRun"> | $Enums.MarketingAutomationStepRunStatus
+    idempotencyKey?: StringNullableFilter<"MarketingAutomationStepRun"> | string | null
+    recipientEmail?: StringNullableFilter<"MarketingAutomationStepRun"> | string | null
+    templateVersionId?: UuidNullableFilter<"MarketingAutomationStepRun"> | string | null
+    providerMessageId?: StringNullableFilter<"MarketingAutomationStepRun"> | string | null
+    firstAttemptAt?: DateTimeNullableFilter<"MarketingAutomationStepRun"> | Date | string | null
+    deliveryStatus?: StringNullableFilter<"MarketingAutomationStepRun"> | string | null
+    outcome?: JsonNullableFilter<"MarketingAutomationStepRun">
+    errorCode?: StringNullableFilter<"MarketingAutomationStepRun"> | string | null
+    createdAt?: DateTimeFilter<"MarketingAutomationStepRun"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingAutomationStepRun"> | Date | string
+  }
+
+  export type MarketingAutomationEnrollmentCreateWithoutStepRunsInput = {
+    id?: string
+    organizationId: string
+    status?: $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey: string
+    triggerEventId?: string | null
+    currentStepId?: string | null
+    stepCount?: number
+    nextRunAt?: Date | string | null
+    exitReason?: string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    automation: MarketingAutomationCreateNestedOneWithoutEnrollmentsInput
+    version: MarketingAutomationVersionCreateNestedOneWithoutEnrollmentsInput
+    contact: MarketingContactCreateNestedOneWithoutAutomationEnrollmentsInput
+  }
+
+  export type MarketingAutomationEnrollmentUncheckedCreateWithoutStepRunsInput = {
+    id?: string
+    automationId: string
+    versionId: string
+    organizationId: string
+    contactId: string
+    status?: $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey: string
+    triggerEventId?: string | null
+    currentStepId?: string | null
+    stepCount?: number
+    nextRunAt?: Date | string | null
+    exitReason?: string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingAutomationEnrollmentCreateOrConnectWithoutStepRunsInput = {
+    where: MarketingAutomationEnrollmentWhereUniqueInput
+    create: XOR<MarketingAutomationEnrollmentCreateWithoutStepRunsInput, MarketingAutomationEnrollmentUncheckedCreateWithoutStepRunsInput>
+  }
+
+  export type MarketingAutomationEnrollmentUpsertWithoutStepRunsInput = {
+    update: XOR<MarketingAutomationEnrollmentUpdateWithoutStepRunsInput, MarketingAutomationEnrollmentUncheckedUpdateWithoutStepRunsInput>
+    create: XOR<MarketingAutomationEnrollmentCreateWithoutStepRunsInput, MarketingAutomationEnrollmentUncheckedCreateWithoutStepRunsInput>
+    where?: MarketingAutomationEnrollmentWhereInput
+  }
+
+  export type MarketingAutomationEnrollmentUpdateToOneWithWhereWithoutStepRunsInput = {
+    where?: MarketingAutomationEnrollmentWhereInput
+    data: XOR<MarketingAutomationEnrollmentUpdateWithoutStepRunsInput, MarketingAutomationEnrollmentUncheckedUpdateWithoutStepRunsInput>
+  }
+
+  export type MarketingAutomationEnrollmentUpdateWithoutStepRunsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingAutomationEnrollmentStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey?: StringFieldUpdateOperationsInput | string
+    triggerEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    currentStepId?: NullableStringFieldUpdateOperationsInput | string | null
+    stepCount?: IntFieldUpdateOperationsInput | number
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    exitReason?: NullableStringFieldUpdateOperationsInput | string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    automation?: MarketingAutomationUpdateOneRequiredWithoutEnrollmentsNestedInput
+    version?: MarketingAutomationVersionUpdateOneRequiredWithoutEnrollmentsNestedInput
+    contact?: MarketingContactUpdateOneRequiredWithoutAutomationEnrollmentsNestedInput
+  }
+
+  export type MarketingAutomationEnrollmentUncheckedUpdateWithoutStepRunsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    automationId?: StringFieldUpdateOperationsInput | string
+    versionId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    contactId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingAutomationEnrollmentStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey?: StringFieldUpdateOperationsInput | string
+    triggerEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    currentStepId?: NullableStringFieldUpdateOperationsInput | string | null
+    stepCount?: IntFieldUpdateOperationsInput | number
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    exitReason?: NullableStringFieldUpdateOperationsInput | string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type AdminSessionCreateManyAdminUserInput = {
@@ -372799,6 +391465,25 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type MarketingAutomationCreateManyOrganizationInput = {
+    id?: string
+    name: string
+    description?: string | null
+    status?: $Enums.MarketingAutomationStatus
+    triggerType: string
+    activeVersionId?: string | null
+    enrollmentLimit?: number
+    maxActiveEnrollments?: number
+    frequencyCapHours?: number
+    createdByAdminUserId: string
+    updatedByAdminUserId: string
+    revision?: number
+    lastScheduledRunAt?: Date | string | null
+    activatedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type MailDomainUpdateWithoutOrganizationInput = {
     id?: StringFieldUpdateOperationsInput | string
     domain?: StringFieldUpdateOperationsInput | string
@@ -373118,6 +391803,8 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     consents?: MarketingConsentUpdateManyWithoutContactNestedInput
     audiences?: MarketingAudienceContactUpdateManyWithoutContactNestedInput
+    broadcastRecipients?: MarketingBroadcastRecipientUpdateManyWithoutContactNestedInput
+    automationEnrollments?: MarketingAutomationEnrollmentUpdateManyWithoutContactNestedInput
   }
 
   export type MarketingContactUncheckedUpdateWithoutOrganizationInput = {
@@ -373133,6 +391820,8 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     consents?: MarketingConsentUncheckedUpdateManyWithoutContactNestedInput
     audiences?: MarketingAudienceContactUncheckedUpdateManyWithoutContactNestedInput
+    broadcastRecipients?: MarketingBroadcastRecipientUncheckedUpdateManyWithoutContactNestedInput
+    automationEnrollments?: MarketingAutomationEnrollmentUncheckedUpdateManyWithoutContactNestedInput
   }
 
   export type MarketingContactUncheckedUpdateManyWithoutOrganizationInput = {
@@ -373249,6 +391938,7 @@ export namespace Prisma {
     segment?: MarketingSegmentUpdateOneWithoutCampaignsNestedInput
     approvals?: MarketingCampaignApprovalUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUpdateManyWithoutCampaignNestedInput
+    dispatch?: MarketingBroadcastDispatchUpdateOneWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateWithoutOrganizationInput = {
@@ -373275,6 +391965,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     approvals?: MarketingCampaignApprovalUncheckedUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUncheckedUpdateManyWithoutCampaignNestedInput
+    dispatch?: MarketingBroadcastDispatchUncheckedUpdateOneWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateManyWithoutOrganizationInput = {
@@ -373297,6 +391988,67 @@ export namespace Prisma {
     submittedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     approvedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingAutomationUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumMarketingAutomationStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationStatus
+    triggerType?: StringFieldUpdateOperationsInput | string
+    activeVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    enrollmentLimit?: IntFieldUpdateOperationsInput | number
+    maxActiveEnrollments?: IntFieldUpdateOperationsInput | number
+    frequencyCapHours?: IntFieldUpdateOperationsInput | number
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    updatedByAdminUserId?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+    lastScheduledRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    versions?: MarketingAutomationVersionUpdateManyWithoutAutomationNestedInput
+    enrollments?: MarketingAutomationEnrollmentUpdateManyWithoutAutomationNestedInput
+  }
+
+  export type MarketingAutomationUncheckedUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumMarketingAutomationStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationStatus
+    triggerType?: StringFieldUpdateOperationsInput | string
+    activeVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    enrollmentLimit?: IntFieldUpdateOperationsInput | number
+    maxActiveEnrollments?: IntFieldUpdateOperationsInput | number
+    frequencyCapHours?: IntFieldUpdateOperationsInput | number
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    updatedByAdminUserId?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+    lastScheduledRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    versions?: MarketingAutomationVersionUncheckedUpdateManyWithoutAutomationNestedInput
+    enrollments?: MarketingAutomationEnrollmentUncheckedUpdateManyWithoutAutomationNestedInput
+  }
+
+  export type MarketingAutomationUncheckedUpdateManyWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumMarketingAutomationStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationStatus
+    triggerType?: StringFieldUpdateOperationsInput | string
+    activeVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    enrollmentLimit?: IntFieldUpdateOperationsInput | number
+    maxActiveEnrollments?: IntFieldUpdateOperationsInput | number
+    frequencyCapHours?: IntFieldUpdateOperationsInput | number
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    updatedByAdminUserId?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+    lastScheduledRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -375122,6 +393874,43 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type MarketingBroadcastRecipientCreateManyContactInput = {
+    id?: string
+    dispatchId: string
+    organizationId: string
+    email: string
+    status?: $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: string | null
+    providerContactId?: string | null
+    providerEmailId?: string | null
+    syncedAt?: Date | string | null
+    acceptedAt?: Date | string | null
+    lastEventType?: string | null
+    lastEventAt?: Date | string | null
+    openedAt?: Date | string | null
+    clickedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingAutomationEnrollmentCreateManyContactInput = {
+    id?: string
+    automationId: string
+    versionId: string
+    organizationId: string
+    status?: $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey: string
+    triggerEventId?: string | null
+    currentStepId?: string | null
+    stepCount?: number
+    nextRunAt?: Date | string | null
+    exitReason?: string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type MarketingConsentUpdateWithoutContactInput = {
     id?: StringFieldUpdateOperationsInput | string
     organizationId?: StringFieldUpdateOperationsInput | string
@@ -375195,6 +393984,119 @@ export namespace Prisma {
     audienceId?: StringFieldUpdateOperationsInput | string
     addedBy?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingBroadcastRecipientUpdateWithoutContactInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingBroadcastRecipientStatusFieldUpdateOperationsInput | $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    providerContactId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerEmailId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastEventType?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    openedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    clickedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dispatch?: MarketingBroadcastDispatchUpdateOneRequiredWithoutRecipientsNestedInput
+  }
+
+  export type MarketingBroadcastRecipientUncheckedUpdateWithoutContactInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dispatchId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingBroadcastRecipientStatusFieldUpdateOperationsInput | $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    providerContactId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerEmailId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastEventType?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    openedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    clickedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingBroadcastRecipientUncheckedUpdateManyWithoutContactInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dispatchId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingBroadcastRecipientStatusFieldUpdateOperationsInput | $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    providerContactId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerEmailId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastEventType?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    openedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    clickedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingAutomationEnrollmentUpdateWithoutContactInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingAutomationEnrollmentStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey?: StringFieldUpdateOperationsInput | string
+    triggerEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    currentStepId?: NullableStringFieldUpdateOperationsInput | string | null
+    stepCount?: IntFieldUpdateOperationsInput | number
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    exitReason?: NullableStringFieldUpdateOperationsInput | string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    automation?: MarketingAutomationUpdateOneRequiredWithoutEnrollmentsNestedInput
+    version?: MarketingAutomationVersionUpdateOneRequiredWithoutEnrollmentsNestedInput
+    stepRuns?: MarketingAutomationStepRunUpdateManyWithoutEnrollmentNestedInput
+  }
+
+  export type MarketingAutomationEnrollmentUncheckedUpdateWithoutContactInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    automationId?: StringFieldUpdateOperationsInput | string
+    versionId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingAutomationEnrollmentStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey?: StringFieldUpdateOperationsInput | string
+    triggerEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    currentStepId?: NullableStringFieldUpdateOperationsInput | string | null
+    stepCount?: IntFieldUpdateOperationsInput | number
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    exitReason?: NullableStringFieldUpdateOperationsInput | string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    stepRuns?: MarketingAutomationStepRunUncheckedUpdateManyWithoutEnrollmentNestedInput
+  }
+
+  export type MarketingAutomationEnrollmentUncheckedUpdateManyWithoutContactInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    automationId?: StringFieldUpdateOperationsInput | string
+    versionId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingAutomationEnrollmentStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey?: StringFieldUpdateOperationsInput | string
+    triggerEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    currentStepId?: NullableStringFieldUpdateOperationsInput | string | null
+    stepCount?: IntFieldUpdateOperationsInput | number
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    exitReason?: NullableStringFieldUpdateOperationsInput | string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type MarketingAudienceContactCreateManyAudienceInput = {
@@ -375311,6 +394213,7 @@ export namespace Prisma {
     segment?: MarketingSegmentUpdateOneWithoutCampaignsNestedInput
     approvals?: MarketingCampaignApprovalUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUpdateManyWithoutCampaignNestedInput
+    dispatch?: MarketingBroadcastDispatchUpdateOneWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateWithoutAudienceInput = {
@@ -375337,6 +394240,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     approvals?: MarketingCampaignApprovalUncheckedUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUncheckedUpdateManyWithoutCampaignNestedInput
+    dispatch?: MarketingBroadcastDispatchUncheckedUpdateOneWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateManyWithoutAudienceInput = {
@@ -375411,6 +394315,7 @@ export namespace Prisma {
     audience?: MarketingAudienceUpdateOneWithoutCampaignsNestedInput
     approvals?: MarketingCampaignApprovalUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUpdateManyWithoutCampaignNestedInput
+    dispatch?: MarketingBroadcastDispatchUpdateOneWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateWithoutSegmentInput = {
@@ -375437,6 +394342,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     approvals?: MarketingCampaignApprovalUncheckedUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUncheckedUpdateManyWithoutCampaignNestedInput
+    dispatch?: MarketingBroadcastDispatchUncheckedUpdateOneWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateManyWithoutSegmentInput = {
@@ -375573,6 +394479,7 @@ export namespace Prisma {
     segment?: MarketingSegmentUpdateOneWithoutCampaignsNestedInput
     approvals?: MarketingCampaignApprovalUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUpdateManyWithoutCampaignNestedInput
+    dispatch?: MarketingBroadcastDispatchUpdateOneWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateWithoutTemplateVersionInput = {
@@ -375599,6 +394506,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     approvals?: MarketingCampaignApprovalUncheckedUpdateManyWithoutCampaignNestedInput
     snapshots?: MarketingCampaignSnapshotUncheckedUpdateManyWithoutCampaignNestedInput
+    dispatch?: MarketingBroadcastDispatchUncheckedUpdateOneWithoutCampaignNestedInput
   }
 
   export type MarketingEmailCampaignUncheckedUpdateManyWithoutTemplateVersionInput = {
@@ -375704,6 +394612,7 @@ export namespace Prisma {
     createdBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     approvals?: MarketingCampaignApprovalUpdateManyWithoutSnapshotNestedInput
+    approvedContacts?: MarketingCampaignApprovedContactUpdateManyWithoutSnapshotNestedInput
   }
 
   export type MarketingCampaignSnapshotUncheckedUpdateWithoutCampaignInput = {
@@ -375723,6 +394632,7 @@ export namespace Prisma {
     createdBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     approvals?: MarketingCampaignApprovalUncheckedUpdateManyWithoutSnapshotNestedInput
+    approvedContacts?: MarketingCampaignApprovedContactUncheckedUpdateManyWithoutSnapshotNestedInput
   }
 
   export type MarketingCampaignSnapshotUncheckedUpdateManyWithoutCampaignInput = {
@@ -375751,6 +394661,11 @@ export namespace Prisma {
     reviewerAdminUserId: string
     stepUpId?: string | null
     comment?: string | null
+    createdAt?: Date | string
+  }
+
+  export type MarketingCampaignApprovedContactCreateManySnapshotInput = {
+    contactId: string
     createdAt?: Date | string
   }
 
@@ -375785,6 +394700,395 @@ export namespace Prisma {
     stepUpId?: NullableStringFieldUpdateOperationsInput | string | null
     comment?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingCampaignApprovedContactUpdateWithoutSnapshotInput = {
+    contactId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingCampaignApprovedContactUncheckedUpdateWithoutSnapshotInput = {
+    contactId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingCampaignApprovedContactUncheckedUpdateManyWithoutSnapshotInput = {
+    contactId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingBroadcastRecipientCreateManyDispatchInput = {
+    id?: string
+    organizationId: string
+    contactId: string
+    email: string
+    status?: $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: string | null
+    providerContactId?: string | null
+    providerEmailId?: string | null
+    syncedAt?: Date | string | null
+    acceptedAt?: Date | string | null
+    lastEventType?: string | null
+    lastEventAt?: Date | string | null
+    openedAt?: Date | string | null
+    clickedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingBroadcastRecipientUpdateWithoutDispatchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingBroadcastRecipientStatusFieldUpdateOperationsInput | $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    providerContactId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerEmailId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastEventType?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    openedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    clickedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    contact?: MarketingContactUpdateOneRequiredWithoutBroadcastRecipientsNestedInput
+  }
+
+  export type MarketingBroadcastRecipientUncheckedUpdateWithoutDispatchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    contactId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingBroadcastRecipientStatusFieldUpdateOperationsInput | $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    providerContactId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerEmailId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastEventType?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    openedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    clickedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingBroadcastRecipientUncheckedUpdateManyWithoutDispatchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    contactId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingBroadcastRecipientStatusFieldUpdateOperationsInput | $Enums.MarketingBroadcastRecipientStatus
+    exclusionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    providerContactId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerEmailId?: NullableStringFieldUpdateOperationsInput | string | null
+    syncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastEventType?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    openedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    clickedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingAutomationVersionCreateManyAutomationInput = {
+    id?: string
+    version: number
+    status?: $Enums.MarketingAutomationVersionStatus
+    definition: JsonNullValueInput | InputJsonValue
+    triggerConfig: JsonNullValueInput | InputJsonValue
+    definitionSha256: string
+    createdByAdminUserId: string
+    submittedByAdminUserId?: string | null
+    submittedAt?: Date | string | null
+    reviewedByAdminUserId?: string | null
+    reviewedAt?: Date | string | null
+    reviewComment?: string | null
+    stepUpId?: string | null
+    publishedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type MarketingAutomationEnrollmentCreateManyAutomationInput = {
+    id?: string
+    versionId: string
+    organizationId: string
+    contactId: string
+    status?: $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey: string
+    triggerEventId?: string | null
+    currentStepId?: string | null
+    stepCount?: number
+    nextRunAt?: Date | string | null
+    exitReason?: string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingAutomationVersionUpdateWithoutAutomationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumMarketingAutomationVersionStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationVersionStatus
+    definition?: JsonNullValueInput | InputJsonValue
+    triggerConfig?: JsonNullValueInput | InputJsonValue
+    definitionSha256?: StringFieldUpdateOperationsInput | string
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    submittedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
+    stepUpId?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    enrollments?: MarketingAutomationEnrollmentUpdateManyWithoutVersionNestedInput
+  }
+
+  export type MarketingAutomationVersionUncheckedUpdateWithoutAutomationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumMarketingAutomationVersionStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationVersionStatus
+    definition?: JsonNullValueInput | InputJsonValue
+    triggerConfig?: JsonNullValueInput | InputJsonValue
+    definitionSha256?: StringFieldUpdateOperationsInput | string
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    submittedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
+    stepUpId?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    enrollments?: MarketingAutomationEnrollmentUncheckedUpdateManyWithoutVersionNestedInput
+  }
+
+  export type MarketingAutomationVersionUncheckedUpdateManyWithoutAutomationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumMarketingAutomationVersionStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationVersionStatus
+    definition?: JsonNullValueInput | InputJsonValue
+    triggerConfig?: JsonNullValueInput | InputJsonValue
+    definitionSha256?: StringFieldUpdateOperationsInput | string
+    createdByAdminUserId?: StringFieldUpdateOperationsInput | string
+    submittedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
+    stepUpId?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingAutomationEnrollmentUpdateWithoutAutomationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingAutomationEnrollmentStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey?: StringFieldUpdateOperationsInput | string
+    triggerEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    currentStepId?: NullableStringFieldUpdateOperationsInput | string | null
+    stepCount?: IntFieldUpdateOperationsInput | number
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    exitReason?: NullableStringFieldUpdateOperationsInput | string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    version?: MarketingAutomationVersionUpdateOneRequiredWithoutEnrollmentsNestedInput
+    contact?: MarketingContactUpdateOneRequiredWithoutAutomationEnrollmentsNestedInput
+    stepRuns?: MarketingAutomationStepRunUpdateManyWithoutEnrollmentNestedInput
+  }
+
+  export type MarketingAutomationEnrollmentUncheckedUpdateWithoutAutomationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    versionId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    contactId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingAutomationEnrollmentStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey?: StringFieldUpdateOperationsInput | string
+    triggerEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    currentStepId?: NullableStringFieldUpdateOperationsInput | string | null
+    stepCount?: IntFieldUpdateOperationsInput | number
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    exitReason?: NullableStringFieldUpdateOperationsInput | string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    stepRuns?: MarketingAutomationStepRunUncheckedUpdateManyWithoutEnrollmentNestedInput
+  }
+
+  export type MarketingAutomationEnrollmentUncheckedUpdateManyWithoutAutomationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    versionId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    contactId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingAutomationEnrollmentStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey?: StringFieldUpdateOperationsInput | string
+    triggerEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    currentStepId?: NullableStringFieldUpdateOperationsInput | string | null
+    stepCount?: IntFieldUpdateOperationsInput | number
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    exitReason?: NullableStringFieldUpdateOperationsInput | string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingAutomationEnrollmentCreateManyVersionInput = {
+    id?: string
+    automationId: string
+    organizationId: string
+    contactId: string
+    status?: $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey: string
+    triggerEventId?: string | null
+    currentStepId?: string | null
+    stepCount?: number
+    nextRunAt?: Date | string | null
+    exitReason?: string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingAutomationEnrollmentUpdateWithoutVersionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingAutomationEnrollmentStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey?: StringFieldUpdateOperationsInput | string
+    triggerEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    currentStepId?: NullableStringFieldUpdateOperationsInput | string | null
+    stepCount?: IntFieldUpdateOperationsInput | number
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    exitReason?: NullableStringFieldUpdateOperationsInput | string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    automation?: MarketingAutomationUpdateOneRequiredWithoutEnrollmentsNestedInput
+    contact?: MarketingContactUpdateOneRequiredWithoutAutomationEnrollmentsNestedInput
+    stepRuns?: MarketingAutomationStepRunUpdateManyWithoutEnrollmentNestedInput
+  }
+
+  export type MarketingAutomationEnrollmentUncheckedUpdateWithoutVersionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    automationId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    contactId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingAutomationEnrollmentStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey?: StringFieldUpdateOperationsInput | string
+    triggerEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    currentStepId?: NullableStringFieldUpdateOperationsInput | string | null
+    stepCount?: IntFieldUpdateOperationsInput | number
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    exitReason?: NullableStringFieldUpdateOperationsInput | string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    stepRuns?: MarketingAutomationStepRunUncheckedUpdateManyWithoutEnrollmentNestedInput
+  }
+
+  export type MarketingAutomationEnrollmentUncheckedUpdateManyWithoutVersionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    automationId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    contactId?: StringFieldUpdateOperationsInput | string
+    status?: EnumMarketingAutomationEnrollmentStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationEnrollmentStatus
+    dedupeKey?: StringFieldUpdateOperationsInput | string
+    triggerEventId?: NullableStringFieldUpdateOperationsInput | string | null
+    currentStepId?: NullableStringFieldUpdateOperationsInput | string | null
+    stepCount?: IntFieldUpdateOperationsInput | number
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    exitReason?: NullableStringFieldUpdateOperationsInput | string | null
+    context?: NullableJsonNullValueInput | InputJsonValue
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingAutomationStepRunCreateManyEnrollmentInput = {
+    id?: string
+    organizationId: string
+    stepId: string
+    stepType: string
+    sequence: number
+    status?: $Enums.MarketingAutomationStepRunStatus
+    idempotencyKey?: string | null
+    recipientEmail?: string | null
+    templateVersionId?: string | null
+    providerMessageId?: string | null
+    firstAttemptAt?: Date | string | null
+    deliveryStatus?: string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    errorCode?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingAutomationStepRunUpdateWithoutEnrollmentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    stepId?: StringFieldUpdateOperationsInput | string
+    stepType?: StringFieldUpdateOperationsInput | string
+    sequence?: IntFieldUpdateOperationsInput | number
+    status?: EnumMarketingAutomationStepRunStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationStepRunStatus
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    templateVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    firstAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingAutomationStepRunUncheckedUpdateWithoutEnrollmentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    stepId?: StringFieldUpdateOperationsInput | string
+    stepType?: StringFieldUpdateOperationsInput | string
+    sequence?: IntFieldUpdateOperationsInput | number
+    status?: EnumMarketingAutomationStepRunStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationStepRunStatus
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    templateVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    firstAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingAutomationStepRunUncheckedUpdateManyWithoutEnrollmentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    stepId?: StringFieldUpdateOperationsInput | string
+    stepType?: StringFieldUpdateOperationsInput | string
+    sequence?: IntFieldUpdateOperationsInput | number
+    status?: EnumMarketingAutomationStepRunStatusFieldUpdateOperationsInput | $Enums.MarketingAutomationStepRunStatus
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    templateVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    firstAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

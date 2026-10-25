@@ -25,6 +25,15 @@ const { createInboundProcessor } = require("./pipelines/inbound.processor");
 const { createOutboundProcessor } = require("./pipelines/outbound.processor");
 const { createDeliveryEventProcessor } = require("./pipelines/delivery-event.processor");
 const { createResendWebhookHandler } = require("./webhooks/resend-webhook.controller");
+const { createMarketingProviderResolver } = require("./adapters/marketing");
+const { createBroadcastService } = require("./marketing/broadcast.service");
+const { createBroadcastProcessor } = require("./marketing/broadcast.processor");
+const { createAutomationService } = require("./marketing/automation/automation.service");
+const { createAutomationProcessor } = require("./marketing/automation/automation.processor");
+const { createConfirmationService } = require("./marketing/confirmation.service");
+const { createTestSendService } = require("./marketing/test-send.service");
+const { createMarketingEventsProcessor } = require("./marketing/marketing-events.processor");
+const { createPublicPreferencesService } = require("./marketing/public-preferences.service");
 const { createMailSchemaReadiness } = require("./schema-readiness");
 
 async function unwrapKeyring({ config, encryption, logger, kmsClient }) {
@@ -52,7 +61,7 @@ async function unwrapKeyring({ config, encryption, logger, kmsClient }) {
   }
 }
 
-function createMailApplication({ client, env = process.env, config = loadMailConfig(env), adapter, storageBackend, scanner, encryption, kmsClient, mfa, authSchema, logger = console, clock = () => new Date() } = {}) {
+function createMailApplication({ client, env = process.env, config = loadMailConfig(env), adapter, storageBackend, scanner, encryption, kmsClient, mfa, authSchema, marketingAdapter, marketingAdapters, logger = console, clock = () => new Date() } = {}) {
   if (!client) client = require("../../shared/config/database").prisma;
   const schema = createMailSchemaReadiness({ client, logger });
   const useKms = !encryption && config.kms?.provider === "aws-kms";
@@ -74,20 +83,49 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const compose = createComposeService({ client, config, store, encryption: resolvedEncryption, scanner: resolvedScanner, jobs, audit, notifications, providerReady, clock });
   const admin = createMailAdminService({ client, config, adapter: resolvedAdapter, audit, notifications, clock });
   const support = createSupportService({ client, mailboxService: mailbox, audit, notifications, encryption: resolvedEncryption, clock });
-  const marketing = createMarketingService({ client, config, audit, stepUp, clock });
+  // M7: per-brand marketing provider accounts, broadcasts and automation.
+  const marketingProviders = createMarketingProviderResolver({ config, env, adapter: marketingAdapter, adapters: marketingAdapters });
+  const confirmation = createConfirmationService({ client, config, audit, jobs, encryption: resolvedEncryption, marketingProviders, clock });
+  const testSends = createTestSendService({ client, config, audit, jobs, marketingProviders, clock });
+  const marketing = createMarketingService({ client, config, audit, stepUp, clock, hooks: { onConfirmationRequired: confirmation.onConfirmationRequired } });
+  const broadcasts = createBroadcastService({ client, config, audit, jobs, stepUp, env, clock });
+  const automations = createAutomationService({ client, config, audit, stepUp, clock });
+  const publicPreferences = createPublicPreferencesService({ client, config, audit, marketing, clock });
   const attachmentReview = createAttachmentReviewService({ client, config, store, scanner: resolvedScanner, audit });
 
   const inbound = createInboundProcessor({ client, config, adapter: resolvedAdapter, store, scanner: resolvedScanner, audit, notifications, clock });
   const outbound = createOutboundProcessor({ client, config, adapter: resolvedAdapter, store, audit, notifications, clock });
-  const deliveryEvents = createDeliveryEventProcessor({ client, audit, notifications });
+  const marketingEvents = createMarketingEventsProcessor({ client, audit, clock });
+  const deliveryEvents = createDeliveryEventProcessor({ client, audit, notifications, marketingEvents });
+  const broadcastProcessor = createBroadcastProcessor({ client, config, audit, jobs, marketingProviders, eligibility: marketing.eligibleContacts, notifications, clock, logger });
+  const automationProcessor = createAutomationProcessor({ client, config, audit, jobs, marketingProviders, eligibility: marketing.eligibleContacts, clock, logger });
 
   function createWorker(options = {}) {
     return createMailWorker({
       jobs,
       config,
       logger,
-      handlers: { SEND_MESSAGE: outbound.process, PROCESS_INBOUND: inbound.process, PROCESS_DELIVERY_EVENT: deliveryEvents.process },
-      onDeadLetter: { SEND_MESSAGE: outbound.onDeadLetter },
+      handlers: {
+        SEND_MESSAGE: outbound.process,
+        PROCESS_INBOUND: inbound.process,
+        PROCESS_DELIVERY_EVENT: deliveryEvents.process,
+        BROADCAST_DISPATCH: broadcastProcessor.processDispatch,
+        BROADCAST_RECONCILE: broadcastProcessor.processReconcile,
+        AUTOMATION_TICK: automationProcessor.processTick,
+        AUTOMATION_STEP: automationProcessor.processStep,
+        MARKETING_CONFIRMATION_EMAIL: confirmation.process,
+        MARKETING_TEST_SEND: testSends.process,
+      },
+      onDeadLetter: { SEND_MESSAGE: outbound.onDeadLetter, BROADCAST_DISPATCH: broadcastProcessor.onDeadLetter, BROADCAST_RECONCILE: broadcastProcessor.onDeadLetter, AUTOMATION_STEP: automationProcessor.onDeadLetter },
+      // A MARKETING worker schedules one automation tick per minute bucket;
+      // the idempotency key makes concurrent workers enqueue it once.
+      beforeTick: async ({ queues }) => {
+        if (!queues.includes("MARKETING") || !config.automationEnabled) return;
+        const bucket = Math.floor(clock().getTime() / 60000);
+        await jobs.enqueue(null, { queue: "MARKETING", kind: "AUTOMATION_TICK", idempotencyKey: `automation-tick:${bucket}`, maxAttempts: 2 }).catch((error) => {
+          if (error?.code !== "P2002") throw error;
+        });
+      },
       schemaReady: schema.isReady,
       ...options,
     });
@@ -120,9 +158,11 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
     audit,
     store,
     jobs,
-    services: { mailbox, compose, admin, support, marketing, stepUp, breakGlass, attachmentReview },
-    processors: { inbound, outbound, deliveryEvents },
-    webhookHandler: createResendWebhookHandler({ client, config, jobs, audit, logger, clock: () => clock().getTime(), schemaReady: schema.isReady }),
+    services: { mailbox, compose, admin, support, marketing, stepUp, breakGlass, attachmentReview, broadcasts, automations, publicPreferences, confirmation, testSends },
+    processors: { inbound, outbound, deliveryEvents, marketingEvents, broadcasts: broadcastProcessor, automations: automationProcessor },
+    marketingProviders,
+    webhookHandler: createResendWebhookHandler({ client, config, jobs, audit, logger, clock: () => clock().getTime(), env, schemaReady: schema.isReady }),
+    brandWebhookHandler: createResendWebhookHandler({ client, config, jobs, audit, logger, clock: () => clock().getTime(), env, brandMode: true, schemaReady: schema.isReady }),
     createWorker,
     health,
     schema,

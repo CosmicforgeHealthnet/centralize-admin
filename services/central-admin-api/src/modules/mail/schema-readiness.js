@@ -24,6 +24,13 @@ const MAIL_SCHEMA_REQUIREMENTS = [
     ],
   },
   { migration: "20261026_mail_step_up_session_binding.sql", columns: [["mail_step_up_verifications", "session_id"]] },
+  {
+    migration: "20261027_mail_m7_broadcasts_automation.sql",
+    tables: [
+      "marketing_brand_settings", "marketing_campaign_approved_contacts", "marketing_broadcast_dispatches", "marketing_broadcast_recipients",
+      "marketing_automations", "marketing_automation_versions", "marketing_automation_enrollments", "marketing_automation_step_runs", "marketing_trigger_events",
+    ],
+  },
 ];
 
 function quoteLiteral(value) {

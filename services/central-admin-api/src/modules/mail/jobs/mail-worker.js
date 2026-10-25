@@ -7,7 +7,7 @@
 
 const { leaseOwnerId } = require("./mail-job.repository");
 
-function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, queues = ["OUTBOUND", "INBOUND", "EVENTS"], schemaReady = null, setTimer = setTimeout, clearTimer = clearTimeout }) {
+function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, queues = ["OUTBOUND", "INBOUND", "EVENTS"], beforeTick = null, schemaReady = null, setTimer = setTimeout, clearTimer = clearTimeout }) {
   const leaseOwner = leaseOwnerId();
   const metrics = { claimed: 0, succeeded: 0, retried: 0, failed: 0, deadLettered: 0, recovered: 0, lastTickAt: null, lastError: null };
   let running = false;
@@ -23,6 +23,13 @@ function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, q
     }
     try {
       const result = await handler(job);
+      // Handlers may ask to run again later without consuming an attempt
+      // (paused dispatch, disabled flag, batched multi-step progress).
+      if (result?.defer) {
+        await jobs.defer(job, result.defer);
+        metrics.deferred = (metrics.deferred || 0) + 1;
+        return;
+      }
       await jobs.complete(job, { providerRequestId: result?.providerMessageId || null });
       metrics.succeeded += 1;
     } catch (error) {
@@ -45,6 +52,7 @@ function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, q
       return 0;
     }
     metrics.schemaReady = true;
+    if (beforeTick) await beforeTick({ queues });
     const recovered = await jobs.recoverExpiredLeases();
     metrics.recovered += recovered.length;
     for (const entry of recovered) {

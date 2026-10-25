@@ -75,7 +75,17 @@ function hashToken(token) {
   return crypto.createHash("sha256").update(String(token)).digest("hex");
 }
 
-function createMarketingService({ client, config, audit, stepUp, clock = () => new Date() }) {
+// Durable trigger for consent-backed welcome automations (M7). Idempotent per
+// consent grant; the automation engine re-checks consent before every send.
+async function recordConsentGranted(tx, { organizationId, contactId, consent, at }) {
+  const occurredAt = at || consent.confirmedAt || consent.consentedAt || new Date();
+  await tx.marketingTriggerEvent.createMany({
+    data: [{ organizationId, source: "CONSENT", eventType: "consent.granted", eventId: `${consent.id}:${occurredAt.getTime()}`, contactId, payload: { topic: consent.topic, policyVersion: consent.policyVersion }, occurredAt }],
+    skipDuplicates: true,
+  });
+}
+
+function createMarketingService({ client, config, audit, stepUp, clock = () => new Date(), hooks = {} }) {
   const scope = (user, organizationId, need) => {
     if (!config.marketingEnabled) throw mailError("MAIL_MARKETING_DISABLED");
     return policy.requireMarketingScope(client, user, organizationId, need);
@@ -130,7 +140,15 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
       update: data,
     });
     await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CONSENT_RECORDED", targetType: "marketing_contact", targetId: contact.id, organizationId, metadata: { topic: consent.topic, status: row.status, source: consent.source, policyVersion: consent.policyVersion } }, {}, tx);
-    return { consent: row, confirmationToken: token };
+    if (row.status === "GRANTED") await recordConsentGranted(tx, { organizationId, contactId: contact.id, consent: row, at: now });
+    // Double opt-in: the confirmation email is a durable job (never sent inline).
+    let confirmationEmail = null;
+    if (row.status === "PENDING_CONFIRMATION" && token && hooks.onConfirmationRequired) confirmationEmail = await hooks.onConfirmationRequired(tx, { organizationId, contact, consent: row, token });
+    // The token belongs to the contact. It is only echoed to the API caller in
+    // non-production environments without confirmation emails (manual testing);
+    // otherwise an admin could confirm on the contact's behalf.
+    const exposeToken = !config.confirmationEmailsEnabled && config.deploymentEnvironment !== "production";
+    return { consent: row, confirmationToken: exposeToken ? token : null, confirmationEmail };
   }
 
   async function createContact(user, organizationId, input, context) {
@@ -143,10 +161,11 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
       if (existing) throw mailError("MAIL_VALIDATION_FAILED", { field: "email", reason: "DUPLICATE_CONTACT", contactId: existing.id });
       const contact = await tx.marketingContact.create({ data: { organizationId, email, firstName: cleanName(input.firstName), lastName: cleanName(input.lastName), attributes: cleanAttributes(input.attributes) || undefined, source: consent ? consent.source.toLowerCase() : "manual", createdBy: user.id } });
       let confirmationToken = null;
-      if (consent) ({ confirmationToken } = await upsertConsentTx(tx, user, organizationId, contact, consent));
+      let confirmationEmail = null;
+      if (consent) ({ confirmationToken, confirmationEmail } = await upsertConsentTx(tx, user, organizationId, contact, consent));
       await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CONTACT_CREATED", targetType: "marketing_contact", targetId: contact.id, organizationId }, context, tx);
       const full = await tx.marketingContact.findUnique({ where: { id: contact.id }, include: { consents: true } });
-      return { ...serializeContact(full), confirmationToken };
+      return { ...serializeContact(full), confirmationToken, confirmationEmail };
     });
   }
 
@@ -196,7 +215,7 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     const consent = validateConsentInput(input);
     const result = await client.$transaction((tx) => upsertConsentTx(tx, user, organizationId, contact, consent));
     await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CONSENT_UPDATED", targetType: "marketing_contact", targetId: contactId, organizationId }, context);
-    return { topic: result.consent.topic, status: result.consent.status, confirmationToken: result.confirmationToken };
+    return { topic: result.consent.topic, status: result.consent.status, confirmationToken: result.confirmationToken, confirmationEmail: result.confirmationEmail };
   }
 
   async function withdrawConsent(user, organizationId, contactId, topic, { source } = {}, context) {
@@ -214,8 +233,13 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     if (!/^[A-Za-z0-9_-]{20,64}$/.test(String(token || ""))) throw mailError("MAIL_NOT_FOUND", { resource: "consent" });
     const consent = await client.marketingConsent.findFirst({ where: { confirmationTokenHash: hashToken(token), status: "PENDING_CONFIRMATION" } });
     if (!consent) throw mailError("MAIL_NOT_FOUND", { resource: "consent" });
-    await client.marketingConsent.update({ where: { id: consent.id }, data: { status: "GRANTED", confirmedAt: clock(), confirmationTokenHash: null } });
-    await audit.record({ action: "MARKETING_CONSENT_CONFIRMED", targetType: "marketing_contact", targetId: consent.contactId, organizationId: consent.organizationId, metadata: { topic: consent.topic } });
+    await client.$transaction(async (tx) => {
+      const confirmedAt = clock();
+      const updated = await tx.marketingConsent.updateMany({ where: { id: consent.id, status: "PENDING_CONFIRMATION" }, data: { status: "GRANTED", confirmedAt, confirmationTokenHash: null } });
+      if (updated.count !== 1) throw mailError("MAIL_NOT_FOUND", { resource: "consent" });
+      await recordConsentGranted(tx, { organizationId: consent.organizationId, contactId: consent.contactId, consent: { ...consent, confirmedAt }, at: confirmedAt });
+      await audit.record({ action: "MARKETING_CONSENT_CONFIRMED", targetType: "marketing_contact", targetId: consent.contactId, organizationId: consent.organizationId, metadata: { topic: consent.topic } }, {}, tx);
+    });
     return { confirmed: true };
   }
 
@@ -582,7 +606,7 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
       frequencyCapHours: campaign.frequencyCapHours, legacyCampaignId: campaign.legacyCampaignId, revision: campaign.revision,
       createdBy: campaign.createdByAdminUserId, submittedAt: iso(campaign.submittedAt), submittedBy: campaign.submittedByAdminUserId,
       approvedAt: iso(campaign.approvedAt), approvedBy: campaign.approvedByAdminUserId, createdAt: iso(campaign.createdAt), updatedAt: iso(campaign.updatedAt),
-      dispatchEnabled: false,
+      dispatchEnabled: config.broadcastDispatchEnabled,
     };
   }
 
@@ -669,7 +693,7 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
       });
       if (result.count !== 1) throw mailError("MAIL_DRAFT_REVISION_CONFLICT", { currentRevision: null });
       if (invalidates) {
-        await tx.marketingCampaignApproval.create({ data: { campaignId, revision: campaign.revision, decision: "INVALIDATED", reviewerAdminUserId: user.id, comment: "Material edit after submission/approval" } });
+        await tx.marketingCampaignApproval.create({ data: { campaignId, revision: campaign.revision, decision: "INVALIDATED", reviewerAdminUserId: user.id, comment: "Material edit after submission/approval", createdAt: clock() } });
         await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CAMPAIGN_APPROVAL_INVALIDATED", targetType: "marketing_campaign", targetId: campaignId, organizationId, metadata: { previousStatus: campaign.status, revision: campaign.revision } }, context, tx);
       }
       return tx.marketingEmailCampaign.findUnique({ where: { id: campaignId } });
@@ -714,12 +738,15 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     add("consent_backed_recipients", eligibility.eligible.length > 0, `${eligibility.eligible.length} eligible of ${eligibility.total}`);
     add("suppression_applied", true, `${eligibility.excludedReasons.suppressed || 0} suppressed contacts excluded`);
     const capWindow = new Date(clock().getTime() - campaign.frequencyCapHours * 3600000);
-    const recent = await client.marketingEmailCampaign.count({ where: { organizationId: campaign.organizationId, id: { not: campaign.id }, audienceId: campaign.audienceId, status: { in: ["SCHEDULED", "QUEUED", "SENDING", "COMPLETE", "PARTIAL"] }, updatedAt: { gt: capWindow } } });
+    const recent = await client.marketingEmailCampaign.count({ where: { organizationId: campaign.organizationId, id: { not: campaign.id }, audienceId: campaign.audienceId, status: { in: ["SCHEDULED", "QUEUED", "SENDING", "COMPLETE", "PARTIAL", "OUTCOME_UNKNOWN"] }, updatedAt: { gt: capWindow } } });
     add("frequency_cap", recent === 0, recent ? `${recent} campaign(s) to this audience inside ${campaign.frequencyCapHours}h` : `No sends inside ${campaign.frequencyCapHours}h`);
+    // Marketing mail must carry the brand's physical postal address (M7).
+    const brandSettings = await client.marketingBrandSettings.findUnique({ where: { organizationId: campaign.organizationId } });
+    add("postal_address", Boolean(brandSettings?.postalAddress), brandSettings?.postalAddress ? "Postal address included in the footer" : "Set the brand postal address in Email Marketing settings");
     let rendered = null;
     if (version) {
       try {
-        rendered = renderTemplate({ subject: campaign.subjectOverride || version.subject, preheader: version.preheader, blocks: version.blocks, brand: version.brand || {} });
+        rendered = renderTemplate({ subject: campaign.subjectOverride || version.subject, preheader: version.preheader, blocks: version.blocks, brand: { ...(version.brand || {}), ...(brandSettings?.postalAddress ? { postalAddress: brandSettings.postalAddress } : {}) } });
         add("template_renders", true, `${rendered.variables.length} variables`);
         const links = scanLinks(rendered.html);
         add("links_safe", links.ok, links.ok ? `${links.linkCount} link(s) checked` : links.issues.slice(0, 5).map((issue) => `${issue.kind}: ${issue.detail}`).join("; "));
@@ -743,7 +770,7 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     const subject = result.rendered.subject;
     const contentSha256 = crypto.createHash("sha256").update(JSON.stringify({ subject, html, text, sender: result.sender.address, replyTo: campaign.replyTo, templateVersionId: result.version.id })).digest("hex");
     return tx.marketingCampaignSnapshot.create({
-      data: { campaignId: campaign.id, revision: campaign.revision, kind, templateVersionId: result.version.id, senderAddress: result.sender.address, replyTo: campaign.replyTo, subject, html, text, audienceSnapshot: { audienceId: campaign.audienceId, segmentId: campaign.segmentId, topic: campaign.topic, contactSetSha256: result.contactHash, contactCount: result.contactIds.length }, eligibleCount: result.eligibleCount, excludedCount: result.excludedCount, contentSha256, createdBy: user.id },
+      data: { campaignId: campaign.id, revision: campaign.revision, kind, templateVersionId: result.version.id, senderAddress: result.sender.address, replyTo: campaign.replyTo, subject, html, text, audienceSnapshot: { audienceId: campaign.audienceId, segmentId: campaign.segmentId, topic: campaign.topic, contactSetSha256: result.contactHash, contactCount: result.contactIds.length }, eligibleCount: result.eligibleCount, excludedCount: result.excludedCount, contentSha256, createdBy: user.id, createdAt: clock() },
     });
   }
 
@@ -782,7 +809,12 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
       if (!submission || submission.contentSha256 !== snapshot.contentSha256) throw mailError("MAIL_INVALID_TRANSITION", { reason: "CONTENT_CHANGED_SINCE_SUBMISSION" });
       const updated = await tx.marketingEmailCampaign.updateMany({ where: { id: campaignId, revision: campaign.revision, status: "READY_FOR_REVIEW" }, data: { status: "APPROVED", approvedAt: clock(), approvedByAdminUserId: user.id } });
       if (updated.count !== 1) throw mailError("MAIL_DRAFT_REVISION_CONFLICT", { currentRevision: null });
-      await tx.marketingCampaignApproval.create({ data: { campaignId, revision: campaign.revision, decision: "APPROVED", reviewerAdminUserId: user.id, stepUpId: consumed, snapshotId: snapshot.id, comment: comment ? String(comment).slice(0, 2000) : null } });
+      await tx.marketingCampaignApproval.create({ data: { campaignId, revision: campaign.revision, decision: "APPROVED", reviewerAdminUserId: user.id, stepUpId: consumed, snapshotId: snapshot.id, comment: comment ? String(comment).slice(0, 2000) : null, createdAt: clock() } });
+      // M7: the exact recipient set that was reviewed. Dispatch sends only to
+      // contacts in this set that are still eligible at dispatch time.
+      for (let index = 0; index < result.contactIds.length; index += 1000) {
+        await tx.marketingCampaignApprovedContact.createMany({ data: result.contactIds.slice(index, index + 1000).map((contactId) => ({ snapshotId: snapshot.id, contactId })), skipDuplicates: true });
+      }
       await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CAMPAIGN_APPROVED", targetType: "marketing_campaign", targetId: campaignId, organizationId, metadata: { revision: campaign.revision, snapshotId: snapshot.id, contentSha256: snapshot.contentSha256 } }, context, tx);
       return tx.marketingEmailCampaign.findUnique({ where: { id: campaignId } });
     });
@@ -835,4 +867,4 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
   };
 }
 
-module.exports = { createMarketingService, validateConsentInput };
+module.exports = { createMarketingService, validateConsentInput, recordConsentGranted };

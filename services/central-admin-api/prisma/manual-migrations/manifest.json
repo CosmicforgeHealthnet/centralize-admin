@@ -147,6 +147,11 @@
       "order": 29,
       "file": "20261026_mail_step_up_session_binding.sql",
       "sha256": "5bfc3b52d1eb6d4dd957d139045f1bddecb00f818c2d856997c30be8cdf56fbf"
+    },
+    {
+      "order": 30,
+      "file": "20261027_mail_m7_broadcasts_automation.sql",
+      "sha256": "88c17ea2ca3f835f2eeb5ee4213da76a0751ccd373cedc20238f51a36232e65f"
     }
   ]
 }

@@ -16,7 +16,7 @@ function getMailApplication(options = {}) {
 function createMailHttp({ env = process.env, authenticate, mail } = {}) {
   const application = mail || createMailApplication({ env });
   const router = createMailRouter({ mail: application, authenticate });
-  return { application, router, webhookHandler: application.webhookHandler };
+  return { application, router, webhookHandler: application.webhookHandler, brandWebhookHandler: application.brandWebhookHandler };
 }
 
 module.exports = { createMailApplication, createMailRouter, createMailHttp, getMailApplication, loadMailConfig, publicStatus };

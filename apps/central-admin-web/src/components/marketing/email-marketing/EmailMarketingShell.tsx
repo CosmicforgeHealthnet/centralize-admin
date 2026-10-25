@@ -17,6 +17,7 @@ const TABS = [
   { label: "Contacts & consent", href: "/contacts" },
   { label: "Templates", href: "/templates" },
   { label: "Automation", href: "/automation" },
+  { label: "Settings", href: "/settings" },
 ];
 const ROOT = "/dashboard/marketing/email-marketing";
 

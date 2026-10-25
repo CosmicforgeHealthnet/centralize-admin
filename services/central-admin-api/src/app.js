@@ -24,6 +24,13 @@ const { authenticate } = require("./shared/middlewares/auth.middleware");
 const MAIL_API_PREFIX = "/api/mail/v1";
 const MAIL_WEBHOOK_PATH = `${MAIL_API_PREFIX}/webhooks/resend`;
 
+// Raw-body Mail endpoints (signature checks need the exact bytes).
+const MAIL_BRAND_WEBHOOK_PATH = new RegExp(`^${MAIL_WEBHOOK_PATH.replace(/\//g, "\\/")}\\/brand\\/[a-z0-9][a-z0-9-]{0,63}$`);
+function isMailRawPath(url) {
+  const path = String(url || "").split("?")[0];
+  return path === MAIL_WEBHOOK_PATH || MAIL_BRAND_WEBHOOK_PATH.test(path);
+}
+
 function isMailPath(url) {
   const path = String(url || "").split("?")[0];
   return path === MAIL_API_PREFIX || path.startsWith(`${MAIL_API_PREFIX}/`);
@@ -111,7 +118,7 @@ app.use(
   const mailJsonParser = express.json({ limit: "1mb" });
 
   app.use((req, res, next) => {
-    if (req.method === "POST" && String(req.originalUrl || "").split("?")[0] === MAIL_WEBHOOK_PATH) {
+    if (req.method === "POST" && isMailRawPath(req.originalUrl)) {
       return mailWebhookRawParser(req, res, (error) => {
         if (error) return next(error);
         req.rawBody = Buffer.isBuffer(req.body) ? Buffer.from(req.body) : Buffer.alloc(0);
@@ -221,6 +228,7 @@ app.use(
   );
   app.use("/api/hrm", routes.hrmRoutes);
   app.post(MAIL_WEBHOOK_PATH, mailHttp.webhookHandler);
+  if (mailHttp.brandWebhookHandler) app.post(`${MAIL_WEBHOOK_PATH}/brand/:slug`, mailHttp.brandWebhookHandler);
   app.use(MAIL_API_PREFIX, mailHttp.router);
 
   app.use("/{*splat}", notFound);

@@ -50,6 +50,41 @@ const TONES: Record<string, string> = {
   BOUNCED: "bg-red-50 text-red-700",
   COMPLAINED: "bg-red-50 text-red-700",
   SUPPRESSED: "bg-red-50 text-red-700",
+  SCHEDULED: "bg-sky-50 text-sky-700",
+  QUEUED: "bg-sky-50 text-sky-700",
+  PREPARING: "bg-sky-50 text-sky-700",
+  SENDING: "bg-sky-50 text-sky-700",
+  PAUSED: "bg-amber-50 text-amber-700",
+  COMPLETED: "bg-emerald-50 text-emerald-700",
+  COMPLETE: "bg-emerald-50 text-emerald-700",
+  PARTIAL: "bg-amber-50 text-amber-700",
+  FAILED: "bg-red-50 text-red-700",
+  CANCELLED: "bg-muted text-muted-foreground",
+  OUTCOME_UNKNOWN: "bg-orange-50 text-orange-700",
+  PROVIDER_ACCEPTED: "bg-sky-50 text-sky-700",
+  DELIVERED: "bg-emerald-50 text-emerald-700",
+  DELAYED: "bg-amber-50 text-amber-700",
+  EXCLUDED: "bg-muted text-muted-foreground",
+  PUBLISHED: "bg-emerald-50 text-emerald-700",
+  PENDING_REVIEW: "bg-amber-50 text-amber-700",
+  SUPERSEDED: "bg-muted text-muted-foreground",
+  WAITING: "bg-sky-50 text-sky-700",
+  EXITED: "bg-muted text-muted-foreground",
+  ARCHIVED: "bg-muted text-muted-foreground",
+};
+
+/** Plain-language meaning of each broadcast status (shown next to the badge). */
+export const BROADCAST_STATUS_HELP: Record<string, string> = {
+  SCHEDULED: "Waiting for its send time. Nothing has been sent.",
+  QUEUED: "Picked up by the marketing worker.",
+  PREPARING: "Re-checking approval, sender and consent, then syncing recipients. Nothing has been sent yet.",
+  PAUSED: "Paused before anything was sent. Resume to continue.",
+  SENDING: "Handed to the email provider. Delivery results arrive as provider events.",
+  COMPLETED: "The provider finished sending. Delivery results may still update.",
+  PARTIAL: "Some recipients could not be sent to, or the send was cancelled part-way.",
+  FAILED: "Stopped before sending. No email went out.",
+  CANCELLED: "Cancelled. No further email will be sent.",
+  OUTCOME_UNKNOWN: "The provider did not confirm the send. Do not resend without review.",
 };
 
 export function EmBadge({ value }: { value: string }) {
