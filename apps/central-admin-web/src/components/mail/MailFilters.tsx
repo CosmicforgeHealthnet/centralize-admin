@@ -81,21 +81,25 @@ export default function MailFilters({ mailbox }: { mailbox: MailboxSummary }) {
     },
     onError,
   });
-  // Optimistic: the switch flips immediately and rolls back on error.
+  // Optimistic: the switch flips in the same event (no async gap, so the
+  // controlled checkbox never snaps back) and rolls back on error.
+  const [pendingEnabled, setPendingEnabled] = useState<Record<string, boolean>>({});
+  const clearPending = (id: string) => setPendingEnabled(({ [id]: _done, ...rest }) => rest);
   const toggle = useMutation({
-    mutationFn: (rule: MailRule) => updateRule(rule.id, { enabled: !rule.enabled }),
-    onMutate: async (rule: MailRule) => {
-      await qc.cancelQueries({ queryKey: key });
-      const previous = qc.getQueryData<MailRule[]>(key);
-      qc.setQueryData<MailRule[]>(key, (current) => (current ?? []).map((r) => (r.id === rule.id ? { ...r, enabled: !rule.enabled } : r)));
-      return { previous };
-    },
-    onError: (e, _rule, context) => {
-      if (context?.previous) qc.setQueryData(key, context.previous);
-      onError(e);
+    mutationFn: ({ rule, enabled }: { rule: MailRule; enabled: boolean }) => updateRule(rule.id, { enabled }),
+    onError: (e, { rule }) => { clearPending(rule.id); onError(e); },
+    onSuccess: (_data, { rule, enabled }) => {
+      qc.setQueryData<MailRule[]>(key, (current) => (current ?? []).map((r) => (r.id === rule.id ? { ...r, enabled } : r)));
+      clearPending(rule.id);
     },
     onSettled: refresh,
   });
+  const isEnabled = (rule: MailRule) => pendingEnabled[rule.id] ?? rule.enabled;
+  const flip = (rule: MailRule) => {
+    const enabled = !isEnabled(rule);
+    setPendingEnabled((current) => ({ ...current, [rule.id]: enabled }));
+    toggle.mutate({ rule, enabled });
+  };
   const remove = useMutation({ mutationFn: (rule: MailRule) => deleteRule(rule.id), onSuccess: () => { setMsg("Filter deleted."); refresh(); }, onError });
   const move = useMutation({
     mutationFn: ({ index, delta }: { index: number; delta: number }) => {
@@ -119,15 +123,15 @@ export default function MailFilters({ mailbox }: { mailbox: MailboxSummary }) {
           <ol className="mb-3 flex flex-col gap-1" aria-label="Filters in execution order">
             {(rules.data ?? []).length === 0 && <li className="text-[12px] text-muted-foreground">No filters yet.</li>}
             {(rules.data ?? []).map((rule, index, all) => (
-              <li key={rule.id} className={`flex items-start gap-2 rounded border border-border px-2 py-1 text-[12px] ${rule.enabled ? "" : "opacity-60"}`}>
+              <li key={rule.id} className={`flex items-start gap-2 rounded border border-border px-2 py-1 text-[12px] ${isEnabled(rule) ? "" : "opacity-60"}`}>
                 <div className="flex-1">
-                  <p className="font-semibold">{rule.name}{rule.enabled ? "" : " (off)"}</p>
+                  <p className="font-semibold">{rule.name}{isEnabled(rule) ? "" : " (off)"}</p>
                   <p className="text-[11px] text-muted-foreground">{describeRule(rule, labels.data ?? [])}</p>
                 </div>
                 <button type="button" aria-label={`Move ${rule.name} up`} className="rounded p-1 hover:bg-muted disabled:opacity-30" disabled={index === 0 || move.isPending} onClick={() => move.mutate({ index, delta: -1 })}><ArrowUp className="h-3.5 w-3.5" /></button>
                 <button type="button" aria-label={`Move ${rule.name} down`} className="rounded p-1 hover:bg-muted disabled:opacity-30" disabled={index === all.length - 1 || move.isPending} onClick={() => move.mutate({ index, delta: 1 })}><ArrowDown className="h-3.5 w-3.5" /></button>
                 <label className="flex items-center gap-1 text-[11px]">
-                  <input type="checkbox" checked={rule.enabled} disabled={toggle.isPending} onChange={() => toggle.mutate(rule)} aria-label={`${rule.name} enabled`} /> On
+                  <input type="checkbox" checked={isEnabled(rule)} disabled={rule.id in pendingEnabled} onChange={() => flip(rule)} aria-label={`${rule.name} enabled`} /> On
                 </label>
                 <button type="button" aria-label={`Delete ${rule.name}`} className="rounded p-1 text-red-600 hover:bg-muted" disabled={remove.isPending} onClick={() => window.confirm(`Delete filter "${rule.name}"?`) && remove.mutate(rule)}><Trash2 className="h-3.5 w-3.5" /></button>
               </li>
