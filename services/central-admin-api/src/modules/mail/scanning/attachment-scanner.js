@@ -95,7 +95,13 @@ function clamdScanner({ host, port, timeoutMs = 15000, connectTimeoutMs = 3000, 
       const chunks = [];
       let settled = false;
       let connected = false;
-      const socket = net.createConnection({ host, port });
+      let socket;
+      try {
+        socket = net.createConnection({ host, port });
+      } catch {
+        resolve({ error: "CONNECTION_FAILED" });
+        return;
+      }
       const finish = (result) => {
         if (settled) return;
         settled = true;

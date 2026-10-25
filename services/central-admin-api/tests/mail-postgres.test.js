@@ -66,7 +66,7 @@ async function seedUsers(client) {
   return ids;
 }
 
-function createHarness(client) {
+function createHarness(client, { storageBackend } = {}) {
   let offsetMs = 0;
   const clock = () => new Date(Date.now() + offsetMs);
   const adapter = createFakeAdapter();
@@ -79,11 +79,13 @@ function createHarness(client) {
     MAIL_SEARCH_INDEX_BODIES: "true",
   };
   const config = loadMailConfig(baseEnv);
-  const backend = memoryBackend();
+  // MAIL_TEST_STORAGE=s3 runs the whole suite against the S3 backend (fake S3
+  // on 127.0.0.1) instead of memory; `backend.objects` exposes raw stored bytes.
+  const backend = storageBackend || memoryBackend();
   const mail = createMailApplication({ client, config, adapter, storageBackend: backend, scanner: signatureScanner(), logger: { info() {}, warn() {}, error() {} }, clock });
   // Another app instance over the same DB/storage/keys with different config
   // (e.g. a worker deployed with a changed allowlist).
-  const variant = (overrides, extra = {}) => createMailApplication({ client, config: loadMailConfig({ ...baseEnv, ...overrides }), adapter: extra.adapter || adapter, storageBackend: backend, encryption: mail.encryption, scanner: signatureScanner(), logger: { info() {}, warn() {}, error() {} }, clock });
+  const variant = (overrides, extra = {}) => createMailApplication({ client, config: loadMailConfig({ ...baseEnv, ...overrides }), adapter: extra.adapter || adapter, storageBackend: backend, encryption: mail.encryption, scanner: extra.scanner || signatureScanner(), logger: { info() {}, warn() {}, error() {} }, clock });
   const authenticate = async (req, res, next) => {
     try {
       const id = req.get("x-test-user");
@@ -125,7 +127,15 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
   const replay = await replayVerify({ keep: true });
   const client = new PrismaClient({ adapter: new PrismaPg({ connectionString: replay.replayUrl }) });
   await client.$connect();
-  const harness = createHarness(client);
+  let fakeS3 = null;
+  let storageBackend;
+  if (process.env.MAIL_TEST_STORAGE === "s3") {
+    const { startFakeS3 } = require("./helpers/mail-infra-fakes");
+    const { s3Backend } = require("../src/modules/mail/storage/s3-backend");
+    fakeS3 = await startFakeS3();
+    storageBackend = Object.assign(s3Backend(fakeS3.config()), { objects: fakeS3.objects });
+  }
+  const harness = createHarness(client, { storageBackend });
   const { server, base } = await listen(harness.app);
   const ids = await seedUsers(client);
 
@@ -844,6 +854,88 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       assert.notEqual(job.status, "RETRY_SCHEDULED", "unknown outcomes are never retried automatically");
     });
 
+    await t.test("Malware scanning: clamd verdicts quarantine EICAR and scanner outages; only an admin rescan can clear unscanned files", async () => {
+      const { clamdScanner } = require("../src/modules/mail/scanning/attachment-scanner");
+      const { startFakeClamd, closedPort } = require("./helpers/mail-infra-fakes");
+      const clamd = await startFakeClamd();
+      try {
+        const live = harness.variant({}, { scanner: clamdScanner({ host: clamd.host, port: clamd.port, timeoutMs: 2000, connectTimeoutMs: 1000 }) });
+        const down = harness.variant({}, { scanner: clamdScanner({ host: "127.0.0.1", port: await closedPort(), timeoutMs: 500, connectTimeoutMs: 300 }) });
+        const inbound = (id, subject, attachment) => {
+          harness.adapter.addInbound(id, { from: { address: "sender@client.example", name: null }, to: [{ address: "alice@cosmicforge.example", name: null }], cc: [], envelopeRecipients: [], subject, html: null, text: "see attached", rfcMessageId: `<${id}@client.example>`, inReplyTo: null, references: [], receivedAt: harness.clock() }, [attachment]);
+          return webhook("email.received", { email_id: id, to: ["alice@cosmicforge.example"] });
+        };
+        const attachmentOf = async (subject) => {
+          const row = await client.mailMessage.findFirst({ where: { subject, mailboxId: state.aliceBox }, include: { attachments: true } });
+          return { message: row, attachment: row.attachments[0] };
+        };
+
+        // EICAR through real clamd protocol => INFECTED, message quarantined, not downloadable.
+        await inbound("scan_eicar", "Scan EICAR", { filename: "eicar.com.txt", contentType: "text/plain", content: Buffer.from(EICAR) });
+        harness.advance(4 * 3600 * 1000);
+        await live.createWorker().drain();
+        const infected = await attachmentOf("Scan EICAR");
+        assert.equal(infected.attachment.scanStatus, "INFECTED");
+        assert.equal(infected.attachment.scanDetail, "Win.Test.EICAR_HDB-1");
+        assert.equal(infected.attachment.quarantined, true);
+        assert.equal(infected.message.status, "QUARANTINED");
+        const eicarDownload = await call("alice", "GET", `/attachments/${infected.attachment.id}/download`);
+        assert.equal(eicarDownload.status, 403);
+        assert.equal(eicarDownload.body.code, "MAIL_ATTACHMENT_QUARANTINED");
+        assert.equal(clamd.state.streams.at(-1).bytes, Buffer.from(EICAR).length, "clamd scanned the attachment bytes");
+
+        // Scanner outage => attachment quarantined (fail closed), never CLEAN.
+        await inbound("scan_outage", "Scan outage", { filename: "report.txt", contentType: "text/plain", content: Buffer.from("quarterly numbers") });
+        harness.advance(4 * 3600 * 1000);
+        await down.createWorker().drain();
+        const unscanned = await attachmentOf("Scan outage");
+        assert.equal(unscanned.attachment.scanStatus, "SCANNER_UNAVAILABLE");
+        assert.equal(unscanned.attachment.quarantined, true);
+        assert.equal((await call("alice", "GET", `/attachments/${unscanned.attachment.id}/download`)).status, 403);
+        const listed = await call("alice", "GET", `/threads/${unscanned.message.threadId}/messages`);
+        assert.equal(listed.body.data[0].attachments[0].downloadable, false);
+
+        // Outbound uploads are scanned too; unscanned attachments block sending.
+        const alice = await client.adminUser.findUnique({ where: { id: ids.alice } });
+        const draft = (await call("alice", "POST", `/mailboxes/${state.aliceBox}/drafts`, { to: ["bob@cosmicforge.example"], subject: "Outbound scan", text: "x" })).body.data;
+        const uploaded = await down.services.compose.addAttachment(alice, draft.id, { buffer: Buffer.from("plain"), originalname: "notes.txt", mimetype: "text/plain" });
+        assert.equal(uploaded.scanStatus, "SCANNER_UNAVAILABLE");
+        const send = await call("alice", "POST", `/drafts/${draft.id}/send`, { revision: (await call("alice", "GET", `/drafts/${draft.id}`)).body.data.revision });
+        assert.equal(send.status, 422);
+        assert.equal(send.body.code, "MAIL_ATTACHMENT_NOT_CLEAN");
+        const eicarUpload = await live.services.compose.addAttachment(alice, draft.id, { buffer: Buffer.from(EICAR), originalname: "x.txt", mimetype: "text/plain" });
+        assert.equal(eicarUpload.scanStatus, "INFECTED");
+
+        // Rescan: members cannot trigger it; admins can, it re-runs the scanner,
+        // and INFECTED is never released.
+        assert.equal((await call("alice", "POST", `/admin/attachments/${unscanned.attachment.id}/rescan`)).status, 403);
+        const mailAdmin = await client.adminUser.findUnique({ where: { id: ids.mailAdmin } });
+        const stillDown = await down.services.attachmentReview.rescanAttachment(mailAdmin, unscanned.attachment.id, {});
+        assert.equal(stillDown.downloadable, false, "rescan during an outage stays quarantined");
+        const cleared = await live.services.attachmentReview.rescanAttachment(mailAdmin, unscanned.attachment.id, {});
+        assert.deepEqual({ scanStatus: cleared.scanStatus, downloadable: cleared.downloadable }, { scanStatus: "CLEAN", downloadable: true });
+        const download = await call("alice", "GET", `/attachments/${unscanned.attachment.id}/download`);
+        assert.equal(download.status, 200);
+        assert.equal(download.text, "quarterly numbers");
+        const refused = await call("mailAdmin", "POST", `/admin/attachments/${infected.attachment.id}/rescan`);
+        assert.equal(refused.status, 403);
+        assert.equal(refused.body.code, "MAIL_ATTACHMENT_QUARANTINED");
+        assert.equal((await client.mailAttachment.findUnique({ where: { id: infected.attachment.id } })).scanStatus, "INFECTED");
+        const actions = (await client.mailAuditEvent.findMany({ where: { targetId: { in: [infected.attachment.id, unscanned.attachment.id] } }, select: { action: true, metadata: true } }));
+        assert.ok(actions.some((event) => event.action === "MAIL_ATTACHMENT_RESCAN_REFUSED"));
+        assert.ok(actions.some((event) => event.action === "MAIL_ATTACHMENT_RESCAN_CLEAN"));
+        assert.ok(actions.some((event) => event.action === "MAIL_ATTACHMENT_RESCAN_QUARANTINED"));
+        // Scanner health/metrics are reported to mail admins.
+        const health = await live.health();
+        assert.equal(health.scanner.ok, true);
+        assert.match(health.scanner.version, /^ClamAV/);
+        assert.ok(health.scanner.metrics.infected >= 2);
+        assert.equal((await down.health()).scanner.ok, false);
+      } finally {
+        await clamd.close();
+      }
+    });
+
     await t.test("M3: legal holds, immutable audit trail and offboarding retain history", async () => {
       await call("alice", "POST", `/threads/${state.aliceThreadId}/move`, { folder: "TRASH" });
       const hold = await call("mailAdmin", "POST", "/admin/legal-holds", { organizationId: state.orgId, mailboxId: state.aliceBox, reason: "Litigation hold LEGAL-42" });
@@ -1012,6 +1104,11 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
     });
   } finally {
     await closeServer(server);
+    if (fakeS3) {
+      assert.ok(fakeS3.requests.length > 0, "S3 backend was exercised");
+      assert.ok(fakeS3.requests.every((request) => request.signature.ok), "every S3 request was SigV4-signed");
+      await fakeS3.close();
+    }
     await client.$disconnect();
     await dropDatabase(BASE_DATABASE_URL, replay.databaseName);
   }

@@ -18,9 +18,8 @@ function hmac(key, value) {
 
 // RFC 3986 encoding as required by SigV4 (S3 keeps "/" in paths).
 function encodeRfc3986(value, { keepSlash = false } = {}) {
-  return encodeURIComponent(value)
-    .replace(/[!'()*]/g, (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`)
-    .replace(keepSlash ? /%2F/g : /$^/, "/");
+  const encoded = encodeURIComponent(value).replace(/[!'()*]/g, (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`);
+  return keepSlash ? encoded.replace(/%2F/g, "/") : encoded;
 }
 
 function amzDate(date) {
