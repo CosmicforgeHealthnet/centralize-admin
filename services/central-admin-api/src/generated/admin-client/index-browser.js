@@ -2923,6 +2923,51 @@ exports.Prisma.MailOpsAlertScalarFieldEnum = {
   resolvedAt: 'resolvedAt'
 };
 
+exports.Prisma.MailRolloutCohortScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  name: 'name',
+  description: 'description',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MailRolloutCohortMemberScalarFieldEnum = {
+  id: 'id',
+  cohortId: 'cohortId',
+  adminUserId: 'adminUserId',
+  addedBy: 'addedBy',
+  addedAt: 'addedAt',
+  removedAt: 'removedAt',
+  removedBy: 'removedBy'
+};
+
+exports.Prisma.MailRolloutRuleScalarFieldEnum = {
+  id: 'id',
+  environment: 'environment',
+  capability: 'capability',
+  scopeType: 'scopeType',
+  scopeId: 'scopeId',
+  effect: 'effect',
+  reason: 'reason',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  revokedAt: 'revokedAt',
+  revokedBy: 'revokedBy'
+};
+
+exports.Prisma.MailEmergencyStopScalarFieldEnum = {
+  id: 'id',
+  environment: 'environment',
+  scope: 'scope',
+  organizationId: 'organizationId',
+  reason: 'reason',
+  activatedBy: 'activatedBy',
+  activatedAt: 'activatedAt',
+  releasedAt: 'releasedAt',
+  releasedBy: 'releasedBy'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -4300,7 +4345,11 @@ exports.Prisma.ModelName = {
   MailRetentionRun: 'MailRetentionRun',
   MailUsageDaily: 'MailUsageDaily',
   MailQuotaLimit: 'MailQuotaLimit',
-  MailOpsAlert: 'MailOpsAlert'
+  MailOpsAlert: 'MailOpsAlert',
+  MailRolloutCohort: 'MailRolloutCohort',
+  MailRolloutCohortMember: 'MailRolloutCohortMember',
+  MailRolloutRule: 'MailRolloutRule',
+  MailEmergencyStop: 'MailEmergencyStop'
 };
 
 /**

@@ -146,7 +146,7 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
 
     // M9 kill switch: hold (never drop) queued mail while sending is stopped.
     const purpose = purposeForMailbox(message.mailbox);
-    const halted = runtime ? await runtime.haltReason(purpose, { organizationId: message.mailbox?.organizationId, mailboxId: message.mailboxId, adminUserId: message.sentByAdminUserId }) : null;
+    const halted = runtime ? await runtime.haltReason(purpose, { organizationId: message.mailbox?.organizationId, mailboxId: message.mailboxId, senderAddressId: message.senderAddressId, adminUserId: message.sentByAdminUserId }) : null;
     if (halted) return { defer: { seconds: 300, code: halted } };
 
     const body = await store.readBody(message);

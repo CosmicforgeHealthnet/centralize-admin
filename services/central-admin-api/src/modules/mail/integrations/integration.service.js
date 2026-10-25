@@ -28,7 +28,7 @@ const PURPOSES = new Set(["TRANSACTIONAL", "MARKETING_TRIGGER", "OPERATIONAL_ALE
 const CLASSIFICATIONS = new Set(["STANDARD", "RESTRICTED_HEALTH"]);
 const EVENT_TYPES_FOR = { STANDARD: ["mail.delivery_status", "marketing.trigger", "ops.alert"], RESTRICTED_HEALTH: ["ops.alert"] };
 
-function createIntegrationService({ client, config, audit, stepUp, automations, notifications, env = process.env, clock = () => new Date(), logger = null }) {
+function createIntegrationService({ client, config, audit, stepUp, automations, notifications, rollout = null, env = process.env, clock = () => new Date(), logger = null }) {
   const secrets = () => parseServiceSecrets(env.MAIL_INTEGRATION_SERVICE_SECRETS);
   const buckets = new Map();
 
@@ -123,6 +123,9 @@ function createIntegrationService({ client, config, audit, stepUp, automations, 
     if (!integration) return reply(401, "MAIL_INTEGRATION_UNAUTHORIZED");
     if (integration.status !== "ACTIVE") return reply(403, "MAIL_INTEGRATION_NOT_ACTIVE", { status: integration.status });
     if (rateLimited(integration.id)) return reply(429, "MAIL_RATE_LIMITED", { retryAfter: 60 });
+    // M10: an integration can be registered and approved but not yet rolled out.
+    const notRolledOut = rollout ? await rollout.decide("PRODUCT_INTEGRATION", { organizationId: integration.organizationId }) : null;
+    if (notRolledOut) return reply(503, "MAIL_ROLLOUT_NOT_ENABLED", { retryAfter: 300, reason: notRolledOut });
     const payloadSha256 = crypto.createHash("sha256").update(rawBody).digest("hex");
     let envelope;
     try {

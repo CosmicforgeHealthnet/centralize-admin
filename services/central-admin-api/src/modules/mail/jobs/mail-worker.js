@@ -7,7 +7,7 @@
 
 const { leaseOwnerId } = require("./mail-job.repository");
 
-function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, queues = ["OUTBOUND", "INBOUND", "EVENTS"], beforeTick = null, setTimer = setTimeout, clearTimer = clearTimeout }) {
+function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, queues = ["OUTBOUND", "INBOUND", "EVENTS"], beforeTick = null, queueFilter = null, setTimer = setTimeout, clearTimer = clearTimeout }) {
   const leaseOwner = leaseOwnerId();
   const metrics = { claimed: 0, succeeded: 0, retried: 0, failed: 0, deadLettered: 0, recovered: 0, lastTickAt: null, lastError: null };
   let running = false;
@@ -57,7 +57,11 @@ function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, q
     }
     const capacity = config.worker.concurrency - inFlight.size;
     if (capacity <= 0) return 0;
-    const claimed = await jobs.claim({ queues, leaseOwner, leaseSeconds: config.worker.leaseSeconds, limit: capacity });
+    // M10: rollout rules can keep a deployed worker idle for a queue.
+    const active = queueFilter ? await queueFilter(queues) : queues;
+    metrics.activeQueues = active;
+    if (!active.length) return 0;
+    const claimed = await jobs.claim({ queues: active, leaseOwner, leaseSeconds: config.worker.leaseSeconds, limit: capacity });
     metrics.claimed += claimed.length;
     for (const job of claimed) {
       const promise = runJob(job).finally(() => inFlight.delete(promise));

@@ -5459,3 +5459,74 @@ model MailOpsAlert {
   @@index([fingerprint, resolvedAt], map: "IDX_mail_ops_alerts_fingerprint")
   @@map("mail_ops_alerts")
 }
+
+// -----------------------------------------------------------------------------
+// CosmicForge Mail M10: rollout controls, pilot cohorts, emergency stops
+// -----------------------------------------------------------------------------
+
+// Pilot cohorts of HQ staff. Membership is the unit of onboarding and
+// offboarding: removing a member revokes cohort-scoped rollout immediately.
+model MailRolloutCohort {
+  id          String   @id @default(uuid()) @db.Uuid
+  key         String   @unique(map: "UQ_mail_rollout_cohorts_key") @db.VarChar(64)
+  name        String   @db.VarChar(160)
+  description String?  @db.VarChar(500)
+  createdBy   String   @map("created_by")
+  createdAt   DateTime @map("created_at") @db.Timestamptz(6)
+
+  members MailRolloutCohortMember[]
+
+  @@map("mail_rollout_cohorts")
+}
+
+model MailRolloutCohortMember {
+  id          String    @id @default(uuid()) @db.Uuid
+  cohortId    String    @map("cohort_id") @db.Uuid
+  adminUserId String    @map("admin_user_id")
+  addedBy     String    @map("added_by")
+  addedAt     DateTime  @map("added_at") @db.Timestamptz(6)
+  removedAt   DateTime? @map("removed_at") @db.Timestamptz(6)
+  removedBy   String?   @map("removed_by")
+
+  cohort MailRolloutCohort @relation(fields: [cohortId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_rollout_cohort_members_cohort")
+
+  @@index([adminUserId, removedAt], map: "IDX_mail_rollout_cohort_members_user")
+  @@map("mail_rollout_cohort_members")
+}
+
+// Rollout rules per deployment environment. When enforcement is on, a
+// capability is permitted only if an ALLOW rule matches the request scope and
+// no DENY rule does. Rules are revoked, never edited.
+model MailRolloutRule {
+  id          String    @id @default(uuid()) @db.Uuid
+  environment String    @db.VarChar(32)
+  capability  String    @db.VarChar(48)
+  scopeType   String    @map("scope_type") @db.VarChar(16)
+  scopeId     String?   @map("scope_id") @db.VarChar(128)
+  effect      String    @db.VarChar(8)
+  reason      String    @db.VarChar(500)
+  createdBy   String    @map("created_by")
+  createdAt   DateTime  @map("created_at") @db.Timestamptz(6)
+  revokedAt   DateTime? @map("revoked_at") @db.Timestamptz(6)
+  revokedBy   String?   @map("revoked_by")
+
+  @@index([environment, capability, revokedAt], map: "IDX_mail_rollout_rules_lookup")
+  @@map("mail_rollout_rules")
+}
+
+// Operator emergency stops (no redeploy). Activation is immediate; release
+// needs an MFA step-up (MAIL_EMERGENCY_STOP_RELEASE).
+model MailEmergencyStop {
+  id             String    @id @default(uuid()) @db.Uuid
+  environment    String    @db.VarChar(32)
+  scope          String    @db.VarChar(16)
+  organizationId String?   @map("organization_id") @db.Uuid
+  reason         String    @db.VarChar(500)
+  activatedBy    String    @map("activated_by")
+  activatedAt    DateTime  @map("activated_at") @db.Timestamptz(6)
+  releasedAt     DateTime? @map("released_at") @db.Timestamptz(6)
+  releasedBy     String?   @map("released_by")
+
+  @@index([environment, releasedAt], map: "IDX_mail_emergency_stops_active")
+  @@map("mail_emergency_stops")
+}

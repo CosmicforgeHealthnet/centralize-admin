@@ -258,6 +258,7 @@ function SettingsInner() {
         </Link>
         <h1 className="text-[15px] font-semibold">Mail settings</h1>
         <Link href="/dashboard/mail/operations" className="ml-auto text-[12px] font-semibold text-primary hover:underline">Operations</Link>
+        <Link href="/dashboard/mail/rollout" className="text-[12px] font-semibold text-primary hover:underline">Rollout</Link>
         <Link href="/dashboard/mail/integrations" className="text-[12px] font-semibold text-primary hover:underline">Product integrations</Link>
       </div>
       <PermissionBoundary isLoading={ent.isLoading} error={ent.error} retry={() => ent.refetch()}>

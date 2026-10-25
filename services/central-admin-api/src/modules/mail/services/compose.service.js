@@ -269,8 +269,8 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
       if (blocked) throw mailError("MAIL_SENDER_NOT_AUTHORIZED", { reason: blocked });
       // M9: emergency stop and brand/purpose hard limits (external mail only).
       const purpose = purposeForMailbox(mailbox);
-      const halted = runtime ? await runtime.haltReason(purpose, { organizationId: mailbox.organizationId, mailboxId: mailbox.id, adminUserId: user.id }) : null;
-      if (halted) throw mailError("MAIL_EMERGENCY_STOP", { reason: halted });
+      const halted = runtime ? await runtime.haltReason(purpose, { organizationId: mailbox.organizationId, mailboxId: mailbox.id, domainId: senderAddress?.domainId, adminUserId: user.id }) : null;
+      if (halted) throw mailError(halted.startsWith("MAIL_ROLLOUT_") ? halted : "MAIL_EMERGENCY_STOP", { reason: halted });
       if (usage) await usage.assertWithinQuota(mailbox.organizationId, purpose, externalRecipients.length);
     }
     await enforceQuota(user, mailbox);
