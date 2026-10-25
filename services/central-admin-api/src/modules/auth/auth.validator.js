@@ -40,6 +40,30 @@ const approveRejectPasswordResetSchema = z.object({
   reason: z.string().optional(),
 });
 
+// MFA: a 6-digit TOTP or a recovery code (XXXXX-XXXXX), never both required.
+const totpCode = z.string().trim().regex(/^\d{6}$/, "Enter the 6-digit code");
+const recoveryCode = z.string().trim().min(10).max(16);
+const factor = { code: totpCode.optional(), recoveryCode: recoveryCode.optional() };
+const oneFactor = (data) => Boolean(data.code || data.recoveryCode);
+const factorMessage = { message: "Enter an authenticator code or a recovery code", path: ["code"] };
+
+const mfaLoginSchema = z
+  .object({ challengeToken: z.string().min(20).max(200).optional(), ...factor })
+  .refine(oneFactor, factorMessage);
+
+const mfaCodeSchema = z.object(factor).refine(oneFactor, factorMessage);
+
+const mfaPasswordSchema = z.object({ password: z.string().min(1, "Password is required") });
+
+const mfaDisableSchema = z
+  .object({ password: z.string().min(1, "Password is required"), ...factor })
+  .refine(oneFactor, factorMessage);
+
+const mfaAdminResetSchema = z.object({
+  targetUserId: z.string().min(1, "Target user ID is required"),
+  reason: z.string().trim().min(10, "Give a reason (at least 10 characters)").max(500),
+});
+
 const validate = (schema) => (req, res, next) => {
   const result = schema.safeParse(req.body);
   if (!result.success) {
@@ -61,5 +85,10 @@ module.exports = {
   refreshTokenSchema,
   requestPasswordResetSchema,
   approveRejectPasswordResetSchema,
+  mfaLoginSchema,
+  mfaCodeSchema,
+  mfaPasswordSchema,
+  mfaDisableSchema,
+  mfaAdminResetSchema,
   validate,
 };

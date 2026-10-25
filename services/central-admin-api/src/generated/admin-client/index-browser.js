@@ -1676,6 +1676,83 @@ exports.Prisma.AdminManualMigrationLedgerScalarFieldEnum = {
   appliedAt: 'appliedAt'
 };
 
+exports.Prisma.AdminSessionScalarFieldEnum = {
+  id: 'id',
+  adminUserId: 'adminUserId',
+  mode: 'mode',
+  authMethod: 'authMethod',
+  csrfNonce: 'csrfNonce',
+  createdAt: 'createdAt',
+  lastSeenAt: 'lastSeenAt',
+  idleExpiresAt: 'idleExpiresAt',
+  absoluteExpiresAt: 'absoluteExpiresAt',
+  mfaVerifiedAt: 'mfaVerifiedAt',
+  revokedAt: 'revokedAt',
+  revokeReason: 'revokeReason',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent'
+};
+
+exports.Prisma.AdminSessionRefreshTokenScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  adminUserId: 'adminUserId',
+  tokenHash: 'tokenHash',
+  createdAt: 'createdAt',
+  expiresAt: 'expiresAt',
+  rotatedAt: 'rotatedAt',
+  revokedAt: 'revokedAt',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent'
+};
+
+exports.Prisma.AdminMfaEnrollmentScalarFieldEnum = {
+  adminUserId: 'adminUserId',
+  enrolledAt: 'enrolledAt',
+  secretEncrypted: 'secretEncrypted',
+  pendingSecretEncrypted: 'pendingSecretEncrypted',
+  pendingExpiresAt: 'pendingExpiresAt',
+  lastUsedStep: 'lastUsedStep',
+  failedAttempts: 'failedAttempts',
+  lockedUntil: 'lockedUntil',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AdminMfaRecoveryCodeScalarFieldEnum = {
+  id: 'id',
+  adminUserId: 'adminUserId',
+  salt: 'salt',
+  codeHash: 'codeHash',
+  createdAt: 'createdAt',
+  usedAt: 'usedAt'
+};
+
+exports.Prisma.AdminMfaChallengeScalarFieldEnum = {
+  id: 'id',
+  adminUserId: 'adminUserId',
+  tokenHash: 'tokenHash',
+  authMethod: 'authMethod',
+  attempts: 'attempts',
+  expiresAt: 'expiresAt',
+  consumedAt: 'consumedAt',
+  createdAt: 'createdAt',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent'
+};
+
+exports.Prisma.AdminAuthEventScalarFieldEnum = {
+  id: 'id',
+  adminUserId: 'adminUserId',
+  action: 'action',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  metadata: 'metadata',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.RefreshTokenScalarFieldEnum = {
   id: 'id',
   token: 'token',
@@ -3755,6 +3832,12 @@ exports.Prisma.ModelName = {
   SocialSavedReply: 'SocialSavedReply',
   SocialOperationsSetting: 'SocialOperationsSetting',
   AdminManualMigrationLedger: 'AdminManualMigrationLedger',
+  AdminSession: 'AdminSession',
+  AdminSessionRefreshToken: 'AdminSessionRefreshToken',
+  AdminMfaEnrollment: 'AdminMfaEnrollment',
+  AdminMfaRecoveryCode: 'AdminMfaRecoveryCode',
+  AdminMfaChallenge: 'AdminMfaChallenge',
+  AdminAuthEvent: 'AdminAuthEvent',
   RefreshToken: 'RefreshToken',
   AuditLog: 'AuditLog',
   AdminSectionGrant: 'AdminSectionGrant',

@@ -1,3 +1,4 @@
+const { hasFreshVerifiedMfa } = require("../../../../shared/auth/privileged-mfa");
 const { ACTOR_ROLES } = require("../execution.constants");
 const { executionError } = require("../execution.errors");
 const { validateEmergencyOverride } = require("./policy.validator");
@@ -54,7 +55,7 @@ function countEligibleApprovals(approvals, plan) {
 async function authorizeEmergencyOverride({ actor, override, executionConfig, policy, auditWriter }) {
   assertActionAllowed(actor, "EMERGENCY_OVERRIDE");
   if (!["ADMIN", "SUPER"].includes(actor.tier)) throw executionError("APPROVAL_NOT_ELIGIBLE", { reasonCode: "ELEVATED_AUTHORIZATION_REQUIRED" });
-  if (!actor.twoFactorEnabled) throw executionError("APPROVAL_NOT_ELIGIBLE", { reasonCode: "TWO_FACTOR_REQUIRED" });
+  if (!hasFreshVerifiedMfa(actor)) throw executionError("APPROVAL_NOT_ELIGIBLE", { reasonCode: "TWO_FACTOR_REQUIRED" });
   if (!policy?.emergencyOverrideAllowed) throw executionError("APPROVAL_NOT_ELIGIBLE", { reasonCode: "OVERRIDE_POLICY_DISABLED" });
   if (!executionConfig?.enabled) throw executionError("EXECUTION_DISABLED", { reasonCode: "GLOBAL_SWITCH_CANNOT_BE_BYPASSED" });
   const validated = validateEmergencyOverride(override);

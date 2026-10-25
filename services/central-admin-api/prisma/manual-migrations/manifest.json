@@ -137,6 +137,11 @@
       "order": 27,
       "file": "20261024_add_cosmicforge_mail_m1_m6.sql",
       "sha256": "a3b7d61f61fb815affb4f617481d878472d099ed48db43d60f2e52e9022ec9f0"
+    },
+    {
+      "order": 28,
+      "file": "20261025_add_admin_sessions_mfa.sql",
+      "sha256": "e8d1b5537677367aed24c2a09191bb95568cde2ad14d6b4d62c6fa083adbf883"
     }
   ]
 }

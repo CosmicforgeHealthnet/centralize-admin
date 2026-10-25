@@ -459,6 +459,36 @@ export type SocialOperationsSetting = $Result.DefaultSelection<Prisma.$SocialOpe
  */
 export type AdminManualMigrationLedger = $Result.DefaultSelection<Prisma.$AdminManualMigrationLedgerPayload>
 /**
+ * Model AdminSession
+ * 
+ */
+export type AdminSession = $Result.DefaultSelection<Prisma.$AdminSessionPayload>
+/**
+ * Model AdminSessionRefreshToken
+ * 
+ */
+export type AdminSessionRefreshToken = $Result.DefaultSelection<Prisma.$AdminSessionRefreshTokenPayload>
+/**
+ * Model AdminMfaEnrollment
+ * 
+ */
+export type AdminMfaEnrollment = $Result.DefaultSelection<Prisma.$AdminMfaEnrollmentPayload>
+/**
+ * Model AdminMfaRecoveryCode
+ * 
+ */
+export type AdminMfaRecoveryCode = $Result.DefaultSelection<Prisma.$AdminMfaRecoveryCodePayload>
+/**
+ * Model AdminMfaChallenge
+ * 
+ */
+export type AdminMfaChallenge = $Result.DefaultSelection<Prisma.$AdminMfaChallengePayload>
+/**
+ * Model AdminAuthEvent
+ * 
+ */
+export type AdminAuthEvent = $Result.DefaultSelection<Prisma.$AdminAuthEventPayload>
+/**
  * Model RefreshToken
  * 
  */
@@ -3739,6 +3769,66 @@ export class PrismaClient<
   get adminManualMigrationLedger(): Prisma.AdminManualMigrationLedgerDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.adminSession`: Exposes CRUD operations for the **AdminSession** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AdminSessions
+    * const adminSessions = await prisma.adminSession.findMany()
+    * ```
+    */
+  get adminSession(): Prisma.AdminSessionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.adminSessionRefreshToken`: Exposes CRUD operations for the **AdminSessionRefreshToken** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AdminSessionRefreshTokens
+    * const adminSessionRefreshTokens = await prisma.adminSessionRefreshToken.findMany()
+    * ```
+    */
+  get adminSessionRefreshToken(): Prisma.AdminSessionRefreshTokenDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.adminMfaEnrollment`: Exposes CRUD operations for the **AdminMfaEnrollment** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AdminMfaEnrollments
+    * const adminMfaEnrollments = await prisma.adminMfaEnrollment.findMany()
+    * ```
+    */
+  get adminMfaEnrollment(): Prisma.AdminMfaEnrollmentDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.adminMfaRecoveryCode`: Exposes CRUD operations for the **AdminMfaRecoveryCode** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AdminMfaRecoveryCodes
+    * const adminMfaRecoveryCodes = await prisma.adminMfaRecoveryCode.findMany()
+    * ```
+    */
+  get adminMfaRecoveryCode(): Prisma.AdminMfaRecoveryCodeDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.adminMfaChallenge`: Exposes CRUD operations for the **AdminMfaChallenge** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AdminMfaChallenges
+    * const adminMfaChallenges = await prisma.adminMfaChallenge.findMany()
+    * ```
+    */
+  get adminMfaChallenge(): Prisma.AdminMfaChallengeDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.adminAuthEvent`: Exposes CRUD operations for the **AdminAuthEvent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AdminAuthEvents
+    * const adminAuthEvents = await prisma.adminAuthEvent.findMany()
+    * ```
+    */
+  get adminAuthEvent(): Prisma.AdminAuthEventDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.refreshToken`: Exposes CRUD operations for the **RefreshToken** model.
     * Example usage:
     * ```ts
@@ -4893,6 +4983,12 @@ export namespace Prisma {
     SocialSavedReply: 'SocialSavedReply',
     SocialOperationsSetting: 'SocialOperationsSetting',
     AdminManualMigrationLedger: 'AdminManualMigrationLedger',
+    AdminSession: 'AdminSession',
+    AdminSessionRefreshToken: 'AdminSessionRefreshToken',
+    AdminMfaEnrollment: 'AdminMfaEnrollment',
+    AdminMfaRecoveryCode: 'AdminMfaRecoveryCode',
+    AdminMfaChallenge: 'AdminMfaChallenge',
+    AdminAuthEvent: 'AdminAuthEvent',
     RefreshToken: 'RefreshToken',
     AuditLog: 'AuditLog',
     AdminSectionGrant: 'AdminSectionGrant',
@@ -4970,7 +5066,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "adminUser" | "marketing_campaigns" | "marketing_campaign_performance" | "marketing_campaign_timeline" | "marketing_campaign_team_members" | "marketing_content_items" | "marketing_content_monthly_performance" | "marketing_notification_events" | "marketing_email_templates" | "marketing_social_accounts" | "marketing_social_posts" | "marketing_social_analytics_snapshots" | "marketing_promotions" | "marketing_banners" | "marketing_analytics_snapshots" | "marketing_ad_platform_connections" | "marketing_ad_insights_raw" | "marketing_performance_snapshots" | "marketing_oauth_states" | "marketing_attributions" | "marketing_funnel_events" | "marketing_identity_links" | "marketing_attribution_decisions" | "marketing_intelligence_settings" | "marketing_intelligence_evaluation_runs" | "marketing_creative_assets" | "marketing_creative_performance_snapshots" | "marketing_creative_score_snapshots" | "marketing_recommendations" | "marketing_alerts" | "marketing_experiments" | "marketing_sync_locks" | "marketingExecutionPlan" | "marketingExecutionPlanItem" | "marketingExecutionApproval" | "marketingExecutionApprovalEvent" | "marketingExecutionRun" | "marketingExecutionJob" | "marketingProviderOperation" | "marketingProviderOperationAttempt" | "marketingExecutionStateSnapshot" | "marketingExecutionValidationIssue" | "marketingExecutionReconciliation" | "marketingExecutionPolicy" | "marketingCreativePublication" | "marketingCreativeMediaValidationEvidence" | "marketingCreativePublicationReviewEvent" | "marketingTargetingDiscovery" | "marketingExecutionAccountLock" | "marketingExecutionDeadLetterReview" | "marketingExecutionPolicyHistory" | "marketingExecutionValidationPacket" | "marketingExecutionDriftAcknowledgment" | "marketingExecutionRetryReview" | "marketingExecutionEmergencyOverride" | "marketingExecutionReconciliationJob" | "marketingExecutionCompensationLink" | "socialAccountConnection" | "socialPublishingIdentity" | "socialOAuthState" | "socialPost" | "socialPostRevision" | "socialPostTarget" | "socialPostApproval" | "socialPublication" | "socialPublicationAttempt" | "socialPublishingJob" | "socialMediaAsset" | "socialPostMedia" | "socialContact" | "socialConversation" | "socialMessage" | "socialTag" | "socialConversationTag" | "socialProviderContent" | "socialComment" | "socialEngagementEvent" | "socialEscalation" | "socialWebhookSubscription" | "socialWebhookEvent" | "socialIdentityMetricSnapshot" | "socialProviderContentMetricSnapshot" | "socialIdentitySyncState" | "socialActionJob" | "socialActionAttempt" | "socialInternalNote" | "socialSavedReply" | "socialOperationsSetting" | "adminManualMigrationLedger" | "refreshToken" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event" | "mailOrganization" | "mailDomain" | "mailMailbox" | "mailAddress" | "mailMembership" | "mailSenderGrant" | "mailProvisionRequest" | "mailThread" | "mailMessage" | "mailMessageRecipient" | "mailUserThreadState" | "mailDraft" | "mailLabel" | "mailThreadLabel" | "mailRule" | "mailAttachment" | "mailInternalNote" | "mailOutboxJob" | "mailWebhookEvent" | "mailDeliveryEvent" | "mailAuditEvent" | "mailRetentionPolicy" | "mailLegalHold" | "mailStepUpVerification" | "mailBreakGlassRequest" | "marketingContact" | "marketingConsent" | "marketingSuppression" | "marketingAudience" | "marketingAudienceContact" | "marketingSegment" | "marketingEmailTemplate" | "marketingTemplateVersion" | "marketingEmailCampaign" | "marketingCampaignSnapshot" | "marketingCampaignApproval"
+      modelProps: "adminUser" | "marketing_campaigns" | "marketing_campaign_performance" | "marketing_campaign_timeline" | "marketing_campaign_team_members" | "marketing_content_items" | "marketing_content_monthly_performance" | "marketing_notification_events" | "marketing_email_templates" | "marketing_social_accounts" | "marketing_social_posts" | "marketing_social_analytics_snapshots" | "marketing_promotions" | "marketing_banners" | "marketing_analytics_snapshots" | "marketing_ad_platform_connections" | "marketing_ad_insights_raw" | "marketing_performance_snapshots" | "marketing_oauth_states" | "marketing_attributions" | "marketing_funnel_events" | "marketing_identity_links" | "marketing_attribution_decisions" | "marketing_intelligence_settings" | "marketing_intelligence_evaluation_runs" | "marketing_creative_assets" | "marketing_creative_performance_snapshots" | "marketing_creative_score_snapshots" | "marketing_recommendations" | "marketing_alerts" | "marketing_experiments" | "marketing_sync_locks" | "marketingExecutionPlan" | "marketingExecutionPlanItem" | "marketingExecutionApproval" | "marketingExecutionApprovalEvent" | "marketingExecutionRun" | "marketingExecutionJob" | "marketingProviderOperation" | "marketingProviderOperationAttempt" | "marketingExecutionStateSnapshot" | "marketingExecutionValidationIssue" | "marketingExecutionReconciliation" | "marketingExecutionPolicy" | "marketingCreativePublication" | "marketingCreativeMediaValidationEvidence" | "marketingCreativePublicationReviewEvent" | "marketingTargetingDiscovery" | "marketingExecutionAccountLock" | "marketingExecutionDeadLetterReview" | "marketingExecutionPolicyHistory" | "marketingExecutionValidationPacket" | "marketingExecutionDriftAcknowledgment" | "marketingExecutionRetryReview" | "marketingExecutionEmergencyOverride" | "marketingExecutionReconciliationJob" | "marketingExecutionCompensationLink" | "socialAccountConnection" | "socialPublishingIdentity" | "socialOAuthState" | "socialPost" | "socialPostRevision" | "socialPostTarget" | "socialPostApproval" | "socialPublication" | "socialPublicationAttempt" | "socialPublishingJob" | "socialMediaAsset" | "socialPostMedia" | "socialContact" | "socialConversation" | "socialMessage" | "socialTag" | "socialConversationTag" | "socialProviderContent" | "socialComment" | "socialEngagementEvent" | "socialEscalation" | "socialWebhookSubscription" | "socialWebhookEvent" | "socialIdentityMetricSnapshot" | "socialProviderContentMetricSnapshot" | "socialIdentitySyncState" | "socialActionJob" | "socialActionAttempt" | "socialInternalNote" | "socialSavedReply" | "socialOperationsSetting" | "adminManualMigrationLedger" | "adminSession" | "adminSessionRefreshToken" | "adminMfaEnrollment" | "adminMfaRecoveryCode" | "adminMfaChallenge" | "adminAuthEvent" | "refreshToken" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event" | "mailOrganization" | "mailDomain" | "mailMailbox" | "mailAddress" | "mailMembership" | "mailSenderGrant" | "mailProvisionRequest" | "mailThread" | "mailMessage" | "mailMessageRecipient" | "mailUserThreadState" | "mailDraft" | "mailLabel" | "mailThreadLabel" | "mailRule" | "mailAttachment" | "mailInternalNote" | "mailOutboxJob" | "mailWebhookEvent" | "mailDeliveryEvent" | "mailAuditEvent" | "mailRetentionPolicy" | "mailLegalHold" | "mailStepUpVerification" | "mailBreakGlassRequest" | "marketingContact" | "marketingConsent" | "marketingSuppression" | "marketingAudience" | "marketingAudienceContact" | "marketingSegment" | "marketingEmailTemplate" | "marketingTemplateVersion" | "marketingEmailCampaign" | "marketingCampaignSnapshot" | "marketingCampaignApproval"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -11560,6 +11656,450 @@ export namespace Prisma {
           }
         }
       }
+      AdminSession: {
+        payload: Prisma.$AdminSessionPayload<ExtArgs>
+        fields: Prisma.AdminSessionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AdminSessionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AdminSessionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload>
+          }
+          findFirst: {
+            args: Prisma.AdminSessionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AdminSessionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload>
+          }
+          findMany: {
+            args: Prisma.AdminSessionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload>[]
+          }
+          create: {
+            args: Prisma.AdminSessionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload>
+          }
+          createMany: {
+            args: Prisma.AdminSessionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AdminSessionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload>[]
+          }
+          delete: {
+            args: Prisma.AdminSessionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload>
+          }
+          update: {
+            args: Prisma.AdminSessionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload>
+          }
+          deleteMany: {
+            args: Prisma.AdminSessionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AdminSessionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AdminSessionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload>[]
+          }
+          upsert: {
+            args: Prisma.AdminSessionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload>
+          }
+          aggregate: {
+            args: Prisma.AdminSessionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAdminSession>
+          }
+          groupBy: {
+            args: Prisma.AdminSessionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AdminSessionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AdminSessionCountArgs<ExtArgs>
+            result: $Utils.Optional<AdminSessionCountAggregateOutputType> | number
+          }
+        }
+      }
+      AdminSessionRefreshToken: {
+        payload: Prisma.$AdminSessionRefreshTokenPayload<ExtArgs>
+        fields: Prisma.AdminSessionRefreshTokenFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AdminSessionRefreshTokenFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionRefreshTokenPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AdminSessionRefreshTokenFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionRefreshTokenPayload>
+          }
+          findFirst: {
+            args: Prisma.AdminSessionRefreshTokenFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionRefreshTokenPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AdminSessionRefreshTokenFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionRefreshTokenPayload>
+          }
+          findMany: {
+            args: Prisma.AdminSessionRefreshTokenFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionRefreshTokenPayload>[]
+          }
+          create: {
+            args: Prisma.AdminSessionRefreshTokenCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionRefreshTokenPayload>
+          }
+          createMany: {
+            args: Prisma.AdminSessionRefreshTokenCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AdminSessionRefreshTokenCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionRefreshTokenPayload>[]
+          }
+          delete: {
+            args: Prisma.AdminSessionRefreshTokenDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionRefreshTokenPayload>
+          }
+          update: {
+            args: Prisma.AdminSessionRefreshTokenUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionRefreshTokenPayload>
+          }
+          deleteMany: {
+            args: Prisma.AdminSessionRefreshTokenDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AdminSessionRefreshTokenUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AdminSessionRefreshTokenUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionRefreshTokenPayload>[]
+          }
+          upsert: {
+            args: Prisma.AdminSessionRefreshTokenUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionRefreshTokenPayload>
+          }
+          aggregate: {
+            args: Prisma.AdminSessionRefreshTokenAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAdminSessionRefreshToken>
+          }
+          groupBy: {
+            args: Prisma.AdminSessionRefreshTokenGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AdminSessionRefreshTokenGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AdminSessionRefreshTokenCountArgs<ExtArgs>
+            result: $Utils.Optional<AdminSessionRefreshTokenCountAggregateOutputType> | number
+          }
+        }
+      }
+      AdminMfaEnrollment: {
+        payload: Prisma.$AdminMfaEnrollmentPayload<ExtArgs>
+        fields: Prisma.AdminMfaEnrollmentFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AdminMfaEnrollmentFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaEnrollmentPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AdminMfaEnrollmentFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaEnrollmentPayload>
+          }
+          findFirst: {
+            args: Prisma.AdminMfaEnrollmentFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaEnrollmentPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AdminMfaEnrollmentFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaEnrollmentPayload>
+          }
+          findMany: {
+            args: Prisma.AdminMfaEnrollmentFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaEnrollmentPayload>[]
+          }
+          create: {
+            args: Prisma.AdminMfaEnrollmentCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaEnrollmentPayload>
+          }
+          createMany: {
+            args: Prisma.AdminMfaEnrollmentCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AdminMfaEnrollmentCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaEnrollmentPayload>[]
+          }
+          delete: {
+            args: Prisma.AdminMfaEnrollmentDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaEnrollmentPayload>
+          }
+          update: {
+            args: Prisma.AdminMfaEnrollmentUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaEnrollmentPayload>
+          }
+          deleteMany: {
+            args: Prisma.AdminMfaEnrollmentDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AdminMfaEnrollmentUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AdminMfaEnrollmentUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaEnrollmentPayload>[]
+          }
+          upsert: {
+            args: Prisma.AdminMfaEnrollmentUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaEnrollmentPayload>
+          }
+          aggregate: {
+            args: Prisma.AdminMfaEnrollmentAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAdminMfaEnrollment>
+          }
+          groupBy: {
+            args: Prisma.AdminMfaEnrollmentGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AdminMfaEnrollmentGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AdminMfaEnrollmentCountArgs<ExtArgs>
+            result: $Utils.Optional<AdminMfaEnrollmentCountAggregateOutputType> | number
+          }
+        }
+      }
+      AdminMfaRecoveryCode: {
+        payload: Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>
+        fields: Prisma.AdminMfaRecoveryCodeFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AdminMfaRecoveryCodeFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AdminMfaRecoveryCodeFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload>
+          }
+          findFirst: {
+            args: Prisma.AdminMfaRecoveryCodeFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AdminMfaRecoveryCodeFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload>
+          }
+          findMany: {
+            args: Prisma.AdminMfaRecoveryCodeFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload>[]
+          }
+          create: {
+            args: Prisma.AdminMfaRecoveryCodeCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload>
+          }
+          createMany: {
+            args: Prisma.AdminMfaRecoveryCodeCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AdminMfaRecoveryCodeCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload>[]
+          }
+          delete: {
+            args: Prisma.AdminMfaRecoveryCodeDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload>
+          }
+          update: {
+            args: Prisma.AdminMfaRecoveryCodeUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload>
+          }
+          deleteMany: {
+            args: Prisma.AdminMfaRecoveryCodeDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AdminMfaRecoveryCodeUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AdminMfaRecoveryCodeUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload>[]
+          }
+          upsert: {
+            args: Prisma.AdminMfaRecoveryCodeUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload>
+          }
+          aggregate: {
+            args: Prisma.AdminMfaRecoveryCodeAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAdminMfaRecoveryCode>
+          }
+          groupBy: {
+            args: Prisma.AdminMfaRecoveryCodeGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AdminMfaRecoveryCodeGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AdminMfaRecoveryCodeCountArgs<ExtArgs>
+            result: $Utils.Optional<AdminMfaRecoveryCodeCountAggregateOutputType> | number
+          }
+        }
+      }
+      AdminMfaChallenge: {
+        payload: Prisma.$AdminMfaChallengePayload<ExtArgs>
+        fields: Prisma.AdminMfaChallengeFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AdminMfaChallengeFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AdminMfaChallengeFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload>
+          }
+          findFirst: {
+            args: Prisma.AdminMfaChallengeFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AdminMfaChallengeFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload>
+          }
+          findMany: {
+            args: Prisma.AdminMfaChallengeFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload>[]
+          }
+          create: {
+            args: Prisma.AdminMfaChallengeCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload>
+          }
+          createMany: {
+            args: Prisma.AdminMfaChallengeCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AdminMfaChallengeCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload>[]
+          }
+          delete: {
+            args: Prisma.AdminMfaChallengeDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload>
+          }
+          update: {
+            args: Prisma.AdminMfaChallengeUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload>
+          }
+          deleteMany: {
+            args: Prisma.AdminMfaChallengeDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AdminMfaChallengeUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AdminMfaChallengeUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload>[]
+          }
+          upsert: {
+            args: Prisma.AdminMfaChallengeUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload>
+          }
+          aggregate: {
+            args: Prisma.AdminMfaChallengeAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAdminMfaChallenge>
+          }
+          groupBy: {
+            args: Prisma.AdminMfaChallengeGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AdminMfaChallengeGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AdminMfaChallengeCountArgs<ExtArgs>
+            result: $Utils.Optional<AdminMfaChallengeCountAggregateOutputType> | number
+          }
+        }
+      }
+      AdminAuthEvent: {
+        payload: Prisma.$AdminAuthEventPayload<ExtArgs>
+        fields: Prisma.AdminAuthEventFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AdminAuthEventFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminAuthEventPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AdminAuthEventFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminAuthEventPayload>
+          }
+          findFirst: {
+            args: Prisma.AdminAuthEventFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminAuthEventPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AdminAuthEventFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminAuthEventPayload>
+          }
+          findMany: {
+            args: Prisma.AdminAuthEventFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminAuthEventPayload>[]
+          }
+          create: {
+            args: Prisma.AdminAuthEventCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminAuthEventPayload>
+          }
+          createMany: {
+            args: Prisma.AdminAuthEventCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AdminAuthEventCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminAuthEventPayload>[]
+          }
+          delete: {
+            args: Prisma.AdminAuthEventDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminAuthEventPayload>
+          }
+          update: {
+            args: Prisma.AdminAuthEventUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminAuthEventPayload>
+          }
+          deleteMany: {
+            args: Prisma.AdminAuthEventDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AdminAuthEventUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AdminAuthEventUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminAuthEventPayload>[]
+          }
+          upsert: {
+            args: Prisma.AdminAuthEventUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminAuthEventPayload>
+          }
+          aggregate: {
+            args: Prisma.AdminAuthEventAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAdminAuthEvent>
+          }
+          groupBy: {
+            args: Prisma.AdminAuthEventGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AdminAuthEventGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AdminAuthEventCountArgs<ExtArgs>
+            result: $Utils.Optional<AdminAuthEventCountAggregateOutputType> | number
+          }
+        }
+      }
       RefreshToken: {
         payload: Prisma.$RefreshTokenPayload<ExtArgs>
         fields: Prisma.RefreshTokenFieldRefs
@@ -16360,6 +16900,12 @@ export namespace Prisma {
     socialSavedReply?: SocialSavedReplyOmit
     socialOperationsSetting?: SocialOperationsSettingOmit
     adminManualMigrationLedger?: AdminManualMigrationLedgerOmit
+    adminSession?: AdminSessionOmit
+    adminSessionRefreshToken?: AdminSessionRefreshTokenOmit
+    adminMfaEnrollment?: AdminMfaEnrollmentOmit
+    adminMfaRecoveryCode?: AdminMfaRecoveryCodeOmit
+    adminMfaChallenge?: AdminMfaChallengeOmit
+    adminAuthEvent?: AdminAuthEventOmit
     refreshToken?: RefreshTokenOmit
     auditLog?: AuditLogOmit
     adminSectionGrant?: AdminSectionGrantOmit
@@ -16502,6 +17048,10 @@ export namespace Prisma {
    */
 
   export type AdminUserCountOutputType = {
+    authSessions: number
+    mfaRecoveryCodes: number
+    mfaChallenges: number
+    authEvents: number
     refreshTokens: number
     auditLogs: number
     socialLinks: number
@@ -16576,6 +17126,10 @@ export namespace Prisma {
   }
 
   export type AdminUserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    authSessions?: boolean | AdminUserCountOutputTypeCountAuthSessionsArgs
+    mfaRecoveryCodes?: boolean | AdminUserCountOutputTypeCountMfaRecoveryCodesArgs
+    mfaChallenges?: boolean | AdminUserCountOutputTypeCountMfaChallengesArgs
+    authEvents?: boolean | AdminUserCountOutputTypeCountAuthEventsArgs
     refreshTokens?: boolean | AdminUserCountOutputTypeCountRefreshTokensArgs
     auditLogs?: boolean | AdminUserCountOutputTypeCountAuditLogsArgs
     socialLinks?: boolean | AdminUserCountOutputTypeCountSocialLinksArgs
@@ -16658,6 +17212,34 @@ export namespace Prisma {
      * Select specific fields to fetch from the AdminUserCountOutputType
      */
     select?: AdminUserCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * AdminUserCountOutputType without action
+   */
+  export type AdminUserCountOutputTypeCountAuthSessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminSessionWhereInput
+  }
+
+  /**
+   * AdminUserCountOutputType without action
+   */
+  export type AdminUserCountOutputTypeCountMfaRecoveryCodesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminMfaRecoveryCodeWhereInput
+  }
+
+  /**
+   * AdminUserCountOutputType without action
+   */
+  export type AdminUserCountOutputTypeCountMfaChallengesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminMfaChallengeWhereInput
+  }
+
+  /**
+   * AdminUserCountOutputType without action
+   */
+  export type AdminUserCountOutputTypeCountAuthEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminAuthEventWhereInput
   }
 
   /**
@@ -18714,6 +19296,37 @@ export namespace Prisma {
 
 
   /**
+   * Count Type AdminSessionCountOutputType
+   */
+
+  export type AdminSessionCountOutputType = {
+    refreshTokens: number
+  }
+
+  export type AdminSessionCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    refreshTokens?: boolean | AdminSessionCountOutputTypeCountRefreshTokensArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * AdminSessionCountOutputType without action
+   */
+  export type AdminSessionCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSessionCountOutputType
+     */
+    select?: AdminSessionCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * AdminSessionCountOutputType without action
+   */
+  export type AdminSessionCountOutputTypeCountRefreshTokensArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminSessionRefreshTokenWhereInput
+  }
+
+
+  /**
    * Count Type TeamCountOutputType
    */
 
@@ -20335,6 +20948,11 @@ export namespace Prisma {
     salary?: boolean
     bonus?: boolean
     equity?: boolean
+    authSessions?: boolean | AdminUser$authSessionsArgs<ExtArgs>
+    mfaEnrollment?: boolean | AdminUser$mfaEnrollmentArgs<ExtArgs>
+    mfaRecoveryCodes?: boolean | AdminUser$mfaRecoveryCodesArgs<ExtArgs>
+    mfaChallenges?: boolean | AdminUser$mfaChallengesArgs<ExtArgs>
+    authEvents?: boolean | AdminUser$authEventsArgs<ExtArgs>
     refreshTokens?: boolean | AdminUser$refreshTokensArgs<ExtArgs>
     auditLogs?: boolean | AdminUser$auditLogsArgs<ExtArgs>
     socialLinks?: boolean | AdminUser$socialLinksArgs<ExtArgs>
@@ -20564,6 +21182,11 @@ export namespace Prisma {
 
   export type AdminUserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "password" | "name" | "position" | "department" | "tier" | "status" | "isTeamLead" | "failedLoginAttempts" | "googleId" | "mainAppUserId" | "lockedUntil" | "lastLoginAt" | "lastLoginIp" | "mustChangePassword" | "passwordResetToken" | "passwordResetExpires" | "passwordChangedAt" | "createdAt" | "updatedAt" | "createdBy" | "twoFactorEnabled" | "twoFactorSecret" | "avatarUrl" | "avatarCloudinaryId" | "preferredName" | "birthday" | "nationality" | "gender" | "maritalStatus" | "workPhone" | "homePhone" | "personalPhone" | "fax" | "address" | "state" | "country" | "emergencyName" | "emergencyPhone" | "emergencyEmail" | "emergencyRelation" | "employmentType" | "employmentCategory" | "location" | "salary" | "bonus" | "equity", ExtArgs["result"]["adminUser"]>
   export type AdminUserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    authSessions?: boolean | AdminUser$authSessionsArgs<ExtArgs>
+    mfaEnrollment?: boolean | AdminUser$mfaEnrollmentArgs<ExtArgs>
+    mfaRecoveryCodes?: boolean | AdminUser$mfaRecoveryCodesArgs<ExtArgs>
+    mfaChallenges?: boolean | AdminUser$mfaChallengesArgs<ExtArgs>
+    authEvents?: boolean | AdminUser$authEventsArgs<ExtArgs>
     refreshTokens?: boolean | AdminUser$refreshTokensArgs<ExtArgs>
     auditLogs?: boolean | AdminUser$auditLogsArgs<ExtArgs>
     socialLinks?: boolean | AdminUser$socialLinksArgs<ExtArgs>
@@ -20643,6 +21266,11 @@ export namespace Prisma {
   export type $AdminUserPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "AdminUser"
     objects: {
+      authSessions: Prisma.$AdminSessionPayload<ExtArgs>[]
+      mfaEnrollment: Prisma.$AdminMfaEnrollmentPayload<ExtArgs> | null
+      mfaRecoveryCodes: Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>[]
+      mfaChallenges: Prisma.$AdminMfaChallengePayload<ExtArgs>[]
+      authEvents: Prisma.$AdminAuthEventPayload<ExtArgs>[]
       refreshTokens: Prisma.$RefreshTokenPayload<ExtArgs>[]
       auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
       socialLinks: Prisma.$AdminSocialLinkPayload<ExtArgs>[]
@@ -21158,6 +21786,11 @@ export namespace Prisma {
    */
   export interface Prisma__AdminUserClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    authSessions<T extends AdminUser$authSessionsArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$authSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    mfaEnrollment<T extends AdminUser$mfaEnrollmentArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$mfaEnrollmentArgs<ExtArgs>>): Prisma__AdminMfaEnrollmentClient<$Result.GetResult<Prisma.$AdminMfaEnrollmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    mfaRecoveryCodes<T extends AdminUser$mfaRecoveryCodesArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$mfaRecoveryCodesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    mfaChallenges<T extends AdminUser$mfaChallengesArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$mfaChallengesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    authEvents<T extends AdminUser$authEventsArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$authEventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminAuthEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     refreshTokens<T extends AdminUser$refreshTokensArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$refreshTokensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RefreshTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     auditLogs<T extends AdminUser$auditLogsArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     socialLinks<T extends AdminUser$socialLinksArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$socialLinksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminSocialLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -21696,6 +22329,121 @@ export namespace Prisma {
      * Limit how many AdminUsers to delete.
      */
     limit?: number
+  }
+
+  /**
+   * AdminUser.authSessions
+   */
+  export type AdminUser$authSessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    where?: AdminSessionWhereInput
+    orderBy?: AdminSessionOrderByWithRelationInput | AdminSessionOrderByWithRelationInput[]
+    cursor?: AdminSessionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AdminSessionScalarFieldEnum | AdminSessionScalarFieldEnum[]
+  }
+
+  /**
+   * AdminUser.mfaEnrollment
+   */
+  export type AdminUser$mfaEnrollmentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaEnrollment
+     */
+    select?: AdminMfaEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaEnrollment
+     */
+    omit?: AdminMfaEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaEnrollmentInclude<ExtArgs> | null
+    where?: AdminMfaEnrollmentWhereInput
+  }
+
+  /**
+   * AdminUser.mfaRecoveryCodes
+   */
+  export type AdminUser$mfaRecoveryCodesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+    where?: AdminMfaRecoveryCodeWhereInput
+    orderBy?: AdminMfaRecoveryCodeOrderByWithRelationInput | AdminMfaRecoveryCodeOrderByWithRelationInput[]
+    cursor?: AdminMfaRecoveryCodeWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AdminMfaRecoveryCodeScalarFieldEnum | AdminMfaRecoveryCodeScalarFieldEnum[]
+  }
+
+  /**
+   * AdminUser.mfaChallenges
+   */
+  export type AdminUser$mfaChallengesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+    where?: AdminMfaChallengeWhereInput
+    orderBy?: AdminMfaChallengeOrderByWithRelationInput | AdminMfaChallengeOrderByWithRelationInput[]
+    cursor?: AdminMfaChallengeWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AdminMfaChallengeScalarFieldEnum | AdminMfaChallengeScalarFieldEnum[]
+  }
+
+  /**
+   * AdminUser.authEvents
+   */
+  export type AdminUser$authEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminAuthEvent
+     */
+    select?: AdminAuthEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminAuthEvent
+     */
+    omit?: AdminAuthEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminAuthEventInclude<ExtArgs> | null
+    where?: AdminAuthEventWhereInput
+    orderBy?: AdminAuthEventOrderByWithRelationInput | AdminAuthEventOrderByWithRelationInput[]
+    cursor?: AdminAuthEventWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AdminAuthEventScalarFieldEnum | AdminAuthEventScalarFieldEnum[]
   }
 
   /**
@@ -132874,6 +133622,6878 @@ export namespace Prisma {
 
 
   /**
+   * Model AdminSession
+   */
+
+  export type AggregateAdminSession = {
+    _count: AdminSessionCountAggregateOutputType | null
+    _min: AdminSessionMinAggregateOutputType | null
+    _max: AdminSessionMaxAggregateOutputType | null
+  }
+
+  export type AdminSessionMinAggregateOutputType = {
+    id: string | null
+    adminUserId: string | null
+    mode: string | null
+    authMethod: string | null
+    csrfNonce: string | null
+    createdAt: Date | null
+    lastSeenAt: Date | null
+    idleExpiresAt: Date | null
+    absoluteExpiresAt: Date | null
+    mfaVerifiedAt: Date | null
+    revokedAt: Date | null
+    revokeReason: string | null
+    ipAddress: string | null
+    userAgent: string | null
+  }
+
+  export type AdminSessionMaxAggregateOutputType = {
+    id: string | null
+    adminUserId: string | null
+    mode: string | null
+    authMethod: string | null
+    csrfNonce: string | null
+    createdAt: Date | null
+    lastSeenAt: Date | null
+    idleExpiresAt: Date | null
+    absoluteExpiresAt: Date | null
+    mfaVerifiedAt: Date | null
+    revokedAt: Date | null
+    revokeReason: string | null
+    ipAddress: string | null
+    userAgent: string | null
+  }
+
+  export type AdminSessionCountAggregateOutputType = {
+    id: number
+    adminUserId: number
+    mode: number
+    authMethod: number
+    csrfNonce: number
+    createdAt: number
+    lastSeenAt: number
+    idleExpiresAt: number
+    absoluteExpiresAt: number
+    mfaVerifiedAt: number
+    revokedAt: number
+    revokeReason: number
+    ipAddress: number
+    userAgent: number
+    _all: number
+  }
+
+
+  export type AdminSessionMinAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    mode?: true
+    authMethod?: true
+    csrfNonce?: true
+    createdAt?: true
+    lastSeenAt?: true
+    idleExpiresAt?: true
+    absoluteExpiresAt?: true
+    mfaVerifiedAt?: true
+    revokedAt?: true
+    revokeReason?: true
+    ipAddress?: true
+    userAgent?: true
+  }
+
+  export type AdminSessionMaxAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    mode?: true
+    authMethod?: true
+    csrfNonce?: true
+    createdAt?: true
+    lastSeenAt?: true
+    idleExpiresAt?: true
+    absoluteExpiresAt?: true
+    mfaVerifiedAt?: true
+    revokedAt?: true
+    revokeReason?: true
+    ipAddress?: true
+    userAgent?: true
+  }
+
+  export type AdminSessionCountAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    mode?: true
+    authMethod?: true
+    csrfNonce?: true
+    createdAt?: true
+    lastSeenAt?: true
+    idleExpiresAt?: true
+    absoluteExpiresAt?: true
+    mfaVerifiedAt?: true
+    revokedAt?: true
+    revokeReason?: true
+    ipAddress?: true
+    userAgent?: true
+    _all?: true
+  }
+
+  export type AdminSessionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminSession to aggregate.
+     */
+    where?: AdminSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminSessions to fetch.
+     */
+    orderBy?: AdminSessionOrderByWithRelationInput | AdminSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AdminSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AdminSessions
+    **/
+    _count?: true | AdminSessionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AdminSessionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AdminSessionMaxAggregateInputType
+  }
+
+  export type GetAdminSessionAggregateType<T extends AdminSessionAggregateArgs> = {
+        [P in keyof T & keyof AggregateAdminSession]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAdminSession[P]>
+      : GetScalarType<T[P], AggregateAdminSession[P]>
+  }
+
+
+
+
+  export type AdminSessionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminSessionWhereInput
+    orderBy?: AdminSessionOrderByWithAggregationInput | AdminSessionOrderByWithAggregationInput[]
+    by: AdminSessionScalarFieldEnum[] | AdminSessionScalarFieldEnum
+    having?: AdminSessionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AdminSessionCountAggregateInputType | true
+    _min?: AdminSessionMinAggregateInputType
+    _max?: AdminSessionMaxAggregateInputType
+  }
+
+  export type AdminSessionGroupByOutputType = {
+    id: string
+    adminUserId: string
+    mode: string
+    authMethod: string
+    csrfNonce: string
+    createdAt: Date
+    lastSeenAt: Date
+    idleExpiresAt: Date
+    absoluteExpiresAt: Date
+    mfaVerifiedAt: Date | null
+    revokedAt: Date | null
+    revokeReason: string | null
+    ipAddress: string | null
+    userAgent: string | null
+    _count: AdminSessionCountAggregateOutputType | null
+    _min: AdminSessionMinAggregateOutputType | null
+    _max: AdminSessionMaxAggregateOutputType | null
+  }
+
+  type GetAdminSessionGroupByPayload<T extends AdminSessionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AdminSessionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AdminSessionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AdminSessionGroupByOutputType[P]>
+            : GetScalarType<T[P], AdminSessionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AdminSessionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    mode?: boolean
+    authMethod?: boolean
+    csrfNonce?: boolean
+    createdAt?: boolean
+    lastSeenAt?: boolean
+    idleExpiresAt?: boolean
+    absoluteExpiresAt?: boolean
+    mfaVerifiedAt?: boolean
+    revokedAt?: boolean
+    revokeReason?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+    refreshTokens?: boolean | AdminSession$refreshTokensArgs<ExtArgs>
+    _count?: boolean | AdminSessionCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminSession"]>
+
+  export type AdminSessionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    mode?: boolean
+    authMethod?: boolean
+    csrfNonce?: boolean
+    createdAt?: boolean
+    lastSeenAt?: boolean
+    idleExpiresAt?: boolean
+    absoluteExpiresAt?: boolean
+    mfaVerifiedAt?: boolean
+    revokedAt?: boolean
+    revokeReason?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminSession"]>
+
+  export type AdminSessionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    mode?: boolean
+    authMethod?: boolean
+    csrfNonce?: boolean
+    createdAt?: boolean
+    lastSeenAt?: boolean
+    idleExpiresAt?: boolean
+    absoluteExpiresAt?: boolean
+    mfaVerifiedAt?: boolean
+    revokedAt?: boolean
+    revokeReason?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminSession"]>
+
+  export type AdminSessionSelectScalar = {
+    id?: boolean
+    adminUserId?: boolean
+    mode?: boolean
+    authMethod?: boolean
+    csrfNonce?: boolean
+    createdAt?: boolean
+    lastSeenAt?: boolean
+    idleExpiresAt?: boolean
+    absoluteExpiresAt?: boolean
+    mfaVerifiedAt?: boolean
+    revokedAt?: boolean
+    revokeReason?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+  }
+
+  export type AdminSessionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "adminUserId" | "mode" | "authMethod" | "csrfNonce" | "createdAt" | "lastSeenAt" | "idleExpiresAt" | "absoluteExpiresAt" | "mfaVerifiedAt" | "revokedAt" | "revokeReason" | "ipAddress" | "userAgent", ExtArgs["result"]["adminSession"]>
+  export type AdminSessionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+    refreshTokens?: boolean | AdminSession$refreshTokensArgs<ExtArgs>
+    _count?: boolean | AdminSessionCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type AdminSessionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+  export type AdminSessionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+
+  export type $AdminSessionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AdminSession"
+    objects: {
+      adminUser: Prisma.$AdminUserPayload<ExtArgs>
+      refreshTokens: Prisma.$AdminSessionRefreshTokenPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      adminUserId: string
+      mode: string
+      authMethod: string
+      csrfNonce: string
+      createdAt: Date
+      lastSeenAt: Date
+      idleExpiresAt: Date
+      absoluteExpiresAt: Date
+      mfaVerifiedAt: Date | null
+      revokedAt: Date | null
+      revokeReason: string | null
+      ipAddress: string | null
+      userAgent: string | null
+    }, ExtArgs["result"]["adminSession"]>
+    composites: {}
+  }
+
+  type AdminSessionGetPayload<S extends boolean | null | undefined | AdminSessionDefaultArgs> = $Result.GetResult<Prisma.$AdminSessionPayload, S>
+
+  type AdminSessionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AdminSessionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AdminSessionCountAggregateInputType | true
+    }
+
+  export interface AdminSessionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AdminSession'], meta: { name: 'AdminSession' } }
+    /**
+     * Find zero or one AdminSession that matches the filter.
+     * @param {AdminSessionFindUniqueArgs} args - Arguments to find a AdminSession
+     * @example
+     * // Get one AdminSession
+     * const adminSession = await prisma.adminSession.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AdminSessionFindUniqueArgs>(args: SelectSubset<T, AdminSessionFindUniqueArgs<ExtArgs>>): Prisma__AdminSessionClient<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AdminSession that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AdminSessionFindUniqueOrThrowArgs} args - Arguments to find a AdminSession
+     * @example
+     * // Get one AdminSession
+     * const adminSession = await prisma.adminSession.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AdminSessionFindUniqueOrThrowArgs>(args: SelectSubset<T, AdminSessionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AdminSessionClient<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminSession that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionFindFirstArgs} args - Arguments to find a AdminSession
+     * @example
+     * // Get one AdminSession
+     * const adminSession = await prisma.adminSession.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AdminSessionFindFirstArgs>(args?: SelectSubset<T, AdminSessionFindFirstArgs<ExtArgs>>): Prisma__AdminSessionClient<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminSession that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionFindFirstOrThrowArgs} args - Arguments to find a AdminSession
+     * @example
+     * // Get one AdminSession
+     * const adminSession = await prisma.adminSession.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AdminSessionFindFirstOrThrowArgs>(args?: SelectSubset<T, AdminSessionFindFirstOrThrowArgs<ExtArgs>>): Prisma__AdminSessionClient<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AdminSessions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AdminSessions
+     * const adminSessions = await prisma.adminSession.findMany()
+     * 
+     * // Get first 10 AdminSessions
+     * const adminSessions = await prisma.adminSession.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const adminSessionWithIdOnly = await prisma.adminSession.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AdminSessionFindManyArgs>(args?: SelectSubset<T, AdminSessionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AdminSession.
+     * @param {AdminSessionCreateArgs} args - Arguments to create a AdminSession.
+     * @example
+     * // Create one AdminSession
+     * const AdminSession = await prisma.adminSession.create({
+     *   data: {
+     *     // ... data to create a AdminSession
+     *   }
+     * })
+     * 
+     */
+    create<T extends AdminSessionCreateArgs>(args: SelectSubset<T, AdminSessionCreateArgs<ExtArgs>>): Prisma__AdminSessionClient<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AdminSessions.
+     * @param {AdminSessionCreateManyArgs} args - Arguments to create many AdminSessions.
+     * @example
+     * // Create many AdminSessions
+     * const adminSession = await prisma.adminSession.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AdminSessionCreateManyArgs>(args?: SelectSubset<T, AdminSessionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AdminSessions and returns the data saved in the database.
+     * @param {AdminSessionCreateManyAndReturnArgs} args - Arguments to create many AdminSessions.
+     * @example
+     * // Create many AdminSessions
+     * const adminSession = await prisma.adminSession.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AdminSessions and only return the `id`
+     * const adminSessionWithIdOnly = await prisma.adminSession.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AdminSessionCreateManyAndReturnArgs>(args?: SelectSubset<T, AdminSessionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AdminSession.
+     * @param {AdminSessionDeleteArgs} args - Arguments to delete one AdminSession.
+     * @example
+     * // Delete one AdminSession
+     * const AdminSession = await prisma.adminSession.delete({
+     *   where: {
+     *     // ... filter to delete one AdminSession
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AdminSessionDeleteArgs>(args: SelectSubset<T, AdminSessionDeleteArgs<ExtArgs>>): Prisma__AdminSessionClient<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AdminSession.
+     * @param {AdminSessionUpdateArgs} args - Arguments to update one AdminSession.
+     * @example
+     * // Update one AdminSession
+     * const adminSession = await prisma.adminSession.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AdminSessionUpdateArgs>(args: SelectSubset<T, AdminSessionUpdateArgs<ExtArgs>>): Prisma__AdminSessionClient<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AdminSessions.
+     * @param {AdminSessionDeleteManyArgs} args - Arguments to filter AdminSessions to delete.
+     * @example
+     * // Delete a few AdminSessions
+     * const { count } = await prisma.adminSession.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AdminSessionDeleteManyArgs>(args?: SelectSubset<T, AdminSessionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminSessions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AdminSessions
+     * const adminSession = await prisma.adminSession.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AdminSessionUpdateManyArgs>(args: SelectSubset<T, AdminSessionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminSessions and returns the data updated in the database.
+     * @param {AdminSessionUpdateManyAndReturnArgs} args - Arguments to update many AdminSessions.
+     * @example
+     * // Update many AdminSessions
+     * const adminSession = await prisma.adminSession.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more AdminSessions and only return the `id`
+     * const adminSessionWithIdOnly = await prisma.adminSession.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AdminSessionUpdateManyAndReturnArgs>(args: SelectSubset<T, AdminSessionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AdminSession.
+     * @param {AdminSessionUpsertArgs} args - Arguments to update or create a AdminSession.
+     * @example
+     * // Update or create a AdminSession
+     * const adminSession = await prisma.adminSession.upsert({
+     *   create: {
+     *     // ... data to create a AdminSession
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AdminSession we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AdminSessionUpsertArgs>(args: SelectSubset<T, AdminSessionUpsertArgs<ExtArgs>>): Prisma__AdminSessionClient<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AdminSessions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionCountArgs} args - Arguments to filter AdminSessions to count.
+     * @example
+     * // Count the number of AdminSessions
+     * const count = await prisma.adminSession.count({
+     *   where: {
+     *     // ... the filter for the AdminSessions we want to count
+     *   }
+     * })
+    **/
+    count<T extends AdminSessionCountArgs>(
+      args?: Subset<T, AdminSessionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AdminSessionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AdminSession.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AdminSessionAggregateArgs>(args: Subset<T, AdminSessionAggregateArgs>): Prisma.PrismaPromise<GetAdminSessionAggregateType<T>>
+
+    /**
+     * Group by AdminSession.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AdminSessionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AdminSessionGroupByArgs['orderBy'] }
+        : { orderBy?: AdminSessionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AdminSessionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAdminSessionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AdminSession model
+   */
+  readonly fields: AdminSessionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AdminSession.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AdminSessionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    adminUser<T extends AdminUserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AdminUserDefaultArgs<ExtArgs>>): Prisma__AdminUserClient<$Result.GetResult<Prisma.$AdminUserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    refreshTokens<T extends AdminSession$refreshTokensArgs<ExtArgs> = {}>(args?: Subset<T, AdminSession$refreshTokensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminSessionRefreshTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AdminSession model
+   */
+  interface AdminSessionFieldRefs {
+    readonly id: FieldRef<"AdminSession", 'String'>
+    readonly adminUserId: FieldRef<"AdminSession", 'String'>
+    readonly mode: FieldRef<"AdminSession", 'String'>
+    readonly authMethod: FieldRef<"AdminSession", 'String'>
+    readonly csrfNonce: FieldRef<"AdminSession", 'String'>
+    readonly createdAt: FieldRef<"AdminSession", 'DateTime'>
+    readonly lastSeenAt: FieldRef<"AdminSession", 'DateTime'>
+    readonly idleExpiresAt: FieldRef<"AdminSession", 'DateTime'>
+    readonly absoluteExpiresAt: FieldRef<"AdminSession", 'DateTime'>
+    readonly mfaVerifiedAt: FieldRef<"AdminSession", 'DateTime'>
+    readonly revokedAt: FieldRef<"AdminSession", 'DateTime'>
+    readonly revokeReason: FieldRef<"AdminSession", 'String'>
+    readonly ipAddress: FieldRef<"AdminSession", 'String'>
+    readonly userAgent: FieldRef<"AdminSession", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AdminSession findUnique
+   */
+  export type AdminSessionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminSession to fetch.
+     */
+    where: AdminSessionWhereUniqueInput
+  }
+
+  /**
+   * AdminSession findUniqueOrThrow
+   */
+  export type AdminSessionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminSession to fetch.
+     */
+    where: AdminSessionWhereUniqueInput
+  }
+
+  /**
+   * AdminSession findFirst
+   */
+  export type AdminSessionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminSession to fetch.
+     */
+    where?: AdminSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminSessions to fetch.
+     */
+    orderBy?: AdminSessionOrderByWithRelationInput | AdminSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminSessions.
+     */
+    cursor?: AdminSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminSessions.
+     */
+    distinct?: AdminSessionScalarFieldEnum | AdminSessionScalarFieldEnum[]
+  }
+
+  /**
+   * AdminSession findFirstOrThrow
+   */
+  export type AdminSessionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminSession to fetch.
+     */
+    where?: AdminSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminSessions to fetch.
+     */
+    orderBy?: AdminSessionOrderByWithRelationInput | AdminSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminSessions.
+     */
+    cursor?: AdminSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminSessions.
+     */
+    distinct?: AdminSessionScalarFieldEnum | AdminSessionScalarFieldEnum[]
+  }
+
+  /**
+   * AdminSession findMany
+   */
+  export type AdminSessionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminSessions to fetch.
+     */
+    where?: AdminSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminSessions to fetch.
+     */
+    orderBy?: AdminSessionOrderByWithRelationInput | AdminSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AdminSessions.
+     */
+    cursor?: AdminSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminSessions.
+     */
+    distinct?: AdminSessionScalarFieldEnum | AdminSessionScalarFieldEnum[]
+  }
+
+  /**
+   * AdminSession create
+   */
+  export type AdminSessionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AdminSession.
+     */
+    data: XOR<AdminSessionCreateInput, AdminSessionUncheckedCreateInput>
+  }
+
+  /**
+   * AdminSession createMany
+   */
+  export type AdminSessionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AdminSessions.
+     */
+    data: AdminSessionCreateManyInput | AdminSessionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AdminSession createManyAndReturn
+   */
+  export type AdminSessionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * The data used to create many AdminSessions.
+     */
+    data: AdminSessionCreateManyInput | AdminSessionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdminSession update
+   */
+  export type AdminSessionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AdminSession.
+     */
+    data: XOR<AdminSessionUpdateInput, AdminSessionUncheckedUpdateInput>
+    /**
+     * Choose, which AdminSession to update.
+     */
+    where: AdminSessionWhereUniqueInput
+  }
+
+  /**
+   * AdminSession updateMany
+   */
+  export type AdminSessionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AdminSessions.
+     */
+    data: XOR<AdminSessionUpdateManyMutationInput, AdminSessionUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminSessions to update
+     */
+    where?: AdminSessionWhereInput
+    /**
+     * Limit how many AdminSessions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminSession updateManyAndReturn
+   */
+  export type AdminSessionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * The data used to update AdminSessions.
+     */
+    data: XOR<AdminSessionUpdateManyMutationInput, AdminSessionUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminSessions to update
+     */
+    where?: AdminSessionWhereInput
+    /**
+     * Limit how many AdminSessions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdminSession upsert
+   */
+  export type AdminSessionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AdminSession to update in case it exists.
+     */
+    where: AdminSessionWhereUniqueInput
+    /**
+     * In case the AdminSession found by the `where` argument doesn't exist, create a new AdminSession with this data.
+     */
+    create: XOR<AdminSessionCreateInput, AdminSessionUncheckedCreateInput>
+    /**
+     * In case the AdminSession was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AdminSessionUpdateInput, AdminSessionUncheckedUpdateInput>
+  }
+
+  /**
+   * AdminSession delete
+   */
+  export type AdminSessionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    /**
+     * Filter which AdminSession to delete.
+     */
+    where: AdminSessionWhereUniqueInput
+  }
+
+  /**
+   * AdminSession deleteMany
+   */
+  export type AdminSessionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminSessions to delete
+     */
+    where?: AdminSessionWhereInput
+    /**
+     * Limit how many AdminSessions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminSession.refreshTokens
+   */
+  export type AdminSession$refreshTokensArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSessionRefreshToken
+     */
+    select?: AdminSessionRefreshTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSessionRefreshToken
+     */
+    omit?: AdminSessionRefreshTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionRefreshTokenInclude<ExtArgs> | null
+    where?: AdminSessionRefreshTokenWhereInput
+    orderBy?: AdminSessionRefreshTokenOrderByWithRelationInput | AdminSessionRefreshTokenOrderByWithRelationInput[]
+    cursor?: AdminSessionRefreshTokenWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AdminSessionRefreshTokenScalarFieldEnum | AdminSessionRefreshTokenScalarFieldEnum[]
+  }
+
+  /**
+   * AdminSession without action
+   */
+  export type AdminSessionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AdminSessionRefreshToken
+   */
+
+  export type AggregateAdminSessionRefreshToken = {
+    _count: AdminSessionRefreshTokenCountAggregateOutputType | null
+    _min: AdminSessionRefreshTokenMinAggregateOutputType | null
+    _max: AdminSessionRefreshTokenMaxAggregateOutputType | null
+  }
+
+  export type AdminSessionRefreshTokenMinAggregateOutputType = {
+    id: string | null
+    sessionId: string | null
+    adminUserId: string | null
+    tokenHash: string | null
+    createdAt: Date | null
+    expiresAt: Date | null
+    rotatedAt: Date | null
+    revokedAt: Date | null
+    ipAddress: string | null
+    userAgent: string | null
+  }
+
+  export type AdminSessionRefreshTokenMaxAggregateOutputType = {
+    id: string | null
+    sessionId: string | null
+    adminUserId: string | null
+    tokenHash: string | null
+    createdAt: Date | null
+    expiresAt: Date | null
+    rotatedAt: Date | null
+    revokedAt: Date | null
+    ipAddress: string | null
+    userAgent: string | null
+  }
+
+  export type AdminSessionRefreshTokenCountAggregateOutputType = {
+    id: number
+    sessionId: number
+    adminUserId: number
+    tokenHash: number
+    createdAt: number
+    expiresAt: number
+    rotatedAt: number
+    revokedAt: number
+    ipAddress: number
+    userAgent: number
+    _all: number
+  }
+
+
+  export type AdminSessionRefreshTokenMinAggregateInputType = {
+    id?: true
+    sessionId?: true
+    adminUserId?: true
+    tokenHash?: true
+    createdAt?: true
+    expiresAt?: true
+    rotatedAt?: true
+    revokedAt?: true
+    ipAddress?: true
+    userAgent?: true
+  }
+
+  export type AdminSessionRefreshTokenMaxAggregateInputType = {
+    id?: true
+    sessionId?: true
+    adminUserId?: true
+    tokenHash?: true
+    createdAt?: true
+    expiresAt?: true
+    rotatedAt?: true
+    revokedAt?: true
+    ipAddress?: true
+    userAgent?: true
+  }
+
+  export type AdminSessionRefreshTokenCountAggregateInputType = {
+    id?: true
+    sessionId?: true
+    adminUserId?: true
+    tokenHash?: true
+    createdAt?: true
+    expiresAt?: true
+    rotatedAt?: true
+    revokedAt?: true
+    ipAddress?: true
+    userAgent?: true
+    _all?: true
+  }
+
+  export type AdminSessionRefreshTokenAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminSessionRefreshToken to aggregate.
+     */
+    where?: AdminSessionRefreshTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminSessionRefreshTokens to fetch.
+     */
+    orderBy?: AdminSessionRefreshTokenOrderByWithRelationInput | AdminSessionRefreshTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AdminSessionRefreshTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminSessionRefreshTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminSessionRefreshTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AdminSessionRefreshTokens
+    **/
+    _count?: true | AdminSessionRefreshTokenCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AdminSessionRefreshTokenMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AdminSessionRefreshTokenMaxAggregateInputType
+  }
+
+  export type GetAdminSessionRefreshTokenAggregateType<T extends AdminSessionRefreshTokenAggregateArgs> = {
+        [P in keyof T & keyof AggregateAdminSessionRefreshToken]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAdminSessionRefreshToken[P]>
+      : GetScalarType<T[P], AggregateAdminSessionRefreshToken[P]>
+  }
+
+
+
+
+  export type AdminSessionRefreshTokenGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminSessionRefreshTokenWhereInput
+    orderBy?: AdminSessionRefreshTokenOrderByWithAggregationInput | AdminSessionRefreshTokenOrderByWithAggregationInput[]
+    by: AdminSessionRefreshTokenScalarFieldEnum[] | AdminSessionRefreshTokenScalarFieldEnum
+    having?: AdminSessionRefreshTokenScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AdminSessionRefreshTokenCountAggregateInputType | true
+    _min?: AdminSessionRefreshTokenMinAggregateInputType
+    _max?: AdminSessionRefreshTokenMaxAggregateInputType
+  }
+
+  export type AdminSessionRefreshTokenGroupByOutputType = {
+    id: string
+    sessionId: string
+    adminUserId: string
+    tokenHash: string
+    createdAt: Date
+    expiresAt: Date
+    rotatedAt: Date | null
+    revokedAt: Date | null
+    ipAddress: string | null
+    userAgent: string | null
+    _count: AdminSessionRefreshTokenCountAggregateOutputType | null
+    _min: AdminSessionRefreshTokenMinAggregateOutputType | null
+    _max: AdminSessionRefreshTokenMaxAggregateOutputType | null
+  }
+
+  type GetAdminSessionRefreshTokenGroupByPayload<T extends AdminSessionRefreshTokenGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AdminSessionRefreshTokenGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AdminSessionRefreshTokenGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AdminSessionRefreshTokenGroupByOutputType[P]>
+            : GetScalarType<T[P], AdminSessionRefreshTokenGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AdminSessionRefreshTokenSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    sessionId?: boolean
+    adminUserId?: boolean
+    tokenHash?: boolean
+    createdAt?: boolean
+    expiresAt?: boolean
+    rotatedAt?: boolean
+    revokedAt?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    session?: boolean | AdminSessionDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminSessionRefreshToken"]>
+
+  export type AdminSessionRefreshTokenSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    sessionId?: boolean
+    adminUserId?: boolean
+    tokenHash?: boolean
+    createdAt?: boolean
+    expiresAt?: boolean
+    rotatedAt?: boolean
+    revokedAt?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    session?: boolean | AdminSessionDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminSessionRefreshToken"]>
+
+  export type AdminSessionRefreshTokenSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    sessionId?: boolean
+    adminUserId?: boolean
+    tokenHash?: boolean
+    createdAt?: boolean
+    expiresAt?: boolean
+    rotatedAt?: boolean
+    revokedAt?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    session?: boolean | AdminSessionDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminSessionRefreshToken"]>
+
+  export type AdminSessionRefreshTokenSelectScalar = {
+    id?: boolean
+    sessionId?: boolean
+    adminUserId?: boolean
+    tokenHash?: boolean
+    createdAt?: boolean
+    expiresAt?: boolean
+    rotatedAt?: boolean
+    revokedAt?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+  }
+
+  export type AdminSessionRefreshTokenOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "sessionId" | "adminUserId" | "tokenHash" | "createdAt" | "expiresAt" | "rotatedAt" | "revokedAt" | "ipAddress" | "userAgent", ExtArgs["result"]["adminSessionRefreshToken"]>
+  export type AdminSessionRefreshTokenInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    session?: boolean | AdminSessionDefaultArgs<ExtArgs>
+  }
+  export type AdminSessionRefreshTokenIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    session?: boolean | AdminSessionDefaultArgs<ExtArgs>
+  }
+  export type AdminSessionRefreshTokenIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    session?: boolean | AdminSessionDefaultArgs<ExtArgs>
+  }
+
+  export type $AdminSessionRefreshTokenPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AdminSessionRefreshToken"
+    objects: {
+      session: Prisma.$AdminSessionPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      sessionId: string
+      adminUserId: string
+      tokenHash: string
+      createdAt: Date
+      expiresAt: Date
+      rotatedAt: Date | null
+      revokedAt: Date | null
+      ipAddress: string | null
+      userAgent: string | null
+    }, ExtArgs["result"]["adminSessionRefreshToken"]>
+    composites: {}
+  }
+
+  type AdminSessionRefreshTokenGetPayload<S extends boolean | null | undefined | AdminSessionRefreshTokenDefaultArgs> = $Result.GetResult<Prisma.$AdminSessionRefreshTokenPayload, S>
+
+  type AdminSessionRefreshTokenCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AdminSessionRefreshTokenFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AdminSessionRefreshTokenCountAggregateInputType | true
+    }
+
+  export interface AdminSessionRefreshTokenDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AdminSessionRefreshToken'], meta: { name: 'AdminSessionRefreshToken' } }
+    /**
+     * Find zero or one AdminSessionRefreshToken that matches the filter.
+     * @param {AdminSessionRefreshTokenFindUniqueArgs} args - Arguments to find a AdminSessionRefreshToken
+     * @example
+     * // Get one AdminSessionRefreshToken
+     * const adminSessionRefreshToken = await prisma.adminSessionRefreshToken.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AdminSessionRefreshTokenFindUniqueArgs>(args: SelectSubset<T, AdminSessionRefreshTokenFindUniqueArgs<ExtArgs>>): Prisma__AdminSessionRefreshTokenClient<$Result.GetResult<Prisma.$AdminSessionRefreshTokenPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AdminSessionRefreshToken that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AdminSessionRefreshTokenFindUniqueOrThrowArgs} args - Arguments to find a AdminSessionRefreshToken
+     * @example
+     * // Get one AdminSessionRefreshToken
+     * const adminSessionRefreshToken = await prisma.adminSessionRefreshToken.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AdminSessionRefreshTokenFindUniqueOrThrowArgs>(args: SelectSubset<T, AdminSessionRefreshTokenFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AdminSessionRefreshTokenClient<$Result.GetResult<Prisma.$AdminSessionRefreshTokenPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminSessionRefreshToken that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionRefreshTokenFindFirstArgs} args - Arguments to find a AdminSessionRefreshToken
+     * @example
+     * // Get one AdminSessionRefreshToken
+     * const adminSessionRefreshToken = await prisma.adminSessionRefreshToken.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AdminSessionRefreshTokenFindFirstArgs>(args?: SelectSubset<T, AdminSessionRefreshTokenFindFirstArgs<ExtArgs>>): Prisma__AdminSessionRefreshTokenClient<$Result.GetResult<Prisma.$AdminSessionRefreshTokenPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminSessionRefreshToken that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionRefreshTokenFindFirstOrThrowArgs} args - Arguments to find a AdminSessionRefreshToken
+     * @example
+     * // Get one AdminSessionRefreshToken
+     * const adminSessionRefreshToken = await prisma.adminSessionRefreshToken.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AdminSessionRefreshTokenFindFirstOrThrowArgs>(args?: SelectSubset<T, AdminSessionRefreshTokenFindFirstOrThrowArgs<ExtArgs>>): Prisma__AdminSessionRefreshTokenClient<$Result.GetResult<Prisma.$AdminSessionRefreshTokenPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AdminSessionRefreshTokens that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionRefreshTokenFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AdminSessionRefreshTokens
+     * const adminSessionRefreshTokens = await prisma.adminSessionRefreshToken.findMany()
+     * 
+     * // Get first 10 AdminSessionRefreshTokens
+     * const adminSessionRefreshTokens = await prisma.adminSessionRefreshToken.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const adminSessionRefreshTokenWithIdOnly = await prisma.adminSessionRefreshToken.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AdminSessionRefreshTokenFindManyArgs>(args?: SelectSubset<T, AdminSessionRefreshTokenFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminSessionRefreshTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AdminSessionRefreshToken.
+     * @param {AdminSessionRefreshTokenCreateArgs} args - Arguments to create a AdminSessionRefreshToken.
+     * @example
+     * // Create one AdminSessionRefreshToken
+     * const AdminSessionRefreshToken = await prisma.adminSessionRefreshToken.create({
+     *   data: {
+     *     // ... data to create a AdminSessionRefreshToken
+     *   }
+     * })
+     * 
+     */
+    create<T extends AdminSessionRefreshTokenCreateArgs>(args: SelectSubset<T, AdminSessionRefreshTokenCreateArgs<ExtArgs>>): Prisma__AdminSessionRefreshTokenClient<$Result.GetResult<Prisma.$AdminSessionRefreshTokenPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AdminSessionRefreshTokens.
+     * @param {AdminSessionRefreshTokenCreateManyArgs} args - Arguments to create many AdminSessionRefreshTokens.
+     * @example
+     * // Create many AdminSessionRefreshTokens
+     * const adminSessionRefreshToken = await prisma.adminSessionRefreshToken.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AdminSessionRefreshTokenCreateManyArgs>(args?: SelectSubset<T, AdminSessionRefreshTokenCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AdminSessionRefreshTokens and returns the data saved in the database.
+     * @param {AdminSessionRefreshTokenCreateManyAndReturnArgs} args - Arguments to create many AdminSessionRefreshTokens.
+     * @example
+     * // Create many AdminSessionRefreshTokens
+     * const adminSessionRefreshToken = await prisma.adminSessionRefreshToken.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AdminSessionRefreshTokens and only return the `id`
+     * const adminSessionRefreshTokenWithIdOnly = await prisma.adminSessionRefreshToken.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AdminSessionRefreshTokenCreateManyAndReturnArgs>(args?: SelectSubset<T, AdminSessionRefreshTokenCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminSessionRefreshTokenPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AdminSessionRefreshToken.
+     * @param {AdminSessionRefreshTokenDeleteArgs} args - Arguments to delete one AdminSessionRefreshToken.
+     * @example
+     * // Delete one AdminSessionRefreshToken
+     * const AdminSessionRefreshToken = await prisma.adminSessionRefreshToken.delete({
+     *   where: {
+     *     // ... filter to delete one AdminSessionRefreshToken
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AdminSessionRefreshTokenDeleteArgs>(args: SelectSubset<T, AdminSessionRefreshTokenDeleteArgs<ExtArgs>>): Prisma__AdminSessionRefreshTokenClient<$Result.GetResult<Prisma.$AdminSessionRefreshTokenPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AdminSessionRefreshToken.
+     * @param {AdminSessionRefreshTokenUpdateArgs} args - Arguments to update one AdminSessionRefreshToken.
+     * @example
+     * // Update one AdminSessionRefreshToken
+     * const adminSessionRefreshToken = await prisma.adminSessionRefreshToken.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AdminSessionRefreshTokenUpdateArgs>(args: SelectSubset<T, AdminSessionRefreshTokenUpdateArgs<ExtArgs>>): Prisma__AdminSessionRefreshTokenClient<$Result.GetResult<Prisma.$AdminSessionRefreshTokenPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AdminSessionRefreshTokens.
+     * @param {AdminSessionRefreshTokenDeleteManyArgs} args - Arguments to filter AdminSessionRefreshTokens to delete.
+     * @example
+     * // Delete a few AdminSessionRefreshTokens
+     * const { count } = await prisma.adminSessionRefreshToken.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AdminSessionRefreshTokenDeleteManyArgs>(args?: SelectSubset<T, AdminSessionRefreshTokenDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminSessionRefreshTokens.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionRefreshTokenUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AdminSessionRefreshTokens
+     * const adminSessionRefreshToken = await prisma.adminSessionRefreshToken.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AdminSessionRefreshTokenUpdateManyArgs>(args: SelectSubset<T, AdminSessionRefreshTokenUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminSessionRefreshTokens and returns the data updated in the database.
+     * @param {AdminSessionRefreshTokenUpdateManyAndReturnArgs} args - Arguments to update many AdminSessionRefreshTokens.
+     * @example
+     * // Update many AdminSessionRefreshTokens
+     * const adminSessionRefreshToken = await prisma.adminSessionRefreshToken.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more AdminSessionRefreshTokens and only return the `id`
+     * const adminSessionRefreshTokenWithIdOnly = await prisma.adminSessionRefreshToken.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AdminSessionRefreshTokenUpdateManyAndReturnArgs>(args: SelectSubset<T, AdminSessionRefreshTokenUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminSessionRefreshTokenPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AdminSessionRefreshToken.
+     * @param {AdminSessionRefreshTokenUpsertArgs} args - Arguments to update or create a AdminSessionRefreshToken.
+     * @example
+     * // Update or create a AdminSessionRefreshToken
+     * const adminSessionRefreshToken = await prisma.adminSessionRefreshToken.upsert({
+     *   create: {
+     *     // ... data to create a AdminSessionRefreshToken
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AdminSessionRefreshToken we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AdminSessionRefreshTokenUpsertArgs>(args: SelectSubset<T, AdminSessionRefreshTokenUpsertArgs<ExtArgs>>): Prisma__AdminSessionRefreshTokenClient<$Result.GetResult<Prisma.$AdminSessionRefreshTokenPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AdminSessionRefreshTokens.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionRefreshTokenCountArgs} args - Arguments to filter AdminSessionRefreshTokens to count.
+     * @example
+     * // Count the number of AdminSessionRefreshTokens
+     * const count = await prisma.adminSessionRefreshToken.count({
+     *   where: {
+     *     // ... the filter for the AdminSessionRefreshTokens we want to count
+     *   }
+     * })
+    **/
+    count<T extends AdminSessionRefreshTokenCountArgs>(
+      args?: Subset<T, AdminSessionRefreshTokenCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AdminSessionRefreshTokenCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AdminSessionRefreshToken.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionRefreshTokenAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AdminSessionRefreshTokenAggregateArgs>(args: Subset<T, AdminSessionRefreshTokenAggregateArgs>): Prisma.PrismaPromise<GetAdminSessionRefreshTokenAggregateType<T>>
+
+    /**
+     * Group by AdminSessionRefreshToken.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionRefreshTokenGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AdminSessionRefreshTokenGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AdminSessionRefreshTokenGroupByArgs['orderBy'] }
+        : { orderBy?: AdminSessionRefreshTokenGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AdminSessionRefreshTokenGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAdminSessionRefreshTokenGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AdminSessionRefreshToken model
+   */
+  readonly fields: AdminSessionRefreshTokenFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AdminSessionRefreshToken.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AdminSessionRefreshTokenClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    session<T extends AdminSessionDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AdminSessionDefaultArgs<ExtArgs>>): Prisma__AdminSessionClient<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AdminSessionRefreshToken model
+   */
+  interface AdminSessionRefreshTokenFieldRefs {
+    readonly id: FieldRef<"AdminSessionRefreshToken", 'String'>
+    readonly sessionId: FieldRef<"AdminSessionRefreshToken", 'String'>
+    readonly adminUserId: FieldRef<"AdminSessionRefreshToken", 'String'>
+    readonly tokenHash: FieldRef<"AdminSessionRefreshToken", 'String'>
+    readonly createdAt: FieldRef<"AdminSessionRefreshToken", 'DateTime'>
+    readonly expiresAt: FieldRef<"AdminSessionRefreshToken", 'DateTime'>
+    readonly rotatedAt: FieldRef<"AdminSessionRefreshToken", 'DateTime'>
+    readonly revokedAt: FieldRef<"AdminSessionRefreshToken", 'DateTime'>
+    readonly ipAddress: FieldRef<"AdminSessionRefreshToken", 'String'>
+    readonly userAgent: FieldRef<"AdminSessionRefreshToken", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AdminSessionRefreshToken findUnique
+   */
+  export type AdminSessionRefreshTokenFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSessionRefreshToken
+     */
+    select?: AdminSessionRefreshTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSessionRefreshToken
+     */
+    omit?: AdminSessionRefreshTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionRefreshTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminSessionRefreshToken to fetch.
+     */
+    where: AdminSessionRefreshTokenWhereUniqueInput
+  }
+
+  /**
+   * AdminSessionRefreshToken findUniqueOrThrow
+   */
+  export type AdminSessionRefreshTokenFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSessionRefreshToken
+     */
+    select?: AdminSessionRefreshTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSessionRefreshToken
+     */
+    omit?: AdminSessionRefreshTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionRefreshTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminSessionRefreshToken to fetch.
+     */
+    where: AdminSessionRefreshTokenWhereUniqueInput
+  }
+
+  /**
+   * AdminSessionRefreshToken findFirst
+   */
+  export type AdminSessionRefreshTokenFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSessionRefreshToken
+     */
+    select?: AdminSessionRefreshTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSessionRefreshToken
+     */
+    omit?: AdminSessionRefreshTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionRefreshTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminSessionRefreshToken to fetch.
+     */
+    where?: AdminSessionRefreshTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminSessionRefreshTokens to fetch.
+     */
+    orderBy?: AdminSessionRefreshTokenOrderByWithRelationInput | AdminSessionRefreshTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminSessionRefreshTokens.
+     */
+    cursor?: AdminSessionRefreshTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminSessionRefreshTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminSessionRefreshTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminSessionRefreshTokens.
+     */
+    distinct?: AdminSessionRefreshTokenScalarFieldEnum | AdminSessionRefreshTokenScalarFieldEnum[]
+  }
+
+  /**
+   * AdminSessionRefreshToken findFirstOrThrow
+   */
+  export type AdminSessionRefreshTokenFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSessionRefreshToken
+     */
+    select?: AdminSessionRefreshTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSessionRefreshToken
+     */
+    omit?: AdminSessionRefreshTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionRefreshTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminSessionRefreshToken to fetch.
+     */
+    where?: AdminSessionRefreshTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminSessionRefreshTokens to fetch.
+     */
+    orderBy?: AdminSessionRefreshTokenOrderByWithRelationInput | AdminSessionRefreshTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminSessionRefreshTokens.
+     */
+    cursor?: AdminSessionRefreshTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminSessionRefreshTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminSessionRefreshTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminSessionRefreshTokens.
+     */
+    distinct?: AdminSessionRefreshTokenScalarFieldEnum | AdminSessionRefreshTokenScalarFieldEnum[]
+  }
+
+  /**
+   * AdminSessionRefreshToken findMany
+   */
+  export type AdminSessionRefreshTokenFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSessionRefreshToken
+     */
+    select?: AdminSessionRefreshTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSessionRefreshToken
+     */
+    omit?: AdminSessionRefreshTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionRefreshTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminSessionRefreshTokens to fetch.
+     */
+    where?: AdminSessionRefreshTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminSessionRefreshTokens to fetch.
+     */
+    orderBy?: AdminSessionRefreshTokenOrderByWithRelationInput | AdminSessionRefreshTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AdminSessionRefreshTokens.
+     */
+    cursor?: AdminSessionRefreshTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminSessionRefreshTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminSessionRefreshTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminSessionRefreshTokens.
+     */
+    distinct?: AdminSessionRefreshTokenScalarFieldEnum | AdminSessionRefreshTokenScalarFieldEnum[]
+  }
+
+  /**
+   * AdminSessionRefreshToken create
+   */
+  export type AdminSessionRefreshTokenCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSessionRefreshToken
+     */
+    select?: AdminSessionRefreshTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSessionRefreshToken
+     */
+    omit?: AdminSessionRefreshTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionRefreshTokenInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AdminSessionRefreshToken.
+     */
+    data: XOR<AdminSessionRefreshTokenCreateInput, AdminSessionRefreshTokenUncheckedCreateInput>
+  }
+
+  /**
+   * AdminSessionRefreshToken createMany
+   */
+  export type AdminSessionRefreshTokenCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AdminSessionRefreshTokens.
+     */
+    data: AdminSessionRefreshTokenCreateManyInput | AdminSessionRefreshTokenCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AdminSessionRefreshToken createManyAndReturn
+   */
+  export type AdminSessionRefreshTokenCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSessionRefreshToken
+     */
+    select?: AdminSessionRefreshTokenSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSessionRefreshToken
+     */
+    omit?: AdminSessionRefreshTokenOmit<ExtArgs> | null
+    /**
+     * The data used to create many AdminSessionRefreshTokens.
+     */
+    data: AdminSessionRefreshTokenCreateManyInput | AdminSessionRefreshTokenCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionRefreshTokenIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdminSessionRefreshToken update
+   */
+  export type AdminSessionRefreshTokenUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSessionRefreshToken
+     */
+    select?: AdminSessionRefreshTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSessionRefreshToken
+     */
+    omit?: AdminSessionRefreshTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionRefreshTokenInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AdminSessionRefreshToken.
+     */
+    data: XOR<AdminSessionRefreshTokenUpdateInput, AdminSessionRefreshTokenUncheckedUpdateInput>
+    /**
+     * Choose, which AdminSessionRefreshToken to update.
+     */
+    where: AdminSessionRefreshTokenWhereUniqueInput
+  }
+
+  /**
+   * AdminSessionRefreshToken updateMany
+   */
+  export type AdminSessionRefreshTokenUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AdminSessionRefreshTokens.
+     */
+    data: XOR<AdminSessionRefreshTokenUpdateManyMutationInput, AdminSessionRefreshTokenUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminSessionRefreshTokens to update
+     */
+    where?: AdminSessionRefreshTokenWhereInput
+    /**
+     * Limit how many AdminSessionRefreshTokens to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminSessionRefreshToken updateManyAndReturn
+   */
+  export type AdminSessionRefreshTokenUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSessionRefreshToken
+     */
+    select?: AdminSessionRefreshTokenSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSessionRefreshToken
+     */
+    omit?: AdminSessionRefreshTokenOmit<ExtArgs> | null
+    /**
+     * The data used to update AdminSessionRefreshTokens.
+     */
+    data: XOR<AdminSessionRefreshTokenUpdateManyMutationInput, AdminSessionRefreshTokenUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminSessionRefreshTokens to update
+     */
+    where?: AdminSessionRefreshTokenWhereInput
+    /**
+     * Limit how many AdminSessionRefreshTokens to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionRefreshTokenIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdminSessionRefreshToken upsert
+   */
+  export type AdminSessionRefreshTokenUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSessionRefreshToken
+     */
+    select?: AdminSessionRefreshTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSessionRefreshToken
+     */
+    omit?: AdminSessionRefreshTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionRefreshTokenInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AdminSessionRefreshToken to update in case it exists.
+     */
+    where: AdminSessionRefreshTokenWhereUniqueInput
+    /**
+     * In case the AdminSessionRefreshToken found by the `where` argument doesn't exist, create a new AdminSessionRefreshToken with this data.
+     */
+    create: XOR<AdminSessionRefreshTokenCreateInput, AdminSessionRefreshTokenUncheckedCreateInput>
+    /**
+     * In case the AdminSessionRefreshToken was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AdminSessionRefreshTokenUpdateInput, AdminSessionRefreshTokenUncheckedUpdateInput>
+  }
+
+  /**
+   * AdminSessionRefreshToken delete
+   */
+  export type AdminSessionRefreshTokenDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSessionRefreshToken
+     */
+    select?: AdminSessionRefreshTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSessionRefreshToken
+     */
+    omit?: AdminSessionRefreshTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionRefreshTokenInclude<ExtArgs> | null
+    /**
+     * Filter which AdminSessionRefreshToken to delete.
+     */
+    where: AdminSessionRefreshTokenWhereUniqueInput
+  }
+
+  /**
+   * AdminSessionRefreshToken deleteMany
+   */
+  export type AdminSessionRefreshTokenDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminSessionRefreshTokens to delete
+     */
+    where?: AdminSessionRefreshTokenWhereInput
+    /**
+     * Limit how many AdminSessionRefreshTokens to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminSessionRefreshToken without action
+   */
+  export type AdminSessionRefreshTokenDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSessionRefreshToken
+     */
+    select?: AdminSessionRefreshTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSessionRefreshToken
+     */
+    omit?: AdminSessionRefreshTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionRefreshTokenInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AdminMfaEnrollment
+   */
+
+  export type AggregateAdminMfaEnrollment = {
+    _count: AdminMfaEnrollmentCountAggregateOutputType | null
+    _avg: AdminMfaEnrollmentAvgAggregateOutputType | null
+    _sum: AdminMfaEnrollmentSumAggregateOutputType | null
+    _min: AdminMfaEnrollmentMinAggregateOutputType | null
+    _max: AdminMfaEnrollmentMaxAggregateOutputType | null
+  }
+
+  export type AdminMfaEnrollmentAvgAggregateOutputType = {
+    lastUsedStep: number | null
+    failedAttempts: number | null
+  }
+
+  export type AdminMfaEnrollmentSumAggregateOutputType = {
+    lastUsedStep: number | null
+    failedAttempts: number | null
+  }
+
+  export type AdminMfaEnrollmentMinAggregateOutputType = {
+    adminUserId: string | null
+    enrolledAt: Date | null
+    secretEncrypted: string | null
+    pendingSecretEncrypted: string | null
+    pendingExpiresAt: Date | null
+    lastUsedStep: number | null
+    failedAttempts: number | null
+    lockedUntil: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AdminMfaEnrollmentMaxAggregateOutputType = {
+    adminUserId: string | null
+    enrolledAt: Date | null
+    secretEncrypted: string | null
+    pendingSecretEncrypted: string | null
+    pendingExpiresAt: Date | null
+    lastUsedStep: number | null
+    failedAttempts: number | null
+    lockedUntil: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AdminMfaEnrollmentCountAggregateOutputType = {
+    adminUserId: number
+    enrolledAt: number
+    secretEncrypted: number
+    pendingSecretEncrypted: number
+    pendingExpiresAt: number
+    lastUsedStep: number
+    failedAttempts: number
+    lockedUntil: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type AdminMfaEnrollmentAvgAggregateInputType = {
+    lastUsedStep?: true
+    failedAttempts?: true
+  }
+
+  export type AdminMfaEnrollmentSumAggregateInputType = {
+    lastUsedStep?: true
+    failedAttempts?: true
+  }
+
+  export type AdminMfaEnrollmentMinAggregateInputType = {
+    adminUserId?: true
+    enrolledAt?: true
+    secretEncrypted?: true
+    pendingSecretEncrypted?: true
+    pendingExpiresAt?: true
+    lastUsedStep?: true
+    failedAttempts?: true
+    lockedUntil?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AdminMfaEnrollmentMaxAggregateInputType = {
+    adminUserId?: true
+    enrolledAt?: true
+    secretEncrypted?: true
+    pendingSecretEncrypted?: true
+    pendingExpiresAt?: true
+    lastUsedStep?: true
+    failedAttempts?: true
+    lockedUntil?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AdminMfaEnrollmentCountAggregateInputType = {
+    adminUserId?: true
+    enrolledAt?: true
+    secretEncrypted?: true
+    pendingSecretEncrypted?: true
+    pendingExpiresAt?: true
+    lastUsedStep?: true
+    failedAttempts?: true
+    lockedUntil?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type AdminMfaEnrollmentAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminMfaEnrollment to aggregate.
+     */
+    where?: AdminMfaEnrollmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminMfaEnrollments to fetch.
+     */
+    orderBy?: AdminMfaEnrollmentOrderByWithRelationInput | AdminMfaEnrollmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AdminMfaEnrollmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminMfaEnrollments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminMfaEnrollments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AdminMfaEnrollments
+    **/
+    _count?: true | AdminMfaEnrollmentCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: AdminMfaEnrollmentAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: AdminMfaEnrollmentSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AdminMfaEnrollmentMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AdminMfaEnrollmentMaxAggregateInputType
+  }
+
+  export type GetAdminMfaEnrollmentAggregateType<T extends AdminMfaEnrollmentAggregateArgs> = {
+        [P in keyof T & keyof AggregateAdminMfaEnrollment]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAdminMfaEnrollment[P]>
+      : GetScalarType<T[P], AggregateAdminMfaEnrollment[P]>
+  }
+
+
+
+
+  export type AdminMfaEnrollmentGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminMfaEnrollmentWhereInput
+    orderBy?: AdminMfaEnrollmentOrderByWithAggregationInput | AdminMfaEnrollmentOrderByWithAggregationInput[]
+    by: AdminMfaEnrollmentScalarFieldEnum[] | AdminMfaEnrollmentScalarFieldEnum
+    having?: AdminMfaEnrollmentScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AdminMfaEnrollmentCountAggregateInputType | true
+    _avg?: AdminMfaEnrollmentAvgAggregateInputType
+    _sum?: AdminMfaEnrollmentSumAggregateInputType
+    _min?: AdminMfaEnrollmentMinAggregateInputType
+    _max?: AdminMfaEnrollmentMaxAggregateInputType
+  }
+
+  export type AdminMfaEnrollmentGroupByOutputType = {
+    adminUserId: string
+    enrolledAt: Date | null
+    secretEncrypted: string | null
+    pendingSecretEncrypted: string | null
+    pendingExpiresAt: Date | null
+    lastUsedStep: number | null
+    failedAttempts: number
+    lockedUntil: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: AdminMfaEnrollmentCountAggregateOutputType | null
+    _avg: AdminMfaEnrollmentAvgAggregateOutputType | null
+    _sum: AdminMfaEnrollmentSumAggregateOutputType | null
+    _min: AdminMfaEnrollmentMinAggregateOutputType | null
+    _max: AdminMfaEnrollmentMaxAggregateOutputType | null
+  }
+
+  type GetAdminMfaEnrollmentGroupByPayload<T extends AdminMfaEnrollmentGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AdminMfaEnrollmentGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AdminMfaEnrollmentGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AdminMfaEnrollmentGroupByOutputType[P]>
+            : GetScalarType<T[P], AdminMfaEnrollmentGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AdminMfaEnrollmentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    adminUserId?: boolean
+    enrolledAt?: boolean
+    secretEncrypted?: boolean
+    pendingSecretEncrypted?: boolean
+    pendingExpiresAt?: boolean
+    lastUsedStep?: boolean
+    failedAttempts?: boolean
+    lockedUntil?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminMfaEnrollment"]>
+
+  export type AdminMfaEnrollmentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    adminUserId?: boolean
+    enrolledAt?: boolean
+    secretEncrypted?: boolean
+    pendingSecretEncrypted?: boolean
+    pendingExpiresAt?: boolean
+    lastUsedStep?: boolean
+    failedAttempts?: boolean
+    lockedUntil?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminMfaEnrollment"]>
+
+  export type AdminMfaEnrollmentSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    adminUserId?: boolean
+    enrolledAt?: boolean
+    secretEncrypted?: boolean
+    pendingSecretEncrypted?: boolean
+    pendingExpiresAt?: boolean
+    lastUsedStep?: boolean
+    failedAttempts?: boolean
+    lockedUntil?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminMfaEnrollment"]>
+
+  export type AdminMfaEnrollmentSelectScalar = {
+    adminUserId?: boolean
+    enrolledAt?: boolean
+    secretEncrypted?: boolean
+    pendingSecretEncrypted?: boolean
+    pendingExpiresAt?: boolean
+    lastUsedStep?: boolean
+    failedAttempts?: boolean
+    lockedUntil?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type AdminMfaEnrollmentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"adminUserId" | "enrolledAt" | "secretEncrypted" | "pendingSecretEncrypted" | "pendingExpiresAt" | "lastUsedStep" | "failedAttempts" | "lockedUntil" | "createdAt" | "updatedAt", ExtArgs["result"]["adminMfaEnrollment"]>
+  export type AdminMfaEnrollmentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+  export type AdminMfaEnrollmentIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+  export type AdminMfaEnrollmentIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+
+  export type $AdminMfaEnrollmentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AdminMfaEnrollment"
+    objects: {
+      adminUser: Prisma.$AdminUserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      adminUserId: string
+      enrolledAt: Date | null
+      secretEncrypted: string | null
+      pendingSecretEncrypted: string | null
+      pendingExpiresAt: Date | null
+      lastUsedStep: number | null
+      failedAttempts: number
+      lockedUntil: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["adminMfaEnrollment"]>
+    composites: {}
+  }
+
+  type AdminMfaEnrollmentGetPayload<S extends boolean | null | undefined | AdminMfaEnrollmentDefaultArgs> = $Result.GetResult<Prisma.$AdminMfaEnrollmentPayload, S>
+
+  type AdminMfaEnrollmentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AdminMfaEnrollmentFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AdminMfaEnrollmentCountAggregateInputType | true
+    }
+
+  export interface AdminMfaEnrollmentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AdminMfaEnrollment'], meta: { name: 'AdminMfaEnrollment' } }
+    /**
+     * Find zero or one AdminMfaEnrollment that matches the filter.
+     * @param {AdminMfaEnrollmentFindUniqueArgs} args - Arguments to find a AdminMfaEnrollment
+     * @example
+     * // Get one AdminMfaEnrollment
+     * const adminMfaEnrollment = await prisma.adminMfaEnrollment.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AdminMfaEnrollmentFindUniqueArgs>(args: SelectSubset<T, AdminMfaEnrollmentFindUniqueArgs<ExtArgs>>): Prisma__AdminMfaEnrollmentClient<$Result.GetResult<Prisma.$AdminMfaEnrollmentPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AdminMfaEnrollment that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AdminMfaEnrollmentFindUniqueOrThrowArgs} args - Arguments to find a AdminMfaEnrollment
+     * @example
+     * // Get one AdminMfaEnrollment
+     * const adminMfaEnrollment = await prisma.adminMfaEnrollment.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AdminMfaEnrollmentFindUniqueOrThrowArgs>(args: SelectSubset<T, AdminMfaEnrollmentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AdminMfaEnrollmentClient<$Result.GetResult<Prisma.$AdminMfaEnrollmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminMfaEnrollment that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaEnrollmentFindFirstArgs} args - Arguments to find a AdminMfaEnrollment
+     * @example
+     * // Get one AdminMfaEnrollment
+     * const adminMfaEnrollment = await prisma.adminMfaEnrollment.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AdminMfaEnrollmentFindFirstArgs>(args?: SelectSubset<T, AdminMfaEnrollmentFindFirstArgs<ExtArgs>>): Prisma__AdminMfaEnrollmentClient<$Result.GetResult<Prisma.$AdminMfaEnrollmentPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminMfaEnrollment that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaEnrollmentFindFirstOrThrowArgs} args - Arguments to find a AdminMfaEnrollment
+     * @example
+     * // Get one AdminMfaEnrollment
+     * const adminMfaEnrollment = await prisma.adminMfaEnrollment.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AdminMfaEnrollmentFindFirstOrThrowArgs>(args?: SelectSubset<T, AdminMfaEnrollmentFindFirstOrThrowArgs<ExtArgs>>): Prisma__AdminMfaEnrollmentClient<$Result.GetResult<Prisma.$AdminMfaEnrollmentPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AdminMfaEnrollments that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaEnrollmentFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AdminMfaEnrollments
+     * const adminMfaEnrollments = await prisma.adminMfaEnrollment.findMany()
+     * 
+     * // Get first 10 AdminMfaEnrollments
+     * const adminMfaEnrollments = await prisma.adminMfaEnrollment.findMany({ take: 10 })
+     * 
+     * // Only select the `adminUserId`
+     * const adminMfaEnrollmentWithAdminUserIdOnly = await prisma.adminMfaEnrollment.findMany({ select: { adminUserId: true } })
+     * 
+     */
+    findMany<T extends AdminMfaEnrollmentFindManyArgs>(args?: SelectSubset<T, AdminMfaEnrollmentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminMfaEnrollmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AdminMfaEnrollment.
+     * @param {AdminMfaEnrollmentCreateArgs} args - Arguments to create a AdminMfaEnrollment.
+     * @example
+     * // Create one AdminMfaEnrollment
+     * const AdminMfaEnrollment = await prisma.adminMfaEnrollment.create({
+     *   data: {
+     *     // ... data to create a AdminMfaEnrollment
+     *   }
+     * })
+     * 
+     */
+    create<T extends AdminMfaEnrollmentCreateArgs>(args: SelectSubset<T, AdminMfaEnrollmentCreateArgs<ExtArgs>>): Prisma__AdminMfaEnrollmentClient<$Result.GetResult<Prisma.$AdminMfaEnrollmentPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AdminMfaEnrollments.
+     * @param {AdminMfaEnrollmentCreateManyArgs} args - Arguments to create many AdminMfaEnrollments.
+     * @example
+     * // Create many AdminMfaEnrollments
+     * const adminMfaEnrollment = await prisma.adminMfaEnrollment.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AdminMfaEnrollmentCreateManyArgs>(args?: SelectSubset<T, AdminMfaEnrollmentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AdminMfaEnrollments and returns the data saved in the database.
+     * @param {AdminMfaEnrollmentCreateManyAndReturnArgs} args - Arguments to create many AdminMfaEnrollments.
+     * @example
+     * // Create many AdminMfaEnrollments
+     * const adminMfaEnrollment = await prisma.adminMfaEnrollment.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AdminMfaEnrollments and only return the `adminUserId`
+     * const adminMfaEnrollmentWithAdminUserIdOnly = await prisma.adminMfaEnrollment.createManyAndReturn({
+     *   select: { adminUserId: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AdminMfaEnrollmentCreateManyAndReturnArgs>(args?: SelectSubset<T, AdminMfaEnrollmentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminMfaEnrollmentPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AdminMfaEnrollment.
+     * @param {AdminMfaEnrollmentDeleteArgs} args - Arguments to delete one AdminMfaEnrollment.
+     * @example
+     * // Delete one AdminMfaEnrollment
+     * const AdminMfaEnrollment = await prisma.adminMfaEnrollment.delete({
+     *   where: {
+     *     // ... filter to delete one AdminMfaEnrollment
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AdminMfaEnrollmentDeleteArgs>(args: SelectSubset<T, AdminMfaEnrollmentDeleteArgs<ExtArgs>>): Prisma__AdminMfaEnrollmentClient<$Result.GetResult<Prisma.$AdminMfaEnrollmentPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AdminMfaEnrollment.
+     * @param {AdminMfaEnrollmentUpdateArgs} args - Arguments to update one AdminMfaEnrollment.
+     * @example
+     * // Update one AdminMfaEnrollment
+     * const adminMfaEnrollment = await prisma.adminMfaEnrollment.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AdminMfaEnrollmentUpdateArgs>(args: SelectSubset<T, AdminMfaEnrollmentUpdateArgs<ExtArgs>>): Prisma__AdminMfaEnrollmentClient<$Result.GetResult<Prisma.$AdminMfaEnrollmentPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AdminMfaEnrollments.
+     * @param {AdminMfaEnrollmentDeleteManyArgs} args - Arguments to filter AdminMfaEnrollments to delete.
+     * @example
+     * // Delete a few AdminMfaEnrollments
+     * const { count } = await prisma.adminMfaEnrollment.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AdminMfaEnrollmentDeleteManyArgs>(args?: SelectSubset<T, AdminMfaEnrollmentDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminMfaEnrollments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaEnrollmentUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AdminMfaEnrollments
+     * const adminMfaEnrollment = await prisma.adminMfaEnrollment.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AdminMfaEnrollmentUpdateManyArgs>(args: SelectSubset<T, AdminMfaEnrollmentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminMfaEnrollments and returns the data updated in the database.
+     * @param {AdminMfaEnrollmentUpdateManyAndReturnArgs} args - Arguments to update many AdminMfaEnrollments.
+     * @example
+     * // Update many AdminMfaEnrollments
+     * const adminMfaEnrollment = await prisma.adminMfaEnrollment.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more AdminMfaEnrollments and only return the `adminUserId`
+     * const adminMfaEnrollmentWithAdminUserIdOnly = await prisma.adminMfaEnrollment.updateManyAndReturn({
+     *   select: { adminUserId: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AdminMfaEnrollmentUpdateManyAndReturnArgs>(args: SelectSubset<T, AdminMfaEnrollmentUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminMfaEnrollmentPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AdminMfaEnrollment.
+     * @param {AdminMfaEnrollmentUpsertArgs} args - Arguments to update or create a AdminMfaEnrollment.
+     * @example
+     * // Update or create a AdminMfaEnrollment
+     * const adminMfaEnrollment = await prisma.adminMfaEnrollment.upsert({
+     *   create: {
+     *     // ... data to create a AdminMfaEnrollment
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AdminMfaEnrollment we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AdminMfaEnrollmentUpsertArgs>(args: SelectSubset<T, AdminMfaEnrollmentUpsertArgs<ExtArgs>>): Prisma__AdminMfaEnrollmentClient<$Result.GetResult<Prisma.$AdminMfaEnrollmentPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AdminMfaEnrollments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaEnrollmentCountArgs} args - Arguments to filter AdminMfaEnrollments to count.
+     * @example
+     * // Count the number of AdminMfaEnrollments
+     * const count = await prisma.adminMfaEnrollment.count({
+     *   where: {
+     *     // ... the filter for the AdminMfaEnrollments we want to count
+     *   }
+     * })
+    **/
+    count<T extends AdminMfaEnrollmentCountArgs>(
+      args?: Subset<T, AdminMfaEnrollmentCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AdminMfaEnrollmentCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AdminMfaEnrollment.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaEnrollmentAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AdminMfaEnrollmentAggregateArgs>(args: Subset<T, AdminMfaEnrollmentAggregateArgs>): Prisma.PrismaPromise<GetAdminMfaEnrollmentAggregateType<T>>
+
+    /**
+     * Group by AdminMfaEnrollment.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaEnrollmentGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AdminMfaEnrollmentGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AdminMfaEnrollmentGroupByArgs['orderBy'] }
+        : { orderBy?: AdminMfaEnrollmentGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AdminMfaEnrollmentGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAdminMfaEnrollmentGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AdminMfaEnrollment model
+   */
+  readonly fields: AdminMfaEnrollmentFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AdminMfaEnrollment.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AdminMfaEnrollmentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    adminUser<T extends AdminUserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AdminUserDefaultArgs<ExtArgs>>): Prisma__AdminUserClient<$Result.GetResult<Prisma.$AdminUserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AdminMfaEnrollment model
+   */
+  interface AdminMfaEnrollmentFieldRefs {
+    readonly adminUserId: FieldRef<"AdminMfaEnrollment", 'String'>
+    readonly enrolledAt: FieldRef<"AdminMfaEnrollment", 'DateTime'>
+    readonly secretEncrypted: FieldRef<"AdminMfaEnrollment", 'String'>
+    readonly pendingSecretEncrypted: FieldRef<"AdminMfaEnrollment", 'String'>
+    readonly pendingExpiresAt: FieldRef<"AdminMfaEnrollment", 'DateTime'>
+    readonly lastUsedStep: FieldRef<"AdminMfaEnrollment", 'Int'>
+    readonly failedAttempts: FieldRef<"AdminMfaEnrollment", 'Int'>
+    readonly lockedUntil: FieldRef<"AdminMfaEnrollment", 'DateTime'>
+    readonly createdAt: FieldRef<"AdminMfaEnrollment", 'DateTime'>
+    readonly updatedAt: FieldRef<"AdminMfaEnrollment", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AdminMfaEnrollment findUnique
+   */
+  export type AdminMfaEnrollmentFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaEnrollment
+     */
+    select?: AdminMfaEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaEnrollment
+     */
+    omit?: AdminMfaEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaEnrollmentInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaEnrollment to fetch.
+     */
+    where: AdminMfaEnrollmentWhereUniqueInput
+  }
+
+  /**
+   * AdminMfaEnrollment findUniqueOrThrow
+   */
+  export type AdminMfaEnrollmentFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaEnrollment
+     */
+    select?: AdminMfaEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaEnrollment
+     */
+    omit?: AdminMfaEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaEnrollmentInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaEnrollment to fetch.
+     */
+    where: AdminMfaEnrollmentWhereUniqueInput
+  }
+
+  /**
+   * AdminMfaEnrollment findFirst
+   */
+  export type AdminMfaEnrollmentFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaEnrollment
+     */
+    select?: AdminMfaEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaEnrollment
+     */
+    omit?: AdminMfaEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaEnrollmentInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaEnrollment to fetch.
+     */
+    where?: AdminMfaEnrollmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminMfaEnrollments to fetch.
+     */
+    orderBy?: AdminMfaEnrollmentOrderByWithRelationInput | AdminMfaEnrollmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminMfaEnrollments.
+     */
+    cursor?: AdminMfaEnrollmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminMfaEnrollments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminMfaEnrollments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminMfaEnrollments.
+     */
+    distinct?: AdminMfaEnrollmentScalarFieldEnum | AdminMfaEnrollmentScalarFieldEnum[]
+  }
+
+  /**
+   * AdminMfaEnrollment findFirstOrThrow
+   */
+  export type AdminMfaEnrollmentFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaEnrollment
+     */
+    select?: AdminMfaEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaEnrollment
+     */
+    omit?: AdminMfaEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaEnrollmentInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaEnrollment to fetch.
+     */
+    where?: AdminMfaEnrollmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminMfaEnrollments to fetch.
+     */
+    orderBy?: AdminMfaEnrollmentOrderByWithRelationInput | AdminMfaEnrollmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminMfaEnrollments.
+     */
+    cursor?: AdminMfaEnrollmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminMfaEnrollments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminMfaEnrollments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminMfaEnrollments.
+     */
+    distinct?: AdminMfaEnrollmentScalarFieldEnum | AdminMfaEnrollmentScalarFieldEnum[]
+  }
+
+  /**
+   * AdminMfaEnrollment findMany
+   */
+  export type AdminMfaEnrollmentFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaEnrollment
+     */
+    select?: AdminMfaEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaEnrollment
+     */
+    omit?: AdminMfaEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaEnrollmentInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaEnrollments to fetch.
+     */
+    where?: AdminMfaEnrollmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminMfaEnrollments to fetch.
+     */
+    orderBy?: AdminMfaEnrollmentOrderByWithRelationInput | AdminMfaEnrollmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AdminMfaEnrollments.
+     */
+    cursor?: AdminMfaEnrollmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminMfaEnrollments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminMfaEnrollments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminMfaEnrollments.
+     */
+    distinct?: AdminMfaEnrollmentScalarFieldEnum | AdminMfaEnrollmentScalarFieldEnum[]
+  }
+
+  /**
+   * AdminMfaEnrollment create
+   */
+  export type AdminMfaEnrollmentCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaEnrollment
+     */
+    select?: AdminMfaEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaEnrollment
+     */
+    omit?: AdminMfaEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaEnrollmentInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AdminMfaEnrollment.
+     */
+    data: XOR<AdminMfaEnrollmentCreateInput, AdminMfaEnrollmentUncheckedCreateInput>
+  }
+
+  /**
+   * AdminMfaEnrollment createMany
+   */
+  export type AdminMfaEnrollmentCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AdminMfaEnrollments.
+     */
+    data: AdminMfaEnrollmentCreateManyInput | AdminMfaEnrollmentCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AdminMfaEnrollment createManyAndReturn
+   */
+  export type AdminMfaEnrollmentCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaEnrollment
+     */
+    select?: AdminMfaEnrollmentSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaEnrollment
+     */
+    omit?: AdminMfaEnrollmentOmit<ExtArgs> | null
+    /**
+     * The data used to create many AdminMfaEnrollments.
+     */
+    data: AdminMfaEnrollmentCreateManyInput | AdminMfaEnrollmentCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaEnrollmentIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdminMfaEnrollment update
+   */
+  export type AdminMfaEnrollmentUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaEnrollment
+     */
+    select?: AdminMfaEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaEnrollment
+     */
+    omit?: AdminMfaEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaEnrollmentInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AdminMfaEnrollment.
+     */
+    data: XOR<AdminMfaEnrollmentUpdateInput, AdminMfaEnrollmentUncheckedUpdateInput>
+    /**
+     * Choose, which AdminMfaEnrollment to update.
+     */
+    where: AdminMfaEnrollmentWhereUniqueInput
+  }
+
+  /**
+   * AdminMfaEnrollment updateMany
+   */
+  export type AdminMfaEnrollmentUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AdminMfaEnrollments.
+     */
+    data: XOR<AdminMfaEnrollmentUpdateManyMutationInput, AdminMfaEnrollmentUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminMfaEnrollments to update
+     */
+    where?: AdminMfaEnrollmentWhereInput
+    /**
+     * Limit how many AdminMfaEnrollments to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminMfaEnrollment updateManyAndReturn
+   */
+  export type AdminMfaEnrollmentUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaEnrollment
+     */
+    select?: AdminMfaEnrollmentSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaEnrollment
+     */
+    omit?: AdminMfaEnrollmentOmit<ExtArgs> | null
+    /**
+     * The data used to update AdminMfaEnrollments.
+     */
+    data: XOR<AdminMfaEnrollmentUpdateManyMutationInput, AdminMfaEnrollmentUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminMfaEnrollments to update
+     */
+    where?: AdminMfaEnrollmentWhereInput
+    /**
+     * Limit how many AdminMfaEnrollments to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaEnrollmentIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdminMfaEnrollment upsert
+   */
+  export type AdminMfaEnrollmentUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaEnrollment
+     */
+    select?: AdminMfaEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaEnrollment
+     */
+    omit?: AdminMfaEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaEnrollmentInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AdminMfaEnrollment to update in case it exists.
+     */
+    where: AdminMfaEnrollmentWhereUniqueInput
+    /**
+     * In case the AdminMfaEnrollment found by the `where` argument doesn't exist, create a new AdminMfaEnrollment with this data.
+     */
+    create: XOR<AdminMfaEnrollmentCreateInput, AdminMfaEnrollmentUncheckedCreateInput>
+    /**
+     * In case the AdminMfaEnrollment was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AdminMfaEnrollmentUpdateInput, AdminMfaEnrollmentUncheckedUpdateInput>
+  }
+
+  /**
+   * AdminMfaEnrollment delete
+   */
+  export type AdminMfaEnrollmentDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaEnrollment
+     */
+    select?: AdminMfaEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaEnrollment
+     */
+    omit?: AdminMfaEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaEnrollmentInclude<ExtArgs> | null
+    /**
+     * Filter which AdminMfaEnrollment to delete.
+     */
+    where: AdminMfaEnrollmentWhereUniqueInput
+  }
+
+  /**
+   * AdminMfaEnrollment deleteMany
+   */
+  export type AdminMfaEnrollmentDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminMfaEnrollments to delete
+     */
+    where?: AdminMfaEnrollmentWhereInput
+    /**
+     * Limit how many AdminMfaEnrollments to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminMfaEnrollment without action
+   */
+  export type AdminMfaEnrollmentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaEnrollment
+     */
+    select?: AdminMfaEnrollmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaEnrollment
+     */
+    omit?: AdminMfaEnrollmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaEnrollmentInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AdminMfaRecoveryCode
+   */
+
+  export type AggregateAdminMfaRecoveryCode = {
+    _count: AdminMfaRecoveryCodeCountAggregateOutputType | null
+    _min: AdminMfaRecoveryCodeMinAggregateOutputType | null
+    _max: AdminMfaRecoveryCodeMaxAggregateOutputType | null
+  }
+
+  export type AdminMfaRecoveryCodeMinAggregateOutputType = {
+    id: string | null
+    adminUserId: string | null
+    salt: string | null
+    codeHash: string | null
+    createdAt: Date | null
+    usedAt: Date | null
+  }
+
+  export type AdminMfaRecoveryCodeMaxAggregateOutputType = {
+    id: string | null
+    adminUserId: string | null
+    salt: string | null
+    codeHash: string | null
+    createdAt: Date | null
+    usedAt: Date | null
+  }
+
+  export type AdminMfaRecoveryCodeCountAggregateOutputType = {
+    id: number
+    adminUserId: number
+    salt: number
+    codeHash: number
+    createdAt: number
+    usedAt: number
+    _all: number
+  }
+
+
+  export type AdminMfaRecoveryCodeMinAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    salt?: true
+    codeHash?: true
+    createdAt?: true
+    usedAt?: true
+  }
+
+  export type AdminMfaRecoveryCodeMaxAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    salt?: true
+    codeHash?: true
+    createdAt?: true
+    usedAt?: true
+  }
+
+  export type AdminMfaRecoveryCodeCountAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    salt?: true
+    codeHash?: true
+    createdAt?: true
+    usedAt?: true
+    _all?: true
+  }
+
+  export type AdminMfaRecoveryCodeAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminMfaRecoveryCode to aggregate.
+     */
+    where?: AdminMfaRecoveryCodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminMfaRecoveryCodes to fetch.
+     */
+    orderBy?: AdminMfaRecoveryCodeOrderByWithRelationInput | AdminMfaRecoveryCodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AdminMfaRecoveryCodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminMfaRecoveryCodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminMfaRecoveryCodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AdminMfaRecoveryCodes
+    **/
+    _count?: true | AdminMfaRecoveryCodeCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AdminMfaRecoveryCodeMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AdminMfaRecoveryCodeMaxAggregateInputType
+  }
+
+  export type GetAdminMfaRecoveryCodeAggregateType<T extends AdminMfaRecoveryCodeAggregateArgs> = {
+        [P in keyof T & keyof AggregateAdminMfaRecoveryCode]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAdminMfaRecoveryCode[P]>
+      : GetScalarType<T[P], AggregateAdminMfaRecoveryCode[P]>
+  }
+
+
+
+
+  export type AdminMfaRecoveryCodeGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminMfaRecoveryCodeWhereInput
+    orderBy?: AdminMfaRecoveryCodeOrderByWithAggregationInput | AdminMfaRecoveryCodeOrderByWithAggregationInput[]
+    by: AdminMfaRecoveryCodeScalarFieldEnum[] | AdminMfaRecoveryCodeScalarFieldEnum
+    having?: AdminMfaRecoveryCodeScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AdminMfaRecoveryCodeCountAggregateInputType | true
+    _min?: AdminMfaRecoveryCodeMinAggregateInputType
+    _max?: AdminMfaRecoveryCodeMaxAggregateInputType
+  }
+
+  export type AdminMfaRecoveryCodeGroupByOutputType = {
+    id: string
+    adminUserId: string
+    salt: string
+    codeHash: string
+    createdAt: Date
+    usedAt: Date | null
+    _count: AdminMfaRecoveryCodeCountAggregateOutputType | null
+    _min: AdminMfaRecoveryCodeMinAggregateOutputType | null
+    _max: AdminMfaRecoveryCodeMaxAggregateOutputType | null
+  }
+
+  type GetAdminMfaRecoveryCodeGroupByPayload<T extends AdminMfaRecoveryCodeGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AdminMfaRecoveryCodeGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AdminMfaRecoveryCodeGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AdminMfaRecoveryCodeGroupByOutputType[P]>
+            : GetScalarType<T[P], AdminMfaRecoveryCodeGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AdminMfaRecoveryCodeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    salt?: boolean
+    codeHash?: boolean
+    createdAt?: boolean
+    usedAt?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminMfaRecoveryCode"]>
+
+  export type AdminMfaRecoveryCodeSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    salt?: boolean
+    codeHash?: boolean
+    createdAt?: boolean
+    usedAt?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminMfaRecoveryCode"]>
+
+  export type AdminMfaRecoveryCodeSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    salt?: boolean
+    codeHash?: boolean
+    createdAt?: boolean
+    usedAt?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminMfaRecoveryCode"]>
+
+  export type AdminMfaRecoveryCodeSelectScalar = {
+    id?: boolean
+    adminUserId?: boolean
+    salt?: boolean
+    codeHash?: boolean
+    createdAt?: boolean
+    usedAt?: boolean
+  }
+
+  export type AdminMfaRecoveryCodeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "adminUserId" | "salt" | "codeHash" | "createdAt" | "usedAt", ExtArgs["result"]["adminMfaRecoveryCode"]>
+  export type AdminMfaRecoveryCodeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+  export type AdminMfaRecoveryCodeIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+  export type AdminMfaRecoveryCodeIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+
+  export type $AdminMfaRecoveryCodePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AdminMfaRecoveryCode"
+    objects: {
+      adminUser: Prisma.$AdminUserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      adminUserId: string
+      salt: string
+      codeHash: string
+      createdAt: Date
+      usedAt: Date | null
+    }, ExtArgs["result"]["adminMfaRecoveryCode"]>
+    composites: {}
+  }
+
+  type AdminMfaRecoveryCodeGetPayload<S extends boolean | null | undefined | AdminMfaRecoveryCodeDefaultArgs> = $Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload, S>
+
+  type AdminMfaRecoveryCodeCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AdminMfaRecoveryCodeFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AdminMfaRecoveryCodeCountAggregateInputType | true
+    }
+
+  export interface AdminMfaRecoveryCodeDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AdminMfaRecoveryCode'], meta: { name: 'AdminMfaRecoveryCode' } }
+    /**
+     * Find zero or one AdminMfaRecoveryCode that matches the filter.
+     * @param {AdminMfaRecoveryCodeFindUniqueArgs} args - Arguments to find a AdminMfaRecoveryCode
+     * @example
+     * // Get one AdminMfaRecoveryCode
+     * const adminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AdminMfaRecoveryCodeFindUniqueArgs>(args: SelectSubset<T, AdminMfaRecoveryCodeFindUniqueArgs<ExtArgs>>): Prisma__AdminMfaRecoveryCodeClient<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AdminMfaRecoveryCode that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AdminMfaRecoveryCodeFindUniqueOrThrowArgs} args - Arguments to find a AdminMfaRecoveryCode
+     * @example
+     * // Get one AdminMfaRecoveryCode
+     * const adminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AdminMfaRecoveryCodeFindUniqueOrThrowArgs>(args: SelectSubset<T, AdminMfaRecoveryCodeFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AdminMfaRecoveryCodeClient<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminMfaRecoveryCode that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaRecoveryCodeFindFirstArgs} args - Arguments to find a AdminMfaRecoveryCode
+     * @example
+     * // Get one AdminMfaRecoveryCode
+     * const adminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AdminMfaRecoveryCodeFindFirstArgs>(args?: SelectSubset<T, AdminMfaRecoveryCodeFindFirstArgs<ExtArgs>>): Prisma__AdminMfaRecoveryCodeClient<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminMfaRecoveryCode that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaRecoveryCodeFindFirstOrThrowArgs} args - Arguments to find a AdminMfaRecoveryCode
+     * @example
+     * // Get one AdminMfaRecoveryCode
+     * const adminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AdminMfaRecoveryCodeFindFirstOrThrowArgs>(args?: SelectSubset<T, AdminMfaRecoveryCodeFindFirstOrThrowArgs<ExtArgs>>): Prisma__AdminMfaRecoveryCodeClient<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AdminMfaRecoveryCodes that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaRecoveryCodeFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AdminMfaRecoveryCodes
+     * const adminMfaRecoveryCodes = await prisma.adminMfaRecoveryCode.findMany()
+     * 
+     * // Get first 10 AdminMfaRecoveryCodes
+     * const adminMfaRecoveryCodes = await prisma.adminMfaRecoveryCode.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const adminMfaRecoveryCodeWithIdOnly = await prisma.adminMfaRecoveryCode.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AdminMfaRecoveryCodeFindManyArgs>(args?: SelectSubset<T, AdminMfaRecoveryCodeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AdminMfaRecoveryCode.
+     * @param {AdminMfaRecoveryCodeCreateArgs} args - Arguments to create a AdminMfaRecoveryCode.
+     * @example
+     * // Create one AdminMfaRecoveryCode
+     * const AdminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.create({
+     *   data: {
+     *     // ... data to create a AdminMfaRecoveryCode
+     *   }
+     * })
+     * 
+     */
+    create<T extends AdminMfaRecoveryCodeCreateArgs>(args: SelectSubset<T, AdminMfaRecoveryCodeCreateArgs<ExtArgs>>): Prisma__AdminMfaRecoveryCodeClient<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AdminMfaRecoveryCodes.
+     * @param {AdminMfaRecoveryCodeCreateManyArgs} args - Arguments to create many AdminMfaRecoveryCodes.
+     * @example
+     * // Create many AdminMfaRecoveryCodes
+     * const adminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AdminMfaRecoveryCodeCreateManyArgs>(args?: SelectSubset<T, AdminMfaRecoveryCodeCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AdminMfaRecoveryCodes and returns the data saved in the database.
+     * @param {AdminMfaRecoveryCodeCreateManyAndReturnArgs} args - Arguments to create many AdminMfaRecoveryCodes.
+     * @example
+     * // Create many AdminMfaRecoveryCodes
+     * const adminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AdminMfaRecoveryCodes and only return the `id`
+     * const adminMfaRecoveryCodeWithIdOnly = await prisma.adminMfaRecoveryCode.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AdminMfaRecoveryCodeCreateManyAndReturnArgs>(args?: SelectSubset<T, AdminMfaRecoveryCodeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AdminMfaRecoveryCode.
+     * @param {AdminMfaRecoveryCodeDeleteArgs} args - Arguments to delete one AdminMfaRecoveryCode.
+     * @example
+     * // Delete one AdminMfaRecoveryCode
+     * const AdminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.delete({
+     *   where: {
+     *     // ... filter to delete one AdminMfaRecoveryCode
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AdminMfaRecoveryCodeDeleteArgs>(args: SelectSubset<T, AdminMfaRecoveryCodeDeleteArgs<ExtArgs>>): Prisma__AdminMfaRecoveryCodeClient<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AdminMfaRecoveryCode.
+     * @param {AdminMfaRecoveryCodeUpdateArgs} args - Arguments to update one AdminMfaRecoveryCode.
+     * @example
+     * // Update one AdminMfaRecoveryCode
+     * const adminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AdminMfaRecoveryCodeUpdateArgs>(args: SelectSubset<T, AdminMfaRecoveryCodeUpdateArgs<ExtArgs>>): Prisma__AdminMfaRecoveryCodeClient<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AdminMfaRecoveryCodes.
+     * @param {AdminMfaRecoveryCodeDeleteManyArgs} args - Arguments to filter AdminMfaRecoveryCodes to delete.
+     * @example
+     * // Delete a few AdminMfaRecoveryCodes
+     * const { count } = await prisma.adminMfaRecoveryCode.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AdminMfaRecoveryCodeDeleteManyArgs>(args?: SelectSubset<T, AdminMfaRecoveryCodeDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminMfaRecoveryCodes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaRecoveryCodeUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AdminMfaRecoveryCodes
+     * const adminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AdminMfaRecoveryCodeUpdateManyArgs>(args: SelectSubset<T, AdminMfaRecoveryCodeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminMfaRecoveryCodes and returns the data updated in the database.
+     * @param {AdminMfaRecoveryCodeUpdateManyAndReturnArgs} args - Arguments to update many AdminMfaRecoveryCodes.
+     * @example
+     * // Update many AdminMfaRecoveryCodes
+     * const adminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more AdminMfaRecoveryCodes and only return the `id`
+     * const adminMfaRecoveryCodeWithIdOnly = await prisma.adminMfaRecoveryCode.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AdminMfaRecoveryCodeUpdateManyAndReturnArgs>(args: SelectSubset<T, AdminMfaRecoveryCodeUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AdminMfaRecoveryCode.
+     * @param {AdminMfaRecoveryCodeUpsertArgs} args - Arguments to update or create a AdminMfaRecoveryCode.
+     * @example
+     * // Update or create a AdminMfaRecoveryCode
+     * const adminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.upsert({
+     *   create: {
+     *     // ... data to create a AdminMfaRecoveryCode
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AdminMfaRecoveryCode we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AdminMfaRecoveryCodeUpsertArgs>(args: SelectSubset<T, AdminMfaRecoveryCodeUpsertArgs<ExtArgs>>): Prisma__AdminMfaRecoveryCodeClient<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AdminMfaRecoveryCodes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaRecoveryCodeCountArgs} args - Arguments to filter AdminMfaRecoveryCodes to count.
+     * @example
+     * // Count the number of AdminMfaRecoveryCodes
+     * const count = await prisma.adminMfaRecoveryCode.count({
+     *   where: {
+     *     // ... the filter for the AdminMfaRecoveryCodes we want to count
+     *   }
+     * })
+    **/
+    count<T extends AdminMfaRecoveryCodeCountArgs>(
+      args?: Subset<T, AdminMfaRecoveryCodeCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AdminMfaRecoveryCodeCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AdminMfaRecoveryCode.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaRecoveryCodeAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AdminMfaRecoveryCodeAggregateArgs>(args: Subset<T, AdminMfaRecoveryCodeAggregateArgs>): Prisma.PrismaPromise<GetAdminMfaRecoveryCodeAggregateType<T>>
+
+    /**
+     * Group by AdminMfaRecoveryCode.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaRecoveryCodeGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AdminMfaRecoveryCodeGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AdminMfaRecoveryCodeGroupByArgs['orderBy'] }
+        : { orderBy?: AdminMfaRecoveryCodeGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AdminMfaRecoveryCodeGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAdminMfaRecoveryCodeGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AdminMfaRecoveryCode model
+   */
+  readonly fields: AdminMfaRecoveryCodeFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AdminMfaRecoveryCode.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AdminMfaRecoveryCodeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    adminUser<T extends AdminUserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AdminUserDefaultArgs<ExtArgs>>): Prisma__AdminUserClient<$Result.GetResult<Prisma.$AdminUserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AdminMfaRecoveryCode model
+   */
+  interface AdminMfaRecoveryCodeFieldRefs {
+    readonly id: FieldRef<"AdminMfaRecoveryCode", 'String'>
+    readonly adminUserId: FieldRef<"AdminMfaRecoveryCode", 'String'>
+    readonly salt: FieldRef<"AdminMfaRecoveryCode", 'String'>
+    readonly codeHash: FieldRef<"AdminMfaRecoveryCode", 'String'>
+    readonly createdAt: FieldRef<"AdminMfaRecoveryCode", 'DateTime'>
+    readonly usedAt: FieldRef<"AdminMfaRecoveryCode", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AdminMfaRecoveryCode findUnique
+   */
+  export type AdminMfaRecoveryCodeFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaRecoveryCode to fetch.
+     */
+    where: AdminMfaRecoveryCodeWhereUniqueInput
+  }
+
+  /**
+   * AdminMfaRecoveryCode findUniqueOrThrow
+   */
+  export type AdminMfaRecoveryCodeFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaRecoveryCode to fetch.
+     */
+    where: AdminMfaRecoveryCodeWhereUniqueInput
+  }
+
+  /**
+   * AdminMfaRecoveryCode findFirst
+   */
+  export type AdminMfaRecoveryCodeFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaRecoveryCode to fetch.
+     */
+    where?: AdminMfaRecoveryCodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminMfaRecoveryCodes to fetch.
+     */
+    orderBy?: AdminMfaRecoveryCodeOrderByWithRelationInput | AdminMfaRecoveryCodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminMfaRecoveryCodes.
+     */
+    cursor?: AdminMfaRecoveryCodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminMfaRecoveryCodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminMfaRecoveryCodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminMfaRecoveryCodes.
+     */
+    distinct?: AdminMfaRecoveryCodeScalarFieldEnum | AdminMfaRecoveryCodeScalarFieldEnum[]
+  }
+
+  /**
+   * AdminMfaRecoveryCode findFirstOrThrow
+   */
+  export type AdminMfaRecoveryCodeFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaRecoveryCode to fetch.
+     */
+    where?: AdminMfaRecoveryCodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminMfaRecoveryCodes to fetch.
+     */
+    orderBy?: AdminMfaRecoveryCodeOrderByWithRelationInput | AdminMfaRecoveryCodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminMfaRecoveryCodes.
+     */
+    cursor?: AdminMfaRecoveryCodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminMfaRecoveryCodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminMfaRecoveryCodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminMfaRecoveryCodes.
+     */
+    distinct?: AdminMfaRecoveryCodeScalarFieldEnum | AdminMfaRecoveryCodeScalarFieldEnum[]
+  }
+
+  /**
+   * AdminMfaRecoveryCode findMany
+   */
+  export type AdminMfaRecoveryCodeFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaRecoveryCodes to fetch.
+     */
+    where?: AdminMfaRecoveryCodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminMfaRecoveryCodes to fetch.
+     */
+    orderBy?: AdminMfaRecoveryCodeOrderByWithRelationInput | AdminMfaRecoveryCodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AdminMfaRecoveryCodes.
+     */
+    cursor?: AdminMfaRecoveryCodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminMfaRecoveryCodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminMfaRecoveryCodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminMfaRecoveryCodes.
+     */
+    distinct?: AdminMfaRecoveryCodeScalarFieldEnum | AdminMfaRecoveryCodeScalarFieldEnum[]
+  }
+
+  /**
+   * AdminMfaRecoveryCode create
+   */
+  export type AdminMfaRecoveryCodeCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AdminMfaRecoveryCode.
+     */
+    data: XOR<AdminMfaRecoveryCodeCreateInput, AdminMfaRecoveryCodeUncheckedCreateInput>
+  }
+
+  /**
+   * AdminMfaRecoveryCode createMany
+   */
+  export type AdminMfaRecoveryCodeCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AdminMfaRecoveryCodes.
+     */
+    data: AdminMfaRecoveryCodeCreateManyInput | AdminMfaRecoveryCodeCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AdminMfaRecoveryCode createManyAndReturn
+   */
+  export type AdminMfaRecoveryCodeCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * The data used to create many AdminMfaRecoveryCodes.
+     */
+    data: AdminMfaRecoveryCodeCreateManyInput | AdminMfaRecoveryCodeCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdminMfaRecoveryCode update
+   */
+  export type AdminMfaRecoveryCodeUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AdminMfaRecoveryCode.
+     */
+    data: XOR<AdminMfaRecoveryCodeUpdateInput, AdminMfaRecoveryCodeUncheckedUpdateInput>
+    /**
+     * Choose, which AdminMfaRecoveryCode to update.
+     */
+    where: AdminMfaRecoveryCodeWhereUniqueInput
+  }
+
+  /**
+   * AdminMfaRecoveryCode updateMany
+   */
+  export type AdminMfaRecoveryCodeUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AdminMfaRecoveryCodes.
+     */
+    data: XOR<AdminMfaRecoveryCodeUpdateManyMutationInput, AdminMfaRecoveryCodeUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminMfaRecoveryCodes to update
+     */
+    where?: AdminMfaRecoveryCodeWhereInput
+    /**
+     * Limit how many AdminMfaRecoveryCodes to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminMfaRecoveryCode updateManyAndReturn
+   */
+  export type AdminMfaRecoveryCodeUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * The data used to update AdminMfaRecoveryCodes.
+     */
+    data: XOR<AdminMfaRecoveryCodeUpdateManyMutationInput, AdminMfaRecoveryCodeUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminMfaRecoveryCodes to update
+     */
+    where?: AdminMfaRecoveryCodeWhereInput
+    /**
+     * Limit how many AdminMfaRecoveryCodes to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdminMfaRecoveryCode upsert
+   */
+  export type AdminMfaRecoveryCodeUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AdminMfaRecoveryCode to update in case it exists.
+     */
+    where: AdminMfaRecoveryCodeWhereUniqueInput
+    /**
+     * In case the AdminMfaRecoveryCode found by the `where` argument doesn't exist, create a new AdminMfaRecoveryCode with this data.
+     */
+    create: XOR<AdminMfaRecoveryCodeCreateInput, AdminMfaRecoveryCodeUncheckedCreateInput>
+    /**
+     * In case the AdminMfaRecoveryCode was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AdminMfaRecoveryCodeUpdateInput, AdminMfaRecoveryCodeUncheckedUpdateInput>
+  }
+
+  /**
+   * AdminMfaRecoveryCode delete
+   */
+  export type AdminMfaRecoveryCodeDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+    /**
+     * Filter which AdminMfaRecoveryCode to delete.
+     */
+    where: AdminMfaRecoveryCodeWhereUniqueInput
+  }
+
+  /**
+   * AdminMfaRecoveryCode deleteMany
+   */
+  export type AdminMfaRecoveryCodeDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminMfaRecoveryCodes to delete
+     */
+    where?: AdminMfaRecoveryCodeWhereInput
+    /**
+     * Limit how many AdminMfaRecoveryCodes to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminMfaRecoveryCode without action
+   */
+  export type AdminMfaRecoveryCodeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AdminMfaChallenge
+   */
+
+  export type AggregateAdminMfaChallenge = {
+    _count: AdminMfaChallengeCountAggregateOutputType | null
+    _avg: AdminMfaChallengeAvgAggregateOutputType | null
+    _sum: AdminMfaChallengeSumAggregateOutputType | null
+    _min: AdminMfaChallengeMinAggregateOutputType | null
+    _max: AdminMfaChallengeMaxAggregateOutputType | null
+  }
+
+  export type AdminMfaChallengeAvgAggregateOutputType = {
+    attempts: number | null
+  }
+
+  export type AdminMfaChallengeSumAggregateOutputType = {
+    attempts: number | null
+  }
+
+  export type AdminMfaChallengeMinAggregateOutputType = {
+    id: string | null
+    adminUserId: string | null
+    tokenHash: string | null
+    authMethod: string | null
+    attempts: number | null
+    expiresAt: Date | null
+    consumedAt: Date | null
+    createdAt: Date | null
+    ipAddress: string | null
+    userAgent: string | null
+  }
+
+  export type AdminMfaChallengeMaxAggregateOutputType = {
+    id: string | null
+    adminUserId: string | null
+    tokenHash: string | null
+    authMethod: string | null
+    attempts: number | null
+    expiresAt: Date | null
+    consumedAt: Date | null
+    createdAt: Date | null
+    ipAddress: string | null
+    userAgent: string | null
+  }
+
+  export type AdminMfaChallengeCountAggregateOutputType = {
+    id: number
+    adminUserId: number
+    tokenHash: number
+    authMethod: number
+    attempts: number
+    expiresAt: number
+    consumedAt: number
+    createdAt: number
+    ipAddress: number
+    userAgent: number
+    _all: number
+  }
+
+
+  export type AdminMfaChallengeAvgAggregateInputType = {
+    attempts?: true
+  }
+
+  export type AdminMfaChallengeSumAggregateInputType = {
+    attempts?: true
+  }
+
+  export type AdminMfaChallengeMinAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    tokenHash?: true
+    authMethod?: true
+    attempts?: true
+    expiresAt?: true
+    consumedAt?: true
+    createdAt?: true
+    ipAddress?: true
+    userAgent?: true
+  }
+
+  export type AdminMfaChallengeMaxAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    tokenHash?: true
+    authMethod?: true
+    attempts?: true
+    expiresAt?: true
+    consumedAt?: true
+    createdAt?: true
+    ipAddress?: true
+    userAgent?: true
+  }
+
+  export type AdminMfaChallengeCountAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    tokenHash?: true
+    authMethod?: true
+    attempts?: true
+    expiresAt?: true
+    consumedAt?: true
+    createdAt?: true
+    ipAddress?: true
+    userAgent?: true
+    _all?: true
+  }
+
+  export type AdminMfaChallengeAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminMfaChallenge to aggregate.
+     */
+    where?: AdminMfaChallengeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminMfaChallenges to fetch.
+     */
+    orderBy?: AdminMfaChallengeOrderByWithRelationInput | AdminMfaChallengeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AdminMfaChallengeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminMfaChallenges from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminMfaChallenges.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AdminMfaChallenges
+    **/
+    _count?: true | AdminMfaChallengeCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: AdminMfaChallengeAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: AdminMfaChallengeSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AdminMfaChallengeMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AdminMfaChallengeMaxAggregateInputType
+  }
+
+  export type GetAdminMfaChallengeAggregateType<T extends AdminMfaChallengeAggregateArgs> = {
+        [P in keyof T & keyof AggregateAdminMfaChallenge]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAdminMfaChallenge[P]>
+      : GetScalarType<T[P], AggregateAdminMfaChallenge[P]>
+  }
+
+
+
+
+  export type AdminMfaChallengeGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminMfaChallengeWhereInput
+    orderBy?: AdminMfaChallengeOrderByWithAggregationInput | AdminMfaChallengeOrderByWithAggregationInput[]
+    by: AdminMfaChallengeScalarFieldEnum[] | AdminMfaChallengeScalarFieldEnum
+    having?: AdminMfaChallengeScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AdminMfaChallengeCountAggregateInputType | true
+    _avg?: AdminMfaChallengeAvgAggregateInputType
+    _sum?: AdminMfaChallengeSumAggregateInputType
+    _min?: AdminMfaChallengeMinAggregateInputType
+    _max?: AdminMfaChallengeMaxAggregateInputType
+  }
+
+  export type AdminMfaChallengeGroupByOutputType = {
+    id: string
+    adminUserId: string
+    tokenHash: string
+    authMethod: string
+    attempts: number
+    expiresAt: Date
+    consumedAt: Date | null
+    createdAt: Date
+    ipAddress: string | null
+    userAgent: string | null
+    _count: AdminMfaChallengeCountAggregateOutputType | null
+    _avg: AdminMfaChallengeAvgAggregateOutputType | null
+    _sum: AdminMfaChallengeSumAggregateOutputType | null
+    _min: AdminMfaChallengeMinAggregateOutputType | null
+    _max: AdminMfaChallengeMaxAggregateOutputType | null
+  }
+
+  type GetAdminMfaChallengeGroupByPayload<T extends AdminMfaChallengeGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AdminMfaChallengeGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AdminMfaChallengeGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AdminMfaChallengeGroupByOutputType[P]>
+            : GetScalarType<T[P], AdminMfaChallengeGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AdminMfaChallengeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    tokenHash?: boolean
+    authMethod?: boolean
+    attempts?: boolean
+    expiresAt?: boolean
+    consumedAt?: boolean
+    createdAt?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminMfaChallenge"]>
+
+  export type AdminMfaChallengeSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    tokenHash?: boolean
+    authMethod?: boolean
+    attempts?: boolean
+    expiresAt?: boolean
+    consumedAt?: boolean
+    createdAt?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminMfaChallenge"]>
+
+  export type AdminMfaChallengeSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    tokenHash?: boolean
+    authMethod?: boolean
+    attempts?: boolean
+    expiresAt?: boolean
+    consumedAt?: boolean
+    createdAt?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminMfaChallenge"]>
+
+  export type AdminMfaChallengeSelectScalar = {
+    id?: boolean
+    adminUserId?: boolean
+    tokenHash?: boolean
+    authMethod?: boolean
+    attempts?: boolean
+    expiresAt?: boolean
+    consumedAt?: boolean
+    createdAt?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+  }
+
+  export type AdminMfaChallengeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "adminUserId" | "tokenHash" | "authMethod" | "attempts" | "expiresAt" | "consumedAt" | "createdAt" | "ipAddress" | "userAgent", ExtArgs["result"]["adminMfaChallenge"]>
+  export type AdminMfaChallengeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+  export type AdminMfaChallengeIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+  export type AdminMfaChallengeIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+
+  export type $AdminMfaChallengePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AdminMfaChallenge"
+    objects: {
+      adminUser: Prisma.$AdminUserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      adminUserId: string
+      tokenHash: string
+      authMethod: string
+      attempts: number
+      expiresAt: Date
+      consumedAt: Date | null
+      createdAt: Date
+      ipAddress: string | null
+      userAgent: string | null
+    }, ExtArgs["result"]["adminMfaChallenge"]>
+    composites: {}
+  }
+
+  type AdminMfaChallengeGetPayload<S extends boolean | null | undefined | AdminMfaChallengeDefaultArgs> = $Result.GetResult<Prisma.$AdminMfaChallengePayload, S>
+
+  type AdminMfaChallengeCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AdminMfaChallengeFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AdminMfaChallengeCountAggregateInputType | true
+    }
+
+  export interface AdminMfaChallengeDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AdminMfaChallenge'], meta: { name: 'AdminMfaChallenge' } }
+    /**
+     * Find zero or one AdminMfaChallenge that matches the filter.
+     * @param {AdminMfaChallengeFindUniqueArgs} args - Arguments to find a AdminMfaChallenge
+     * @example
+     * // Get one AdminMfaChallenge
+     * const adminMfaChallenge = await prisma.adminMfaChallenge.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AdminMfaChallengeFindUniqueArgs>(args: SelectSubset<T, AdminMfaChallengeFindUniqueArgs<ExtArgs>>): Prisma__AdminMfaChallengeClient<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AdminMfaChallenge that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AdminMfaChallengeFindUniqueOrThrowArgs} args - Arguments to find a AdminMfaChallenge
+     * @example
+     * // Get one AdminMfaChallenge
+     * const adminMfaChallenge = await prisma.adminMfaChallenge.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AdminMfaChallengeFindUniqueOrThrowArgs>(args: SelectSubset<T, AdminMfaChallengeFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AdminMfaChallengeClient<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminMfaChallenge that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaChallengeFindFirstArgs} args - Arguments to find a AdminMfaChallenge
+     * @example
+     * // Get one AdminMfaChallenge
+     * const adminMfaChallenge = await prisma.adminMfaChallenge.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AdminMfaChallengeFindFirstArgs>(args?: SelectSubset<T, AdminMfaChallengeFindFirstArgs<ExtArgs>>): Prisma__AdminMfaChallengeClient<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminMfaChallenge that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaChallengeFindFirstOrThrowArgs} args - Arguments to find a AdminMfaChallenge
+     * @example
+     * // Get one AdminMfaChallenge
+     * const adminMfaChallenge = await prisma.adminMfaChallenge.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AdminMfaChallengeFindFirstOrThrowArgs>(args?: SelectSubset<T, AdminMfaChallengeFindFirstOrThrowArgs<ExtArgs>>): Prisma__AdminMfaChallengeClient<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AdminMfaChallenges that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaChallengeFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AdminMfaChallenges
+     * const adminMfaChallenges = await prisma.adminMfaChallenge.findMany()
+     * 
+     * // Get first 10 AdminMfaChallenges
+     * const adminMfaChallenges = await prisma.adminMfaChallenge.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const adminMfaChallengeWithIdOnly = await prisma.adminMfaChallenge.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AdminMfaChallengeFindManyArgs>(args?: SelectSubset<T, AdminMfaChallengeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AdminMfaChallenge.
+     * @param {AdminMfaChallengeCreateArgs} args - Arguments to create a AdminMfaChallenge.
+     * @example
+     * // Create one AdminMfaChallenge
+     * const AdminMfaChallenge = await prisma.adminMfaChallenge.create({
+     *   data: {
+     *     // ... data to create a AdminMfaChallenge
+     *   }
+     * })
+     * 
+     */
+    create<T extends AdminMfaChallengeCreateArgs>(args: SelectSubset<T, AdminMfaChallengeCreateArgs<ExtArgs>>): Prisma__AdminMfaChallengeClient<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AdminMfaChallenges.
+     * @param {AdminMfaChallengeCreateManyArgs} args - Arguments to create many AdminMfaChallenges.
+     * @example
+     * // Create many AdminMfaChallenges
+     * const adminMfaChallenge = await prisma.adminMfaChallenge.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AdminMfaChallengeCreateManyArgs>(args?: SelectSubset<T, AdminMfaChallengeCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AdminMfaChallenges and returns the data saved in the database.
+     * @param {AdminMfaChallengeCreateManyAndReturnArgs} args - Arguments to create many AdminMfaChallenges.
+     * @example
+     * // Create many AdminMfaChallenges
+     * const adminMfaChallenge = await prisma.adminMfaChallenge.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AdminMfaChallenges and only return the `id`
+     * const adminMfaChallengeWithIdOnly = await prisma.adminMfaChallenge.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AdminMfaChallengeCreateManyAndReturnArgs>(args?: SelectSubset<T, AdminMfaChallengeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AdminMfaChallenge.
+     * @param {AdminMfaChallengeDeleteArgs} args - Arguments to delete one AdminMfaChallenge.
+     * @example
+     * // Delete one AdminMfaChallenge
+     * const AdminMfaChallenge = await prisma.adminMfaChallenge.delete({
+     *   where: {
+     *     // ... filter to delete one AdminMfaChallenge
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AdminMfaChallengeDeleteArgs>(args: SelectSubset<T, AdminMfaChallengeDeleteArgs<ExtArgs>>): Prisma__AdminMfaChallengeClient<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AdminMfaChallenge.
+     * @param {AdminMfaChallengeUpdateArgs} args - Arguments to update one AdminMfaChallenge.
+     * @example
+     * // Update one AdminMfaChallenge
+     * const adminMfaChallenge = await prisma.adminMfaChallenge.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AdminMfaChallengeUpdateArgs>(args: SelectSubset<T, AdminMfaChallengeUpdateArgs<ExtArgs>>): Prisma__AdminMfaChallengeClient<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AdminMfaChallenges.
+     * @param {AdminMfaChallengeDeleteManyArgs} args - Arguments to filter AdminMfaChallenges to delete.
+     * @example
+     * // Delete a few AdminMfaChallenges
+     * const { count } = await prisma.adminMfaChallenge.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AdminMfaChallengeDeleteManyArgs>(args?: SelectSubset<T, AdminMfaChallengeDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminMfaChallenges.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaChallengeUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AdminMfaChallenges
+     * const adminMfaChallenge = await prisma.adminMfaChallenge.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AdminMfaChallengeUpdateManyArgs>(args: SelectSubset<T, AdminMfaChallengeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminMfaChallenges and returns the data updated in the database.
+     * @param {AdminMfaChallengeUpdateManyAndReturnArgs} args - Arguments to update many AdminMfaChallenges.
+     * @example
+     * // Update many AdminMfaChallenges
+     * const adminMfaChallenge = await prisma.adminMfaChallenge.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more AdminMfaChallenges and only return the `id`
+     * const adminMfaChallengeWithIdOnly = await prisma.adminMfaChallenge.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AdminMfaChallengeUpdateManyAndReturnArgs>(args: SelectSubset<T, AdminMfaChallengeUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AdminMfaChallenge.
+     * @param {AdminMfaChallengeUpsertArgs} args - Arguments to update or create a AdminMfaChallenge.
+     * @example
+     * // Update or create a AdminMfaChallenge
+     * const adminMfaChallenge = await prisma.adminMfaChallenge.upsert({
+     *   create: {
+     *     // ... data to create a AdminMfaChallenge
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AdminMfaChallenge we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AdminMfaChallengeUpsertArgs>(args: SelectSubset<T, AdminMfaChallengeUpsertArgs<ExtArgs>>): Prisma__AdminMfaChallengeClient<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AdminMfaChallenges.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaChallengeCountArgs} args - Arguments to filter AdminMfaChallenges to count.
+     * @example
+     * // Count the number of AdminMfaChallenges
+     * const count = await prisma.adminMfaChallenge.count({
+     *   where: {
+     *     // ... the filter for the AdminMfaChallenges we want to count
+     *   }
+     * })
+    **/
+    count<T extends AdminMfaChallengeCountArgs>(
+      args?: Subset<T, AdminMfaChallengeCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AdminMfaChallengeCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AdminMfaChallenge.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaChallengeAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AdminMfaChallengeAggregateArgs>(args: Subset<T, AdminMfaChallengeAggregateArgs>): Prisma.PrismaPromise<GetAdminMfaChallengeAggregateType<T>>
+
+    /**
+     * Group by AdminMfaChallenge.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaChallengeGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AdminMfaChallengeGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AdminMfaChallengeGroupByArgs['orderBy'] }
+        : { orderBy?: AdminMfaChallengeGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AdminMfaChallengeGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAdminMfaChallengeGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AdminMfaChallenge model
+   */
+  readonly fields: AdminMfaChallengeFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AdminMfaChallenge.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AdminMfaChallengeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    adminUser<T extends AdminUserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AdminUserDefaultArgs<ExtArgs>>): Prisma__AdminUserClient<$Result.GetResult<Prisma.$AdminUserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AdminMfaChallenge model
+   */
+  interface AdminMfaChallengeFieldRefs {
+    readonly id: FieldRef<"AdminMfaChallenge", 'String'>
+    readonly adminUserId: FieldRef<"AdminMfaChallenge", 'String'>
+    readonly tokenHash: FieldRef<"AdminMfaChallenge", 'String'>
+    readonly authMethod: FieldRef<"AdminMfaChallenge", 'String'>
+    readonly attempts: FieldRef<"AdminMfaChallenge", 'Int'>
+    readonly expiresAt: FieldRef<"AdminMfaChallenge", 'DateTime'>
+    readonly consumedAt: FieldRef<"AdminMfaChallenge", 'DateTime'>
+    readonly createdAt: FieldRef<"AdminMfaChallenge", 'DateTime'>
+    readonly ipAddress: FieldRef<"AdminMfaChallenge", 'String'>
+    readonly userAgent: FieldRef<"AdminMfaChallenge", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AdminMfaChallenge findUnique
+   */
+  export type AdminMfaChallengeFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaChallenge to fetch.
+     */
+    where: AdminMfaChallengeWhereUniqueInput
+  }
+
+  /**
+   * AdminMfaChallenge findUniqueOrThrow
+   */
+  export type AdminMfaChallengeFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaChallenge to fetch.
+     */
+    where: AdminMfaChallengeWhereUniqueInput
+  }
+
+  /**
+   * AdminMfaChallenge findFirst
+   */
+  export type AdminMfaChallengeFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaChallenge to fetch.
+     */
+    where?: AdminMfaChallengeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminMfaChallenges to fetch.
+     */
+    orderBy?: AdminMfaChallengeOrderByWithRelationInput | AdminMfaChallengeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminMfaChallenges.
+     */
+    cursor?: AdminMfaChallengeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminMfaChallenges from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminMfaChallenges.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminMfaChallenges.
+     */
+    distinct?: AdminMfaChallengeScalarFieldEnum | AdminMfaChallengeScalarFieldEnum[]
+  }
+
+  /**
+   * AdminMfaChallenge findFirstOrThrow
+   */
+  export type AdminMfaChallengeFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaChallenge to fetch.
+     */
+    where?: AdminMfaChallengeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminMfaChallenges to fetch.
+     */
+    orderBy?: AdminMfaChallengeOrderByWithRelationInput | AdminMfaChallengeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminMfaChallenges.
+     */
+    cursor?: AdminMfaChallengeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminMfaChallenges from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminMfaChallenges.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminMfaChallenges.
+     */
+    distinct?: AdminMfaChallengeScalarFieldEnum | AdminMfaChallengeScalarFieldEnum[]
+  }
+
+  /**
+   * AdminMfaChallenge findMany
+   */
+  export type AdminMfaChallengeFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaChallenges to fetch.
+     */
+    where?: AdminMfaChallengeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminMfaChallenges to fetch.
+     */
+    orderBy?: AdminMfaChallengeOrderByWithRelationInput | AdminMfaChallengeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AdminMfaChallenges.
+     */
+    cursor?: AdminMfaChallengeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminMfaChallenges from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminMfaChallenges.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminMfaChallenges.
+     */
+    distinct?: AdminMfaChallengeScalarFieldEnum | AdminMfaChallengeScalarFieldEnum[]
+  }
+
+  /**
+   * AdminMfaChallenge create
+   */
+  export type AdminMfaChallengeCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AdminMfaChallenge.
+     */
+    data: XOR<AdminMfaChallengeCreateInput, AdminMfaChallengeUncheckedCreateInput>
+  }
+
+  /**
+   * AdminMfaChallenge createMany
+   */
+  export type AdminMfaChallengeCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AdminMfaChallenges.
+     */
+    data: AdminMfaChallengeCreateManyInput | AdminMfaChallengeCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AdminMfaChallenge createManyAndReturn
+   */
+  export type AdminMfaChallengeCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * The data used to create many AdminMfaChallenges.
+     */
+    data: AdminMfaChallengeCreateManyInput | AdminMfaChallengeCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdminMfaChallenge update
+   */
+  export type AdminMfaChallengeUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AdminMfaChallenge.
+     */
+    data: XOR<AdminMfaChallengeUpdateInput, AdminMfaChallengeUncheckedUpdateInput>
+    /**
+     * Choose, which AdminMfaChallenge to update.
+     */
+    where: AdminMfaChallengeWhereUniqueInput
+  }
+
+  /**
+   * AdminMfaChallenge updateMany
+   */
+  export type AdminMfaChallengeUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AdminMfaChallenges.
+     */
+    data: XOR<AdminMfaChallengeUpdateManyMutationInput, AdminMfaChallengeUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminMfaChallenges to update
+     */
+    where?: AdminMfaChallengeWhereInput
+    /**
+     * Limit how many AdminMfaChallenges to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminMfaChallenge updateManyAndReturn
+   */
+  export type AdminMfaChallengeUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * The data used to update AdminMfaChallenges.
+     */
+    data: XOR<AdminMfaChallengeUpdateManyMutationInput, AdminMfaChallengeUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminMfaChallenges to update
+     */
+    where?: AdminMfaChallengeWhereInput
+    /**
+     * Limit how many AdminMfaChallenges to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdminMfaChallenge upsert
+   */
+  export type AdminMfaChallengeUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AdminMfaChallenge to update in case it exists.
+     */
+    where: AdminMfaChallengeWhereUniqueInput
+    /**
+     * In case the AdminMfaChallenge found by the `where` argument doesn't exist, create a new AdminMfaChallenge with this data.
+     */
+    create: XOR<AdminMfaChallengeCreateInput, AdminMfaChallengeUncheckedCreateInput>
+    /**
+     * In case the AdminMfaChallenge was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AdminMfaChallengeUpdateInput, AdminMfaChallengeUncheckedUpdateInput>
+  }
+
+  /**
+   * AdminMfaChallenge delete
+   */
+  export type AdminMfaChallengeDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+    /**
+     * Filter which AdminMfaChallenge to delete.
+     */
+    where: AdminMfaChallengeWhereUniqueInput
+  }
+
+  /**
+   * AdminMfaChallenge deleteMany
+   */
+  export type AdminMfaChallengeDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminMfaChallenges to delete
+     */
+    where?: AdminMfaChallengeWhereInput
+    /**
+     * Limit how many AdminMfaChallenges to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminMfaChallenge without action
+   */
+  export type AdminMfaChallengeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AdminAuthEvent
+   */
+
+  export type AggregateAdminAuthEvent = {
+    _count: AdminAuthEventCountAggregateOutputType | null
+    _min: AdminAuthEventMinAggregateOutputType | null
+    _max: AdminAuthEventMaxAggregateOutputType | null
+  }
+
+  export type AdminAuthEventMinAggregateOutputType = {
+    id: string | null
+    adminUserId: string | null
+    action: string | null
+    targetType: string | null
+    targetId: string | null
+    ipAddress: string | null
+    userAgent: string | null
+    createdAt: Date | null
+  }
+
+  export type AdminAuthEventMaxAggregateOutputType = {
+    id: string | null
+    adminUserId: string | null
+    action: string | null
+    targetType: string | null
+    targetId: string | null
+    ipAddress: string | null
+    userAgent: string | null
+    createdAt: Date | null
+  }
+
+  export type AdminAuthEventCountAggregateOutputType = {
+    id: number
+    adminUserId: number
+    action: number
+    targetType: number
+    targetId: number
+    metadata: number
+    ipAddress: number
+    userAgent: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type AdminAuthEventMinAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    action?: true
+    targetType?: true
+    targetId?: true
+    ipAddress?: true
+    userAgent?: true
+    createdAt?: true
+  }
+
+  export type AdminAuthEventMaxAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    action?: true
+    targetType?: true
+    targetId?: true
+    ipAddress?: true
+    userAgent?: true
+    createdAt?: true
+  }
+
+  export type AdminAuthEventCountAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    action?: true
+    targetType?: true
+    targetId?: true
+    metadata?: true
+    ipAddress?: true
+    userAgent?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type AdminAuthEventAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminAuthEvent to aggregate.
+     */
+    where?: AdminAuthEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminAuthEvents to fetch.
+     */
+    orderBy?: AdminAuthEventOrderByWithRelationInput | AdminAuthEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AdminAuthEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminAuthEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminAuthEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AdminAuthEvents
+    **/
+    _count?: true | AdminAuthEventCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AdminAuthEventMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AdminAuthEventMaxAggregateInputType
+  }
+
+  export type GetAdminAuthEventAggregateType<T extends AdminAuthEventAggregateArgs> = {
+        [P in keyof T & keyof AggregateAdminAuthEvent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAdminAuthEvent[P]>
+      : GetScalarType<T[P], AggregateAdminAuthEvent[P]>
+  }
+
+
+
+
+  export type AdminAuthEventGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminAuthEventWhereInput
+    orderBy?: AdminAuthEventOrderByWithAggregationInput | AdminAuthEventOrderByWithAggregationInput[]
+    by: AdminAuthEventScalarFieldEnum[] | AdminAuthEventScalarFieldEnum
+    having?: AdminAuthEventScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AdminAuthEventCountAggregateInputType | true
+    _min?: AdminAuthEventMinAggregateInputType
+    _max?: AdminAuthEventMaxAggregateInputType
+  }
+
+  export type AdminAuthEventGroupByOutputType = {
+    id: string
+    adminUserId: string | null
+    action: string
+    targetType: string | null
+    targetId: string | null
+    metadata: JsonValue | null
+    ipAddress: string | null
+    userAgent: string | null
+    createdAt: Date
+    _count: AdminAuthEventCountAggregateOutputType | null
+    _min: AdminAuthEventMinAggregateOutputType | null
+    _max: AdminAuthEventMaxAggregateOutputType | null
+  }
+
+  type GetAdminAuthEventGroupByPayload<T extends AdminAuthEventGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AdminAuthEventGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AdminAuthEventGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AdminAuthEventGroupByOutputType[P]>
+            : GetScalarType<T[P], AdminAuthEventGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AdminAuthEventSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    action?: boolean
+    targetType?: boolean
+    targetId?: boolean
+    metadata?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    createdAt?: boolean
+    adminUser?: boolean | AdminAuthEvent$adminUserArgs<ExtArgs>
+  }, ExtArgs["result"]["adminAuthEvent"]>
+
+  export type AdminAuthEventSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    action?: boolean
+    targetType?: boolean
+    targetId?: boolean
+    metadata?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    createdAt?: boolean
+    adminUser?: boolean | AdminAuthEvent$adminUserArgs<ExtArgs>
+  }, ExtArgs["result"]["adminAuthEvent"]>
+
+  export type AdminAuthEventSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    action?: boolean
+    targetType?: boolean
+    targetId?: boolean
+    metadata?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    createdAt?: boolean
+    adminUser?: boolean | AdminAuthEvent$adminUserArgs<ExtArgs>
+  }, ExtArgs["result"]["adminAuthEvent"]>
+
+  export type AdminAuthEventSelectScalar = {
+    id?: boolean
+    adminUserId?: boolean
+    action?: boolean
+    targetType?: boolean
+    targetId?: boolean
+    metadata?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    createdAt?: boolean
+  }
+
+  export type AdminAuthEventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "adminUserId" | "action" | "targetType" | "targetId" | "metadata" | "ipAddress" | "userAgent" | "createdAt", ExtArgs["result"]["adminAuthEvent"]>
+  export type AdminAuthEventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminAuthEvent$adminUserArgs<ExtArgs>
+  }
+  export type AdminAuthEventIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminAuthEvent$adminUserArgs<ExtArgs>
+  }
+  export type AdminAuthEventIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminAuthEvent$adminUserArgs<ExtArgs>
+  }
+
+  export type $AdminAuthEventPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AdminAuthEvent"
+    objects: {
+      adminUser: Prisma.$AdminUserPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      adminUserId: string | null
+      action: string
+      targetType: string | null
+      targetId: string | null
+      metadata: Prisma.JsonValue | null
+      ipAddress: string | null
+      userAgent: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["adminAuthEvent"]>
+    composites: {}
+  }
+
+  type AdminAuthEventGetPayload<S extends boolean | null | undefined | AdminAuthEventDefaultArgs> = $Result.GetResult<Prisma.$AdminAuthEventPayload, S>
+
+  type AdminAuthEventCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AdminAuthEventFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AdminAuthEventCountAggregateInputType | true
+    }
+
+  export interface AdminAuthEventDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AdminAuthEvent'], meta: { name: 'AdminAuthEvent' } }
+    /**
+     * Find zero or one AdminAuthEvent that matches the filter.
+     * @param {AdminAuthEventFindUniqueArgs} args - Arguments to find a AdminAuthEvent
+     * @example
+     * // Get one AdminAuthEvent
+     * const adminAuthEvent = await prisma.adminAuthEvent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AdminAuthEventFindUniqueArgs>(args: SelectSubset<T, AdminAuthEventFindUniqueArgs<ExtArgs>>): Prisma__AdminAuthEventClient<$Result.GetResult<Prisma.$AdminAuthEventPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AdminAuthEvent that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AdminAuthEventFindUniqueOrThrowArgs} args - Arguments to find a AdminAuthEvent
+     * @example
+     * // Get one AdminAuthEvent
+     * const adminAuthEvent = await prisma.adminAuthEvent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AdminAuthEventFindUniqueOrThrowArgs>(args: SelectSubset<T, AdminAuthEventFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AdminAuthEventClient<$Result.GetResult<Prisma.$AdminAuthEventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminAuthEvent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminAuthEventFindFirstArgs} args - Arguments to find a AdminAuthEvent
+     * @example
+     * // Get one AdminAuthEvent
+     * const adminAuthEvent = await prisma.adminAuthEvent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AdminAuthEventFindFirstArgs>(args?: SelectSubset<T, AdminAuthEventFindFirstArgs<ExtArgs>>): Prisma__AdminAuthEventClient<$Result.GetResult<Prisma.$AdminAuthEventPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminAuthEvent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminAuthEventFindFirstOrThrowArgs} args - Arguments to find a AdminAuthEvent
+     * @example
+     * // Get one AdminAuthEvent
+     * const adminAuthEvent = await prisma.adminAuthEvent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AdminAuthEventFindFirstOrThrowArgs>(args?: SelectSubset<T, AdminAuthEventFindFirstOrThrowArgs<ExtArgs>>): Prisma__AdminAuthEventClient<$Result.GetResult<Prisma.$AdminAuthEventPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AdminAuthEvents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminAuthEventFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AdminAuthEvents
+     * const adminAuthEvents = await prisma.adminAuthEvent.findMany()
+     * 
+     * // Get first 10 AdminAuthEvents
+     * const adminAuthEvents = await prisma.adminAuthEvent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const adminAuthEventWithIdOnly = await prisma.adminAuthEvent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AdminAuthEventFindManyArgs>(args?: SelectSubset<T, AdminAuthEventFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminAuthEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AdminAuthEvent.
+     * @param {AdminAuthEventCreateArgs} args - Arguments to create a AdminAuthEvent.
+     * @example
+     * // Create one AdminAuthEvent
+     * const AdminAuthEvent = await prisma.adminAuthEvent.create({
+     *   data: {
+     *     // ... data to create a AdminAuthEvent
+     *   }
+     * })
+     * 
+     */
+    create<T extends AdminAuthEventCreateArgs>(args: SelectSubset<T, AdminAuthEventCreateArgs<ExtArgs>>): Prisma__AdminAuthEventClient<$Result.GetResult<Prisma.$AdminAuthEventPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AdminAuthEvents.
+     * @param {AdminAuthEventCreateManyArgs} args - Arguments to create many AdminAuthEvents.
+     * @example
+     * // Create many AdminAuthEvents
+     * const adminAuthEvent = await prisma.adminAuthEvent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AdminAuthEventCreateManyArgs>(args?: SelectSubset<T, AdminAuthEventCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AdminAuthEvents and returns the data saved in the database.
+     * @param {AdminAuthEventCreateManyAndReturnArgs} args - Arguments to create many AdminAuthEvents.
+     * @example
+     * // Create many AdminAuthEvents
+     * const adminAuthEvent = await prisma.adminAuthEvent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AdminAuthEvents and only return the `id`
+     * const adminAuthEventWithIdOnly = await prisma.adminAuthEvent.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AdminAuthEventCreateManyAndReturnArgs>(args?: SelectSubset<T, AdminAuthEventCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminAuthEventPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AdminAuthEvent.
+     * @param {AdminAuthEventDeleteArgs} args - Arguments to delete one AdminAuthEvent.
+     * @example
+     * // Delete one AdminAuthEvent
+     * const AdminAuthEvent = await prisma.adminAuthEvent.delete({
+     *   where: {
+     *     // ... filter to delete one AdminAuthEvent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AdminAuthEventDeleteArgs>(args: SelectSubset<T, AdminAuthEventDeleteArgs<ExtArgs>>): Prisma__AdminAuthEventClient<$Result.GetResult<Prisma.$AdminAuthEventPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AdminAuthEvent.
+     * @param {AdminAuthEventUpdateArgs} args - Arguments to update one AdminAuthEvent.
+     * @example
+     * // Update one AdminAuthEvent
+     * const adminAuthEvent = await prisma.adminAuthEvent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AdminAuthEventUpdateArgs>(args: SelectSubset<T, AdminAuthEventUpdateArgs<ExtArgs>>): Prisma__AdminAuthEventClient<$Result.GetResult<Prisma.$AdminAuthEventPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AdminAuthEvents.
+     * @param {AdminAuthEventDeleteManyArgs} args - Arguments to filter AdminAuthEvents to delete.
+     * @example
+     * // Delete a few AdminAuthEvents
+     * const { count } = await prisma.adminAuthEvent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AdminAuthEventDeleteManyArgs>(args?: SelectSubset<T, AdminAuthEventDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminAuthEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminAuthEventUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AdminAuthEvents
+     * const adminAuthEvent = await prisma.adminAuthEvent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AdminAuthEventUpdateManyArgs>(args: SelectSubset<T, AdminAuthEventUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminAuthEvents and returns the data updated in the database.
+     * @param {AdminAuthEventUpdateManyAndReturnArgs} args - Arguments to update many AdminAuthEvents.
+     * @example
+     * // Update many AdminAuthEvents
+     * const adminAuthEvent = await prisma.adminAuthEvent.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more AdminAuthEvents and only return the `id`
+     * const adminAuthEventWithIdOnly = await prisma.adminAuthEvent.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AdminAuthEventUpdateManyAndReturnArgs>(args: SelectSubset<T, AdminAuthEventUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminAuthEventPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AdminAuthEvent.
+     * @param {AdminAuthEventUpsertArgs} args - Arguments to update or create a AdminAuthEvent.
+     * @example
+     * // Update or create a AdminAuthEvent
+     * const adminAuthEvent = await prisma.adminAuthEvent.upsert({
+     *   create: {
+     *     // ... data to create a AdminAuthEvent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AdminAuthEvent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AdminAuthEventUpsertArgs>(args: SelectSubset<T, AdminAuthEventUpsertArgs<ExtArgs>>): Prisma__AdminAuthEventClient<$Result.GetResult<Prisma.$AdminAuthEventPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AdminAuthEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminAuthEventCountArgs} args - Arguments to filter AdminAuthEvents to count.
+     * @example
+     * // Count the number of AdminAuthEvents
+     * const count = await prisma.adminAuthEvent.count({
+     *   where: {
+     *     // ... the filter for the AdminAuthEvents we want to count
+     *   }
+     * })
+    **/
+    count<T extends AdminAuthEventCountArgs>(
+      args?: Subset<T, AdminAuthEventCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AdminAuthEventCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AdminAuthEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminAuthEventAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AdminAuthEventAggregateArgs>(args: Subset<T, AdminAuthEventAggregateArgs>): Prisma.PrismaPromise<GetAdminAuthEventAggregateType<T>>
+
+    /**
+     * Group by AdminAuthEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminAuthEventGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AdminAuthEventGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AdminAuthEventGroupByArgs['orderBy'] }
+        : { orderBy?: AdminAuthEventGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AdminAuthEventGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAdminAuthEventGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AdminAuthEvent model
+   */
+  readonly fields: AdminAuthEventFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AdminAuthEvent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AdminAuthEventClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    adminUser<T extends AdminAuthEvent$adminUserArgs<ExtArgs> = {}>(args?: Subset<T, AdminAuthEvent$adminUserArgs<ExtArgs>>): Prisma__AdminUserClient<$Result.GetResult<Prisma.$AdminUserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AdminAuthEvent model
+   */
+  interface AdminAuthEventFieldRefs {
+    readonly id: FieldRef<"AdminAuthEvent", 'String'>
+    readonly adminUserId: FieldRef<"AdminAuthEvent", 'String'>
+    readonly action: FieldRef<"AdminAuthEvent", 'String'>
+    readonly targetType: FieldRef<"AdminAuthEvent", 'String'>
+    readonly targetId: FieldRef<"AdminAuthEvent", 'String'>
+    readonly metadata: FieldRef<"AdminAuthEvent", 'Json'>
+    readonly ipAddress: FieldRef<"AdminAuthEvent", 'String'>
+    readonly userAgent: FieldRef<"AdminAuthEvent", 'String'>
+    readonly createdAt: FieldRef<"AdminAuthEvent", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AdminAuthEvent findUnique
+   */
+  export type AdminAuthEventFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminAuthEvent
+     */
+    select?: AdminAuthEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminAuthEvent
+     */
+    omit?: AdminAuthEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminAuthEventInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminAuthEvent to fetch.
+     */
+    where: AdminAuthEventWhereUniqueInput
+  }
+
+  /**
+   * AdminAuthEvent findUniqueOrThrow
+   */
+  export type AdminAuthEventFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminAuthEvent
+     */
+    select?: AdminAuthEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminAuthEvent
+     */
+    omit?: AdminAuthEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminAuthEventInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminAuthEvent to fetch.
+     */
+    where: AdminAuthEventWhereUniqueInput
+  }
+
+  /**
+   * AdminAuthEvent findFirst
+   */
+  export type AdminAuthEventFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminAuthEvent
+     */
+    select?: AdminAuthEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminAuthEvent
+     */
+    omit?: AdminAuthEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminAuthEventInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminAuthEvent to fetch.
+     */
+    where?: AdminAuthEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminAuthEvents to fetch.
+     */
+    orderBy?: AdminAuthEventOrderByWithRelationInput | AdminAuthEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminAuthEvents.
+     */
+    cursor?: AdminAuthEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminAuthEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminAuthEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminAuthEvents.
+     */
+    distinct?: AdminAuthEventScalarFieldEnum | AdminAuthEventScalarFieldEnum[]
+  }
+
+  /**
+   * AdminAuthEvent findFirstOrThrow
+   */
+  export type AdminAuthEventFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminAuthEvent
+     */
+    select?: AdminAuthEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminAuthEvent
+     */
+    omit?: AdminAuthEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminAuthEventInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminAuthEvent to fetch.
+     */
+    where?: AdminAuthEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminAuthEvents to fetch.
+     */
+    orderBy?: AdminAuthEventOrderByWithRelationInput | AdminAuthEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminAuthEvents.
+     */
+    cursor?: AdminAuthEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminAuthEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminAuthEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminAuthEvents.
+     */
+    distinct?: AdminAuthEventScalarFieldEnum | AdminAuthEventScalarFieldEnum[]
+  }
+
+  /**
+   * AdminAuthEvent findMany
+   */
+  export type AdminAuthEventFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminAuthEvent
+     */
+    select?: AdminAuthEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminAuthEvent
+     */
+    omit?: AdminAuthEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminAuthEventInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminAuthEvents to fetch.
+     */
+    where?: AdminAuthEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminAuthEvents to fetch.
+     */
+    orderBy?: AdminAuthEventOrderByWithRelationInput | AdminAuthEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AdminAuthEvents.
+     */
+    cursor?: AdminAuthEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminAuthEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminAuthEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminAuthEvents.
+     */
+    distinct?: AdminAuthEventScalarFieldEnum | AdminAuthEventScalarFieldEnum[]
+  }
+
+  /**
+   * AdminAuthEvent create
+   */
+  export type AdminAuthEventCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminAuthEvent
+     */
+    select?: AdminAuthEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminAuthEvent
+     */
+    omit?: AdminAuthEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminAuthEventInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AdminAuthEvent.
+     */
+    data: XOR<AdminAuthEventCreateInput, AdminAuthEventUncheckedCreateInput>
+  }
+
+  /**
+   * AdminAuthEvent createMany
+   */
+  export type AdminAuthEventCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AdminAuthEvents.
+     */
+    data: AdminAuthEventCreateManyInput | AdminAuthEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AdminAuthEvent createManyAndReturn
+   */
+  export type AdminAuthEventCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminAuthEvent
+     */
+    select?: AdminAuthEventSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminAuthEvent
+     */
+    omit?: AdminAuthEventOmit<ExtArgs> | null
+    /**
+     * The data used to create many AdminAuthEvents.
+     */
+    data: AdminAuthEventCreateManyInput | AdminAuthEventCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminAuthEventIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdminAuthEvent update
+   */
+  export type AdminAuthEventUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminAuthEvent
+     */
+    select?: AdminAuthEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminAuthEvent
+     */
+    omit?: AdminAuthEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminAuthEventInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AdminAuthEvent.
+     */
+    data: XOR<AdminAuthEventUpdateInput, AdminAuthEventUncheckedUpdateInput>
+    /**
+     * Choose, which AdminAuthEvent to update.
+     */
+    where: AdminAuthEventWhereUniqueInput
+  }
+
+  /**
+   * AdminAuthEvent updateMany
+   */
+  export type AdminAuthEventUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AdminAuthEvents.
+     */
+    data: XOR<AdminAuthEventUpdateManyMutationInput, AdminAuthEventUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminAuthEvents to update
+     */
+    where?: AdminAuthEventWhereInput
+    /**
+     * Limit how many AdminAuthEvents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminAuthEvent updateManyAndReturn
+   */
+  export type AdminAuthEventUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminAuthEvent
+     */
+    select?: AdminAuthEventSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminAuthEvent
+     */
+    omit?: AdminAuthEventOmit<ExtArgs> | null
+    /**
+     * The data used to update AdminAuthEvents.
+     */
+    data: XOR<AdminAuthEventUpdateManyMutationInput, AdminAuthEventUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminAuthEvents to update
+     */
+    where?: AdminAuthEventWhereInput
+    /**
+     * Limit how many AdminAuthEvents to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminAuthEventIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdminAuthEvent upsert
+   */
+  export type AdminAuthEventUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminAuthEvent
+     */
+    select?: AdminAuthEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminAuthEvent
+     */
+    omit?: AdminAuthEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminAuthEventInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AdminAuthEvent to update in case it exists.
+     */
+    where: AdminAuthEventWhereUniqueInput
+    /**
+     * In case the AdminAuthEvent found by the `where` argument doesn't exist, create a new AdminAuthEvent with this data.
+     */
+    create: XOR<AdminAuthEventCreateInput, AdminAuthEventUncheckedCreateInput>
+    /**
+     * In case the AdminAuthEvent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AdminAuthEventUpdateInput, AdminAuthEventUncheckedUpdateInput>
+  }
+
+  /**
+   * AdminAuthEvent delete
+   */
+  export type AdminAuthEventDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminAuthEvent
+     */
+    select?: AdminAuthEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminAuthEvent
+     */
+    omit?: AdminAuthEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminAuthEventInclude<ExtArgs> | null
+    /**
+     * Filter which AdminAuthEvent to delete.
+     */
+    where: AdminAuthEventWhereUniqueInput
+  }
+
+  /**
+   * AdminAuthEvent deleteMany
+   */
+  export type AdminAuthEventDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminAuthEvents to delete
+     */
+    where?: AdminAuthEventWhereInput
+    /**
+     * Limit how many AdminAuthEvents to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminAuthEvent.adminUser
+   */
+  export type AdminAuthEvent$adminUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminUser
+     */
+    select?: AdminUserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminUser
+     */
+    omit?: AdminUserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminUserInclude<ExtArgs> | null
+    where?: AdminUserWhereInput
+  }
+
+  /**
+   * AdminAuthEvent without action
+   */
+  export type AdminAuthEventDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminAuthEvent
+     */
+    select?: AdminAuthEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminAuthEvent
+     */
+    omit?: AdminAuthEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminAuthEventInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model RefreshToken
    */
 
@@ -208431,6 +216051,101 @@ export namespace Prisma {
   export type AdminManualMigrationLedgerScalarFieldEnum = (typeof AdminManualMigrationLedgerScalarFieldEnum)[keyof typeof AdminManualMigrationLedgerScalarFieldEnum]
 
 
+  export const AdminSessionScalarFieldEnum: {
+    id: 'id',
+    adminUserId: 'adminUserId',
+    mode: 'mode',
+    authMethod: 'authMethod',
+    csrfNonce: 'csrfNonce',
+    createdAt: 'createdAt',
+    lastSeenAt: 'lastSeenAt',
+    idleExpiresAt: 'idleExpiresAt',
+    absoluteExpiresAt: 'absoluteExpiresAt',
+    mfaVerifiedAt: 'mfaVerifiedAt',
+    revokedAt: 'revokedAt',
+    revokeReason: 'revokeReason',
+    ipAddress: 'ipAddress',
+    userAgent: 'userAgent'
+  };
+
+  export type AdminSessionScalarFieldEnum = (typeof AdminSessionScalarFieldEnum)[keyof typeof AdminSessionScalarFieldEnum]
+
+
+  export const AdminSessionRefreshTokenScalarFieldEnum: {
+    id: 'id',
+    sessionId: 'sessionId',
+    adminUserId: 'adminUserId',
+    tokenHash: 'tokenHash',
+    createdAt: 'createdAt',
+    expiresAt: 'expiresAt',
+    rotatedAt: 'rotatedAt',
+    revokedAt: 'revokedAt',
+    ipAddress: 'ipAddress',
+    userAgent: 'userAgent'
+  };
+
+  export type AdminSessionRefreshTokenScalarFieldEnum = (typeof AdminSessionRefreshTokenScalarFieldEnum)[keyof typeof AdminSessionRefreshTokenScalarFieldEnum]
+
+
+  export const AdminMfaEnrollmentScalarFieldEnum: {
+    adminUserId: 'adminUserId',
+    enrolledAt: 'enrolledAt',
+    secretEncrypted: 'secretEncrypted',
+    pendingSecretEncrypted: 'pendingSecretEncrypted',
+    pendingExpiresAt: 'pendingExpiresAt',
+    lastUsedStep: 'lastUsedStep',
+    failedAttempts: 'failedAttempts',
+    lockedUntil: 'lockedUntil',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type AdminMfaEnrollmentScalarFieldEnum = (typeof AdminMfaEnrollmentScalarFieldEnum)[keyof typeof AdminMfaEnrollmentScalarFieldEnum]
+
+
+  export const AdminMfaRecoveryCodeScalarFieldEnum: {
+    id: 'id',
+    adminUserId: 'adminUserId',
+    salt: 'salt',
+    codeHash: 'codeHash',
+    createdAt: 'createdAt',
+    usedAt: 'usedAt'
+  };
+
+  export type AdminMfaRecoveryCodeScalarFieldEnum = (typeof AdminMfaRecoveryCodeScalarFieldEnum)[keyof typeof AdminMfaRecoveryCodeScalarFieldEnum]
+
+
+  export const AdminMfaChallengeScalarFieldEnum: {
+    id: 'id',
+    adminUserId: 'adminUserId',
+    tokenHash: 'tokenHash',
+    authMethod: 'authMethod',
+    attempts: 'attempts',
+    expiresAt: 'expiresAt',
+    consumedAt: 'consumedAt',
+    createdAt: 'createdAt',
+    ipAddress: 'ipAddress',
+    userAgent: 'userAgent'
+  };
+
+  export type AdminMfaChallengeScalarFieldEnum = (typeof AdminMfaChallengeScalarFieldEnum)[keyof typeof AdminMfaChallengeScalarFieldEnum]
+
+
+  export const AdminAuthEventScalarFieldEnum: {
+    id: 'id',
+    adminUserId: 'adminUserId',
+    action: 'action',
+    targetType: 'targetType',
+    targetId: 'targetId',
+    metadata: 'metadata',
+    ipAddress: 'ipAddress',
+    userAgent: 'userAgent',
+    createdAt: 'createdAt'
+  };
+
+  export type AdminAuthEventScalarFieldEnum = (typeof AdminAuthEventScalarFieldEnum)[keyof typeof AdminAuthEventScalarFieldEnum]
+
+
   export const RefreshTokenScalarFieldEnum: {
     id: 'id',
     token: 'token',
@@ -211455,6 +219170,11 @@ export namespace Prisma {
     salary?: DecimalNullableFilter<"AdminUser"> | Decimal | DecimalJsLike | number | string | null
     bonus?: DecimalNullableFilter<"AdminUser"> | Decimal | DecimalJsLike | number | string | null
     equity?: DecimalNullableFilter<"AdminUser"> | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionListRelationFilter
+    mfaEnrollment?: XOR<AdminMfaEnrollmentNullableScalarRelationFilter, AdminMfaEnrollmentWhereInput> | null
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeListRelationFilter
+    mfaChallenges?: AdminMfaChallengeListRelationFilter
+    authEvents?: AdminAuthEventListRelationFilter
     refreshTokens?: RefreshTokenListRelationFilter
     auditLogs?: AuditLogListRelationFilter
     socialLinks?: AdminSocialLinkListRelationFilter
@@ -211577,6 +219297,11 @@ export namespace Prisma {
     salary?: SortOrderInput | SortOrder
     bonus?: SortOrderInput | SortOrder
     equity?: SortOrderInput | SortOrder
+    authSessions?: AdminSessionOrderByRelationAggregateInput
+    mfaEnrollment?: AdminMfaEnrollmentOrderByWithRelationInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeOrderByRelationAggregateInput
+    mfaChallenges?: AdminMfaChallengeOrderByRelationAggregateInput
+    authEvents?: AdminAuthEventOrderByRelationAggregateInput
     refreshTokens?: RefreshTokenOrderByRelationAggregateInput
     auditLogs?: AuditLogOrderByRelationAggregateInput
     socialLinks?: AdminSocialLinkOrderByRelationAggregateInput
@@ -211702,6 +219427,11 @@ export namespace Prisma {
     salary?: DecimalNullableFilter<"AdminUser"> | Decimal | DecimalJsLike | number | string | null
     bonus?: DecimalNullableFilter<"AdminUser"> | Decimal | DecimalJsLike | number | string | null
     equity?: DecimalNullableFilter<"AdminUser"> | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionListRelationFilter
+    mfaEnrollment?: XOR<AdminMfaEnrollmentNullableScalarRelationFilter, AdminMfaEnrollmentWhereInput> | null
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeListRelationFilter
+    mfaChallenges?: AdminMfaChallengeListRelationFilter
+    authEvents?: AdminAuthEventListRelationFilter
     refreshTokens?: RefreshTokenListRelationFilter
     auditLogs?: AuditLogListRelationFilter
     socialLinks?: AdminSocialLinkListRelationFilter
@@ -221366,6 +229096,488 @@ export namespace Prisma {
     appliedAt?: DateTimeWithAggregatesFilter<"AdminManualMigrationLedger"> | Date | string
   }
 
+  export type AdminSessionWhereInput = {
+    AND?: AdminSessionWhereInput | AdminSessionWhereInput[]
+    OR?: AdminSessionWhereInput[]
+    NOT?: AdminSessionWhereInput | AdminSessionWhereInput[]
+    id?: UuidFilter<"AdminSession"> | string
+    adminUserId?: StringFilter<"AdminSession"> | string
+    mode?: StringFilter<"AdminSession"> | string
+    authMethod?: StringFilter<"AdminSession"> | string
+    csrfNonce?: StringFilter<"AdminSession"> | string
+    createdAt?: DateTimeFilter<"AdminSession"> | Date | string
+    lastSeenAt?: DateTimeFilter<"AdminSession"> | Date | string
+    idleExpiresAt?: DateTimeFilter<"AdminSession"> | Date | string
+    absoluteExpiresAt?: DateTimeFilter<"AdminSession"> | Date | string
+    mfaVerifiedAt?: DateTimeNullableFilter<"AdminSession"> | Date | string | null
+    revokedAt?: DateTimeNullableFilter<"AdminSession"> | Date | string | null
+    revokeReason?: StringNullableFilter<"AdminSession"> | string | null
+    ipAddress?: StringNullableFilter<"AdminSession"> | string | null
+    userAgent?: StringNullableFilter<"AdminSession"> | string | null
+    adminUser?: XOR<AdminUserScalarRelationFilter, AdminUserWhereInput>
+    refreshTokens?: AdminSessionRefreshTokenListRelationFilter
+  }
+
+  export type AdminSessionOrderByWithRelationInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    mode?: SortOrder
+    authMethod?: SortOrder
+    csrfNonce?: SortOrder
+    createdAt?: SortOrder
+    lastSeenAt?: SortOrder
+    idleExpiresAt?: SortOrder
+    absoluteExpiresAt?: SortOrder
+    mfaVerifiedAt?: SortOrderInput | SortOrder
+    revokedAt?: SortOrderInput | SortOrder
+    revokeReason?: SortOrderInput | SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    adminUser?: AdminUserOrderByWithRelationInput
+    refreshTokens?: AdminSessionRefreshTokenOrderByRelationAggregateInput
+  }
+
+  export type AdminSessionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: AdminSessionWhereInput | AdminSessionWhereInput[]
+    OR?: AdminSessionWhereInput[]
+    NOT?: AdminSessionWhereInput | AdminSessionWhereInput[]
+    adminUserId?: StringFilter<"AdminSession"> | string
+    mode?: StringFilter<"AdminSession"> | string
+    authMethod?: StringFilter<"AdminSession"> | string
+    csrfNonce?: StringFilter<"AdminSession"> | string
+    createdAt?: DateTimeFilter<"AdminSession"> | Date | string
+    lastSeenAt?: DateTimeFilter<"AdminSession"> | Date | string
+    idleExpiresAt?: DateTimeFilter<"AdminSession"> | Date | string
+    absoluteExpiresAt?: DateTimeFilter<"AdminSession"> | Date | string
+    mfaVerifiedAt?: DateTimeNullableFilter<"AdminSession"> | Date | string | null
+    revokedAt?: DateTimeNullableFilter<"AdminSession"> | Date | string | null
+    revokeReason?: StringNullableFilter<"AdminSession"> | string | null
+    ipAddress?: StringNullableFilter<"AdminSession"> | string | null
+    userAgent?: StringNullableFilter<"AdminSession"> | string | null
+    adminUser?: XOR<AdminUserScalarRelationFilter, AdminUserWhereInput>
+    refreshTokens?: AdminSessionRefreshTokenListRelationFilter
+  }, "id">
+
+  export type AdminSessionOrderByWithAggregationInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    mode?: SortOrder
+    authMethod?: SortOrder
+    csrfNonce?: SortOrder
+    createdAt?: SortOrder
+    lastSeenAt?: SortOrder
+    idleExpiresAt?: SortOrder
+    absoluteExpiresAt?: SortOrder
+    mfaVerifiedAt?: SortOrderInput | SortOrder
+    revokedAt?: SortOrderInput | SortOrder
+    revokeReason?: SortOrderInput | SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    _count?: AdminSessionCountOrderByAggregateInput
+    _max?: AdminSessionMaxOrderByAggregateInput
+    _min?: AdminSessionMinOrderByAggregateInput
+  }
+
+  export type AdminSessionScalarWhereWithAggregatesInput = {
+    AND?: AdminSessionScalarWhereWithAggregatesInput | AdminSessionScalarWhereWithAggregatesInput[]
+    OR?: AdminSessionScalarWhereWithAggregatesInput[]
+    NOT?: AdminSessionScalarWhereWithAggregatesInput | AdminSessionScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"AdminSession"> | string
+    adminUserId?: StringWithAggregatesFilter<"AdminSession"> | string
+    mode?: StringWithAggregatesFilter<"AdminSession"> | string
+    authMethod?: StringWithAggregatesFilter<"AdminSession"> | string
+    csrfNonce?: StringWithAggregatesFilter<"AdminSession"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"AdminSession"> | Date | string
+    lastSeenAt?: DateTimeWithAggregatesFilter<"AdminSession"> | Date | string
+    idleExpiresAt?: DateTimeWithAggregatesFilter<"AdminSession"> | Date | string
+    absoluteExpiresAt?: DateTimeWithAggregatesFilter<"AdminSession"> | Date | string
+    mfaVerifiedAt?: DateTimeNullableWithAggregatesFilter<"AdminSession"> | Date | string | null
+    revokedAt?: DateTimeNullableWithAggregatesFilter<"AdminSession"> | Date | string | null
+    revokeReason?: StringNullableWithAggregatesFilter<"AdminSession"> | string | null
+    ipAddress?: StringNullableWithAggregatesFilter<"AdminSession"> | string | null
+    userAgent?: StringNullableWithAggregatesFilter<"AdminSession"> | string | null
+  }
+
+  export type AdminSessionRefreshTokenWhereInput = {
+    AND?: AdminSessionRefreshTokenWhereInput | AdminSessionRefreshTokenWhereInput[]
+    OR?: AdminSessionRefreshTokenWhereInput[]
+    NOT?: AdminSessionRefreshTokenWhereInput | AdminSessionRefreshTokenWhereInput[]
+    id?: UuidFilter<"AdminSessionRefreshToken"> | string
+    sessionId?: UuidFilter<"AdminSessionRefreshToken"> | string
+    adminUserId?: StringFilter<"AdminSessionRefreshToken"> | string
+    tokenHash?: StringFilter<"AdminSessionRefreshToken"> | string
+    createdAt?: DateTimeFilter<"AdminSessionRefreshToken"> | Date | string
+    expiresAt?: DateTimeFilter<"AdminSessionRefreshToken"> | Date | string
+    rotatedAt?: DateTimeNullableFilter<"AdminSessionRefreshToken"> | Date | string | null
+    revokedAt?: DateTimeNullableFilter<"AdminSessionRefreshToken"> | Date | string | null
+    ipAddress?: StringNullableFilter<"AdminSessionRefreshToken"> | string | null
+    userAgent?: StringNullableFilter<"AdminSessionRefreshToken"> | string | null
+    session?: XOR<AdminSessionScalarRelationFilter, AdminSessionWhereInput>
+  }
+
+  export type AdminSessionRefreshTokenOrderByWithRelationInput = {
+    id?: SortOrder
+    sessionId?: SortOrder
+    adminUserId?: SortOrder
+    tokenHash?: SortOrder
+    createdAt?: SortOrder
+    expiresAt?: SortOrder
+    rotatedAt?: SortOrderInput | SortOrder
+    revokedAt?: SortOrderInput | SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    session?: AdminSessionOrderByWithRelationInput
+  }
+
+  export type AdminSessionRefreshTokenWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    tokenHash?: string
+    AND?: AdminSessionRefreshTokenWhereInput | AdminSessionRefreshTokenWhereInput[]
+    OR?: AdminSessionRefreshTokenWhereInput[]
+    NOT?: AdminSessionRefreshTokenWhereInput | AdminSessionRefreshTokenWhereInput[]
+    sessionId?: UuidFilter<"AdminSessionRefreshToken"> | string
+    adminUserId?: StringFilter<"AdminSessionRefreshToken"> | string
+    createdAt?: DateTimeFilter<"AdminSessionRefreshToken"> | Date | string
+    expiresAt?: DateTimeFilter<"AdminSessionRefreshToken"> | Date | string
+    rotatedAt?: DateTimeNullableFilter<"AdminSessionRefreshToken"> | Date | string | null
+    revokedAt?: DateTimeNullableFilter<"AdminSessionRefreshToken"> | Date | string | null
+    ipAddress?: StringNullableFilter<"AdminSessionRefreshToken"> | string | null
+    userAgent?: StringNullableFilter<"AdminSessionRefreshToken"> | string | null
+    session?: XOR<AdminSessionScalarRelationFilter, AdminSessionWhereInput>
+  }, "id" | "tokenHash">
+
+  export type AdminSessionRefreshTokenOrderByWithAggregationInput = {
+    id?: SortOrder
+    sessionId?: SortOrder
+    adminUserId?: SortOrder
+    tokenHash?: SortOrder
+    createdAt?: SortOrder
+    expiresAt?: SortOrder
+    rotatedAt?: SortOrderInput | SortOrder
+    revokedAt?: SortOrderInput | SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    _count?: AdminSessionRefreshTokenCountOrderByAggregateInput
+    _max?: AdminSessionRefreshTokenMaxOrderByAggregateInput
+    _min?: AdminSessionRefreshTokenMinOrderByAggregateInput
+  }
+
+  export type AdminSessionRefreshTokenScalarWhereWithAggregatesInput = {
+    AND?: AdminSessionRefreshTokenScalarWhereWithAggregatesInput | AdminSessionRefreshTokenScalarWhereWithAggregatesInput[]
+    OR?: AdminSessionRefreshTokenScalarWhereWithAggregatesInput[]
+    NOT?: AdminSessionRefreshTokenScalarWhereWithAggregatesInput | AdminSessionRefreshTokenScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"AdminSessionRefreshToken"> | string
+    sessionId?: UuidWithAggregatesFilter<"AdminSessionRefreshToken"> | string
+    adminUserId?: StringWithAggregatesFilter<"AdminSessionRefreshToken"> | string
+    tokenHash?: StringWithAggregatesFilter<"AdminSessionRefreshToken"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"AdminSessionRefreshToken"> | Date | string
+    expiresAt?: DateTimeWithAggregatesFilter<"AdminSessionRefreshToken"> | Date | string
+    rotatedAt?: DateTimeNullableWithAggregatesFilter<"AdminSessionRefreshToken"> | Date | string | null
+    revokedAt?: DateTimeNullableWithAggregatesFilter<"AdminSessionRefreshToken"> | Date | string | null
+    ipAddress?: StringNullableWithAggregatesFilter<"AdminSessionRefreshToken"> | string | null
+    userAgent?: StringNullableWithAggregatesFilter<"AdminSessionRefreshToken"> | string | null
+  }
+
+  export type AdminMfaEnrollmentWhereInput = {
+    AND?: AdminMfaEnrollmentWhereInput | AdminMfaEnrollmentWhereInput[]
+    OR?: AdminMfaEnrollmentWhereInput[]
+    NOT?: AdminMfaEnrollmentWhereInput | AdminMfaEnrollmentWhereInput[]
+    adminUserId?: StringFilter<"AdminMfaEnrollment"> | string
+    enrolledAt?: DateTimeNullableFilter<"AdminMfaEnrollment"> | Date | string | null
+    secretEncrypted?: StringNullableFilter<"AdminMfaEnrollment"> | string | null
+    pendingSecretEncrypted?: StringNullableFilter<"AdminMfaEnrollment"> | string | null
+    pendingExpiresAt?: DateTimeNullableFilter<"AdminMfaEnrollment"> | Date | string | null
+    lastUsedStep?: IntNullableFilter<"AdminMfaEnrollment"> | number | null
+    failedAttempts?: IntFilter<"AdminMfaEnrollment"> | number
+    lockedUntil?: DateTimeNullableFilter<"AdminMfaEnrollment"> | Date | string | null
+    createdAt?: DateTimeFilter<"AdminMfaEnrollment"> | Date | string
+    updatedAt?: DateTimeFilter<"AdminMfaEnrollment"> | Date | string
+    adminUser?: XOR<AdminUserScalarRelationFilter, AdminUserWhereInput>
+  }
+
+  export type AdminMfaEnrollmentOrderByWithRelationInput = {
+    adminUserId?: SortOrder
+    enrolledAt?: SortOrderInput | SortOrder
+    secretEncrypted?: SortOrderInput | SortOrder
+    pendingSecretEncrypted?: SortOrderInput | SortOrder
+    pendingExpiresAt?: SortOrderInput | SortOrder
+    lastUsedStep?: SortOrderInput | SortOrder
+    failedAttempts?: SortOrder
+    lockedUntil?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    adminUser?: AdminUserOrderByWithRelationInput
+  }
+
+  export type AdminMfaEnrollmentWhereUniqueInput = Prisma.AtLeast<{
+    adminUserId?: string
+    AND?: AdminMfaEnrollmentWhereInput | AdminMfaEnrollmentWhereInput[]
+    OR?: AdminMfaEnrollmentWhereInput[]
+    NOT?: AdminMfaEnrollmentWhereInput | AdminMfaEnrollmentWhereInput[]
+    enrolledAt?: DateTimeNullableFilter<"AdminMfaEnrollment"> | Date | string | null
+    secretEncrypted?: StringNullableFilter<"AdminMfaEnrollment"> | string | null
+    pendingSecretEncrypted?: StringNullableFilter<"AdminMfaEnrollment"> | string | null
+    pendingExpiresAt?: DateTimeNullableFilter<"AdminMfaEnrollment"> | Date | string | null
+    lastUsedStep?: IntNullableFilter<"AdminMfaEnrollment"> | number | null
+    failedAttempts?: IntFilter<"AdminMfaEnrollment"> | number
+    lockedUntil?: DateTimeNullableFilter<"AdminMfaEnrollment"> | Date | string | null
+    createdAt?: DateTimeFilter<"AdminMfaEnrollment"> | Date | string
+    updatedAt?: DateTimeFilter<"AdminMfaEnrollment"> | Date | string
+    adminUser?: XOR<AdminUserScalarRelationFilter, AdminUserWhereInput>
+  }, "adminUserId">
+
+  export type AdminMfaEnrollmentOrderByWithAggregationInput = {
+    adminUserId?: SortOrder
+    enrolledAt?: SortOrderInput | SortOrder
+    secretEncrypted?: SortOrderInput | SortOrder
+    pendingSecretEncrypted?: SortOrderInput | SortOrder
+    pendingExpiresAt?: SortOrderInput | SortOrder
+    lastUsedStep?: SortOrderInput | SortOrder
+    failedAttempts?: SortOrder
+    lockedUntil?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: AdminMfaEnrollmentCountOrderByAggregateInput
+    _avg?: AdminMfaEnrollmentAvgOrderByAggregateInput
+    _max?: AdminMfaEnrollmentMaxOrderByAggregateInput
+    _min?: AdminMfaEnrollmentMinOrderByAggregateInput
+    _sum?: AdminMfaEnrollmentSumOrderByAggregateInput
+  }
+
+  export type AdminMfaEnrollmentScalarWhereWithAggregatesInput = {
+    AND?: AdminMfaEnrollmentScalarWhereWithAggregatesInput | AdminMfaEnrollmentScalarWhereWithAggregatesInput[]
+    OR?: AdminMfaEnrollmentScalarWhereWithAggregatesInput[]
+    NOT?: AdminMfaEnrollmentScalarWhereWithAggregatesInput | AdminMfaEnrollmentScalarWhereWithAggregatesInput[]
+    adminUserId?: StringWithAggregatesFilter<"AdminMfaEnrollment"> | string
+    enrolledAt?: DateTimeNullableWithAggregatesFilter<"AdminMfaEnrollment"> | Date | string | null
+    secretEncrypted?: StringNullableWithAggregatesFilter<"AdminMfaEnrollment"> | string | null
+    pendingSecretEncrypted?: StringNullableWithAggregatesFilter<"AdminMfaEnrollment"> | string | null
+    pendingExpiresAt?: DateTimeNullableWithAggregatesFilter<"AdminMfaEnrollment"> | Date | string | null
+    lastUsedStep?: IntNullableWithAggregatesFilter<"AdminMfaEnrollment"> | number | null
+    failedAttempts?: IntWithAggregatesFilter<"AdminMfaEnrollment"> | number
+    lockedUntil?: DateTimeNullableWithAggregatesFilter<"AdminMfaEnrollment"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"AdminMfaEnrollment"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"AdminMfaEnrollment"> | Date | string
+  }
+
+  export type AdminMfaRecoveryCodeWhereInput = {
+    AND?: AdminMfaRecoveryCodeWhereInput | AdminMfaRecoveryCodeWhereInput[]
+    OR?: AdminMfaRecoveryCodeWhereInput[]
+    NOT?: AdminMfaRecoveryCodeWhereInput | AdminMfaRecoveryCodeWhereInput[]
+    id?: UuidFilter<"AdminMfaRecoveryCode"> | string
+    adminUserId?: StringFilter<"AdminMfaRecoveryCode"> | string
+    salt?: StringFilter<"AdminMfaRecoveryCode"> | string
+    codeHash?: StringFilter<"AdminMfaRecoveryCode"> | string
+    createdAt?: DateTimeFilter<"AdminMfaRecoveryCode"> | Date | string
+    usedAt?: DateTimeNullableFilter<"AdminMfaRecoveryCode"> | Date | string | null
+    adminUser?: XOR<AdminUserScalarRelationFilter, AdminUserWhereInput>
+  }
+
+  export type AdminMfaRecoveryCodeOrderByWithRelationInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    salt?: SortOrder
+    codeHash?: SortOrder
+    createdAt?: SortOrder
+    usedAt?: SortOrderInput | SortOrder
+    adminUser?: AdminUserOrderByWithRelationInput
+  }
+
+  export type AdminMfaRecoveryCodeWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: AdminMfaRecoveryCodeWhereInput | AdminMfaRecoveryCodeWhereInput[]
+    OR?: AdminMfaRecoveryCodeWhereInput[]
+    NOT?: AdminMfaRecoveryCodeWhereInput | AdminMfaRecoveryCodeWhereInput[]
+    adminUserId?: StringFilter<"AdminMfaRecoveryCode"> | string
+    salt?: StringFilter<"AdminMfaRecoveryCode"> | string
+    codeHash?: StringFilter<"AdminMfaRecoveryCode"> | string
+    createdAt?: DateTimeFilter<"AdminMfaRecoveryCode"> | Date | string
+    usedAt?: DateTimeNullableFilter<"AdminMfaRecoveryCode"> | Date | string | null
+    adminUser?: XOR<AdminUserScalarRelationFilter, AdminUserWhereInput>
+  }, "id">
+
+  export type AdminMfaRecoveryCodeOrderByWithAggregationInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    salt?: SortOrder
+    codeHash?: SortOrder
+    createdAt?: SortOrder
+    usedAt?: SortOrderInput | SortOrder
+    _count?: AdminMfaRecoveryCodeCountOrderByAggregateInput
+    _max?: AdminMfaRecoveryCodeMaxOrderByAggregateInput
+    _min?: AdminMfaRecoveryCodeMinOrderByAggregateInput
+  }
+
+  export type AdminMfaRecoveryCodeScalarWhereWithAggregatesInput = {
+    AND?: AdminMfaRecoveryCodeScalarWhereWithAggregatesInput | AdminMfaRecoveryCodeScalarWhereWithAggregatesInput[]
+    OR?: AdminMfaRecoveryCodeScalarWhereWithAggregatesInput[]
+    NOT?: AdminMfaRecoveryCodeScalarWhereWithAggregatesInput | AdminMfaRecoveryCodeScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"AdminMfaRecoveryCode"> | string
+    adminUserId?: StringWithAggregatesFilter<"AdminMfaRecoveryCode"> | string
+    salt?: StringWithAggregatesFilter<"AdminMfaRecoveryCode"> | string
+    codeHash?: StringWithAggregatesFilter<"AdminMfaRecoveryCode"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"AdminMfaRecoveryCode"> | Date | string
+    usedAt?: DateTimeNullableWithAggregatesFilter<"AdminMfaRecoveryCode"> | Date | string | null
+  }
+
+  export type AdminMfaChallengeWhereInput = {
+    AND?: AdminMfaChallengeWhereInput | AdminMfaChallengeWhereInput[]
+    OR?: AdminMfaChallengeWhereInput[]
+    NOT?: AdminMfaChallengeWhereInput | AdminMfaChallengeWhereInput[]
+    id?: UuidFilter<"AdminMfaChallenge"> | string
+    adminUserId?: StringFilter<"AdminMfaChallenge"> | string
+    tokenHash?: StringFilter<"AdminMfaChallenge"> | string
+    authMethod?: StringFilter<"AdminMfaChallenge"> | string
+    attempts?: IntFilter<"AdminMfaChallenge"> | number
+    expiresAt?: DateTimeFilter<"AdminMfaChallenge"> | Date | string
+    consumedAt?: DateTimeNullableFilter<"AdminMfaChallenge"> | Date | string | null
+    createdAt?: DateTimeFilter<"AdminMfaChallenge"> | Date | string
+    ipAddress?: StringNullableFilter<"AdminMfaChallenge"> | string | null
+    userAgent?: StringNullableFilter<"AdminMfaChallenge"> | string | null
+    adminUser?: XOR<AdminUserScalarRelationFilter, AdminUserWhereInput>
+  }
+
+  export type AdminMfaChallengeOrderByWithRelationInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    tokenHash?: SortOrder
+    authMethod?: SortOrder
+    attempts?: SortOrder
+    expiresAt?: SortOrder
+    consumedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    adminUser?: AdminUserOrderByWithRelationInput
+  }
+
+  export type AdminMfaChallengeWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    tokenHash?: string
+    AND?: AdminMfaChallengeWhereInput | AdminMfaChallengeWhereInput[]
+    OR?: AdminMfaChallengeWhereInput[]
+    NOT?: AdminMfaChallengeWhereInput | AdminMfaChallengeWhereInput[]
+    adminUserId?: StringFilter<"AdminMfaChallenge"> | string
+    authMethod?: StringFilter<"AdminMfaChallenge"> | string
+    attempts?: IntFilter<"AdminMfaChallenge"> | number
+    expiresAt?: DateTimeFilter<"AdminMfaChallenge"> | Date | string
+    consumedAt?: DateTimeNullableFilter<"AdminMfaChallenge"> | Date | string | null
+    createdAt?: DateTimeFilter<"AdminMfaChallenge"> | Date | string
+    ipAddress?: StringNullableFilter<"AdminMfaChallenge"> | string | null
+    userAgent?: StringNullableFilter<"AdminMfaChallenge"> | string | null
+    adminUser?: XOR<AdminUserScalarRelationFilter, AdminUserWhereInput>
+  }, "id" | "tokenHash">
+
+  export type AdminMfaChallengeOrderByWithAggregationInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    tokenHash?: SortOrder
+    authMethod?: SortOrder
+    attempts?: SortOrder
+    expiresAt?: SortOrder
+    consumedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    _count?: AdminMfaChallengeCountOrderByAggregateInput
+    _avg?: AdminMfaChallengeAvgOrderByAggregateInput
+    _max?: AdminMfaChallengeMaxOrderByAggregateInput
+    _min?: AdminMfaChallengeMinOrderByAggregateInput
+    _sum?: AdminMfaChallengeSumOrderByAggregateInput
+  }
+
+  export type AdminMfaChallengeScalarWhereWithAggregatesInput = {
+    AND?: AdminMfaChallengeScalarWhereWithAggregatesInput | AdminMfaChallengeScalarWhereWithAggregatesInput[]
+    OR?: AdminMfaChallengeScalarWhereWithAggregatesInput[]
+    NOT?: AdminMfaChallengeScalarWhereWithAggregatesInput | AdminMfaChallengeScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"AdminMfaChallenge"> | string
+    adminUserId?: StringWithAggregatesFilter<"AdminMfaChallenge"> | string
+    tokenHash?: StringWithAggregatesFilter<"AdminMfaChallenge"> | string
+    authMethod?: StringWithAggregatesFilter<"AdminMfaChallenge"> | string
+    attempts?: IntWithAggregatesFilter<"AdminMfaChallenge"> | number
+    expiresAt?: DateTimeWithAggregatesFilter<"AdminMfaChallenge"> | Date | string
+    consumedAt?: DateTimeNullableWithAggregatesFilter<"AdminMfaChallenge"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"AdminMfaChallenge"> | Date | string
+    ipAddress?: StringNullableWithAggregatesFilter<"AdminMfaChallenge"> | string | null
+    userAgent?: StringNullableWithAggregatesFilter<"AdminMfaChallenge"> | string | null
+  }
+
+  export type AdminAuthEventWhereInput = {
+    AND?: AdminAuthEventWhereInput | AdminAuthEventWhereInput[]
+    OR?: AdminAuthEventWhereInput[]
+    NOT?: AdminAuthEventWhereInput | AdminAuthEventWhereInput[]
+    id?: UuidFilter<"AdminAuthEvent"> | string
+    adminUserId?: StringNullableFilter<"AdminAuthEvent"> | string | null
+    action?: StringFilter<"AdminAuthEvent"> | string
+    targetType?: StringNullableFilter<"AdminAuthEvent"> | string | null
+    targetId?: StringNullableFilter<"AdminAuthEvent"> | string | null
+    metadata?: JsonNullableFilter<"AdminAuthEvent">
+    ipAddress?: StringNullableFilter<"AdminAuthEvent"> | string | null
+    userAgent?: StringNullableFilter<"AdminAuthEvent"> | string | null
+    createdAt?: DateTimeFilter<"AdminAuthEvent"> | Date | string
+    adminUser?: XOR<AdminUserNullableScalarRelationFilter, AdminUserWhereInput> | null
+  }
+
+  export type AdminAuthEventOrderByWithRelationInput = {
+    id?: SortOrder
+    adminUserId?: SortOrderInput | SortOrder
+    action?: SortOrder
+    targetType?: SortOrderInput | SortOrder
+    targetId?: SortOrderInput | SortOrder
+    metadata?: SortOrderInput | SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    adminUser?: AdminUserOrderByWithRelationInput
+  }
+
+  export type AdminAuthEventWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: AdminAuthEventWhereInput | AdminAuthEventWhereInput[]
+    OR?: AdminAuthEventWhereInput[]
+    NOT?: AdminAuthEventWhereInput | AdminAuthEventWhereInput[]
+    adminUserId?: StringNullableFilter<"AdminAuthEvent"> | string | null
+    action?: StringFilter<"AdminAuthEvent"> | string
+    targetType?: StringNullableFilter<"AdminAuthEvent"> | string | null
+    targetId?: StringNullableFilter<"AdminAuthEvent"> | string | null
+    metadata?: JsonNullableFilter<"AdminAuthEvent">
+    ipAddress?: StringNullableFilter<"AdminAuthEvent"> | string | null
+    userAgent?: StringNullableFilter<"AdminAuthEvent"> | string | null
+    createdAt?: DateTimeFilter<"AdminAuthEvent"> | Date | string
+    adminUser?: XOR<AdminUserNullableScalarRelationFilter, AdminUserWhereInput> | null
+  }, "id">
+
+  export type AdminAuthEventOrderByWithAggregationInput = {
+    id?: SortOrder
+    adminUserId?: SortOrderInput | SortOrder
+    action?: SortOrder
+    targetType?: SortOrderInput | SortOrder
+    targetId?: SortOrderInput | SortOrder
+    metadata?: SortOrderInput | SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: AdminAuthEventCountOrderByAggregateInput
+    _max?: AdminAuthEventMaxOrderByAggregateInput
+    _min?: AdminAuthEventMinOrderByAggregateInput
+  }
+
+  export type AdminAuthEventScalarWhereWithAggregatesInput = {
+    AND?: AdminAuthEventScalarWhereWithAggregatesInput | AdminAuthEventScalarWhereWithAggregatesInput[]
+    OR?: AdminAuthEventScalarWhereWithAggregatesInput[]
+    NOT?: AdminAuthEventScalarWhereWithAggregatesInput | AdminAuthEventScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"AdminAuthEvent"> | string
+    adminUserId?: StringNullableWithAggregatesFilter<"AdminAuthEvent"> | string | null
+    action?: StringWithAggregatesFilter<"AdminAuthEvent"> | string
+    targetType?: StringNullableWithAggregatesFilter<"AdminAuthEvent"> | string | null
+    targetId?: StringNullableWithAggregatesFilter<"AdminAuthEvent"> | string | null
+    metadata?: JsonNullableWithAggregatesFilter<"AdminAuthEvent">
+    ipAddress?: StringNullableWithAggregatesFilter<"AdminAuthEvent"> | string | null
+    userAgent?: StringNullableWithAggregatesFilter<"AdminAuthEvent"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"AdminAuthEvent"> | Date | string
+  }
+
   export type RefreshTokenWhereInput = {
     AND?: RefreshTokenWhereInput | RefreshTokenWhereInput[]
     OR?: RefreshTokenWhereInput[]
@@ -227042,6 +235254,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -227164,6 +235381,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -227286,6 +235508,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -227408,6 +235635,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -238431,6 +246663,543 @@ export namespace Prisma {
     appliedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type AdminSessionCreateInput = {
+    id?: string
+    mode: string
+    authMethod: string
+    csrfNonce: string
+    createdAt?: Date | string
+    lastSeenAt?: Date | string
+    idleExpiresAt: Date | string
+    absoluteExpiresAt: Date | string
+    mfaVerifiedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    revokeReason?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+    adminUser: AdminUserCreateNestedOneWithoutAuthSessionsInput
+    refreshTokens?: AdminSessionRefreshTokenCreateNestedManyWithoutSessionInput
+  }
+
+  export type AdminSessionUncheckedCreateInput = {
+    id?: string
+    adminUserId: string
+    mode: string
+    authMethod: string
+    csrfNonce: string
+    createdAt?: Date | string
+    lastSeenAt?: Date | string
+    idleExpiresAt: Date | string
+    absoluteExpiresAt: Date | string
+    mfaVerifiedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    revokeReason?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+    refreshTokens?: AdminSessionRefreshTokenUncheckedCreateNestedManyWithoutSessionInput
+  }
+
+  export type AdminSessionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    csrfNonce?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idleExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    absoluteExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    adminUser?: AdminUserUpdateOneRequiredWithoutAuthSessionsNestedInput
+    refreshTokens?: AdminSessionRefreshTokenUpdateManyWithoutSessionNestedInput
+  }
+
+  export type AdminSessionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    csrfNonce?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idleExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    absoluteExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    refreshTokens?: AdminSessionRefreshTokenUncheckedUpdateManyWithoutSessionNestedInput
+  }
+
+  export type AdminSessionCreateManyInput = {
+    id?: string
+    adminUserId: string
+    mode: string
+    authMethod: string
+    csrfNonce: string
+    createdAt?: Date | string
+    lastSeenAt?: Date | string
+    idleExpiresAt: Date | string
+    absoluteExpiresAt: Date | string
+    mfaVerifiedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    revokeReason?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type AdminSessionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    csrfNonce?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idleExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    absoluteExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminSessionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    csrfNonce?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idleExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    absoluteExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminSessionRefreshTokenCreateInput = {
+    id?: string
+    adminUserId: string
+    tokenHash: string
+    createdAt?: Date | string
+    expiresAt: Date | string
+    rotatedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+    session: AdminSessionCreateNestedOneWithoutRefreshTokensInput
+  }
+
+  export type AdminSessionRefreshTokenUncheckedCreateInput = {
+    id?: string
+    sessionId: string
+    adminUserId: string
+    tokenHash: string
+    createdAt?: Date | string
+    expiresAt: Date | string
+    rotatedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type AdminSessionRefreshTokenUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    session?: AdminSessionUpdateOneRequiredWithoutRefreshTokensNestedInput
+  }
+
+  export type AdminSessionRefreshTokenUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sessionId?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminSessionRefreshTokenCreateManyInput = {
+    id?: string
+    sessionId: string
+    adminUserId: string
+    tokenHash: string
+    createdAt?: Date | string
+    expiresAt: Date | string
+    rotatedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type AdminSessionRefreshTokenUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminSessionRefreshTokenUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sessionId?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminMfaEnrollmentCreateInput = {
+    enrolledAt?: Date | string | null
+    secretEncrypted?: string | null
+    pendingSecretEncrypted?: string | null
+    pendingExpiresAt?: Date | string | null
+    lastUsedStep?: number | null
+    failedAttempts?: number
+    lockedUntil?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    adminUser: AdminUserCreateNestedOneWithoutMfaEnrollmentInput
+  }
+
+  export type AdminMfaEnrollmentUncheckedCreateInput = {
+    adminUserId: string
+    enrolledAt?: Date | string | null
+    secretEncrypted?: string | null
+    pendingSecretEncrypted?: string | null
+    pendingExpiresAt?: Date | string | null
+    lastUsedStep?: number | null
+    failedAttempts?: number
+    lockedUntil?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AdminMfaEnrollmentUpdateInput = {
+    enrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    secretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    pendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    pendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    failedAttempts?: IntFieldUpdateOperationsInput | number
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    adminUser?: AdminUserUpdateOneRequiredWithoutMfaEnrollmentNestedInput
+  }
+
+  export type AdminMfaEnrollmentUncheckedUpdateInput = {
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    enrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    secretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    pendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    pendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    failedAttempts?: IntFieldUpdateOperationsInput | number
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdminMfaEnrollmentCreateManyInput = {
+    adminUserId: string
+    enrolledAt?: Date | string | null
+    secretEncrypted?: string | null
+    pendingSecretEncrypted?: string | null
+    pendingExpiresAt?: Date | string | null
+    lastUsedStep?: number | null
+    failedAttempts?: number
+    lockedUntil?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AdminMfaEnrollmentUpdateManyMutationInput = {
+    enrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    secretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    pendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    pendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    failedAttempts?: IntFieldUpdateOperationsInput | number
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdminMfaEnrollmentUncheckedUpdateManyInput = {
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    enrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    secretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    pendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    pendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    failedAttempts?: IntFieldUpdateOperationsInput | number
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdminMfaRecoveryCodeCreateInput = {
+    id?: string
+    salt: string
+    codeHash: string
+    createdAt?: Date | string
+    usedAt?: Date | string | null
+    adminUser: AdminUserCreateNestedOneWithoutMfaRecoveryCodesInput
+  }
+
+  export type AdminMfaRecoveryCodeUncheckedCreateInput = {
+    id?: string
+    adminUserId: string
+    salt: string
+    codeHash: string
+    createdAt?: Date | string
+    usedAt?: Date | string | null
+  }
+
+  export type AdminMfaRecoveryCodeUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adminUser?: AdminUserUpdateOneRequiredWithoutMfaRecoveryCodesNestedInput
+  }
+
+  export type AdminMfaRecoveryCodeUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminMfaRecoveryCodeCreateManyInput = {
+    id?: string
+    adminUserId: string
+    salt: string
+    codeHash: string
+    createdAt?: Date | string
+    usedAt?: Date | string | null
+  }
+
+  export type AdminMfaRecoveryCodeUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminMfaRecoveryCodeUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminMfaChallengeCreateInput = {
+    id?: string
+    tokenHash: string
+    authMethod: string
+    attempts?: number
+    expiresAt: Date | string
+    consumedAt?: Date | string | null
+    createdAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+    adminUser: AdminUserCreateNestedOneWithoutMfaChallengesInput
+  }
+
+  export type AdminMfaChallengeUncheckedCreateInput = {
+    id?: string
+    adminUserId: string
+    tokenHash: string
+    authMethod: string
+    attempts?: number
+    expiresAt: Date | string
+    consumedAt?: Date | string | null
+    createdAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type AdminMfaChallengeUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    adminUser?: AdminUserUpdateOneRequiredWithoutMfaChallengesNestedInput
+  }
+
+  export type AdminMfaChallengeUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminMfaChallengeCreateManyInput = {
+    id?: string
+    adminUserId: string
+    tokenHash: string
+    authMethod: string
+    attempts?: number
+    expiresAt: Date | string
+    consumedAt?: Date | string | null
+    createdAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type AdminMfaChallengeUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminMfaChallengeUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminAuthEventCreateInput = {
+    id?: string
+    action: string
+    targetType?: string | null
+    targetId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: string | null
+    userAgent?: string | null
+    createdAt?: Date | string
+    adminUser?: AdminUserCreateNestedOneWithoutAuthEventsInput
+  }
+
+  export type AdminAuthEventUncheckedCreateInput = {
+    id?: string
+    adminUserId?: string | null
+    action: string
+    targetType?: string | null
+    targetId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: string | null
+    userAgent?: string | null
+    createdAt?: Date | string
+  }
+
+  export type AdminAuthEventUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    targetType?: NullableStringFieldUpdateOperationsInput | string | null
+    targetId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    adminUser?: AdminUserUpdateOneWithoutAuthEventsNestedInput
+  }
+
+  export type AdminAuthEventUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    targetType?: NullableStringFieldUpdateOperationsInput | string | null
+    targetId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdminAuthEventCreateManyInput = {
+    id?: string
+    adminUserId?: string | null
+    action: string
+    targetType?: string | null
+    targetId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: string | null
+    userAgent?: string | null
+    createdAt?: Date | string
+  }
+
+  export type AdminAuthEventUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    targetType?: NullableStringFieldUpdateOperationsInput | string | null
+    targetId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdminAuthEventUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    targetType?: NullableStringFieldUpdateOperationsInput | string | null
+    targetId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type RefreshTokenCreateInput = {
     id?: string
     token: string
@@ -244818,6 +253587,35 @@ export namespace Prisma {
     not?: NestedDecimalNullableFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
   }
 
+  export type AdminSessionListRelationFilter = {
+    every?: AdminSessionWhereInput
+    some?: AdminSessionWhereInput
+    none?: AdminSessionWhereInput
+  }
+
+  export type AdminMfaEnrollmentNullableScalarRelationFilter = {
+    is?: AdminMfaEnrollmentWhereInput | null
+    isNot?: AdminMfaEnrollmentWhereInput | null
+  }
+
+  export type AdminMfaRecoveryCodeListRelationFilter = {
+    every?: AdminMfaRecoveryCodeWhereInput
+    some?: AdminMfaRecoveryCodeWhereInput
+    none?: AdminMfaRecoveryCodeWhereInput
+  }
+
+  export type AdminMfaChallengeListRelationFilter = {
+    every?: AdminMfaChallengeWhereInput
+    some?: AdminMfaChallengeWhereInput
+    none?: AdminMfaChallengeWhereInput
+  }
+
+  export type AdminAuthEventListRelationFilter = {
+    every?: AdminAuthEventWhereInput
+    some?: AdminAuthEventWhereInput
+    none?: AdminAuthEventWhereInput
+  }
+
   export type RefreshTokenListRelationFilter = {
     every?: RefreshTokenWhereInput
     some?: RefreshTokenWhereInput
@@ -245181,6 +253979,22 @@ export namespace Prisma {
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
+  }
+
+  export type AdminSessionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AdminMfaRecoveryCodeOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AdminMfaChallengeOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AdminAuthEventOrderByRelationAggregateInput = {
+    _count?: SortOrder
   }
 
   export type RefreshTokenOrderByRelationAggregateInput = {
@@ -253125,6 +261939,268 @@ export namespace Prisma {
     appliedAt?: SortOrder
   }
 
+  export type AdminSessionRefreshTokenListRelationFilter = {
+    every?: AdminSessionRefreshTokenWhereInput
+    some?: AdminSessionRefreshTokenWhereInput
+    none?: AdminSessionRefreshTokenWhereInput
+  }
+
+  export type AdminSessionRefreshTokenOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AdminSessionCountOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    mode?: SortOrder
+    authMethod?: SortOrder
+    csrfNonce?: SortOrder
+    createdAt?: SortOrder
+    lastSeenAt?: SortOrder
+    idleExpiresAt?: SortOrder
+    absoluteExpiresAt?: SortOrder
+    mfaVerifiedAt?: SortOrder
+    revokedAt?: SortOrder
+    revokeReason?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+  }
+
+  export type AdminSessionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    mode?: SortOrder
+    authMethod?: SortOrder
+    csrfNonce?: SortOrder
+    createdAt?: SortOrder
+    lastSeenAt?: SortOrder
+    idleExpiresAt?: SortOrder
+    absoluteExpiresAt?: SortOrder
+    mfaVerifiedAt?: SortOrder
+    revokedAt?: SortOrder
+    revokeReason?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+  }
+
+  export type AdminSessionMinOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    mode?: SortOrder
+    authMethod?: SortOrder
+    csrfNonce?: SortOrder
+    createdAt?: SortOrder
+    lastSeenAt?: SortOrder
+    idleExpiresAt?: SortOrder
+    absoluteExpiresAt?: SortOrder
+    mfaVerifiedAt?: SortOrder
+    revokedAt?: SortOrder
+    revokeReason?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+  }
+
+  export type AdminSessionScalarRelationFilter = {
+    is?: AdminSessionWhereInput
+    isNot?: AdminSessionWhereInput
+  }
+
+  export type AdminSessionRefreshTokenCountOrderByAggregateInput = {
+    id?: SortOrder
+    sessionId?: SortOrder
+    adminUserId?: SortOrder
+    tokenHash?: SortOrder
+    createdAt?: SortOrder
+    expiresAt?: SortOrder
+    rotatedAt?: SortOrder
+    revokedAt?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+  }
+
+  export type AdminSessionRefreshTokenMaxOrderByAggregateInput = {
+    id?: SortOrder
+    sessionId?: SortOrder
+    adminUserId?: SortOrder
+    tokenHash?: SortOrder
+    createdAt?: SortOrder
+    expiresAt?: SortOrder
+    rotatedAt?: SortOrder
+    revokedAt?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+  }
+
+  export type AdminSessionRefreshTokenMinOrderByAggregateInput = {
+    id?: SortOrder
+    sessionId?: SortOrder
+    adminUserId?: SortOrder
+    tokenHash?: SortOrder
+    createdAt?: SortOrder
+    expiresAt?: SortOrder
+    rotatedAt?: SortOrder
+    revokedAt?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+  }
+
+  export type AdminMfaEnrollmentCountOrderByAggregateInput = {
+    adminUserId?: SortOrder
+    enrolledAt?: SortOrder
+    secretEncrypted?: SortOrder
+    pendingSecretEncrypted?: SortOrder
+    pendingExpiresAt?: SortOrder
+    lastUsedStep?: SortOrder
+    failedAttempts?: SortOrder
+    lockedUntil?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AdminMfaEnrollmentAvgOrderByAggregateInput = {
+    lastUsedStep?: SortOrder
+    failedAttempts?: SortOrder
+  }
+
+  export type AdminMfaEnrollmentMaxOrderByAggregateInput = {
+    adminUserId?: SortOrder
+    enrolledAt?: SortOrder
+    secretEncrypted?: SortOrder
+    pendingSecretEncrypted?: SortOrder
+    pendingExpiresAt?: SortOrder
+    lastUsedStep?: SortOrder
+    failedAttempts?: SortOrder
+    lockedUntil?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AdminMfaEnrollmentMinOrderByAggregateInput = {
+    adminUserId?: SortOrder
+    enrolledAt?: SortOrder
+    secretEncrypted?: SortOrder
+    pendingSecretEncrypted?: SortOrder
+    pendingExpiresAt?: SortOrder
+    lastUsedStep?: SortOrder
+    failedAttempts?: SortOrder
+    lockedUntil?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AdminMfaEnrollmentSumOrderByAggregateInput = {
+    lastUsedStep?: SortOrder
+    failedAttempts?: SortOrder
+  }
+
+  export type AdminMfaRecoveryCodeCountOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    salt?: SortOrder
+    codeHash?: SortOrder
+    createdAt?: SortOrder
+    usedAt?: SortOrder
+  }
+
+  export type AdminMfaRecoveryCodeMaxOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    salt?: SortOrder
+    codeHash?: SortOrder
+    createdAt?: SortOrder
+    usedAt?: SortOrder
+  }
+
+  export type AdminMfaRecoveryCodeMinOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    salt?: SortOrder
+    codeHash?: SortOrder
+    createdAt?: SortOrder
+    usedAt?: SortOrder
+  }
+
+  export type AdminMfaChallengeCountOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    tokenHash?: SortOrder
+    authMethod?: SortOrder
+    attempts?: SortOrder
+    expiresAt?: SortOrder
+    consumedAt?: SortOrder
+    createdAt?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+  }
+
+  export type AdminMfaChallengeAvgOrderByAggregateInput = {
+    attempts?: SortOrder
+  }
+
+  export type AdminMfaChallengeMaxOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    tokenHash?: SortOrder
+    authMethod?: SortOrder
+    attempts?: SortOrder
+    expiresAt?: SortOrder
+    consumedAt?: SortOrder
+    createdAt?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+  }
+
+  export type AdminMfaChallengeMinOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    tokenHash?: SortOrder
+    authMethod?: SortOrder
+    attempts?: SortOrder
+    expiresAt?: SortOrder
+    consumedAt?: SortOrder
+    createdAt?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+  }
+
+  export type AdminMfaChallengeSumOrderByAggregateInput = {
+    attempts?: SortOrder
+  }
+
+  export type AdminAuthEventCountOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    action?: SortOrder
+    targetType?: SortOrder
+    targetId?: SortOrder
+    metadata?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type AdminAuthEventMaxOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    action?: SortOrder
+    targetType?: SortOrder
+    targetId?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type AdminAuthEventMinOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    action?: SortOrder
+    targetType?: SortOrder
+    targetId?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+    createdAt?: SortOrder
+  }
+
   export type RefreshTokenCountOrderByAggregateInput = {
     id?: SortOrder
     token?: SortOrder
@@ -257207,6 +266283,40 @@ export namespace Prisma {
     _max?: NestedEnumMarketingCampaignApprovalDecisionFilter<$PrismaModel>
   }
 
+  export type AdminSessionCreateNestedManyWithoutAdminUserInput = {
+    create?: XOR<AdminSessionCreateWithoutAdminUserInput, AdminSessionUncheckedCreateWithoutAdminUserInput> | AdminSessionCreateWithoutAdminUserInput[] | AdminSessionUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminSessionCreateOrConnectWithoutAdminUserInput | AdminSessionCreateOrConnectWithoutAdminUserInput[]
+    createMany?: AdminSessionCreateManyAdminUserInputEnvelope
+    connect?: AdminSessionWhereUniqueInput | AdminSessionWhereUniqueInput[]
+  }
+
+  export type AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput = {
+    create?: XOR<AdminMfaEnrollmentCreateWithoutAdminUserInput, AdminMfaEnrollmentUncheckedCreateWithoutAdminUserInput>
+    connectOrCreate?: AdminMfaEnrollmentCreateOrConnectWithoutAdminUserInput
+    connect?: AdminMfaEnrollmentWhereUniqueInput
+  }
+
+  export type AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput = {
+    create?: XOR<AdminMfaRecoveryCodeCreateWithoutAdminUserInput, AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput> | AdminMfaRecoveryCodeCreateWithoutAdminUserInput[] | AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminMfaRecoveryCodeCreateOrConnectWithoutAdminUserInput | AdminMfaRecoveryCodeCreateOrConnectWithoutAdminUserInput[]
+    createMany?: AdminMfaRecoveryCodeCreateManyAdminUserInputEnvelope
+    connect?: AdminMfaRecoveryCodeWhereUniqueInput | AdminMfaRecoveryCodeWhereUniqueInput[]
+  }
+
+  export type AdminMfaChallengeCreateNestedManyWithoutAdminUserInput = {
+    create?: XOR<AdminMfaChallengeCreateWithoutAdminUserInput, AdminMfaChallengeUncheckedCreateWithoutAdminUserInput> | AdminMfaChallengeCreateWithoutAdminUserInput[] | AdminMfaChallengeUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminMfaChallengeCreateOrConnectWithoutAdminUserInput | AdminMfaChallengeCreateOrConnectWithoutAdminUserInput[]
+    createMany?: AdminMfaChallengeCreateManyAdminUserInputEnvelope
+    connect?: AdminMfaChallengeWhereUniqueInput | AdminMfaChallengeWhereUniqueInput[]
+  }
+
+  export type AdminAuthEventCreateNestedManyWithoutAdminUserInput = {
+    create?: XOR<AdminAuthEventCreateWithoutAdminUserInput, AdminAuthEventUncheckedCreateWithoutAdminUserInput> | AdminAuthEventCreateWithoutAdminUserInput[] | AdminAuthEventUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminAuthEventCreateOrConnectWithoutAdminUserInput | AdminAuthEventCreateOrConnectWithoutAdminUserInput[]
+    createMany?: AdminAuthEventCreateManyAdminUserInputEnvelope
+    connect?: AdminAuthEventWhereUniqueInput | AdminAuthEventWhereUniqueInput[]
+  }
+
   export type RefreshTokenCreateNestedManyWithoutAdminUserInput = {
     create?: XOR<RefreshTokenCreateWithoutAdminUserInput, RefreshTokenUncheckedCreateWithoutAdminUserInput> | RefreshTokenCreateWithoutAdminUserInput[] | RefreshTokenUncheckedCreateWithoutAdminUserInput[]
     connectOrCreate?: RefreshTokenCreateOrConnectWithoutAdminUserInput | RefreshTokenCreateOrConnectWithoutAdminUserInput[]
@@ -257702,6 +266812,40 @@ export namespace Prisma {
     connectOrCreate?: MailDraftCreateOrConnectWithoutAuthorInput | MailDraftCreateOrConnectWithoutAuthorInput[]
     createMany?: MailDraftCreateManyAuthorInputEnvelope
     connect?: MailDraftWhereUniqueInput | MailDraftWhereUniqueInput[]
+  }
+
+  export type AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput = {
+    create?: XOR<AdminSessionCreateWithoutAdminUserInput, AdminSessionUncheckedCreateWithoutAdminUserInput> | AdminSessionCreateWithoutAdminUserInput[] | AdminSessionUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminSessionCreateOrConnectWithoutAdminUserInput | AdminSessionCreateOrConnectWithoutAdminUserInput[]
+    createMany?: AdminSessionCreateManyAdminUserInputEnvelope
+    connect?: AdminSessionWhereUniqueInput | AdminSessionWhereUniqueInput[]
+  }
+
+  export type AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput = {
+    create?: XOR<AdminMfaEnrollmentCreateWithoutAdminUserInput, AdminMfaEnrollmentUncheckedCreateWithoutAdminUserInput>
+    connectOrCreate?: AdminMfaEnrollmentCreateOrConnectWithoutAdminUserInput
+    connect?: AdminMfaEnrollmentWhereUniqueInput
+  }
+
+  export type AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput = {
+    create?: XOR<AdminMfaRecoveryCodeCreateWithoutAdminUserInput, AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput> | AdminMfaRecoveryCodeCreateWithoutAdminUserInput[] | AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminMfaRecoveryCodeCreateOrConnectWithoutAdminUserInput | AdminMfaRecoveryCodeCreateOrConnectWithoutAdminUserInput[]
+    createMany?: AdminMfaRecoveryCodeCreateManyAdminUserInputEnvelope
+    connect?: AdminMfaRecoveryCodeWhereUniqueInput | AdminMfaRecoveryCodeWhereUniqueInput[]
+  }
+
+  export type AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput = {
+    create?: XOR<AdminMfaChallengeCreateWithoutAdminUserInput, AdminMfaChallengeUncheckedCreateWithoutAdminUserInput> | AdminMfaChallengeCreateWithoutAdminUserInput[] | AdminMfaChallengeUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminMfaChallengeCreateOrConnectWithoutAdminUserInput | AdminMfaChallengeCreateOrConnectWithoutAdminUserInput[]
+    createMany?: AdminMfaChallengeCreateManyAdminUserInputEnvelope
+    connect?: AdminMfaChallengeWhereUniqueInput | AdminMfaChallengeWhereUniqueInput[]
+  }
+
+  export type AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput = {
+    create?: XOR<AdminAuthEventCreateWithoutAdminUserInput, AdminAuthEventUncheckedCreateWithoutAdminUserInput> | AdminAuthEventCreateWithoutAdminUserInput[] | AdminAuthEventUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminAuthEventCreateOrConnectWithoutAdminUserInput | AdminAuthEventCreateOrConnectWithoutAdminUserInput[]
+    createMany?: AdminAuthEventCreateManyAdminUserInputEnvelope
+    connect?: AdminAuthEventWhereUniqueInput | AdminAuthEventWhereUniqueInput[]
   }
 
   export type RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput = {
@@ -258247,6 +267391,72 @@ export namespace Prisma {
     decrement?: Decimal | DecimalJsLike | number | string
     multiply?: Decimal | DecimalJsLike | number | string
     divide?: Decimal | DecimalJsLike | number | string
+  }
+
+  export type AdminSessionUpdateManyWithoutAdminUserNestedInput = {
+    create?: XOR<AdminSessionCreateWithoutAdminUserInput, AdminSessionUncheckedCreateWithoutAdminUserInput> | AdminSessionCreateWithoutAdminUserInput[] | AdminSessionUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminSessionCreateOrConnectWithoutAdminUserInput | AdminSessionCreateOrConnectWithoutAdminUserInput[]
+    upsert?: AdminSessionUpsertWithWhereUniqueWithoutAdminUserInput | AdminSessionUpsertWithWhereUniqueWithoutAdminUserInput[]
+    createMany?: AdminSessionCreateManyAdminUserInputEnvelope
+    set?: AdminSessionWhereUniqueInput | AdminSessionWhereUniqueInput[]
+    disconnect?: AdminSessionWhereUniqueInput | AdminSessionWhereUniqueInput[]
+    delete?: AdminSessionWhereUniqueInput | AdminSessionWhereUniqueInput[]
+    connect?: AdminSessionWhereUniqueInput | AdminSessionWhereUniqueInput[]
+    update?: AdminSessionUpdateWithWhereUniqueWithoutAdminUserInput | AdminSessionUpdateWithWhereUniqueWithoutAdminUserInput[]
+    updateMany?: AdminSessionUpdateManyWithWhereWithoutAdminUserInput | AdminSessionUpdateManyWithWhereWithoutAdminUserInput[]
+    deleteMany?: AdminSessionScalarWhereInput | AdminSessionScalarWhereInput[]
+  }
+
+  export type AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput = {
+    create?: XOR<AdminMfaEnrollmentCreateWithoutAdminUserInput, AdminMfaEnrollmentUncheckedCreateWithoutAdminUserInput>
+    connectOrCreate?: AdminMfaEnrollmentCreateOrConnectWithoutAdminUserInput
+    upsert?: AdminMfaEnrollmentUpsertWithoutAdminUserInput
+    disconnect?: AdminMfaEnrollmentWhereInput | boolean
+    delete?: AdminMfaEnrollmentWhereInput | boolean
+    connect?: AdminMfaEnrollmentWhereUniqueInput
+    update?: XOR<XOR<AdminMfaEnrollmentUpdateToOneWithWhereWithoutAdminUserInput, AdminMfaEnrollmentUpdateWithoutAdminUserInput>, AdminMfaEnrollmentUncheckedUpdateWithoutAdminUserInput>
+  }
+
+  export type AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput = {
+    create?: XOR<AdminMfaRecoveryCodeCreateWithoutAdminUserInput, AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput> | AdminMfaRecoveryCodeCreateWithoutAdminUserInput[] | AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminMfaRecoveryCodeCreateOrConnectWithoutAdminUserInput | AdminMfaRecoveryCodeCreateOrConnectWithoutAdminUserInput[]
+    upsert?: AdminMfaRecoveryCodeUpsertWithWhereUniqueWithoutAdminUserInput | AdminMfaRecoveryCodeUpsertWithWhereUniqueWithoutAdminUserInput[]
+    createMany?: AdminMfaRecoveryCodeCreateManyAdminUserInputEnvelope
+    set?: AdminMfaRecoveryCodeWhereUniqueInput | AdminMfaRecoveryCodeWhereUniqueInput[]
+    disconnect?: AdminMfaRecoveryCodeWhereUniqueInput | AdminMfaRecoveryCodeWhereUniqueInput[]
+    delete?: AdminMfaRecoveryCodeWhereUniqueInput | AdminMfaRecoveryCodeWhereUniqueInput[]
+    connect?: AdminMfaRecoveryCodeWhereUniqueInput | AdminMfaRecoveryCodeWhereUniqueInput[]
+    update?: AdminMfaRecoveryCodeUpdateWithWhereUniqueWithoutAdminUserInput | AdminMfaRecoveryCodeUpdateWithWhereUniqueWithoutAdminUserInput[]
+    updateMany?: AdminMfaRecoveryCodeUpdateManyWithWhereWithoutAdminUserInput | AdminMfaRecoveryCodeUpdateManyWithWhereWithoutAdminUserInput[]
+    deleteMany?: AdminMfaRecoveryCodeScalarWhereInput | AdminMfaRecoveryCodeScalarWhereInput[]
+  }
+
+  export type AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput = {
+    create?: XOR<AdminMfaChallengeCreateWithoutAdminUserInput, AdminMfaChallengeUncheckedCreateWithoutAdminUserInput> | AdminMfaChallengeCreateWithoutAdminUserInput[] | AdminMfaChallengeUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminMfaChallengeCreateOrConnectWithoutAdminUserInput | AdminMfaChallengeCreateOrConnectWithoutAdminUserInput[]
+    upsert?: AdminMfaChallengeUpsertWithWhereUniqueWithoutAdminUserInput | AdminMfaChallengeUpsertWithWhereUniqueWithoutAdminUserInput[]
+    createMany?: AdminMfaChallengeCreateManyAdminUserInputEnvelope
+    set?: AdminMfaChallengeWhereUniqueInput | AdminMfaChallengeWhereUniqueInput[]
+    disconnect?: AdminMfaChallengeWhereUniqueInput | AdminMfaChallengeWhereUniqueInput[]
+    delete?: AdminMfaChallengeWhereUniqueInput | AdminMfaChallengeWhereUniqueInput[]
+    connect?: AdminMfaChallengeWhereUniqueInput | AdminMfaChallengeWhereUniqueInput[]
+    update?: AdminMfaChallengeUpdateWithWhereUniqueWithoutAdminUserInput | AdminMfaChallengeUpdateWithWhereUniqueWithoutAdminUserInput[]
+    updateMany?: AdminMfaChallengeUpdateManyWithWhereWithoutAdminUserInput | AdminMfaChallengeUpdateManyWithWhereWithoutAdminUserInput[]
+    deleteMany?: AdminMfaChallengeScalarWhereInput | AdminMfaChallengeScalarWhereInput[]
+  }
+
+  export type AdminAuthEventUpdateManyWithoutAdminUserNestedInput = {
+    create?: XOR<AdminAuthEventCreateWithoutAdminUserInput, AdminAuthEventUncheckedCreateWithoutAdminUserInput> | AdminAuthEventCreateWithoutAdminUserInput[] | AdminAuthEventUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminAuthEventCreateOrConnectWithoutAdminUserInput | AdminAuthEventCreateOrConnectWithoutAdminUserInput[]
+    upsert?: AdminAuthEventUpsertWithWhereUniqueWithoutAdminUserInput | AdminAuthEventUpsertWithWhereUniqueWithoutAdminUserInput[]
+    createMany?: AdminAuthEventCreateManyAdminUserInputEnvelope
+    set?: AdminAuthEventWhereUniqueInput | AdminAuthEventWhereUniqueInput[]
+    disconnect?: AdminAuthEventWhereUniqueInput | AdminAuthEventWhereUniqueInput[]
+    delete?: AdminAuthEventWhereUniqueInput | AdminAuthEventWhereUniqueInput[]
+    connect?: AdminAuthEventWhereUniqueInput | AdminAuthEventWhereUniqueInput[]
+    update?: AdminAuthEventUpdateWithWhereUniqueWithoutAdminUserInput | AdminAuthEventUpdateWithWhereUniqueWithoutAdminUserInput[]
+    updateMany?: AdminAuthEventUpdateManyWithWhereWithoutAdminUserInput | AdminAuthEventUpdateManyWithWhereWithoutAdminUserInput[]
+    deleteMany?: AdminAuthEventScalarWhereInput | AdminAuthEventScalarWhereInput[]
   }
 
   export type RefreshTokenUpdateManyWithoutAdminUserNestedInput = {
@@ -259241,6 +268451,72 @@ export namespace Prisma {
     update?: MailDraftUpdateWithWhereUniqueWithoutAuthorInput | MailDraftUpdateWithWhereUniqueWithoutAuthorInput[]
     updateMany?: MailDraftUpdateManyWithWhereWithoutAuthorInput | MailDraftUpdateManyWithWhereWithoutAuthorInput[]
     deleteMany?: MailDraftScalarWhereInput | MailDraftScalarWhereInput[]
+  }
+
+  export type AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput = {
+    create?: XOR<AdminSessionCreateWithoutAdminUserInput, AdminSessionUncheckedCreateWithoutAdminUserInput> | AdminSessionCreateWithoutAdminUserInput[] | AdminSessionUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminSessionCreateOrConnectWithoutAdminUserInput | AdminSessionCreateOrConnectWithoutAdminUserInput[]
+    upsert?: AdminSessionUpsertWithWhereUniqueWithoutAdminUserInput | AdminSessionUpsertWithWhereUniqueWithoutAdminUserInput[]
+    createMany?: AdminSessionCreateManyAdminUserInputEnvelope
+    set?: AdminSessionWhereUniqueInput | AdminSessionWhereUniqueInput[]
+    disconnect?: AdminSessionWhereUniqueInput | AdminSessionWhereUniqueInput[]
+    delete?: AdminSessionWhereUniqueInput | AdminSessionWhereUniqueInput[]
+    connect?: AdminSessionWhereUniqueInput | AdminSessionWhereUniqueInput[]
+    update?: AdminSessionUpdateWithWhereUniqueWithoutAdminUserInput | AdminSessionUpdateWithWhereUniqueWithoutAdminUserInput[]
+    updateMany?: AdminSessionUpdateManyWithWhereWithoutAdminUserInput | AdminSessionUpdateManyWithWhereWithoutAdminUserInput[]
+    deleteMany?: AdminSessionScalarWhereInput | AdminSessionScalarWhereInput[]
+  }
+
+  export type AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput = {
+    create?: XOR<AdminMfaEnrollmentCreateWithoutAdminUserInput, AdminMfaEnrollmentUncheckedCreateWithoutAdminUserInput>
+    connectOrCreate?: AdminMfaEnrollmentCreateOrConnectWithoutAdminUserInput
+    upsert?: AdminMfaEnrollmentUpsertWithoutAdminUserInput
+    disconnect?: AdminMfaEnrollmentWhereInput | boolean
+    delete?: AdminMfaEnrollmentWhereInput | boolean
+    connect?: AdminMfaEnrollmentWhereUniqueInput
+    update?: XOR<XOR<AdminMfaEnrollmentUpdateToOneWithWhereWithoutAdminUserInput, AdminMfaEnrollmentUpdateWithoutAdminUserInput>, AdminMfaEnrollmentUncheckedUpdateWithoutAdminUserInput>
+  }
+
+  export type AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput = {
+    create?: XOR<AdminMfaRecoveryCodeCreateWithoutAdminUserInput, AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput> | AdminMfaRecoveryCodeCreateWithoutAdminUserInput[] | AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminMfaRecoveryCodeCreateOrConnectWithoutAdminUserInput | AdminMfaRecoveryCodeCreateOrConnectWithoutAdminUserInput[]
+    upsert?: AdminMfaRecoveryCodeUpsertWithWhereUniqueWithoutAdminUserInput | AdminMfaRecoveryCodeUpsertWithWhereUniqueWithoutAdminUserInput[]
+    createMany?: AdminMfaRecoveryCodeCreateManyAdminUserInputEnvelope
+    set?: AdminMfaRecoveryCodeWhereUniqueInput | AdminMfaRecoveryCodeWhereUniqueInput[]
+    disconnect?: AdminMfaRecoveryCodeWhereUniqueInput | AdminMfaRecoveryCodeWhereUniqueInput[]
+    delete?: AdminMfaRecoveryCodeWhereUniqueInput | AdminMfaRecoveryCodeWhereUniqueInput[]
+    connect?: AdminMfaRecoveryCodeWhereUniqueInput | AdminMfaRecoveryCodeWhereUniqueInput[]
+    update?: AdminMfaRecoveryCodeUpdateWithWhereUniqueWithoutAdminUserInput | AdminMfaRecoveryCodeUpdateWithWhereUniqueWithoutAdminUserInput[]
+    updateMany?: AdminMfaRecoveryCodeUpdateManyWithWhereWithoutAdminUserInput | AdminMfaRecoveryCodeUpdateManyWithWhereWithoutAdminUserInput[]
+    deleteMany?: AdminMfaRecoveryCodeScalarWhereInput | AdminMfaRecoveryCodeScalarWhereInput[]
+  }
+
+  export type AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput = {
+    create?: XOR<AdminMfaChallengeCreateWithoutAdminUserInput, AdminMfaChallengeUncheckedCreateWithoutAdminUserInput> | AdminMfaChallengeCreateWithoutAdminUserInput[] | AdminMfaChallengeUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminMfaChallengeCreateOrConnectWithoutAdminUserInput | AdminMfaChallengeCreateOrConnectWithoutAdminUserInput[]
+    upsert?: AdminMfaChallengeUpsertWithWhereUniqueWithoutAdminUserInput | AdminMfaChallengeUpsertWithWhereUniqueWithoutAdminUserInput[]
+    createMany?: AdminMfaChallengeCreateManyAdminUserInputEnvelope
+    set?: AdminMfaChallengeWhereUniqueInput | AdminMfaChallengeWhereUniqueInput[]
+    disconnect?: AdminMfaChallengeWhereUniqueInput | AdminMfaChallengeWhereUniqueInput[]
+    delete?: AdminMfaChallengeWhereUniqueInput | AdminMfaChallengeWhereUniqueInput[]
+    connect?: AdminMfaChallengeWhereUniqueInput | AdminMfaChallengeWhereUniqueInput[]
+    update?: AdminMfaChallengeUpdateWithWhereUniqueWithoutAdminUserInput | AdminMfaChallengeUpdateWithWhereUniqueWithoutAdminUserInput[]
+    updateMany?: AdminMfaChallengeUpdateManyWithWhereWithoutAdminUserInput | AdminMfaChallengeUpdateManyWithWhereWithoutAdminUserInput[]
+    deleteMany?: AdminMfaChallengeScalarWhereInput | AdminMfaChallengeScalarWhereInput[]
+  }
+
+  export type AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput = {
+    create?: XOR<AdminAuthEventCreateWithoutAdminUserInput, AdminAuthEventUncheckedCreateWithoutAdminUserInput> | AdminAuthEventCreateWithoutAdminUserInput[] | AdminAuthEventUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminAuthEventCreateOrConnectWithoutAdminUserInput | AdminAuthEventCreateOrConnectWithoutAdminUserInput[]
+    upsert?: AdminAuthEventUpsertWithWhereUniqueWithoutAdminUserInput | AdminAuthEventUpsertWithWhereUniqueWithoutAdminUserInput[]
+    createMany?: AdminAuthEventCreateManyAdminUserInputEnvelope
+    set?: AdminAuthEventWhereUniqueInput | AdminAuthEventWhereUniqueInput[]
+    disconnect?: AdminAuthEventWhereUniqueInput | AdminAuthEventWhereUniqueInput[]
+    delete?: AdminAuthEventWhereUniqueInput | AdminAuthEventWhereUniqueInput[]
+    connect?: AdminAuthEventWhereUniqueInput | AdminAuthEventWhereUniqueInput[]
+    update?: AdminAuthEventUpdateWithWhereUniqueWithoutAdminUserInput | AdminAuthEventUpdateWithWhereUniqueWithoutAdminUserInput[]
+    updateMany?: AdminAuthEventUpdateManyWithWhereWithoutAdminUserInput | AdminAuthEventUpdateManyWithWhereWithoutAdminUserInput[]
+    deleteMany?: AdminAuthEventScalarWhereInput | AdminAuthEventScalarWhereInput[]
   }
 
   export type RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput = {
@@ -267097,6 +276373,134 @@ export namespace Prisma {
     update?: XOR<XOR<AdminUserUpdateToOneWithWhereWithoutSocialSettingsUpdatedInput, AdminUserUpdateWithoutSocialSettingsUpdatedInput>, AdminUserUncheckedUpdateWithoutSocialSettingsUpdatedInput>
   }
 
+  export type AdminUserCreateNestedOneWithoutAuthSessionsInput = {
+    create?: XOR<AdminUserCreateWithoutAuthSessionsInput, AdminUserUncheckedCreateWithoutAuthSessionsInput>
+    connectOrCreate?: AdminUserCreateOrConnectWithoutAuthSessionsInput
+    connect?: AdminUserWhereUniqueInput
+  }
+
+  export type AdminSessionRefreshTokenCreateNestedManyWithoutSessionInput = {
+    create?: XOR<AdminSessionRefreshTokenCreateWithoutSessionInput, AdminSessionRefreshTokenUncheckedCreateWithoutSessionInput> | AdminSessionRefreshTokenCreateWithoutSessionInput[] | AdminSessionRefreshTokenUncheckedCreateWithoutSessionInput[]
+    connectOrCreate?: AdminSessionRefreshTokenCreateOrConnectWithoutSessionInput | AdminSessionRefreshTokenCreateOrConnectWithoutSessionInput[]
+    createMany?: AdminSessionRefreshTokenCreateManySessionInputEnvelope
+    connect?: AdminSessionRefreshTokenWhereUniqueInput | AdminSessionRefreshTokenWhereUniqueInput[]
+  }
+
+  export type AdminSessionRefreshTokenUncheckedCreateNestedManyWithoutSessionInput = {
+    create?: XOR<AdminSessionRefreshTokenCreateWithoutSessionInput, AdminSessionRefreshTokenUncheckedCreateWithoutSessionInput> | AdminSessionRefreshTokenCreateWithoutSessionInput[] | AdminSessionRefreshTokenUncheckedCreateWithoutSessionInput[]
+    connectOrCreate?: AdminSessionRefreshTokenCreateOrConnectWithoutSessionInput | AdminSessionRefreshTokenCreateOrConnectWithoutSessionInput[]
+    createMany?: AdminSessionRefreshTokenCreateManySessionInputEnvelope
+    connect?: AdminSessionRefreshTokenWhereUniqueInput | AdminSessionRefreshTokenWhereUniqueInput[]
+  }
+
+  export type AdminUserUpdateOneRequiredWithoutAuthSessionsNestedInput = {
+    create?: XOR<AdminUserCreateWithoutAuthSessionsInput, AdminUserUncheckedCreateWithoutAuthSessionsInput>
+    connectOrCreate?: AdminUserCreateOrConnectWithoutAuthSessionsInput
+    upsert?: AdminUserUpsertWithoutAuthSessionsInput
+    connect?: AdminUserWhereUniqueInput
+    update?: XOR<XOR<AdminUserUpdateToOneWithWhereWithoutAuthSessionsInput, AdminUserUpdateWithoutAuthSessionsInput>, AdminUserUncheckedUpdateWithoutAuthSessionsInput>
+  }
+
+  export type AdminSessionRefreshTokenUpdateManyWithoutSessionNestedInput = {
+    create?: XOR<AdminSessionRefreshTokenCreateWithoutSessionInput, AdminSessionRefreshTokenUncheckedCreateWithoutSessionInput> | AdminSessionRefreshTokenCreateWithoutSessionInput[] | AdminSessionRefreshTokenUncheckedCreateWithoutSessionInput[]
+    connectOrCreate?: AdminSessionRefreshTokenCreateOrConnectWithoutSessionInput | AdminSessionRefreshTokenCreateOrConnectWithoutSessionInput[]
+    upsert?: AdminSessionRefreshTokenUpsertWithWhereUniqueWithoutSessionInput | AdminSessionRefreshTokenUpsertWithWhereUniqueWithoutSessionInput[]
+    createMany?: AdminSessionRefreshTokenCreateManySessionInputEnvelope
+    set?: AdminSessionRefreshTokenWhereUniqueInput | AdminSessionRefreshTokenWhereUniqueInput[]
+    disconnect?: AdminSessionRefreshTokenWhereUniqueInput | AdminSessionRefreshTokenWhereUniqueInput[]
+    delete?: AdminSessionRefreshTokenWhereUniqueInput | AdminSessionRefreshTokenWhereUniqueInput[]
+    connect?: AdminSessionRefreshTokenWhereUniqueInput | AdminSessionRefreshTokenWhereUniqueInput[]
+    update?: AdminSessionRefreshTokenUpdateWithWhereUniqueWithoutSessionInput | AdminSessionRefreshTokenUpdateWithWhereUniqueWithoutSessionInput[]
+    updateMany?: AdminSessionRefreshTokenUpdateManyWithWhereWithoutSessionInput | AdminSessionRefreshTokenUpdateManyWithWhereWithoutSessionInput[]
+    deleteMany?: AdminSessionRefreshTokenScalarWhereInput | AdminSessionRefreshTokenScalarWhereInput[]
+  }
+
+  export type AdminSessionRefreshTokenUncheckedUpdateManyWithoutSessionNestedInput = {
+    create?: XOR<AdminSessionRefreshTokenCreateWithoutSessionInput, AdminSessionRefreshTokenUncheckedCreateWithoutSessionInput> | AdminSessionRefreshTokenCreateWithoutSessionInput[] | AdminSessionRefreshTokenUncheckedCreateWithoutSessionInput[]
+    connectOrCreate?: AdminSessionRefreshTokenCreateOrConnectWithoutSessionInput | AdminSessionRefreshTokenCreateOrConnectWithoutSessionInput[]
+    upsert?: AdminSessionRefreshTokenUpsertWithWhereUniqueWithoutSessionInput | AdminSessionRefreshTokenUpsertWithWhereUniqueWithoutSessionInput[]
+    createMany?: AdminSessionRefreshTokenCreateManySessionInputEnvelope
+    set?: AdminSessionRefreshTokenWhereUniqueInput | AdminSessionRefreshTokenWhereUniqueInput[]
+    disconnect?: AdminSessionRefreshTokenWhereUniqueInput | AdminSessionRefreshTokenWhereUniqueInput[]
+    delete?: AdminSessionRefreshTokenWhereUniqueInput | AdminSessionRefreshTokenWhereUniqueInput[]
+    connect?: AdminSessionRefreshTokenWhereUniqueInput | AdminSessionRefreshTokenWhereUniqueInput[]
+    update?: AdminSessionRefreshTokenUpdateWithWhereUniqueWithoutSessionInput | AdminSessionRefreshTokenUpdateWithWhereUniqueWithoutSessionInput[]
+    updateMany?: AdminSessionRefreshTokenUpdateManyWithWhereWithoutSessionInput | AdminSessionRefreshTokenUpdateManyWithWhereWithoutSessionInput[]
+    deleteMany?: AdminSessionRefreshTokenScalarWhereInput | AdminSessionRefreshTokenScalarWhereInput[]
+  }
+
+  export type AdminSessionCreateNestedOneWithoutRefreshTokensInput = {
+    create?: XOR<AdminSessionCreateWithoutRefreshTokensInput, AdminSessionUncheckedCreateWithoutRefreshTokensInput>
+    connectOrCreate?: AdminSessionCreateOrConnectWithoutRefreshTokensInput
+    connect?: AdminSessionWhereUniqueInput
+  }
+
+  export type AdminSessionUpdateOneRequiredWithoutRefreshTokensNestedInput = {
+    create?: XOR<AdminSessionCreateWithoutRefreshTokensInput, AdminSessionUncheckedCreateWithoutRefreshTokensInput>
+    connectOrCreate?: AdminSessionCreateOrConnectWithoutRefreshTokensInput
+    upsert?: AdminSessionUpsertWithoutRefreshTokensInput
+    connect?: AdminSessionWhereUniqueInput
+    update?: XOR<XOR<AdminSessionUpdateToOneWithWhereWithoutRefreshTokensInput, AdminSessionUpdateWithoutRefreshTokensInput>, AdminSessionUncheckedUpdateWithoutRefreshTokensInput>
+  }
+
+  export type AdminUserCreateNestedOneWithoutMfaEnrollmentInput = {
+    create?: XOR<AdminUserCreateWithoutMfaEnrollmentInput, AdminUserUncheckedCreateWithoutMfaEnrollmentInput>
+    connectOrCreate?: AdminUserCreateOrConnectWithoutMfaEnrollmentInput
+    connect?: AdminUserWhereUniqueInput
+  }
+
+  export type AdminUserUpdateOneRequiredWithoutMfaEnrollmentNestedInput = {
+    create?: XOR<AdminUserCreateWithoutMfaEnrollmentInput, AdminUserUncheckedCreateWithoutMfaEnrollmentInput>
+    connectOrCreate?: AdminUserCreateOrConnectWithoutMfaEnrollmentInput
+    upsert?: AdminUserUpsertWithoutMfaEnrollmentInput
+    connect?: AdminUserWhereUniqueInput
+    update?: XOR<XOR<AdminUserUpdateToOneWithWhereWithoutMfaEnrollmentInput, AdminUserUpdateWithoutMfaEnrollmentInput>, AdminUserUncheckedUpdateWithoutMfaEnrollmentInput>
+  }
+
+  export type AdminUserCreateNestedOneWithoutMfaRecoveryCodesInput = {
+    create?: XOR<AdminUserCreateWithoutMfaRecoveryCodesInput, AdminUserUncheckedCreateWithoutMfaRecoveryCodesInput>
+    connectOrCreate?: AdminUserCreateOrConnectWithoutMfaRecoveryCodesInput
+    connect?: AdminUserWhereUniqueInput
+  }
+
+  export type AdminUserUpdateOneRequiredWithoutMfaRecoveryCodesNestedInput = {
+    create?: XOR<AdminUserCreateWithoutMfaRecoveryCodesInput, AdminUserUncheckedCreateWithoutMfaRecoveryCodesInput>
+    connectOrCreate?: AdminUserCreateOrConnectWithoutMfaRecoveryCodesInput
+    upsert?: AdminUserUpsertWithoutMfaRecoveryCodesInput
+    connect?: AdminUserWhereUniqueInput
+    update?: XOR<XOR<AdminUserUpdateToOneWithWhereWithoutMfaRecoveryCodesInput, AdminUserUpdateWithoutMfaRecoveryCodesInput>, AdminUserUncheckedUpdateWithoutMfaRecoveryCodesInput>
+  }
+
+  export type AdminUserCreateNestedOneWithoutMfaChallengesInput = {
+    create?: XOR<AdminUserCreateWithoutMfaChallengesInput, AdminUserUncheckedCreateWithoutMfaChallengesInput>
+    connectOrCreate?: AdminUserCreateOrConnectWithoutMfaChallengesInput
+    connect?: AdminUserWhereUniqueInput
+  }
+
+  export type AdminUserUpdateOneRequiredWithoutMfaChallengesNestedInput = {
+    create?: XOR<AdminUserCreateWithoutMfaChallengesInput, AdminUserUncheckedCreateWithoutMfaChallengesInput>
+    connectOrCreate?: AdminUserCreateOrConnectWithoutMfaChallengesInput
+    upsert?: AdminUserUpsertWithoutMfaChallengesInput
+    connect?: AdminUserWhereUniqueInput
+    update?: XOR<XOR<AdminUserUpdateToOneWithWhereWithoutMfaChallengesInput, AdminUserUpdateWithoutMfaChallengesInput>, AdminUserUncheckedUpdateWithoutMfaChallengesInput>
+  }
+
+  export type AdminUserCreateNestedOneWithoutAuthEventsInput = {
+    create?: XOR<AdminUserCreateWithoutAuthEventsInput, AdminUserUncheckedCreateWithoutAuthEventsInput>
+    connectOrCreate?: AdminUserCreateOrConnectWithoutAuthEventsInput
+    connect?: AdminUserWhereUniqueInput
+  }
+
+  export type AdminUserUpdateOneWithoutAuthEventsNestedInput = {
+    create?: XOR<AdminUserCreateWithoutAuthEventsInput, AdminUserUncheckedCreateWithoutAuthEventsInput>
+    connectOrCreate?: AdminUserCreateOrConnectWithoutAuthEventsInput
+    upsert?: AdminUserUpsertWithoutAuthEventsInput
+    disconnect?: AdminUserWhereInput | boolean
+    delete?: AdminUserWhereInput | boolean
+    connect?: AdminUserWhereUniqueInput
+    update?: XOR<XOR<AdminUserUpdateToOneWithWhereWithoutAuthEventsInput, AdminUserUpdateWithoutAuthEventsInput>, AdminUserUncheckedUpdateWithoutAuthEventsInput>
+  }
+
   export type AdminUserCreateNestedOneWithoutRefreshTokensInput = {
     create?: XOR<AdminUserCreateWithoutRefreshTokensInput, AdminUserUncheckedCreateWithoutRefreshTokensInput>
     connectOrCreate?: AdminUserCreateOrConnectWithoutRefreshTokensInput
@@ -273767,6 +283171,171 @@ export namespace Prisma {
     _max?: NestedEnumMarketingCampaignApprovalDecisionFilter<$PrismaModel>
   }
 
+  export type AdminSessionCreateWithoutAdminUserInput = {
+    id?: string
+    mode: string
+    authMethod: string
+    csrfNonce: string
+    createdAt?: Date | string
+    lastSeenAt?: Date | string
+    idleExpiresAt: Date | string
+    absoluteExpiresAt: Date | string
+    mfaVerifiedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    revokeReason?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+    refreshTokens?: AdminSessionRefreshTokenCreateNestedManyWithoutSessionInput
+  }
+
+  export type AdminSessionUncheckedCreateWithoutAdminUserInput = {
+    id?: string
+    mode: string
+    authMethod: string
+    csrfNonce: string
+    createdAt?: Date | string
+    lastSeenAt?: Date | string
+    idleExpiresAt: Date | string
+    absoluteExpiresAt: Date | string
+    mfaVerifiedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    revokeReason?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+    refreshTokens?: AdminSessionRefreshTokenUncheckedCreateNestedManyWithoutSessionInput
+  }
+
+  export type AdminSessionCreateOrConnectWithoutAdminUserInput = {
+    where: AdminSessionWhereUniqueInput
+    create: XOR<AdminSessionCreateWithoutAdminUserInput, AdminSessionUncheckedCreateWithoutAdminUserInput>
+  }
+
+  export type AdminSessionCreateManyAdminUserInputEnvelope = {
+    data: AdminSessionCreateManyAdminUserInput | AdminSessionCreateManyAdminUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AdminMfaEnrollmentCreateWithoutAdminUserInput = {
+    enrolledAt?: Date | string | null
+    secretEncrypted?: string | null
+    pendingSecretEncrypted?: string | null
+    pendingExpiresAt?: Date | string | null
+    lastUsedStep?: number | null
+    failedAttempts?: number
+    lockedUntil?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AdminMfaEnrollmentUncheckedCreateWithoutAdminUserInput = {
+    enrolledAt?: Date | string | null
+    secretEncrypted?: string | null
+    pendingSecretEncrypted?: string | null
+    pendingExpiresAt?: Date | string | null
+    lastUsedStep?: number | null
+    failedAttempts?: number
+    lockedUntil?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AdminMfaEnrollmentCreateOrConnectWithoutAdminUserInput = {
+    where: AdminMfaEnrollmentWhereUniqueInput
+    create: XOR<AdminMfaEnrollmentCreateWithoutAdminUserInput, AdminMfaEnrollmentUncheckedCreateWithoutAdminUserInput>
+  }
+
+  export type AdminMfaRecoveryCodeCreateWithoutAdminUserInput = {
+    id?: string
+    salt: string
+    codeHash: string
+    createdAt?: Date | string
+    usedAt?: Date | string | null
+  }
+
+  export type AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput = {
+    id?: string
+    salt: string
+    codeHash: string
+    createdAt?: Date | string
+    usedAt?: Date | string | null
+  }
+
+  export type AdminMfaRecoveryCodeCreateOrConnectWithoutAdminUserInput = {
+    where: AdminMfaRecoveryCodeWhereUniqueInput
+    create: XOR<AdminMfaRecoveryCodeCreateWithoutAdminUserInput, AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput>
+  }
+
+  export type AdminMfaRecoveryCodeCreateManyAdminUserInputEnvelope = {
+    data: AdminMfaRecoveryCodeCreateManyAdminUserInput | AdminMfaRecoveryCodeCreateManyAdminUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AdminMfaChallengeCreateWithoutAdminUserInput = {
+    id?: string
+    tokenHash: string
+    authMethod: string
+    attempts?: number
+    expiresAt: Date | string
+    consumedAt?: Date | string | null
+    createdAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type AdminMfaChallengeUncheckedCreateWithoutAdminUserInput = {
+    id?: string
+    tokenHash: string
+    authMethod: string
+    attempts?: number
+    expiresAt: Date | string
+    consumedAt?: Date | string | null
+    createdAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type AdminMfaChallengeCreateOrConnectWithoutAdminUserInput = {
+    where: AdminMfaChallengeWhereUniqueInput
+    create: XOR<AdminMfaChallengeCreateWithoutAdminUserInput, AdminMfaChallengeUncheckedCreateWithoutAdminUserInput>
+  }
+
+  export type AdminMfaChallengeCreateManyAdminUserInputEnvelope = {
+    data: AdminMfaChallengeCreateManyAdminUserInput | AdminMfaChallengeCreateManyAdminUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AdminAuthEventCreateWithoutAdminUserInput = {
+    id?: string
+    action: string
+    targetType?: string | null
+    targetId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: string | null
+    userAgent?: string | null
+    createdAt?: Date | string
+  }
+
+  export type AdminAuthEventUncheckedCreateWithoutAdminUserInput = {
+    id?: string
+    action: string
+    targetType?: string | null
+    targetId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: string | null
+    userAgent?: string | null
+    createdAt?: Date | string
+  }
+
+  export type AdminAuthEventCreateOrConnectWithoutAdminUserInput = {
+    where: AdminAuthEventWhereUniqueInput
+    create: XOR<AdminAuthEventCreateWithoutAdminUserInput, AdminAuthEventUncheckedCreateWithoutAdminUserInput>
+  }
+
+  export type AdminAuthEventCreateManyAdminUserInputEnvelope = {
+    data: AdminAuthEventCreateManyAdminUserInput | AdminAuthEventCreateManyAdminUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type RefreshTokenCreateWithoutAdminUserInput = {
     id?: string
     token: string
@@ -276915,6 +286484,168 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type AdminSessionUpsertWithWhereUniqueWithoutAdminUserInput = {
+    where: AdminSessionWhereUniqueInput
+    update: XOR<AdminSessionUpdateWithoutAdminUserInput, AdminSessionUncheckedUpdateWithoutAdminUserInput>
+    create: XOR<AdminSessionCreateWithoutAdminUserInput, AdminSessionUncheckedCreateWithoutAdminUserInput>
+  }
+
+  export type AdminSessionUpdateWithWhereUniqueWithoutAdminUserInput = {
+    where: AdminSessionWhereUniqueInput
+    data: XOR<AdminSessionUpdateWithoutAdminUserInput, AdminSessionUncheckedUpdateWithoutAdminUserInput>
+  }
+
+  export type AdminSessionUpdateManyWithWhereWithoutAdminUserInput = {
+    where: AdminSessionScalarWhereInput
+    data: XOR<AdminSessionUpdateManyMutationInput, AdminSessionUncheckedUpdateManyWithoutAdminUserInput>
+  }
+
+  export type AdminSessionScalarWhereInput = {
+    AND?: AdminSessionScalarWhereInput | AdminSessionScalarWhereInput[]
+    OR?: AdminSessionScalarWhereInput[]
+    NOT?: AdminSessionScalarWhereInput | AdminSessionScalarWhereInput[]
+    id?: UuidFilter<"AdminSession"> | string
+    adminUserId?: StringFilter<"AdminSession"> | string
+    mode?: StringFilter<"AdminSession"> | string
+    authMethod?: StringFilter<"AdminSession"> | string
+    csrfNonce?: StringFilter<"AdminSession"> | string
+    createdAt?: DateTimeFilter<"AdminSession"> | Date | string
+    lastSeenAt?: DateTimeFilter<"AdminSession"> | Date | string
+    idleExpiresAt?: DateTimeFilter<"AdminSession"> | Date | string
+    absoluteExpiresAt?: DateTimeFilter<"AdminSession"> | Date | string
+    mfaVerifiedAt?: DateTimeNullableFilter<"AdminSession"> | Date | string | null
+    revokedAt?: DateTimeNullableFilter<"AdminSession"> | Date | string | null
+    revokeReason?: StringNullableFilter<"AdminSession"> | string | null
+    ipAddress?: StringNullableFilter<"AdminSession"> | string | null
+    userAgent?: StringNullableFilter<"AdminSession"> | string | null
+  }
+
+  export type AdminMfaEnrollmentUpsertWithoutAdminUserInput = {
+    update: XOR<AdminMfaEnrollmentUpdateWithoutAdminUserInput, AdminMfaEnrollmentUncheckedUpdateWithoutAdminUserInput>
+    create: XOR<AdminMfaEnrollmentCreateWithoutAdminUserInput, AdminMfaEnrollmentUncheckedCreateWithoutAdminUserInput>
+    where?: AdminMfaEnrollmentWhereInput
+  }
+
+  export type AdminMfaEnrollmentUpdateToOneWithWhereWithoutAdminUserInput = {
+    where?: AdminMfaEnrollmentWhereInput
+    data: XOR<AdminMfaEnrollmentUpdateWithoutAdminUserInput, AdminMfaEnrollmentUncheckedUpdateWithoutAdminUserInput>
+  }
+
+  export type AdminMfaEnrollmentUpdateWithoutAdminUserInput = {
+    enrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    secretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    pendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    pendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    failedAttempts?: IntFieldUpdateOperationsInput | number
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdminMfaEnrollmentUncheckedUpdateWithoutAdminUserInput = {
+    enrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    secretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    pendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    pendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    failedAttempts?: IntFieldUpdateOperationsInput | number
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdminMfaRecoveryCodeUpsertWithWhereUniqueWithoutAdminUserInput = {
+    where: AdminMfaRecoveryCodeWhereUniqueInput
+    update: XOR<AdminMfaRecoveryCodeUpdateWithoutAdminUserInput, AdminMfaRecoveryCodeUncheckedUpdateWithoutAdminUserInput>
+    create: XOR<AdminMfaRecoveryCodeCreateWithoutAdminUserInput, AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput>
+  }
+
+  export type AdminMfaRecoveryCodeUpdateWithWhereUniqueWithoutAdminUserInput = {
+    where: AdminMfaRecoveryCodeWhereUniqueInput
+    data: XOR<AdminMfaRecoveryCodeUpdateWithoutAdminUserInput, AdminMfaRecoveryCodeUncheckedUpdateWithoutAdminUserInput>
+  }
+
+  export type AdminMfaRecoveryCodeUpdateManyWithWhereWithoutAdminUserInput = {
+    where: AdminMfaRecoveryCodeScalarWhereInput
+    data: XOR<AdminMfaRecoveryCodeUpdateManyMutationInput, AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserInput>
+  }
+
+  export type AdminMfaRecoveryCodeScalarWhereInput = {
+    AND?: AdminMfaRecoveryCodeScalarWhereInput | AdminMfaRecoveryCodeScalarWhereInput[]
+    OR?: AdminMfaRecoveryCodeScalarWhereInput[]
+    NOT?: AdminMfaRecoveryCodeScalarWhereInput | AdminMfaRecoveryCodeScalarWhereInput[]
+    id?: UuidFilter<"AdminMfaRecoveryCode"> | string
+    adminUserId?: StringFilter<"AdminMfaRecoveryCode"> | string
+    salt?: StringFilter<"AdminMfaRecoveryCode"> | string
+    codeHash?: StringFilter<"AdminMfaRecoveryCode"> | string
+    createdAt?: DateTimeFilter<"AdminMfaRecoveryCode"> | Date | string
+    usedAt?: DateTimeNullableFilter<"AdminMfaRecoveryCode"> | Date | string | null
+  }
+
+  export type AdminMfaChallengeUpsertWithWhereUniqueWithoutAdminUserInput = {
+    where: AdminMfaChallengeWhereUniqueInput
+    update: XOR<AdminMfaChallengeUpdateWithoutAdminUserInput, AdminMfaChallengeUncheckedUpdateWithoutAdminUserInput>
+    create: XOR<AdminMfaChallengeCreateWithoutAdminUserInput, AdminMfaChallengeUncheckedCreateWithoutAdminUserInput>
+  }
+
+  export type AdminMfaChallengeUpdateWithWhereUniqueWithoutAdminUserInput = {
+    where: AdminMfaChallengeWhereUniqueInput
+    data: XOR<AdminMfaChallengeUpdateWithoutAdminUserInput, AdminMfaChallengeUncheckedUpdateWithoutAdminUserInput>
+  }
+
+  export type AdminMfaChallengeUpdateManyWithWhereWithoutAdminUserInput = {
+    where: AdminMfaChallengeScalarWhereInput
+    data: XOR<AdminMfaChallengeUpdateManyMutationInput, AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserInput>
+  }
+
+  export type AdminMfaChallengeScalarWhereInput = {
+    AND?: AdminMfaChallengeScalarWhereInput | AdminMfaChallengeScalarWhereInput[]
+    OR?: AdminMfaChallengeScalarWhereInput[]
+    NOT?: AdminMfaChallengeScalarWhereInput | AdminMfaChallengeScalarWhereInput[]
+    id?: UuidFilter<"AdminMfaChallenge"> | string
+    adminUserId?: StringFilter<"AdminMfaChallenge"> | string
+    tokenHash?: StringFilter<"AdminMfaChallenge"> | string
+    authMethod?: StringFilter<"AdminMfaChallenge"> | string
+    attempts?: IntFilter<"AdminMfaChallenge"> | number
+    expiresAt?: DateTimeFilter<"AdminMfaChallenge"> | Date | string
+    consumedAt?: DateTimeNullableFilter<"AdminMfaChallenge"> | Date | string | null
+    createdAt?: DateTimeFilter<"AdminMfaChallenge"> | Date | string
+    ipAddress?: StringNullableFilter<"AdminMfaChallenge"> | string | null
+    userAgent?: StringNullableFilter<"AdminMfaChallenge"> | string | null
+  }
+
+  export type AdminAuthEventUpsertWithWhereUniqueWithoutAdminUserInput = {
+    where: AdminAuthEventWhereUniqueInput
+    update: XOR<AdminAuthEventUpdateWithoutAdminUserInput, AdminAuthEventUncheckedUpdateWithoutAdminUserInput>
+    create: XOR<AdminAuthEventCreateWithoutAdminUserInput, AdminAuthEventUncheckedCreateWithoutAdminUserInput>
+  }
+
+  export type AdminAuthEventUpdateWithWhereUniqueWithoutAdminUserInput = {
+    where: AdminAuthEventWhereUniqueInput
+    data: XOR<AdminAuthEventUpdateWithoutAdminUserInput, AdminAuthEventUncheckedUpdateWithoutAdminUserInput>
+  }
+
+  export type AdminAuthEventUpdateManyWithWhereWithoutAdminUserInput = {
+    where: AdminAuthEventScalarWhereInput
+    data: XOR<AdminAuthEventUpdateManyMutationInput, AdminAuthEventUncheckedUpdateManyWithoutAdminUserInput>
+  }
+
+  export type AdminAuthEventScalarWhereInput = {
+    AND?: AdminAuthEventScalarWhereInput | AdminAuthEventScalarWhereInput[]
+    OR?: AdminAuthEventScalarWhereInput[]
+    NOT?: AdminAuthEventScalarWhereInput | AdminAuthEventScalarWhereInput[]
+    id?: UuidFilter<"AdminAuthEvent"> | string
+    adminUserId?: StringNullableFilter<"AdminAuthEvent"> | string | null
+    action?: StringFilter<"AdminAuthEvent"> | string
+    targetType?: StringNullableFilter<"AdminAuthEvent"> | string | null
+    targetId?: StringNullableFilter<"AdminAuthEvent"> | string | null
+    metadata?: JsonNullableFilter<"AdminAuthEvent">
+    ipAddress?: StringNullableFilter<"AdminAuthEvent"> | string | null
+    userAgent?: StringNullableFilter<"AdminAuthEvent"> | string | null
+    createdAt?: DateTimeFilter<"AdminAuthEvent"> | Date | string
+  }
+
   export type RefreshTokenUpsertWithWhereUniqueWithoutAdminUserInput = {
     where: RefreshTokenWhereUniqueInput
     update: XOR<RefreshTokenUpdateWithoutAdminUserInput, RefreshTokenUncheckedUpdateWithoutAdminUserInput>
@@ -279717,6 +289448,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -279838,6 +289574,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -280028,6 +289769,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -280149,6 +289895,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -280270,6 +290021,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -280391,6 +290147,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -280556,6 +290317,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -280677,6 +290443,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -283707,6 +293478,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -283828,6 +293604,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -284064,6 +293845,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -284185,6 +293971,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -284399,6 +294190,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -284520,6 +294316,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -284756,6 +294557,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -284877,6 +294683,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -286410,6 +296221,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -286531,6 +296347,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -286657,6 +296478,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -286778,6 +296604,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -287121,6 +296952,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -287242,6 +297078,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -287374,6 +297215,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -287495,6 +297341,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -287839,6 +297690,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -287960,6 +297816,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -288086,6 +297947,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -288207,6 +298073,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -288547,6 +298418,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -288668,6 +298544,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -288800,6 +298681,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -288921,6 +298807,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -289166,6 +299057,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -289287,6 +299183,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -289523,6 +299424,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -289644,6 +299550,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -289933,6 +299844,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -290054,6 +299970,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -290180,6 +300101,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -290301,6 +300227,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -291036,6 +300967,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -291157,6 +301093,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -291289,6 +301230,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -291410,6 +301356,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -292106,6 +302057,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -292227,6 +302183,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -292463,6 +302424,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -292584,6 +302550,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -293607,6 +303578,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -293728,6 +303704,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -294082,6 +304063,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -294203,6 +304189,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -295885,6 +305876,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -296006,6 +306002,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -296132,6 +306133,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -296253,6 +306259,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -296541,6 +306552,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -296662,6 +306678,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -296794,6 +306815,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -296915,6 +306941,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -297218,6 +307249,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -297339,6 +307375,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -297736,6 +307777,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -297857,6 +307903,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -298920,6 +308971,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -299041,6 +309097,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -299247,6 +309308,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -299368,6 +309434,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -299526,6 +309597,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -299647,6 +309723,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -299827,6 +309908,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -299948,6 +310034,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -300136,6 +310227,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -300257,6 +310353,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -300467,6 +310568,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -300588,6 +310694,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -300744,6 +310855,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -300865,6 +310981,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -301043,6 +311164,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -301164,6 +311290,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -301338,6 +311469,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -301459,6 +311595,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -301718,6 +311859,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -301839,6 +311985,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -302029,6 +312180,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -302150,6 +312306,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -302276,6 +312437,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -302397,6 +312563,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -302794,6 +312965,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -302915,6 +313091,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -303047,6 +313228,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -303168,6 +313354,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -304294,6 +314485,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -304415,6 +314611,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -304963,6 +315164,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -305084,6 +315290,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -305205,6 +315416,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -305326,6 +315542,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -305553,6 +315774,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -305674,6 +315900,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -306683,6 +316914,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -306804,6 +317040,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -306941,6 +317182,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -307062,6 +317308,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -307230,6 +317481,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -307351,6 +317607,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -307659,6 +317920,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -307780,6 +318046,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -307982,6 +318253,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -308103,6 +318379,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -308313,6 +318594,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -308434,6 +318720,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -309034,6 +319325,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -309155,6 +319451,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -309281,6 +319582,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -309402,6 +319708,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -309664,6 +319975,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -309785,6 +320101,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -309917,6 +320238,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -310038,6 +320364,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -310204,6 +320535,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -310325,6 +320661,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -310451,6 +320792,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -310572,6 +320918,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -310934,6 +321285,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -311055,6 +321411,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -311187,6 +321548,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -311308,6 +321674,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -311770,6 +322141,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -311891,6 +322267,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -312132,6 +322513,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -312253,6 +322639,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -312659,6 +323050,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -312780,6 +323176,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -313116,6 +323517,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -313237,6 +323643,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -313484,6 +323895,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -313605,6 +324021,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -313731,6 +324152,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -313852,6 +324278,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -314175,6 +324606,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -314296,6 +324732,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -314428,6 +324869,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -314549,6 +324995,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -314759,6 +325210,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -314880,6 +325336,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -315142,6 +325603,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -315263,6 +325729,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -315514,6 +325985,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -315635,6 +326111,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -315860,6 +326341,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -315981,6 +326467,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -316849,6 +327340,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -316970,6 +327466,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -317096,6 +327597,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -317217,6 +327723,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -317666,6 +328177,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -317787,6 +328303,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -317919,6 +328440,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -318040,6 +328566,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -318289,6 +328820,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -318410,6 +328946,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -318582,6 +329123,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -318703,6 +329249,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -320138,6 +330689,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -320259,6 +330815,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -320396,6 +330957,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -320517,6 +331083,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -320638,6 +331209,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -320759,6 +331335,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -320896,6 +331477,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -321017,6 +331603,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -321138,6 +331729,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -321259,6 +331855,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -321396,6 +331997,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -321517,6 +332123,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -321553,6 +332164,2756 @@ export namespace Prisma {
     socialEscalationsConfirmed?: SocialEscalationUncheckedUpdateManyWithoutConfirmedByNestedInput
     socialInternalNotesAuthored?: SocialInternalNoteUncheckedUpdateManyWithoutAuthorNestedInput
     socialSavedRepliesCreated?: SocialSavedReplyUncheckedUpdateManyWithoutCreatedByNestedInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUncheckedUpdateManyWithoutAcceptedByAdminNestedInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUncheckedUpdateManyWithoutDismissedByAdminNestedInput
+    marketingAlertsResolved?: marketing_alertsUncheckedUpdateManyWithoutResolvedByAdminNestedInput
+    marketingAlertsAcknowledged?: marketing_alertsUncheckedUpdateManyWithoutAcknowledgedByAdminNestedInput
+    marketingExperimentsCreated?: marketing_experimentsUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUncheckedUpdateManyWithoutRequestedByAdminNestedInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUncheckedUpdateManyWithoutApproverNestedInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUncheckedUpdateManyWithoutReviewerNestedInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUncheckedUpdateManyWithoutAuthoredByAdminNestedInput
+    teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
+    projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
+    assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
+    createdTasks?: TaskUncheckedUpdateManyWithoutAssignerNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutAdminUserNestedInput
+    attendanceLogs?: AttendanceLogUncheckedUpdateManyWithoutAdminUserNestedInput
+    leaveRequests?: LeaveRequestUncheckedUpdateManyWithoutAdminUserNestedInput
+    reviewedLeaveRequests?: LeaveRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutAdminUserNestedInput
+    payrollRecords?: PayrollRecordUncheckedUpdateManyWithoutAdminUserNestedInput
+    payslips?: PayslipUncheckedUpdateManyWithoutAdminUserNestedInput
+    deductions?: DeductionUncheckedUpdateManyWithoutAdminUserNestedInput
+    receipts?: ReceiptUncheckedUpdateManyWithoutAdminUserNestedInput
+    invoices?: InvoiceUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailMailboxesOwned?: MailMailboxUncheckedUpdateManyWithoutOwnerNestedInput
+    mailMemberships?: MailMembershipUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+  }
+
+  export type AdminUserCreateWithoutAuthSessionsInput = {
+    id?: string
+    email: string
+    password: string
+    name: string
+    position?: string | null
+    department?: $Enums.Department | null
+    tier?: $Enums.AdminTier
+    status?: $Enums.AdminStatus
+    isTeamLead?: boolean
+    failedLoginAttempts?: number
+    googleId?: string | null
+    mainAppUserId?: string | null
+    lockedUntil?: Date | string | null
+    lastLoginAt?: Date | string | null
+    lastLoginIp?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
+    avatarUrl?: string | null
+    avatarCloudinaryId?: string | null
+    preferredName?: string | null
+    birthday?: Date | string | null
+    nationality?: string | null
+    gender?: string | null
+    maritalStatus?: string | null
+    workPhone?: string | null
+    homePhone?: string | null
+    personalPhone?: string | null
+    fax?: string | null
+    address?: string | null
+    state?: string | null
+    country?: string | null
+    emergencyName?: string | null
+    emergencyPhone?: string | null
+    emergencyEmail?: string | null
+    emergencyRelation?: string | null
+    employmentType?: string | null
+    employmentCategory?: string | null
+    location?: string | null
+    salary?: Decimal | DecimalJsLike | number | string | null
+    bonus?: Decimal | DecimalJsLike | number | string | null
+    equity?: Decimal | DecimalJsLike | number | string | null
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
+    refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
+    socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
+    educations?: AdminEducationCreateNestedManyWithoutAdminUserInput
+    documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
+    performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
+    reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryCreateNestedManyWithoutChangedByInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketCreateNestedManyWithoutValidatedByInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentCreateNestedManyWithoutAcknowledgedByInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewCreateNestedManyWithoutReviewedByInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobCreateNestedManyWithoutCancellationRequestedByInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideCreateNestedManyWithoutRequestedByInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideCreateNestedManyWithoutApprovedByInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersCreateNestedManyWithoutAdminUserInput
+    marketingContentItems?: marketing_content_itemsCreateNestedManyWithoutAdminUserInput
+    socialAccountConnections?: SocialAccountConnectionCreateNestedManyWithoutCreatedByInput
+    socialOAuthStates?: SocialOAuthStateCreateNestedManyWithoutAdminUserInput
+    socialPostsCreated?: SocialPostCreateNestedManyWithoutCreatedByInput
+    socialPostRevisionsCreated?: SocialPostRevisionCreateNestedManyWithoutCreatedByInput
+    socialApprovalsSubmitted?: SocialPostApprovalCreateNestedManyWithoutSubmittedByInput
+    socialApprovalsDecided?: SocialPostApprovalCreateNestedManyWithoutDecidedByInput
+    socialPublicationsRequested?: SocialPublicationCreateNestedManyWithoutRequestedByInput
+    socialPublicationsApproved?: SocialPublicationCreateNestedManyWithoutApprovedByInput
+    socialMediaAssets?: SocialMediaAssetCreateNestedManyWithoutOwnerInput
+    socialContactsLinked?: SocialContactCreateNestedManyWithoutLinkedByInput
+    socialConversationsAssigned?: SocialConversationCreateNestedManyWithoutAssigneeInput
+    socialConversationAssignments?: SocialConversationCreateNestedManyWithoutAssignedByInput
+    socialMessagesSent?: SocialMessageCreateNestedManyWithoutSentByAdminInput
+    socialConversationTagsAdded?: SocialConversationTagCreateNestedManyWithoutTaggedByInput
+    socialCommentsAssigned?: SocialCommentCreateNestedManyWithoutAssigneeInput
+    socialCommentsSent?: SocialCommentCreateNestedManyWithoutSentByAdminInput
+    socialEscalationsConfirmed?: SocialEscalationCreateNestedManyWithoutConfirmedByInput
+    socialInternalNotesAuthored?: SocialInternalNoteCreateNestedManyWithoutAuthorInput
+    socialSavedRepliesCreated?: SocialSavedReplyCreateNestedManyWithoutCreatedByInput
+    socialSettingsUpdated?: SocialOperationsSettingCreateNestedManyWithoutUpdatedByInput
+    marketingRecommendationsAccepted?: marketing_recommendationsCreateNestedManyWithoutAcceptedByAdminInput
+    marketingRecommendationsDismissed?: marketing_recommendationsCreateNestedManyWithoutDismissedByAdminInput
+    marketingAlertsResolved?: marketing_alertsCreateNestedManyWithoutResolvedByAdminInput
+    marketingAlertsAcknowledged?: marketing_alertsCreateNestedManyWithoutAcknowledgedByAdminInput
+    marketingExperimentsCreated?: marketing_experimentsCreateNestedManyWithoutCreatedByAdminInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsCreateNestedManyWithoutRequestedByAdminInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalCreateNestedManyWithoutApproverInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyCreateNestedManyWithoutUpdatedByAdminInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationCreateNestedManyWithoutCreatedByAdminInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewCreateNestedManyWithoutReviewerInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkCreateNestedManyWithoutAuthoredByAdminInput
+    teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
+    projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
+    assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
+    createdTasks?: TaskCreateNestedManyWithoutAssignerInput
+    notifications?: NotificationCreateNestedManyWithoutAdminUserInput
+    attendanceLogs?: AttendanceLogCreateNestedManyWithoutAdminUserInput
+    leaveRequests?: LeaveRequestCreateNestedManyWithoutAdminUserInput
+    reviewedLeaveRequests?: LeaveRequestCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceCreateNestedManyWithoutAdminUserInput
+    payrollRecords?: PayrollRecordCreateNestedManyWithoutAdminUserInput
+    payslips?: PayslipCreateNestedManyWithoutAdminUserInput
+    deductions?: DeductionCreateNestedManyWithoutAdminUserInput
+    receipts?: ReceiptCreateNestedManyWithoutAdminUserInput
+    invoices?: InvoiceCreateNestedManyWithoutAdminUserInput
+    mailMailboxesOwned?: MailMailboxCreateNestedManyWithoutOwnerInput
+    mailMemberships?: MailMembershipCreateNestedManyWithoutAdminUserInput
+    mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
+    mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
+    mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+  }
+
+  export type AdminUserUncheckedCreateWithoutAuthSessionsInput = {
+    id?: string
+    email: string
+    password: string
+    name: string
+    position?: string | null
+    department?: $Enums.Department | null
+    tier?: $Enums.AdminTier
+    status?: $Enums.AdminStatus
+    isTeamLead?: boolean
+    failedLoginAttempts?: number
+    googleId?: string | null
+    mainAppUserId?: string | null
+    lockedUntil?: Date | string | null
+    lastLoginAt?: Date | string | null
+    lastLoginIp?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
+    avatarUrl?: string | null
+    avatarCloudinaryId?: string | null
+    preferredName?: string | null
+    birthday?: Date | string | null
+    nationality?: string | null
+    gender?: string | null
+    maritalStatus?: string | null
+    workPhone?: string | null
+    homePhone?: string | null
+    personalPhone?: string | null
+    fax?: string | null
+    address?: string | null
+    state?: string | null
+    country?: string | null
+    emergencyName?: string | null
+    emergencyPhone?: string | null
+    emergencyEmail?: string | null
+    emergencyRelation?: string | null
+    employmentType?: string | null
+    employmentCategory?: string | null
+    location?: string | null
+    salary?: Decimal | DecimalJsLike | number | string | null
+    bonus?: Decimal | DecimalJsLike | number | string | null
+    equity?: Decimal | DecimalJsLike | number | string | null
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
+    refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
+    socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
+    educations?: AdminEducationUncheckedCreateNestedManyWithoutAdminUserInput
+    documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
+    performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
+    reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUncheckedCreateNestedManyWithoutChangedByInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUncheckedCreateNestedManyWithoutValidatedByInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUncheckedCreateNestedManyWithoutAcknowledgedByInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUncheckedCreateNestedManyWithoutReviewedByInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUncheckedCreateNestedManyWithoutCancellationRequestedByInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUncheckedCreateNestedManyWithoutRequestedByInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUncheckedCreateNestedManyWithoutApprovedByInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUncheckedCreateNestedManyWithoutAdminUserInput
+    marketingContentItems?: marketing_content_itemsUncheckedCreateNestedManyWithoutAdminUserInput
+    socialAccountConnections?: SocialAccountConnectionUncheckedCreateNestedManyWithoutCreatedByInput
+    socialOAuthStates?: SocialOAuthStateUncheckedCreateNestedManyWithoutAdminUserInput
+    socialPostsCreated?: SocialPostUncheckedCreateNestedManyWithoutCreatedByInput
+    socialPostRevisionsCreated?: SocialPostRevisionUncheckedCreateNestedManyWithoutCreatedByInput
+    socialApprovalsSubmitted?: SocialPostApprovalUncheckedCreateNestedManyWithoutSubmittedByInput
+    socialApprovalsDecided?: SocialPostApprovalUncheckedCreateNestedManyWithoutDecidedByInput
+    socialPublicationsRequested?: SocialPublicationUncheckedCreateNestedManyWithoutRequestedByInput
+    socialPublicationsApproved?: SocialPublicationUncheckedCreateNestedManyWithoutApprovedByInput
+    socialMediaAssets?: SocialMediaAssetUncheckedCreateNestedManyWithoutOwnerInput
+    socialContactsLinked?: SocialContactUncheckedCreateNestedManyWithoutLinkedByInput
+    socialConversationsAssigned?: SocialConversationUncheckedCreateNestedManyWithoutAssigneeInput
+    socialConversationAssignments?: SocialConversationUncheckedCreateNestedManyWithoutAssignedByInput
+    socialMessagesSent?: SocialMessageUncheckedCreateNestedManyWithoutSentByAdminInput
+    socialConversationTagsAdded?: SocialConversationTagUncheckedCreateNestedManyWithoutTaggedByInput
+    socialCommentsAssigned?: SocialCommentUncheckedCreateNestedManyWithoutAssigneeInput
+    socialCommentsSent?: SocialCommentUncheckedCreateNestedManyWithoutSentByAdminInput
+    socialEscalationsConfirmed?: SocialEscalationUncheckedCreateNestedManyWithoutConfirmedByInput
+    socialInternalNotesAuthored?: SocialInternalNoteUncheckedCreateNestedManyWithoutAuthorInput
+    socialSavedRepliesCreated?: SocialSavedReplyUncheckedCreateNestedManyWithoutCreatedByInput
+    socialSettingsUpdated?: SocialOperationsSettingUncheckedCreateNestedManyWithoutUpdatedByInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUncheckedCreateNestedManyWithoutAcceptedByAdminInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUncheckedCreateNestedManyWithoutDismissedByAdminInput
+    marketingAlertsResolved?: marketing_alertsUncheckedCreateNestedManyWithoutResolvedByAdminInput
+    marketingAlertsAcknowledged?: marketing_alertsUncheckedCreateNestedManyWithoutAcknowledgedByAdminInput
+    marketingExperimentsCreated?: marketing_experimentsUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUncheckedCreateNestedManyWithoutRequestedByAdminInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUncheckedCreateNestedManyWithoutApproverInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUncheckedCreateNestedManyWithoutReviewerInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUncheckedCreateNestedManyWithoutAuthoredByAdminInput
+    teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
+    projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
+    assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
+    createdTasks?: TaskUncheckedCreateNestedManyWithoutAssignerInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutAdminUserInput
+    attendanceLogs?: AttendanceLogUncheckedCreateNestedManyWithoutAdminUserInput
+    leaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutAdminUserInput
+    reviewedLeaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutAdminUserInput
+    payrollRecords?: PayrollRecordUncheckedCreateNestedManyWithoutAdminUserInput
+    payslips?: PayslipUncheckedCreateNestedManyWithoutAdminUserInput
+    deductions?: DeductionUncheckedCreateNestedManyWithoutAdminUserInput
+    receipts?: ReceiptUncheckedCreateNestedManyWithoutAdminUserInput
+    invoices?: InvoiceUncheckedCreateNestedManyWithoutAdminUserInput
+    mailMailboxesOwned?: MailMailboxUncheckedCreateNestedManyWithoutOwnerInput
+    mailMemberships?: MailMembershipUncheckedCreateNestedManyWithoutAdminUserInput
+    mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
+    mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
+    mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+  }
+
+  export type AdminUserCreateOrConnectWithoutAuthSessionsInput = {
+    where: AdminUserWhereUniqueInput
+    create: XOR<AdminUserCreateWithoutAuthSessionsInput, AdminUserUncheckedCreateWithoutAuthSessionsInput>
+  }
+
+  export type AdminSessionRefreshTokenCreateWithoutSessionInput = {
+    id?: string
+    adminUserId: string
+    tokenHash: string
+    createdAt?: Date | string
+    expiresAt: Date | string
+    rotatedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type AdminSessionRefreshTokenUncheckedCreateWithoutSessionInput = {
+    id?: string
+    adminUserId: string
+    tokenHash: string
+    createdAt?: Date | string
+    expiresAt: Date | string
+    rotatedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type AdminSessionRefreshTokenCreateOrConnectWithoutSessionInput = {
+    where: AdminSessionRefreshTokenWhereUniqueInput
+    create: XOR<AdminSessionRefreshTokenCreateWithoutSessionInput, AdminSessionRefreshTokenUncheckedCreateWithoutSessionInput>
+  }
+
+  export type AdminSessionRefreshTokenCreateManySessionInputEnvelope = {
+    data: AdminSessionRefreshTokenCreateManySessionInput | AdminSessionRefreshTokenCreateManySessionInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AdminUserUpsertWithoutAuthSessionsInput = {
+    update: XOR<AdminUserUpdateWithoutAuthSessionsInput, AdminUserUncheckedUpdateWithoutAuthSessionsInput>
+    create: XOR<AdminUserCreateWithoutAuthSessionsInput, AdminUserUncheckedCreateWithoutAuthSessionsInput>
+    where?: AdminUserWhereInput
+  }
+
+  export type AdminUserUpdateToOneWithWhereWithoutAuthSessionsInput = {
+    where?: AdminUserWhereInput
+    data: XOR<AdminUserUpdateWithoutAuthSessionsInput, AdminUserUncheckedUpdateWithoutAuthSessionsInput>
+  }
+
+  export type AdminUserUpdateWithoutAuthSessionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    position?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: NullableEnumDepartmentFieldUpdateOperationsInput | $Enums.Department | null
+    tier?: EnumAdminTierFieldUpdateOperationsInput | $Enums.AdminTier
+    status?: EnumAdminStatusFieldUpdateOperationsInput | $Enums.AdminStatus
+    isTeamLead?: BoolFieldUpdateOperationsInput | boolean
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    mainAppUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginIp?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
+    preferredName?: NullableStringFieldUpdateOperationsInput | string | null
+    birthday?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nationality?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    maritalStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    homePhone?: NullableStringFieldUpdateOperationsInput | string | null
+    personalPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    fax?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyName?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyRelation?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentType?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
+    refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
+    socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
+    educations?: AdminEducationUpdateManyWithoutAdminUserNestedInput
+    documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
+    performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
+    reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUpdateManyWithoutChangedByNestedInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUpdateManyWithoutValidatedByNestedInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUpdateManyWithoutAcknowledgedByNestedInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUpdateManyWithoutReviewedByNestedInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUpdateManyWithoutCancellationRequestedByNestedInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUpdateManyWithoutRequestedByNestedInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUpdateManyWithoutApprovedByNestedInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUpdateManyWithoutAdminUserNestedInput
+    marketingContentItems?: marketing_content_itemsUpdateManyWithoutAdminUserNestedInput
+    socialAccountConnections?: SocialAccountConnectionUpdateManyWithoutCreatedByNestedInput
+    socialOAuthStates?: SocialOAuthStateUpdateManyWithoutAdminUserNestedInput
+    socialPostsCreated?: SocialPostUpdateManyWithoutCreatedByNestedInput
+    socialPostRevisionsCreated?: SocialPostRevisionUpdateManyWithoutCreatedByNestedInput
+    socialApprovalsSubmitted?: SocialPostApprovalUpdateManyWithoutSubmittedByNestedInput
+    socialApprovalsDecided?: SocialPostApprovalUpdateManyWithoutDecidedByNestedInput
+    socialPublicationsRequested?: SocialPublicationUpdateManyWithoutRequestedByNestedInput
+    socialPublicationsApproved?: SocialPublicationUpdateManyWithoutApprovedByNestedInput
+    socialMediaAssets?: SocialMediaAssetUpdateManyWithoutOwnerNestedInput
+    socialContactsLinked?: SocialContactUpdateManyWithoutLinkedByNestedInput
+    socialConversationsAssigned?: SocialConversationUpdateManyWithoutAssigneeNestedInput
+    socialConversationAssignments?: SocialConversationUpdateManyWithoutAssignedByNestedInput
+    socialMessagesSent?: SocialMessageUpdateManyWithoutSentByAdminNestedInput
+    socialConversationTagsAdded?: SocialConversationTagUpdateManyWithoutTaggedByNestedInput
+    socialCommentsAssigned?: SocialCommentUpdateManyWithoutAssigneeNestedInput
+    socialCommentsSent?: SocialCommentUpdateManyWithoutSentByAdminNestedInput
+    socialEscalationsConfirmed?: SocialEscalationUpdateManyWithoutConfirmedByNestedInput
+    socialInternalNotesAuthored?: SocialInternalNoteUpdateManyWithoutAuthorNestedInput
+    socialSavedRepliesCreated?: SocialSavedReplyUpdateManyWithoutCreatedByNestedInput
+    socialSettingsUpdated?: SocialOperationsSettingUpdateManyWithoutUpdatedByNestedInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUpdateManyWithoutAcceptedByAdminNestedInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUpdateManyWithoutDismissedByAdminNestedInput
+    marketingAlertsResolved?: marketing_alertsUpdateManyWithoutResolvedByAdminNestedInput
+    marketingAlertsAcknowledged?: marketing_alertsUpdateManyWithoutAcknowledgedByAdminNestedInput
+    marketingExperimentsCreated?: marketing_experimentsUpdateManyWithoutCreatedByAdminNestedInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUpdateManyWithoutRequestedByAdminNestedInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUpdateManyWithoutApproverNestedInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUpdateManyWithoutCreatedByAdminNestedInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUpdateManyWithoutReviewerNestedInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUpdateManyWithoutAuthoredByAdminNestedInput
+    teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
+    projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
+    assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
+    createdTasks?: TaskUpdateManyWithoutAssignerNestedInput
+    notifications?: NotificationUpdateManyWithoutAdminUserNestedInput
+    attendanceLogs?: AttendanceLogUpdateManyWithoutAdminUserNestedInput
+    leaveRequests?: LeaveRequestUpdateManyWithoutAdminUserNestedInput
+    reviewedLeaveRequests?: LeaveRequestUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUpdateManyWithoutAdminUserNestedInput
+    payrollRecords?: PayrollRecordUpdateManyWithoutAdminUserNestedInput
+    payslips?: PayslipUpdateManyWithoutAdminUserNestedInput
+    deductions?: DeductionUpdateManyWithoutAdminUserNestedInput
+    receipts?: ReceiptUpdateManyWithoutAdminUserNestedInput
+    invoices?: InvoiceUpdateManyWithoutAdminUserNestedInput
+    mailMailboxesOwned?: MailMailboxUpdateManyWithoutOwnerNestedInput
+    mailMemberships?: MailMembershipUpdateManyWithoutAdminUserNestedInput
+    mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
+    mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
+    mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+  }
+
+  export type AdminUserUncheckedUpdateWithoutAuthSessionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    position?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: NullableEnumDepartmentFieldUpdateOperationsInput | $Enums.Department | null
+    tier?: EnumAdminTierFieldUpdateOperationsInput | $Enums.AdminTier
+    status?: EnumAdminStatusFieldUpdateOperationsInput | $Enums.AdminStatus
+    isTeamLead?: BoolFieldUpdateOperationsInput | boolean
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    mainAppUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginIp?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
+    preferredName?: NullableStringFieldUpdateOperationsInput | string | null
+    birthday?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nationality?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    maritalStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    homePhone?: NullableStringFieldUpdateOperationsInput | string | null
+    personalPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    fax?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyName?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyRelation?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentType?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
+    refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
+    educations?: AdminEducationUncheckedUpdateManyWithoutAdminUserNestedInput
+    documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
+    performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
+    reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUncheckedUpdateManyWithoutValidatedByNestedInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUncheckedUpdateManyWithoutAcknowledgedByNestedInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUncheckedUpdateManyWithoutReviewedByNestedInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUncheckedUpdateManyWithoutCancellationRequestedByNestedInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUncheckedUpdateManyWithoutRequestedByNestedInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUncheckedUpdateManyWithoutApprovedByNestedInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUncheckedUpdateManyWithoutAdminUserNestedInput
+    marketingContentItems?: marketing_content_itemsUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialAccountConnections?: SocialAccountConnectionUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialOAuthStates?: SocialOAuthStateUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialPostsCreated?: SocialPostUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialPostRevisionsCreated?: SocialPostRevisionUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialApprovalsSubmitted?: SocialPostApprovalUncheckedUpdateManyWithoutSubmittedByNestedInput
+    socialApprovalsDecided?: SocialPostApprovalUncheckedUpdateManyWithoutDecidedByNestedInput
+    socialPublicationsRequested?: SocialPublicationUncheckedUpdateManyWithoutRequestedByNestedInput
+    socialPublicationsApproved?: SocialPublicationUncheckedUpdateManyWithoutApprovedByNestedInput
+    socialMediaAssets?: SocialMediaAssetUncheckedUpdateManyWithoutOwnerNestedInput
+    socialContactsLinked?: SocialContactUncheckedUpdateManyWithoutLinkedByNestedInput
+    socialConversationsAssigned?: SocialConversationUncheckedUpdateManyWithoutAssigneeNestedInput
+    socialConversationAssignments?: SocialConversationUncheckedUpdateManyWithoutAssignedByNestedInput
+    socialMessagesSent?: SocialMessageUncheckedUpdateManyWithoutSentByAdminNestedInput
+    socialConversationTagsAdded?: SocialConversationTagUncheckedUpdateManyWithoutTaggedByNestedInput
+    socialCommentsAssigned?: SocialCommentUncheckedUpdateManyWithoutAssigneeNestedInput
+    socialCommentsSent?: SocialCommentUncheckedUpdateManyWithoutSentByAdminNestedInput
+    socialEscalationsConfirmed?: SocialEscalationUncheckedUpdateManyWithoutConfirmedByNestedInput
+    socialInternalNotesAuthored?: SocialInternalNoteUncheckedUpdateManyWithoutAuthorNestedInput
+    socialSavedRepliesCreated?: SocialSavedReplyUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialSettingsUpdated?: SocialOperationsSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUncheckedUpdateManyWithoutAcceptedByAdminNestedInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUncheckedUpdateManyWithoutDismissedByAdminNestedInput
+    marketingAlertsResolved?: marketing_alertsUncheckedUpdateManyWithoutResolvedByAdminNestedInput
+    marketingAlertsAcknowledged?: marketing_alertsUncheckedUpdateManyWithoutAcknowledgedByAdminNestedInput
+    marketingExperimentsCreated?: marketing_experimentsUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUncheckedUpdateManyWithoutRequestedByAdminNestedInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUncheckedUpdateManyWithoutApproverNestedInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUncheckedUpdateManyWithoutReviewerNestedInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUncheckedUpdateManyWithoutAuthoredByAdminNestedInput
+    teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
+    projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
+    assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
+    createdTasks?: TaskUncheckedUpdateManyWithoutAssignerNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutAdminUserNestedInput
+    attendanceLogs?: AttendanceLogUncheckedUpdateManyWithoutAdminUserNestedInput
+    leaveRequests?: LeaveRequestUncheckedUpdateManyWithoutAdminUserNestedInput
+    reviewedLeaveRequests?: LeaveRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutAdminUserNestedInput
+    payrollRecords?: PayrollRecordUncheckedUpdateManyWithoutAdminUserNestedInput
+    payslips?: PayslipUncheckedUpdateManyWithoutAdminUserNestedInput
+    deductions?: DeductionUncheckedUpdateManyWithoutAdminUserNestedInput
+    receipts?: ReceiptUncheckedUpdateManyWithoutAdminUserNestedInput
+    invoices?: InvoiceUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailMailboxesOwned?: MailMailboxUncheckedUpdateManyWithoutOwnerNestedInput
+    mailMemberships?: MailMembershipUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+  }
+
+  export type AdminSessionRefreshTokenUpsertWithWhereUniqueWithoutSessionInput = {
+    where: AdminSessionRefreshTokenWhereUniqueInput
+    update: XOR<AdminSessionRefreshTokenUpdateWithoutSessionInput, AdminSessionRefreshTokenUncheckedUpdateWithoutSessionInput>
+    create: XOR<AdminSessionRefreshTokenCreateWithoutSessionInput, AdminSessionRefreshTokenUncheckedCreateWithoutSessionInput>
+  }
+
+  export type AdminSessionRefreshTokenUpdateWithWhereUniqueWithoutSessionInput = {
+    where: AdminSessionRefreshTokenWhereUniqueInput
+    data: XOR<AdminSessionRefreshTokenUpdateWithoutSessionInput, AdminSessionRefreshTokenUncheckedUpdateWithoutSessionInput>
+  }
+
+  export type AdminSessionRefreshTokenUpdateManyWithWhereWithoutSessionInput = {
+    where: AdminSessionRefreshTokenScalarWhereInput
+    data: XOR<AdminSessionRefreshTokenUpdateManyMutationInput, AdminSessionRefreshTokenUncheckedUpdateManyWithoutSessionInput>
+  }
+
+  export type AdminSessionRefreshTokenScalarWhereInput = {
+    AND?: AdminSessionRefreshTokenScalarWhereInput | AdminSessionRefreshTokenScalarWhereInput[]
+    OR?: AdminSessionRefreshTokenScalarWhereInput[]
+    NOT?: AdminSessionRefreshTokenScalarWhereInput | AdminSessionRefreshTokenScalarWhereInput[]
+    id?: UuidFilter<"AdminSessionRefreshToken"> | string
+    sessionId?: UuidFilter<"AdminSessionRefreshToken"> | string
+    adminUserId?: StringFilter<"AdminSessionRefreshToken"> | string
+    tokenHash?: StringFilter<"AdminSessionRefreshToken"> | string
+    createdAt?: DateTimeFilter<"AdminSessionRefreshToken"> | Date | string
+    expiresAt?: DateTimeFilter<"AdminSessionRefreshToken"> | Date | string
+    rotatedAt?: DateTimeNullableFilter<"AdminSessionRefreshToken"> | Date | string | null
+    revokedAt?: DateTimeNullableFilter<"AdminSessionRefreshToken"> | Date | string | null
+    ipAddress?: StringNullableFilter<"AdminSessionRefreshToken"> | string | null
+    userAgent?: StringNullableFilter<"AdminSessionRefreshToken"> | string | null
+  }
+
+  export type AdminSessionCreateWithoutRefreshTokensInput = {
+    id?: string
+    mode: string
+    authMethod: string
+    csrfNonce: string
+    createdAt?: Date | string
+    lastSeenAt?: Date | string
+    idleExpiresAt: Date | string
+    absoluteExpiresAt: Date | string
+    mfaVerifiedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    revokeReason?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+    adminUser: AdminUserCreateNestedOneWithoutAuthSessionsInput
+  }
+
+  export type AdminSessionUncheckedCreateWithoutRefreshTokensInput = {
+    id?: string
+    adminUserId: string
+    mode: string
+    authMethod: string
+    csrfNonce: string
+    createdAt?: Date | string
+    lastSeenAt?: Date | string
+    idleExpiresAt: Date | string
+    absoluteExpiresAt: Date | string
+    mfaVerifiedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    revokeReason?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type AdminSessionCreateOrConnectWithoutRefreshTokensInput = {
+    where: AdminSessionWhereUniqueInput
+    create: XOR<AdminSessionCreateWithoutRefreshTokensInput, AdminSessionUncheckedCreateWithoutRefreshTokensInput>
+  }
+
+  export type AdminSessionUpsertWithoutRefreshTokensInput = {
+    update: XOR<AdminSessionUpdateWithoutRefreshTokensInput, AdminSessionUncheckedUpdateWithoutRefreshTokensInput>
+    create: XOR<AdminSessionCreateWithoutRefreshTokensInput, AdminSessionUncheckedCreateWithoutRefreshTokensInput>
+    where?: AdminSessionWhereInput
+  }
+
+  export type AdminSessionUpdateToOneWithWhereWithoutRefreshTokensInput = {
+    where?: AdminSessionWhereInput
+    data: XOR<AdminSessionUpdateWithoutRefreshTokensInput, AdminSessionUncheckedUpdateWithoutRefreshTokensInput>
+  }
+
+  export type AdminSessionUpdateWithoutRefreshTokensInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    csrfNonce?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idleExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    absoluteExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    adminUser?: AdminUserUpdateOneRequiredWithoutAuthSessionsNestedInput
+  }
+
+  export type AdminSessionUncheckedUpdateWithoutRefreshTokensInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    csrfNonce?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idleExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    absoluteExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminUserCreateWithoutMfaEnrollmentInput = {
+    id?: string
+    email: string
+    password: string
+    name: string
+    position?: string | null
+    department?: $Enums.Department | null
+    tier?: $Enums.AdminTier
+    status?: $Enums.AdminStatus
+    isTeamLead?: boolean
+    failedLoginAttempts?: number
+    googleId?: string | null
+    mainAppUserId?: string | null
+    lockedUntil?: Date | string | null
+    lastLoginAt?: Date | string | null
+    lastLoginIp?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
+    avatarUrl?: string | null
+    avatarCloudinaryId?: string | null
+    preferredName?: string | null
+    birthday?: Date | string | null
+    nationality?: string | null
+    gender?: string | null
+    maritalStatus?: string | null
+    workPhone?: string | null
+    homePhone?: string | null
+    personalPhone?: string | null
+    fax?: string | null
+    address?: string | null
+    state?: string | null
+    country?: string | null
+    emergencyName?: string | null
+    emergencyPhone?: string | null
+    emergencyEmail?: string | null
+    emergencyRelation?: string | null
+    employmentType?: string | null
+    employmentCategory?: string | null
+    location?: string | null
+    salary?: Decimal | DecimalJsLike | number | string | null
+    bonus?: Decimal | DecimalJsLike | number | string | null
+    equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
+    refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
+    socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
+    educations?: AdminEducationCreateNestedManyWithoutAdminUserInput
+    documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
+    performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
+    reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryCreateNestedManyWithoutChangedByInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketCreateNestedManyWithoutValidatedByInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentCreateNestedManyWithoutAcknowledgedByInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewCreateNestedManyWithoutReviewedByInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobCreateNestedManyWithoutCancellationRequestedByInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideCreateNestedManyWithoutRequestedByInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideCreateNestedManyWithoutApprovedByInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersCreateNestedManyWithoutAdminUserInput
+    marketingContentItems?: marketing_content_itemsCreateNestedManyWithoutAdminUserInput
+    socialAccountConnections?: SocialAccountConnectionCreateNestedManyWithoutCreatedByInput
+    socialOAuthStates?: SocialOAuthStateCreateNestedManyWithoutAdminUserInput
+    socialPostsCreated?: SocialPostCreateNestedManyWithoutCreatedByInput
+    socialPostRevisionsCreated?: SocialPostRevisionCreateNestedManyWithoutCreatedByInput
+    socialApprovalsSubmitted?: SocialPostApprovalCreateNestedManyWithoutSubmittedByInput
+    socialApprovalsDecided?: SocialPostApprovalCreateNestedManyWithoutDecidedByInput
+    socialPublicationsRequested?: SocialPublicationCreateNestedManyWithoutRequestedByInput
+    socialPublicationsApproved?: SocialPublicationCreateNestedManyWithoutApprovedByInput
+    socialMediaAssets?: SocialMediaAssetCreateNestedManyWithoutOwnerInput
+    socialContactsLinked?: SocialContactCreateNestedManyWithoutLinkedByInput
+    socialConversationsAssigned?: SocialConversationCreateNestedManyWithoutAssigneeInput
+    socialConversationAssignments?: SocialConversationCreateNestedManyWithoutAssignedByInput
+    socialMessagesSent?: SocialMessageCreateNestedManyWithoutSentByAdminInput
+    socialConversationTagsAdded?: SocialConversationTagCreateNestedManyWithoutTaggedByInput
+    socialCommentsAssigned?: SocialCommentCreateNestedManyWithoutAssigneeInput
+    socialCommentsSent?: SocialCommentCreateNestedManyWithoutSentByAdminInput
+    socialEscalationsConfirmed?: SocialEscalationCreateNestedManyWithoutConfirmedByInput
+    socialInternalNotesAuthored?: SocialInternalNoteCreateNestedManyWithoutAuthorInput
+    socialSavedRepliesCreated?: SocialSavedReplyCreateNestedManyWithoutCreatedByInput
+    socialSettingsUpdated?: SocialOperationsSettingCreateNestedManyWithoutUpdatedByInput
+    marketingRecommendationsAccepted?: marketing_recommendationsCreateNestedManyWithoutAcceptedByAdminInput
+    marketingRecommendationsDismissed?: marketing_recommendationsCreateNestedManyWithoutDismissedByAdminInput
+    marketingAlertsResolved?: marketing_alertsCreateNestedManyWithoutResolvedByAdminInput
+    marketingAlertsAcknowledged?: marketing_alertsCreateNestedManyWithoutAcknowledgedByAdminInput
+    marketingExperimentsCreated?: marketing_experimentsCreateNestedManyWithoutCreatedByAdminInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsCreateNestedManyWithoutRequestedByAdminInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalCreateNestedManyWithoutApproverInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyCreateNestedManyWithoutUpdatedByAdminInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationCreateNestedManyWithoutCreatedByAdminInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewCreateNestedManyWithoutReviewerInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkCreateNestedManyWithoutAuthoredByAdminInput
+    teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
+    projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
+    assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
+    createdTasks?: TaskCreateNestedManyWithoutAssignerInput
+    notifications?: NotificationCreateNestedManyWithoutAdminUserInput
+    attendanceLogs?: AttendanceLogCreateNestedManyWithoutAdminUserInput
+    leaveRequests?: LeaveRequestCreateNestedManyWithoutAdminUserInput
+    reviewedLeaveRequests?: LeaveRequestCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceCreateNestedManyWithoutAdminUserInput
+    payrollRecords?: PayrollRecordCreateNestedManyWithoutAdminUserInput
+    payslips?: PayslipCreateNestedManyWithoutAdminUserInput
+    deductions?: DeductionCreateNestedManyWithoutAdminUserInput
+    receipts?: ReceiptCreateNestedManyWithoutAdminUserInput
+    invoices?: InvoiceCreateNestedManyWithoutAdminUserInput
+    mailMailboxesOwned?: MailMailboxCreateNestedManyWithoutOwnerInput
+    mailMemberships?: MailMembershipCreateNestedManyWithoutAdminUserInput
+    mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
+    mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
+    mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+  }
+
+  export type AdminUserUncheckedCreateWithoutMfaEnrollmentInput = {
+    id?: string
+    email: string
+    password: string
+    name: string
+    position?: string | null
+    department?: $Enums.Department | null
+    tier?: $Enums.AdminTier
+    status?: $Enums.AdminStatus
+    isTeamLead?: boolean
+    failedLoginAttempts?: number
+    googleId?: string | null
+    mainAppUserId?: string | null
+    lockedUntil?: Date | string | null
+    lastLoginAt?: Date | string | null
+    lastLoginIp?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
+    avatarUrl?: string | null
+    avatarCloudinaryId?: string | null
+    preferredName?: string | null
+    birthday?: Date | string | null
+    nationality?: string | null
+    gender?: string | null
+    maritalStatus?: string | null
+    workPhone?: string | null
+    homePhone?: string | null
+    personalPhone?: string | null
+    fax?: string | null
+    address?: string | null
+    state?: string | null
+    country?: string | null
+    emergencyName?: string | null
+    emergencyPhone?: string | null
+    emergencyEmail?: string | null
+    emergencyRelation?: string | null
+    employmentType?: string | null
+    employmentCategory?: string | null
+    location?: string | null
+    salary?: Decimal | DecimalJsLike | number | string | null
+    bonus?: Decimal | DecimalJsLike | number | string | null
+    equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
+    refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
+    socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
+    educations?: AdminEducationUncheckedCreateNestedManyWithoutAdminUserInput
+    documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
+    performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
+    reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUncheckedCreateNestedManyWithoutChangedByInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUncheckedCreateNestedManyWithoutValidatedByInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUncheckedCreateNestedManyWithoutAcknowledgedByInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUncheckedCreateNestedManyWithoutReviewedByInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUncheckedCreateNestedManyWithoutCancellationRequestedByInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUncheckedCreateNestedManyWithoutRequestedByInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUncheckedCreateNestedManyWithoutApprovedByInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUncheckedCreateNestedManyWithoutAdminUserInput
+    marketingContentItems?: marketing_content_itemsUncheckedCreateNestedManyWithoutAdminUserInput
+    socialAccountConnections?: SocialAccountConnectionUncheckedCreateNestedManyWithoutCreatedByInput
+    socialOAuthStates?: SocialOAuthStateUncheckedCreateNestedManyWithoutAdminUserInput
+    socialPostsCreated?: SocialPostUncheckedCreateNestedManyWithoutCreatedByInput
+    socialPostRevisionsCreated?: SocialPostRevisionUncheckedCreateNestedManyWithoutCreatedByInput
+    socialApprovalsSubmitted?: SocialPostApprovalUncheckedCreateNestedManyWithoutSubmittedByInput
+    socialApprovalsDecided?: SocialPostApprovalUncheckedCreateNestedManyWithoutDecidedByInput
+    socialPublicationsRequested?: SocialPublicationUncheckedCreateNestedManyWithoutRequestedByInput
+    socialPublicationsApproved?: SocialPublicationUncheckedCreateNestedManyWithoutApprovedByInput
+    socialMediaAssets?: SocialMediaAssetUncheckedCreateNestedManyWithoutOwnerInput
+    socialContactsLinked?: SocialContactUncheckedCreateNestedManyWithoutLinkedByInput
+    socialConversationsAssigned?: SocialConversationUncheckedCreateNestedManyWithoutAssigneeInput
+    socialConversationAssignments?: SocialConversationUncheckedCreateNestedManyWithoutAssignedByInput
+    socialMessagesSent?: SocialMessageUncheckedCreateNestedManyWithoutSentByAdminInput
+    socialConversationTagsAdded?: SocialConversationTagUncheckedCreateNestedManyWithoutTaggedByInput
+    socialCommentsAssigned?: SocialCommentUncheckedCreateNestedManyWithoutAssigneeInput
+    socialCommentsSent?: SocialCommentUncheckedCreateNestedManyWithoutSentByAdminInput
+    socialEscalationsConfirmed?: SocialEscalationUncheckedCreateNestedManyWithoutConfirmedByInput
+    socialInternalNotesAuthored?: SocialInternalNoteUncheckedCreateNestedManyWithoutAuthorInput
+    socialSavedRepliesCreated?: SocialSavedReplyUncheckedCreateNestedManyWithoutCreatedByInput
+    socialSettingsUpdated?: SocialOperationsSettingUncheckedCreateNestedManyWithoutUpdatedByInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUncheckedCreateNestedManyWithoutAcceptedByAdminInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUncheckedCreateNestedManyWithoutDismissedByAdminInput
+    marketingAlertsResolved?: marketing_alertsUncheckedCreateNestedManyWithoutResolvedByAdminInput
+    marketingAlertsAcknowledged?: marketing_alertsUncheckedCreateNestedManyWithoutAcknowledgedByAdminInput
+    marketingExperimentsCreated?: marketing_experimentsUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUncheckedCreateNestedManyWithoutRequestedByAdminInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUncheckedCreateNestedManyWithoutApproverInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUncheckedCreateNestedManyWithoutReviewerInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUncheckedCreateNestedManyWithoutAuthoredByAdminInput
+    teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
+    projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
+    assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
+    createdTasks?: TaskUncheckedCreateNestedManyWithoutAssignerInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutAdminUserInput
+    attendanceLogs?: AttendanceLogUncheckedCreateNestedManyWithoutAdminUserInput
+    leaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutAdminUserInput
+    reviewedLeaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutAdminUserInput
+    payrollRecords?: PayrollRecordUncheckedCreateNestedManyWithoutAdminUserInput
+    payslips?: PayslipUncheckedCreateNestedManyWithoutAdminUserInput
+    deductions?: DeductionUncheckedCreateNestedManyWithoutAdminUserInput
+    receipts?: ReceiptUncheckedCreateNestedManyWithoutAdminUserInput
+    invoices?: InvoiceUncheckedCreateNestedManyWithoutAdminUserInput
+    mailMailboxesOwned?: MailMailboxUncheckedCreateNestedManyWithoutOwnerInput
+    mailMemberships?: MailMembershipUncheckedCreateNestedManyWithoutAdminUserInput
+    mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
+    mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
+    mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+  }
+
+  export type AdminUserCreateOrConnectWithoutMfaEnrollmentInput = {
+    where: AdminUserWhereUniqueInput
+    create: XOR<AdminUserCreateWithoutMfaEnrollmentInput, AdminUserUncheckedCreateWithoutMfaEnrollmentInput>
+  }
+
+  export type AdminUserUpsertWithoutMfaEnrollmentInput = {
+    update: XOR<AdminUserUpdateWithoutMfaEnrollmentInput, AdminUserUncheckedUpdateWithoutMfaEnrollmentInput>
+    create: XOR<AdminUserCreateWithoutMfaEnrollmentInput, AdminUserUncheckedCreateWithoutMfaEnrollmentInput>
+    where?: AdminUserWhereInput
+  }
+
+  export type AdminUserUpdateToOneWithWhereWithoutMfaEnrollmentInput = {
+    where?: AdminUserWhereInput
+    data: XOR<AdminUserUpdateWithoutMfaEnrollmentInput, AdminUserUncheckedUpdateWithoutMfaEnrollmentInput>
+  }
+
+  export type AdminUserUpdateWithoutMfaEnrollmentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    position?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: NullableEnumDepartmentFieldUpdateOperationsInput | $Enums.Department | null
+    tier?: EnumAdminTierFieldUpdateOperationsInput | $Enums.AdminTier
+    status?: EnumAdminStatusFieldUpdateOperationsInput | $Enums.AdminStatus
+    isTeamLead?: BoolFieldUpdateOperationsInput | boolean
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    mainAppUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginIp?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
+    preferredName?: NullableStringFieldUpdateOperationsInput | string | null
+    birthday?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nationality?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    maritalStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    homePhone?: NullableStringFieldUpdateOperationsInput | string | null
+    personalPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    fax?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyName?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyRelation?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentType?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
+    refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
+    socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
+    educations?: AdminEducationUpdateManyWithoutAdminUserNestedInput
+    documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
+    performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
+    reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUpdateManyWithoutChangedByNestedInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUpdateManyWithoutValidatedByNestedInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUpdateManyWithoutAcknowledgedByNestedInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUpdateManyWithoutReviewedByNestedInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUpdateManyWithoutCancellationRequestedByNestedInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUpdateManyWithoutRequestedByNestedInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUpdateManyWithoutApprovedByNestedInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUpdateManyWithoutAdminUserNestedInput
+    marketingContentItems?: marketing_content_itemsUpdateManyWithoutAdminUserNestedInput
+    socialAccountConnections?: SocialAccountConnectionUpdateManyWithoutCreatedByNestedInput
+    socialOAuthStates?: SocialOAuthStateUpdateManyWithoutAdminUserNestedInput
+    socialPostsCreated?: SocialPostUpdateManyWithoutCreatedByNestedInput
+    socialPostRevisionsCreated?: SocialPostRevisionUpdateManyWithoutCreatedByNestedInput
+    socialApprovalsSubmitted?: SocialPostApprovalUpdateManyWithoutSubmittedByNestedInput
+    socialApprovalsDecided?: SocialPostApprovalUpdateManyWithoutDecidedByNestedInput
+    socialPublicationsRequested?: SocialPublicationUpdateManyWithoutRequestedByNestedInput
+    socialPublicationsApproved?: SocialPublicationUpdateManyWithoutApprovedByNestedInput
+    socialMediaAssets?: SocialMediaAssetUpdateManyWithoutOwnerNestedInput
+    socialContactsLinked?: SocialContactUpdateManyWithoutLinkedByNestedInput
+    socialConversationsAssigned?: SocialConversationUpdateManyWithoutAssigneeNestedInput
+    socialConversationAssignments?: SocialConversationUpdateManyWithoutAssignedByNestedInput
+    socialMessagesSent?: SocialMessageUpdateManyWithoutSentByAdminNestedInput
+    socialConversationTagsAdded?: SocialConversationTagUpdateManyWithoutTaggedByNestedInput
+    socialCommentsAssigned?: SocialCommentUpdateManyWithoutAssigneeNestedInput
+    socialCommentsSent?: SocialCommentUpdateManyWithoutSentByAdminNestedInput
+    socialEscalationsConfirmed?: SocialEscalationUpdateManyWithoutConfirmedByNestedInput
+    socialInternalNotesAuthored?: SocialInternalNoteUpdateManyWithoutAuthorNestedInput
+    socialSavedRepliesCreated?: SocialSavedReplyUpdateManyWithoutCreatedByNestedInput
+    socialSettingsUpdated?: SocialOperationsSettingUpdateManyWithoutUpdatedByNestedInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUpdateManyWithoutAcceptedByAdminNestedInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUpdateManyWithoutDismissedByAdminNestedInput
+    marketingAlertsResolved?: marketing_alertsUpdateManyWithoutResolvedByAdminNestedInput
+    marketingAlertsAcknowledged?: marketing_alertsUpdateManyWithoutAcknowledgedByAdminNestedInput
+    marketingExperimentsCreated?: marketing_experimentsUpdateManyWithoutCreatedByAdminNestedInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUpdateManyWithoutRequestedByAdminNestedInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUpdateManyWithoutApproverNestedInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUpdateManyWithoutCreatedByAdminNestedInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUpdateManyWithoutReviewerNestedInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUpdateManyWithoutAuthoredByAdminNestedInput
+    teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
+    projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
+    assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
+    createdTasks?: TaskUpdateManyWithoutAssignerNestedInput
+    notifications?: NotificationUpdateManyWithoutAdminUserNestedInput
+    attendanceLogs?: AttendanceLogUpdateManyWithoutAdminUserNestedInput
+    leaveRequests?: LeaveRequestUpdateManyWithoutAdminUserNestedInput
+    reviewedLeaveRequests?: LeaveRequestUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUpdateManyWithoutAdminUserNestedInput
+    payrollRecords?: PayrollRecordUpdateManyWithoutAdminUserNestedInput
+    payslips?: PayslipUpdateManyWithoutAdminUserNestedInput
+    deductions?: DeductionUpdateManyWithoutAdminUserNestedInput
+    receipts?: ReceiptUpdateManyWithoutAdminUserNestedInput
+    invoices?: InvoiceUpdateManyWithoutAdminUserNestedInput
+    mailMailboxesOwned?: MailMailboxUpdateManyWithoutOwnerNestedInput
+    mailMemberships?: MailMembershipUpdateManyWithoutAdminUserNestedInput
+    mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
+    mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
+    mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+  }
+
+  export type AdminUserUncheckedUpdateWithoutMfaEnrollmentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    position?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: NullableEnumDepartmentFieldUpdateOperationsInput | $Enums.Department | null
+    tier?: EnumAdminTierFieldUpdateOperationsInput | $Enums.AdminTier
+    status?: EnumAdminStatusFieldUpdateOperationsInput | $Enums.AdminStatus
+    isTeamLead?: BoolFieldUpdateOperationsInput | boolean
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    mainAppUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginIp?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
+    preferredName?: NullableStringFieldUpdateOperationsInput | string | null
+    birthday?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nationality?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    maritalStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    homePhone?: NullableStringFieldUpdateOperationsInput | string | null
+    personalPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    fax?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyName?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyRelation?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentType?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
+    refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
+    educations?: AdminEducationUncheckedUpdateManyWithoutAdminUserNestedInput
+    documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
+    performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
+    reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUncheckedUpdateManyWithoutValidatedByNestedInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUncheckedUpdateManyWithoutAcknowledgedByNestedInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUncheckedUpdateManyWithoutReviewedByNestedInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUncheckedUpdateManyWithoutCancellationRequestedByNestedInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUncheckedUpdateManyWithoutRequestedByNestedInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUncheckedUpdateManyWithoutApprovedByNestedInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUncheckedUpdateManyWithoutAdminUserNestedInput
+    marketingContentItems?: marketing_content_itemsUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialAccountConnections?: SocialAccountConnectionUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialOAuthStates?: SocialOAuthStateUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialPostsCreated?: SocialPostUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialPostRevisionsCreated?: SocialPostRevisionUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialApprovalsSubmitted?: SocialPostApprovalUncheckedUpdateManyWithoutSubmittedByNestedInput
+    socialApprovalsDecided?: SocialPostApprovalUncheckedUpdateManyWithoutDecidedByNestedInput
+    socialPublicationsRequested?: SocialPublicationUncheckedUpdateManyWithoutRequestedByNestedInput
+    socialPublicationsApproved?: SocialPublicationUncheckedUpdateManyWithoutApprovedByNestedInput
+    socialMediaAssets?: SocialMediaAssetUncheckedUpdateManyWithoutOwnerNestedInput
+    socialContactsLinked?: SocialContactUncheckedUpdateManyWithoutLinkedByNestedInput
+    socialConversationsAssigned?: SocialConversationUncheckedUpdateManyWithoutAssigneeNestedInput
+    socialConversationAssignments?: SocialConversationUncheckedUpdateManyWithoutAssignedByNestedInput
+    socialMessagesSent?: SocialMessageUncheckedUpdateManyWithoutSentByAdminNestedInput
+    socialConversationTagsAdded?: SocialConversationTagUncheckedUpdateManyWithoutTaggedByNestedInput
+    socialCommentsAssigned?: SocialCommentUncheckedUpdateManyWithoutAssigneeNestedInput
+    socialCommentsSent?: SocialCommentUncheckedUpdateManyWithoutSentByAdminNestedInput
+    socialEscalationsConfirmed?: SocialEscalationUncheckedUpdateManyWithoutConfirmedByNestedInput
+    socialInternalNotesAuthored?: SocialInternalNoteUncheckedUpdateManyWithoutAuthorNestedInput
+    socialSavedRepliesCreated?: SocialSavedReplyUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialSettingsUpdated?: SocialOperationsSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUncheckedUpdateManyWithoutAcceptedByAdminNestedInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUncheckedUpdateManyWithoutDismissedByAdminNestedInput
+    marketingAlertsResolved?: marketing_alertsUncheckedUpdateManyWithoutResolvedByAdminNestedInput
+    marketingAlertsAcknowledged?: marketing_alertsUncheckedUpdateManyWithoutAcknowledgedByAdminNestedInput
+    marketingExperimentsCreated?: marketing_experimentsUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUncheckedUpdateManyWithoutRequestedByAdminNestedInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUncheckedUpdateManyWithoutApproverNestedInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUncheckedUpdateManyWithoutReviewerNestedInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUncheckedUpdateManyWithoutAuthoredByAdminNestedInput
+    teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
+    projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
+    assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
+    createdTasks?: TaskUncheckedUpdateManyWithoutAssignerNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutAdminUserNestedInput
+    attendanceLogs?: AttendanceLogUncheckedUpdateManyWithoutAdminUserNestedInput
+    leaveRequests?: LeaveRequestUncheckedUpdateManyWithoutAdminUserNestedInput
+    reviewedLeaveRequests?: LeaveRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutAdminUserNestedInput
+    payrollRecords?: PayrollRecordUncheckedUpdateManyWithoutAdminUserNestedInput
+    payslips?: PayslipUncheckedUpdateManyWithoutAdminUserNestedInput
+    deductions?: DeductionUncheckedUpdateManyWithoutAdminUserNestedInput
+    receipts?: ReceiptUncheckedUpdateManyWithoutAdminUserNestedInput
+    invoices?: InvoiceUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailMailboxesOwned?: MailMailboxUncheckedUpdateManyWithoutOwnerNestedInput
+    mailMemberships?: MailMembershipUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+  }
+
+  export type AdminUserCreateWithoutMfaRecoveryCodesInput = {
+    id?: string
+    email: string
+    password: string
+    name: string
+    position?: string | null
+    department?: $Enums.Department | null
+    tier?: $Enums.AdminTier
+    status?: $Enums.AdminStatus
+    isTeamLead?: boolean
+    failedLoginAttempts?: number
+    googleId?: string | null
+    mainAppUserId?: string | null
+    lockedUntil?: Date | string | null
+    lastLoginAt?: Date | string | null
+    lastLoginIp?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
+    avatarUrl?: string | null
+    avatarCloudinaryId?: string | null
+    preferredName?: string | null
+    birthday?: Date | string | null
+    nationality?: string | null
+    gender?: string | null
+    maritalStatus?: string | null
+    workPhone?: string | null
+    homePhone?: string | null
+    personalPhone?: string | null
+    fax?: string | null
+    address?: string | null
+    state?: string | null
+    country?: string | null
+    emergencyName?: string | null
+    emergencyPhone?: string | null
+    emergencyEmail?: string | null
+    emergencyRelation?: string | null
+    employmentType?: string | null
+    employmentCategory?: string | null
+    location?: string | null
+    salary?: Decimal | DecimalJsLike | number | string | null
+    bonus?: Decimal | DecimalJsLike | number | string | null
+    equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
+    refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
+    socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
+    educations?: AdminEducationCreateNestedManyWithoutAdminUserInput
+    documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
+    performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
+    reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryCreateNestedManyWithoutChangedByInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketCreateNestedManyWithoutValidatedByInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentCreateNestedManyWithoutAcknowledgedByInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewCreateNestedManyWithoutReviewedByInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobCreateNestedManyWithoutCancellationRequestedByInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideCreateNestedManyWithoutRequestedByInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideCreateNestedManyWithoutApprovedByInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersCreateNestedManyWithoutAdminUserInput
+    marketingContentItems?: marketing_content_itemsCreateNestedManyWithoutAdminUserInput
+    socialAccountConnections?: SocialAccountConnectionCreateNestedManyWithoutCreatedByInput
+    socialOAuthStates?: SocialOAuthStateCreateNestedManyWithoutAdminUserInput
+    socialPostsCreated?: SocialPostCreateNestedManyWithoutCreatedByInput
+    socialPostRevisionsCreated?: SocialPostRevisionCreateNestedManyWithoutCreatedByInput
+    socialApprovalsSubmitted?: SocialPostApprovalCreateNestedManyWithoutSubmittedByInput
+    socialApprovalsDecided?: SocialPostApprovalCreateNestedManyWithoutDecidedByInput
+    socialPublicationsRequested?: SocialPublicationCreateNestedManyWithoutRequestedByInput
+    socialPublicationsApproved?: SocialPublicationCreateNestedManyWithoutApprovedByInput
+    socialMediaAssets?: SocialMediaAssetCreateNestedManyWithoutOwnerInput
+    socialContactsLinked?: SocialContactCreateNestedManyWithoutLinkedByInput
+    socialConversationsAssigned?: SocialConversationCreateNestedManyWithoutAssigneeInput
+    socialConversationAssignments?: SocialConversationCreateNestedManyWithoutAssignedByInput
+    socialMessagesSent?: SocialMessageCreateNestedManyWithoutSentByAdminInput
+    socialConversationTagsAdded?: SocialConversationTagCreateNestedManyWithoutTaggedByInput
+    socialCommentsAssigned?: SocialCommentCreateNestedManyWithoutAssigneeInput
+    socialCommentsSent?: SocialCommentCreateNestedManyWithoutSentByAdminInput
+    socialEscalationsConfirmed?: SocialEscalationCreateNestedManyWithoutConfirmedByInput
+    socialInternalNotesAuthored?: SocialInternalNoteCreateNestedManyWithoutAuthorInput
+    socialSavedRepliesCreated?: SocialSavedReplyCreateNestedManyWithoutCreatedByInput
+    socialSettingsUpdated?: SocialOperationsSettingCreateNestedManyWithoutUpdatedByInput
+    marketingRecommendationsAccepted?: marketing_recommendationsCreateNestedManyWithoutAcceptedByAdminInput
+    marketingRecommendationsDismissed?: marketing_recommendationsCreateNestedManyWithoutDismissedByAdminInput
+    marketingAlertsResolved?: marketing_alertsCreateNestedManyWithoutResolvedByAdminInput
+    marketingAlertsAcknowledged?: marketing_alertsCreateNestedManyWithoutAcknowledgedByAdminInput
+    marketingExperimentsCreated?: marketing_experimentsCreateNestedManyWithoutCreatedByAdminInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsCreateNestedManyWithoutRequestedByAdminInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalCreateNestedManyWithoutApproverInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyCreateNestedManyWithoutUpdatedByAdminInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationCreateNestedManyWithoutCreatedByAdminInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewCreateNestedManyWithoutReviewerInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkCreateNestedManyWithoutAuthoredByAdminInput
+    teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
+    projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
+    assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
+    createdTasks?: TaskCreateNestedManyWithoutAssignerInput
+    notifications?: NotificationCreateNestedManyWithoutAdminUserInput
+    attendanceLogs?: AttendanceLogCreateNestedManyWithoutAdminUserInput
+    leaveRequests?: LeaveRequestCreateNestedManyWithoutAdminUserInput
+    reviewedLeaveRequests?: LeaveRequestCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceCreateNestedManyWithoutAdminUserInput
+    payrollRecords?: PayrollRecordCreateNestedManyWithoutAdminUserInput
+    payslips?: PayslipCreateNestedManyWithoutAdminUserInput
+    deductions?: DeductionCreateNestedManyWithoutAdminUserInput
+    receipts?: ReceiptCreateNestedManyWithoutAdminUserInput
+    invoices?: InvoiceCreateNestedManyWithoutAdminUserInput
+    mailMailboxesOwned?: MailMailboxCreateNestedManyWithoutOwnerInput
+    mailMemberships?: MailMembershipCreateNestedManyWithoutAdminUserInput
+    mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
+    mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
+    mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+  }
+
+  export type AdminUserUncheckedCreateWithoutMfaRecoveryCodesInput = {
+    id?: string
+    email: string
+    password: string
+    name: string
+    position?: string | null
+    department?: $Enums.Department | null
+    tier?: $Enums.AdminTier
+    status?: $Enums.AdminStatus
+    isTeamLead?: boolean
+    failedLoginAttempts?: number
+    googleId?: string | null
+    mainAppUserId?: string | null
+    lockedUntil?: Date | string | null
+    lastLoginAt?: Date | string | null
+    lastLoginIp?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
+    avatarUrl?: string | null
+    avatarCloudinaryId?: string | null
+    preferredName?: string | null
+    birthday?: Date | string | null
+    nationality?: string | null
+    gender?: string | null
+    maritalStatus?: string | null
+    workPhone?: string | null
+    homePhone?: string | null
+    personalPhone?: string | null
+    fax?: string | null
+    address?: string | null
+    state?: string | null
+    country?: string | null
+    emergencyName?: string | null
+    emergencyPhone?: string | null
+    emergencyEmail?: string | null
+    emergencyRelation?: string | null
+    employmentType?: string | null
+    employmentCategory?: string | null
+    location?: string | null
+    salary?: Decimal | DecimalJsLike | number | string | null
+    bonus?: Decimal | DecimalJsLike | number | string | null
+    equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
+    refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
+    socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
+    educations?: AdminEducationUncheckedCreateNestedManyWithoutAdminUserInput
+    documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
+    performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
+    reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUncheckedCreateNestedManyWithoutChangedByInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUncheckedCreateNestedManyWithoutValidatedByInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUncheckedCreateNestedManyWithoutAcknowledgedByInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUncheckedCreateNestedManyWithoutReviewedByInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUncheckedCreateNestedManyWithoutCancellationRequestedByInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUncheckedCreateNestedManyWithoutRequestedByInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUncheckedCreateNestedManyWithoutApprovedByInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUncheckedCreateNestedManyWithoutAdminUserInput
+    marketingContentItems?: marketing_content_itemsUncheckedCreateNestedManyWithoutAdminUserInput
+    socialAccountConnections?: SocialAccountConnectionUncheckedCreateNestedManyWithoutCreatedByInput
+    socialOAuthStates?: SocialOAuthStateUncheckedCreateNestedManyWithoutAdminUserInput
+    socialPostsCreated?: SocialPostUncheckedCreateNestedManyWithoutCreatedByInput
+    socialPostRevisionsCreated?: SocialPostRevisionUncheckedCreateNestedManyWithoutCreatedByInput
+    socialApprovalsSubmitted?: SocialPostApprovalUncheckedCreateNestedManyWithoutSubmittedByInput
+    socialApprovalsDecided?: SocialPostApprovalUncheckedCreateNestedManyWithoutDecidedByInput
+    socialPublicationsRequested?: SocialPublicationUncheckedCreateNestedManyWithoutRequestedByInput
+    socialPublicationsApproved?: SocialPublicationUncheckedCreateNestedManyWithoutApprovedByInput
+    socialMediaAssets?: SocialMediaAssetUncheckedCreateNestedManyWithoutOwnerInput
+    socialContactsLinked?: SocialContactUncheckedCreateNestedManyWithoutLinkedByInput
+    socialConversationsAssigned?: SocialConversationUncheckedCreateNestedManyWithoutAssigneeInput
+    socialConversationAssignments?: SocialConversationUncheckedCreateNestedManyWithoutAssignedByInput
+    socialMessagesSent?: SocialMessageUncheckedCreateNestedManyWithoutSentByAdminInput
+    socialConversationTagsAdded?: SocialConversationTagUncheckedCreateNestedManyWithoutTaggedByInput
+    socialCommentsAssigned?: SocialCommentUncheckedCreateNestedManyWithoutAssigneeInput
+    socialCommentsSent?: SocialCommentUncheckedCreateNestedManyWithoutSentByAdminInput
+    socialEscalationsConfirmed?: SocialEscalationUncheckedCreateNestedManyWithoutConfirmedByInput
+    socialInternalNotesAuthored?: SocialInternalNoteUncheckedCreateNestedManyWithoutAuthorInput
+    socialSavedRepliesCreated?: SocialSavedReplyUncheckedCreateNestedManyWithoutCreatedByInput
+    socialSettingsUpdated?: SocialOperationsSettingUncheckedCreateNestedManyWithoutUpdatedByInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUncheckedCreateNestedManyWithoutAcceptedByAdminInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUncheckedCreateNestedManyWithoutDismissedByAdminInput
+    marketingAlertsResolved?: marketing_alertsUncheckedCreateNestedManyWithoutResolvedByAdminInput
+    marketingAlertsAcknowledged?: marketing_alertsUncheckedCreateNestedManyWithoutAcknowledgedByAdminInput
+    marketingExperimentsCreated?: marketing_experimentsUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUncheckedCreateNestedManyWithoutRequestedByAdminInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUncheckedCreateNestedManyWithoutApproverInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUncheckedCreateNestedManyWithoutReviewerInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUncheckedCreateNestedManyWithoutAuthoredByAdminInput
+    teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
+    projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
+    assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
+    createdTasks?: TaskUncheckedCreateNestedManyWithoutAssignerInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutAdminUserInput
+    attendanceLogs?: AttendanceLogUncheckedCreateNestedManyWithoutAdminUserInput
+    leaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutAdminUserInput
+    reviewedLeaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutAdminUserInput
+    payrollRecords?: PayrollRecordUncheckedCreateNestedManyWithoutAdminUserInput
+    payslips?: PayslipUncheckedCreateNestedManyWithoutAdminUserInput
+    deductions?: DeductionUncheckedCreateNestedManyWithoutAdminUserInput
+    receipts?: ReceiptUncheckedCreateNestedManyWithoutAdminUserInput
+    invoices?: InvoiceUncheckedCreateNestedManyWithoutAdminUserInput
+    mailMailboxesOwned?: MailMailboxUncheckedCreateNestedManyWithoutOwnerInput
+    mailMemberships?: MailMembershipUncheckedCreateNestedManyWithoutAdminUserInput
+    mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
+    mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
+    mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+  }
+
+  export type AdminUserCreateOrConnectWithoutMfaRecoveryCodesInput = {
+    where: AdminUserWhereUniqueInput
+    create: XOR<AdminUserCreateWithoutMfaRecoveryCodesInput, AdminUserUncheckedCreateWithoutMfaRecoveryCodesInput>
+  }
+
+  export type AdminUserUpsertWithoutMfaRecoveryCodesInput = {
+    update: XOR<AdminUserUpdateWithoutMfaRecoveryCodesInput, AdminUserUncheckedUpdateWithoutMfaRecoveryCodesInput>
+    create: XOR<AdminUserCreateWithoutMfaRecoveryCodesInput, AdminUserUncheckedCreateWithoutMfaRecoveryCodesInput>
+    where?: AdminUserWhereInput
+  }
+
+  export type AdminUserUpdateToOneWithWhereWithoutMfaRecoveryCodesInput = {
+    where?: AdminUserWhereInput
+    data: XOR<AdminUserUpdateWithoutMfaRecoveryCodesInput, AdminUserUncheckedUpdateWithoutMfaRecoveryCodesInput>
+  }
+
+  export type AdminUserUpdateWithoutMfaRecoveryCodesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    position?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: NullableEnumDepartmentFieldUpdateOperationsInput | $Enums.Department | null
+    tier?: EnumAdminTierFieldUpdateOperationsInput | $Enums.AdminTier
+    status?: EnumAdminStatusFieldUpdateOperationsInput | $Enums.AdminStatus
+    isTeamLead?: BoolFieldUpdateOperationsInput | boolean
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    mainAppUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginIp?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
+    preferredName?: NullableStringFieldUpdateOperationsInput | string | null
+    birthday?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nationality?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    maritalStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    homePhone?: NullableStringFieldUpdateOperationsInput | string | null
+    personalPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    fax?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyName?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyRelation?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentType?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
+    refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
+    socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
+    educations?: AdminEducationUpdateManyWithoutAdminUserNestedInput
+    documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
+    performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
+    reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUpdateManyWithoutChangedByNestedInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUpdateManyWithoutValidatedByNestedInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUpdateManyWithoutAcknowledgedByNestedInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUpdateManyWithoutReviewedByNestedInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUpdateManyWithoutCancellationRequestedByNestedInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUpdateManyWithoutRequestedByNestedInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUpdateManyWithoutApprovedByNestedInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUpdateManyWithoutAdminUserNestedInput
+    marketingContentItems?: marketing_content_itemsUpdateManyWithoutAdminUserNestedInput
+    socialAccountConnections?: SocialAccountConnectionUpdateManyWithoutCreatedByNestedInput
+    socialOAuthStates?: SocialOAuthStateUpdateManyWithoutAdminUserNestedInput
+    socialPostsCreated?: SocialPostUpdateManyWithoutCreatedByNestedInput
+    socialPostRevisionsCreated?: SocialPostRevisionUpdateManyWithoutCreatedByNestedInput
+    socialApprovalsSubmitted?: SocialPostApprovalUpdateManyWithoutSubmittedByNestedInput
+    socialApprovalsDecided?: SocialPostApprovalUpdateManyWithoutDecidedByNestedInput
+    socialPublicationsRequested?: SocialPublicationUpdateManyWithoutRequestedByNestedInput
+    socialPublicationsApproved?: SocialPublicationUpdateManyWithoutApprovedByNestedInput
+    socialMediaAssets?: SocialMediaAssetUpdateManyWithoutOwnerNestedInput
+    socialContactsLinked?: SocialContactUpdateManyWithoutLinkedByNestedInput
+    socialConversationsAssigned?: SocialConversationUpdateManyWithoutAssigneeNestedInput
+    socialConversationAssignments?: SocialConversationUpdateManyWithoutAssignedByNestedInput
+    socialMessagesSent?: SocialMessageUpdateManyWithoutSentByAdminNestedInput
+    socialConversationTagsAdded?: SocialConversationTagUpdateManyWithoutTaggedByNestedInput
+    socialCommentsAssigned?: SocialCommentUpdateManyWithoutAssigneeNestedInput
+    socialCommentsSent?: SocialCommentUpdateManyWithoutSentByAdminNestedInput
+    socialEscalationsConfirmed?: SocialEscalationUpdateManyWithoutConfirmedByNestedInput
+    socialInternalNotesAuthored?: SocialInternalNoteUpdateManyWithoutAuthorNestedInput
+    socialSavedRepliesCreated?: SocialSavedReplyUpdateManyWithoutCreatedByNestedInput
+    socialSettingsUpdated?: SocialOperationsSettingUpdateManyWithoutUpdatedByNestedInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUpdateManyWithoutAcceptedByAdminNestedInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUpdateManyWithoutDismissedByAdminNestedInput
+    marketingAlertsResolved?: marketing_alertsUpdateManyWithoutResolvedByAdminNestedInput
+    marketingAlertsAcknowledged?: marketing_alertsUpdateManyWithoutAcknowledgedByAdminNestedInput
+    marketingExperimentsCreated?: marketing_experimentsUpdateManyWithoutCreatedByAdminNestedInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUpdateManyWithoutRequestedByAdminNestedInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUpdateManyWithoutApproverNestedInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUpdateManyWithoutCreatedByAdminNestedInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUpdateManyWithoutReviewerNestedInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUpdateManyWithoutAuthoredByAdminNestedInput
+    teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
+    projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
+    assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
+    createdTasks?: TaskUpdateManyWithoutAssignerNestedInput
+    notifications?: NotificationUpdateManyWithoutAdminUserNestedInput
+    attendanceLogs?: AttendanceLogUpdateManyWithoutAdminUserNestedInput
+    leaveRequests?: LeaveRequestUpdateManyWithoutAdminUserNestedInput
+    reviewedLeaveRequests?: LeaveRequestUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUpdateManyWithoutAdminUserNestedInput
+    payrollRecords?: PayrollRecordUpdateManyWithoutAdminUserNestedInput
+    payslips?: PayslipUpdateManyWithoutAdminUserNestedInput
+    deductions?: DeductionUpdateManyWithoutAdminUserNestedInput
+    receipts?: ReceiptUpdateManyWithoutAdminUserNestedInput
+    invoices?: InvoiceUpdateManyWithoutAdminUserNestedInput
+    mailMailboxesOwned?: MailMailboxUpdateManyWithoutOwnerNestedInput
+    mailMemberships?: MailMembershipUpdateManyWithoutAdminUserNestedInput
+    mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
+    mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
+    mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+  }
+
+  export type AdminUserUncheckedUpdateWithoutMfaRecoveryCodesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    position?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: NullableEnumDepartmentFieldUpdateOperationsInput | $Enums.Department | null
+    tier?: EnumAdminTierFieldUpdateOperationsInput | $Enums.AdminTier
+    status?: EnumAdminStatusFieldUpdateOperationsInput | $Enums.AdminStatus
+    isTeamLead?: BoolFieldUpdateOperationsInput | boolean
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    mainAppUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginIp?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
+    preferredName?: NullableStringFieldUpdateOperationsInput | string | null
+    birthday?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nationality?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    maritalStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    homePhone?: NullableStringFieldUpdateOperationsInput | string | null
+    personalPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    fax?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyName?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyRelation?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentType?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
+    refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
+    educations?: AdminEducationUncheckedUpdateManyWithoutAdminUserNestedInput
+    documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
+    performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
+    reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUncheckedUpdateManyWithoutValidatedByNestedInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUncheckedUpdateManyWithoutAcknowledgedByNestedInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUncheckedUpdateManyWithoutReviewedByNestedInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUncheckedUpdateManyWithoutCancellationRequestedByNestedInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUncheckedUpdateManyWithoutRequestedByNestedInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUncheckedUpdateManyWithoutApprovedByNestedInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUncheckedUpdateManyWithoutAdminUserNestedInput
+    marketingContentItems?: marketing_content_itemsUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialAccountConnections?: SocialAccountConnectionUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialOAuthStates?: SocialOAuthStateUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialPostsCreated?: SocialPostUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialPostRevisionsCreated?: SocialPostRevisionUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialApprovalsSubmitted?: SocialPostApprovalUncheckedUpdateManyWithoutSubmittedByNestedInput
+    socialApprovalsDecided?: SocialPostApprovalUncheckedUpdateManyWithoutDecidedByNestedInput
+    socialPublicationsRequested?: SocialPublicationUncheckedUpdateManyWithoutRequestedByNestedInput
+    socialPublicationsApproved?: SocialPublicationUncheckedUpdateManyWithoutApprovedByNestedInput
+    socialMediaAssets?: SocialMediaAssetUncheckedUpdateManyWithoutOwnerNestedInput
+    socialContactsLinked?: SocialContactUncheckedUpdateManyWithoutLinkedByNestedInput
+    socialConversationsAssigned?: SocialConversationUncheckedUpdateManyWithoutAssigneeNestedInput
+    socialConversationAssignments?: SocialConversationUncheckedUpdateManyWithoutAssignedByNestedInput
+    socialMessagesSent?: SocialMessageUncheckedUpdateManyWithoutSentByAdminNestedInput
+    socialConversationTagsAdded?: SocialConversationTagUncheckedUpdateManyWithoutTaggedByNestedInput
+    socialCommentsAssigned?: SocialCommentUncheckedUpdateManyWithoutAssigneeNestedInput
+    socialCommentsSent?: SocialCommentUncheckedUpdateManyWithoutSentByAdminNestedInput
+    socialEscalationsConfirmed?: SocialEscalationUncheckedUpdateManyWithoutConfirmedByNestedInput
+    socialInternalNotesAuthored?: SocialInternalNoteUncheckedUpdateManyWithoutAuthorNestedInput
+    socialSavedRepliesCreated?: SocialSavedReplyUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialSettingsUpdated?: SocialOperationsSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUncheckedUpdateManyWithoutAcceptedByAdminNestedInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUncheckedUpdateManyWithoutDismissedByAdminNestedInput
+    marketingAlertsResolved?: marketing_alertsUncheckedUpdateManyWithoutResolvedByAdminNestedInput
+    marketingAlertsAcknowledged?: marketing_alertsUncheckedUpdateManyWithoutAcknowledgedByAdminNestedInput
+    marketingExperimentsCreated?: marketing_experimentsUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUncheckedUpdateManyWithoutRequestedByAdminNestedInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUncheckedUpdateManyWithoutApproverNestedInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUncheckedUpdateManyWithoutReviewerNestedInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUncheckedUpdateManyWithoutAuthoredByAdminNestedInput
+    teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
+    projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
+    assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
+    createdTasks?: TaskUncheckedUpdateManyWithoutAssignerNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutAdminUserNestedInput
+    attendanceLogs?: AttendanceLogUncheckedUpdateManyWithoutAdminUserNestedInput
+    leaveRequests?: LeaveRequestUncheckedUpdateManyWithoutAdminUserNestedInput
+    reviewedLeaveRequests?: LeaveRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutAdminUserNestedInput
+    payrollRecords?: PayrollRecordUncheckedUpdateManyWithoutAdminUserNestedInput
+    payslips?: PayslipUncheckedUpdateManyWithoutAdminUserNestedInput
+    deductions?: DeductionUncheckedUpdateManyWithoutAdminUserNestedInput
+    receipts?: ReceiptUncheckedUpdateManyWithoutAdminUserNestedInput
+    invoices?: InvoiceUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailMailboxesOwned?: MailMailboxUncheckedUpdateManyWithoutOwnerNestedInput
+    mailMemberships?: MailMembershipUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+  }
+
+  export type AdminUserCreateWithoutMfaChallengesInput = {
+    id?: string
+    email: string
+    password: string
+    name: string
+    position?: string | null
+    department?: $Enums.Department | null
+    tier?: $Enums.AdminTier
+    status?: $Enums.AdminStatus
+    isTeamLead?: boolean
+    failedLoginAttempts?: number
+    googleId?: string | null
+    mainAppUserId?: string | null
+    lockedUntil?: Date | string | null
+    lastLoginAt?: Date | string | null
+    lastLoginIp?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
+    avatarUrl?: string | null
+    avatarCloudinaryId?: string | null
+    preferredName?: string | null
+    birthday?: Date | string | null
+    nationality?: string | null
+    gender?: string | null
+    maritalStatus?: string | null
+    workPhone?: string | null
+    homePhone?: string | null
+    personalPhone?: string | null
+    fax?: string | null
+    address?: string | null
+    state?: string | null
+    country?: string | null
+    emergencyName?: string | null
+    emergencyPhone?: string | null
+    emergencyEmail?: string | null
+    emergencyRelation?: string | null
+    employmentType?: string | null
+    employmentCategory?: string | null
+    location?: string | null
+    salary?: Decimal | DecimalJsLike | number | string | null
+    bonus?: Decimal | DecimalJsLike | number | string | null
+    equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
+    refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
+    socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
+    educations?: AdminEducationCreateNestedManyWithoutAdminUserInput
+    documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
+    performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
+    reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryCreateNestedManyWithoutChangedByInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketCreateNestedManyWithoutValidatedByInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentCreateNestedManyWithoutAcknowledgedByInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewCreateNestedManyWithoutReviewedByInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobCreateNestedManyWithoutCancellationRequestedByInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideCreateNestedManyWithoutRequestedByInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideCreateNestedManyWithoutApprovedByInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersCreateNestedManyWithoutAdminUserInput
+    marketingContentItems?: marketing_content_itemsCreateNestedManyWithoutAdminUserInput
+    socialAccountConnections?: SocialAccountConnectionCreateNestedManyWithoutCreatedByInput
+    socialOAuthStates?: SocialOAuthStateCreateNestedManyWithoutAdminUserInput
+    socialPostsCreated?: SocialPostCreateNestedManyWithoutCreatedByInput
+    socialPostRevisionsCreated?: SocialPostRevisionCreateNestedManyWithoutCreatedByInput
+    socialApprovalsSubmitted?: SocialPostApprovalCreateNestedManyWithoutSubmittedByInput
+    socialApprovalsDecided?: SocialPostApprovalCreateNestedManyWithoutDecidedByInput
+    socialPublicationsRequested?: SocialPublicationCreateNestedManyWithoutRequestedByInput
+    socialPublicationsApproved?: SocialPublicationCreateNestedManyWithoutApprovedByInput
+    socialMediaAssets?: SocialMediaAssetCreateNestedManyWithoutOwnerInput
+    socialContactsLinked?: SocialContactCreateNestedManyWithoutLinkedByInput
+    socialConversationsAssigned?: SocialConversationCreateNestedManyWithoutAssigneeInput
+    socialConversationAssignments?: SocialConversationCreateNestedManyWithoutAssignedByInput
+    socialMessagesSent?: SocialMessageCreateNestedManyWithoutSentByAdminInput
+    socialConversationTagsAdded?: SocialConversationTagCreateNestedManyWithoutTaggedByInput
+    socialCommentsAssigned?: SocialCommentCreateNestedManyWithoutAssigneeInput
+    socialCommentsSent?: SocialCommentCreateNestedManyWithoutSentByAdminInput
+    socialEscalationsConfirmed?: SocialEscalationCreateNestedManyWithoutConfirmedByInput
+    socialInternalNotesAuthored?: SocialInternalNoteCreateNestedManyWithoutAuthorInput
+    socialSavedRepliesCreated?: SocialSavedReplyCreateNestedManyWithoutCreatedByInput
+    socialSettingsUpdated?: SocialOperationsSettingCreateNestedManyWithoutUpdatedByInput
+    marketingRecommendationsAccepted?: marketing_recommendationsCreateNestedManyWithoutAcceptedByAdminInput
+    marketingRecommendationsDismissed?: marketing_recommendationsCreateNestedManyWithoutDismissedByAdminInput
+    marketingAlertsResolved?: marketing_alertsCreateNestedManyWithoutResolvedByAdminInput
+    marketingAlertsAcknowledged?: marketing_alertsCreateNestedManyWithoutAcknowledgedByAdminInput
+    marketingExperimentsCreated?: marketing_experimentsCreateNestedManyWithoutCreatedByAdminInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsCreateNestedManyWithoutRequestedByAdminInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalCreateNestedManyWithoutApproverInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyCreateNestedManyWithoutUpdatedByAdminInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationCreateNestedManyWithoutCreatedByAdminInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewCreateNestedManyWithoutReviewerInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkCreateNestedManyWithoutAuthoredByAdminInput
+    teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
+    projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
+    assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
+    createdTasks?: TaskCreateNestedManyWithoutAssignerInput
+    notifications?: NotificationCreateNestedManyWithoutAdminUserInput
+    attendanceLogs?: AttendanceLogCreateNestedManyWithoutAdminUserInput
+    leaveRequests?: LeaveRequestCreateNestedManyWithoutAdminUserInput
+    reviewedLeaveRequests?: LeaveRequestCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceCreateNestedManyWithoutAdminUserInput
+    payrollRecords?: PayrollRecordCreateNestedManyWithoutAdminUserInput
+    payslips?: PayslipCreateNestedManyWithoutAdminUserInput
+    deductions?: DeductionCreateNestedManyWithoutAdminUserInput
+    receipts?: ReceiptCreateNestedManyWithoutAdminUserInput
+    invoices?: InvoiceCreateNestedManyWithoutAdminUserInput
+    mailMailboxesOwned?: MailMailboxCreateNestedManyWithoutOwnerInput
+    mailMemberships?: MailMembershipCreateNestedManyWithoutAdminUserInput
+    mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
+    mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
+    mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+  }
+
+  export type AdminUserUncheckedCreateWithoutMfaChallengesInput = {
+    id?: string
+    email: string
+    password: string
+    name: string
+    position?: string | null
+    department?: $Enums.Department | null
+    tier?: $Enums.AdminTier
+    status?: $Enums.AdminStatus
+    isTeamLead?: boolean
+    failedLoginAttempts?: number
+    googleId?: string | null
+    mainAppUserId?: string | null
+    lockedUntil?: Date | string | null
+    lastLoginAt?: Date | string | null
+    lastLoginIp?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
+    avatarUrl?: string | null
+    avatarCloudinaryId?: string | null
+    preferredName?: string | null
+    birthday?: Date | string | null
+    nationality?: string | null
+    gender?: string | null
+    maritalStatus?: string | null
+    workPhone?: string | null
+    homePhone?: string | null
+    personalPhone?: string | null
+    fax?: string | null
+    address?: string | null
+    state?: string | null
+    country?: string | null
+    emergencyName?: string | null
+    emergencyPhone?: string | null
+    emergencyEmail?: string | null
+    emergencyRelation?: string | null
+    employmentType?: string | null
+    employmentCategory?: string | null
+    location?: string | null
+    salary?: Decimal | DecimalJsLike | number | string | null
+    bonus?: Decimal | DecimalJsLike | number | string | null
+    equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
+    refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
+    socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
+    educations?: AdminEducationUncheckedCreateNestedManyWithoutAdminUserInput
+    documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
+    performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
+    reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUncheckedCreateNestedManyWithoutChangedByInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUncheckedCreateNestedManyWithoutValidatedByInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUncheckedCreateNestedManyWithoutAcknowledgedByInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUncheckedCreateNestedManyWithoutReviewedByInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUncheckedCreateNestedManyWithoutCancellationRequestedByInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUncheckedCreateNestedManyWithoutRequestedByInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUncheckedCreateNestedManyWithoutApprovedByInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUncheckedCreateNestedManyWithoutAdminUserInput
+    marketingContentItems?: marketing_content_itemsUncheckedCreateNestedManyWithoutAdminUserInput
+    socialAccountConnections?: SocialAccountConnectionUncheckedCreateNestedManyWithoutCreatedByInput
+    socialOAuthStates?: SocialOAuthStateUncheckedCreateNestedManyWithoutAdminUserInput
+    socialPostsCreated?: SocialPostUncheckedCreateNestedManyWithoutCreatedByInput
+    socialPostRevisionsCreated?: SocialPostRevisionUncheckedCreateNestedManyWithoutCreatedByInput
+    socialApprovalsSubmitted?: SocialPostApprovalUncheckedCreateNestedManyWithoutSubmittedByInput
+    socialApprovalsDecided?: SocialPostApprovalUncheckedCreateNestedManyWithoutDecidedByInput
+    socialPublicationsRequested?: SocialPublicationUncheckedCreateNestedManyWithoutRequestedByInput
+    socialPublicationsApproved?: SocialPublicationUncheckedCreateNestedManyWithoutApprovedByInput
+    socialMediaAssets?: SocialMediaAssetUncheckedCreateNestedManyWithoutOwnerInput
+    socialContactsLinked?: SocialContactUncheckedCreateNestedManyWithoutLinkedByInput
+    socialConversationsAssigned?: SocialConversationUncheckedCreateNestedManyWithoutAssigneeInput
+    socialConversationAssignments?: SocialConversationUncheckedCreateNestedManyWithoutAssignedByInput
+    socialMessagesSent?: SocialMessageUncheckedCreateNestedManyWithoutSentByAdminInput
+    socialConversationTagsAdded?: SocialConversationTagUncheckedCreateNestedManyWithoutTaggedByInput
+    socialCommentsAssigned?: SocialCommentUncheckedCreateNestedManyWithoutAssigneeInput
+    socialCommentsSent?: SocialCommentUncheckedCreateNestedManyWithoutSentByAdminInput
+    socialEscalationsConfirmed?: SocialEscalationUncheckedCreateNestedManyWithoutConfirmedByInput
+    socialInternalNotesAuthored?: SocialInternalNoteUncheckedCreateNestedManyWithoutAuthorInput
+    socialSavedRepliesCreated?: SocialSavedReplyUncheckedCreateNestedManyWithoutCreatedByInput
+    socialSettingsUpdated?: SocialOperationsSettingUncheckedCreateNestedManyWithoutUpdatedByInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUncheckedCreateNestedManyWithoutAcceptedByAdminInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUncheckedCreateNestedManyWithoutDismissedByAdminInput
+    marketingAlertsResolved?: marketing_alertsUncheckedCreateNestedManyWithoutResolvedByAdminInput
+    marketingAlertsAcknowledged?: marketing_alertsUncheckedCreateNestedManyWithoutAcknowledgedByAdminInput
+    marketingExperimentsCreated?: marketing_experimentsUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUncheckedCreateNestedManyWithoutRequestedByAdminInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUncheckedCreateNestedManyWithoutApproverInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUncheckedCreateNestedManyWithoutReviewerInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUncheckedCreateNestedManyWithoutAuthoredByAdminInput
+    teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
+    projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
+    assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
+    createdTasks?: TaskUncheckedCreateNestedManyWithoutAssignerInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutAdminUserInput
+    attendanceLogs?: AttendanceLogUncheckedCreateNestedManyWithoutAdminUserInput
+    leaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutAdminUserInput
+    reviewedLeaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutAdminUserInput
+    payrollRecords?: PayrollRecordUncheckedCreateNestedManyWithoutAdminUserInput
+    payslips?: PayslipUncheckedCreateNestedManyWithoutAdminUserInput
+    deductions?: DeductionUncheckedCreateNestedManyWithoutAdminUserInput
+    receipts?: ReceiptUncheckedCreateNestedManyWithoutAdminUserInput
+    invoices?: InvoiceUncheckedCreateNestedManyWithoutAdminUserInput
+    mailMailboxesOwned?: MailMailboxUncheckedCreateNestedManyWithoutOwnerInput
+    mailMemberships?: MailMembershipUncheckedCreateNestedManyWithoutAdminUserInput
+    mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
+    mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
+    mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+  }
+
+  export type AdminUserCreateOrConnectWithoutMfaChallengesInput = {
+    where: AdminUserWhereUniqueInput
+    create: XOR<AdminUserCreateWithoutMfaChallengesInput, AdminUserUncheckedCreateWithoutMfaChallengesInput>
+  }
+
+  export type AdminUserUpsertWithoutMfaChallengesInput = {
+    update: XOR<AdminUserUpdateWithoutMfaChallengesInput, AdminUserUncheckedUpdateWithoutMfaChallengesInput>
+    create: XOR<AdminUserCreateWithoutMfaChallengesInput, AdminUserUncheckedCreateWithoutMfaChallengesInput>
+    where?: AdminUserWhereInput
+  }
+
+  export type AdminUserUpdateToOneWithWhereWithoutMfaChallengesInput = {
+    where?: AdminUserWhereInput
+    data: XOR<AdminUserUpdateWithoutMfaChallengesInput, AdminUserUncheckedUpdateWithoutMfaChallengesInput>
+  }
+
+  export type AdminUserUpdateWithoutMfaChallengesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    position?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: NullableEnumDepartmentFieldUpdateOperationsInput | $Enums.Department | null
+    tier?: EnumAdminTierFieldUpdateOperationsInput | $Enums.AdminTier
+    status?: EnumAdminStatusFieldUpdateOperationsInput | $Enums.AdminStatus
+    isTeamLead?: BoolFieldUpdateOperationsInput | boolean
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    mainAppUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginIp?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
+    preferredName?: NullableStringFieldUpdateOperationsInput | string | null
+    birthday?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nationality?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    maritalStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    homePhone?: NullableStringFieldUpdateOperationsInput | string | null
+    personalPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    fax?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyName?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyRelation?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentType?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
+    refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
+    socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
+    educations?: AdminEducationUpdateManyWithoutAdminUserNestedInput
+    documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
+    performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
+    reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUpdateManyWithoutChangedByNestedInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUpdateManyWithoutValidatedByNestedInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUpdateManyWithoutAcknowledgedByNestedInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUpdateManyWithoutReviewedByNestedInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUpdateManyWithoutCancellationRequestedByNestedInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUpdateManyWithoutRequestedByNestedInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUpdateManyWithoutApprovedByNestedInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUpdateManyWithoutAdminUserNestedInput
+    marketingContentItems?: marketing_content_itemsUpdateManyWithoutAdminUserNestedInput
+    socialAccountConnections?: SocialAccountConnectionUpdateManyWithoutCreatedByNestedInput
+    socialOAuthStates?: SocialOAuthStateUpdateManyWithoutAdminUserNestedInput
+    socialPostsCreated?: SocialPostUpdateManyWithoutCreatedByNestedInput
+    socialPostRevisionsCreated?: SocialPostRevisionUpdateManyWithoutCreatedByNestedInput
+    socialApprovalsSubmitted?: SocialPostApprovalUpdateManyWithoutSubmittedByNestedInput
+    socialApprovalsDecided?: SocialPostApprovalUpdateManyWithoutDecidedByNestedInput
+    socialPublicationsRequested?: SocialPublicationUpdateManyWithoutRequestedByNestedInput
+    socialPublicationsApproved?: SocialPublicationUpdateManyWithoutApprovedByNestedInput
+    socialMediaAssets?: SocialMediaAssetUpdateManyWithoutOwnerNestedInput
+    socialContactsLinked?: SocialContactUpdateManyWithoutLinkedByNestedInput
+    socialConversationsAssigned?: SocialConversationUpdateManyWithoutAssigneeNestedInput
+    socialConversationAssignments?: SocialConversationUpdateManyWithoutAssignedByNestedInput
+    socialMessagesSent?: SocialMessageUpdateManyWithoutSentByAdminNestedInput
+    socialConversationTagsAdded?: SocialConversationTagUpdateManyWithoutTaggedByNestedInput
+    socialCommentsAssigned?: SocialCommentUpdateManyWithoutAssigneeNestedInput
+    socialCommentsSent?: SocialCommentUpdateManyWithoutSentByAdminNestedInput
+    socialEscalationsConfirmed?: SocialEscalationUpdateManyWithoutConfirmedByNestedInput
+    socialInternalNotesAuthored?: SocialInternalNoteUpdateManyWithoutAuthorNestedInput
+    socialSavedRepliesCreated?: SocialSavedReplyUpdateManyWithoutCreatedByNestedInput
+    socialSettingsUpdated?: SocialOperationsSettingUpdateManyWithoutUpdatedByNestedInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUpdateManyWithoutAcceptedByAdminNestedInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUpdateManyWithoutDismissedByAdminNestedInput
+    marketingAlertsResolved?: marketing_alertsUpdateManyWithoutResolvedByAdminNestedInput
+    marketingAlertsAcknowledged?: marketing_alertsUpdateManyWithoutAcknowledgedByAdminNestedInput
+    marketingExperimentsCreated?: marketing_experimentsUpdateManyWithoutCreatedByAdminNestedInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUpdateManyWithoutRequestedByAdminNestedInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUpdateManyWithoutApproverNestedInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUpdateManyWithoutCreatedByAdminNestedInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUpdateManyWithoutReviewerNestedInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUpdateManyWithoutAuthoredByAdminNestedInput
+    teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
+    projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
+    assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
+    createdTasks?: TaskUpdateManyWithoutAssignerNestedInput
+    notifications?: NotificationUpdateManyWithoutAdminUserNestedInput
+    attendanceLogs?: AttendanceLogUpdateManyWithoutAdminUserNestedInput
+    leaveRequests?: LeaveRequestUpdateManyWithoutAdminUserNestedInput
+    reviewedLeaveRequests?: LeaveRequestUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUpdateManyWithoutAdminUserNestedInput
+    payrollRecords?: PayrollRecordUpdateManyWithoutAdminUserNestedInput
+    payslips?: PayslipUpdateManyWithoutAdminUserNestedInput
+    deductions?: DeductionUpdateManyWithoutAdminUserNestedInput
+    receipts?: ReceiptUpdateManyWithoutAdminUserNestedInput
+    invoices?: InvoiceUpdateManyWithoutAdminUserNestedInput
+    mailMailboxesOwned?: MailMailboxUpdateManyWithoutOwnerNestedInput
+    mailMemberships?: MailMembershipUpdateManyWithoutAdminUserNestedInput
+    mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
+    mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
+    mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+  }
+
+  export type AdminUserUncheckedUpdateWithoutMfaChallengesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    position?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: NullableEnumDepartmentFieldUpdateOperationsInput | $Enums.Department | null
+    tier?: EnumAdminTierFieldUpdateOperationsInput | $Enums.AdminTier
+    status?: EnumAdminStatusFieldUpdateOperationsInput | $Enums.AdminStatus
+    isTeamLead?: BoolFieldUpdateOperationsInput | boolean
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    mainAppUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginIp?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
+    preferredName?: NullableStringFieldUpdateOperationsInput | string | null
+    birthday?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nationality?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    maritalStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    homePhone?: NullableStringFieldUpdateOperationsInput | string | null
+    personalPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    fax?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyName?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyRelation?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentType?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
+    refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
+    educations?: AdminEducationUncheckedUpdateManyWithoutAdminUserNestedInput
+    documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
+    performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
+    reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUncheckedUpdateManyWithoutValidatedByNestedInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUncheckedUpdateManyWithoutAcknowledgedByNestedInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUncheckedUpdateManyWithoutReviewedByNestedInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUncheckedUpdateManyWithoutCancellationRequestedByNestedInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUncheckedUpdateManyWithoutRequestedByNestedInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUncheckedUpdateManyWithoutApprovedByNestedInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUncheckedUpdateManyWithoutAdminUserNestedInput
+    marketingContentItems?: marketing_content_itemsUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialAccountConnections?: SocialAccountConnectionUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialOAuthStates?: SocialOAuthStateUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialPostsCreated?: SocialPostUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialPostRevisionsCreated?: SocialPostRevisionUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialApprovalsSubmitted?: SocialPostApprovalUncheckedUpdateManyWithoutSubmittedByNestedInput
+    socialApprovalsDecided?: SocialPostApprovalUncheckedUpdateManyWithoutDecidedByNestedInput
+    socialPublicationsRequested?: SocialPublicationUncheckedUpdateManyWithoutRequestedByNestedInput
+    socialPublicationsApproved?: SocialPublicationUncheckedUpdateManyWithoutApprovedByNestedInput
+    socialMediaAssets?: SocialMediaAssetUncheckedUpdateManyWithoutOwnerNestedInput
+    socialContactsLinked?: SocialContactUncheckedUpdateManyWithoutLinkedByNestedInput
+    socialConversationsAssigned?: SocialConversationUncheckedUpdateManyWithoutAssigneeNestedInput
+    socialConversationAssignments?: SocialConversationUncheckedUpdateManyWithoutAssignedByNestedInput
+    socialMessagesSent?: SocialMessageUncheckedUpdateManyWithoutSentByAdminNestedInput
+    socialConversationTagsAdded?: SocialConversationTagUncheckedUpdateManyWithoutTaggedByNestedInput
+    socialCommentsAssigned?: SocialCommentUncheckedUpdateManyWithoutAssigneeNestedInput
+    socialCommentsSent?: SocialCommentUncheckedUpdateManyWithoutSentByAdminNestedInput
+    socialEscalationsConfirmed?: SocialEscalationUncheckedUpdateManyWithoutConfirmedByNestedInput
+    socialInternalNotesAuthored?: SocialInternalNoteUncheckedUpdateManyWithoutAuthorNestedInput
+    socialSavedRepliesCreated?: SocialSavedReplyUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialSettingsUpdated?: SocialOperationsSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUncheckedUpdateManyWithoutAcceptedByAdminNestedInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUncheckedUpdateManyWithoutDismissedByAdminNestedInput
+    marketingAlertsResolved?: marketing_alertsUncheckedUpdateManyWithoutResolvedByAdminNestedInput
+    marketingAlertsAcknowledged?: marketing_alertsUncheckedUpdateManyWithoutAcknowledgedByAdminNestedInput
+    marketingExperimentsCreated?: marketing_experimentsUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUncheckedUpdateManyWithoutRequestedByAdminNestedInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUncheckedUpdateManyWithoutApproverNestedInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUncheckedUpdateManyWithoutReviewerNestedInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUncheckedUpdateManyWithoutAuthoredByAdminNestedInput
+    teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
+    projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
+    assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
+    createdTasks?: TaskUncheckedUpdateManyWithoutAssignerNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutAdminUserNestedInput
+    attendanceLogs?: AttendanceLogUncheckedUpdateManyWithoutAdminUserNestedInput
+    leaveRequests?: LeaveRequestUncheckedUpdateManyWithoutAdminUserNestedInput
+    reviewedLeaveRequests?: LeaveRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutAdminUserNestedInput
+    payrollRecords?: PayrollRecordUncheckedUpdateManyWithoutAdminUserNestedInput
+    payslips?: PayslipUncheckedUpdateManyWithoutAdminUserNestedInput
+    deductions?: DeductionUncheckedUpdateManyWithoutAdminUserNestedInput
+    receipts?: ReceiptUncheckedUpdateManyWithoutAdminUserNestedInput
+    invoices?: InvoiceUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailMailboxesOwned?: MailMailboxUncheckedUpdateManyWithoutOwnerNestedInput
+    mailMemberships?: MailMembershipUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+  }
+
+  export type AdminUserCreateWithoutAuthEventsInput = {
+    id?: string
+    email: string
+    password: string
+    name: string
+    position?: string | null
+    department?: $Enums.Department | null
+    tier?: $Enums.AdminTier
+    status?: $Enums.AdminStatus
+    isTeamLead?: boolean
+    failedLoginAttempts?: number
+    googleId?: string | null
+    mainAppUserId?: string | null
+    lockedUntil?: Date | string | null
+    lastLoginAt?: Date | string | null
+    lastLoginIp?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
+    avatarUrl?: string | null
+    avatarCloudinaryId?: string | null
+    preferredName?: string | null
+    birthday?: Date | string | null
+    nationality?: string | null
+    gender?: string | null
+    maritalStatus?: string | null
+    workPhone?: string | null
+    homePhone?: string | null
+    personalPhone?: string | null
+    fax?: string | null
+    address?: string | null
+    state?: string | null
+    country?: string | null
+    emergencyName?: string | null
+    emergencyPhone?: string | null
+    emergencyEmail?: string | null
+    emergencyRelation?: string | null
+    employmentType?: string | null
+    employmentCategory?: string | null
+    location?: string | null
+    salary?: Decimal | DecimalJsLike | number | string | null
+    bonus?: Decimal | DecimalJsLike | number | string | null
+    equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
+    socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
+    educations?: AdminEducationCreateNestedManyWithoutAdminUserInput
+    documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
+    performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
+    reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryCreateNestedManyWithoutChangedByInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketCreateNestedManyWithoutValidatedByInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentCreateNestedManyWithoutAcknowledgedByInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewCreateNestedManyWithoutReviewedByInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobCreateNestedManyWithoutCancellationRequestedByInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideCreateNestedManyWithoutRequestedByInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideCreateNestedManyWithoutApprovedByInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersCreateNestedManyWithoutAdminUserInput
+    marketingContentItems?: marketing_content_itemsCreateNestedManyWithoutAdminUserInput
+    socialAccountConnections?: SocialAccountConnectionCreateNestedManyWithoutCreatedByInput
+    socialOAuthStates?: SocialOAuthStateCreateNestedManyWithoutAdminUserInput
+    socialPostsCreated?: SocialPostCreateNestedManyWithoutCreatedByInput
+    socialPostRevisionsCreated?: SocialPostRevisionCreateNestedManyWithoutCreatedByInput
+    socialApprovalsSubmitted?: SocialPostApprovalCreateNestedManyWithoutSubmittedByInput
+    socialApprovalsDecided?: SocialPostApprovalCreateNestedManyWithoutDecidedByInput
+    socialPublicationsRequested?: SocialPublicationCreateNestedManyWithoutRequestedByInput
+    socialPublicationsApproved?: SocialPublicationCreateNestedManyWithoutApprovedByInput
+    socialMediaAssets?: SocialMediaAssetCreateNestedManyWithoutOwnerInput
+    socialContactsLinked?: SocialContactCreateNestedManyWithoutLinkedByInput
+    socialConversationsAssigned?: SocialConversationCreateNestedManyWithoutAssigneeInput
+    socialConversationAssignments?: SocialConversationCreateNestedManyWithoutAssignedByInput
+    socialMessagesSent?: SocialMessageCreateNestedManyWithoutSentByAdminInput
+    socialConversationTagsAdded?: SocialConversationTagCreateNestedManyWithoutTaggedByInput
+    socialCommentsAssigned?: SocialCommentCreateNestedManyWithoutAssigneeInput
+    socialCommentsSent?: SocialCommentCreateNestedManyWithoutSentByAdminInput
+    socialEscalationsConfirmed?: SocialEscalationCreateNestedManyWithoutConfirmedByInput
+    socialInternalNotesAuthored?: SocialInternalNoteCreateNestedManyWithoutAuthorInput
+    socialSavedRepliesCreated?: SocialSavedReplyCreateNestedManyWithoutCreatedByInput
+    socialSettingsUpdated?: SocialOperationsSettingCreateNestedManyWithoutUpdatedByInput
+    marketingRecommendationsAccepted?: marketing_recommendationsCreateNestedManyWithoutAcceptedByAdminInput
+    marketingRecommendationsDismissed?: marketing_recommendationsCreateNestedManyWithoutDismissedByAdminInput
+    marketingAlertsResolved?: marketing_alertsCreateNestedManyWithoutResolvedByAdminInput
+    marketingAlertsAcknowledged?: marketing_alertsCreateNestedManyWithoutAcknowledgedByAdminInput
+    marketingExperimentsCreated?: marketing_experimentsCreateNestedManyWithoutCreatedByAdminInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsCreateNestedManyWithoutRequestedByAdminInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalCreateNestedManyWithoutApproverInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyCreateNestedManyWithoutUpdatedByAdminInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationCreateNestedManyWithoutCreatedByAdminInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewCreateNestedManyWithoutReviewerInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkCreateNestedManyWithoutAuthoredByAdminInput
+    teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
+    projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
+    assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
+    createdTasks?: TaskCreateNestedManyWithoutAssignerInput
+    notifications?: NotificationCreateNestedManyWithoutAdminUserInput
+    attendanceLogs?: AttendanceLogCreateNestedManyWithoutAdminUserInput
+    leaveRequests?: LeaveRequestCreateNestedManyWithoutAdminUserInput
+    reviewedLeaveRequests?: LeaveRequestCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceCreateNestedManyWithoutAdminUserInput
+    payrollRecords?: PayrollRecordCreateNestedManyWithoutAdminUserInput
+    payslips?: PayslipCreateNestedManyWithoutAdminUserInput
+    deductions?: DeductionCreateNestedManyWithoutAdminUserInput
+    receipts?: ReceiptCreateNestedManyWithoutAdminUserInput
+    invoices?: InvoiceCreateNestedManyWithoutAdminUserInput
+    mailMailboxesOwned?: MailMailboxCreateNestedManyWithoutOwnerInput
+    mailMemberships?: MailMembershipCreateNestedManyWithoutAdminUserInput
+    mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
+    mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
+    mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+  }
+
+  export type AdminUserUncheckedCreateWithoutAuthEventsInput = {
+    id?: string
+    email: string
+    password: string
+    name: string
+    position?: string | null
+    department?: $Enums.Department | null
+    tier?: $Enums.AdminTier
+    status?: $Enums.AdminStatus
+    isTeamLead?: boolean
+    failedLoginAttempts?: number
+    googleId?: string | null
+    mainAppUserId?: string | null
+    lockedUntil?: Date | string | null
+    lastLoginAt?: Date | string | null
+    lastLoginIp?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
+    avatarUrl?: string | null
+    avatarCloudinaryId?: string | null
+    preferredName?: string | null
+    birthday?: Date | string | null
+    nationality?: string | null
+    gender?: string | null
+    maritalStatus?: string | null
+    workPhone?: string | null
+    homePhone?: string | null
+    personalPhone?: string | null
+    fax?: string | null
+    address?: string | null
+    state?: string | null
+    country?: string | null
+    emergencyName?: string | null
+    emergencyPhone?: string | null
+    emergencyEmail?: string | null
+    emergencyRelation?: string | null
+    employmentType?: string | null
+    employmentCategory?: string | null
+    location?: string | null
+    salary?: Decimal | DecimalJsLike | number | string | null
+    bonus?: Decimal | DecimalJsLike | number | string | null
+    equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
+    socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
+    educations?: AdminEducationUncheckedCreateNestedManyWithoutAdminUserInput
+    documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
+    performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
+    reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUncheckedCreateNestedManyWithoutChangedByInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUncheckedCreateNestedManyWithoutValidatedByInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUncheckedCreateNestedManyWithoutAcknowledgedByInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUncheckedCreateNestedManyWithoutReviewedByInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUncheckedCreateNestedManyWithoutCancellationRequestedByInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUncheckedCreateNestedManyWithoutRequestedByInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUncheckedCreateNestedManyWithoutApprovedByInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUncheckedCreateNestedManyWithoutAdminUserInput
+    marketingContentItems?: marketing_content_itemsUncheckedCreateNestedManyWithoutAdminUserInput
+    socialAccountConnections?: SocialAccountConnectionUncheckedCreateNestedManyWithoutCreatedByInput
+    socialOAuthStates?: SocialOAuthStateUncheckedCreateNestedManyWithoutAdminUserInput
+    socialPostsCreated?: SocialPostUncheckedCreateNestedManyWithoutCreatedByInput
+    socialPostRevisionsCreated?: SocialPostRevisionUncheckedCreateNestedManyWithoutCreatedByInput
+    socialApprovalsSubmitted?: SocialPostApprovalUncheckedCreateNestedManyWithoutSubmittedByInput
+    socialApprovalsDecided?: SocialPostApprovalUncheckedCreateNestedManyWithoutDecidedByInput
+    socialPublicationsRequested?: SocialPublicationUncheckedCreateNestedManyWithoutRequestedByInput
+    socialPublicationsApproved?: SocialPublicationUncheckedCreateNestedManyWithoutApprovedByInput
+    socialMediaAssets?: SocialMediaAssetUncheckedCreateNestedManyWithoutOwnerInput
+    socialContactsLinked?: SocialContactUncheckedCreateNestedManyWithoutLinkedByInput
+    socialConversationsAssigned?: SocialConversationUncheckedCreateNestedManyWithoutAssigneeInput
+    socialConversationAssignments?: SocialConversationUncheckedCreateNestedManyWithoutAssignedByInput
+    socialMessagesSent?: SocialMessageUncheckedCreateNestedManyWithoutSentByAdminInput
+    socialConversationTagsAdded?: SocialConversationTagUncheckedCreateNestedManyWithoutTaggedByInput
+    socialCommentsAssigned?: SocialCommentUncheckedCreateNestedManyWithoutAssigneeInput
+    socialCommentsSent?: SocialCommentUncheckedCreateNestedManyWithoutSentByAdminInput
+    socialEscalationsConfirmed?: SocialEscalationUncheckedCreateNestedManyWithoutConfirmedByInput
+    socialInternalNotesAuthored?: SocialInternalNoteUncheckedCreateNestedManyWithoutAuthorInput
+    socialSavedRepliesCreated?: SocialSavedReplyUncheckedCreateNestedManyWithoutCreatedByInput
+    socialSettingsUpdated?: SocialOperationsSettingUncheckedCreateNestedManyWithoutUpdatedByInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUncheckedCreateNestedManyWithoutAcceptedByAdminInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUncheckedCreateNestedManyWithoutDismissedByAdminInput
+    marketingAlertsResolved?: marketing_alertsUncheckedCreateNestedManyWithoutResolvedByAdminInput
+    marketingAlertsAcknowledged?: marketing_alertsUncheckedCreateNestedManyWithoutAcknowledgedByAdminInput
+    marketingExperimentsCreated?: marketing_experimentsUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUncheckedCreateNestedManyWithoutRequestedByAdminInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUncheckedCreateNestedManyWithoutApproverInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUncheckedCreateNestedManyWithoutReviewerInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUncheckedCreateNestedManyWithoutAuthoredByAdminInput
+    teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
+    projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
+    assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
+    createdTasks?: TaskUncheckedCreateNestedManyWithoutAssignerInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutAdminUserInput
+    attendanceLogs?: AttendanceLogUncheckedCreateNestedManyWithoutAdminUserInput
+    leaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutAdminUserInput
+    reviewedLeaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutAdminUserInput
+    payrollRecords?: PayrollRecordUncheckedCreateNestedManyWithoutAdminUserInput
+    payslips?: PayslipUncheckedCreateNestedManyWithoutAdminUserInput
+    deductions?: DeductionUncheckedCreateNestedManyWithoutAdminUserInput
+    receipts?: ReceiptUncheckedCreateNestedManyWithoutAdminUserInput
+    invoices?: InvoiceUncheckedCreateNestedManyWithoutAdminUserInput
+    mailMailboxesOwned?: MailMailboxUncheckedCreateNestedManyWithoutOwnerInput
+    mailMemberships?: MailMembershipUncheckedCreateNestedManyWithoutAdminUserInput
+    mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
+    mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
+    mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+  }
+
+  export type AdminUserCreateOrConnectWithoutAuthEventsInput = {
+    where: AdminUserWhereUniqueInput
+    create: XOR<AdminUserCreateWithoutAuthEventsInput, AdminUserUncheckedCreateWithoutAuthEventsInput>
+  }
+
+  export type AdminUserUpsertWithoutAuthEventsInput = {
+    update: XOR<AdminUserUpdateWithoutAuthEventsInput, AdminUserUncheckedUpdateWithoutAuthEventsInput>
+    create: XOR<AdminUserCreateWithoutAuthEventsInput, AdminUserUncheckedCreateWithoutAuthEventsInput>
+    where?: AdminUserWhereInput
+  }
+
+  export type AdminUserUpdateToOneWithWhereWithoutAuthEventsInput = {
+    where?: AdminUserWhereInput
+    data: XOR<AdminUserUpdateWithoutAuthEventsInput, AdminUserUncheckedUpdateWithoutAuthEventsInput>
+  }
+
+  export type AdminUserUpdateWithoutAuthEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    position?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: NullableEnumDepartmentFieldUpdateOperationsInput | $Enums.Department | null
+    tier?: EnumAdminTierFieldUpdateOperationsInput | $Enums.AdminTier
+    status?: EnumAdminStatusFieldUpdateOperationsInput | $Enums.AdminStatus
+    isTeamLead?: BoolFieldUpdateOperationsInput | boolean
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    mainAppUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginIp?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
+    preferredName?: NullableStringFieldUpdateOperationsInput | string | null
+    birthday?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nationality?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    maritalStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    homePhone?: NullableStringFieldUpdateOperationsInput | string | null
+    personalPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    fax?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyName?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyRelation?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentType?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
+    socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
+    educations?: AdminEducationUpdateManyWithoutAdminUserNestedInput
+    documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
+    performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
+    reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUpdateManyWithoutChangedByNestedInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUpdateManyWithoutValidatedByNestedInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUpdateManyWithoutAcknowledgedByNestedInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUpdateManyWithoutReviewedByNestedInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUpdateManyWithoutCancellationRequestedByNestedInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUpdateManyWithoutRequestedByNestedInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUpdateManyWithoutApprovedByNestedInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUpdateManyWithoutAdminUserNestedInput
+    marketingContentItems?: marketing_content_itemsUpdateManyWithoutAdminUserNestedInput
+    socialAccountConnections?: SocialAccountConnectionUpdateManyWithoutCreatedByNestedInput
+    socialOAuthStates?: SocialOAuthStateUpdateManyWithoutAdminUserNestedInput
+    socialPostsCreated?: SocialPostUpdateManyWithoutCreatedByNestedInput
+    socialPostRevisionsCreated?: SocialPostRevisionUpdateManyWithoutCreatedByNestedInput
+    socialApprovalsSubmitted?: SocialPostApprovalUpdateManyWithoutSubmittedByNestedInput
+    socialApprovalsDecided?: SocialPostApprovalUpdateManyWithoutDecidedByNestedInput
+    socialPublicationsRequested?: SocialPublicationUpdateManyWithoutRequestedByNestedInput
+    socialPublicationsApproved?: SocialPublicationUpdateManyWithoutApprovedByNestedInput
+    socialMediaAssets?: SocialMediaAssetUpdateManyWithoutOwnerNestedInput
+    socialContactsLinked?: SocialContactUpdateManyWithoutLinkedByNestedInput
+    socialConversationsAssigned?: SocialConversationUpdateManyWithoutAssigneeNestedInput
+    socialConversationAssignments?: SocialConversationUpdateManyWithoutAssignedByNestedInput
+    socialMessagesSent?: SocialMessageUpdateManyWithoutSentByAdminNestedInput
+    socialConversationTagsAdded?: SocialConversationTagUpdateManyWithoutTaggedByNestedInput
+    socialCommentsAssigned?: SocialCommentUpdateManyWithoutAssigneeNestedInput
+    socialCommentsSent?: SocialCommentUpdateManyWithoutSentByAdminNestedInput
+    socialEscalationsConfirmed?: SocialEscalationUpdateManyWithoutConfirmedByNestedInput
+    socialInternalNotesAuthored?: SocialInternalNoteUpdateManyWithoutAuthorNestedInput
+    socialSavedRepliesCreated?: SocialSavedReplyUpdateManyWithoutCreatedByNestedInput
+    socialSettingsUpdated?: SocialOperationsSettingUpdateManyWithoutUpdatedByNestedInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUpdateManyWithoutAcceptedByAdminNestedInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUpdateManyWithoutDismissedByAdminNestedInput
+    marketingAlertsResolved?: marketing_alertsUpdateManyWithoutResolvedByAdminNestedInput
+    marketingAlertsAcknowledged?: marketing_alertsUpdateManyWithoutAcknowledgedByAdminNestedInput
+    marketingExperimentsCreated?: marketing_experimentsUpdateManyWithoutCreatedByAdminNestedInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUpdateManyWithoutRequestedByAdminNestedInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUpdateManyWithoutApproverNestedInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUpdateManyWithoutCreatedByAdminNestedInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUpdateManyWithoutReviewerNestedInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUpdateManyWithoutAuthoredByAdminNestedInput
+    teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
+    projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
+    assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
+    createdTasks?: TaskUpdateManyWithoutAssignerNestedInput
+    notifications?: NotificationUpdateManyWithoutAdminUserNestedInput
+    attendanceLogs?: AttendanceLogUpdateManyWithoutAdminUserNestedInput
+    leaveRequests?: LeaveRequestUpdateManyWithoutAdminUserNestedInput
+    reviewedLeaveRequests?: LeaveRequestUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUpdateManyWithoutAdminUserNestedInput
+    payrollRecords?: PayrollRecordUpdateManyWithoutAdminUserNestedInput
+    payslips?: PayslipUpdateManyWithoutAdminUserNestedInput
+    deductions?: DeductionUpdateManyWithoutAdminUserNestedInput
+    receipts?: ReceiptUpdateManyWithoutAdminUserNestedInput
+    invoices?: InvoiceUpdateManyWithoutAdminUserNestedInput
+    mailMailboxesOwned?: MailMailboxUpdateManyWithoutOwnerNestedInput
+    mailMemberships?: MailMembershipUpdateManyWithoutAdminUserNestedInput
+    mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
+    mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
+    mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+  }
+
+  export type AdminUserUncheckedUpdateWithoutAuthEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    position?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: NullableEnumDepartmentFieldUpdateOperationsInput | $Enums.Department | null
+    tier?: EnumAdminTierFieldUpdateOperationsInput | $Enums.AdminTier
+    status?: EnumAdminStatusFieldUpdateOperationsInput | $Enums.AdminStatus
+    isTeamLead?: BoolFieldUpdateOperationsInput | boolean
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    mainAppUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginIp?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
+    preferredName?: NullableStringFieldUpdateOperationsInput | string | null
+    birthday?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nationality?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    maritalStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    homePhone?: NullableStringFieldUpdateOperationsInput | string | null
+    personalPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    fax?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyName?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyRelation?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentType?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
+    educations?: AdminEducationUncheckedUpdateManyWithoutAdminUserNestedInput
+    documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
+    performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
+    reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUncheckedUpdateManyWithoutValidatedByNestedInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUncheckedUpdateManyWithoutAcknowledgedByNestedInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUncheckedUpdateManyWithoutReviewedByNestedInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUncheckedUpdateManyWithoutCancellationRequestedByNestedInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUncheckedUpdateManyWithoutRequestedByNestedInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUncheckedUpdateManyWithoutApprovedByNestedInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUncheckedUpdateManyWithoutAdminUserNestedInput
+    marketingContentItems?: marketing_content_itemsUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialAccountConnections?: SocialAccountConnectionUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialOAuthStates?: SocialOAuthStateUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialPostsCreated?: SocialPostUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialPostRevisionsCreated?: SocialPostRevisionUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialApprovalsSubmitted?: SocialPostApprovalUncheckedUpdateManyWithoutSubmittedByNestedInput
+    socialApprovalsDecided?: SocialPostApprovalUncheckedUpdateManyWithoutDecidedByNestedInput
+    socialPublicationsRequested?: SocialPublicationUncheckedUpdateManyWithoutRequestedByNestedInput
+    socialPublicationsApproved?: SocialPublicationUncheckedUpdateManyWithoutApprovedByNestedInput
+    socialMediaAssets?: SocialMediaAssetUncheckedUpdateManyWithoutOwnerNestedInput
+    socialContactsLinked?: SocialContactUncheckedUpdateManyWithoutLinkedByNestedInput
+    socialConversationsAssigned?: SocialConversationUncheckedUpdateManyWithoutAssigneeNestedInput
+    socialConversationAssignments?: SocialConversationUncheckedUpdateManyWithoutAssignedByNestedInput
+    socialMessagesSent?: SocialMessageUncheckedUpdateManyWithoutSentByAdminNestedInput
+    socialConversationTagsAdded?: SocialConversationTagUncheckedUpdateManyWithoutTaggedByNestedInput
+    socialCommentsAssigned?: SocialCommentUncheckedUpdateManyWithoutAssigneeNestedInput
+    socialCommentsSent?: SocialCommentUncheckedUpdateManyWithoutSentByAdminNestedInput
+    socialEscalationsConfirmed?: SocialEscalationUncheckedUpdateManyWithoutConfirmedByNestedInput
+    socialInternalNotesAuthored?: SocialInternalNoteUncheckedUpdateManyWithoutAuthorNestedInput
+    socialSavedRepliesCreated?: SocialSavedReplyUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialSettingsUpdated?: SocialOperationsSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
     marketingRecommendationsAccepted?: marketing_recommendationsUncheckedUpdateManyWithoutAcceptedByAdminNestedInput
     marketingRecommendationsDismissed?: marketing_recommendationsUncheckedUpdateManyWithoutDismissedByAdminNestedInput
     marketingAlertsResolved?: marketing_alertsUncheckedUpdateManyWithoutResolvedByAdminNestedInput
@@ -321638,6 +334999,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
     educations?: AdminEducationCreateNestedManyWithoutAdminUserInput
@@ -321759,6 +335125,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
     educations?: AdminEducationUncheckedCreateNestedManyWithoutAdminUserInput
@@ -321896,6 +335267,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
     educations?: AdminEducationUpdateManyWithoutAdminUserNestedInput
@@ -322017,6 +335393,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
     educations?: AdminEducationUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -322138,6 +335519,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
     educations?: AdminEducationCreateNestedManyWithoutAdminUserInput
@@ -322259,6 +335645,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
     educations?: AdminEducationUncheckedCreateNestedManyWithoutAdminUserInput
@@ -322396,6 +335787,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
     educations?: AdminEducationUpdateManyWithoutAdminUserNestedInput
@@ -322517,6 +335913,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
     educations?: AdminEducationUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -322638,6 +336039,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -322759,6 +336165,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -322896,6 +336307,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -323017,6 +336433,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -323138,6 +336559,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     educations?: AdminEducationCreateNestedManyWithoutAdminUserInput
@@ -323259,6 +336685,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     educations?: AdminEducationUncheckedCreateNestedManyWithoutAdminUserInput
@@ -323396,6 +336827,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     educations?: AdminEducationUpdateManyWithoutAdminUserNestedInput
@@ -323517,6 +336953,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     educations?: AdminEducationUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -323638,6 +337079,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -323759,6 +337205,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -323896,6 +337347,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -324017,6 +337473,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -324138,6 +337599,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -324259,6 +337725,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -324396,6 +337867,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -324517,6 +337993,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -324638,6 +338119,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -324759,6 +338245,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -324896,6 +338387,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -325017,6 +338513,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -325138,6 +338639,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -325259,6 +338765,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -325396,6 +338907,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -325517,6 +339033,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -325773,6 +339294,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -325894,6 +339420,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -326062,6 +339593,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -326183,6 +339719,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -326487,6 +340028,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -326608,6 +340154,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -326784,6 +340335,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -326905,6 +340461,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -327059,6 +340620,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -327180,6 +340746,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -327306,6 +340877,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -327427,6 +341003,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -327725,6 +341306,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -327846,6 +341432,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -327978,6 +341569,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -328099,6 +341695,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -328252,6 +341853,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -328373,6 +341979,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -328510,6 +342121,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -328631,6 +342247,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -328752,6 +342373,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -328873,6 +342499,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -328999,6 +342630,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -329120,6 +342756,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -329257,6 +342898,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -329378,6 +343024,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -329510,6 +343161,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -329631,6 +343287,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -329752,6 +343413,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -329873,6 +343539,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -330010,6 +343681,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -330131,6 +343807,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -330252,6 +343933,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -330373,6 +344059,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -330580,6 +344271,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -330701,6 +344397,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -330838,6 +344539,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -330959,6 +344665,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -331238,6 +344949,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -331359,6 +345075,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -331544,6 +345265,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -331665,6 +345391,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -331853,6 +345584,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -331974,6 +345710,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -332152,6 +345893,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -332273,6 +346019,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -332461,6 +346212,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -332582,6 +346338,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -332760,6 +346521,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -332881,6 +346647,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -333069,6 +346840,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -333190,6 +346966,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -333368,6 +347149,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -333489,6 +347275,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -333677,6 +347468,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -333798,6 +347594,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -335263,6 +349064,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -335384,6 +349190,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -336116,6 +349927,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -336237,6 +350053,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -337270,6 +351091,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -337391,6 +351217,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -337599,6 +351430,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -337720,6 +351556,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -337947,6 +351788,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -338068,6 +351914,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -338323,6 +352174,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -338444,6 +352300,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -339920,6 +353781,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -340041,6 +353907,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -340253,6 +354124,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -340374,6 +354250,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -340560,6 +354441,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -340681,6 +354567,11 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -341006,6 +354897,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -341127,6 +355023,11 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -345589,6 +359490,53 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type AdminSessionCreateManyAdminUserInput = {
+    id?: string
+    mode: string
+    authMethod: string
+    csrfNonce: string
+    createdAt?: Date | string
+    lastSeenAt?: Date | string
+    idleExpiresAt: Date | string
+    absoluteExpiresAt: Date | string
+    mfaVerifiedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    revokeReason?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type AdminMfaRecoveryCodeCreateManyAdminUserInput = {
+    id?: string
+    salt: string
+    codeHash: string
+    createdAt?: Date | string
+    usedAt?: Date | string | null
+  }
+
+  export type AdminMfaChallengeCreateManyAdminUserInput = {
+    id?: string
+    tokenHash: string
+    authMethod: string
+    attempts?: number
+    expiresAt: Date | string
+    consumedAt?: Date | string | null
+    createdAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type AdminAuthEventCreateManyAdminUserInput = {
+    id?: string
+    action: string
+    targetType?: string | null
+    targetId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: string | null
+    userAgent?: string | null
+    createdAt?: Date | string
+  }
+
   export type RefreshTokenCreateManyAdminUserInput = {
     id?: string
     token: string
@@ -346729,6 +360677,149 @@ export namespace Prisma {
     sentMessageId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type AdminSessionUpdateWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    csrfNonce?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idleExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    absoluteExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    refreshTokens?: AdminSessionRefreshTokenUpdateManyWithoutSessionNestedInput
+  }
+
+  export type AdminSessionUncheckedUpdateWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    csrfNonce?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idleExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    absoluteExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    refreshTokens?: AdminSessionRefreshTokenUncheckedUpdateManyWithoutSessionNestedInput
+  }
+
+  export type AdminSessionUncheckedUpdateManyWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    csrfNonce?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idleExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    absoluteExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminMfaRecoveryCodeUpdateWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminMfaRecoveryCodeUncheckedUpdateWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminMfaChallengeUpdateWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminMfaChallengeUncheckedUpdateWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminAuthEventUpdateWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    targetType?: NullableStringFieldUpdateOperationsInput | string | null
+    targetId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdminAuthEventUncheckedUpdateWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    targetType?: NullableStringFieldUpdateOperationsInput | string | null
+    targetId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdminAuthEventUncheckedUpdateManyWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    targetType?: NullableStringFieldUpdateOperationsInput | string | null
+    targetId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type RefreshTokenUpdateWithoutAdminUserInput = {
@@ -357701,6 +371792,54 @@ export namespace Prisma {
     providerRequestId?: NullableStringFieldUpdateOperationsInput | string | null
     responseMetaJson?: NullableJsonNullValueInput | InputJsonValue
     retryAfter?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminSessionRefreshTokenCreateManySessionInput = {
+    id?: string
+    adminUserId: string
+    tokenHash: string
+    createdAt?: Date | string
+    expiresAt: Date | string
+    rotatedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type AdminSessionRefreshTokenUpdateWithoutSessionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminSessionRefreshTokenUncheckedUpdateWithoutSessionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminSessionRefreshTokenUncheckedUpdateManyWithoutSessionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type TeamMemberCreateManyTeamInput = {

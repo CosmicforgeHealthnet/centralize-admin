@@ -1,3 +1,5 @@
+const { hasFreshVerifiedMfa, evidenceReference } = require("../../../../shared/auth/privileged-mfa");
+const { isMfaEnrolled } = require("../../../../shared/auth/mfa-core");
 const { prisma } = require("../../../../shared/config/database");
 const { executionError } = require("../execution.errors");
 const { sanitizeExecutionEvent } = require("../execution.observability");
@@ -53,8 +55,18 @@ async function consumeOverrideInTransaction(tx, { overrideId, actor, plan, corre
 function createEmergencyOverrideService({ client = prisma, events, now = () => new Date() } = {}) {
   async function create({ actor, input, correlationId = null }) {
     if (!actor?.id || actor.tier !== "SUPER") throw executionError("APPROVAL_NOT_ELIGIBLE", { reasonCode: "SUPER_EMERGENCY_OPERATOR_REQUIRED" });
-    const currentActor = await client.adminUser.findUnique({ where: { id: actor.id }, select: { id: true, tier: true, status: true, twoFactorEnabled: true } });
-    if (!currentActor || currentActor.status !== "ACTIVE" || currentActor.tier !== "SUPER" || currentActor.twoFactorEnabled !== true) throw executionError("APPROVAL_NOT_ELIGIBLE", { reasonCode: "CURRENT_MFA_CAPABLE_STATUS_REQUIRED" });
+    // Verified enrollment (from the DB, not the token) AND a fresh step-up on this session.
+    const currentActor = await client.adminUser.findUnique({ where: { id: actor.id }, select: { id: true, tier: true, status: true } });
+    if (!currentActor || currentActor.status !== "ACTIVE" || currentActor.tier !== "SUPER") throw executionError("APPROVAL_NOT_ELIGIBLE", { reasonCode: "CURRENT_MFA_CAPABLE_STATUS_REQUIRED" });
+    let enrollment;
+    try {
+      enrollment = await client.adminMfaEnrollment.findUnique({ where: { adminUserId: actor.id }, select: { adminUserId: true, enrolledAt: true, secretEncrypted: true } });
+    } catch {
+      // Session/MFA migration not applied: verified MFA cannot exist yet. Fail closed.
+      throw executionError("APPROVAL_NOT_ELIGIBLE", { reasonCode: "VERIFIED_MFA_UNAVAILABLE" });
+    }
+    if (!isMfaEnrolled(enrollment)) throw executionError("APPROVAL_NOT_ELIGIBLE", { reasonCode: "CURRENT_MFA_CAPABLE_STATUS_REQUIRED" });
+    if (!hasFreshVerifiedMfa(actor, { now: now().getTime() })) throw executionError("APPROVAL_NOT_ELIGIBLE", { reasonCode: "FRESH_MFA_STEP_UP_REQUIRED" });
     const startsAt = now(); const expiresAt = new Date(input.expiresAt);
     if (!Number.isFinite(expiresAt.getTime()) || expiresAt <= startsAt || expiresAt.getTime() - startsAt.getTime() > MAXIMUM_DURATION_MS) throw executionError("INVALID_EXECUTION_PLAN", { field: "body.expiresAt", reasonCode: "OVERRIDE_EXPIRY_MUST_BE_WITHIN_TWO_HOURS" });
     const reason = String(input.reason || "").trim();
@@ -62,7 +74,7 @@ function createEmergencyOverrideService({ client = prisma, events, now = () => n
     const controls = safeControls(input.allowedControls);
     const scope = await loadExactScope(client, { planId: input.planId, runId: input.runId, operationId: input.operationId });
     const scopeType = input.operationId ? "OPERATION" : input.runId ? "RUN" : "PLAN";
-    const row = await client.marketingExecutionEmergencyOverride.create({ data: { scopeType, platform: scope.platform, connectionId: scope.connectionId, accountExternalId: scope.accountExternalId, planId: scope.id, runId: input.runId || null, operationId: input.operationId || null, allowedControls: controls, nonOverridableControls: [...NON_OVERRIDABLE_CONTROLS], reason, requestedByAdminUserId: actor.id, approvedByAdminUserId: actor.id, mfaEvidenceReference: `admin-user-2fa-enabled:${actor.id}`, startsAt, expiresAt, status: "ACTIVE" } });
+    const row = await client.marketingExecutionEmergencyOverride.create({ data: { scopeType, platform: scope.platform, connectionId: scope.connectionId, accountExternalId: scope.accountExternalId, planId: scope.id, runId: input.runId || null, operationId: input.operationId || null, allowedControls: controls, nonOverridableControls: [...NON_OVERRIDABLE_CONTROLS], reason, requestedByAdminUserId: actor.id, approvedByAdminUserId: actor.id, mfaEvidenceReference: evidenceReference(actor), startsAt, expiresAt, status: "ACTIVE" } });
     await events?.emit("EMERGENCY_OVERRIDE_CONFIGURED", { correlationId, overrideId: row.id, planId: row.planId, expiresAt: row.expiresAt, status: row.status }, [actor.id]);
     return { id: row.id, scopeType: row.scopeType, planId: row.planId, runId: row.runId, operationId: row.operationId, allowedControls: row.allowedControls, controlsStillEnforced: row.nonOverridableControls, startsAt: row.startsAt, expiresAt: row.expiresAt, status: row.status, useCount: row.useCount };
   }

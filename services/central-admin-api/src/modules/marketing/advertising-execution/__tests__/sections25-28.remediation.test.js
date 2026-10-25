@@ -46,13 +46,24 @@ test("runtime schema assertion inventory includes all prior and remediation obje
 });
 
 test("emergency overrides are exact, two-hour bounded, MFA-backed and preserve non-overridable controls", async () => {
-  const now = new Date("2026-07-23T10:00:00Z"); const actor = { id: "actor", tier: "SUPER" }; let created;
-  const client = { adminUser: { findUnique: async () => ({ id: "actor", tier: "SUPER", status: "ACTIVE", twoFactorEnabled: true }) }, marketingExecutionPlan: { findUnique: async () => ({ id: "plan", platform: "META", connectionId: "connection", accountExternalId: "account" }) }, marketingExecutionRun: { findFirst: async () => null }, marketingProviderOperation: { findFirst: async () => null }, marketingExecutionEmergencyOverride: { create: async ({ data }) => { created = { id: "override", useCount: 0, ...data }; return created; } } };
+  const now = new Date("2026-07-23T10:00:00Z"); const actor = { id: "actor", tier: "SUPER", mfa: { enrolled: true, sessionId: "session-1", verifiedAt: "2026-07-23T09:58:00Z" } }; let created;
+  const actorRow = { id: "actor", tier: "SUPER", status: "ACTIVE", twoFactorEnabled: true };
+  let enrollment = { adminUserId: "actor", enrolledAt: new Date("2026-07-01T00:00:00Z"), secretEncrypted: "cfmfa1:k1:x:y:z" };
+  let enrollmentTableMissing = false;
+  const client = { adminUser: { findUnique: async () => actorRow }, adminMfaEnrollment: { findUnique: async () => { if (enrollmentTableMissing) throw new Error('relation "admin_mfa_enrollments" does not exist'); return enrollment; } }, marketingExecutionPlan: { findUnique: async () => ({ id: "plan", platform: "META", connectionId: "connection", accountExternalId: "account" }) }, marketingExecutionRun: { findFirst: async () => null }, marketingProviderOperation: { findFirst: async () => null }, marketingExecutionEmergencyOverride: { create: async ({ data }) => { created = { id: "override", useCount: 0, ...data }; return created; } } };
   const service = createEmergencyOverrideService({ client, now: () => now, events: { emit: async () => {} } });
   const result = await service.create({ actor, input: { planId: "plan", allowedControls: ["CONNECTION_WRITE_GATE"], reason: "Urgent bounded recovery for one approved plan", expiresAt: "2026-07-23T11:00:00Z" } });
-  assert.equal(result.scopeType, "PLAN"); assert.equal(created.approvedByAdminUserId, "actor"); assert.equal(created.mfaEvidenceReference, "admin-user-2fa-enabled:actor"); assert.deepEqual(created.nonOverridableControls, [...NON_OVERRIDABLE_CONTROLS]);
+  assert.equal(result.scopeType, "PLAN"); assert.equal(created.approvedByAdminUserId, "actor"); assert.equal(created.mfaEvidenceReference, "admin-session-step-up:session-1:2026-07-23T09:58:00.000Z"); assert.deepEqual(created.nonOverridableControls, [...NON_OVERRIDABLE_CONTROLS]);
   assertOverrideMatches(created, { actor, plan: { id: "plan", platform: "META", connectionId: "connection", accountExternalId: "account" }, now });
   await assert.rejects(service.create({ actor, input: { planId: "plan", allowedControls: ["CONNECTION_WRITE_GATE"], reason: "Urgent bounded recovery for one approved plan", expiresAt: "2026-07-23T13:00:01Z" } }), (error) => error.errors[0].reasonCode === "OVERRIDE_EXPIRY_MUST_BE_WITHIN_TWO_HOURS");
+  const input = { planId: "plan", allowedControls: ["CONNECTION_WRITE_GATE"], reason: "Urgent bounded recovery for one approved plan", expiresAt: "2026-07-23T11:00:00Z" };
+  await assert.rejects(service.create({ actor: { ...actor, mfa: { ...actor.mfa, verifiedAt: "2026-07-23T09:50:00Z" } }, input }), (error) => error.errors[0].reasonCode === "FRESH_MFA_STEP_UP_REQUIRED");
+  await assert.rejects(service.create({ actor: { id: "actor", tier: "SUPER" }, input }), (error) => error.errors[0].reasonCode === "FRESH_MFA_STEP_UP_REQUIRED");
+  enrollmentTableMissing = true;
+  await assert.rejects(service.create({ actor, input }), (error) => error.errors[0].reasonCode === "VERIFIED_MFA_UNAVAILABLE", "fails closed before the MFA migration is applied");
+  enrollmentTableMissing = false;
+  enrollment = null;
+  await assert.rejects(service.create({ actor, input }), (error) => error.errors[0].reasonCode === "CURRENT_MFA_CAPABLE_STATUS_REQUIRED", "legacy twoFactorEnabled without verified enrollment is refused");
   assert.throws(() => assertOverrideMatches({ ...created, nonOverridableControls: [] }, { actor, plan: { id: "plan", platform: "META", connectionId: "connection", accountExternalId: "account" }, now }), (error) => error.errors[0].reasonCode === "NON_OVERRIDABLE_CONTROLS_INCOMPLETE");
 });
 
