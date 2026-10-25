@@ -386,7 +386,7 @@ test("approval service persists an exact immutable version and fingerprint packe
 });
 
 test("emergency override requires reason, exact audit and cannot bypass global switch", async () => {
-  const admin = actor({ executionRoles: ["EXECUTION_ADMINISTRATOR"], tier: "ADMIN", twoFactorEnabled: true });
+  const admin = actor({ executionRoles: ["EXECUTION_ADMINISTRATOR"], tier: "ADMIN", twoFactorEnabled: true, mfa: { enrolled: true, sessionId: "session-1", verifiedAt: new Date().toISOString() } });
   const override = { reason: "Urgent documented business recovery", scope: { planId: PLAN_ID }, controlsBypassed: ["APPROVAL_THRESHOLD"] };
   await assert.rejects(authorizeEmergencyOverride({ actor: admin, override, executionConfig: { enabled: false }, policy: { emergencyOverrideAllowed: true }, auditWriter: {} }), (error) => error.code === "EXECUTION_DISABLED");
   await assert.rejects(authorizeEmergencyOverride({ actor: admin, override: { ...override, reason: "short" }, executionConfig: { enabled: true }, policy: { emergencyOverrideAllowed: true }, auditWriter: { writeImmutable: async () => {} } }), (error) => error.code === "APPROVAL_REASON_REQUIRED");
