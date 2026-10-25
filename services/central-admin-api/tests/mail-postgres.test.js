@@ -967,8 +967,12 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
         const bad = await call("mailAdmin", "GET", path);
         assert.equal(bad.status, 400, `${path} is a validation error, not a 500`);
       }
+      // Provider events are settled with their jobs (backlog, lag, retention).
+      await harness.worker.drain();
+      assert.equal(await client.mailWebhookEvent.count({ where: { status: "RECEIVED", jobs: { none: { status: { in: ["PENDING", "LEASED", "RETRY_SCHEDULED", "RECONCILING"] } } } } }), 0, "no settled job leaves its event RECEIVED");
       const webhooks = (await call("mailAdmin", "GET", "/admin/webhook-events")).body.data;
       assert.ok(webhooks.length > 0 && webhooks.every((row) => !("payload" in row) && "lagSeconds" in row));
+      assert.ok(webhooks.some((row) => row.status === "PROCESSED" && typeof row.lagSeconds === "number"), "processing lag is reported");
       const deliveries = (await call("mailAdmin", "GET", "/admin/delivery-events")).body.data;
       assert.ok(deliveries.length > 0 && deliveries.every((row) => !("recipient" in row) && !String(row.recipientDomain || "").includes("@")));
       const audits = (await call("mailAdmin", "GET", `/admin/audit-events?targetId=${blocked.id}`)).body.data;
