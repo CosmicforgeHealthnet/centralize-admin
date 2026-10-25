@@ -195,6 +195,7 @@ Requires `mail/admin` EDIT section grant (or `SUPER` tier). These endpoints neve
 | GET/POST | `/provisioning/requests` (any active employee may request; body `{ type, requestedAddress?, justification?, organizationId?, mailboxId? }` - the domain of `requestedAddress` must already be registered) |
 | POST | `/provisioning/requests/:requestId/approve` / `/reject` |
 | GET/POST | `/admin/legal-holds`, POST `/admin/legal-holds/:holdId/release` |
+| POST | `/admin/attachments/:attachmentId/rescan` | Mail admin only. Re-runs policy + scanner for `PENDING`/`SCAN_FAILED`/`SCANNER_UNAVAILABLE`; returns `{ id, scanStatus, quarantined, downloadable }`. `INFECTED` → 403 `MAIL_ATTACHMENT_QUARANTINED` (`reason: NOT_RESCANNABLE`); concurrent change → 409 `MAIL_INVALID_TRANSITION`. Audited. |
 | GET/POST | `/admin/retention-policies` |
 
 ## Step-up MFA and break-glass
