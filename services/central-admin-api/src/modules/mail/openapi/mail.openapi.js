@@ -156,6 +156,18 @@ const PATHS = [
   ["get", "/public/consent/confirm/{token}", "Double opt-in landing page (does not confirm)", any],
   ["post", "/public/consent/confirm/{token}", "Confirm double opt-in", any],
   ["post", "/webhooks/resend/brand/{slug}", "Brand marketing provider webhook (per-brand secret)", any],
+  // M8 product integrations
+  ["post", "/integrations/v1/events", "Product event ingestion (service HMAC: X-Service-Name/Timestamp/Signature; contract v1)", any],
+  ["get", "/admin/integrations", "List product integrations (mail admins; product owners see their own)", any],
+  ["post", "/admin/integrations", "Register a product integration (DISABLED until activated)", any],
+  ["patch", "/admin/integrations/{integrationId}", "Update allowed event / trigger types", any],
+  ["post", "/admin/integrations/{integrationId}/activate", "Activate with recorded owner approval + step-up MAIL_INTEGRATION_ACTIVATE", any],
+  ["post", "/admin/integrations/{integrationId}/suspend", "Suspend an integration", any],
+  ["get", "/admin/integrations/{integrationId}/health", "Product-isolated health and delivery summary", any],
+  ["get", "/admin/integrations/{integrationId}/events", "Event log (metadata only)", any],
+  ["get", "/admin/integrations/{integrationId}/senders", "Authorized sender identities", any],
+  ["post", "/admin/integrations/{integrationId}/senders", "Authorize a brand sender identity for a purpose", any],
+  ["delete", "/admin/integrations/{integrationId}/senders/{senderId}", "Revoke a sender authorization", any],
 ];
 
 const SCHEMAS = {

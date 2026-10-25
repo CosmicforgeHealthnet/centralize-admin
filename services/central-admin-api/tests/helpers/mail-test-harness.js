@@ -149,7 +149,7 @@ function createHarness(client, { env = {}, clockStart = Date.now() } = {}) {
     };
     app.post("/api/mail/v1/webhooks/resend", raw, keepRaw, application.webhookHandler);
     app.post("/api/mail/v1/webhooks/resend/brand/:slug", raw, keepRaw, application.brandWebhookHandler);
-    if (application.integrationHandler) app.post(/^\/api\/mail\/v1\/integrations\/v1\/.*/, raw, keepRaw, application.integrationHandler);
+    app.post("/api/mail/v1/integrations/v1/events", raw, keepRaw, application.integrationHandler);
     app.use(express.json({ limit: "1mb" }));
     app.use("/api/mail/v1", createMailRouter({ mail: application, authenticate, rateLimitMax: 100000 }));
     app.use(errorHandler);

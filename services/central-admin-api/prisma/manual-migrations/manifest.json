@@ -152,6 +152,11 @@
       "order": 30,
       "file": "20261027_mail_m7_broadcasts_automation.sql",
       "sha256": "88c17ea2ca3f835f2eeb5ee4213da76a0751ccd373cedc20238f51a36232e65f"
+    },
+    {
+      "order": 31,
+      "file": "20261028_mail_m8_product_integration.sql",
+      "sha256": "c526d300c48ed6e406b6cd4ea6532e32f738c81ebdd4fa1da68bcddb11abff94"
     }
   ]
 }

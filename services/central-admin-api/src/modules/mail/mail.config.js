@@ -180,6 +180,14 @@ function loadMailConfig(env = process.env) {
       secret: String(env.MAIL_MARKETING_UNSUBSCRIBE_SECRET || ""),
       previousSecret: String(env.MAIL_MARKETING_UNSUBSCRIBE_PREVIOUS_SECRET || ""),
     },
+    // M8 product integrations (service-to-service, HMAC; secrets in env only).
+    integrations: {
+      enabled: enabled && flag(env.MAIL_INTEGRATIONS_ENABLED),
+      hashSecret: String(env.MAIL_INTEGRATION_HASH_SECRET || ""),
+      maxSkewSeconds: intInRange(env.MAIL_INTEGRATION_MAX_SKEW_SECONDS, 300, 30, 900),
+      ratePerMinute: intInRange(env.MAIL_INTEGRATION_RATE_PER_MINUTE, 600, 10, 100000),
+      maxBodyBytes: intInRange(env.MAIL_INTEGRATION_MAX_BODY_BYTES, 16384, 1024, 262144),
+    },
     // Emergency stop (M9/M10). Blocks provider calls without deleting queued records.
     emergencyStop: {
       all: flag(env.MAIL_EMERGENCY_STOP_ALL),
@@ -268,6 +276,8 @@ function publicStatus(config) {
     workerQueues: config.workerQueues,
     unsubscribeConfigured: config.unsubscribe.secret.length >= 32 && Boolean(config.publicApiUrl),
     emergencyStop: { ...config.emergencyStop },
+    integrationsEnabled: config.integrations.enabled,
+    integrationsConfigured: config.integrations.hashSecret.length >= 32,
     broadcastLimits: { maxRecipients: config.broadcast.maxRecipients, providerRequestsPerSecond: config.broadcast.providerRequestsPerSecond, approvalTtlDays: config.broadcast.approvalTtlDays, sharedProviderAccountAllowed: config.broadcast.allowSharedProviderAccount },
   };
 }

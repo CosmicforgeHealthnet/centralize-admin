@@ -29,7 +29,7 @@ function page(res, result) {
 
 function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
   const router = express.Router();
-  const { mailbox, compose, admin, support, marketing, stepUp, breakGlass, broadcasts, automations, publicPreferences } = mail.services;
+  const { mailbox, compose, admin, support, marketing, stepUp, breakGlass, broadcasts, automations, publicPreferences, integrations } = mail.services;
   const config = mail.config;
   const limits = config.limits;
 
@@ -222,6 +222,17 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
   router.get("/admin/legal-holds", asyncHandler(async (req, res) => ok(res, await admin.listLegalHolds(user(req)))));
   router.post("/admin/legal-holds", asyncHandler(async (req, res) => ok(res, await admin.createLegalHold(user(req), body(req), ctx(req)), { status: 201 })));
   router.post("/admin/legal-holds/:holdId/release", asyncHandler(async (req, res) => ok(res, await admin.releaseLegalHold(user(req), req.params.holdId, ctx(req)))));
+  // ---- M8: product integrations (HQ administration; service ingestion is a raw-body route in app.js)
+  router.get("/admin/integrations", asyncHandler(async (req, res) => ok(res, await integrations.list(user(req)))));
+  router.post("/admin/integrations", asyncHandler(async (req, res) => ok(res, await integrations.create(user(req), body(req), ctx(req)), { status: 201 })));
+  router.patch("/admin/integrations/:integrationId", asyncHandler(async (req, res) => ok(res, await integrations.update(user(req), req.params.integrationId, body(req), ctx(req)))));
+  router.post("/admin/integrations/:integrationId/activate", asyncHandler(async (req, res) => ok(res, await integrations.activate(user(req), req.params.integrationId, body(req), ctx(req)))));
+  router.post("/admin/integrations/:integrationId/suspend", asyncHandler(async (req, res) => ok(res, await integrations.suspend(user(req), req.params.integrationId, body(req), ctx(req)))));
+  router.get("/admin/integrations/:integrationId/health", asyncHandler(async (req, res) => ok(res, await integrations.health(user(req), req.params.integrationId))));
+  router.get("/admin/integrations/:integrationId/events", asyncHandler(async (req, res) => ok(res, await integrations.events(user(req), req.params.integrationId, req.query))));
+  router.get("/admin/integrations/:integrationId/senders", asyncHandler(async (req, res) => ok(res, await integrations.listSenders(user(req), req.params.integrationId))));
+  router.post("/admin/integrations/:integrationId/senders", asyncHandler(async (req, res) => ok(res, await integrations.authorizeSender(user(req), req.params.integrationId, body(req), ctx(req)), { status: 201 })));
+  router.delete("/admin/integrations/:integrationId/senders/:senderId", asyncHandler(async (req, res) => ok(res, await integrations.revokeSender(user(req), req.params.integrationId, req.params.senderId, ctx(req)))));
   router.get("/admin/retention-policies", asyncHandler(async (req, res) => ok(res, await admin.listRetentionPolicies(user(req)))));
   router.post("/admin/retention-policies", asyncHandler(async (req, res) => ok(res, await admin.createRetentionPolicy(user(req), body(req), ctx(req)), { status: 201 })));
 

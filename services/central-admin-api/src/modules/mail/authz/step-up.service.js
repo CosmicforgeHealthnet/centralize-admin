@@ -31,6 +31,7 @@ const PURPOSES = new Set([
   "MAIL_EXPORT",
   "MAIL_RETENTION_EXECUTE",
   "MAIL_EMERGENCY_STOP_RELEASE",
+  "MAIL_INTEGRATION_ACTIVATE",
 ]);
 
 // Shared-MFA error codes -> Mail error codes (same envelope, Mail semantics).

@@ -33,6 +33,7 @@ const { createAutomationProcessor } = require("./marketing/automation/automation
 const { createConfirmationService } = require("./marketing/confirmation.service");
 const { createMarketingEventsProcessor } = require("./marketing/marketing-events.processor");
 const { createPublicPreferencesService } = require("./marketing/public-preferences.service");
+const { createIntegrationService } = require("./integrations/integration.service");
 
 async function unwrapKeyring({ config, encryption, logger, kmsClient }) {
   const { resolveMailKeyring, createAwsKmsClient } = require("./security/kms-keyring");
@@ -87,6 +88,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const broadcasts = createBroadcastService({ client, config, audit, jobs, stepUp, env, clock });
   const automations = createAutomationService({ client, config, audit, stepUp, clock });
   const publicPreferences = createPublicPreferencesService({ client, config, audit, marketing, clock });
+  const integrations = createIntegrationService({ client, config, audit, stepUp, automations, notifications, env, clock, logger });
   const attachmentReview = createAttachmentReviewService({ client, config, store, scanner: resolvedScanner, audit });
 
   const inbound = createInboundProcessor({ client, config, adapter: resolvedAdapter, store, scanner: resolvedScanner, audit, notifications, clock });
@@ -152,11 +154,16 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
     audit,
     store,
     jobs,
-    services: { mailbox, compose, admin, support, marketing, stepUp, breakGlass, attachmentReview, broadcasts, automations, publicPreferences, confirmation },
+    services: { mailbox, compose, admin, support, marketing, stepUp, breakGlass, attachmentReview, broadcasts, automations, publicPreferences, confirmation, integrations },
     processors: { inbound, outbound, deliveryEvents, marketingEvents, broadcasts: broadcastProcessor, automations: automationProcessor },
     marketingProviders,
     webhookHandler: createResendWebhookHandler({ client, config, jobs, audit, logger, clock: () => clock().getTime(), env }),
     brandWebhookHandler: createResendWebhookHandler({ client, config, jobs, audit, logger, clock: () => clock().getTime(), env, brandMode: true }),
+    // POST /api/mail/v1/integrations/v1/events (raw body, service HMAC).
+    integrationHandler: async (req, res) => {
+      const result = await integrations.ingest(req);
+      res.status(result.status).json(result.body);
+    },
     createWorker,
     health,
     ready: () => keyringReady,

@@ -2798,6 +2798,72 @@ exports.Prisma.MarketingTriggerEventScalarFieldEnum = {
   processedAt: 'processedAt'
 };
 
+exports.Prisma.MailProductIntegrationScalarFieldEnum = {
+  id: 'id',
+  product: 'product',
+  organizationId: 'organizationId',
+  serviceName: 'serviceName',
+  status: 'status',
+  classification: 'classification',
+  contractVersion: 'contractVersion',
+  allowedEventTypes: 'allowedEventTypes',
+  allowedTriggerTypes: 'allowedTriggerTypes',
+  ownerApprovalReference: 'ownerApprovalReference',
+  ownerApprovedBy: 'ownerApprovedBy',
+  approvedAt: 'approvedAt',
+  activatedByAdminUserId: 'activatedByAdminUserId',
+  lastEventAt: 'lastEventAt',
+  lastErrorCode: 'lastErrorCode',
+  lastErrorAt: 'lastErrorAt',
+  createdBy: 'createdBy',
+  updatedBy: 'updatedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MailProductSenderAuthorizationScalarFieldEnum = {
+  id: 'id',
+  integrationId: 'integrationId',
+  addressId: 'addressId',
+  address: 'address',
+  purpose: 'purpose',
+  grantedBy: 'grantedBy',
+  revokedAt: 'revokedAt',
+  revokedBy: 'revokedBy',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MailProductIntegrationEventScalarFieldEnum = {
+  id: 'id',
+  integrationId: 'integrationId',
+  eventId: 'eventId',
+  eventType: 'eventType',
+  eventVersion: 'eventVersion',
+  correlationId: 'correlationId',
+  payloadSha256: 'payloadSha256',
+  status: 'status',
+  errorCode: 'errorCode',
+  outcome: 'outcome',
+  occurredAt: 'occurredAt',
+  receivedAt: 'receivedAt'
+};
+
+exports.Prisma.MailProductDeliveryEventScalarFieldEnum = {
+  id: 'id',
+  integrationId: 'integrationId',
+  organizationId: 'organizationId',
+  productMessageId: 'productMessageId',
+  provider: 'provider',
+  providerMessageId: 'providerMessageId',
+  senderAddress: 'senderAddress',
+  recipientHash: 'recipientHash',
+  recipientDomain: 'recipientDomain',
+  category: 'category',
+  status: 'status',
+  occurredAt: 'occurredAt',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -3982,6 +4048,12 @@ exports.MarketingTriggerEventStatus = exports.$Enums.MarketingTriggerEventStatus
   FAILED: 'FAILED'
 };
 
+exports.MailProductIntegrationStatus = exports.$Enums.MailProductIntegrationStatus = {
+  DISABLED: 'DISABLED',
+  ACTIVE: 'ACTIVE',
+  SUSPENDED: 'SUSPENDED'
+};
+
 exports.Prisma.ModelName = {
   AdminUser: 'AdminUser',
   marketing_campaigns: 'marketing_campaigns',
@@ -4148,7 +4220,11 @@ exports.Prisma.ModelName = {
   MarketingAutomationVersion: 'MarketingAutomationVersion',
   MarketingAutomationEnrollment: 'MarketingAutomationEnrollment',
   MarketingAutomationStepRun: 'MarketingAutomationStepRun',
-  MarketingTriggerEvent: 'MarketingTriggerEvent'
+  MarketingTriggerEvent: 'MarketingTriggerEvent',
+  MailProductIntegration: 'MailProductIntegration',
+  MailProductSenderAuthorization: 'MailProductSenderAuthorization',
+  MailProductIntegrationEvent: 'MailProductIntegrationEvent',
+  MailProductDeliveryEvent: 'MailProductDeliveryEvent'
 };
 
 /**
