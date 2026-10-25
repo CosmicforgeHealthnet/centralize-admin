@@ -19,7 +19,7 @@ export default function EmailMarketingOverview({ org }: { org: MarketingOrganiza
     acc[c.status] = (acc[c.status] ?? 0) + 1;
     return acc;
   }, {});
-  const order: CampaignStatus[] = ["DRAFT", "READY_FOR_REVIEW", "APPROVED", "REJECTED"];
+  const order: CampaignStatus[] = ["DRAFT", "READY_FOR_REVIEW", "APPROVED", "REJECTED", "SCHEDULED", "SENDING", "COMPLETE", "PARTIAL", "FAILED", "CANCELLED", "OUTCOME_UNKNOWN"];
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -64,7 +64,7 @@ export default function EmailMarketingOverview({ org }: { org: MarketingOrganiza
           </p>
         </PermissionBoundary>
       </EmCard>
-      <AnalyticsFoundation />
+      <AnalyticsFoundation org={org} />
     </div>
   );
 }

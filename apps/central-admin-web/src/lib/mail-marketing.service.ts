@@ -23,6 +23,20 @@ import type {
   Suppression,
   TemplateVersion,
 } from "@/types/mail-marketing.types";
+import type {
+  ApprovedProductEvent,
+  Automation,
+  AutomationDefinition,
+  AutomationEnrollment,
+  AutomationTrigger,
+  AutomationVersion,
+  BrandSettings,
+  BroadcastDispatch,
+  BroadcastRecipient,
+  BroadcastReport,
+  DispatchState,
+  MarketingOverview,
+} from "@/types/mail-marketing.types";
 import type { Paged } from "@/types/mail.types";
 
 const BASE = "/api/mail/v1/marketing";
@@ -125,3 +139,42 @@ export const rejectCampaign = (orgId: string, campaignId: string, body: { revisi
   post<Campaign>(`/${orgId}/campaigns/${campaignId}/reject`, body);
 export const fetchCampaignHistory = (orgId: string, campaignId: string) =>
   get<CampaignHistory>(`/${orgId}/campaigns/${campaignId}/history`);
+
+// ── M7: brand settings, broadcasts, reporting ─────────────────────────────
+
+const put = async <T>(url: string, body: unknown) => (await api.put<Envelope<T>>(`${BASE}${url}`, body)).data.data;
+
+export const fetchBrandSettings = (orgId: string) => get<BrandSettings>(`/${orgId}/settings`);
+export const updateBrandSettings = (orgId: string, body: Partial<Omit<BrandSettings, "provider" | "flags">>) => patch<BrandSettings>(`/${orgId}/settings`, body);
+export const pauseBrandDispatch = (orgId: string, reason: string) => post<BrandSettings>(`/${orgId}/dispatch/pause`, { reason });
+export const resumeBrandDispatch = (orgId: string, stepUpId: string) => post<BrandSettings>(`/${orgId}/dispatch/resume`, { stepUpId });
+
+export const scheduleCampaign = (orgId: string, campaignId: string, body: { revision: number; sendAt?: string; timeZone?: string; sendAtUtc?: string }) =>
+  post<BroadcastDispatch>(`/${orgId}/campaigns/${campaignId}/schedule`, body);
+export const cancelDispatch = (orgId: string, campaignId: string, reason?: string) => post<BroadcastDispatch>(`/${orgId}/campaigns/${campaignId}/cancel`, { reason });
+export const pauseDispatch = (orgId: string, campaignId: string) => post<BroadcastDispatch>(`/${orgId}/campaigns/${campaignId}/pause`);
+export const resumeDispatch = (orgId: string, campaignId: string) => post<BroadcastDispatch>(`/${orgId}/campaigns/${campaignId}/resume`);
+export const fetchDispatch = (orgId: string, campaignId: string) => get<DispatchState>(`/${orgId}/campaigns/${campaignId}/dispatch`);
+export const fetchBroadcastReport = (orgId: string, campaignId: string) => get<BroadcastReport>(`/${orgId}/campaigns/${campaignId}/report`);
+export const fetchBroadcastRecipients = (orgId: string, campaignId: string, params: { status?: string; cursor?: string | null } = {}) =>
+  getPaged<BroadcastRecipient>(`/${orgId}/campaigns/${campaignId}/recipients`, { ...params, cursor: params.cursor ?? undefined });
+export const fetchMarketingOverview = (orgId: string) => get<MarketingOverview>(`/${orgId}/reports/overview`);
+
+// ── M7: automation ────────────────────────────────────────────────────────
+export const fetchApprovedProductEvents = (orgId: string) => get<ApprovedProductEvent[]>(`/${orgId}/automation-events`);
+export const fetchAutomations = (orgId: string) => get<Automation[]>(`/${orgId}/automations`);
+export const fetchAutomation = (orgId: string, id: string) => get<Automation>(`/${orgId}/automations/${id}`);
+export const createAutomation = (orgId: string, body: { name: string; triggerType: AutomationTrigger; description?: string; frequencyCapHours?: number; enrollmentLimit?: number }) =>
+  post<Automation>(`/${orgId}/automations`, body);
+export const saveAutomationDraft = (orgId: string, id: string, body: { definition: AutomationDefinition; triggerConfig: Record<string, unknown> }) =>
+  put<AutomationVersion>(`/${orgId}/automations/${id}/draft`, body);
+export const submitAutomationVersion = (orgId: string, id: string, versionId: string) => post<AutomationVersion>(`/${orgId}/automations/${id}/versions/${versionId}/submit`);
+export const approveAutomationVersion = (orgId: string, id: string, versionId: string, body: { stepUpId: string; definitionSha256: string; comment?: string }) =>
+  post<Automation>(`/${orgId}/automations/${id}/versions/${versionId}/approve`, body);
+export const rejectAutomationVersion = (orgId: string, id: string, versionId: string, comment: string) =>
+  post<AutomationVersion>(`/${orgId}/automations/${id}/versions/${versionId}/reject`, { comment });
+export const activateAutomation = (orgId: string, id: string) => post<Automation>(`/${orgId}/automations/${id}/activate`);
+export const pauseAutomation = (orgId: string, id: string) => post<Automation>(`/${orgId}/automations/${id}/pause`);
+export const archiveAutomation = (orgId: string, id: string) => post<Automation>(`/${orgId}/automations/${id}/archive`);
+export const fetchAutomationEnrollments = (orgId: string, id: string, params: { status?: string; cursor?: string | null } = {}) =>
+  getPaged<AutomationEnrollment>(`/${orgId}/automations/${id}/enrollments`, { ...params, cursor: params.cursor ?? undefined });

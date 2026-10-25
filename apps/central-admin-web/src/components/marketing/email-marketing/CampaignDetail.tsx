@@ -23,6 +23,7 @@ import {
 import { useAuthStore } from "@/stores/auth.store";
 import type { Campaign, CampaignInput, MarketingOrganization, PreflightResult } from "@/types/mail-marketing.types";
 import StepUpDialog from "./StepUpDialog";
+import CampaignDispatchPanel from "./CampaignDispatchPanel";
 import { EmBadge, EmCard, EmField, EmMessage, emBtn, emBtnOutline, emInput } from "./em-ui";
 
 const EDITABLE: Campaign["status"][] = ["DRAFT", "REJECTED", "READY_FOR_REVIEW", "APPROVED"];
@@ -135,7 +136,7 @@ export default function CampaignDetail({ org, campaignId }: { org: MarketingOrga
       approveCampaign(org.id, campaignId, { revision: campaign?.revision ?? 1, stepUpId, comment: approveComment || undefined }),
     onSuccess: () => {
       setStepUpOpen(false);
-      setMsg({ text: "Campaign approved. Dispatch is not enabled in this release (M7).", tone: "info" });
+      setMsg({ text: campaignQ.data?.dispatchEnabled ? "Campaign approved. You can now schedule the broadcast." : "Campaign approved. Dispatch is not enabled in this environment.", tone: "info" });
       refresh();
     },
     onError: (e) => {
@@ -362,6 +363,8 @@ export default function CampaignDetail({ org, campaignId }: { org: MarketingOrga
           )}
         </div>
       </EmCard>
+
+      <CampaignDispatchPanel org={org} campaign={campaign} />
 
       <EmCard title="History" id="cd-history">
         <PermissionBoundary isLoading={historyQ.isLoading} error={historyQ.error} compact>

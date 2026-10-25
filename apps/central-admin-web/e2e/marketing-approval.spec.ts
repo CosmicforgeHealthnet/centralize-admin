@@ -37,7 +37,10 @@ function marketingMocks(api: MockApi, user: E2EUser, rights: { canAuthor: boolea
     .on("GET", `${MK}/org-cf/campaigns/cmp-1/history`, ok({ approvals: [], snapshots: [], audit: [] }))
     .on("GET", `${MK}/org-cf/audiences`, ok([], { nextCursor: null }))
     .on("GET", `${MK}/org-cf/templates`, ok([], { nextCursor: null }))
-    .on("GET", `${MK}/org-cf/sender-identities`, ok([]));
+    .on("GET", `${MK}/org-cf/sender-identities`, ok([]))
+    .on("GET", `${MK}/org-cf/campaigns/cmp-1/dispatch`, ok({ dispatch: null, campaignStatus: "READY_FOR_REVIEW", dispatchEnabled: false }))
+    .on("GET", `${MK}/org-cf/campaigns/cmp-1/recipients`, ok([], { nextCursor: null }))
+    .on("GET", `${MK}/org-cf/settings`, ok({ defaultTimeZone: "Africa/Lagos" }));
 }
 
 const PAGE = "/dashboard/marketing/email-marketing/campaigns/cmp-1";
@@ -77,6 +80,6 @@ test.describe("Marketing campaign approval is reviewer-scoped", () => {
     await expect.poll(() => api.callsTo("POST", `${MK}/org-cf/campaigns/cmp-1/approve`).length).toBe(1);
     expect(api.callsTo("POST", "/api/mail/v1/security/step-up")[0].body).toEqual({ code: "123456", purpose: "MARKETING_CAMPAIGN_APPROVAL" });
     expect(api.callsTo("POST", `${MK}/org-cf/campaigns/cmp-1/approve`)[0].body).toMatchObject({ revision: 3, stepUpId: "su-1" });
-    await expect(page.getByText("Dispatch is not enabled in this release", { exact: false }).first()).toBeVisible();
+    await expect(page.getByText("Dispatch is not enabled in this environment", { exact: false }).first()).toBeVisible();
   });
 });
