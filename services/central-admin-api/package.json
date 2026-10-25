@@ -68,6 +68,7 @@
     "mail:canary:live": "node scripts/mail/canary.js live",
     "mail:rollback:drill": "node scripts/mail/rollback-drill.js",
     "test:mail:s3": "MAIL_TEST_STORAGE=s3 node --require ./tests/helpers/network-guard.js --test tests/mail-postgres.test.js",
+    "test:mail:s3-kms-live": "node --require ./tests/helpers/network-guard.js --test tests/mail-s3-kms-live.test.js",
     "test:mail:clamd-live": "node --require ./tests/helpers/network-guard.js --test tests/mail-clamd-live.test.js",
     "mail:kms:generate-data-key": "node scripts/mail/generate-data-key.js",
     "mail:keys:rotate": "node scripts/mail/rotate-encryption.js",

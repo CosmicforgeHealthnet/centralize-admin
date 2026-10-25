@@ -86,6 +86,9 @@ test("S3 backend health: HEAD bucket plus put/get/delete canary, cached and fail
   const healthy = await s3Backend(s3.config()).health();
   assert.deepEqual(healthy, { ok: true, detail: "s3-canary-ok" });
   assert.equal(s3.objects.size, 0, "canary object is removed");
+  // A configured key prefix must not turn HEAD-bucket into an object lookup.
+  assert.deepEqual(await s3Backend(s3.config({ prefix: "mail/staging" })).health(), { ok: true, detail: "s3-canary-ok" });
+  assert.deepEqual(await s3Backend(s3.config({ prefix: "mail/staging", healthCanary: false })).health(), { ok: true, detail: "s3-head-ok" });
   const wrongBucket = await s3Backend(s3.config({ bucket: "cf-mail-other" })).health();
   assert.equal(wrongBucket.ok, false);
   const port = await closedPort();

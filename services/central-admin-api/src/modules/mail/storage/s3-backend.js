@@ -68,8 +68,10 @@ function s3Backend(options = {}, { fetchImpl = globalThis.fetch, sleep = (ms) =>
   if (!s3Configured(cfg)) throw new Error("S3 storage is not fully configured");
   const credentials = { accessKeyId: cfg.accessKeyId, secretAccessKey: cfg.secretAccessKey, sessionToken: cfg.sessionToken || undefined };
 
+  // `key` empty addresses the bucket itself (never the prefix: HEAD on a
+  // prefix path is an object lookup and answers 404).
   function objectUrl(key = "") {
-    const fullKey = [cfg.prefix, key].filter(Boolean).join("/");
+    const fullKey = key ? [cfg.prefix, key].filter(Boolean).join("/") : "";
     const base = new URL(cfg.endpoint);
     if (cfg.forcePathStyle) return `${base.origin}/${cfg.bucket}${fullKey ? `/${fullKey}` : ""}`;
     return `${base.protocol}//${cfg.bucket}.${base.host}${fullKey ? `/${fullKey}` : "/"}`;
