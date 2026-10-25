@@ -145,13 +145,6 @@ exports.Prisma.AdminUserScalarFieldEnum = {
   createdBy: 'createdBy',
   twoFactorEnabled: 'twoFactorEnabled',
   twoFactorSecret: 'twoFactorSecret',
-  mfaEnrolledAt: 'mfaEnrolledAt',
-  mfaSecretEncrypted: 'mfaSecretEncrypted',
-  mfaPendingSecretEncrypted: 'mfaPendingSecretEncrypted',
-  mfaPendingExpiresAt: 'mfaPendingExpiresAt',
-  mfaLastUsedStep: 'mfaLastUsedStep',
-  mfaFailedAttempts: 'mfaFailedAttempts',
-  mfaLockedUntil: 'mfaLockedUntil',
   avatarUrl: 'avatarUrl',
   avatarCloudinaryId: 'avatarCloudinaryId',
   preferredName: 'preferredName',
@@ -1683,19 +1676,6 @@ exports.Prisma.AdminManualMigrationLedgerScalarFieldEnum = {
   appliedAt: 'appliedAt'
 };
 
-exports.Prisma.RefreshTokenScalarFieldEnum = {
-  id: 'id',
-  token: 'token',
-  adminUserId: 'adminUserId',
-  expiresAt: 'expiresAt',
-  isRevoked: 'isRevoked',
-  ipAddress: 'ipAddress',
-  userAgent: 'userAgent',
-  createdAt: 'createdAt',
-  sessionId: 'sessionId',
-  rotatedAt: 'rotatedAt'
-};
-
 exports.Prisma.AdminSessionScalarFieldEnum = {
   id: 'id',
   adminUserId: 'adminUserId',
@@ -1711,6 +1691,32 @@ exports.Prisma.AdminSessionScalarFieldEnum = {
   revokeReason: 'revokeReason',
   ipAddress: 'ipAddress',
   userAgent: 'userAgent'
+};
+
+exports.Prisma.AdminSessionRefreshTokenScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  adminUserId: 'adminUserId',
+  tokenHash: 'tokenHash',
+  createdAt: 'createdAt',
+  expiresAt: 'expiresAt',
+  rotatedAt: 'rotatedAt',
+  revokedAt: 'revokedAt',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent'
+};
+
+exports.Prisma.AdminMfaEnrollmentScalarFieldEnum = {
+  adminUserId: 'adminUserId',
+  enrolledAt: 'enrolledAt',
+  secretEncrypted: 'secretEncrypted',
+  pendingSecretEncrypted: 'pendingSecretEncrypted',
+  pendingExpiresAt: 'pendingExpiresAt',
+  lastUsedStep: 'lastUsedStep',
+  failedAttempts: 'failedAttempts',
+  lockedUntil: 'lockedUntil',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.AdminMfaRecoveryCodeScalarFieldEnum = {
@@ -1733,6 +1739,29 @@ exports.Prisma.AdminMfaChallengeScalarFieldEnum = {
   createdAt: 'createdAt',
   ipAddress: 'ipAddress',
   userAgent: 'userAgent'
+};
+
+exports.Prisma.AdminAuthEventScalarFieldEnum = {
+  id: 'id',
+  adminUserId: 'adminUserId',
+  action: 'action',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  metadata: 'metadata',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.RefreshTokenScalarFieldEnum = {
+  id: 'id',
+  token: 'token',
+  adminUserId: 'adminUserId',
+  expiresAt: 'expiresAt',
+  isRevoked: 'isRevoked',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.AuditLogScalarFieldEnum = {
@@ -2844,23 +2873,7 @@ exports.AuditAction = exports.$Enums.AuditAction = {
   EXECUTION_COMPENSATION_CREATED: 'EXECUTION_COMPENSATION_CREATED',
   EXECUTION_OVERRIDE_USED: 'EXECUTION_OVERRIDE_USED',
   EXECUTION_DRIFT_ACKNOWLEDGED: 'EXECUTION_DRIFT_ACKNOWLEDGED',
-  EXECUTION_OPERATION_RETRY_REVIEWED: 'EXECUTION_OPERATION_RETRY_REVIEWED',
-  SESSION_CREATED: 'SESSION_CREATED',
-  SESSION_REVOKED: 'SESSION_REVOKED',
-  SESSIONS_REVOKED_ALL: 'SESSIONS_REVOKED_ALL',
-  REFRESH_TOKEN_REUSE_DETECTED: 'REFRESH_TOKEN_REUSE_DETECTED',
-  CSRF_REJECTED: 'CSRF_REJECTED',
-  MFA_ENROLLMENT_STARTED: 'MFA_ENROLLMENT_STARTED',
-  MFA_ENROLLED: 'MFA_ENROLLED',
-  MFA_CHALLENGE_ISSUED: 'MFA_CHALLENGE_ISSUED',
-  MFA_VERIFIED: 'MFA_VERIFIED',
-  MFA_FAILED: 'MFA_FAILED',
-  MFA_LOCKED: 'MFA_LOCKED',
-  MFA_RECOVERY_CODE_USED: 'MFA_RECOVERY_CODE_USED',
-  MFA_RECOVERY_CODES_REGENERATED: 'MFA_RECOVERY_CODES_REGENERATED',
-  MFA_DISABLED: 'MFA_DISABLED',
-  MFA_ADMIN_RESET: 'MFA_ADMIN_RESET',
-  MFA_STEP_UP: 'MFA_STEP_UP'
+  EXECUTION_OPERATION_RETRY_REVIEWED: 'EXECUTION_OPERATION_RETRY_REVIEWED'
 };
 
 exports.SectionAccessMode = exports.$Enums.SectionAccessMode = {
@@ -3016,10 +3029,13 @@ exports.Prisma.ModelName = {
   SocialSavedReply: 'SocialSavedReply',
   SocialOperationsSetting: 'SocialOperationsSetting',
   AdminManualMigrationLedger: 'AdminManualMigrationLedger',
-  RefreshToken: 'RefreshToken',
   AdminSession: 'AdminSession',
+  AdminSessionRefreshToken: 'AdminSessionRefreshToken',
+  AdminMfaEnrollment: 'AdminMfaEnrollment',
   AdminMfaRecoveryCode: 'AdminMfaRecoveryCode',
   AdminMfaChallenge: 'AdminMfaChallenge',
+  AdminAuthEvent: 'AdminAuthEvent',
+  RefreshToken: 'RefreshToken',
   AuditLog: 'AuditLog',
   AdminSectionGrant: 'AdminSectionGrant',
   AdminSocialLink: 'AdminSocialLink',

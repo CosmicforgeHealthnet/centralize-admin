@@ -1,38 +1,9 @@
--- HQ secure sessions + MFA lifecycle (Workstreams A/B).
--- Additive only: new columns are nullable or defaulted, new tables are empty,
--- AuditAction gains values. No existing row is rewritten.
--- Rollback: docs/sql/hq-auth-sessions-mfa-rollback.sql (enum values cannot be
--- removed in PostgreSQL and are left in place; they are harmless).
-
-ALTER TYPE "AuditAction" ADD VALUE IF NOT EXISTS 'SESSION_CREATED';
-ALTER TYPE "AuditAction" ADD VALUE IF NOT EXISTS 'SESSION_REVOKED';
-ALTER TYPE "AuditAction" ADD VALUE IF NOT EXISTS 'SESSIONS_REVOKED_ALL';
-ALTER TYPE "AuditAction" ADD VALUE IF NOT EXISTS 'REFRESH_TOKEN_REUSE_DETECTED';
-ALTER TYPE "AuditAction" ADD VALUE IF NOT EXISTS 'CSRF_REJECTED';
-ALTER TYPE "AuditAction" ADD VALUE IF NOT EXISTS 'MFA_ENROLLMENT_STARTED';
-ALTER TYPE "AuditAction" ADD VALUE IF NOT EXISTS 'MFA_ENROLLED';
-ALTER TYPE "AuditAction" ADD VALUE IF NOT EXISTS 'MFA_CHALLENGE_ISSUED';
-ALTER TYPE "AuditAction" ADD VALUE IF NOT EXISTS 'MFA_VERIFIED';
-ALTER TYPE "AuditAction" ADD VALUE IF NOT EXISTS 'MFA_FAILED';
-ALTER TYPE "AuditAction" ADD VALUE IF NOT EXISTS 'MFA_LOCKED';
-ALTER TYPE "AuditAction" ADD VALUE IF NOT EXISTS 'MFA_RECOVERY_CODE_USED';
-ALTER TYPE "AuditAction" ADD VALUE IF NOT EXISTS 'MFA_RECOVERY_CODES_REGENERATED';
-ALTER TYPE "AuditAction" ADD VALUE IF NOT EXISTS 'MFA_DISABLED';
-ALTER TYPE "AuditAction" ADD VALUE IF NOT EXISTS 'MFA_ADMIN_RESET';
-ALTER TYPE "AuditAction" ADD VALUE IF NOT EXISTS 'MFA_STEP_UP';
-
--- AlterTable
-ALTER TABLE "admin_users" ADD COLUMN     "mfa_enrolled_at" TIMESTAMP(3),
-ADD COLUMN     "mfa_failed_attempts" INTEGER NOT NULL DEFAULT 0,
-ADD COLUMN     "mfa_last_used_step" INTEGER,
-ADD COLUMN     "mfa_locked_until" TIMESTAMP(3),
-ADD COLUMN     "mfa_pending_expires_at" TIMESTAMP(3),
-ADD COLUMN     "mfa_pending_secret_encrypted" TEXT,
-ADD COLUMN     "mfa_secret_encrypted" TEXT;
-
--- AlterTable
-ALTER TABLE "admin_refresh_tokens" ADD COLUMN     "rotated_at" TIMESTAMP(3),
-ADD COLUMN     "session_id" UUID;
+-- HQ secure sessions + MFA (Workstreams A/B).
+-- NEW TABLES ONLY. No existing table, column or enum is altered, so the API
+-- built from this commit can be deployed BEFORE this migration is applied:
+-- until the tables exist, src/shared/auth/schema-readiness.js keeps the
+-- pre-release login behaviour (admin_refresh_tokens only, no sessions, no MFA).
+-- Rollback: docs/sql/hq-auth-sessions-mfa-rollback.sql (drops these tables).
 
 -- CreateTable
 CREATE TABLE "admin_sessions" (
@@ -52,6 +23,38 @@ CREATE TABLE "admin_sessions" (
     "user_agent" VARCHAR(512),
 
     CONSTRAINT "admin_sessions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "admin_session_refresh_tokens" (
+    "id" UUID NOT NULL,
+    "session_id" UUID NOT NULL,
+    "admin_user_id" TEXT NOT NULL,
+    "token_hash" CHAR(64) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expires_at" TIMESTAMP(3) NOT NULL,
+    "rotated_at" TIMESTAMP(3),
+    "revoked_at" TIMESTAMP(3),
+    "ip_address" VARCHAR(64),
+    "user_agent" VARCHAR(512),
+
+    CONSTRAINT "admin_session_refresh_tokens_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "admin_mfa_enrollments" (
+    "admin_user_id" TEXT NOT NULL,
+    "enrolled_at" TIMESTAMP(3),
+    "secret_encrypted" TEXT,
+    "pending_secret_encrypted" TEXT,
+    "pending_expires_at" TIMESTAMP(3),
+    "last_used_step" INTEGER,
+    "failed_attempts" INTEGER NOT NULL DEFAULT 0,
+    "locked_until" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "admin_mfa_enrollments_pkey" PRIMARY KEY ("admin_user_id")
 );
 
 -- CreateTable
@@ -82,8 +85,32 @@ CREATE TABLE "admin_mfa_challenges" (
     CONSTRAINT "admin_mfa_challenges_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "admin_auth_events" (
+    "id" UUID NOT NULL,
+    "admin_user_id" TEXT,
+    "action" VARCHAR(64) NOT NULL,
+    "target_type" VARCHAR(64),
+    "target_id" VARCHAR(128),
+    "metadata" JSONB,
+    "ip_address" VARCHAR(64),
+    "user_agent" VARCHAR(512),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "admin_auth_events_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE INDEX "IDX_admin_sessions_user_active" ON "admin_sessions"("admin_user_id", "revoked_at");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UQ_admin_session_refresh_tokens_hash" ON "admin_session_refresh_tokens"("token_hash");
+
+-- CreateIndex
+CREATE INDEX "IDX_admin_session_refresh_tokens_session" ON "admin_session_refresh_tokens"("session_id");
+
+-- CreateIndex
+CREATE INDEX "IDX_admin_session_refresh_tokens_user" ON "admin_session_refresh_tokens"("admin_user_id");
 
 -- CreateIndex
 CREATE INDEX "IDX_admin_mfa_recovery_codes_user" ON "admin_mfa_recovery_codes"("admin_user_id");
@@ -95,13 +122,19 @@ CREATE UNIQUE INDEX "UQ_admin_mfa_challenges_token" ON "admin_mfa_challenges"("t
 CREATE INDEX "IDX_admin_mfa_challenges_user" ON "admin_mfa_challenges"("admin_user_id");
 
 -- CreateIndex
-CREATE INDEX "IDX_admin_refresh_tokens_session" ON "admin_refresh_tokens"("session_id");
+CREATE INDEX "IDX_admin_auth_events_user_time" ON "admin_auth_events"("admin_user_id", "created_at");
 
--- AddForeignKey
-ALTER TABLE "admin_refresh_tokens" ADD CONSTRAINT "admin_refresh_tokens_session_id_fkey" FOREIGN KEY ("session_id") REFERENCES "admin_sessions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+-- CreateIndex
+CREATE INDEX "IDX_admin_auth_events_action_time" ON "admin_auth_events"("action", "created_at");
 
 -- AddForeignKey
 ALTER TABLE "admin_sessions" ADD CONSTRAINT "admin_sessions_admin_user_id_fkey" FOREIGN KEY ("admin_user_id") REFERENCES "admin_users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "admin_session_refresh_tokens" ADD CONSTRAINT "admin_session_refresh_tokens_session_id_fkey" FOREIGN KEY ("session_id") REFERENCES "admin_sessions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "admin_mfa_enrollments" ADD CONSTRAINT "admin_mfa_enrollments_admin_user_id_fkey" FOREIGN KEY ("admin_user_id") REFERENCES "admin_users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "admin_mfa_recovery_codes" ADD CONSTRAINT "admin_mfa_recovery_codes_admin_user_id_fkey" FOREIGN KEY ("admin_user_id") REFERENCES "admin_users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -109,7 +142,12 @@ ALTER TABLE "admin_mfa_recovery_codes" ADD CONSTRAINT "admin_mfa_recovery_codes_
 -- AddForeignKey
 ALTER TABLE "admin_mfa_challenges" ADD CONSTRAINT "admin_mfa_challenges_admin_user_id_fkey" FOREIGN KEY ("admin_user_id") REFERENCES "admin_users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- Defence in depth for the session state machine.
+-- AddForeignKey
+ALTER TABLE "admin_auth_events" ADD CONSTRAINT "admin_auth_events_admin_user_id_fkey" FOREIGN KEY ("admin_user_id") REFERENCES "admin_users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- Defence in depth for the session/MFA state machines.
 ALTER TABLE "admin_sessions" ADD CONSTRAINT "CHK_admin_sessions_mode" CHECK ("mode" IN ('legacy', 'dual', 'cookie'));
 ALTER TABLE "admin_sessions" ADD CONSTRAINT "CHK_admin_sessions_expiry_order" CHECK ("idle_expires_at" <= "absolute_expires_at");
 ALTER TABLE "admin_mfa_challenges" ADD CONSTRAINT "CHK_admin_mfa_challenges_attempts" CHECK ("attempts" >= 0 AND "attempts" <= 10);
+ALTER TABLE "admin_mfa_enrollments" ADD CONSTRAINT "CHK_admin_mfa_enrollments_verified" CHECK ("enrolled_at" IS NULL OR "secret_encrypted" IS NOT NULL);
+ALTER TABLE "admin_mfa_enrollments" ADD CONSTRAINT "CHK_admin_mfa_enrollments_failures" CHECK ("failed_attempts" >= 0);
