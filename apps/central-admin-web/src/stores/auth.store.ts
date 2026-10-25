@@ -2,6 +2,7 @@ import { inspectHttpError } from "@/lib/error-messages";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import api from "@/lib/api";
+import { applySessionPayload, clearSessionState, getMode, setMemoryFallbackToken, type SessionPayload } from "@/lib/auth-session";
 import { useProfileStore } from "@/stores/profile.store";
 
 interface AdminUser {
@@ -23,9 +24,16 @@ interface PendingResetRequest {
   passwordResetExpires: string;
 }
 
+interface MfaChallenge {
+  challengeToken: string | null; // null when the challenge travels in an httpOnly cookie (Google)
+  expiresAt: string | null;
+}
+
 interface AuthState {
   user: AdminUser | null;
+  // Only populated in legacy mode. In dual/cookie mode credentials are httpOnly cookies.
   accessToken: string | null;
+  mfaChallenge: MfaChallenge | null;
   mustChangePassword: boolean;
   isLoading: boolean;
   error: string | null;
@@ -38,6 +46,10 @@ interface AuthState {
   pendingResetLoading: boolean;
 
   login: (email: string, password: string) => Promise<void>;
+  completeMfa: (input: { code?: string; recoveryCode?: string }) => Promise<void>;
+  startCookieMfaChallenge: () => void;
+  cancelMfa: () => void;
+  hydrateFromSession: () => Promise<boolean>;
   logout: () => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string, confirmPassword: string) => Promise<void>;
   clearError: () => void;
@@ -50,15 +62,28 @@ interface AuthState {
   clearResetState: () => void;
 }
 
-const TOKEN_COOKIE = "accessToken";
-const COOKIE_MAX_AGE = 8 * 60 * 60;
-
-function setTokenCookie(token: string) {
-  document.cookie = `${TOKEN_COOKIE}=${token}; path=/; max-age=${COOKIE_MAX_AGE}; secure; samesite=strict`;
+interface LoginPayload extends SessionPayload {
+  mustChangePassword?: boolean;
+  user: AdminUser;
 }
 
-function clearTokenCookie() {
-  document.cookie = `${TOKEN_COOKIE}=; path=/; max-age=0`;
+// Store credentials for the server-selected mode, then load the profile.
+async function finishLogin(data: LoginPayload, set: (partial: Partial<AuthState>) => void) {
+  // A new identity must never see another identity's cached mail.
+  const { clearMailQueries } = await import("@/lib/query-client-registry");
+  clearMailQueries();
+  const mode = applySessionPayload(data);
+  if (mode === "dual") {
+    // If the browser blocked the API cookies, keep the body token in memory only.
+    try {
+      await api.get("/api/auth/session");
+    } catch {
+      setMemoryFallbackToken(data.accessToken ?? null);
+    }
+  }
+  set({ user: data.user, accessToken: mode === "legacy" ? data.accessToken ?? null : null, mustChangePassword: Boolean(data.mustChangePassword), isLoading: false });
+  const { fetchProfile } = useProfileStore.getState();
+  await fetchProfile();
 }
 
 function extractErrorMessage(err: unknown, fallback: string): string {
@@ -82,6 +107,7 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       accessToken: null,
+      mfaChallenge: null,
       mustChangePassword: false,
       isLoading: false,
       error: null,
@@ -96,23 +122,49 @@ export const useAuthStore = create<AuthState>()(
       // LOGIN
       // ─────────────────────────────────────────────────────────
       login: async (email, password) => {
-        set({ isLoading: true, error: null });
+        set({ isLoading: true, error: null, mfaChallenge: null });
         try {
           const res = await api.post("/api/auth/login", { email, password });
-          const { accessToken, mustChangePassword, user } = res.data.data;
-
-          localStorage.setItem("accessToken", accessToken);
-          setTokenCookie(accessToken);
-
-          set({ user, accessToken, mustChangePassword, isLoading: false });
-
-          const { fetchProfile } = useProfileStore.getState();
-          await fetchProfile();
+          const data = res.data.data;
+          if (data.mfaRequired) {
+            set({ isLoading: false, mfaChallenge: { challengeToken: data.challengeToken, expiresAt: data.challengeExpiresAt } });
+            return;
+          }
+          await finishLogin(data, set);
         } catch (err: unknown) {
           set({
             error: extractErrorMessage(err, "Invalid email or password"),
             isLoading: false,
           });
+        }
+      },
+
+      completeMfa: async ({ code, recoveryCode }) => {
+        set({ isLoading: true, error: null });
+        try {
+          const challengeToken = useAuthStore.getState().mfaChallenge?.challengeToken || undefined;
+          const res = await api.post("/api/auth/login/mfa", { challengeToken, code: code || undefined, recoveryCode: recoveryCode || undefined });
+          set({ mfaChallenge: null });
+          await finishLogin(res.data.data, set);
+        } catch (err: unknown) {
+          set({ error: extractErrorMessage(err, "The code is not valid"), isLoading: false });
+        }
+      },
+
+      startCookieMfaChallenge: () => set({ mfaChallenge: { challengeToken: null, expiresAt: null }, error: null }),
+
+      cancelMfa: () => set({ mfaChallenge: null, error: null }),
+
+      // Rebuild state from the httpOnly-cookie session (reload, Google callback).
+      hydrateFromSession: async () => {
+        try {
+          const res = await api.get("/api/auth/session");
+          const data = res.data.data;
+          applySessionPayload({ csrfToken: data.csrfToken, session: { mode: data.mode } });
+          set({ user: data.user, accessToken: null, mustChangePassword: Boolean(data.user?.mustChangePassword), isLoading: false, error: null });
+          return true;
+        } catch {
+          return false;
         }
       },
 
@@ -124,9 +176,8 @@ export const useAuthStore = create<AuthState>()(
           await api.post("/api/auth/logout");
         } catch (_) {}
 
-        // ✅ Clear everything
-        localStorage.removeItem("accessToken");
-        clearTokenCookie();
+        // ✅ Clear everything (legacy token, CSRF, hint cookie, mode)
+        clearSessionState();
 
         // ✅ Clear the persisted Zustand storage
         localStorage.removeItem("auth-storage");
@@ -134,10 +185,15 @@ export const useAuthStore = create<AuthState>()(
         const { useProfileStore } = await import("@/stores/profile.store");
         useProfileStore.getState().clearProfile();
 
+        // Purge any cached private mailbox content held in memory.
+        const { clearMailQueries } = await import("@/lib/query-client-registry");
+        clearMailQueries();
+
         // ✅ Reset all state
         set({ 
           user: null, 
           accessToken: null,
+          mfaChallenge: null,
           mustChangePassword: false,
           isLoading: false,
           error: null,
@@ -265,9 +321,10 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-storage",
+      // Never persist a token outside legacy mode.
       partialize: (state) => ({
         user: state.user,
-        accessToken: state.accessToken,
+        accessToken: getMode() === "legacy" ? state.accessToken : null,
         mustChangePassword: state.mustChangePassword,
       }),
     }

@@ -4,9 +4,9 @@ const { v4: uuidv4 } = require("uuid");
 const ACCESS_TOKEN_EXPIRY = "8h";
 const REFRESH_TOKEN_EXPIRY = "7d";
 
-const generateAccessToken = (payload) => {
+const generateAccessToken = (payload, { expiresInSeconds } = {}) => {
   return jwt.sign(payload, process.env.ADMIN_JWT_SECRET, {
-    expiresIn: ACCESS_TOKEN_EXPIRY,
+    expiresIn: expiresInSeconds || ACCESS_TOKEN_EXPIRY,
     issuer: "cosmicforge-admin",
     audience: "cosmicforge-admin-client",
   });

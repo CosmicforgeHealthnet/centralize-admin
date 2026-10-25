@@ -60,3 +60,42 @@ jobs:
         run: |
           echo "Frontend lint errors remain; see lint step output."
           exit 1
+
+  e2e:
+    name: Mail E2E (Playwright, mocked API)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/central-admin-web
+    env:
+      # The API host is never started: every call is answered by page.route
+      # mocks in e2e/fixtures.ts and all other off-origin requests are aborted.
+      NEXT_PUBLIC_API_URL: http://localhost:4999
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/central-admin-web/package-lock.json
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Build frontend against the mocked API origin
+        run: npm run build
+      - name: Run Mail E2E tests
+        run: npm run test:e2e
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            apps/central-admin-web/playwright-report
+            apps/central-admin-web/test-results
+          retention-days: 7

@@ -42,6 +42,14 @@ export default function TicketsPage() {
   const [selectedCategory, setSelectedCategory] = useState<TicketCategory | "all">("all");
   const [showDropdown, setShowDropdown] = useState(false);
 
+  // Deep link from a Support mail conversation (/dashboard/help/tickets?ref=<id>):
+  // open that ticket. Read from location to avoid a Suspense boundary for
+  // useSearchParams on this client page.
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get("ref");
+    if (ref && /^[A-Za-z0-9_-]{1,128}$/.test(ref)) router.replace(`/dashboard/help/tickets/${encodeURIComponent(ref)}`);
+  }, [router]);
+
   useEffect(() => {
     fetchTickets(selectedCategory === "all" ? {} : { category: selectedCategory });
   }, [fetchTickets, selectedCategory]);

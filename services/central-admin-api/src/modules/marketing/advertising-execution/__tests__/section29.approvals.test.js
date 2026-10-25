@@ -168,11 +168,15 @@ test("29-APPROVAL expiry uses injected clocks with exact boundary semantics", ()
 test("29-APPROVAL override requires elevated MFA-capable actor, explicit scope and bounded duration", async () => {
   const audits = [];
   const auditWriter = { writeImmutable: async (entry) => audits.push(entry) };
-  const operator = { id: "super-1", status: "ACTIVE", executionRoles: ["EXECUTION_ADMINISTRATOR"], tier: "SUPER", twoFactorEnabled: true };
+  const freshMfa = { enrolled: true, sessionId: "session-1", verifiedAt: new Date().toISOString() };
+  const operator = { id: "super-1", status: "ACTIVE", executionRoles: ["EXECUTION_ADMINISTRATOR"], tier: "SUPER", twoFactorEnabled: true, mfa: freshMfa };
   const override = { reason: "Emergency connection unblock for incident CF-99", scope: { planId: "plan-1" }, expiresAt: "2026-07-23T11:00:00.000Z" };
   await assert.rejects(authorizeEmergencyOverride({ actor: { ...operator, executionRoles: ["APPROVER"] }, override, executionConfig: { enabled: true }, policy: { emergencyOverrideAllowed: true }, auditWriter }), (error) => error.errors[0].reasonCode === "ROLE_ACTION_FORBIDDEN");
   await assert.rejects(authorizeEmergencyOverride({ actor: { ...operator, tier: "EMPLOYEE" }, override, executionConfig: { enabled: true }, policy: { emergencyOverrideAllowed: true }, auditWriter }), (error) => error.errors[0].reasonCode === "ELEVATED_AUTHORIZATION_REQUIRED");
-  await assert.rejects(authorizeEmergencyOverride({ actor: { ...operator, twoFactorEnabled: false }, override, executionConfig: { enabled: true }, policy: { emergencyOverrideAllowed: true }, auditWriter }), (error) => error.errors[0].reasonCode === "TWO_FACTOR_REQUIRED");
+  // twoFactorEnabled alone is not MFA evidence: verified enrollment + a fresh step-up are required.
+  await assert.rejects(authorizeEmergencyOverride({ actor: { ...operator, mfa: undefined }, override, executionConfig: { enabled: true }, policy: { emergencyOverrideAllowed: true }, auditWriter }), (error) => error.errors[0].reasonCode === "TWO_FACTOR_REQUIRED");
+  await assert.rejects(authorizeEmergencyOverride({ actor: { ...operator, mfa: { ...freshMfa, enrolled: false } }, override, executionConfig: { enabled: true }, policy: { emergencyOverrideAllowed: true }, auditWriter }), (error) => error.errors[0].reasonCode === "TWO_FACTOR_REQUIRED");
+  await assert.rejects(authorizeEmergencyOverride({ actor: { ...operator, mfa: { ...freshMfa, verifiedAt: new Date(Date.now() - 6 * 60 * 1000).toISOString() } }, override, executionConfig: { enabled: true }, policy: { emergencyOverrideAllowed: true }, auditWriter }), (error) => error.errors[0].reasonCode === "TWO_FACTOR_REQUIRED");
   await assert.rejects(authorizeEmergencyOverride({ actor: operator, override, executionConfig: { enabled: true }, policy: { emergencyOverrideAllowed: false }, auditWriter }), (error) => error.errors[0].reasonCode === "OVERRIDE_POLICY_DISABLED");
   // The global switch can never be bypassed by an override.
   await assert.rejects(authorizeEmergencyOverride({ actor: operator, override, executionConfig: { enabled: false }, policy: { emergencyOverrideAllowed: true }, auditWriter }), (error) => error.code === "EXECUTION_DISABLED");

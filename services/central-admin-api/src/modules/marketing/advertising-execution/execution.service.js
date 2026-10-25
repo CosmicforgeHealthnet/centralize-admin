@@ -1,3 +1,4 @@
+const { hasFreshVerifiedMfa } = require("../../../shared/auth/privileged-mfa");
 const { readExecutionConfig } = require("./execution.config");
 const { PLAN_STATES, PLAN_TRANSITIONS, OPERATION_STATES, OPERATION_TRANSITIONS, ACTOR_ROLES, PROVIDERS } = require("./execution.constants");
 const { validatePlanInput } = require("./plans/plan.validator");
@@ -81,7 +82,7 @@ function createExecutionService({ env = process.env, registry, capabilityDiscove
     if (input.enabled && policy.key === "execution.write.enabled" && !readExecutionConfig(env).enabled) throw executionError("AD_EXECUTION_DISABLED", { reasonCode: "GLOBAL_GATE_PRECEDENCE" });
     if (/emergency/i.test(policy.key)) {
       await authorize(actor, "EMERGENCY_OPERATOR");
-      if (!actor.twoFactorEnabled) throw executionError("APPROVAL_NOT_ELIGIBLE", { reasonCode: "TWO_FACTOR_REQUIRED" });
+      if (!hasFreshVerifiedMfa(actor)) throw executionError("APPROVAL_NOT_ELIGIBLE", { reasonCode: "TWO_FACTOR_REQUIRED" });
       if (!input.emergencyOverride?.expiresAt || new Date(input.emergencyOverride.expiresAt) <= new Date()) throw executionError("INVALID_EXECUTION_PLAN", { field: "body.emergencyOverride.expiresAt", reasonCode: "BOUNDED_FUTURE_EXPIRY_REQUIRED" });
     }
     const changedFields = ["valueType", "value", "enabled"].filter((field) => field === "valueType" ? policy.valueType !== valueType : field === "enabled" ? policy.enabled !== Boolean(input.enabled) : canonicalJson(policy.value) !== canonicalJson(input.value));

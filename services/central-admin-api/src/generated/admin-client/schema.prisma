@@ -879,6 +879,15 @@ model AdminUser {
   twoFactorEnabled Boolean @default(false)
   twoFactorSecret  String?
 
+  // HQ sessions / MFA live in their own tables (relation fields only; no
+  // columns are added to admin_users, so this model reads correctly before
+  // the 20261025 migration is applied).
+  authSessions     AdminSession[]
+  mfaEnrollment    AdminMfaEnrollment?
+  mfaRecoveryCodes AdminMfaRecoveryCode[]
+  mfaChallenges    AdminMfaChallenge[]
+  authEvents       AdminAuthEvent[]
+
   //  Avatar
   avatarUrl          String?
   avatarCloudinaryId String?
@@ -984,6 +993,13 @@ model AdminUser {
   deductions            Deduction[]
   receipts              Receipt[]
   invoices              Invoice[]
+
+  //  CosmicForge Mail (Restrict: offboarding must not cascade-delete mail history)
+  mailMailboxesOwned MailMailbox[]         @relation("MailMailboxOwner")
+  mailMemberships    MailMembership[]      @relation("MailMembershipMember")
+  mailSenderGrants   MailSenderGrant[]     @relation("MailSenderGrantUser")
+  mailThreadStates   MailUserThreadState[] @relation("MailUserThreadStateUser")
+  mailDrafts         MailDraft[]           @relation("MailDraftAuthor")
 
   @@map("admin_users")
 }
@@ -3205,6 +3221,124 @@ model AdminManualMigrationLedger {
 
 // -----------------------------------------------------------------------------
 
+// ── HQ secure sessions + MFA (20261025_add_admin_sessions_mfa.sql) ─────────
+// New tables only. Code must check schema readiness before touching them
+// (src/shared/auth/schema-readiness.js); until then login behaves exactly as
+// before (admin_refresh_tokens only).
+
+// Server-side login session. Access JWTs carry `sid`; every authenticated
+// request checks the session is live. Never created from client input.
+model AdminSession {
+  id                String                     @id @default(uuid()) @db.Uuid
+  adminUserId       String                     @map("admin_user_id")
+  adminUser         AdminUser                  @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  mode              String                     @db.VarChar(16)
+  authMethod        String                     @map("auth_method") @db.VarChar(32)
+  csrfNonce         String                     @map("csrf_nonce") @db.VarChar(64)
+  createdAt         DateTime                   @default(now()) @map("created_at")
+  lastSeenAt        DateTime                   @default(now()) @map("last_seen_at")
+  idleExpiresAt     DateTime                   @map("idle_expires_at")
+  absoluteExpiresAt DateTime                   @map("absolute_expires_at")
+  mfaVerifiedAt     DateTime?                  @map("mfa_verified_at")
+  revokedAt         DateTime?                  @map("revoked_at")
+  revokeReason      String?                    @map("revoke_reason") @db.VarChar(64)
+  ipAddress         String?                    @map("ip_address") @db.VarChar(64)
+  userAgent         String?                    @map("user_agent") @db.VarChar(512)
+  refreshTokens     AdminSessionRefreshToken[]
+
+  @@index([adminUserId, revokedAt], map: "IDX_admin_sessions_user_active")
+  @@map("admin_sessions")
+}
+
+// Refresh tokens of a session family (opaque, SHA-256 stored, rotated per use).
+// Pre-session refresh tokens stay in admin_refresh_tokens and are upgraded on
+// their first refresh after activation.
+model AdminSessionRefreshToken {
+  id          String       @id @default(uuid()) @db.Uuid
+  sessionId   String       @map("session_id") @db.Uuid
+  session     AdminSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  adminUserId String       @map("admin_user_id")
+  tokenHash   String       @unique(map: "UQ_admin_session_refresh_tokens_hash") @map("token_hash") @db.Char(64)
+  createdAt   DateTime     @default(now()) @map("created_at")
+  expiresAt   DateTime     @map("expires_at")
+  rotatedAt   DateTime?    @map("rotated_at")
+  revokedAt   DateTime?    @map("revoked_at")
+  ipAddress   String?      @map("ip_address") @db.VarChar(64)
+  userAgent   String?      @map("user_agent") @db.VarChar(512)
+
+  @@index([sessionId], map: "IDX_admin_session_refresh_tokens_session")
+  @@index([adminUserId], map: "IDX_admin_session_refresh_tokens_user")
+  @@map("admin_session_refresh_tokens")
+}
+
+// Per-user MFA state (1:1). Verified MFA = enrolledAt + secretEncrypted.
+model AdminMfaEnrollment {
+  adminUserId            String    @id @map("admin_user_id")
+  adminUser              AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  enrolledAt             DateTime? @map("enrolled_at")
+  secretEncrypted        String?   @map("secret_encrypted")
+  pendingSecretEncrypted String?   @map("pending_secret_encrypted")
+  pendingExpiresAt       DateTime? @map("pending_expires_at")
+  lastUsedStep           Int?      @map("last_used_step")
+  failedAttempts         Int       @default(0) @map("failed_attempts")
+  lockedUntil            DateTime? @map("locked_until")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+
+  @@map("admin_mfa_enrollments")
+}
+
+model AdminMfaRecoveryCode {
+  id          String    @id @default(uuid()) @db.Uuid
+  adminUserId String    @map("admin_user_id")
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  salt        String    @db.VarChar(64)
+  codeHash    String    @map("code_hash") @db.Char(64)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  usedAt      DateTime? @map("used_at")
+
+  @@index([adminUserId], map: "IDX_admin_mfa_recovery_codes_user")
+  @@map("admin_mfa_recovery_codes")
+}
+
+// Second login step: proves the password (or Google) step succeeded. Single
+// use, short-lived, attempt-limited; only a hash of the token is stored.
+model AdminMfaChallenge {
+  id          String    @id @default(uuid()) @db.Uuid
+  adminUserId String    @map("admin_user_id")
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  tokenHash   String    @unique(map: "UQ_admin_mfa_challenges_token") @map("token_hash") @db.Char(64)
+  authMethod  String    @map("auth_method") @db.VarChar(32)
+  attempts    Int       @default(0)
+  expiresAt   DateTime  @map("expires_at")
+  consumedAt  DateTime? @map("consumed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  ipAddress   String?   @map("ip_address") @db.VarChar(64)
+  userAgent   String?   @map("user_agent") @db.VarChar(512)
+
+  @@index([adminUserId], map: "IDX_admin_mfa_challenges_user")
+  @@map("admin_mfa_challenges")
+}
+
+// Session/MFA security events. Kept out of admin_audit_logs so no new
+// AuditAction enum values are needed (pre-migration code never writes here).
+model AdminAuthEvent {
+  id          String     @id @default(uuid()) @db.Uuid
+  adminUserId String?    @map("admin_user_id")
+  adminUser   AdminUser? @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
+  action      String     @db.VarChar(64)
+  targetType  String?    @map("target_type") @db.VarChar(64)
+  targetId    String?    @map("target_id") @db.VarChar(128)
+  metadata    Json?
+  ipAddress   String?    @map("ip_address") @db.VarChar(64)
+  userAgent   String?    @map("user_agent") @db.VarChar(512)
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  @@index([adminUserId, createdAt], map: "IDX_admin_auth_events_user_time")
+  @@index([action, createdAt], map: "IDX_admin_auth_events_action_time")
+  @@map("admin_auth_events")
+}
+
 model RefreshToken {
   id          String    @id @default(uuid())
   token       String    @unique
@@ -3719,4 +3853,1093 @@ model Event {
   updatedAt   DateTime @updatedAt
 
   @@map("events")
+}
+
+// -----------------------------------------------------------------------------
+// COSMICFORGE MAIL (M1-M6)
+// Corporate personal/shared mailboxes, Resend transport, Support shared inbox
+// and Marketing Email Studio. Admin-database owned; never stored in product DBs.
+// Admin user references that must survive offboarding use onDelete: Restrict.
+// -----------------------------------------------------------------------------
+
+enum MailOrganizationKind {
+  COMPANY
+  BRAND
+}
+
+enum MailRecordStatus {
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+enum MailDomainStatus {
+  PENDING_VERIFICATION
+  VERIFIED
+  FAILED
+  SUSPENDED
+}
+
+enum MailCapabilityStatus {
+  NOT_CONFIGURED
+  PENDING
+  VERIFIED
+  FAILED
+  DISABLED
+}
+
+enum MailAddressKind {
+  PRIMARY
+  ALIAS
+  SHARED
+  SYSTEM
+}
+
+enum MailAddressStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  RETIRED
+}
+
+enum MailMailboxType {
+  PERSONAL
+  SHARED
+}
+
+enum MailMailboxPurpose {
+  GENERAL
+  SUPPORT
+  MARKETING
+}
+
+enum MailMembershipRole {
+  OWNER
+  MANAGER
+  MEMBER
+  READER
+}
+
+enum MailProvisionRequestType {
+  PERSONAL_MAILBOX
+  SHARED_MAILBOX
+  ALIAS
+  SENDER_GRANT
+}
+
+enum MailProvisionRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  PROVISIONED
+}
+
+enum MailMessageDirection {
+  INBOUND
+  OUTBOUND
+  INTERNAL
+}
+
+enum MailMessageStatus {
+  QUEUED
+  PROVIDER_ACCEPTED
+  DELIVERED
+  DELAYED
+  FAILED
+  BOUNCED
+  COMPLAINED
+  RECEIVED
+  QUARANTINED
+  OUTCOME_UNKNOWN
+}
+
+enum MailRecipientType {
+  TO
+  CC
+  BCC
+}
+
+enum MailRecipientStatus {
+  PENDING
+  PROVIDER_ACCEPTED
+  DELIVERED
+  DELAYED
+  FAILED
+  BOUNCED
+  COMPLAINED
+  INTERNAL_DELIVERED
+  OUTCOME_UNKNOWN
+}
+
+enum MailThreadFolder {
+  INBOX
+  ARCHIVE
+  TRASH
+  SPAM
+}
+
+enum MailConversationStatus {
+  OPEN
+  PENDING
+  RESOLVED
+  CLOSED
+}
+
+enum MailDraftMode {
+  NEW
+  REPLY
+  REPLY_ALL
+  FORWARD
+}
+
+enum MailDraftStatus {
+  ACTIVE
+  SENDING
+  SENT
+  DISCARDED
+}
+
+enum MailAttachmentScanStatus {
+  PENDING
+  CLEAN
+  INFECTED
+  SCAN_FAILED
+  SCANNER_UNAVAILABLE
+}
+
+enum MailJobQueue {
+  OUTBOUND
+  INBOUND
+  EVENTS
+}
+
+enum MailJobStatus {
+  PENDING
+  LEASED
+  RETRY_SCHEDULED
+  RECONCILING
+  SUCCEEDED
+  FAILED
+  DEAD_LETTER
+  CANCELLED
+}
+
+enum MailWebhookStatus {
+  RECEIVED
+  PROCESSED
+  IGNORED
+  FAILED
+}
+
+enum MailDeliveryEventType {
+  SENT
+  DELIVERED
+  DELIVERY_DELAYED
+  BOUNCED
+  COMPLAINED
+  FAILED
+  OPENED
+  CLICKED
+}
+
+enum MailRetentionAction {
+  ARCHIVE
+  DELETE
+}
+
+enum MailBreakGlassStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+  REVOKED
+}
+
+enum MarketingContactStatus {
+  ACTIVE
+  UNSUBSCRIBED
+  BOUNCED
+  COMPLAINED
+  SUPPRESSED
+}
+
+enum MarketingConsentStatus {
+  PENDING_CONFIRMATION
+  GRANTED
+  WITHDRAWN
+}
+
+enum MarketingConsentSource {
+  WEB_FORM
+  IMPORT
+  MANUAL
+  API
+  EVENT
+}
+
+enum MarketingSuppressionReason {
+  UNSUBSCRIBED
+  BOUNCED
+  COMPLAINED
+  MANUAL
+  LEGAL
+}
+
+enum MarketingEmailCampaignStatus {
+  DRAFT
+  READY_FOR_REVIEW
+  APPROVED
+  REJECTED
+  SCHEDULED
+  QUEUED
+  SENDING
+  COMPLETE
+  PARTIAL
+  FAILED
+  CANCELLED
+}
+
+enum MarketingCampaignApprovalDecision {
+  APPROVED
+  REJECTED
+  INVALIDATED
+}
+
+enum MarketingCampaignSnapshotKind {
+  SUBMISSION
+  APPROVAL
+}
+
+model MailOrganization {
+  id        String               @id @default(uuid()) @db.Uuid
+  slug      String               @unique(map: "UQ_mail_organizations_slug") @db.VarChar(64)
+  name      String               @db.VarChar(160)
+  kind      MailOrganizationKind @default(BRAND)
+  status    MailRecordStatus     @default(ACTIVE)
+  createdBy String?              @map("created_by")
+  createdAt DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  domains            MailDomain[]
+  addresses          MailAddress[]
+  mailboxes          MailMailbox[]
+  provisionRequests  MailProvisionRequest[]
+  retentionPolicies  MailRetentionPolicy[]
+  legalHolds         MailLegalHold[]
+  marketingContacts  MarketingContact[]
+  marketingAudiences MarketingAudience[]
+  marketingTemplates MarketingEmailTemplate[]
+  marketingCampaigns MarketingEmailCampaign[]
+
+  @@map("mail_organizations")
+}
+
+model MailDomain {
+  id               String               @id @default(uuid()) @db.Uuid
+  organizationId   String               @map("organization_id") @db.Uuid
+  domain           String               @unique(map: "UQ_mail_domains_domain") @db.VarChar(253)
+  status           MailDomainStatus     @default(PENDING_VERIFICATION)
+  sendingStatus    MailCapabilityStatus @default(NOT_CONFIGURED) @map("sending_status")
+  receivingStatus  MailCapabilityStatus @default(NOT_CONFIGURED) @map("receiving_status")
+  provider         String               @default("resend") @db.VarChar(32)
+  providerDomainId String?              @map("provider_domain_id") @db.VarChar(128)
+  dnsRecords       Json?                @map("dns_records")
+  lastCheckedAt    DateTime?            @map("last_checked_at") @db.Timestamptz(6)
+  verifiedAt       DateTime?            @map("verified_at") @db.Timestamptz(6)
+  createdBy        String?              @map("created_by")
+  createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  organization MailOrganization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_domains_organization")
+  addresses    MailAddress[]
+
+  @@index([organizationId, status], map: "IDX_mail_domains_org_status")
+  @@map("mail_domains")
+}
+
+model MailMailbox {
+  id                       String             @id @default(uuid()) @db.Uuid
+  organizationId           String             @map("organization_id") @db.Uuid
+  type                     MailMailboxType
+  purpose                  MailMailboxPurpose @default(GENERAL)
+  name                     String             @db.VarChar(160)
+  ownerAdminUserId         String?            @map("owner_admin_user_id")
+  status                   MailRecordStatus   @default(ACTIVE)
+  signatureHtml            String?            @map("signature_html")
+  dailySendQuota           Int                @default(500) @map("daily_send_quota")
+  slaFirstResponseMinutes  Int?               @map("sla_first_response_minutes")
+  supportTicketLinkEnabled Boolean            @default(false) @map("support_ticket_link_enabled")
+  suspendedAt              DateTime?          @map("suspended_at") @db.Timestamptz(6)
+  offboardedAt             DateTime?          @map("offboarded_at") @db.Timestamptz(6)
+  createdBy                String?            @map("created_by")
+  createdAt                DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  organization MailOrganization        @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_mailboxes_organization")
+  owner        AdminUser?              @relation("MailMailboxOwner", fields: [ownerAdminUserId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_mailboxes_owner")
+  addresses    MailAddress[]
+  memberships  MailMembership[]
+  senderGrants MailSenderGrant[]
+  threads      MailThread[]
+  messages     MailMessage[]
+  drafts       MailDraft[]
+  labels       MailLabel[]
+  rules        MailRule[]
+  attachments  MailAttachment[]
+  legalHolds   MailLegalHold[]
+  breakGlass   MailBreakGlassRequest[]
+  retention    MailRetentionPolicy[]
+
+  @@unique([organizationId, ownerAdminUserId], map: "UQ_mail_mailboxes_personal_owner")
+  @@index([organizationId, type, status], map: "IDX_mail_mailboxes_org_type_status")
+  @@map("mail_mailboxes")
+}
+
+model MailAddress {
+  id               String            @id @default(uuid()) @db.Uuid
+  organizationId   String            @map("organization_id") @db.Uuid
+  domainId         String            @map("domain_id") @db.Uuid
+  mailboxId        String?           @map("mailbox_id") @db.Uuid
+  localPart        String            @map("local_part") @db.VarChar(64)
+  address          String            @unique(map: "UQ_mail_addresses_address") @db.VarChar(320)
+  displayName      String?           @map("display_name") @db.VarChar(160)
+  kind             MailAddressKind
+  status           MailAddressStatus @default(PENDING)
+  aliasOfAddressId String?           @map("alias_of_address_id") @db.Uuid
+  createdBy        String?           @map("created_by")
+  retiredAt        DateTime?         @map("retired_at") @db.Timestamptz(6)
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  organization MailOrganization  @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_addresses_organization")
+  domain       MailDomain        @relation(fields: [domainId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_addresses_domain")
+  mailbox      MailMailbox?      @relation(fields: [mailboxId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_addresses_mailbox")
+  aliasOf      MailAddress?      @relation("MailAddressAlias", fields: [aliasOfAddressId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_addresses_alias_of")
+  aliases      MailAddress[]     @relation("MailAddressAlias")
+  senderGrants MailSenderGrant[]
+
+  @@unique([domainId, localPart], map: "UQ_mail_addresses_domain_local_part")
+  @@index([mailboxId, status], map: "IDX_mail_addresses_mailbox_status")
+  @@map("mail_addresses")
+}
+
+model MailMembership {
+  id          String             @id @default(uuid()) @db.Uuid
+  mailboxId   String             @map("mailbox_id") @db.Uuid
+  adminUserId String             @map("admin_user_id")
+  role        MailMembershipRole
+  canSend     Boolean            @default(false) @map("can_send")
+  grantedBy   String?            @map("granted_by")
+  reason      String?
+  expiresAt   DateTime?          @map("expires_at") @db.Timestamptz(6)
+  revokedAt   DateTime?          @map("revoked_at") @db.Timestamptz(6)
+  revokedBy   String?            @map("revoked_by")
+  createdAt   DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  mailbox   MailMailbox @relation(fields: [mailboxId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_memberships_mailbox")
+  adminUser AdminUser   @relation("MailMembershipMember", fields: [adminUserId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_memberships_admin_user")
+
+  @@index([adminUserId, revokedAt], map: "IDX_mail_memberships_user_active")
+  @@index([mailboxId, revokedAt], map: "IDX_mail_memberships_mailbox_active")
+  @@map("mail_memberships")
+}
+
+model MailSenderGrant {
+  id          String    @id @default(uuid()) @db.Uuid
+  mailboxId   String    @map("mailbox_id") @db.Uuid
+  addressId   String    @map("address_id") @db.Uuid
+  adminUserId String    @map("admin_user_id")
+  grantedBy   String?   @map("granted_by")
+  expiresAt   DateTime? @map("expires_at") @db.Timestamptz(6)
+  revokedAt   DateTime? @map("revoked_at") @db.Timestamptz(6)
+  revokedBy   String?   @map("revoked_by")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  mailbox   MailMailbox @relation(fields: [mailboxId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_sender_grants_mailbox")
+  address   MailAddress @relation(fields: [addressId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_sender_grants_address")
+  adminUser AdminUser   @relation("MailSenderGrantUser", fields: [adminUserId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_sender_grants_admin_user")
+
+  @@index([adminUserId, revokedAt], map: "IDX_mail_sender_grants_user_active")
+  @@index([addressId, revokedAt], map: "IDX_mail_sender_grants_address_active")
+  @@map("mail_sender_grants")
+}
+
+model MailProvisionRequest {
+  id                     String                     @id @default(uuid()) @db.Uuid
+  organizationId         String                     @map("organization_id") @db.Uuid
+  type                   MailProvisionRequestType
+  status                 MailProvisionRequestStatus @default(PENDING)
+  requestedByAdminUserId String                     @map("requested_by_admin_user_id")
+  subjectAdminUserId     String?                    @map("subject_admin_user_id")
+  requestedAddress       String?                    @map("requested_address") @db.VarChar(320)
+  mailboxId              String?                    @map("mailbox_id") @db.Uuid
+  payload                Json?
+  justification          String?
+  reviewedByAdminUserId  String?                    @map("reviewed_by_admin_user_id")
+  reviewedAt             DateTime?                  @map("reviewed_at") @db.Timestamptz(6)
+  reviewNote             String?                    @map("review_note")
+  provisionedAddressId   String?                    @map("provisioned_address_id") @db.Uuid
+  provisionedMailboxId   String?                    @map("provisioned_mailbox_id") @db.Uuid
+  createdAt              DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime                   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  organization MailOrganization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_provision_requests_organization")
+
+  @@index([status, createdAt], map: "IDX_mail_provision_requests_status_created")
+  @@index([requestedByAdminUserId, createdAt], map: "IDX_mail_provision_requests_requester")
+  @@map("mail_provision_requests")
+}
+
+model MailThread {
+  id                    String                  @id @default(uuid()) @db.Uuid
+  mailboxId             String                  @map("mailbox_id") @db.Uuid
+  subject               String                  @default("") @db.VarChar(998)
+  normalizedSubject     String                  @default("") @map("normalized_subject") @db.VarChar(998)
+  rootRfcMessageId      String?                 @map("root_rfc_message_id") @db.VarChar(998)
+  folder                MailThreadFolder        @default(INBOX)
+  hasInbound            Boolean                 @default(false) @map("has_inbound")
+  hasOutbound           Boolean                 @default(false) @map("has_outbound")
+  messageCount          Int                     @default(0) @map("message_count")
+  // Encrypted preview (AES-256-GCM, purpose mail-snippet); never plaintext body.
+  encryptedSnippet      Bytes?                  @map("encrypted_snippet")
+  lastMessageAt         DateTime                @default(now()) @map("last_message_at") @db.Timestamptz(6)
+  lastInboundAt         DateTime?               @map("last_inbound_at") @db.Timestamptz(6)
+  participants          Json?
+  conversationStatus    MailConversationStatus? @map("conversation_status")
+  assignedToAdminUserId String?                 @map("assigned_to_admin_user_id")
+  assignedAt            DateTime?               @map("assigned_at") @db.Timestamptz(6)
+  slaDueAt              DateTime?               @map("sla_due_at") @db.Timestamptz(6)
+  firstResponseAt       DateTime?               @map("first_response_at") @db.Timestamptz(6)
+  lockedByAdminUserId   String?                 @map("locked_by_admin_user_id")
+  lockExpiresAt         DateTime?               @map("lock_expires_at") @db.Timestamptz(6)
+  supportTicketRef      String?                 @map("support_ticket_ref") @db.VarChar(128)
+  revision              Int                     @default(1)
+  deletedAt             DateTime?               @map("deleted_at") @db.Timestamptz(6)
+  createdAt             DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime                @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  mailbox       MailMailbox           @relation(fields: [mailboxId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_threads_mailbox")
+  messages      MailMessage[]
+  userStates    MailUserThreadState[]
+  labels        MailThreadLabel[]
+  drafts        MailDraft[]
+  internalNotes MailInternalNote[]
+
+  @@index([mailboxId, folder, lastMessageAt(sort: Desc)], map: "IDX_mail_threads_mailbox_folder_last")
+  @@index([mailboxId, hasOutbound, lastMessageAt(sort: Desc)], map: "IDX_mail_threads_mailbox_sent_last")
+  @@index([mailboxId, rootRfcMessageId], map: "IDX_mail_threads_mailbox_root")
+  @@index([mailboxId, conversationStatus, slaDueAt], map: "IDX_mail_threads_support_queue")
+  @@index([assignedToAdminUserId, conversationStatus], map: "IDX_mail_threads_assignee")
+  @@map("mail_threads")
+}
+
+model MailMessage {
+  id                 String               @id @default(uuid()) @db.Uuid
+  mailboxId          String               @map("mailbox_id") @db.Uuid
+  threadId           String               @map("thread_id") @db.Uuid
+  direction          MailMessageDirection
+  status             MailMessageStatus
+  rfcMessageId       String               @map("rfc_message_id") @db.VarChar(998)
+  inReplyTo          String?              @map("in_reply_to") @db.VarChar(998)
+  references         String[]             @default([])
+  subject            String               @default("") @db.VarChar(998)
+  // Encrypted preview (AES-256-GCM, purpose mail-snippet); never plaintext body.
+  encryptedSnippet   Bytes?               @map("encrypted_snippet")
+  fromAddress        String               @map("from_address") @db.VarChar(320)
+  fromName           String?              @map("from_name") @db.VarChar(320)
+  replyTo            String?              @map("reply_to") @db.VarChar(320)
+  senderAddressId    String?              @map("sender_address_id") @db.Uuid
+  sentByAdminUserId  String?              @map("sent_by_admin_user_id")
+  envelopeRecipient  String?              @map("envelope_recipient") @db.VarChar(320)
+  hasAttachments     Boolean              @default(false) @map("has_attachments")
+  sizeBytes          Int                  @default(0) @map("size_bytes")
+  contentObjectKey   String?              @map("content_object_key") @db.VarChar(512)
+  contentSha256      String?              @map("content_sha256") @db.Char(64)
+  rawMimeObjectKey   String?              @map("raw_mime_object_key") @db.VarChar(512)
+  // Metadata only (subject, sender, non-BCC recipients). Never message bodies.
+  metadataSearchText String               @default("") @map("metadata_search_text")
+  providerMessageId  String?              @map("provider_message_id") @db.VarChar(255)
+  idempotencyKey     String?              @unique(map: "UQ_mail_messages_idempotency_key") @map("idempotency_key") @db.VarChar(128)
+  authResults        Json?                @map("auth_results")
+  spamVerdict        String?              @map("spam_verdict") @db.VarChar(32)
+  quarantineReason   String?              @map("quarantine_reason") @db.VarChar(255)
+  lastStatusAt       DateTime?            @map("last_status_at") @db.Timestamptz(6)
+  sentAt             DateTime?            @map("sent_at") @db.Timestamptz(6)
+  receivedAt         DateTime?            @map("received_at") @db.Timestamptz(6)
+  deletedAt          DateTime?            @map("deleted_at") @db.Timestamptz(6)
+  createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  mailbox        MailMailbox            @relation(fields: [mailboxId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_messages_mailbox")
+  thread         MailThread             @relation(fields: [threadId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_messages_thread")
+  recipients     MailMessageRecipient[]
+  attachments    MailAttachment[]
+  deliveryEvents MailDeliveryEvent[]
+  outboxJobs     MailOutboxJob[]
+
+  @@unique([mailboxId, rfcMessageId], map: "UQ_mail_messages_mailbox_rfc_id")
+  @@index([threadId, createdAt], map: "IDX_mail_messages_thread_created")
+  @@index([mailboxId, createdAt(sort: Desc)], map: "IDX_mail_messages_mailbox_created")
+  @@index([providerMessageId], map: "IDX_mail_messages_provider_message")
+  @@index([mailboxId, rfcMessageId], map: "IDX_mail_messages_mailbox_rfc")
+  @@map("mail_messages")
+}
+
+model MailMessageRecipient {
+  id                String              @id @default(uuid()) @db.Uuid
+  messageId         String              @map("message_id") @db.Uuid
+  type              MailRecipientType
+  address           String              @db.VarChar(320)
+  name              String?             @db.VarChar(320)
+  status            MailRecipientStatus @default(PENDING)
+  lastEventAt       DateTime?           @map("last_event_at") @db.Timestamptz(6)
+  lastEventDetail   String?             @map("last_event_detail") @db.VarChar(500)
+  providerMessageId String?             @map("provider_message_id") @db.VarChar(255)
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  message MailMessage @relation(fields: [messageId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_message_recipients_message")
+
+  @@unique([messageId, type, address], map: "UQ_mail_message_recipients_message_type_address")
+  @@index([address], map: "IDX_mail_message_recipients_address")
+  @@index([providerMessageId], map: "IDX_mail_message_recipients_provider_message")
+  @@map("mail_message_recipients")
+}
+
+model MailUserThreadState {
+  id          String    @id @default(uuid()) @db.Uuid
+  threadId    String    @map("thread_id") @db.Uuid
+  adminUserId String    @map("admin_user_id")
+  isRead      Boolean   @default(false) @map("is_read")
+  isStarred   Boolean   @default(false) @map("is_starred")
+  lastReadAt  DateTime? @map("last_read_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  thread    MailThread @relation(fields: [threadId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_user_thread_states_thread")
+  adminUser AdminUser  @relation("MailUserThreadStateUser", fields: [adminUserId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_user_thread_states_admin_user")
+
+  @@unique([threadId, adminUserId], map: "UQ_mail_user_thread_states_thread_user")
+  @@index([adminUserId, isStarred], map: "IDX_mail_user_thread_states_user_starred")
+  @@map("mail_user_thread_states")
+}
+
+model MailDraft {
+  id                 String          @id @default(uuid()) @db.Uuid
+  mailboxId          String          @map("mailbox_id") @db.Uuid
+  authorAdminUserId  String          @map("author_admin_user_id")
+  senderAddressId    String?         @map("sender_address_id") @db.Uuid
+  threadId           String?         @map("thread_id") @db.Uuid
+  inReplyToMessageId String?         @map("in_reply_to_message_id") @db.Uuid
+  mode               MailDraftMode   @default(NEW)
+  status             MailDraftStatus @default(ACTIVE)
+  toRecipients       Json            @default("[]") @map("to_recipients")
+  ccRecipients       Json            @default("[]") @map("cc_recipients")
+  bccRecipients      Json            @default("[]") @map("bcc_recipients")
+  subject            String          @default("") @db.VarChar(998)
+  encryptedBody      Bytes?          @map("encrypted_body")
+  revision           Int             @default(1)
+  sentMessageId      String?         @map("sent_message_id") @db.Uuid
+  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  mailbox     MailMailbox      @relation(fields: [mailboxId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_drafts_mailbox")
+  author      AdminUser        @relation("MailDraftAuthor", fields: [authorAdminUserId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_drafts_author")
+  thread      MailThread?      @relation(fields: [threadId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_drafts_thread")
+  attachments MailAttachment[]
+
+  @@index([mailboxId, authorAdminUserId, status, updatedAt(sort: Desc)], map: "IDX_mail_drafts_mailbox_author_status")
+  @@map("mail_drafts")
+}
+
+model MailLabel {
+  id        String   @id @default(uuid()) @db.Uuid
+  mailboxId String   @map("mailbox_id") @db.Uuid
+  name      String   @db.VarChar(80)
+  color     String?  @db.VarChar(16)
+  createdBy String?  @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  mailbox MailMailbox       @relation(fields: [mailboxId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_labels_mailbox")
+  threads MailThreadLabel[]
+
+  @@unique([mailboxId, name], map: "UQ_mail_labels_mailbox_name")
+  @@map("mail_labels")
+}
+
+model MailThreadLabel {
+  threadId  String   @map("thread_id") @db.Uuid
+  labelId   String   @map("label_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  thread MailThread @relation(fields: [threadId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_mail_thread_labels_thread")
+  label  MailLabel  @relation(fields: [labelId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_mail_thread_labels_label")
+
+  @@id([threadId, labelId], map: "PK_mail_thread_labels")
+  @@index([labelId], map: "IDX_mail_thread_labels_label")
+  @@map("mail_thread_labels")
+}
+
+model MailRule {
+  id         String   @id @default(uuid()) @db.Uuid
+  mailboxId  String   @map("mailbox_id") @db.Uuid
+  name       String   @db.VarChar(160)
+  enabled    Boolean  @default(true)
+  priority   Int      @default(100)
+  conditions Json
+  actions    Json
+  createdBy  String?  @map("created_by")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  mailbox MailMailbox @relation(fields: [mailboxId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_rules_mailbox")
+
+  @@index([mailboxId, enabled, priority], map: "IDX_mail_rules_mailbox_enabled_priority")
+  @@map("mail_rules")
+}
+
+model MailAttachment {
+  id                    String                   @id @default(uuid()) @db.Uuid
+  mailboxId             String                   @map("mailbox_id") @db.Uuid
+  messageId             String?                  @map("message_id") @db.Uuid
+  draftId               String?                  @map("draft_id") @db.Uuid
+  filename              String                   @db.VarChar(255)
+  contentType           String                   @map("content_type") @db.VarChar(255)
+  sizeBytes             Int                      @map("size_bytes")
+  sha256                String                   @db.Char(64)
+  storageKey            String?                  @map("storage_key") @db.VarChar(512)
+  isInline              Boolean                  @default(false) @map("is_inline")
+  contentId             String?                  @map("content_id") @db.VarChar(255)
+  scanStatus            MailAttachmentScanStatus @default(PENDING) @map("scan_status")
+  scanDetail            String?                  @map("scan_detail") @db.VarChar(255)
+  quarantined           Boolean                  @default(true)
+  uploadedByAdminUserId String?                  @map("uploaded_by_admin_user_id")
+  providerAttachmentId  String?                  @map("provider_attachment_id") @db.VarChar(255)
+  createdAt             DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  mailbox MailMailbox  @relation(fields: [mailboxId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_attachments_mailbox")
+  message MailMessage? @relation(fields: [messageId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_attachments_message")
+  draft   MailDraft?   @relation(fields: [draftId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_mail_attachments_draft")
+
+  @@index([messageId], map: "IDX_mail_attachments_message")
+  @@index([draftId], map: "IDX_mail_attachments_draft")
+  @@map("mail_attachments")
+}
+
+model MailInternalNote {
+  id                String    @id @default(uuid()) @db.Uuid
+  threadId          String    @map("thread_id") @db.Uuid
+  authorAdminUserId String    @map("author_admin_user_id")
+  encryptedBody     Bytes     @map("encrypted_body")
+  mentions          String[]  @default([])
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  thread MailThread @relation(fields: [threadId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_internal_notes_thread")
+
+  @@index([threadId, createdAt], map: "IDX_mail_internal_notes_thread_created")
+  @@map("mail_internal_notes")
+}
+
+model MailOutboxJob {
+  id                String        @id @default(uuid()) @db.Uuid
+  queue             MailJobQueue
+  kind              String        @db.VarChar(64)
+  status            MailJobStatus @default(PENDING)
+  idempotencyKey    String        @unique(map: "UQ_mail_outbox_jobs_idempotency_key") @map("idempotency_key") @db.VarChar(160)
+  messageId         String?       @map("message_id") @db.Uuid
+  webhookEventId    String?       @map("webhook_event_id") @db.Uuid
+  payload           Json?
+  attemptCount      Int           @default(0) @map("attempt_count")
+  maxAttempts       Int           @default(6) @map("max_attempts")
+  nextAttemptAt     DateTime      @default(now()) @map("next_attempt_at") @db.Timestamptz(6)
+  leaseOwner        String?       @map("lease_owner") @db.VarChar(128)
+  leaseExpiresAt    DateTime?     @map("lease_expires_at") @db.Timestamptz(6)
+  lastErrorCode     String?       @map("last_error_code") @db.VarChar(64)
+  lastErrorMessage  String?       @map("last_error_message") @db.VarChar(500)
+  providerRequestId String?       @map("provider_request_id") @db.VarChar(255)
+  completedAt       DateTime?     @map("completed_at") @db.Timestamptz(6)
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  message      MailMessage?      @relation(fields: [messageId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_outbox_jobs_message")
+  webhookEvent MailWebhookEvent? @relation(fields: [webhookEventId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_outbox_jobs_webhook_event")
+
+  @@index([queue, status, nextAttemptAt], map: "IDX_mail_outbox_jobs_claim")
+  @@index([status, leaseExpiresAt], map: "IDX_mail_outbox_jobs_lease")
+  @@map("mail_outbox_jobs")
+}
+
+model MailWebhookEvent {
+  id                String            @id @default(uuid()) @db.Uuid
+  provider          String            @db.VarChar(32)
+  providerEventId   String            @map("provider_event_id") @db.VarChar(255)
+  eventType         String            @map("event_type") @db.VarChar(64)
+  payloadSha256     String            @map("payload_sha256") @db.Char(64)
+  payload           Json
+  signatureVerified Boolean           @map("signature_verified")
+  status            MailWebhookStatus @default(RECEIVED)
+  receivedAt        DateTime          @default(now()) @map("received_at") @db.Timestamptz(6)
+  processedAt       DateTime?         @map("processed_at") @db.Timestamptz(6)
+  lastError         String?           @map("last_error") @db.VarChar(500)
+
+  jobs           MailOutboxJob[]
+  deliveryEvents MailDeliveryEvent[]
+
+  @@unique([provider, providerEventId], map: "UQ_mail_webhook_events_provider_event")
+  @@index([status, receivedAt], map: "IDX_mail_webhook_events_status_received")
+  @@map("mail_webhook_events")
+}
+
+model MailDeliveryEvent {
+  id                String                @id @default(uuid()) @db.Uuid
+  messageId         String?               @map("message_id") @db.Uuid
+  webhookEventId    String?               @map("webhook_event_id") @db.Uuid
+  providerMessageId String                @map("provider_message_id") @db.VarChar(255)
+  recipient         String?               @db.VarChar(320)
+  eventType         MailDeliveryEventType @map("event_type")
+  occurredAt        DateTime              @map("occurred_at") @db.Timestamptz(6)
+  detail            Json?
+  createdAt         DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  message      MailMessage?      @relation(fields: [messageId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_delivery_events_message")
+  webhookEvent MailWebhookEvent? @relation(fields: [webhookEventId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_delivery_events_webhook_event")
+
+  @@index([messageId, occurredAt], map: "IDX_mail_delivery_events_message_occurred")
+  @@index([providerMessageId], map: "IDX_mail_delivery_events_provider_message")
+  @@map("mail_delivery_events")
+}
+
+model MailAuditEvent {
+  id               String   @id @default(uuid()) @db.Uuid
+  actorAdminUserId String?  @map("actor_admin_user_id")
+  action           String   @db.VarChar(80)
+  targetType       String   @map("target_type") @db.VarChar(64)
+  targetId         String?  @map("target_id") @db.VarChar(128)
+  mailboxId        String?  @map("mailbox_id") @db.Uuid
+  organizationId   String?  @map("organization_id") @db.Uuid
+  outcome          String   @default("SUCCESS") @db.VarChar(16)
+  metadata         Json?
+  requestId        String?  @map("request_id") @db.VarChar(128)
+  ipAddress        String?  @map("ip_address") @db.VarChar(64)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([mailboxId, createdAt], map: "IDX_mail_audit_events_mailbox_created")
+  @@index([actorAdminUserId, createdAt], map: "IDX_mail_audit_events_actor_created")
+  @@index([targetType, targetId], map: "IDX_mail_audit_events_target")
+  @@map("mail_audit_events")
+}
+
+model MailRetentionPolicy {
+  id             String              @id @default(uuid()) @db.Uuid
+  organizationId String              @map("organization_id") @db.Uuid
+  mailboxId      String?             @map("mailbox_id") @db.Uuid
+  name           String              @db.VarChar(160)
+  retainDays     Int                 @map("retain_days")
+  action         MailRetentionAction @default(ARCHIVE)
+  enabled        Boolean             @default(true)
+  createdBy      String?             @map("created_by")
+  createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  organization MailOrganization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_retention_policies_organization")
+  mailbox      MailMailbox?     @relation(fields: [mailboxId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_retention_policies_mailbox")
+
+  @@index([organizationId, enabled], map: "IDX_mail_retention_policies_org_enabled")
+  @@map("mail_retention_policies")
+}
+
+model MailLegalHold {
+  id                 String    @id @default(uuid()) @db.Uuid
+  organizationId     String    @map("organization_id") @db.Uuid
+  mailboxId          String?   @map("mailbox_id") @db.Uuid
+  subjectAdminUserId String?   @map("subject_admin_user_id")
+  reason             String
+  createdBy          String    @map("created_by")
+  releasedAt         DateTime? @map("released_at") @db.Timestamptz(6)
+  releasedBy         String?   @map("released_by")
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  organization MailOrganization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_legal_holds_organization")
+  mailbox      MailMailbox?     @relation(fields: [mailboxId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_legal_holds_mailbox")
+
+  @@index([mailboxId, releasedAt], map: "IDX_mail_legal_holds_mailbox_active")
+  @@map("mail_legal_holds")
+}
+
+model MailStepUpVerification {
+  id          String    @id @default(uuid()) @db.Uuid
+  adminUserId String    @map("admin_user_id")
+  method      String    @db.VarChar(16)
+  purpose     String    @db.VarChar(64)
+  verifiedAt  DateTime  @default(now()) @map("verified_at") @db.Timestamptz(6)
+  expiresAt   DateTime  @map("expires_at") @db.Timestamptz(6)
+  consumedAt  DateTime? @map("consumed_at") @db.Timestamptz(6)
+  totpCounter BigInt?   @map("totp_counter")
+  ipAddress   String?   @map("ip_address") @db.VarChar(64)
+  // HQ session (admin_sessions.id) the step-up was verified on; consumption
+  // requires the same live session. NULL only for rows created before M7.
+  sessionId   String?   @map("session_id") @db.Uuid
+
+  @@unique([adminUserId, totpCounter], map: "UQ_mail_step_up_user_totp_counter")
+  @@index([sessionId], map: "IDX_mail_step_up_session")
+  @@index([adminUserId, purpose, expiresAt], map: "IDX_mail_step_up_user_purpose_expires")
+  @@map("mail_step_up_verifications")
+}
+
+model MailBreakGlassRequest {
+  id                   String               @id @default(uuid()) @db.Uuid
+  mailboxId            String               @map("mailbox_id") @db.Uuid
+  requesterAdminUserId String               @map("requester_admin_user_id")
+  justification        String
+  caseReference        String               @map("case_reference") @db.VarChar(128)
+  status               MailBreakGlassStatus @default(PENDING)
+  requesterStepUpId    String               @map("requester_step_up_id") @db.Uuid
+  approverAdminUserId  String?              @map("approver_admin_user_id")
+  approverStepUpId     String?              @map("approver_step_up_id") @db.Uuid
+  decidedAt            DateTime?            @map("decided_at") @db.Timestamptz(6)
+  decisionNote         String?              @map("decision_note")
+  accessExpiresAt      DateTime?            @map("access_expires_at") @db.Timestamptz(6)
+  revokedAt            DateTime?            @map("revoked_at") @db.Timestamptz(6)
+  createdAt            DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  mailbox MailMailbox @relation(fields: [mailboxId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_break_glass_mailbox")
+
+  @@index([requesterAdminUserId, status, accessExpiresAt], map: "IDX_mail_break_glass_requester_status")
+  @@index([mailboxId, status], map: "IDX_mail_break_glass_mailbox_status")
+  @@map("mail_break_glass_requests")
+}
+
+model MarketingContact {
+  id             String                 @id @default(uuid()) @db.Uuid
+  organizationId String                 @map("organization_id") @db.Uuid
+  email          String                 @db.VarChar(320)
+  firstName      String?                @map("first_name") @db.VarChar(120)
+  lastName       String?                @map("last_name") @db.VarChar(120)
+  attributes     Json?
+  status         MarketingContactStatus @default(ACTIVE)
+  source         String                 @db.VarChar(64)
+  createdBy      String?                @map("created_by")
+  createdAt      DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  organization MailOrganization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_contacts_organization")
+  consents     MarketingConsent[]
+  audiences    MarketingAudienceContact[]
+
+  @@unique([organizationId, email], map: "UQ_marketing_contacts_org_email")
+  @@index([organizationId, status], map: "IDX_marketing_contacts_org_status")
+  @@map("marketing_email_contacts")
+}
+
+model MarketingConsent {
+  id                    String                 @id @default(uuid()) @db.Uuid
+  contactId             String                 @map("contact_id") @db.Uuid
+  organizationId        String                 @map("organization_id") @db.Uuid
+  topic                 String                 @db.VarChar(64)
+  status                MarketingConsentStatus
+  source                MarketingConsentSource
+  sourceEvidence        Json                   @map("source_evidence")
+  policyVersion         String                 @map("policy_version") @db.VarChar(32)
+  doubleOptIn           Boolean                @default(false) @map("double_opt_in")
+  confirmationTokenHash String?                @map("confirmation_token_hash") @db.Char(64)
+  consentedAt           DateTime?              @map("consented_at") @db.Timestamptz(6)
+  confirmedAt           DateTime?              @map("confirmed_at") @db.Timestamptz(6)
+  withdrawnAt           DateTime?              @map("withdrawn_at") @db.Timestamptz(6)
+  withdrawalSource      String?                @map("withdrawal_source") @db.VarChar(64)
+  createdBy             String?                @map("created_by")
+  createdAt             DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  contact MarketingContact @relation(fields: [contactId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_consents_contact")
+
+  @@unique([contactId, topic], map: "UQ_marketing_consents_contact_topic")
+  @@index([organizationId, topic, status], map: "IDX_marketing_consents_org_topic_status")
+  @@map("marketing_email_consents")
+}
+
+model MarketingSuppression {
+  id             String                     @id @default(uuid()) @db.Uuid
+  organizationId String?                    @map("organization_id") @db.Uuid
+  email          String                     @db.VarChar(320)
+  reason         MarketingSuppressionReason
+  source         String                     @db.VarChar(64)
+  note           String?
+  createdBy      String?                    @map("created_by")
+  createdAt      DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  liftedAt       DateTime?                  @map("lifted_at") @db.Timestamptz(6)
+  liftedBy       String?                    @map("lifted_by")
+
+  @@index([email, liftedAt], map: "IDX_marketing_suppressions_email_active")
+  @@index([organizationId, liftedAt], map: "IDX_marketing_suppressions_org_active")
+  @@map("marketing_email_suppressions")
+}
+
+model MarketingAudience {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @map("organization_id") @db.Uuid
+  name           String           @db.VarChar(160)
+  description    String?
+  topic          String           @db.VarChar(64)
+  status         MailRecordStatus @default(ACTIVE)
+  createdBy      String?          @map("created_by")
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  organization MailOrganization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_audiences_organization")
+  contacts     MarketingAudienceContact[]
+  segments     MarketingSegment[]
+  campaigns    MarketingEmailCampaign[]
+
+  @@unique([organizationId, name], map: "UQ_marketing_audiences_org_name")
+  @@map("marketing_email_audiences")
+}
+
+model MarketingAudienceContact {
+  audienceId String   @map("audience_id") @db.Uuid
+  contactId  String   @map("contact_id") @db.Uuid
+  addedBy    String?  @map("added_by")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  audience MarketingAudience @relation(fields: [audienceId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_audience_contacts_audience")
+  contact  MarketingContact  @relation(fields: [contactId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_audience_contacts_contact")
+
+  @@id([audienceId, contactId], map: "PK_marketing_audience_contacts")
+  @@index([contactId], map: "IDX_marketing_audience_contacts_contact")
+  @@map("marketing_email_audience_contacts")
+}
+
+model MarketingSegment {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  audienceId     String   @map("audience_id") @db.Uuid
+  name           String   @db.VarChar(160)
+  definition     Json
+  createdBy      String?  @map("created_by")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  audience  MarketingAudience        @relation(fields: [audienceId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_segments_audience")
+  campaigns MarketingEmailCampaign[]
+
+  @@unique([audienceId, name], map: "UQ_marketing_segments_audience_name")
+  @@map("marketing_email_segments")
+}
+
+model MarketingEmailTemplate {
+  id               String           @id @default(uuid()) @db.Uuid
+  organizationId   String           @map("organization_id") @db.Uuid
+  name             String           @db.VarChar(160)
+  description      String?
+  status           MailRecordStatus @default(ACTIVE)
+  latestVersion    Int              @default(0) @map("latest_version")
+  legacyTemplateId String?          @map("legacy_template_id")
+  createdBy        String?          @map("created_by")
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  organization MailOrganization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_email_studio_templates_organization")
+  versions     MarketingTemplateVersion[]
+
+  @@unique([organizationId, name], map: "UQ_marketing_email_studio_templates_org_name")
+  @@map("marketing_email_studio_templates")
+}
+
+model MarketingTemplateVersion {
+  id            String   @id @default(uuid()) @db.Uuid
+  templateId    String   @map("template_id") @db.Uuid
+  version       Int
+  subject       String   @db.VarChar(998)
+  preheader     String?  @db.VarChar(255)
+  blocks        Json
+  brand         Json?
+  html          String
+  text          String
+  variables     String[] @default([])
+  contentSha256 String   @map("content_sha256") @db.Char(64)
+  createdBy     String?  @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  template  MarketingEmailTemplate   @relation(fields: [templateId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_template_versions_template")
+  campaigns MarketingEmailCampaign[]
+
+  @@unique([templateId, version], map: "UQ_marketing_template_versions_template_version")
+  @@map("marketing_email_template_versions")
+}
+
+model MarketingEmailCampaign {
+  id                     String                       @id @default(uuid()) @db.Uuid
+  organizationId         String                       @map("organization_id") @db.Uuid
+  name                   String                       @db.VarChar(200)
+  status                 MarketingEmailCampaignStatus @default(DRAFT)
+  topic                  String                       @db.VarChar(64)
+  senderAddressId        String?                      @map("sender_address_id") @db.Uuid
+  replyTo                String?                      @map("reply_to") @db.VarChar(320)
+  subjectOverride        String?                      @map("subject_override") @db.VarChar(998)
+  templateVersionId      String?                      @map("template_version_id") @db.Uuid
+  audienceId             String?                      @map("audience_id") @db.Uuid
+  segmentId              String?                      @map("segment_id") @db.Uuid
+  frequencyCapHours      Int                          @default(72) @map("frequency_cap_hours")
+  legacyCampaignId       String?                      @map("legacy_campaign_id")
+  revision               Int                          @default(1)
+  createdByAdminUserId   String                       @map("created_by_admin_user_id")
+  updatedByAdminUserId   String                       @map("updated_by_admin_user_id")
+  submittedAt            DateTime?                    @map("submitted_at") @db.Timestamptz(6)
+  submittedByAdminUserId String?                      @map("submitted_by_admin_user_id")
+  approvedAt             DateTime?                    @map("approved_at") @db.Timestamptz(6)
+  approvedByAdminUserId  String?                      @map("approved_by_admin_user_id")
+  createdAt              DateTime                     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime                     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  organization    MailOrganization            @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_email_campaigns_organization")
+  templateVersion MarketingTemplateVersion?   @relation(fields: [templateVersionId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_email_campaigns_template_version")
+  audience        MarketingAudience?          @relation(fields: [audienceId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_email_campaigns_audience")
+  segment         MarketingSegment?           @relation(fields: [segmentId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_email_campaigns_segment")
+  approvals       MarketingCampaignApproval[]
+  snapshots       MarketingCampaignSnapshot[]
+
+  @@index([organizationId, status, updatedAt], map: "IDX_marketing_email_campaigns_org_status")
+  @@map("marketing_email_campaigns")
+}
+
+model MarketingCampaignSnapshot {
+  id                String                        @id @default(uuid()) @db.Uuid
+  campaignId        String                        @map("campaign_id") @db.Uuid
+  revision          Int
+  kind              MarketingCampaignSnapshotKind
+  templateVersionId String                        @map("template_version_id") @db.Uuid
+  senderAddress     String                        @map("sender_address") @db.VarChar(320)
+  replyTo           String?                       @map("reply_to") @db.VarChar(320)
+  subject           String                        @db.VarChar(998)
+  html              String
+  text              String
+  audienceSnapshot  Json                          @map("audience_snapshot")
+  eligibleCount     Int                           @map("eligible_count")
+  excludedCount     Int                           @map("excluded_count")
+  contentSha256     String                        @map("content_sha256") @db.Char(64)
+  createdBy         String                        @map("created_by")
+  createdAt         DateTime                      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  campaign  MarketingEmailCampaign      @relation(fields: [campaignId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_campaign_snapshots_campaign")
+  approvals MarketingCampaignApproval[]
+
+  @@unique([campaignId, revision, kind], map: "UQ_marketing_campaign_snapshots_campaign_revision_kind")
+  @@map("marketing_email_campaign_snapshots")
+}
+
+model MarketingCampaignApproval {
+  id                  String                            @id @default(uuid()) @db.Uuid
+  campaignId          String                            @map("campaign_id") @db.Uuid
+  revision            Int
+  decision            MarketingCampaignApprovalDecision
+  reviewerAdminUserId String                            @map("reviewer_admin_user_id")
+  stepUpId            String?                           @map("step_up_id") @db.Uuid
+  snapshotId          String?                           @map("snapshot_id") @db.Uuid
+  comment             String?
+  createdAt           DateTime                          @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  campaign MarketingEmailCampaign     @relation(fields: [campaignId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_campaign_approvals_campaign")
+  snapshot MarketingCampaignSnapshot? @relation(fields: [snapshotId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_campaign_approvals_snapshot")
+
+  @@index([campaignId, revision], map: "IDX_marketing_campaign_approvals_campaign_revision")
+  @@map("marketing_email_campaign_approvals")
 }

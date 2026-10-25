@@ -132,6 +132,21 @@
       "order": 26,
       "file": "20260801_advertising_execution_sections25_28_remediation.sql",
       "sha256": "b9f0493629ccf4f8b340f8cd1dab2be7c0987419c47c4853b2f73ef115d7b5e6"
+    },
+    {
+      "order": 27,
+      "file": "20261024_add_cosmicforge_mail_m1_m6.sql",
+      "sha256": "a3b7d61f61fb815affb4f617481d878472d099ed48db43d60f2e52e9022ec9f0"
+    },
+    {
+      "order": 28,
+      "file": "20261025_add_admin_sessions_mfa.sql",
+      "sha256": "e8d1b5537677367aed24c2a09191bb95568cde2ad14d6b4d62c6fa083adbf883"
+    },
+    {
+      "order": 29,
+      "file": "20261026_mail_step_up_session_binding.sql",
+      "sha256": "5bfc3b52d1eb6d4dd957d139045f1bddecb00f818c2d856997c30be8cdf56fbf"
     }
   ]
 }

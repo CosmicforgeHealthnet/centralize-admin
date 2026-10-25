@@ -1,0 +1,72 @@
+# CosmicForge Mail - ClamAV (clamd + freshclam) for attachment scanning.
+#
+# NOT applied automatically. Deploy separately from the API, one instance per
+# environment, on a PRIVATE network only (no published ports). The API and the
+# Mail worker reach it as MAIL_CLAMD_HOST=clamav MAIL_CLAMD_PORT=3310.
+#
+#   docker network create cfmail-scanner          # once per host
+#   docker compose -f infrastructure/mail/clamav/docker-compose.yml up -d
+#   docker network connect cfmail-scanner <api-container>
+#   docker network connect cfmail-scanner <mail-worker-container>
+#
+# Pin the image digest in production (docker buildx imagetools inspect ...).
+name: cosmicforge-mail-clamav
+
+services:
+  clamav:
+    image: clamav/clamav:1.4
+    container_name: cosmicforge-mail-clamav
+    restart: unless-stopped
+    # No "ports:" on purpose - clamd must never be reachable from the internet.
+    expose:
+      - "3310"
+    environment:
+      # freshclam runs inside the official image and updates signatures.
+      CLAMAV_NO_FRESHCLAMD: "false"
+      CLAMAV_NO_CLAMD: "false"
+      CLAMAV_NO_MILTERD: "true"
+    volumes:
+      - ./clamd.conf:/etc/clamav/clamd.conf:ro
+      - ./freshclam.conf:/etc/clamav/freshclam.conf:ro
+      - clamav-signatures:/var/lib/clamav
+    healthcheck:
+      # Ships with the official image: PING over the clamd socket.
+      test: ["CMD", "clamdcheck.sh"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      # First signature download can take several minutes.
+      start_period: 300s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 3g
+        reservations:
+          memory: 1536m
+    security_opt:
+      - no-new-privileges:true
+    # The image entrypoint fixes ownership and drops to the clamav user, so it
+    # needs these four capabilities; everything else is dropped. Validate on
+    # the staging host before relying on it (not exercised in CI).
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    networks:
+      - cfmail-scanner
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  clamav-signatures:
+
+networks:
+  cfmail-scanner:
+    external: true

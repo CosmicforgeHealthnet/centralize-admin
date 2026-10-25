@@ -1,0 +1,46 @@
+name: Mail ClamAV live (manual)
+
+# Opt-in validation of the clamd adapter against the real clamav/clamav image.
+# Manual only: signature download takes minutes and depends on the ClamAV
+# mirror, so it is deliberately NOT part of the PR / staging pipelines.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  clamd-live:
+    name: Real clamd EICAR / clean / oversize
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      clamav:
+        image: clamav/clamav:1.4
+        ports:
+          - 3310:3310
+    defaults:
+      run:
+        working-directory: services/central-admin-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: services/central-admin-api/package-lock.json
+      - run: npm ci
+      - name: Wait for clamd (signatures loaded)
+        run: |
+          for i in $(seq 1 120); do
+            if node -e "const s=require('net').createConnection(3310,'127.0.0.1');s.on('connect',()=>s.write('zPING\0'));s.on('data',d=>process.exit(String(d).startsWith('PONG')?0:1));s.on('error',()=>process.exit(1));setTimeout(()=>process.exit(1),3000)"; then
+              echo "clamd ready"; exit 0
+            fi
+            sleep 10
+          done
+          echo "clamd did not become ready"; exit 1
+      - name: Run live scanner test
+        env:
+          MAIL_CLAMD_LIVE_HOST: 127.0.0.1
+          MAIL_CLAMD_LIVE_PORT: "3310"
+        run: npm run test:mail:clamd-live

@@ -1,3 +1,4 @@
+const { mfaEvidenceFromRequest } = require("../../../shared/auth/privileged-mfa");
 const ApiResponse = require("../../../shared/utils/ApiResponse");
 const asyncHandler = require("../../../shared/utils/asyncHandler");
 const { createExecutionService } = require("./execution.service");
@@ -9,7 +10,7 @@ function requestPayload(req) {
 }
 
 function createExecutionController({ service = createExecutionService() } = {}) {
-  const actor = (req) => ({ ...req.adminUser, correlationId: req.correlationId || null });
+  const actor = (req) => ({ ...req.adminUser, correlationId: req.correlationId || null, mfa: mfaEvidenceFromRequest(req) });
   const ok = (status, message, handler) => asyncHandler(async (req, res) => ApiResponse.success(res, status, message, await handler(req), { correlationId: req.correlationId || null }));
   return {
     getCapabilities: ok(200, "Advertising execution capabilities retrieved", (req) => service.capabilities(req.query || {})),

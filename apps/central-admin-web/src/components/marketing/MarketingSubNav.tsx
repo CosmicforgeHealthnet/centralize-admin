@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Rocket,
@@ -12,6 +13,7 @@ import {
   Sparkles,
   Users,
   Gauge,
+  MailPlus,
   type LucideIcon,
 } from "lucide-react";
 import { ShieldCheck } from "lucide-react"; 
@@ -65,6 +67,14 @@ const NAV_GROUPS: NavGroupDef[] = [
     ],
   },
    
+  {
+    // Absolute href: a deep-linkable route outside the in-page section switcher.
+    label: "Email Marketing",
+    icon: MailPlus,
+    items: [
+      { label: "Email Marketing", href: "/dashboard/marketing/email-marketing", icon: MailPlus },
+    ],
+  },
    {
   label: "Advertising Execution",
   icon: ShieldCheck,
@@ -150,6 +160,11 @@ interface MarketingSubNavProps {
 }
 
 export default function MarketingSubNav({ activeSection, onSectionChange }: MarketingSubNavProps) {
+  const router = useRouter();
+  const select = (href: string) => {
+    if (href.startsWith("/")) router.push(href);
+    else onSectionChange(href);
+  };
   return (
     <>
       {/* Desktop sidebar */}
@@ -164,7 +179,7 @@ export default function MarketingSubNav({ activeSection, onSectionChange }: Mark
                   label={item.label}
                   icon={item.icon}
                   active={activeSection === item.href}
-                  onClick={() => onSectionChange(item.href)}
+                  onClick={() => select(item.href)}
                 />
               ))}
             </div>
@@ -185,7 +200,7 @@ export default function MarketingSubNav({ activeSection, onSectionChange }: Mark
               return (
                 <button
                   key={item.href}
-                  onClick={() => onSectionChange(item.href)}
+                  onClick={() => select(item.href)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full whitespace-nowrap shrink-0 transition-all duration-150 text-[12px] font-poppins border ${
                     active
                       ? "bg-primary text-white border-primary font-semibold shadow-sm"
