@@ -64,12 +64,12 @@ const updateStatus = asyncHandler(async (req, res) => {
 });
 
 const resendInvite = asyncHandler(async (req, res) => {
-  await accountsService.resendInvite({
+  const result = await accountsService.resendInvite({
     id: req.params.id,
     actor: req.adminUser,
     req,
   });
-  return ApiResponse.success(res, 200, "HRM account invite resent");
+  return ApiResponse.success(res, 200, "HRM account invite resent", result);
 });
 
 // ─── Grant Controllers ──────────────────────────────────────────────────

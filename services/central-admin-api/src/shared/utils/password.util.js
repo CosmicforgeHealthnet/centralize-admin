@@ -24,29 +24,8 @@ const validatePasswordStrength = (password) => {
   return { valid: errors.length === 0, errors };
 };
 
-const generateTempPassword = () => {
-  const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const lowercase = "abcdefghijklmnopqrstuvwxyz";
-  const numbers = "0123456789";
-  const special = "!@#$%^&*";
-
-  const pwd = [
-    uppercase[Math.floor(Math.random() * uppercase.length)],
-    uppercase[Math.floor(Math.random() * uppercase.length)],
-    lowercase[Math.floor(Math.random() * lowercase.length)],
-    lowercase[Math.floor(Math.random() * lowercase.length)],
-    numbers[Math.floor(Math.random() * numbers.length)],
-    numbers[Math.floor(Math.random() * numbers.length)],
-    special[Math.floor(Math.random() * special.length)],
-    special[Math.floor(Math.random() * special.length)],
-  ];
-
-  return pwd.sort(() => Math.random() - 0.5).join("");
-};
-
 module.exports = {
   hashPassword,
   comparePassword,
   validatePasswordStrength,
-  generateTempPassword,
 };

@@ -17,7 +17,7 @@ const AUTH_TABLES = Object.freeze([
   "admin_auth_events",
 ]);
 
-function createSchemaReadiness({ client, logger = null, recheckMs = 30_000, now = () => Date.now() } = {}) {
+function createSchemaReadiness({ client, logger = null, recheckMs = 30_000, now = () => Date.now(), tables = AUTH_TABLES, label = "[Auth] Session/MFA", missingMessage = null } = {}) {
   let ready = false;
   let checkedAt = null;
   let inFlight = null;
@@ -26,10 +26,10 @@ function createSchemaReadiness({ client, logger = null, recheckMs = 30_000, now 
   async function probe() {
     try {
       const rows = await client.$queryRawUnsafe(
-        `SELECT ${AUTH_TABLES.map((name, i) => `to_regclass('public.${name}') IS NOT NULL AS t${i}`).join(", ")}`,
+        `SELECT ${tables.map((name, i) => `to_regclass('public.${name}') IS NOT NULL AS t${i}`).join(", ")}`,
       );
       const row = rows?.[0] || {};
-      return AUTH_TABLES.every((_, i) => row[`t${i}`] === true);
+      return tables.every((_, i) => row[`t${i}`] === true);
     } catch {
       return false;
     }
@@ -44,9 +44,9 @@ function createSchemaReadiness({ client, logger = null, recheckMs = 30_000, now 
       inFlight = null;
       if (!result && !warned) {
         warned = true;
-        logger?.warn?.("[Auth] Session/MFA tables are not present (migration 20261025_add_admin_sessions_mfa.sql not applied). Running the pre-release legacy login; sessions and MFA are unavailable.");
+        logger?.warn?.(missingMessage || "[Auth] Session/MFA tables are not present (migration 20261025_add_admin_sessions_mfa.sql not applied). Running the pre-release legacy login; sessions and MFA are unavailable.");
       }
-      if (result) logger?.info?.("[Auth] Session/MFA schema detected.");
+      if (result) logger?.info?.(`${label} schema detected.`);
       return result;
     });
     return inFlight;

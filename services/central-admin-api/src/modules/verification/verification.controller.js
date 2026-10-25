@@ -163,6 +163,15 @@ const approveLab = asyncHandler(async (req, res) => {
   return ApiResponse.success(res, 200, "Lab verification approved", data);
 });
 
+const resendLabSetupLink = asyncHandler(async (req, res) => {
+  const data = await verificationService.resendLabSetupLink({
+    id: req.params.id,
+    adminUserId: req.adminUser.id,
+    req,
+  });
+  return ApiResponse.success(res, 200, "Lab setup link re-issued", data);
+});
+
 const rejectLab = asyncHandler(async (req, res) => {
   const { rejectionReason } = req.body;
   const data = await verificationService.rejectLab({
@@ -273,6 +282,7 @@ module.exports = {
   getLabVerifications,
   getLabVerificationById,
   approveLab,
+  resendLabSetupLink,
   rejectLab,
   // Combined
   getAllCombined,

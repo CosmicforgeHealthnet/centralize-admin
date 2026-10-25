@@ -27,10 +27,16 @@ function nodeScript(script) {
 test("manual migration manifest protects order and checksums", () => {
   const result = verifyMigrationManifest();
   assert.equal(result.failures.length, 0);
-  assert.equal(result.count, 33);
+  assert.equal(result.count, 34);
   assert.equal(
     result.manifest.migrations.some(
       (entry) => entry.file === "20261030_mail_m10_rollout.sql" && entry.order === 33,
+    ),
+    true,
+  );
+  assert.equal(
+    result.manifest.migrations.some(
+      (entry) => entry.file === "20261031_account_setup_tokens.sql" && entry.order === 34,
     ),
     true,
   );

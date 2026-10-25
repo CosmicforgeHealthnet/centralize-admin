@@ -903,6 +903,11 @@ export type MailRolloutRule = $Result.DefaultSelection<Prisma.$MailRolloutRulePa
  * 
  */
 export type MailEmergencyStop = $Result.DefaultSelection<Prisma.$MailEmergencyStopPayload>
+/**
+ * Model AccountSetupToken
+ * 
+ */
+export type AccountSetupToken = $Result.DefaultSelection<Prisma.$AccountSetupTokenPayload>
 
 /**
  * Enums
@@ -4921,6 +4926,16 @@ export class PrismaClient<
     * ```
     */
   get mailEmergencyStop(): Prisma.MailEmergencyStopDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.accountSetupToken`: Exposes CRUD operations for the **AccountSetupToken** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AccountSetupTokens
+    * const accountSetupTokens = await prisma.accountSetupToken.findMany()
+    * ```
+    */
+  get accountSetupToken(): Prisma.AccountSetupTokenDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -5545,7 +5560,8 @@ export namespace Prisma {
     MailRolloutCohort: 'MailRolloutCohort',
     MailRolloutCohortMember: 'MailRolloutCohortMember',
     MailRolloutRule: 'MailRolloutRule',
-    MailEmergencyStop: 'MailEmergencyStop'
+    MailEmergencyStop: 'MailEmergencyStop',
+    AccountSetupToken: 'AccountSetupToken'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -5561,7 +5577,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "adminUser" | "marketing_campaigns" | "marketing_campaign_performance" | "marketing_campaign_timeline" | "marketing_campaign_team_members" | "marketing_content_items" | "marketing_content_monthly_performance" | "marketing_notification_events" | "marketing_email_templates" | "marketing_social_accounts" | "marketing_social_posts" | "marketing_social_analytics_snapshots" | "marketing_promotions" | "marketing_banners" | "marketing_analytics_snapshots" | "marketing_ad_platform_connections" | "marketing_ad_insights_raw" | "marketing_performance_snapshots" | "marketing_oauth_states" | "marketing_attributions" | "marketing_funnel_events" | "marketing_identity_links" | "marketing_attribution_decisions" | "marketing_intelligence_settings" | "marketing_intelligence_evaluation_runs" | "marketing_creative_assets" | "marketing_creative_performance_snapshots" | "marketing_creative_score_snapshots" | "marketing_recommendations" | "marketing_alerts" | "marketing_experiments" | "marketing_sync_locks" | "marketingExecutionPlan" | "marketingExecutionPlanItem" | "marketingExecutionApproval" | "marketingExecutionApprovalEvent" | "marketingExecutionRun" | "marketingExecutionJob" | "marketingProviderOperation" | "marketingProviderOperationAttempt" | "marketingExecutionStateSnapshot" | "marketingExecutionValidationIssue" | "marketingExecutionReconciliation" | "marketingExecutionPolicy" | "marketingCreativePublication" | "marketingCreativeMediaValidationEvidence" | "marketingCreativePublicationReviewEvent" | "marketingTargetingDiscovery" | "marketingExecutionAccountLock" | "marketingExecutionDeadLetterReview" | "marketingExecutionPolicyHistory" | "marketingExecutionValidationPacket" | "marketingExecutionDriftAcknowledgment" | "marketingExecutionRetryReview" | "marketingExecutionEmergencyOverride" | "marketingExecutionReconciliationJob" | "marketingExecutionCompensationLink" | "socialAccountConnection" | "socialPublishingIdentity" | "socialOAuthState" | "socialPost" | "socialPostRevision" | "socialPostTarget" | "socialPostApproval" | "socialPublication" | "socialPublicationAttempt" | "socialPublishingJob" | "socialMediaAsset" | "socialPostMedia" | "socialContact" | "socialConversation" | "socialMessage" | "socialTag" | "socialConversationTag" | "socialProviderContent" | "socialComment" | "socialEngagementEvent" | "socialEscalation" | "socialWebhookSubscription" | "socialWebhookEvent" | "socialIdentityMetricSnapshot" | "socialProviderContentMetricSnapshot" | "socialIdentitySyncState" | "socialActionJob" | "socialActionAttempt" | "socialInternalNote" | "socialSavedReply" | "socialOperationsSetting" | "adminManualMigrationLedger" | "adminSession" | "adminSessionRefreshToken" | "adminMfaEnrollment" | "adminMfaRecoveryCode" | "adminMfaChallenge" | "adminAuthEvent" | "refreshToken" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event" | "mailOrganization" | "mailDomain" | "mailMailbox" | "mailAddress" | "mailMembership" | "mailSenderGrant" | "mailProvisionRequest" | "mailThread" | "mailMessage" | "mailMessageRecipient" | "mailUserThreadState" | "mailDraft" | "mailLabel" | "mailThreadLabel" | "mailRule" | "mailAttachment" | "mailInternalNote" | "mailOutboxJob" | "mailWebhookEvent" | "mailDeliveryEvent" | "mailAuditEvent" | "mailRetentionPolicy" | "mailLegalHold" | "mailStepUpVerification" | "mailBreakGlassRequest" | "marketingContact" | "marketingConsent" | "marketingSuppression" | "marketingAudience" | "marketingAudienceContact" | "marketingSegment" | "marketingEmailTemplate" | "marketingTemplateVersion" | "marketingEmailCampaign" | "marketingCampaignSnapshot" | "marketingCampaignApproval" | "marketingBrandSettings" | "marketingCampaignApprovedContact" | "marketingBroadcastDispatch" | "marketingBroadcastRecipient" | "marketingAutomation" | "marketingAutomationVersion" | "marketingAutomationEnrollment" | "marketingAutomationStepRun" | "marketingTriggerEvent" | "mailProductIntegration" | "mailProductSenderAuthorization" | "mailProductIntegrationEvent" | "mailProductDeliveryEvent" | "mailRetentionRun" | "mailUsageDaily" | "mailQuotaLimit" | "mailOpsAlert" | "mailRolloutCohort" | "mailRolloutCohortMember" | "mailRolloutRule" | "mailEmergencyStop"
+      modelProps: "adminUser" | "marketing_campaigns" | "marketing_campaign_performance" | "marketing_campaign_timeline" | "marketing_campaign_team_members" | "marketing_content_items" | "marketing_content_monthly_performance" | "marketing_notification_events" | "marketing_email_templates" | "marketing_social_accounts" | "marketing_social_posts" | "marketing_social_analytics_snapshots" | "marketing_promotions" | "marketing_banners" | "marketing_analytics_snapshots" | "marketing_ad_platform_connections" | "marketing_ad_insights_raw" | "marketing_performance_snapshots" | "marketing_oauth_states" | "marketing_attributions" | "marketing_funnel_events" | "marketing_identity_links" | "marketing_attribution_decisions" | "marketing_intelligence_settings" | "marketing_intelligence_evaluation_runs" | "marketing_creative_assets" | "marketing_creative_performance_snapshots" | "marketing_creative_score_snapshots" | "marketing_recommendations" | "marketing_alerts" | "marketing_experiments" | "marketing_sync_locks" | "marketingExecutionPlan" | "marketingExecutionPlanItem" | "marketingExecutionApproval" | "marketingExecutionApprovalEvent" | "marketingExecutionRun" | "marketingExecutionJob" | "marketingProviderOperation" | "marketingProviderOperationAttempt" | "marketingExecutionStateSnapshot" | "marketingExecutionValidationIssue" | "marketingExecutionReconciliation" | "marketingExecutionPolicy" | "marketingCreativePublication" | "marketingCreativeMediaValidationEvidence" | "marketingCreativePublicationReviewEvent" | "marketingTargetingDiscovery" | "marketingExecutionAccountLock" | "marketingExecutionDeadLetterReview" | "marketingExecutionPolicyHistory" | "marketingExecutionValidationPacket" | "marketingExecutionDriftAcknowledgment" | "marketingExecutionRetryReview" | "marketingExecutionEmergencyOverride" | "marketingExecutionReconciliationJob" | "marketingExecutionCompensationLink" | "socialAccountConnection" | "socialPublishingIdentity" | "socialOAuthState" | "socialPost" | "socialPostRevision" | "socialPostTarget" | "socialPostApproval" | "socialPublication" | "socialPublicationAttempt" | "socialPublishingJob" | "socialMediaAsset" | "socialPostMedia" | "socialContact" | "socialConversation" | "socialMessage" | "socialTag" | "socialConversationTag" | "socialProviderContent" | "socialComment" | "socialEngagementEvent" | "socialEscalation" | "socialWebhookSubscription" | "socialWebhookEvent" | "socialIdentityMetricSnapshot" | "socialProviderContentMetricSnapshot" | "socialIdentitySyncState" | "socialActionJob" | "socialActionAttempt" | "socialInternalNote" | "socialSavedReply" | "socialOperationsSetting" | "adminManualMigrationLedger" | "adminSession" | "adminSessionRefreshToken" | "adminMfaEnrollment" | "adminMfaRecoveryCode" | "adminMfaChallenge" | "adminAuthEvent" | "refreshToken" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event" | "mailOrganization" | "mailDomain" | "mailMailbox" | "mailAddress" | "mailMembership" | "mailSenderGrant" | "mailProvisionRequest" | "mailThread" | "mailMessage" | "mailMessageRecipient" | "mailUserThreadState" | "mailDraft" | "mailLabel" | "mailThreadLabel" | "mailRule" | "mailAttachment" | "mailInternalNote" | "mailOutboxJob" | "mailWebhookEvent" | "mailDeliveryEvent" | "mailAuditEvent" | "mailRetentionPolicy" | "mailLegalHold" | "mailStepUpVerification" | "mailBreakGlassRequest" | "marketingContact" | "marketingConsent" | "marketingSuppression" | "marketingAudience" | "marketingAudienceContact" | "marketingSegment" | "marketingEmailTemplate" | "marketingTemplateVersion" | "marketingEmailCampaign" | "marketingCampaignSnapshot" | "marketingCampaignApproval" | "marketingBrandSettings" | "marketingCampaignApprovedContact" | "marketingBroadcastDispatch" | "marketingBroadcastRecipient" | "marketingAutomation" | "marketingAutomationVersion" | "marketingAutomationEnrollment" | "marketingAutomationStepRun" | "marketingTriggerEvent" | "mailProductIntegration" | "mailProductSenderAuthorization" | "mailProductIntegrationEvent" | "mailProductDeliveryEvent" | "mailRetentionRun" | "mailUsageDaily" | "mailQuotaLimit" | "mailOpsAlert" | "mailRolloutCohort" | "mailRolloutCohortMember" | "mailRolloutRule" | "mailEmergencyStop" | "accountSetupToken"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -18737,6 +18753,80 @@ export namespace Prisma {
           }
         }
       }
+      AccountSetupToken: {
+        payload: Prisma.$AccountSetupTokenPayload<ExtArgs>
+        fields: Prisma.AccountSetupTokenFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AccountSetupTokenFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountSetupTokenPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AccountSetupTokenFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountSetupTokenPayload>
+          }
+          findFirst: {
+            args: Prisma.AccountSetupTokenFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountSetupTokenPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AccountSetupTokenFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountSetupTokenPayload>
+          }
+          findMany: {
+            args: Prisma.AccountSetupTokenFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountSetupTokenPayload>[]
+          }
+          create: {
+            args: Prisma.AccountSetupTokenCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountSetupTokenPayload>
+          }
+          createMany: {
+            args: Prisma.AccountSetupTokenCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AccountSetupTokenCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountSetupTokenPayload>[]
+          }
+          delete: {
+            args: Prisma.AccountSetupTokenDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountSetupTokenPayload>
+          }
+          update: {
+            args: Prisma.AccountSetupTokenUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountSetupTokenPayload>
+          }
+          deleteMany: {
+            args: Prisma.AccountSetupTokenDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AccountSetupTokenUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AccountSetupTokenUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountSetupTokenPayload>[]
+          }
+          upsert: {
+            args: Prisma.AccountSetupTokenUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountSetupTokenPayload>
+          }
+          aggregate: {
+            args: Prisma.AccountSetupTokenAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAccountSetupToken>
+          }
+          groupBy: {
+            args: Prisma.AccountSetupTokenGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AccountSetupTokenGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AccountSetupTokenCountArgs<ExtArgs>
+            result: $Utils.Optional<AccountSetupTokenCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -19038,6 +19128,7 @@ export namespace Prisma {
     mailRolloutCohortMember?: MailRolloutCohortMemberOmit
     mailRolloutRule?: MailRolloutRuleOmit
     mailEmergencyStop?: MailEmergencyStopOmit
+    accountSetupToken?: AccountSetupTokenOmit
   }
 
   /* Types for Logging */
@@ -241444,6 +241535,1131 @@ export namespace Prisma {
 
 
   /**
+   * Model AccountSetupToken
+   */
+
+  export type AggregateAccountSetupToken = {
+    _count: AccountSetupTokenCountAggregateOutputType | null
+    _avg: AccountSetupTokenAvgAggregateOutputType | null
+    _sum: AccountSetupTokenSumAggregateOutputType | null
+    _min: AccountSetupTokenMinAggregateOutputType | null
+    _max: AccountSetupTokenMaxAggregateOutputType | null
+  }
+
+  export type AccountSetupTokenAvgAggregateOutputType = {
+    attempts: number | null
+  }
+
+  export type AccountSetupTokenSumAggregateOutputType = {
+    attempts: number | null
+  }
+
+  export type AccountSetupTokenMinAggregateOutputType = {
+    id: string | null
+    purpose: string | null
+    subjectKind: string | null
+    subjectId: string | null
+    emailDomain: string | null
+    tokenHash: string | null
+    expiresAt: Date | null
+    usedAt: Date | null
+    revokedAt: Date | null
+    attempts: number | null
+    createdBy: string | null
+    createdAt: Date | null
+  }
+
+  export type AccountSetupTokenMaxAggregateOutputType = {
+    id: string | null
+    purpose: string | null
+    subjectKind: string | null
+    subjectId: string | null
+    emailDomain: string | null
+    tokenHash: string | null
+    expiresAt: Date | null
+    usedAt: Date | null
+    revokedAt: Date | null
+    attempts: number | null
+    createdBy: string | null
+    createdAt: Date | null
+  }
+
+  export type AccountSetupTokenCountAggregateOutputType = {
+    id: number
+    purpose: number
+    subjectKind: number
+    subjectId: number
+    emailDomain: number
+    tokenHash: number
+    expiresAt: number
+    usedAt: number
+    revokedAt: number
+    attempts: number
+    createdBy: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type AccountSetupTokenAvgAggregateInputType = {
+    attempts?: true
+  }
+
+  export type AccountSetupTokenSumAggregateInputType = {
+    attempts?: true
+  }
+
+  export type AccountSetupTokenMinAggregateInputType = {
+    id?: true
+    purpose?: true
+    subjectKind?: true
+    subjectId?: true
+    emailDomain?: true
+    tokenHash?: true
+    expiresAt?: true
+    usedAt?: true
+    revokedAt?: true
+    attempts?: true
+    createdBy?: true
+    createdAt?: true
+  }
+
+  export type AccountSetupTokenMaxAggregateInputType = {
+    id?: true
+    purpose?: true
+    subjectKind?: true
+    subjectId?: true
+    emailDomain?: true
+    tokenHash?: true
+    expiresAt?: true
+    usedAt?: true
+    revokedAt?: true
+    attempts?: true
+    createdBy?: true
+    createdAt?: true
+  }
+
+  export type AccountSetupTokenCountAggregateInputType = {
+    id?: true
+    purpose?: true
+    subjectKind?: true
+    subjectId?: true
+    emailDomain?: true
+    tokenHash?: true
+    expiresAt?: true
+    usedAt?: true
+    revokedAt?: true
+    attempts?: true
+    createdBy?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type AccountSetupTokenAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AccountSetupToken to aggregate.
+     */
+    where?: AccountSetupTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AccountSetupTokens to fetch.
+     */
+    orderBy?: AccountSetupTokenOrderByWithRelationInput | AccountSetupTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AccountSetupTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AccountSetupTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AccountSetupTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AccountSetupTokens
+    **/
+    _count?: true | AccountSetupTokenCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: AccountSetupTokenAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: AccountSetupTokenSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AccountSetupTokenMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AccountSetupTokenMaxAggregateInputType
+  }
+
+  export type GetAccountSetupTokenAggregateType<T extends AccountSetupTokenAggregateArgs> = {
+        [P in keyof T & keyof AggregateAccountSetupToken]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAccountSetupToken[P]>
+      : GetScalarType<T[P], AggregateAccountSetupToken[P]>
+  }
+
+
+
+
+  export type AccountSetupTokenGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AccountSetupTokenWhereInput
+    orderBy?: AccountSetupTokenOrderByWithAggregationInput | AccountSetupTokenOrderByWithAggregationInput[]
+    by: AccountSetupTokenScalarFieldEnum[] | AccountSetupTokenScalarFieldEnum
+    having?: AccountSetupTokenScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AccountSetupTokenCountAggregateInputType | true
+    _avg?: AccountSetupTokenAvgAggregateInputType
+    _sum?: AccountSetupTokenSumAggregateInputType
+    _min?: AccountSetupTokenMinAggregateInputType
+    _max?: AccountSetupTokenMaxAggregateInputType
+  }
+
+  export type AccountSetupTokenGroupByOutputType = {
+    id: string
+    purpose: string
+    subjectKind: string
+    subjectId: string
+    emailDomain: string | null
+    tokenHash: string
+    expiresAt: Date
+    usedAt: Date | null
+    revokedAt: Date | null
+    attempts: number
+    createdBy: string | null
+    createdAt: Date
+    _count: AccountSetupTokenCountAggregateOutputType | null
+    _avg: AccountSetupTokenAvgAggregateOutputType | null
+    _sum: AccountSetupTokenSumAggregateOutputType | null
+    _min: AccountSetupTokenMinAggregateOutputType | null
+    _max: AccountSetupTokenMaxAggregateOutputType | null
+  }
+
+  type GetAccountSetupTokenGroupByPayload<T extends AccountSetupTokenGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AccountSetupTokenGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AccountSetupTokenGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AccountSetupTokenGroupByOutputType[P]>
+            : GetScalarType<T[P], AccountSetupTokenGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AccountSetupTokenSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    purpose?: boolean
+    subjectKind?: boolean
+    subjectId?: boolean
+    emailDomain?: boolean
+    tokenHash?: boolean
+    expiresAt?: boolean
+    usedAt?: boolean
+    revokedAt?: boolean
+    attempts?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["accountSetupToken"]>
+
+  export type AccountSetupTokenSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    purpose?: boolean
+    subjectKind?: boolean
+    subjectId?: boolean
+    emailDomain?: boolean
+    tokenHash?: boolean
+    expiresAt?: boolean
+    usedAt?: boolean
+    revokedAt?: boolean
+    attempts?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["accountSetupToken"]>
+
+  export type AccountSetupTokenSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    purpose?: boolean
+    subjectKind?: boolean
+    subjectId?: boolean
+    emailDomain?: boolean
+    tokenHash?: boolean
+    expiresAt?: boolean
+    usedAt?: boolean
+    revokedAt?: boolean
+    attempts?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["accountSetupToken"]>
+
+  export type AccountSetupTokenSelectScalar = {
+    id?: boolean
+    purpose?: boolean
+    subjectKind?: boolean
+    subjectId?: boolean
+    emailDomain?: boolean
+    tokenHash?: boolean
+    expiresAt?: boolean
+    usedAt?: boolean
+    revokedAt?: boolean
+    attempts?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+  }
+
+  export type AccountSetupTokenOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "purpose" | "subjectKind" | "subjectId" | "emailDomain" | "tokenHash" | "expiresAt" | "usedAt" | "revokedAt" | "attempts" | "createdBy" | "createdAt", ExtArgs["result"]["accountSetupToken"]>
+
+  export type $AccountSetupTokenPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AccountSetupToken"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      purpose: string
+      subjectKind: string
+      subjectId: string
+      emailDomain: string | null
+      tokenHash: string
+      expiresAt: Date
+      usedAt: Date | null
+      revokedAt: Date | null
+      attempts: number
+      createdBy: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["accountSetupToken"]>
+    composites: {}
+  }
+
+  type AccountSetupTokenGetPayload<S extends boolean | null | undefined | AccountSetupTokenDefaultArgs> = $Result.GetResult<Prisma.$AccountSetupTokenPayload, S>
+
+  type AccountSetupTokenCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AccountSetupTokenFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AccountSetupTokenCountAggregateInputType | true
+    }
+
+  export interface AccountSetupTokenDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AccountSetupToken'], meta: { name: 'AccountSetupToken' } }
+    /**
+     * Find zero or one AccountSetupToken that matches the filter.
+     * @param {AccountSetupTokenFindUniqueArgs} args - Arguments to find a AccountSetupToken
+     * @example
+     * // Get one AccountSetupToken
+     * const accountSetupToken = await prisma.accountSetupToken.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AccountSetupTokenFindUniqueArgs>(args: SelectSubset<T, AccountSetupTokenFindUniqueArgs<ExtArgs>>): Prisma__AccountSetupTokenClient<$Result.GetResult<Prisma.$AccountSetupTokenPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AccountSetupToken that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AccountSetupTokenFindUniqueOrThrowArgs} args - Arguments to find a AccountSetupToken
+     * @example
+     * // Get one AccountSetupToken
+     * const accountSetupToken = await prisma.accountSetupToken.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AccountSetupTokenFindUniqueOrThrowArgs>(args: SelectSubset<T, AccountSetupTokenFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AccountSetupTokenClient<$Result.GetResult<Prisma.$AccountSetupTokenPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AccountSetupToken that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountSetupTokenFindFirstArgs} args - Arguments to find a AccountSetupToken
+     * @example
+     * // Get one AccountSetupToken
+     * const accountSetupToken = await prisma.accountSetupToken.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AccountSetupTokenFindFirstArgs>(args?: SelectSubset<T, AccountSetupTokenFindFirstArgs<ExtArgs>>): Prisma__AccountSetupTokenClient<$Result.GetResult<Prisma.$AccountSetupTokenPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AccountSetupToken that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountSetupTokenFindFirstOrThrowArgs} args - Arguments to find a AccountSetupToken
+     * @example
+     * // Get one AccountSetupToken
+     * const accountSetupToken = await prisma.accountSetupToken.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AccountSetupTokenFindFirstOrThrowArgs>(args?: SelectSubset<T, AccountSetupTokenFindFirstOrThrowArgs<ExtArgs>>): Prisma__AccountSetupTokenClient<$Result.GetResult<Prisma.$AccountSetupTokenPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AccountSetupTokens that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountSetupTokenFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AccountSetupTokens
+     * const accountSetupTokens = await prisma.accountSetupToken.findMany()
+     * 
+     * // Get first 10 AccountSetupTokens
+     * const accountSetupTokens = await prisma.accountSetupToken.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const accountSetupTokenWithIdOnly = await prisma.accountSetupToken.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AccountSetupTokenFindManyArgs>(args?: SelectSubset<T, AccountSetupTokenFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountSetupTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AccountSetupToken.
+     * @param {AccountSetupTokenCreateArgs} args - Arguments to create a AccountSetupToken.
+     * @example
+     * // Create one AccountSetupToken
+     * const AccountSetupToken = await prisma.accountSetupToken.create({
+     *   data: {
+     *     // ... data to create a AccountSetupToken
+     *   }
+     * })
+     * 
+     */
+    create<T extends AccountSetupTokenCreateArgs>(args: SelectSubset<T, AccountSetupTokenCreateArgs<ExtArgs>>): Prisma__AccountSetupTokenClient<$Result.GetResult<Prisma.$AccountSetupTokenPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AccountSetupTokens.
+     * @param {AccountSetupTokenCreateManyArgs} args - Arguments to create many AccountSetupTokens.
+     * @example
+     * // Create many AccountSetupTokens
+     * const accountSetupToken = await prisma.accountSetupToken.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AccountSetupTokenCreateManyArgs>(args?: SelectSubset<T, AccountSetupTokenCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AccountSetupTokens and returns the data saved in the database.
+     * @param {AccountSetupTokenCreateManyAndReturnArgs} args - Arguments to create many AccountSetupTokens.
+     * @example
+     * // Create many AccountSetupTokens
+     * const accountSetupToken = await prisma.accountSetupToken.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AccountSetupTokens and only return the `id`
+     * const accountSetupTokenWithIdOnly = await prisma.accountSetupToken.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AccountSetupTokenCreateManyAndReturnArgs>(args?: SelectSubset<T, AccountSetupTokenCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountSetupTokenPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AccountSetupToken.
+     * @param {AccountSetupTokenDeleteArgs} args - Arguments to delete one AccountSetupToken.
+     * @example
+     * // Delete one AccountSetupToken
+     * const AccountSetupToken = await prisma.accountSetupToken.delete({
+     *   where: {
+     *     // ... filter to delete one AccountSetupToken
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AccountSetupTokenDeleteArgs>(args: SelectSubset<T, AccountSetupTokenDeleteArgs<ExtArgs>>): Prisma__AccountSetupTokenClient<$Result.GetResult<Prisma.$AccountSetupTokenPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AccountSetupToken.
+     * @param {AccountSetupTokenUpdateArgs} args - Arguments to update one AccountSetupToken.
+     * @example
+     * // Update one AccountSetupToken
+     * const accountSetupToken = await prisma.accountSetupToken.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AccountSetupTokenUpdateArgs>(args: SelectSubset<T, AccountSetupTokenUpdateArgs<ExtArgs>>): Prisma__AccountSetupTokenClient<$Result.GetResult<Prisma.$AccountSetupTokenPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AccountSetupTokens.
+     * @param {AccountSetupTokenDeleteManyArgs} args - Arguments to filter AccountSetupTokens to delete.
+     * @example
+     * // Delete a few AccountSetupTokens
+     * const { count } = await prisma.accountSetupToken.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AccountSetupTokenDeleteManyArgs>(args?: SelectSubset<T, AccountSetupTokenDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AccountSetupTokens.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountSetupTokenUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AccountSetupTokens
+     * const accountSetupToken = await prisma.accountSetupToken.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AccountSetupTokenUpdateManyArgs>(args: SelectSubset<T, AccountSetupTokenUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AccountSetupTokens and returns the data updated in the database.
+     * @param {AccountSetupTokenUpdateManyAndReturnArgs} args - Arguments to update many AccountSetupTokens.
+     * @example
+     * // Update many AccountSetupTokens
+     * const accountSetupToken = await prisma.accountSetupToken.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more AccountSetupTokens and only return the `id`
+     * const accountSetupTokenWithIdOnly = await prisma.accountSetupToken.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AccountSetupTokenUpdateManyAndReturnArgs>(args: SelectSubset<T, AccountSetupTokenUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountSetupTokenPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AccountSetupToken.
+     * @param {AccountSetupTokenUpsertArgs} args - Arguments to update or create a AccountSetupToken.
+     * @example
+     * // Update or create a AccountSetupToken
+     * const accountSetupToken = await prisma.accountSetupToken.upsert({
+     *   create: {
+     *     // ... data to create a AccountSetupToken
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AccountSetupToken we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AccountSetupTokenUpsertArgs>(args: SelectSubset<T, AccountSetupTokenUpsertArgs<ExtArgs>>): Prisma__AccountSetupTokenClient<$Result.GetResult<Prisma.$AccountSetupTokenPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AccountSetupTokens.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountSetupTokenCountArgs} args - Arguments to filter AccountSetupTokens to count.
+     * @example
+     * // Count the number of AccountSetupTokens
+     * const count = await prisma.accountSetupToken.count({
+     *   where: {
+     *     // ... the filter for the AccountSetupTokens we want to count
+     *   }
+     * })
+    **/
+    count<T extends AccountSetupTokenCountArgs>(
+      args?: Subset<T, AccountSetupTokenCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AccountSetupTokenCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AccountSetupToken.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountSetupTokenAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AccountSetupTokenAggregateArgs>(args: Subset<T, AccountSetupTokenAggregateArgs>): Prisma.PrismaPromise<GetAccountSetupTokenAggregateType<T>>
+
+    /**
+     * Group by AccountSetupToken.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountSetupTokenGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AccountSetupTokenGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AccountSetupTokenGroupByArgs['orderBy'] }
+        : { orderBy?: AccountSetupTokenGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AccountSetupTokenGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAccountSetupTokenGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AccountSetupToken model
+   */
+  readonly fields: AccountSetupTokenFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AccountSetupToken.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AccountSetupTokenClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AccountSetupToken model
+   */
+  interface AccountSetupTokenFieldRefs {
+    readonly id: FieldRef<"AccountSetupToken", 'String'>
+    readonly purpose: FieldRef<"AccountSetupToken", 'String'>
+    readonly subjectKind: FieldRef<"AccountSetupToken", 'String'>
+    readonly subjectId: FieldRef<"AccountSetupToken", 'String'>
+    readonly emailDomain: FieldRef<"AccountSetupToken", 'String'>
+    readonly tokenHash: FieldRef<"AccountSetupToken", 'String'>
+    readonly expiresAt: FieldRef<"AccountSetupToken", 'DateTime'>
+    readonly usedAt: FieldRef<"AccountSetupToken", 'DateTime'>
+    readonly revokedAt: FieldRef<"AccountSetupToken", 'DateTime'>
+    readonly attempts: FieldRef<"AccountSetupToken", 'Int'>
+    readonly createdBy: FieldRef<"AccountSetupToken", 'String'>
+    readonly createdAt: FieldRef<"AccountSetupToken", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AccountSetupToken findUnique
+   */
+  export type AccountSetupTokenFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountSetupToken
+     */
+    select?: AccountSetupTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AccountSetupToken
+     */
+    omit?: AccountSetupTokenOmit<ExtArgs> | null
+    /**
+     * Filter, which AccountSetupToken to fetch.
+     */
+    where: AccountSetupTokenWhereUniqueInput
+  }
+
+  /**
+   * AccountSetupToken findUniqueOrThrow
+   */
+  export type AccountSetupTokenFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountSetupToken
+     */
+    select?: AccountSetupTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AccountSetupToken
+     */
+    omit?: AccountSetupTokenOmit<ExtArgs> | null
+    /**
+     * Filter, which AccountSetupToken to fetch.
+     */
+    where: AccountSetupTokenWhereUniqueInput
+  }
+
+  /**
+   * AccountSetupToken findFirst
+   */
+  export type AccountSetupTokenFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountSetupToken
+     */
+    select?: AccountSetupTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AccountSetupToken
+     */
+    omit?: AccountSetupTokenOmit<ExtArgs> | null
+    /**
+     * Filter, which AccountSetupToken to fetch.
+     */
+    where?: AccountSetupTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AccountSetupTokens to fetch.
+     */
+    orderBy?: AccountSetupTokenOrderByWithRelationInput | AccountSetupTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AccountSetupTokens.
+     */
+    cursor?: AccountSetupTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AccountSetupTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AccountSetupTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AccountSetupTokens.
+     */
+    distinct?: AccountSetupTokenScalarFieldEnum | AccountSetupTokenScalarFieldEnum[]
+  }
+
+  /**
+   * AccountSetupToken findFirstOrThrow
+   */
+  export type AccountSetupTokenFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountSetupToken
+     */
+    select?: AccountSetupTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AccountSetupToken
+     */
+    omit?: AccountSetupTokenOmit<ExtArgs> | null
+    /**
+     * Filter, which AccountSetupToken to fetch.
+     */
+    where?: AccountSetupTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AccountSetupTokens to fetch.
+     */
+    orderBy?: AccountSetupTokenOrderByWithRelationInput | AccountSetupTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AccountSetupTokens.
+     */
+    cursor?: AccountSetupTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AccountSetupTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AccountSetupTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AccountSetupTokens.
+     */
+    distinct?: AccountSetupTokenScalarFieldEnum | AccountSetupTokenScalarFieldEnum[]
+  }
+
+  /**
+   * AccountSetupToken findMany
+   */
+  export type AccountSetupTokenFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountSetupToken
+     */
+    select?: AccountSetupTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AccountSetupToken
+     */
+    omit?: AccountSetupTokenOmit<ExtArgs> | null
+    /**
+     * Filter, which AccountSetupTokens to fetch.
+     */
+    where?: AccountSetupTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AccountSetupTokens to fetch.
+     */
+    orderBy?: AccountSetupTokenOrderByWithRelationInput | AccountSetupTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AccountSetupTokens.
+     */
+    cursor?: AccountSetupTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AccountSetupTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AccountSetupTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AccountSetupTokens.
+     */
+    distinct?: AccountSetupTokenScalarFieldEnum | AccountSetupTokenScalarFieldEnum[]
+  }
+
+  /**
+   * AccountSetupToken create
+   */
+  export type AccountSetupTokenCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountSetupToken
+     */
+    select?: AccountSetupTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AccountSetupToken
+     */
+    omit?: AccountSetupTokenOmit<ExtArgs> | null
+    /**
+     * The data needed to create a AccountSetupToken.
+     */
+    data: XOR<AccountSetupTokenCreateInput, AccountSetupTokenUncheckedCreateInput>
+  }
+
+  /**
+   * AccountSetupToken createMany
+   */
+  export type AccountSetupTokenCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AccountSetupTokens.
+     */
+    data: AccountSetupTokenCreateManyInput | AccountSetupTokenCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AccountSetupToken createManyAndReturn
+   */
+  export type AccountSetupTokenCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountSetupToken
+     */
+    select?: AccountSetupTokenSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AccountSetupToken
+     */
+    omit?: AccountSetupTokenOmit<ExtArgs> | null
+    /**
+     * The data used to create many AccountSetupTokens.
+     */
+    data: AccountSetupTokenCreateManyInput | AccountSetupTokenCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AccountSetupToken update
+   */
+  export type AccountSetupTokenUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountSetupToken
+     */
+    select?: AccountSetupTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AccountSetupToken
+     */
+    omit?: AccountSetupTokenOmit<ExtArgs> | null
+    /**
+     * The data needed to update a AccountSetupToken.
+     */
+    data: XOR<AccountSetupTokenUpdateInput, AccountSetupTokenUncheckedUpdateInput>
+    /**
+     * Choose, which AccountSetupToken to update.
+     */
+    where: AccountSetupTokenWhereUniqueInput
+  }
+
+  /**
+   * AccountSetupToken updateMany
+   */
+  export type AccountSetupTokenUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AccountSetupTokens.
+     */
+    data: XOR<AccountSetupTokenUpdateManyMutationInput, AccountSetupTokenUncheckedUpdateManyInput>
+    /**
+     * Filter which AccountSetupTokens to update
+     */
+    where?: AccountSetupTokenWhereInput
+    /**
+     * Limit how many AccountSetupTokens to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AccountSetupToken updateManyAndReturn
+   */
+  export type AccountSetupTokenUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountSetupToken
+     */
+    select?: AccountSetupTokenSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AccountSetupToken
+     */
+    omit?: AccountSetupTokenOmit<ExtArgs> | null
+    /**
+     * The data used to update AccountSetupTokens.
+     */
+    data: XOR<AccountSetupTokenUpdateManyMutationInput, AccountSetupTokenUncheckedUpdateManyInput>
+    /**
+     * Filter which AccountSetupTokens to update
+     */
+    where?: AccountSetupTokenWhereInput
+    /**
+     * Limit how many AccountSetupTokens to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AccountSetupToken upsert
+   */
+  export type AccountSetupTokenUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountSetupToken
+     */
+    select?: AccountSetupTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AccountSetupToken
+     */
+    omit?: AccountSetupTokenOmit<ExtArgs> | null
+    /**
+     * The filter to search for the AccountSetupToken to update in case it exists.
+     */
+    where: AccountSetupTokenWhereUniqueInput
+    /**
+     * In case the AccountSetupToken found by the `where` argument doesn't exist, create a new AccountSetupToken with this data.
+     */
+    create: XOR<AccountSetupTokenCreateInput, AccountSetupTokenUncheckedCreateInput>
+    /**
+     * In case the AccountSetupToken was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AccountSetupTokenUpdateInput, AccountSetupTokenUncheckedUpdateInput>
+  }
+
+  /**
+   * AccountSetupToken delete
+   */
+  export type AccountSetupTokenDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountSetupToken
+     */
+    select?: AccountSetupTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AccountSetupToken
+     */
+    omit?: AccountSetupTokenOmit<ExtArgs> | null
+    /**
+     * Filter which AccountSetupToken to delete.
+     */
+    where: AccountSetupTokenWhereUniqueInput
+  }
+
+  /**
+   * AccountSetupToken deleteMany
+   */
+  export type AccountSetupTokenDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AccountSetupTokens to delete
+     */
+    where?: AccountSetupTokenWhereInput
+    /**
+     * Limit how many AccountSetupTokens to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AccountSetupToken without action
+   */
+  export type AccountSetupTokenDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountSetupToken
+     */
+    select?: AccountSetupTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AccountSetupToken
+     */
+    omit?: AccountSetupTokenOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -244837,6 +246053,24 @@ export namespace Prisma {
   };
 
   export type MailEmergencyStopScalarFieldEnum = (typeof MailEmergencyStopScalarFieldEnum)[keyof typeof MailEmergencyStopScalarFieldEnum]
+
+
+  export const AccountSetupTokenScalarFieldEnum: {
+    id: 'id',
+    purpose: 'purpose',
+    subjectKind: 'subjectKind',
+    subjectId: 'subjectId',
+    emailDomain: 'emailDomain',
+    tokenHash: 'tokenHash',
+    expiresAt: 'expiresAt',
+    usedAt: 'usedAt',
+    revokedAt: 'revokedAt',
+    attempts: 'attempts',
+    createdBy: 'createdBy',
+    createdAt: 'createdAt'
+  };
+
+  export type AccountSetupTokenScalarFieldEnum = (typeof AccountSetupTokenScalarFieldEnum)[keyof typeof AccountSetupTokenScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -265049,6 +266283,95 @@ export namespace Prisma {
     activatedAt?: DateTimeWithAggregatesFilter<"MailEmergencyStop"> | Date | string
     releasedAt?: DateTimeNullableWithAggregatesFilter<"MailEmergencyStop"> | Date | string | null
     releasedBy?: StringNullableWithAggregatesFilter<"MailEmergencyStop"> | string | null
+  }
+
+  export type AccountSetupTokenWhereInput = {
+    AND?: AccountSetupTokenWhereInput | AccountSetupTokenWhereInput[]
+    OR?: AccountSetupTokenWhereInput[]
+    NOT?: AccountSetupTokenWhereInput | AccountSetupTokenWhereInput[]
+    id?: UuidFilter<"AccountSetupToken"> | string
+    purpose?: StringFilter<"AccountSetupToken"> | string
+    subjectKind?: StringFilter<"AccountSetupToken"> | string
+    subjectId?: StringFilter<"AccountSetupToken"> | string
+    emailDomain?: StringNullableFilter<"AccountSetupToken"> | string | null
+    tokenHash?: StringFilter<"AccountSetupToken"> | string
+    expiresAt?: DateTimeFilter<"AccountSetupToken"> | Date | string
+    usedAt?: DateTimeNullableFilter<"AccountSetupToken"> | Date | string | null
+    revokedAt?: DateTimeNullableFilter<"AccountSetupToken"> | Date | string | null
+    attempts?: IntFilter<"AccountSetupToken"> | number
+    createdBy?: StringNullableFilter<"AccountSetupToken"> | string | null
+    createdAt?: DateTimeFilter<"AccountSetupToken"> | Date | string
+  }
+
+  export type AccountSetupTokenOrderByWithRelationInput = {
+    id?: SortOrder
+    purpose?: SortOrder
+    subjectKind?: SortOrder
+    subjectId?: SortOrder
+    emailDomain?: SortOrderInput | SortOrder
+    tokenHash?: SortOrder
+    expiresAt?: SortOrder
+    usedAt?: SortOrderInput | SortOrder
+    revokedAt?: SortOrderInput | SortOrder
+    attempts?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type AccountSetupTokenWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    tokenHash?: string
+    AND?: AccountSetupTokenWhereInput | AccountSetupTokenWhereInput[]
+    OR?: AccountSetupTokenWhereInput[]
+    NOT?: AccountSetupTokenWhereInput | AccountSetupTokenWhereInput[]
+    purpose?: StringFilter<"AccountSetupToken"> | string
+    subjectKind?: StringFilter<"AccountSetupToken"> | string
+    subjectId?: StringFilter<"AccountSetupToken"> | string
+    emailDomain?: StringNullableFilter<"AccountSetupToken"> | string | null
+    expiresAt?: DateTimeFilter<"AccountSetupToken"> | Date | string
+    usedAt?: DateTimeNullableFilter<"AccountSetupToken"> | Date | string | null
+    revokedAt?: DateTimeNullableFilter<"AccountSetupToken"> | Date | string | null
+    attempts?: IntFilter<"AccountSetupToken"> | number
+    createdBy?: StringNullableFilter<"AccountSetupToken"> | string | null
+    createdAt?: DateTimeFilter<"AccountSetupToken"> | Date | string
+  }, "id" | "tokenHash">
+
+  export type AccountSetupTokenOrderByWithAggregationInput = {
+    id?: SortOrder
+    purpose?: SortOrder
+    subjectKind?: SortOrder
+    subjectId?: SortOrder
+    emailDomain?: SortOrderInput | SortOrder
+    tokenHash?: SortOrder
+    expiresAt?: SortOrder
+    usedAt?: SortOrderInput | SortOrder
+    revokedAt?: SortOrderInput | SortOrder
+    attempts?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: AccountSetupTokenCountOrderByAggregateInput
+    _avg?: AccountSetupTokenAvgOrderByAggregateInput
+    _max?: AccountSetupTokenMaxOrderByAggregateInput
+    _min?: AccountSetupTokenMinOrderByAggregateInput
+    _sum?: AccountSetupTokenSumOrderByAggregateInput
+  }
+
+  export type AccountSetupTokenScalarWhereWithAggregatesInput = {
+    AND?: AccountSetupTokenScalarWhereWithAggregatesInput | AccountSetupTokenScalarWhereWithAggregatesInput[]
+    OR?: AccountSetupTokenScalarWhereWithAggregatesInput[]
+    NOT?: AccountSetupTokenScalarWhereWithAggregatesInput | AccountSetupTokenScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"AccountSetupToken"> | string
+    purpose?: StringWithAggregatesFilter<"AccountSetupToken"> | string
+    subjectKind?: StringWithAggregatesFilter<"AccountSetupToken"> | string
+    subjectId?: StringWithAggregatesFilter<"AccountSetupToken"> | string
+    emailDomain?: StringNullableWithAggregatesFilter<"AccountSetupToken"> | string | null
+    tokenHash?: StringWithAggregatesFilter<"AccountSetupToken"> | string
+    expiresAt?: DateTimeWithAggregatesFilter<"AccountSetupToken"> | Date | string
+    usedAt?: DateTimeNullableWithAggregatesFilter<"AccountSetupToken"> | Date | string | null
+    revokedAt?: DateTimeNullableWithAggregatesFilter<"AccountSetupToken"> | Date | string | null
+    attempts?: IntWithAggregatesFilter<"AccountSetupToken"> | number
+    createdBy?: StringNullableWithAggregatesFilter<"AccountSetupToken"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"AccountSetupToken"> | Date | string
   }
 
   export type AdminUserCreateInput = {
@@ -285758,6 +287081,111 @@ export namespace Prisma {
     releasedBy?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type AccountSetupTokenCreateInput = {
+    id?: string
+    purpose: string
+    subjectKind: string
+    subjectId: string
+    emailDomain?: string | null
+    tokenHash: string
+    expiresAt: Date | string
+    usedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    attempts?: number
+    createdBy?: string | null
+    createdAt?: Date | string
+  }
+
+  export type AccountSetupTokenUncheckedCreateInput = {
+    id?: string
+    purpose: string
+    subjectKind: string
+    subjectId: string
+    emailDomain?: string | null
+    tokenHash: string
+    expiresAt: Date | string
+    usedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    attempts?: number
+    createdBy?: string | null
+    createdAt?: Date | string
+  }
+
+  export type AccountSetupTokenUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    subjectKind?: StringFieldUpdateOperationsInput | string
+    subjectId?: StringFieldUpdateOperationsInput | string
+    emailDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    attempts?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountSetupTokenUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    subjectKind?: StringFieldUpdateOperationsInput | string
+    subjectId?: StringFieldUpdateOperationsInput | string
+    emailDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    attempts?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountSetupTokenCreateManyInput = {
+    id?: string
+    purpose: string
+    subjectKind: string
+    subjectId: string
+    emailDomain?: string | null
+    tokenHash: string
+    expiresAt: Date | string
+    usedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    attempts?: number
+    createdBy?: string | null
+    createdAt?: Date | string
+  }
+
+  export type AccountSetupTokenUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    subjectKind?: StringFieldUpdateOperationsInput | string
+    subjectId?: StringFieldUpdateOperationsInput | string
+    emailDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    attempts?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountSetupTokenUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    subjectKind?: StringFieldUpdateOperationsInput | string
+    subjectId?: StringFieldUpdateOperationsInput | string
+    emailDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    attempts?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -300031,6 +301459,59 @@ export namespace Prisma {
     activatedAt?: SortOrder
     releasedAt?: SortOrder
     releasedBy?: SortOrder
+  }
+
+  export type AccountSetupTokenCountOrderByAggregateInput = {
+    id?: SortOrder
+    purpose?: SortOrder
+    subjectKind?: SortOrder
+    subjectId?: SortOrder
+    emailDomain?: SortOrder
+    tokenHash?: SortOrder
+    expiresAt?: SortOrder
+    usedAt?: SortOrder
+    revokedAt?: SortOrder
+    attempts?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type AccountSetupTokenAvgOrderByAggregateInput = {
+    attempts?: SortOrder
+  }
+
+  export type AccountSetupTokenMaxOrderByAggregateInput = {
+    id?: SortOrder
+    purpose?: SortOrder
+    subjectKind?: SortOrder
+    subjectId?: SortOrder
+    emailDomain?: SortOrder
+    tokenHash?: SortOrder
+    expiresAt?: SortOrder
+    usedAt?: SortOrder
+    revokedAt?: SortOrder
+    attempts?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type AccountSetupTokenMinOrderByAggregateInput = {
+    id?: SortOrder
+    purpose?: SortOrder
+    subjectKind?: SortOrder
+    subjectId?: SortOrder
+    emailDomain?: SortOrder
+    tokenHash?: SortOrder
+    expiresAt?: SortOrder
+    usedAt?: SortOrder
+    revokedAt?: SortOrder
+    attempts?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type AccountSetupTokenSumOrderByAggregateInput = {
+    attempts?: SortOrder
   }
 
   export type AdminSessionCreateNestedManyWithoutAdminUserInput = {

@@ -75,7 +75,9 @@ test("legacy transactional senders are unchanged and Mail never imports them", (
   // files change intentionally, update the hashes in the same reviewed PR.
   const pinned = {
     "src/shared/config/mailer.js": "12b0c1eaaa4618a2aa795e74d3bac216403d87d87b9ee9258fa2a2d4691c09d0",
-    "src/shared/utils/email.util.js": "9d5069a1b0197433663a5f7e98b8f0379150d7459997e3ee006b9d6f5deb0b68",
+    // Changed intentionally by the P0 fix: no temporary passwords in email
+    // (spec section 3); still the legacy transport, not imported by Mail.
+    "src/shared/utils/email.util.js": "7fd1faaee1043877b2be3d8f95955a835112a1f64eab12c26f4dba0ab5229783",
   };
   const root = path.join(__dirname, "..");
   for (const [file, hash] of Object.entries(pinned)) {

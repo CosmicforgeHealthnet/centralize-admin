@@ -284,10 +284,15 @@ export const accountsService = {
     return data.data;
   },
 
-  async resendInvite(id: string) {
-    await api.post(`${ACCOUNTS_BASE}/${id}/invite`);
+  // Sends a single-use setup link (never a password). PENDING_MIGRATION means
+  // the link table is not deployed yet and nothing was emailed.
+  async resendInvite(id: string): Promise<InviteDelivery> {
+    const { data } = await api.post<ApiEnvelope<{ inviteDelivery?: InviteDelivery }>>(`${ACCOUNTS_BASE}/${id}/invite`);
+    return data?.data?.inviteDelivery ?? "SENT";
   },
 };
+
+export type InviteDelivery = "SENT" | "PENDING_MIGRATION" | "EMAIL_FAILED";
 
 export const documentsService = {
   async getEmployees(params: ListDocumentEmployeesParams = {}) {

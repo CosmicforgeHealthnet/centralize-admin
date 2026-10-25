@@ -81,6 +81,7 @@ router.patch(
 router.get("/labs", controller.getLabVerifications);
 router.get("/labs/:id", controller.getLabVerificationById);
 router.patch("/labs/:id/approve", requireTier("ADMIN"), controller.approveLab);
+router.post("/labs/:id/resend-setup-link", requireTier("ADMIN"), controller.resendLabSetupLink);
 router.patch("/labs/:id/reject", requireTier("ADMIN"), controller.rejectLab);
 
 module.exports = router;

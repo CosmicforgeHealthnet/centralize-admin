@@ -230,7 +230,7 @@ function ResetPasswordCard() {
         {[
           "You must fill all the required fields.",
           'Clicking the button "Request Authorization" will send a message to the HR Admin',
-          "After Authorization is granted, you will receive a temporary password in your email.",
+          "After authorization is granted, you will receive a single-use link by email to choose a new password.",
           "Change password to reset password.",
         ].map((note) => (
           <p key={note} className="text-[12px] font-poppins text-primary flex items-start gap-1.5">

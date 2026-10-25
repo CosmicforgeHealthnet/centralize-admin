@@ -167,6 +167,11 @@
       "order": 33,
       "file": "20261030_mail_m10_rollout.sql",
       "sha256": "1bc07e19b8fe54837c0b2c5ff1199c7dc2841bfa4e5be37fdeb9f305ab7a1753"
+    },
+    {
+      "order": 34,
+      "file": "20261031_account_setup_tokens.sql",
+      "sha256": "364fa19c3b9bdd6844dcfe068a4f63e6952d8a6d631b354f0416317b9bf9a613"
     }
   ]
 }

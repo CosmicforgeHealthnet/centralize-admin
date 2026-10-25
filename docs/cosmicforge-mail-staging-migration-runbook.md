@@ -139,6 +139,14 @@ it refuses a file whose checksum differs from `manifest.json`. All files are add
 | 31 | `20261028_mail_m8_product_integration.sql` | `c526d300c48ed6e406b6cd4ea6532e32f738c81ebdd4fa1da68bcddb11abff94` |
 | 32 | `20261029_mail_m9_operations.sql` | `a3bf88806a0a74bc2d06ddce972fa56f6cf2c0c6580270e9d4bf91c402686447` |
 | 33 | `20261030_mail_m10_rollout.sql` | `1bc07e19b8fe54837c0b2c5ff1199c7dc2841bfa4e5be37fdeb9f305ab7a1753` |
+| 34 | `20261031_account_setup_tokens.sql` | `364fa19c3b9bdd6844dcfe068a4f63e6952d8a6d631b354f0416317b9bf9a613` |
+
+Migration 34 (account setup links, P0 security fix) is not Mail-specific: it
+replaces emailed temporary passwords for lab approval, HR invitations and
+HR-approved resets. Until it is applied, invitations are created without an
+email (`inviteDelivery: PENDING_MIGRATION`), lab approvals report
+`setupLink: PENDING_MIGRATION`, and HR reset approval answers 503; no password
+is ever emailed. Rollback: `docs/sql/account-setup-tokens-rollback.sql`.
 
 Pre-checks: `npm run db:replay:verify` (drift none) and `npm run mail:rollback:drill` on a disposable copy.
 Post-checks: every file present in the ledger; `npm run db:schema:assert`; Mail flags unchanged (all OFF).

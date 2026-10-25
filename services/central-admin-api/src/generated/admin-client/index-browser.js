@@ -2968,6 +2968,21 @@ exports.Prisma.MailEmergencyStopScalarFieldEnum = {
   releasedBy: 'releasedBy'
 };
 
+exports.Prisma.AccountSetupTokenScalarFieldEnum = {
+  id: 'id',
+  purpose: 'purpose',
+  subjectKind: 'subjectKind',
+  subjectId: 'subjectId',
+  emailDomain: 'emailDomain',
+  tokenHash: 'tokenHash',
+  expiresAt: 'expiresAt',
+  usedAt: 'usedAt',
+  revokedAt: 'revokedAt',
+  attempts: 'attempts',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -4349,7 +4364,8 @@ exports.Prisma.ModelName = {
   MailRolloutCohort: 'MailRolloutCohort',
   MailRolloutCohortMember: 'MailRolloutCohortMember',
   MailRolloutRule: 'MailRolloutRule',
-  MailEmergencyStop: 'MailEmergencyStop'
+  MailEmergencyStop: 'MailEmergencyStop',
+  AccountSetupToken: 'AccountSetupToken'
 };
 
 /**

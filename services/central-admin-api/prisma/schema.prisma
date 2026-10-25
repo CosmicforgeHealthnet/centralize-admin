@@ -5530,3 +5530,26 @@ model MailEmergencyStop {
   @@index([environment, releasedAt], map: "IDX_mail_emergency_stops_active")
   @@map("mail_emergency_stops")
 }
+
+// Single-use, expiring account setup / password links (replaces emailed
+// temporary passwords). Only the SHA-256 of the secret part is stored. The
+// subject is an Admin user or a HealthNet product user (lab admin); no
+// cross-database foreign key is created.
+model AccountSetupToken {
+  id          String    @id @default(uuid()) @db.Uuid
+  purpose     String    @db.VarChar(32)
+  subjectKind String    @map("subject_kind") @db.VarChar(32)
+  subjectId   String    @map("subject_id") @db.VarChar(64)
+  emailDomain String?   @map("email_domain") @db.VarChar(253)
+  tokenHash   String    @unique(map: "UQ_account_setup_tokens_hash") @map("token_hash") @db.Char(64)
+  expiresAt   DateTime  @map("expires_at") @db.Timestamptz(6)
+  usedAt      DateTime? @map("used_at") @db.Timestamptz(6)
+  revokedAt   DateTime? @map("revoked_at") @db.Timestamptz(6)
+  attempts    Int       @default(0)
+  createdBy   String?   @map("created_by") @db.VarChar(64)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([subjectKind, subjectId, purpose], map: "IDX_account_setup_tokens_subject")
+  @@index([expiresAt], map: "IDX_account_setup_tokens_expires")
+  @@map("account_setup_tokens")
+}

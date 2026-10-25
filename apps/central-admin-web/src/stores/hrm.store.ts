@@ -11,6 +11,7 @@ import {
   hiringService,
   payrollService,
   grantsService,
+  type InviteDelivery,
 } from "@/lib/hrm.service";
 import {
   AccountDetail,
@@ -249,7 +250,7 @@ interface HrmStore {
   updateAccount: (id: string, payload: UpdateAccountPayload) => Promise<void>;
   deleteAccount: (id: string) => Promise<void>;
   updateAccountStatus: (id: string, status: "ACTIVE" | "INACTIVE") => Promise<void>;
-  resendAccountInvite: (id: string) => Promise<void>;
+  resendAccountInvite: (id: string) => Promise<InviteDelivery>;
   clearAccountsSuccess: () => void;
 
   sectionGrants: SectionGrant[];
@@ -795,7 +796,7 @@ export const useHrmStore = create<HrmStore>((set, get) => ({
 
   resendAccountInvite: async (id) => {
     try {
-      await accountsService.resendInvite(id);
+      return await accountsService.resendInvite(id);
     } catch (err) {
       set({
         accountsError: extractErrorMessage(err, "Failed to resend invite"),

@@ -10,7 +10,7 @@ const {
   generateRefreshToken,
 } = require("../../shared/utils/jwt.util");
 const { createAuditLog } = require("../../shared/middlewares/audit.middleware");
-const { sendEmail } = require("../../shared/utils/email.util");
+const { sendAccountSetupEmail } = require("../../shared/utils/email.util");
 const ApiError = require("../../shared/utils/ApiError");
 const crypto = require("crypto");
 const notificationService = require("../notifications/notifications.service");
@@ -534,20 +534,21 @@ class AuthService {
       );
     }
 
-    const tempPassword = this._generateTempPassword();
-    const hashed = await hashPassword(tempPassword);
+    // Security (spec section 3, P0): no temporary password is generated or
+    // emailed. HR approval issues a single-use, expiring reset link; the
+    // current password stays until the user chooses a new one.
+    const { accountSetup } = require("../../shared/auth/account-setup");
+    if (!(await accountSetup.isReady())) {
+      throw new ApiError(503, "Password reset links are not available until the account setup migration is applied");
+    }
 
     await prisma.adminUser.update({
       where: { id: user.id },
       data: {
-        password: hashed,
-        mustChangePassword: true,
         failedLoginAttempts: 0,
-        status: user.status === "LOCKED" ? "ACTIVE" : user.status,
         lockedUntil: null,
         passwordResetToken: null,
         passwordResetExpires: null,
-        passwordChangedAt: new Date(),
       },
     });
 
@@ -559,33 +560,15 @@ class AuthService {
       await sessionService.revokeAllForUser(user.id, "PASSWORD_RESET_APPROVED", { actorId: approvedBy });
     }
 
-    await sendEmail({
-      to: user.email,
-      subject: "Your Temporary Password — Cosmicforge Admin",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">Password Reset Approved</h2>
-          <p>Hi ${user.name},</p>
-          <p>Your password reset request has been approved by HR. Here is your temporary password:</p>
-          <div style="background: #f4f4f4; padding: 16px; border-radius: 8px; margin: 24px 0;">
-            <p style="font-size: 24px; font-weight: bold; letter-spacing: 2px; margin: 0; text-align: center;">
-              ${tempPassword}
-            </p>
-          </div>
-          <p><strong>Important:</strong> You will be required to change this password immediately after logging in.</p>
-          <p>If you did not request this reset, please contact your administrator immediately.</p>
-          <br/>
-          <p style="color: #999; font-size: 12px;">Cosmicforge Centralized Admin</p>
-        </div>
-      `,
-    });
+    const link = await accountSetup.issue({ purpose: "ADMIN_PASSWORD_RESET", subjectId: user.id, email: user.email, createdBy: approvedBy });
+    await sendAccountSetupEmail({ to: user.email, name: user.name, purpose: "ADMIN_PASSWORD_RESET", setupUrl: link.url, expiresAt: link.expiresAt });
 
     await notificationService.createNotification({
       adminUserId: user.id,
       icon: "check",
       title: "Password Reset Approved",
       subtitle:
-        "Your password reset request has been approved. Check your email for your temporary password.",
+        "Your password reset request has been approved. Check your email for a secure link to choose a new password.",
     });
 
     await createAuditLog({
@@ -670,31 +653,6 @@ class AuthService {
     });
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // HELPER: generate temp password
-  // ─────────────────────────────────────────────────────────────
-  _generateTempPassword() {
-    const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const lower = "abcdefghijklmnopqrstuvwxyz";
-    const digits = "0123456789";
-    const special = "!@#$%";
-    const all = upper + lower + digits + special;
-
-    let password =
-      upper[Math.floor(Math.random() * upper.length)] +
-      lower[Math.floor(Math.random() * lower.length)] +
-      digits[Math.floor(Math.random() * digits.length)] +
-      special[Math.floor(Math.random() * special.length)];
-
-    for (let i = 0; i < 6; i++) {
-      password += all[Math.floor(Math.random() * all.length)];
-    }
-
-    return password
-      .split("")
-      .sort(() => Math.random() - 0.5)
-      .join("");
-  }
 }
 
 module.exports = new AuthService();

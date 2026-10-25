@@ -27,6 +27,10 @@ const { verifyMigrationManifest, MIGRATION_DIR } = require("../social-operations
 const ROOT = path.resolve(__dirname, "..", "..");
 const ROLLBACK_SQL = path.resolve(ROOT, "..", "..", "docs", "sql", "cosmicforge-mail-m7-m10-rollback.sql");
 const FIRST_ROLLED_BACK = "20261026_mail_step_up_session_binding.sql";
+// Rollbacks for migrations ordered after M10, newest first. They run before
+// the M7-M10 rollback (later migrations may depend on M7-M10 objects) and are
+// re-applied by the same roll-forward.
+const LATER_ROLLBACKS = ["account-setup-tokens-rollback.sql"].map((file) => path.resolve(ROOT, "..", "..", "docs", "sql", file));
 const REMOVED_TABLES = [
   "marketing_brand_settings", "marketing_broadcast_dispatches", "marketing_broadcast_recipients", "marketing_automations", "marketing_automation_versions",
   "marketing_automation_enrollments", "marketing_automation_step_runs", "marketing_trigger_events", "marketing_campaign_approved_contacts",
@@ -63,6 +67,8 @@ async function main() {
       await client.query(`INSERT INTO mail_emergency_stops (id, environment, scope, reason, activated_by, activated_at) VALUES (gen_random_uuid(), 'test', 'ALL', 'drill stop', 'drill', now())`);
       await client.query(`INSERT INTO mail_product_integrations (id, product, organization_id, service_name, created_by, updated_by, created_at, updated_at) VALUES (gen_random_uuid(), 'drill', $1, 'drill-service', 'drill', 'drill', now(), now())`, [org]);
       report.seeded = true;
+      for (const file of LATER_ROLLBACKS) await client.query(fs.readFileSync(file, "utf8"));
+      report.laterRollbacks = LATER_ROLLBACKS.map((file) => path.basename(file));
       await client.query(fs.readFileSync(ROLLBACK_SQL, "utf8"));
       const leftovers = [];
       for (const table of REMOVED_TABLES) if (await exists(client, table)) leftovers.push(table);

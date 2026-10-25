@@ -7,7 +7,6 @@ import { formatEnumLabel, AccountTier } from "@/types/hrm.types";
 import SectionGrantManager from "./SectionGrantManager";
 import PermissionChip from "./PermissionChip";
 import MailProvisioningCard from "./MailProvisioningCard";
-import { useRouter } from "next/navigation";
 
 const TIER_PERMISSIONS: Record<AccountTier, { heading: string; items: string[] }[]> = {
   SUPER: [
@@ -109,7 +108,6 @@ export default function ViewAccount({
   onBack: () => void;
   onEdit: () => void;
 }) {
-  const router = useRouter();
   const {
     selectedAccount,
     isLoadingAccount,
@@ -127,6 +125,7 @@ export default function ViewAccount({
 
   const [actionLoading, setActionLoading] = useState<"activate" | "deactivate" | "invite" | null>(null);
   const [showGrantManager, setShowGrantManager] = useState(false);
+  const [inviteNotice, setInviteNotice] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAccount(accountId);
@@ -149,9 +148,14 @@ export default function ViewAccount({
   const handleInvite = async () => {
     setActionLoading("invite");
     try {
-      await resendAccountInvite(accountId);
-      // ✅ Redirect to change password page with forced flag
-      router.push("/auth/change-password?forced=true");
+      const delivery = await resendAccountInvite(accountId);
+      setInviteNotice(
+        delivery === "SENT"
+          ? "A single-use setup link was emailed. It expires in 48 hours; earlier links no longer work."
+          : delivery === "PENDING_MIGRATION"
+            ? "Setup links are not available yet (database update pending). Nothing was emailed."
+            : "The setup link could not be emailed. Try again shortly.",
+      );
     } finally {
       setActionLoading(null);
     }
@@ -266,6 +270,12 @@ export default function ViewAccount({
                     {actionLoading === "invite" ? "Sending..." : "Reset Password"}
                   </button>
                 </div>
+              )}
+
+              {inviteNotice && (
+                <p role="status" className="font-poppins text-[11px] text-muted-foreground">
+                  {inviteNotice}
+                </p>
               )}
 
               {isActive && (

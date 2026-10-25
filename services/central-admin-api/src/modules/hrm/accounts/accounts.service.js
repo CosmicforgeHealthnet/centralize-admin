@@ -1,11 +1,9 @@
 const { prisma } = require("../../../shared/config/database");
 const ApiError = require("../../../shared/utils/ApiError");
 const logger = require("../../../shared/utils/logger");
-const {
-  generateTempPassword,
-  hashPassword,
-} = require("../../../shared/utils/password.util");
-const { sendEmail } = require("../../../shared/utils/email.util");
+const { hashPassword } = require("../../../shared/utils/password.util");
+const { sendAccountSetupEmail } = require("../../../shared/utils/email.util");
+const { unusablePassword } = require("../../../shared/auth/account-setup.service");
 const {
   createAuditLog,
 } = require("../../../shared/middlewares/audit.middleware");
@@ -141,21 +139,24 @@ function buildAccountWhere(query = {}) {
   return where;
 }
 
-async function sendInviteEmail({ user, tempPassword }) {
-  await sendEmail({
-    to: user.email,
-    subject: "Your HealthNet Admin account invitation",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px;">
-        <h2>HealthNet Admin Invitation</h2>
-        <p>Hello ${user.name},</p>
-        <p>Your admin account has been created.</p>
-        <p><strong>Email:</strong> ${user.email}</p>
-        <p><strong>Temporary password:</strong> ${tempPassword}</p>
-        <p>Please sign in and change your password immediately.</p>
-      </div>
-    `,
-  });
+// Security (spec section 3/5.4): invitations carry a signed-in-database,
+// single-use, expiring setup link. No password is ever emailed. Returns SENT,
+// PENDING_MIGRATION (link table not applied yet: nothing is sent) or
+// EMAIL_FAILED.
+async function sendInviteLink({ user, actor }) {
+  const { accountSetup } = require("../../../shared/auth/account-setup");
+  if (!(await accountSetup.isReady())) {
+    logger.warn(`HRM invite link for ${user.id} not sent: account setup migration not applied`);
+    return "PENDING_MIGRATION";
+  }
+  const link = await accountSetup.issue({ purpose: "ADMIN_INVITE", subjectId: user.id, email: user.email, createdBy: actor?.id || null });
+  try {
+    await sendAccountSetupEmail({ to: user.email, name: user.name, purpose: "ADMIN_INVITE", setupUrl: link.url, expiresAt: link.expiresAt });
+    return "SENT";
+  } catch (error) {
+    logger.warn(`HRM account invite email failed for ${user.id}: ${error.message}`);
+    return "EMAIL_FAILED";
+  }
 }
 
 class AccountsService {
@@ -243,8 +244,8 @@ class AccountsService {
       throw new ApiError(409, "A user with this email already exists");
     }
 
-    const tempPassword = generateTempPassword();
-    const password = await hashPassword(tempPassword);
+    // Unusable random password: the invitee chooses one through the link.
+    const password = await hashPassword(unusablePassword());
 
     const created = await prisma.adminUser.create({
       data: {
@@ -257,13 +258,7 @@ class AccountsService {
       select: ACCOUNT_SELECT,
     });
 
-    try {
-      await sendInviteEmail({ user: created, tempPassword });
-    } catch (error) {
-      logger.warn(
-        `HRM account invite email failed for ${created.email}: ${error.message}`,
-      );
-    }
+    const inviteDelivery = await sendInviteLink({ user: created, actor });
 
     await createAuditLog({
       adminUserId: actor.id,
@@ -274,11 +269,12 @@ class AccountsService {
         email: created.email,
         tier: created.tier,
         department: created.department,
+        inviteDelivery,
       },
       req,
     });
 
-    return mapAccountDetail(created);
+    return { ...mapAccountDetail(created), inviteDelivery };
   }
 
   async updateAccount({ id, data, actor, req }) {
@@ -437,35 +433,20 @@ class AccountsService {
     });
     if (!user) throw new ApiError(404, "Account not found");
 
-    const tempPassword = generateTempPassword();
-    const password = await hashPassword(tempPassword);
-
-    await prisma.adminUser.update({
-      where: { id: accountId },
-      data: {
-        password,
-        mustChangePassword: true,
-        failedLoginAttempts: 0,
-        lockedUntil: null,
-      },
-    });
-
-    try {
-      await sendInviteEmail({ user, tempPassword });
-    } catch (error) {
-      logger.warn(
-        `HRM invite resend email failed for ${user.email}: ${error.message}`,
-      );
-    }
+    // The previous link stops working; no password is generated or emailed.
+    // An account that already set its password keeps it until the new link
+    // is used.
+    const inviteDelivery = await sendInviteLink({ user, actor });
 
     await createAuditLog({
       adminUserId: actor.id,
       action: "PASSWORD_RESET_COMPLETED",
       targetId: accountId,
       targetType: "admin_user",
-      metadata: { reason: "hrm_invite_resend" },
+      metadata: { reason: "hrm_invite_resend", inviteDelivery },
       req,
     });
+    return { inviteDelivery };
   }
 
   // ─── Grant Methods ──────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
 const authService = require("./auth.service");
 const ApiResponse = require("../../shared/utils/ApiResponse");
 const asyncHandler = require("../../shared/utils/asyncHandler");
+const { createAuditLog } = require("../../shared/middlewares/audit.middleware");
 
 const {
   setSessionCookies,
@@ -275,7 +276,7 @@ const approvePasswordReset = asyncHandler(async (req, res) => {
   return ApiResponse.success(
     res,
     200,
-    "Password reset approved. Temporary password sent to user's email.",
+    "Password reset approved. A single-use reset link was sent to the user's email.",
   );
 });
 
@@ -303,7 +304,26 @@ const getPendingResetRequests = asyncHandler(async (req, res) => {
   );
 });
 
+// ── Account setup / reset links ──────────────────────────────────
+const inspectAccountSetup = asyncHandler(async (req, res) => {
+  const { accountSetup } = require("../../shared/auth/account-setup");
+  const data = await accountSetup.inspect(req.body?.token);
+  return ApiResponse.success(res, 200, "Setup link is valid", data);
+});
+
+const completeAccountSetup = asyncHandler(async (req, res) => {
+  const { accountSetup } = require("../../shared/auth/account-setup");
+  const { validatePasswordStrength, hashPassword } = require("../../shared/utils/password.util");
+  const result = await accountSetup.complete(req.body?.token, req.body?.password, { validatePassword: validatePasswordStrength, hashPassword });
+  if (result.subjectKind === "ADMIN_USER") {
+    await createAuditLog({ adminUserId: result.subjectId, action: "PASSWORD_RESET_COMPLETED", targetId: result.subjectId, targetType: "admin_user", metadata: { via: "account_setup_link", purpose: result.purpose }, req });
+  }
+  return ApiResponse.success(res, 200, "Password set. You can now sign in.", { purpose: result.purpose, loginUrl: result.loginUrl });
+});
+
 module.exports = {
+  inspectAccountSetup,
+  completeAccountSetup,
   login,
   loginMfa,
   googleCallback,

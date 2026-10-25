@@ -108,12 +108,12 @@ export default function ChangePasswordPage() {
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="currentPassword" className="text-priority">
-              Current (Temporary) Password
+              Current Password
             </Label>
             <Input
               id="currentPassword"
               type="password"
-              placeholder="Enter your temporary password"
+              placeholder="Enter your current password"
               className="h-[50px] bg-white border-[#0000001C]"
               value={currentPassword}
               onChange={(e) => {

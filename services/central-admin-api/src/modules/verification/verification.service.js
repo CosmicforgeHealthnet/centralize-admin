@@ -3,13 +3,14 @@ const { prisma } = require("../../shared/config/database");
 const { createAuditLog } = require("../../shared/middlewares/audit.middleware");
 const ApiError = require("../../shared/utils/ApiError");
 const {
-  generateTempPassword,
   hashPassword,
 } = require("../../shared/utils/password.util");
+const { unusablePassword } = require("../../shared/auth/account-setup.service");
 const { sendLabApprovalEmail } = require("../../shared/utils/email.util");
 const eventBus = require("../../shared/events/eventBus");
 const EVENTS = require("../../shared/events/events");
 const crypto = require("crypto");
+const logger = require("../../shared/utils/logger");
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -1541,13 +1542,14 @@ class VerificationService {
     });
 
     let labUserId = existingUser?.id ?? null;
-    let tempPassword = null;
     let passwordHash = null;
     let signupEventPayload = null;
 
+    // Security: the new account gets an unusable random password that is
+    // never stored or sent. The lab admin chooses a password through a
+    // single-use, expiring setup link (no password is ever emailed).
     if (!existingUser) {
-      tempPassword = generateTempPassword();
-      passwordHash = await hashPassword(tempPassword);
+      passwordHash = await hashPassword(unusablePassword());
     }
 
     // 4. Create user if needed, update lab, and audit in one main-DB
@@ -1617,13 +1619,10 @@ class VerificationService {
       eventBus.publish(EVENTS.USER_SIGNUP_COMPLETED, signupEventPayload);
     }
 
-    // 5. Send approval email only if new account was created
-    if (tempPassword) {
-      await sendLabApprovalEmail({
-        to: lab.adminEmail,
-        fullName: lab.adminFullName,
-        tempPassword,
-      });
+    // 5. New account: send a single-use setup link (never a password).
+    let setupLink = "NOT_REQUIRED";
+    if (!existingUser) {
+      setupLink = await this._sendLabSetupLink({ lab, labUserId, adminUserId });
     }
 
     // 6. Audit log in admin DB
@@ -1637,11 +1636,46 @@ class VerificationService {
         facilityName: lab.facilityName,
         adminUserCreated: !existingUser,
         labUserId,
+        setupLink,
       },
       req,
     });
 
-    return { id, status: "Approved" };
+    return { id, status: "Approved", setupLink };
+  }
+
+  // Issues a fresh setup link for a lab admin and emails it. Returns SENT,
+  // PENDING_MIGRATION (link table not yet applied: nothing is emailed) or
+  // EMAIL_FAILED (link issued; a resend issues a new one).
+  async _sendLabSetupLink({ lab, labUserId, adminUserId }) {
+    const { accountSetup } = require("../../shared/auth/account-setup");
+    if (!(await accountSetup.isReady())) return "PENDING_MIGRATION";
+    const link = await accountSetup.issue({ purpose: "LAB_ADMIN_SETUP", subjectId: labUserId, email: lab.adminEmail, createdBy: adminUserId });
+    try {
+      await sendLabApprovalEmail({ to: lab.adminEmail, fullName: lab.adminFullName, setupUrl: link.url, expiresAt: link.expiresAt });
+      return "SENT";
+    } catch (error) {
+      logger.warn(`[Verification] lab setup email failed for lab ${lab.id}: ${error.message}`);
+      return "EMAIL_FAILED";
+    }
+  }
+
+  /**
+   * POST /api/verification/labs/:id/resend-setup-link
+   * Re-issues the lab admin's setup link (older links stop working). Only for
+   * approved labs whose admin has not set a password yet.
+   */
+  async resendLabSetupLink({ id, adminUserId, req }) {
+    const lab = await mainPrisma.lab_facilities.findUnique({ where: { id } });
+    if (!lab) throw new ApiError(404, "Lab facility not found");
+    if (!["approved", "active"].includes(lab.status) || !lab.adminUserId) throw new ApiError(400, "Lab is not approved");
+    const user = await mainPrisma.users.findUnique({ where: { id: lab.adminUserId }, select: { id: true, mustChangePassword: true } });
+    if (!user || !user.mustChangePassword) throw new ApiError(400, "The lab administrator has already set a password");
+    const { accountSetup } = require("../../shared/auth/account-setup");
+    if (!(await accountSetup.isReady())) throw new ApiError(503, "Account setup links are not available until the account setup migration is applied");
+    const setupLink = await this._sendLabSetupLink({ lab, labUserId: user.id, adminUserId });
+    await createAuditLog({ adminUserId, action: "USER_UPDATED", targetId: id, targetType: "lab_facility", metadata: { action: "setup_link_resent", setupLink }, req });
+    return { id, setupLink };
   }
   /**
    * PATCH /api/verification/labs/:id/reject

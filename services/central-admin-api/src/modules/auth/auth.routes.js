@@ -41,6 +41,10 @@ const extractRefreshTokenFromCookie = (req, res, next) => {
 };
 
 // ── Public routes ────────────────────────────────────────────────
+// Single-use setup / reset links (no emailed passwords). The link secret is
+// sent in the JSON body, never in a URL.
+router.post("/account-setup/inspect", authLimiter, controller.inspectAccountSetup);
+router.post("/account-setup/complete", authLimiter, controller.completeAccountSetup);
 router.post("/login", authLimiter, validate(loginSchema), controller.login);
 router.post("/login/mfa", authLimiter, requireAuthSchema, validate(mfaLoginSchema), controller.loginMfa);
 router.post(
