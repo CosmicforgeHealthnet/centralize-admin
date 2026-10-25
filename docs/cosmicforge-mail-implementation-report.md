@@ -270,7 +270,7 @@ been applied to any real database.
 | Verified staging test domain | **Not provided** |
 | DNS / receiving route confirmation | **Not done** (out of scope; the app makes no DNS changes) |
 | Staging Admin DB migration approval | **Pending**; runbook ready, nothing applied |
-| Frontend automated E2E / accessibility | **Missing** as CI suites. Manual Playwright smoke run only, no axe audit |
+| Frontend automated E2E / accessibility | E2E **added** (section 10.6, runs in CI); accessibility audit still missing (B8) |
 | M6 gaps | No dispatch (M7 by design), no double-opt-in confirmation email, no retention sweeper, tickets page does not read `?ref=` |
 
 ## 10. Final pre-merge hardening (release readiness)
@@ -369,7 +369,7 @@ was not queried; no credentials were used.
 
 ### 10.5 Vercel `centralize-admin` failure (`NEXT_NO_VERSION`)
 
-Diagnosis, with no settings changed:
+Diagnosis, with no settings changed. On this PR the `centralize-admin-staging` Vercel project, with Root Directory `apps/central-admin-web`, builds the same commit and is **Ready**; only `centralize-admin`, with no root directory, fails:
 
 - The production Vercel project builds the repository root.
 - The root `package.json` is a multi-service workspace manifest and has no `next` dependency;
@@ -389,7 +389,24 @@ Do not add a fake root `next` dependency or root Next.js files.
 
 ### 10.6 Frontend automated regression tests
 
-_Playwright suite (mocked API) lands in the follow-up commit on this branch._
+`apps/central-admin-web/e2e` (Playwright 1.63.0, `npm run test:e2e`, CI job "Mail E2E" in
+`frontend-ci.yml`). The API is fully mocked with `page.route`; every off-origin request is aborted, so
+no backend, Resend or external host is contacted. Projects: desktop Chromium 1440x900 and mobile
+390x844.
+
+| Spec | Covers |
+| --- | --- |
+| `nav-permissions` | Mail nav shown only from server entitlements (hidden when disabled, no mailbox, or 503); SUPER without memberships gets "No mailbox assigned" and no thread requests |
+| `mailbox-isolation` | only entitled mailboxes listed; foreign mailbox / 403 / 404 thread show denial states with no message frame; SUPER deep link makes zero content requests |
+| `compose` | From offers only server identities; 403 `MAIL_SENDER_NOT_AUTHORIZED` shown as error; autosave sends revision + `senderAddressId` only; 409 conflict UI disables Send and "Load latest" recovers; 202 shows "Queued", never "Delivered" |
+| `safe-html` | sandbox without `allow-scripts`/`allow-same-origin`, CSP present, script/onerror/`javascript:` payloads inert, remote images blocked until "Show images" |
+| `support-queue` | shared queue with assignment/status/notes; assignment request body; revoked member gets access-denied |
+| `marketing-approval` | author sees no approve controls; self-review blocked; separate reviewer needs a reject reason and 2FA step-up before approve |
+| `mobile` | inbox, folder drawer, thread and back navigation at 390px with no horizontal page scroll |
+
+Result (local, `CI=1`): 34 passed, 6 skipped (desktop-only nav tests on mobile and the mobile-only
+spec on desktop); `--repeat-each=3`: 102 passed, 0 flaky. Not covered in the browser: the
+break-glass request UI and axe accessibility (blocker B8).
 
 ### 10.7 Production release blockers (prioritized)
 
