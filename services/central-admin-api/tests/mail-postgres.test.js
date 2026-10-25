@@ -44,6 +44,7 @@ const USERS = {
   grace: { tier: "EXECUTIVE", name: "Grace Approver", twoFactor: true },
   dave: { tier: "EMPLOYEE", name: "Dave Marketer", twoFactor: true },
   erin: { tier: "EMPLOYEE", name: "Erin Reviewer", twoFactor: true },
+  hrManager: { tier: "ADMIN", name: "Hana HR" },
 };
 
 function uid(index) {
@@ -73,6 +74,7 @@ async function seedUsers(client) {
   await grant(ids.mailAdmin, "mail", "admin");
   await grant(ids.frank, "mail", "break-glass-request");
   await grant(ids.grace, "mail", "break-glass-approve");
+  await grant(ids.hrManager, "hrm", "accounts");
   return ids;
 }
 
@@ -928,6 +930,79 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       assert.equal(await providerCalls(control.messageId), 1);
     });
 
+    await t.test("Closure: EXECUTIVE tier has no implicit private-mail access; restricted-health brands never reach the provider; redacted operations views", async () => {
+      // Spec §19.2: negative API cases for every tier (EMPLOYEE/ADMIN/SUPER covered above).
+      assert.deepEqual((await call("grace", "GET", "/me/mailboxes")).body.data, []);
+      assert.equal((await call("grace", "GET", `/mailboxes/${state.aliceBox}/threads`)).status, 404);
+      assert.equal((await call("grace", "GET", `/mailboxes/${state.aliceBox}`)).status, 404);
+
+      // Spec §19.7: a HealthNet (restricted-health) brand cannot send through Resend.
+      const mailAdminUser = await client.adminUser.findUnique({ where: { id: ids.mailAdmin } });
+      const alice = await client.adminUser.findUnique({ where: { id: ids.alice } });
+      const wide = harness.variant({ MAIL_DOMAIN_ALLOWLIST: "cosmicforge.example,healthnet-clinic.example" });
+      const org = await wide.services.admin.createOrganization(mailAdminUser, { slug: "healthnet-clinic", name: "HealthNet Clinic" }, {});
+      const domain = await wide.services.admin.createDomain(mailAdminUser, { organizationId: org.id, domain: "healthnet-clinic.example", providerDomainId: "dom_hn" }, {});
+      harness.adapter.state.domains.set("dom_hn", { status: "VERIFIED", sendingStatus: "VERIFIED", receivingStatus: "VERIFIED", records: [] });
+      await wide.services.admin.verifyDomain(mailAdminUser, domain.id, {});
+      const box = await wide.services.admin.createMailbox(mailAdminUser, { organizationId: org.id, type: "PERSONAL", ownerAdminUserId: ids.alice, address: { domainId: domain.id, localPart: "alice" } }, {});
+      const draft = await wide.services.compose.createDraft(alice, box.id, { to: ["patient@external.example"], subject: "Results", text: "x" });
+      await assert.rejects(wide.services.compose.sendDraft(alice, draft.id, { revision: draft.revision }), (error) => error.code === "MAIL_SENDER_NOT_AUTHORIZED" && error.errors?.[0]?.reason === "SENDER_ORGANIZATION_RESTRICTED_HEALTH");
+      assert.equal(await client.mailMessage.count({ where: { mailboxId: box.id } }), 0, "nothing queued");
+      const approved = harness.variant({ MAIL_DOMAIN_ALLOWLIST: "cosmicforge.example,healthnet-clinic.example", MAIL_RESTRICTED_HEALTH_PROVIDER_APPROVED: "true" });
+      assert.equal((await approved.services.compose.sendDraft(alice, draft.id, { revision: draft.revision })).status, "QUEUED", "only an explicit, approval-backed override lifts the block");
+      // The queued message is still re-checked at dispatch by a worker without the override.
+      await wide.createWorker().drain();
+      const blocked = await client.mailMessage.findFirst({ where: { mailboxId: box.id }, include: { recipients: true } });
+      assert.equal(blocked.status, "FAILED");
+      assert.equal(blocked.recipients[0].lastEventDetail, "SENDER_ORGANIZATION_RESTRICTED_HEALTH");
+
+      // Spec §5.8/§9: operations views are admin-only and redacted.
+      for (const path of ["/admin/audit-events", "/admin/webhook-events", "/admin/delivery-events", "/admin/jobs?status=DEAD_LETTER"]) {
+        assert.equal((await call("alice", "GET", path)).status, 403, path);
+        const response = await call("mailAdmin", "GET", path);
+        assert.equal(response.status, 200, `${path} ${response.text}`);
+        assert.equal(/"payload"|"html"|"text"|encrypted/i.test(response.text), false, `${path} exposes no content`);
+      }
+      for (const path of ["/admin/jobs?status=RUNNING", "/admin/jobs?queue=NOPE", "/admin/webhook-events?status=x", "/admin/delivery-events?eventType=x"]) {
+        const bad = await call("mailAdmin", "GET", path);
+        assert.equal(bad.status, 400, `${path} is a validation error, not a 500`);
+      }
+      // Provider events are settled with their jobs (backlog, lag, retention).
+      await harness.worker.drain();
+      assert.equal(await client.mailWebhookEvent.count({ where: { status: "RECEIVED", jobs: { none: { status: { in: ["PENDING", "LEASED", "RETRY_SCHEDULED", "RECONCILING"] } } } } }), 0, "no settled job leaves its event RECEIVED");
+      const webhooks = (await call("mailAdmin", "GET", "/admin/webhook-events")).body.data;
+      assert.ok(webhooks.length > 0 && webhooks.every((row) => !("payload" in row) && "lagSeconds" in row));
+      assert.ok(webhooks.some((row) => row.status === "PROCESSED" && typeof row.lagSeconds === "number"), "processing lag is reported");
+      const deliveries = (await call("mailAdmin", "GET", "/admin/delivery-events")).body.data;
+      assert.ok(deliveries.length > 0 && deliveries.every((row) => !("recipient" in row) && !String(row.recipientDomain || "").includes("@")));
+      const audits = (await call("mailAdmin", "GET", `/admin/audit-events?targetId=${blocked.id}`)).body.data;
+      assert.ok(audits.some((row) => row.action === "MAIL_SEND_BLOCKED_AT_DISPATCH"));
+
+      // Spec §15/§24: HR onboarding raises a request for the employee; IT approves.
+      const hrRequest = await call("hrManager", "POST", "/provisioning/requests", { type: "PERSONAL_MAILBOX", requestedAddress: "bob.mensah@cosmicforge.example", subjectAdminUserId: ids.bob, justification: "New starter" });
+      assert.equal(hrRequest.status, 201, hrRequest.text);
+      assert.equal(hrRequest.body.data.subjectAdminUserId, ids.bob);
+      assert.equal(hrRequest.body.data.status, "PENDING");
+      const selfOnly = await call("alice", "POST", "/provisioning/requests", { type: "PERSONAL_MAILBOX", requestedAddress: "bob.other@cosmicforge.example", subjectAdminUserId: ids.bob });
+      assert.equal(selfOnly.body.data.subjectAdminUserId, ids.alice, "an ordinary employee cannot raise a request for someone else");
+      assert.equal((await call("hrManager", "POST", "/provisioning/requests", { type: "PERSONAL_MAILBOX", requestedAddress: "ghost@cosmicforge.example", subjectAdminUserId: ids.mallory })).status, 201, "pending starters can be provisioned ahead of activation");
+      assert.equal((await call("hrManager", "POST", "/provisioning/requests", { type: "PERSONAL_MAILBOX", requestedAddress: "nobody@cosmicforge.example", subjectAdminUserId: "c0000000-0000-4000-8000-999999999999" })).status, 400);
+      assert.equal((await call("hrManager", "POST", `/provisioning/requests/${hrRequest.body.data.id}/approve`, {})).status, 403, "HR cannot approve; Mail administration does");
+      assert.equal((await call("hrManager", "GET", "/admin/mailboxes")).status, 403, "HR authority grants no Mail administration");
+      assert.ok((await call("hrManager", "GET", "/provisioning/requests")).body.data.every((row) => row.requestedByAdminUserId === ids.hrManager), "HR sees only the requests it raised");
+
+      // Active sender grants are listed for administrators only.
+      const granted = await call("mailAdmin", "POST", "/admin/sender-grants", { mailboxId: state.supportBox, addressId: state.addr.support.id, adminUserId: ids.carol });
+      assert.equal(granted.status, 201, granted.text);
+      assert.equal((await call("alice", "GET", "/admin/sender-grants")).status, 403);
+      let grants = await call("mailAdmin", "GET", `/admin/sender-grants?mailboxId=${state.supportBox}`);
+      assert.equal(grants.status, 200, grants.text);
+      assert.deepEqual(grants.body.data.map((row) => [row.mailbox.id, row.address.address, row.member.id]), [[state.supportBox, "support@cosmicforge.example", ids.carol]]);
+      assert.equal((await call("mailAdmin", "DELETE", `/admin/sender-grants/${granted.body.data.id}`)).status, 200);
+      grants = await call("mailAdmin", "GET", `/admin/sender-grants?mailboxId=${state.supportBox}`);
+      assert.deepEqual(grants.body.data, [], "revoked grants are not listed as active");
+    });
+
     await t.test("Hardening: unknown provider outcomes are never presented as delivered", async () => {
       const draft = await call("alice", "POST", `/mailboxes/${state.aliceBox}/drafts`, { to: ["unknown-outcome@partner.example"], subject: "Unknown outcome", text: "x" });
       const sent = (await call("alice", "POST", `/drafts/${draft.body.data.id}/send`, { revision: 1 })).body.data;
@@ -1158,6 +1233,14 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       preflight = await call("dave", "POST", `${base}/campaigns/${campaign.body.data.id}/preflight`);
       assert.equal(preflight.body.data.ok, true, JSON.stringify(preflight.body.data.checks));
       assert.equal(preflight.body.data.eligibleCount, 2);
+      for (const id of ["links_safe", "brand_provider_allowed"]) assert.equal(preflight.body.data.checks.find((check) => check.id === id)?.ok, true, id);
+      // Spec §13.2 step 4: a phishing-shaped link fails preflight and blocks submission.
+      const phishVersion = await call("dave", "POST", `${base}/templates/${template.body.data.id}/versions`, { subject: "Verify", blocks: [{ type: "button", label: "Verify account", url: "https://bit.ly/verify-now" }] });
+      const phish = await call("dave", "POST", `${base}/campaigns`, { name: "Phish", topic: "newsletter", templateVersionId: phishVersion.body.data.id, audienceId: state.audienceId, senderAddressId: state.addr.news.id, replyTo: "support@cosmicforge.example" });
+      const phishPreflight = await call("dave", "POST", `${base}/campaigns/${phish.body.data.id}/preflight`);
+      assert.equal(phishPreflight.body.data.ok, false);
+      assert.equal(phishPreflight.body.data.checks.find((check) => check.id === "links_safe").ok, false);
+      assert.equal((await call("dave", "POST", `${base}/campaigns/${phish.body.data.id}/submit`, { revision: 1 })).body.code, "MAIL_PREFLIGHT_FAILED");
       const submitted = await call("dave", "POST", `${base}/campaigns/${campaign.body.data.id}/submit`, { revision: 2 });
       assert.equal(submitted.body.data.status, "READY_FOR_REVIEW");
       assert.equal((await call("dave", "POST", `${base}/campaigns/${campaign.body.data.id}/approve`, { revision: 2 })).status, 403, "authors cannot approve");

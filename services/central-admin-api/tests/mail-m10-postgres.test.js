@@ -76,6 +76,24 @@ test("CosmicForge Mail M10 rollout controls on real PostgreSQL", { timeout: 3000
       assert.equal((await call("dave", "GET", "/admin/rollout")).status, 403, "mail admins only");
     });
 
+    await t.test("closure: campaign test sends obey rollout enforcement", async () => {
+      const app2 = harness.build({ MAIL_MARKETING_TEST_SENDS_ENABLED: "true" });
+      const server2 = await listen(harness.mountApp(app2));
+      try {
+        const call2 = caller(server2.base, ids);
+        const mbase = `/marketing/${cf.organization.id}`;
+        const template = await call2("dave", "POST", `${mbase}/templates`, { name: "Rollout test-send" });
+        const version = await call2("dave", "POST", `${mbase}/templates/${template.body.data.id}/versions`, { subject: "Hi", blocks: [{ type: "text", text: "Hello" }] });
+        const draft = await call2("dave", "POST", `${mbase}/campaigns`, { name: "Rollout test-send", topic: "newsletter", templateVersionId: version.body.data.id, senderAddressId: cf.sender.id });
+        assert.equal(draft.status, 201, draft.text);
+        const refused = await call2("dave", "POST", `${mbase}/campaigns/${draft.body.data.id}/test-send`, {});
+        assert.equal(refused.status, 403, refused.text);
+        assert.match(refused.body.code, /^MAIL_ROLLOUT_/, "no MARKETING_BROADCAST rule, no test send");
+      } finally {
+        await closeServer(server2.server);
+      }
+    });
+
     await t.test("onboarding: cohort + step-up-gated ALLOW rule enables only cohort members", async () => {
       const cohort = await call("ops", "POST", "/admin/rollout/cohorts", { key: "pilot-wave-1", name: "Pilot wave 1" });
       assert.equal(cohort.status, 201, cohort.text);

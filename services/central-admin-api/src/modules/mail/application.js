@@ -31,6 +31,7 @@ const { createBroadcastProcessor } = require("./marketing/broadcast.processor");
 const { createAutomationService } = require("./marketing/automation/automation.service");
 const { createAutomationProcessor } = require("./marketing/automation/automation.processor");
 const { createConfirmationService } = require("./marketing/confirmation.service");
+const { createTestSendService } = require("./marketing/test-send.service");
 const { createMarketingEventsProcessor } = require("./marketing/marketing-events.processor");
 const { createPublicPreferencesService } = require("./marketing/public-preferences.service");
 const { createIntegrationService } = require("./integrations/integration.service");
@@ -41,6 +42,9 @@ const { createRetentionProcessor } = require("./ops/retention.processor");
 const { createOpsMonitor } = require("./ops/ops-monitor.service");
 const { createRolloutService } = require("./ops/rollout.service");
 const { createReadiness } = require("./ops/readiness");
+const { createRuntimeMetrics } = require("./ops/runtime-metrics");
+const { createInboundReconciler } = require("./pipelines/inbound-reconciler");
+const { createMailSchemaReadiness } = require("./schema-readiness");
 
 async function unwrapKeyring({ config, encryption, logger, kmsClient }) {
   const { resolveMailKeyring, createAwsKmsClient } = require("./security/kms-keyring");
@@ -69,12 +73,14 @@ async function unwrapKeyring({ config, encryption, logger, kmsClient }) {
 
 function createMailApplication({ client, env = process.env, config = loadMailConfig(env), adapter, storageBackend, scanner, encryption, kmsClient, mfa, authSchema, marketingAdapter, marketingAdapters, logger = console, clock = () => new Date() } = {}) {
   if (!client) client = require("../../shared/config/database").prisma;
+  const schema = createMailSchemaReadiness({ client, logger });
   const useKms = !encryption && config.kms?.provider === "aws-kms";
   const resolvedEncryption = encryption || createMailEncryption(useKms ? { deferred: true } : config.encryption);
   // KMS-wrapped data keys are unwrapped once, asynchronously. Until then (or if
   // it fails) the keyring is unavailable and every content operation fails closed.
   const keyringReady = useKms ? unwrapKeyring({ config, encryption: resolvedEncryption, logger, kmsClient }) : Promise.resolve();
-  const resolvedAdapter = adapter || createProviderAdapter({ config });
+  const metrics = createRuntimeMetrics();
+  const resolvedAdapter = metrics.instrumentProvider(adapter || createProviderAdapter({ config }), "transactional");
   const storage = createMailStorage({ config, encryption: resolvedEncryption, backend: storageBackend, logger });
   const resolvedScanner = createAttachmentScanner({ config, scanner, logger });
   const audit = createMailAudit({ client });
@@ -95,9 +101,11 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const admin = createMailAdminService({ client, config, adapter: resolvedAdapter, audit, notifications, clock });
   const support = createSupportService({ client, mailboxService: mailbox, audit, notifications, encryption: resolvedEncryption, clock });
   // M7: per-brand marketing provider accounts, broadcasts and automation.
-  const marketingProviders = createMarketingProviderResolver({ config, env, adapter: marketingAdapter, adapters: marketingAdapters });
+  const resolveMarketingProvider = createMarketingProviderResolver({ config, env, adapter: marketingAdapter, adapters: marketingAdapters });
+  const marketingProviders = (organization) => metrics.instrumentProvider(resolveMarketingProvider(organization), "marketing");
   const confirmation = createConfirmationService({ client, config, audit, jobs, encryption: resolvedEncryption, marketingProviders, runtime, usage, clock });
-  const marketing = createMarketingService({ client, config, audit, stepUp, clock, hooks: { onConfirmationRequired: confirmation.onConfirmationRequired } });
+  const testSends = createTestSendService({ client, config, audit, jobs, marketingProviders, runtime, usage, clock });
+  const marketing = createMarketingService({ client, config, audit, stepUp, clock, hooks: { onConfirmationRequired: confirmation.onConfirmationRequired, quotaCheck: (organizationId, count) => usage.check(organizationId, "MARKETING_BROADCAST", count) } });
   const broadcasts = createBroadcastService({ client, config, audit, jobs, stepUp, env, clock });
   const automations = createAutomationService({ client, config, audit, stepUp, clock });
   const publicPreferences = createPublicPreferencesService({ client, config, audit, marketing, clock });
@@ -114,8 +122,9 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const retention = createRetentionService({ client, config, audit, jobs, stepUp, clock });
   const retentionProcessor = createRetentionProcessor({ client, config, audit, storage, clock, logger });
   // `health` is a hoisted function declaration below.
-  const ops = createOpsMonitor({ client, config, notifications, health: () => health(), runtime, clock, logger });
+  const ops = createOpsMonitor({ client, config, notifications, health: () => health(), runtime, metrics, clock, logger });
   const readiness = createReadiness({ client, config, ops, health: () => health() });
+  const inboundReconciler = createInboundReconciler({ client, config, adapter: resolvedAdapter, jobs, audit, clock });
 
   function createWorker(options = {}) {
     return createMailWorker({
@@ -133,6 +142,8 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
         MARKETING_CONFIRMATION_EMAIL: confirmation.process,
         RETENTION_RUN: retentionProcessor.processRun,
         OPS_EVALUATE: ops.processEvaluate,
+        RECONCILE_INBOUND: inboundReconciler.process,
+        MARKETING_TEST_SEND: testSends.process,
       },
       onDeadLetter: { SEND_MESSAGE: outbound.onDeadLetter, BROADCAST_DISPATCH: broadcastProcessor.onDeadLetter, BROADCAST_RECONCILE: broadcastProcessor.onDeadLetter, AUTOMATION_STEP: automationProcessor.onDeadLetter, RETENTION_RUN: retentionProcessor.onDeadLetter },
       // A MARKETING worker schedules one automation tick per minute bucket;
@@ -146,12 +157,18 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
           const bucket = Math.floor(clock().getTime() / 60000);
           await once({ queue: "MARKETING", kind: "AUTOMATION_TICK", idempotencyKey: `automation-tick:${bucket}`, maxAttempts: 2 });
         }
+        // Inbound reconciliation (§10.8): one run per interval bucket.
+        if (queues.includes("INBOUND") && config.receivingEnabled && config.reconciliation.enabled) {
+          const bucket = Math.floor(clock().getTime() / (config.reconciliation.inboundIntervalSeconds * 1000));
+          await once({ queue: "INBOUND", kind: "RECONCILE_INBOUND", idempotencyKey: `inbound-reconcile:${bucket}`, maxAttempts: 3 });
+        }
         // M9: one ops evaluation per interval bucket across all EVENTS workers.
         if (queues.includes("EVENTS") && config.ops.alertsEnabled) {
           const bucket = Math.floor(clock().getTime() / (config.ops.evaluateIntervalSeconds * 1000));
           await once({ queue: "EVENTS", kind: "OPS_EVALUATE", idempotencyKey: `ops-evaluate:${bucket}`, maxAttempts: 2 });
         }
       },
+      schemaReady: schema.isReady,
       ...options,
     });
   }
@@ -183,19 +200,37 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
     audit,
     store,
     jobs,
-    services: { mailbox, compose, admin, support, marketing, stepUp, breakGlass, attachmentReview, broadcasts, automations, publicPreferences, confirmation, integrations, usage, retention, ops, rollout, readiness },
+    services: { mailbox, compose, admin, support, marketing, stepUp, breakGlass, attachmentReview, broadcasts, automations, publicPreferences, confirmation, testSends, integrations, usage, retention, ops, rollout, readiness },
     runtime,
-    processors: { inbound, outbound, deliveryEvents, marketingEvents, broadcasts: broadcastProcessor, automations: automationProcessor, retention: retentionProcessor },
+    metrics,
+    processors: { inbound, outbound, deliveryEvents, marketingEvents, broadcasts: broadcastProcessor, automations: automationProcessor, retention: retentionProcessor, inboundReconciler },
     marketingProviders,
-    webhookHandler: createResendWebhookHandler({ client, config, jobs, audit, logger, clock: () => clock().getTime(), env }),
-    brandWebhookHandler: createResendWebhookHandler({ client, config, jobs, audit, logger, clock: () => clock().getTime(), env, brandMode: true }),
+    webhookHandler: createResendWebhookHandler({ client, config, jobs, audit, logger, clock: () => clock().getTime(), env, schemaReady: schema.isReady }),
+    brandWebhookHandler: createResendWebhookHandler({ client, config, jobs, audit, logger, clock: () => clock().getTime(), env, brandMode: true, schemaReady: schema.isReady }),
     // POST /api/mail/v1/integrations/v1/events (raw body, service HMAC).
+    // Not acknowledged while the schema is missing: the product retries.
     integrationHandler: async (req, res) => {
+      if (config.enabled && config.integrations.enabled && !(await schema.isReady())) {
+        return res.status(503).json({ success: false, code: "MAIL_SCHEMA_NOT_READY", retryable: true, message: "Mail is not ready" });
+      }
       const result = await integrations.ingest(req);
       res.status(result.status).json(result.body);
     },
     createWorker,
     health,
+    schema,
+    // Public readiness (booleans only; never secrets or migration names).
+    readiness: async () => {
+      if (!config.enabled) return { ready: true, enabled: false, checks: {} };
+      const schemaState = await schema.check();
+      const checks = {
+        schema: schemaState.ready,
+        encryption: Boolean(resolvedEncryption.available),
+        storage: Boolean(storage.available),
+        infrastructure: infrastructureViolations(config).length === 0,
+      };
+      return { ready: Object.values(checks).every(Boolean), enabled: true, checks };
+    },
     ready: () => keyringReady,
   };
 }

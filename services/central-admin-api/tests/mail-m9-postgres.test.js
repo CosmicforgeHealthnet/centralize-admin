@@ -273,6 +273,78 @@ test("CosmicForge Mail M9 operations on real PostgreSQL", { timeout: 300000 }, a
       assert.equal(notes.length, 1, "mail admins were notified in-app exactly once");
     });
 
+    await t.test("closure: inbound reconciliation recovers missed webhooks; provider, lag and reconciliation alerts; preflight quota", async () => {
+      const reconcile = harness.build({ MAIL_RECONCILIATION_ENABLED: "true" });
+      const minutesAgo = (minutes) => new Date(harness.clock().getTime() - minutes * 60000);
+      const inbound = (id, receivedAt) => harness.adapter.addInbound(id, {
+        from: { address: "partner@partner.example", name: "Partner" }, to: [{ address: cf.sender.address, name: null }], cc: [], envelopeRecipients: [],
+        subject: `Reconcile ${id}`, html: "<p>hi</p>", text: "hi", rfcMessageId: `<${id}@partner.example>`, inReplyTo: null, references: [], receivedAt,
+      });
+      inbound("in_missed", minutesAgo(20));
+      inbound("in_seen", minutesAgo(25));
+      inbound("in_fresh", minutesAgo(1));
+      inbound("in_old", minutesAgo(30 * 60));
+      await client.mailWebhookEvent.create({ data: { provider: "resend", providerEventId: `evt_${crypto.randomUUID()}`, eventType: "email.received", payloadSha256: "0".repeat(64), payload: { type: "email.received", data: { email_id: "in_seen", to: [cf.sender.address] } }, signatureVerified: true } });
+
+      assert.deepEqual(await harness.mail.processors.inboundReconciler.process(), { skipped: "RECONCILIATION_DISABLED" }, "off unless MAIL_RECONCILIATION_ENABLED");
+      const first = await reconcile.processors.inboundReconciler.process();
+      assert.equal(first.recovered, 1, JSON.stringify(first));
+      assert.equal((await reconcile.processors.inboundReconciler.process()).recovered, 0, "never enqueued twice");
+      const jobs = await client.mailOutboxJob.findMany({ where: { idempotencyKey: { startsWith: "inbound:reconcile:" } } });
+      assert.deepEqual(jobs.map((job) => job.payload.providerEmailId), ["in_missed"], "known, too-recent and out-of-window emails are skipped");
+
+      let snap = await reconcile.services.ops.snapshot();
+      assert.equal(snap.reconciliation.enabled, true);
+      assert.equal(snap.reconciliation.recovered24h, 1);
+      let codes = reconcile.services.ops.evaluate(snap).map((alert) => alert.code);
+      assert.ok(codes.includes("MAIL_INBOUND_WEBHOOKS_MISSED"));
+      assert.ok(codes.includes("MAIL_RECONCILIATION_STALE"), "no scheduled run has succeeded yet");
+
+      // The INBOUND worker schedules the run itself and processes the recovered email.
+      await reconcile.createWorker({ queues: ["INBOUND"] }).drain({ maxTicks: 20 });
+      const delivered = await client.mailMessage.findFirst({ where: { providerMessageId: "in_missed", direction: "INBOUND" } });
+      assert.ok(delivered, "the missed email reached its mailbox");
+      snap = await reconcile.services.ops.snapshot();
+      assert.ok(snap.reconciliation.lastSuccessAt, "scheduled run recorded");
+      assert.ok(!reconcile.services.ops.evaluate(snap).some((alert) => alert.code === "MAIL_RECONCILIATION_STALE"));
+
+      // Provider degradation: many jobs backing off on 429/5xx.
+      const retrying = [];
+      for (let index = 0; index < 20; index += 1) retrying.push((await client.mailOutboxJob.create({ data: { queue: "OUTBOUND", kind: "SEND_MESSAGE", idempotencyKey: `retry-${crypto.randomUUID()}`, status: "RETRY_SCHEDULED", lastErrorCode: index % 2 ? "RESEND_HTTP_429" : "RESEND_HTTP_503", nextAttemptAt: new Date(harness.clock().getTime() + 3600000) } })).id);
+      snap = await harness.mail.services.ops.snapshot();
+      assert.equal(snap.provider.retrying, 20);
+      codes = harness.mail.services.ops.evaluate(snap).map((alert) => alert.code);
+      assert.ok(codes.includes("MAIL_PROVIDER_DEGRADED"));
+      await client.mailOutboxJob.deleteMany({ where: { id: { in: retrying } } });
+      assert.ok(harness.mail.services.ops.evaluate({ ...snap, webhookLag1h: { sample: 10, p95Seconds: 900, maxSeconds: 1200 } }).some((alert) => alert.code === "MAIL_WEBHOOK_LAG_HIGH"));
+
+      // Process counters: auth denials and provider errors (counts only).
+      assert.equal((await call("dave", "GET", "/admin/ops/snapshot")).status, 403);
+      await harness.mail.adapter.fetchInboundMessage("does-not-exist").catch(() => null);
+      assert.ok(harness.mail.metrics.total("auth_denials") >= 1);
+      assert.ok(harness.mail.metrics.total("provider_errors", (labels) => labels.kind === "PERMANENT") >= 1);
+
+      // Spec §13.2 step 4: preflight includes the brand's sending quota.
+      const mbase = `/marketing/${cf.organization.id}`;
+      const consent = () => ({ topic: "newsletter", source: "WEB_FORM", policyVersion: "2026-10", evidence: { reference: `form-${crypto.randomUUID().slice(0, 8)}` } });
+      const contacts = [];
+      for (const email of ["q1@reader.example", "q2@reader.example"]) contacts.push((await call("dave", "POST", `${mbase}/contacts`, { email, consent: consent() })).body.data.id);
+      const audience = await call("dave", "POST", `${mbase}/audiences`, { name: "Quota audience", topic: "newsletter" });
+      await call("dave", "POST", `${mbase}/audiences/${audience.body.data.id}/contacts`, { contactIds: contacts });
+      const template = await call("dave", "POST", `${mbase}/templates`, { name: "Quota template" });
+      const version = await call("dave", "POST", `${mbase}/templates/${template.body.data.id}/versions`, { subject: "Hi", blocks: [{ type: "text", text: "Hello" }] });
+      const campaign = await call("dave", "POST", `${mbase}/campaigns`, { name: "Quota", topic: "newsletter", templateVersionId: version.body.data.id, audienceId: audience.body.data.id, senderAddressId: cf.sender.id });
+      assert.equal(campaign.status, 201, campaign.text);
+      assert.equal((await call("ops", "PUT", "/admin/quotas", { organizationId: cf.organization.id, purpose: "MARKETING_BROADCAST", dailyHardLimit: 1 })).status, 200);
+      let preflight = await call("dave", "POST", `${mbase}/campaigns/${campaign.body.data.id}/preflight`);
+      const quotaCheck = () => preflight.body.data.checks.find((check) => check.id === "quota_available");
+      assert.equal(quotaCheck()?.ok, false, JSON.stringify(preflight.body.data.checks));
+      assert.equal(preflight.body.data.ok, false);
+      assert.equal((await call("ops", "PUT", "/admin/quotas", { organizationId: cf.organization.id, purpose: "MARKETING_BROADCAST", dailyHardLimit: 1000 })).status, 200);
+      preflight = await call("dave", "POST", `${mbase}/campaigns/${campaign.body.data.id}/preflight`);
+      assert.equal(quotaCheck()?.ok, true);
+    });
+
     await t.test("metrics: token-protected Prometheus text with counts only; admin snapshot", async () => {
       assert.equal((await fetch(`${origin}/api/mail/v1/ops/metrics`)).status, 401);
       assert.equal((await fetch(`${origin}/api/mail/v1/ops/metrics`, { headers: { authorization: "Bearer wrong" } })).status, 401);
@@ -282,6 +354,10 @@ test("CosmicForge Mail M9 operations on real PostgreSQL", { timeout: 300000 }, a
       assert.match(text, /^# HELP cf_mail_jobs/m);
       assert.match(text, /cf_mail_usage_today\{organization="[0-9a-f-]+",purpose="STAFF_MAIL"\} \d+/);
       assert.doesNotMatch(text, /@|Confidential|secret/i, "no addresses or content");
+      assert.match(text, /cf_mail_auth_denials_total\{status="403"\} \d+/);
+      assert.match(text, /cf_mail_provider_errors_total\{channel="transactional",kind="PERMANENT",status="none"\} \d+/);
+      assert.match(text, /cf_mail_inbound_reconciled_24h \d+/);
+      assert.match(text, /cf_mail_webhook_processing_lag_seconds\{quantile="0.95"\} \d+/);
       const snapshot = await call("ops", "GET", "/admin/ops/snapshot");
       assert.equal(snapshot.status, 200);
       assert.ok(Array.isArray(snapshot.body.data.queue.byStatus));

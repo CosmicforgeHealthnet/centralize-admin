@@ -52,7 +52,7 @@ function createConfirmationService({ client, config, audit, jobs, encryption, ma
     const suppressed = await client.marketingSuppression.findFirst({ where: { email: contact.email, liftedAt: null, OR: [{ organizationId }, { organizationId: null }] } });
     if (suppressed) return { skipped: "SUPPRESSED" };
     if (!settings?.confirmationSenderId || !config.publicApiUrl) return { defer: { seconds: 3600, code: "CONFIRMATION_SENDER_NOT_CONFIGURED" } };
-    const sender = await client.mailAddress.findUnique({ where: { id: settings.confirmationSenderId }, include: { domain: true } });
+    const sender = await client.mailAddress.findUnique({ where: { id: settings.confirmationSenderId }, include: { domain: { include: { organization: { select: { id: true, slug: true } } } } } });
     const provider = marketingProviders(organization);
     const blocked = !sender || sender.organizationId !== organizationId || sender.status !== "ACTIVE" ? "SENDER_NOT_AUTHORIZED" : externalSendBlockReason({ config, providerReady: () => provider.configured !== false && provider.name !== "unconfigured", domain: sender.domain });
     if (blocked) return { defer: { seconds: 3600, code: blocked } };

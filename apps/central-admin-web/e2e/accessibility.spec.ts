@@ -55,4 +55,24 @@ test.describe("Accessibility (axe)", () => {
     await expect(page.getByText("No product integrations registered.")).toBeVisible();
     await audit(page, "integrations");
   });
+
+  test("IT mail administration", async ({ page, api }) => {
+    const admin = { ...SUPER_USER, id: "u-it", tier: "ADMIN" };
+    await signIn(page, admin);
+    defaultMocks(api, admin, entitlements({ mailboxes: [], canManageDomains: true, canViewAdministration: true, canProvision: true }));
+    api.on("GET", /^\/api\/(telemedicine|rtc|logistics|payments|audit-service|notifications-service)(\/.*)?$/, { status: 503, body: { success: false, code: "UNAVAILABLE", message: "Unavailable in E2E" } });
+    api.on("GET", `${M}/admin/organizations`, ok([{ id: "org-cf", slug: "cosmicforge", name: "CosmicForge", kind: "BRAND" }]));
+    api.on("GET", `${M}/admin/domains`, ok([{ id: "dom-1", organizationId: "org-cf", domain: "cosmicforge.example", status: "VERIFIED", sendingStatus: "VERIFIED", receivingStatus: "PENDING", providerDomainId: "d1", dnsRecords: [], lastCheckedAt: null, verifiedAt: null, organization: { id: "org-cf", slug: "cosmicforge", name: "CosmicForge" } }]));
+    api.on("GET", `${M}/admin/audit-events`, ok([]));
+    api.on("GET", `${M}/admin/webhook-events`, ok([]));
+    api.on("GET", `${M}/admin/delivery-events`, ok([]));
+    api.on("GET", `${M}/admin/jobs`, ok([]));
+    await page.goto("/dashboard/it");
+    await page.getByRole("button", { name: "Mail Administration" }).first().click();
+    await expect(page.getByRole("cell", { name: "cosmicforge.example" })).toBeVisible();
+    await audit(page, "IT mail administration (domains)");
+    await page.getByRole("tab", { name: "Audit & events" }).click();
+    await expect(page.getByRole("heading", { name: "Jobs and dead letters" })).toBeVisible();
+    await audit(page, "IT mail administration (audit)");
+  });
 });

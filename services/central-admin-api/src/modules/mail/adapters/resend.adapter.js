@@ -209,6 +209,20 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
     return map[event] ? [{ type: map[event], occurredAt: payload?.created_at ? new Date(payload.created_at) : new Date(clock()), recipient: null }] : [];
   }
 
+  // Inbound reconciliation (spec §10.8): GET /emails/receiving lists received
+  // emails newest first; `after` is the id of the last item of the previous
+  // page. Only routing metadata is used; content is fetched per email later.
+  async function listReceivedEmails({ limit = 100, after = null } = {}) {
+    const query = new URLSearchParams({ limit: String(Math.min(Math.max(Number(limit) || 100, 1), 100)) });
+    if (after) query.set("after", String(after));
+    const payload = await call("GET", `/emails/receiving?${query.toString()}`);
+    const rows = Array.isArray(payload?.data) ? payload.data : [];
+    return {
+      items: rows.filter((row) => row?.id).map((row) => ({ providerEmailId: String(row.id), to: parsePartyList(row.to || []).parties.map((party) => party.address), createdAt: row.created_at ? new Date(row.created_at) : null })),
+      hasMore: Boolean(payload?.has_more),
+    };
+  }
+
   async function healthProbe() {
     const started = clock();
     try {
@@ -227,6 +241,7 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
     validateDomain,
     retrieveDeliveryEvents,
     healthProbe,
+    listReceivedEmails,
     createBroadcast: broadcastDisabled,
     sendBroadcast: broadcastDisabled,
   };

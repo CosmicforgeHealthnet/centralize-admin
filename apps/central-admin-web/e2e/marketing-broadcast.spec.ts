@@ -125,6 +125,39 @@ test.describe("M7 broadcasts", () => {
   });
 });
 
+test.describe("Campaign test sends", () => {
+  test("an author sends a [TEST] copy to staff; refusals are explained", async ({ page, api }) => {
+    await signIn(page, ALICE);
+    mocks(api, ALICE, { canAuthor: true, canApprove: false });
+    api.on("GET", `${MK}/org-cf/campaigns/cmp-1`, ok(campaign({ status: "DRAFT", templateVersionId: "tv-1", revision: 1 })));
+    let attempt = 0;
+    api.on("POST", `${MK}/org-cf/campaigns/cmp-1/test-send`, () => {
+      attempt += 1;
+      return attempt === 1
+        ? { status: 400, body: { success: false, code: "MAIL_VALIDATION_FAILED", message: "Check your details.", errors: [{ field: "recipients", reason: "TEST_RECIPIENT_NOT_STAFF" }] } }
+        : { status: 202, body: { success: true, data: { queued: true, duplicate: false, recipientCount: 1 } } };
+    });
+    await gotoWithEntitlements(page, PAGE);
+    await page.getByLabel("Staff recipients (optional, comma-separated)").fill("customer@gmail.example");
+    await page.getByRole("button", { name: "Send test" }).click();
+    await expect(page.getByText("Test sends go to active staff addresses only")).toBeVisible();
+    await page.getByLabel("Staff recipients (optional, comma-separated)").fill("");
+    await page.getByRole("button", { name: "Send test" }).click();
+    await expect(page.getByText("Test send queued for 1 staff address.")).toBeVisible();
+    const calls = api.callsTo("POST", `${MK}/org-cf/campaigns/cmp-1/test-send`);
+    expect(calls[0].body).toEqual({ recipients: ["customer@gmail.example"] });
+    expect(calls[1].body).toEqual({});
+  });
+
+  test("approvers without author rights see no test-send control", async ({ page, api }) => {
+    await signIn(page, REVIEWER);
+    mocks(api, REVIEWER, { canAuthor: false, canApprove: true });
+    await gotoWithEntitlements(page, PAGE);
+    await expect(page.getByRole("heading", { name: "Preflight" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Send test" })).toHaveCount(0);
+  });
+});
+
 test.describe("M7 automation", () => {
   const automation = (overrides: Record<string, unknown> = {}) => ({
     id: "au-1", name: "Welcome", description: null, status: "DRAFT", triggerType: "CONSENT_GRANTED", activeVersionId: null, enrollmentLimit: 1, maxActiveEnrollments: 5000,

@@ -243,7 +243,7 @@ test("sanitizer escapes attribute values so quotes cannot inject event handlers"
 test("external send gate denies every unsafe configuration and allows only the fully-configured case", () => {
   const { externalSendBlockReason, SEND_BLOCK_REASONS: R } = require("../authz/sending-gate");
   const ok = loadMailConfig({ MAIL_ENABLED: "true", MAIL_SENDING_ENABLED: "true", MAIL_DOMAIN_ALLOWLIST: "cosmicforge.example" });
-  const domain = { domain: "cosmicforge.example", status: "VERIFIED", sendingStatus: "VERIFIED" };
+  const domain = { domain: "cosmicforge.example", status: "VERIFIED", sendingStatus: "VERIFIED", organization: { id: "org-1", slug: "cosmicforge" } };
   const gate = (overrides = {}) => externalSendBlockReason({ config: ok, providerReady: () => true, domain, ...overrides });
   assert.equal(gate(), null);
   assert.equal(gate({ config: loadMailConfig({ MAIL_ENABLED: "true", MAIL_DOMAIN_ALLOWLIST: "cosmicforge.example" }) }), R.SENDING_DISABLED);

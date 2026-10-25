@@ -17,7 +17,8 @@ export type ITSection =
   | "alerts"
   | "flags"
   | "health"
-  | "env-configs";
+  | "env-configs"
+  | "mail-admin";
 
 const opsItems: { label: string; value: ITSection }[] = [
   { label: "Overview",        value: "overview" },
@@ -40,6 +41,7 @@ const infraItems: { label: string; value: ITSection }[] = [
   { label: "Feature Flags",    value: "flags" },
   { label: "Health History",   value: "health" },
   { label: "Env Configs",      value: "env-configs" },
+  { label: "Mail Administration", value: "mail-admin" },
 ];
 
 function NavItem({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
@@ -60,7 +62,7 @@ function NavItem({ label, active, onClick }: { label: string; active: boolean; o
 
 function SectionLabel({ label }: { label: string }) {
   return (
-    <span className="px-3 pt-3 pb-1 text-[10px] font-poppins font-semibold uppercase tracking-widest text-muted-foreground/60 select-none">
+    <span className="px-3 pt-3 pb-1 text-[10px] font-poppins font-semibold uppercase tracking-widest text-muted-foreground select-none">
       {label}
     </span>
   );
@@ -84,7 +86,7 @@ function MobileScrollRow({ label, items, active, onChange }: {
 }) {
   return (
     <div style={scrollRowStyle}>
-      <span className="text-[10px] font-poppins font-semibold uppercase tracking-widest text-muted-foreground/60 shrink-0 pr-1">
+      <span className="text-[10px] font-poppins font-semibold uppercase tracking-widest text-muted-foreground shrink-0 pr-1">
         {label}
       </span>
       {items.map((item) => (

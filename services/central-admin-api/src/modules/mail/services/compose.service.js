@@ -262,7 +262,7 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
     const internalByAddress = new Map(internalRows.map((row) => [row.address, row]));
     const externalRecipients = all.filter((party) => !internalByAddress.has(party.address));
     if (externalRecipients.length) {
-      const senderAddress = await client.mailAddress.findUnique({ where: { id: identity.addressId }, include: { domain: true } });
+      const senderAddress = await client.mailAddress.findUnique({ where: { id: identity.addressId }, include: { domain: { include: { organization: { select: { id: true, slug: true } } } } } });
       const blocked = externalSendBlockReason({ config, providerReady, domain: senderAddress?.domain });
       if (blocked === SEND_BLOCK_REASONS.SENDING_DISABLED) throw mailError("MAIL_SENDING_DISABLED");
       if (blocked === SEND_BLOCK_REASONS.PROVIDER_NOT_CONFIGURED) throw mailError("MAIL_PROVIDER_UNAVAILABLE", { reason: blocked });

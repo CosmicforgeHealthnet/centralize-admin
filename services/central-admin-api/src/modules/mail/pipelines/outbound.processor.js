@@ -72,7 +72,7 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
     if (!access || access.viaBreakGlass || !access.canSend) throw new DispatchBlockedError("SENDER_MEMBERSHIP_REVOKED");
     const identities = await policy.listSenderIdentities(client, sender, access, { now: clock() });
     if (!identities.some((identity) => identity.addressId === message.senderAddressId)) throw new DispatchBlockedError("SENDER_IDENTITY_REVOKED");
-    const address = await client.mailAddress.findUnique({ where: { id: message.senderAddressId }, include: { domain: true } });
+    const address = await client.mailAddress.findUnique({ where: { id: message.senderAddressId }, include: { domain: { include: { organization: { select: { id: true, slug: true } } } } } });
     if (!address || address.status !== "ACTIVE") throw new DispatchBlockedError("SENDER_ADDRESS_NOT_ACTIVE");
     // Same gate as enqueue time: empty/changed allowlist, unconfigured
     // provider or a disabled/suspended domain cancel queued external mail.
