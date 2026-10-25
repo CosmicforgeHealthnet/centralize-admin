@@ -91,6 +91,7 @@ test("S3 backend health: HEAD bucket plus put/get/delete canary, cached and fail
   const port = await closedPort();
   const unreachable = await s3Backend({ ...s3.config({ maxRetries: 0 }), endpoint: `http://127.0.0.1:${port}` }).health();
   assert.deepEqual(unreachable, { ok: false, detail: "unreachable" });
+  assert.deepEqual(await s3Backend(s3.config({ healthCanary: false })).health(), { ok: true, detail: "s3-head-ok" });
   const cached = s3Backend(s3.config({ healthCacheMs: 60000 }));
   await cached.health();
   const before = s3.requests.length;

@@ -1,0 +1,36 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AccountAdministration",
+      "Effect": "Allow",
+      "Principal": { "AWS": "arn:aws:iam::${ACCOUNT_ID}:root" },
+      "Action": ["kms:Create*", "kms:Describe*", "kms:Enable*", "kms:List*", "kms:Put*", "kms:Update*", "kms:Revoke*", "kms:Disable*", "kms:Get*", "kms:Delete*", "kms:TagResource", "kms:UntagResource", "kms:ScheduleKeyDeletion", "kms:CancelKeyDeletion"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "MailApiUnwrapOnly",
+      "Effect": "Allow",
+      "Principal": { "AWS": "${MAIL_API_ROLE_ARN}" },
+      "Action": "kms:Decrypt",
+      "Resource": "*",
+      "Condition": { "StringEquals": { "kms:EncryptionContext:purpose": "cosmicforge-mail-keyring", "kms:EncryptionContext:environment": "${ENVIRONMENT}" } }
+    },
+    {
+      "Sid": "KeyAdminGenerateOnly",
+      "Effect": "Allow",
+      "Principal": { "AWS": "${KEY_ADMIN_ROLE_ARN}" },
+      "Action": "kms:GenerateDataKey",
+      "Resource": "*",
+      "Condition": { "StringEquals": { "kms:EncryptionContext:purpose": "cosmicforge-mail-keyring", "kms:EncryptionContext:environment": "${ENVIRONMENT}" } }
+    },
+    {
+      "Sid": "DenyKeyDeletionWithoutMfa",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": ["kms:ScheduleKeyDeletion", "kms:DisableKey"],
+      "Resource": "*",
+      "Condition": { "BoolIfExists": { "aws:MultiFactorAuthPresent": "false" } }
+    }
+  ]
+}

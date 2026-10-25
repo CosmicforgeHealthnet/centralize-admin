@@ -79,7 +79,8 @@ function loadMailConfig(env = process.env) {
         checksumHeader: String(env.MAIL_S3_CHECKSUM_HEADER ?? "true").toLowerCase() !== "false",
         timeoutMs: intInRange(env.MAIL_S3_TIMEOUT_MS, 10000, 1000, 60000),
         maxRetries: intInRange(env.MAIL_S3_MAX_RETRIES, 2, 0, 5),
-        healthCacheMs: intInRange(env.MAIL_S3_HEALTH_CACHE_MS, 60000, 0, 600000),
+        healthCacheMs: intInRange(env.MAIL_S3_HEALTH_CACHE_MS, 60000, 0, 3600000),
+        healthCanary: String(env.MAIL_S3_HEALTH_CANARY ?? "true").toLowerCase() !== "false",
       },
     },
     kms: {

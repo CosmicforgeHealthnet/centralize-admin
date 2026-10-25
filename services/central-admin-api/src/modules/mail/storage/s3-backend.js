@@ -50,6 +50,9 @@ function normalizeS3Config(s3 = {}) {
     conditionalWrites: s3.conditionalWrites !== false,
     checksumHeader: s3.checksumHeader !== false,
     healthCacheMs: Number.isInteger(s3.healthCacheMs) ? s3.healthCacheMs : 60000,
+    // The put/get/delete canary proves write access end to end. Disable it for
+    // Object Lock buckets where every canary version is retained.
+    healthCanary: s3.healthCanary !== false,
     timeoutMs: s3.timeoutMs || 10000,
     maxRetries: Number.isInteger(s3.maxRetries) ? s3.maxRetries : 2,
   };
@@ -170,6 +173,7 @@ function s3Backend(options = {}, { fetchImpl = globalThis.fetch, sleep = (ms) =>
     try {
       const head = await send("HEAD", objectUrl());
       await failOnError(head, "head-bucket");
+      if (!cfg.healthCanary) return { ok: true, detail: "s3-head-ok" };
       const canaryKey = `health/${crypto.randomUUID().replace(/-/g, "")}`;
       const payload = Buffer.from(`cfmail-health:${canaryKey}`);
       await putObject(canaryKey, payload, { overwrite: false });
