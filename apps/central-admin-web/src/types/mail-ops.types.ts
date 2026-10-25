@@ -29,6 +29,10 @@ export interface OpsSnapshot {
   scanning: { backlog: number; oldestBacklogSeconds: number };
   delivery: { staff24h: Record<string, number>; outcomeUnknown24h: number };
   retention: Record<string, number>;
+  /** §20: jobs backing off on provider 429/5xx/timeouts. */
+  provider?: { retrying: number };
+  webhookLag1h?: { sample: number; maxSeconds: number; p95Seconds: number };
+  reconciliation?: { enabled: boolean; lastSuccessAt: string | null; lastSuccessAgeSeconds: number | null; recovered24h: number };
   openAlerts: OpsAlert[];
 }
 

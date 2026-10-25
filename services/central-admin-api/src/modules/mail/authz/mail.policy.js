@@ -57,6 +57,18 @@ async function canAdministerMail(client, user, mode = "EDIT") {
   return hasSection(client, user, MAIL_MODULE, "admin", mode, { allowSuper: true });
 }
 
+// Spec §15/§24: HR staff onboarding raises a provisioning request on behalf of
+// the employee. Only Mail administrators or HR account managers (the same
+// ADMIN-tier + hrm.accounts EDIT authority the HR accounts API requires) may
+// name another person as the subject. Raising a request never provisions
+// anything: a Mail administrator other than the requester must approve it.
+const HR_TIERS = ["ADMIN", "EXECUTIVE", "SUPER"];
+async function canRequestProvisioningForOthers(client, user) {
+  if (!user) return false;
+  if (await canAdministerMail(client, user, "EDIT")) return true;
+  return HR_TIERS.includes(user.tier) && hasSection(client, user, "hrm", "accounts", "EDIT", { allowSuper: true });
+}
+
 async function requireMailAdmin(client, user, mode = "EDIT") {
   assertActiveIdentity(user);
   if (!(await canAdministerMail(client, user, mode))) throw mailError("MAIL_FORBIDDEN", { reason: "MAIL_ADMIN_REQUIRED" });
@@ -226,6 +238,7 @@ module.exports = {
   assertActiveIdentity,
   hasSection,
   canAdministerMail,
+  canRequestProvisioningForOthers,
   requireMailAdmin,
   requireExplicitMailSection,
   resolveMailboxAccess,

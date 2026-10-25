@@ -200,7 +200,7 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
     if (!settings?.postalAddress) return { defer: { seconds: 3600, code: "POSTAL_ADDRESS_MISSING" } };
     if (config.unsubscribe.secret.length < 32 || !config.publicApiUrl) return { defer: { seconds: 3600, code: "UNSUBSCRIBE_NOT_CONFIGURED" } };
     const template = await client.marketingTemplateVersion.findUnique({ where: { id: step.templateVersionId }, include: { template: true } });
-    const sender = await client.mailAddress.findUnique({ where: { id: step.senderAddressId }, include: { domain: true } });
+    const sender = await client.mailAddress.findUnique({ where: { id: step.senderAddressId }, include: { domain: { include: { organization: { select: { id: true, slug: true } } } } } });
     const provider = marketingProviders(organization);
     const senderOk = sender && sender.organizationId === organization.id && sender.status === "ACTIVE" && ["SHARED", "SYSTEM", "ALIAS"].includes(sender.kind);
     const blocked = !template || template.template.organizationId !== organization.id ? "TEMPLATE_UNAVAILABLE" : !senderOk ? "SENDER_NOT_AUTHORIZED" : externalSendBlockReason({ config, providerReady: () => provider.configured !== false && provider.name !== "unconfigured", domain: sender.domain });

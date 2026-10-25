@@ -55,6 +55,10 @@ const ALERT_HELP: Record<string, string> = {
   MAIL_STORAGE_UNHEALTHY: "Private mail storage is unavailable.",
   MAIL_ENCRYPTION_UNAVAILABLE: "The mail encryption keyring is unavailable.",
   MAIL_INFRASTRUCTURE_VIOLATION: "Storage, key or scanner configuration violates deployment rules.",
+  MAIL_PROVIDER_DEGRADED: "Many sends are backing off on provider rate limits or errors. Check the provider status.",
+  MAIL_WEBHOOK_LAG_HIGH: "Provider events are processed slowly. Check the EVENTS and INBOUND workers.",
+  MAIL_RECONCILIATION_STALE: "Inbound reconciliation has not completed recently. Check the INBOUND worker.",
+  MAIL_INBOUND_WEBHOOKS_MISSED: "Some received emails arrived only through reconciliation: inbound webhooks were missed.",
 };
 
 const SEVERITY_TONE: Record<string, string> = {
@@ -98,6 +102,10 @@ function Health() {
               {tile("Webhook failures (24h)", data.webhooks.failed24h)}
               {tile("Scan backlog", data.scanning.backlog, data.scanning.oldestBacklogSeconds > 1800)}
               {tile("Bounced (24h)", data.delivery.staff24h.BOUNCED ?? 0)}
+              {data.provider && tile("Provider retries now", data.provider.retrying, data.provider.retrying > 0)}
+              {data.webhookLag1h && tile("Webhook lag p95 (1h)", data.webhookLag1h.sample ? seconds(data.webhookLag1h.p95Seconds) : "—", data.webhookLag1h.p95Seconds > 300)}
+              {data.reconciliation?.enabled && tile("Recovered by reconciliation (24h)", data.reconciliation.recovered24h, data.reconciliation.recovered24h > 0)}
+              {data.reconciliation?.enabled && tile("Last reconciliation", data.reconciliation.lastSuccessAgeSeconds == null ? "Never" : `${seconds(data.reconciliation.lastSuccessAgeSeconds)} ago`, data.reconciliation.lastSuccessAgeSeconds == null)}
             </div>
             <p className="text-[10px] text-muted-foreground">Updated {formatFullDate(data.generatedAt)}</p>
           </div>

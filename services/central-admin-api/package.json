@@ -62,7 +62,7 @@
     "studio": "prisma studio --config prisma.config.ts",
     "studio:main:dev": "cross-env MAIN_DB_ENV=dev prisma studio --config prisma.main.config.ts",
     "studio:main:prod": "cross-env MAIN_DB_ENV=prod prisma studio --config prisma.main.config.ts",
-    "test:mail": "node --require ./tests/helpers/network-guard.js --test src/modules/mail/__tests__/mail-security.unit.test.js tests/mail-app-wiring.test.js tests/mail-infra.test.js tests/mail-postgres.test.js tests/mail-m7-unit.test.js tests/mail-m7-postgres.test.js tests/mail-m8-unit.test.js tests/mail-m8-postgres.test.js tests/mail-m9-unit.test.js tests/mail-m9-postgres.test.js && npm run -s test:mail:s3",
+    "test:mail": "node --require ./tests/helpers/network-guard.js --test src/modules/mail/__tests__/mail-security.unit.test.js src/modules/mail/__tests__/mail-closure.unit.test.js tests/mail-app-wiring.test.js tests/mail-schema-readiness.test.js tests/mail-infra.test.js tests/mail-postgres.test.js tests/mail-m7-unit.test.js tests/mail-m7-postgres.test.js tests/mail-m8-unit.test.js tests/mail-m8-postgres.test.js tests/mail-m9-unit.test.js tests/mail-m9-postgres.test.js && npm run -s test:mail:s3",
     "mail:backup:verify": "node scripts/mail/verify-backup-restore.js",
     "test:mail:s3": "MAIL_TEST_STORAGE=s3 node --require ./tests/helpers/network-guard.js --test tests/mail-postgres.test.js",
     "test:mail:clamd-live": "node --require ./tests/helpers/network-guard.js --test tests/mail-clamd-live.test.js",
@@ -114,7 +114,7 @@
     "typescript": "^6.0.2"
   },
   "overrides": {
-    "brace-expansion": "5.0.8",
+    "brace-expansion": "5.0.12",
     "find-my-way": "9.7.0",
     "valibot": "1.4.2"
   }

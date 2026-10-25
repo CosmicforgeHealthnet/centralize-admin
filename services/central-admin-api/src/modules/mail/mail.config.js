@@ -47,9 +47,18 @@ function loadMailConfig(env = process.env) {
     workerEnabled: enabled && flag(env.MAIL_WORKER_ENABLED),
     provider: String(env.MAIL_PROVIDER || "resend").trim().toLowerCase(),
     domainAllowlist: list(env.MAIL_DOMAIN_ALLOWLIST),
+    // Spec §19.7: organizations whose slug starts with one of these prefixes
+    // never send through the provider. Lifting it needs the HealthNet owner's
+    // and legal approval of a compliant provider (MAIL_RESTRICTED_HEALTH_PROVIDER_APPROVED).
+    restrictedHealth: {
+      organizations: list(env.MAIL_RESTRICTED_HEALTH_ORGANIZATIONS || "healthnet").map((entry) => entry.toLowerCase()),
+      providerApproved: flag(env.MAIL_RESTRICTED_HEALTH_PROVIDER_APPROVED),
+    },
     resend: {
       apiKey: String(env.RESEND_API_KEY || ""),
       webhookSecret: String(env.RESEND_WEBHOOK_SECRET || ""),
+      // Accepted alongside the current secret during a rotation grace period.
+      previousWebhookSecret: String(env.RESEND_WEBHOOK_SECRET_PREVIOUS || ""),
       baseUrl: String(env.RESEND_API_BASE_URL || "https://api.resend.com").replace(/\/+$/, ""),
       timeoutMs: intInRange(env.RESEND_TIMEOUT_MS, 15000, 1000, 60000),
       attachmentHostAllowlist: list(
@@ -135,6 +144,12 @@ function loadMailConfig(env = process.env) {
       // Resend keeps idempotency keys for 24h. A send whose first attempt is
       // older than this window is never retried; it becomes OUTCOME_UNKNOWN.
       idempotencyWindowHours: intInRange(env.MAIL_PROVIDER_IDEMPOTENCY_WINDOW_HOURS, 23, 1, 23),
+      // Inbound reconciliation (spec §10.8): list received emails and process
+      // any whose webhook never arrived.
+      inboundIntervalSeconds: intInRange(env.MAIL_INBOUND_RECONCILE_INTERVAL_SECONDS, 900, 60, 86400),
+      inboundLookbackHours: intInRange(env.MAIL_INBOUND_RECONCILE_LOOKBACK_HOURS, 24, 1, 72),
+      inboundGraceSeconds: intInRange(env.MAIL_INBOUND_RECONCILE_GRACE_SECONDS, 600, 60, 3600),
+      inboundMaxPages: intInRange(env.MAIL_INBOUND_RECONCILE_MAX_PAGES, 5, 1, 50),
     },
     worker: {
       pollIntervalMs: intInRange(env.MAIL_WORKER_POLL_INTERVAL_MS, 2000, 200, 60000),
@@ -154,6 +169,12 @@ function loadMailConfig(env = process.env) {
     broadcastDispatchEnabled: enabled && flag(env.MAIL_MARKETING_ENABLED) && flag(env.MAIL_BROADCAST_DISPATCH_ENABLED),
     automationEnabled: enabled && flag(env.MAIL_MARKETING_ENABLED) && flag(env.MAIL_AUTOMATION_ENABLED),
     confirmationEmailsEnabled: enabled && flag(env.MAIL_MARKETING_ENABLED) && flag(env.MAIL_MARKETING_CONFIRMATION_EMAILS_ENABLED),
+    // Campaign test sends (spec §5.5, §13.2 step 3): to active staff only.
+    testSendsEnabled: enabled && flag(env.MAIL_MARKETING_ENABLED) && flag(env.MAIL_MARKETING_TEST_SENDS_ENABLED),
+    testSend: {
+      maxRecipients: intInRange(env.MAIL_MARKETING_TEST_SEND_MAX_RECIPIENTS, 5, 1, 10),
+      perCampaignPerHour: intInRange(env.MAIL_MARKETING_TEST_SENDS_PER_HOUR, 10, 1, 50),
+    },
     // Queues served by this worker process. MARKETING is opt-in so the
     // transactional worker never runs marketing jobs unless deployed to.
     workerQueues: (() => {
@@ -217,6 +238,9 @@ function loadMailConfig(env = process.env) {
         complaintRatePerThousand: intInRange(env.MAIL_ALERT_COMPLAINT_RATE_PER_THOUSAND, 1, 1, 1000),
         minSampleForRates: intInRange(env.MAIL_ALERT_MIN_SAMPLE, 100, 1, 100000),
         integrationRejections1h: intInRange(env.MAIL_ALERT_INTEGRATION_REJECTIONS_1H, 20, 1, 100000),
+        // Jobs currently backing off on provider 429/5xx/timeouts.
+        providerRetrying: intInRange(env.MAIL_ALERT_PROVIDER_RETRYING, 20, 1, 100000),
+        webhookLagSeconds: intInRange(env.MAIL_ALERT_WEBHOOK_LAG_SECONDS, 300, 30, 86400),
       },
     },
     // Emergency stop (M9/M10). Blocks provider calls without deleting queued records.
@@ -310,6 +334,7 @@ function publicStatus(config) {
     broadcastDispatchEnabled: config.broadcastDispatchEnabled,
     automationEnabled: config.automationEnabled,
     confirmationEmailsEnabled: config.confirmationEmailsEnabled,
+    testSendsEnabled: config.testSendsEnabled,
     workerQueues: config.workerQueues,
     unsubscribeConfigured: config.unsubscribe.secret.length >= 32 && Boolean(config.publicApiUrl),
     emergencyStop: { ...config.emergencyStop },

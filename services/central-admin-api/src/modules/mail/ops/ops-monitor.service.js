@@ -13,7 +13,10 @@ const { utcDay } = require("./usage.service");
 
 const ACTIVE_JOB_STATUSES = ["PENDING", "LEASED", "RETRY_SCHEDULED", "RECONCILING"];
 
-function createOpsMonitor({ client, config, notifications, health = async () => ({}), runtime = null, clock = () => new Date(), logger = null }) {
+// Provider error codes that mean "provider degraded" (rate limit, 5xx, timeout).
+const PROVIDER_DEGRADED = /^(RESEND_HTTP_(429|5\d\d)|PROVIDER_(TIMEOUT|NETWORK_ERROR))$/;
+
+function createOpsMonitor({ client, config, notifications, health = async () => ({}), runtime = null, metrics = null, clock = () => new Date(), logger = null }) {
   const now = () => clock();
   const thresholds = config.ops.thresholds;
 
@@ -37,6 +40,14 @@ function createOpsMonitor({ client, config, notifications, health = async () => 
       client.mailQuotaLimit.findMany(),
       client.mailOpsAlert.findMany({ where: { resolvedAt: null }, orderBy: { lastSeenAt: "desc" }, take: 100 }),
     ]);
+    // §20: provider degradation, webhook processing lag and inbound reconciliation.
+    const [retrying, processedRecently, lastReconcile, recovered24h] = await Promise.all([
+      client.mailOutboxJob.groupBy({ by: ["lastErrorCode"], where: { status: "RETRY_SCHEDULED" }, _count: { _all: true } }),
+      client.mailWebhookEvent.findMany({ where: { processedAt: { gt: hour } }, select: { receivedAt: true, processedAt: true }, orderBy: { processedAt: "desc" }, take: 1000 }),
+      client.mailOutboxJob.findFirst({ where: { kind: "RECONCILE_INBOUND", status: "SUCCEEDED" }, orderBy: { completedAt: "desc" }, select: { completedAt: true } }),
+      client.mailOutboxJob.count({ where: { kind: "PROCESS_INBOUND", idempotencyKey: { startsWith: "inbound:reconcile:" }, nextAttemptAt: { gt: day } } }),
+    ]);
+    const lags = processedRecently.map((row) => Math.max(0, Math.round((row.processedAt.getTime() - row.receivedAt.getTime()) / 1000))).sort((a, b) => a - b);
     const ageSeconds = (date) => (date ? Math.max(0, Math.round((at.getTime() - new Date(date).getTime()) / 1000)) : 0);
     const staffRates = Object.fromEntries(recipients24h.map((row) => [row.status, row._count._all]));
     const brandRates = new Map();
@@ -67,6 +78,15 @@ function createOpsMonitor({ client, config, notifications, health = async () => 
         const limit = limitByKey.get(`${row.organizationId}:${row.purpose}`);
         return { organizationId: row.organizationId, purpose: row.purpose, accepted: row.accepted, received: row.received, dailySoftLimit: limit?.dailySoftLimit ?? null, dailyHardLimit: limit?.dailyHardLimit ?? null };
       }),
+      provider: { retrying: retrying.filter((row) => PROVIDER_DEGRADED.test(String(row.lastErrorCode || ""))).reduce((sum, row) => sum + row._count._all, 0) },
+      webhookLag1h: { sample: lags.length, maxSeconds: lags.length ? lags[lags.length - 1] : 0, p95Seconds: lags.length ? lags[Math.min(lags.length - 1, Math.floor(lags.length * 0.95))] : 0 },
+      reconciliation: {
+        enabled: Boolean(config.receivingEnabled && config.reconciliation.enabled),
+        lastSuccessAt: lastReconcile?.completedAt?.toISOString() || null,
+        lastSuccessAgeSeconds: lastReconcile?.completedAt ? ageSeconds(lastReconcile.completedAt) : null,
+        recovered24h,
+      },
+      process: metrics ? { authDenials: metrics.total("auth_denials"), providerErrors: metrics.total("provider_errors") } : null,
       openAlerts: openAlerts.map(serializeAlert),
     };
   }
@@ -98,6 +118,13 @@ function createOpsMonitor({ client, config, notifications, health = async () => 
     for (const usage of snap.usageToday) {
       if (usage.dailyHardLimit && usage.accepted >= usage.dailyHardLimit) push("MAIL_QUOTA_HARD_LIMIT_REACHED", "critical", { key: usage.purpose, purpose: usage.purpose, accepted: usage.accepted, limit: usage.dailyHardLimit }, usage.organizationId);
       else if (usage.dailySoftLimit && usage.accepted >= usage.dailySoftLimit) push("MAIL_QUOTA_SOFT_LIMIT_REACHED", "warning", { key: usage.purpose, purpose: usage.purpose, accepted: usage.accepted, limit: usage.dailySoftLimit }, usage.organizationId);
+    }
+    if (snap.provider && snap.provider.retrying >= thresholds.providerRetrying) push("MAIL_PROVIDER_DEGRADED", "warning", { retrying: snap.provider.retrying });
+    if (snap.webhookLag1h && snap.webhookLag1h.p95Seconds > thresholds.webhookLagSeconds) push("MAIL_WEBHOOK_LAG_HIGH", "warning", { p95Seconds: snap.webhookLag1h.p95Seconds, maxSeconds: snap.webhookLag1h.maxSeconds, sample: snap.webhookLag1h.sample });
+    if (snap.reconciliation?.enabled) {
+      const interval = config.reconciliation.inboundIntervalSeconds;
+      if (snap.reconciliation.lastSuccessAgeSeconds === null || snap.reconciliation.lastSuccessAgeSeconds > interval * 3) push("MAIL_RECONCILIATION_STALE", "warning", { lastSuccessAgeSeconds: snap.reconciliation.lastSuccessAgeSeconds, intervalSeconds: interval });
+      if (snap.reconciliation.recovered24h > 0) push("MAIL_INBOUND_WEBHOOKS_MISSED", "warning", { recovered24h: snap.reconciliation.recovered24h });
     }
     if (snap.runtimeHalt?.staffMail || snap.runtimeHalt?.marketing) push("MAIL_EMERGENCY_STOP_ACTIVE", "warning", { key: "halt", staffMail: snap.runtimeHalt.staffMail, marketing: snap.runtimeHalt.marketing });
     if (healthReport.storage && healthReport.storage.ok === false && config.enabled) push("MAIL_STORAGE_UNHEALTHY", "critical", { detail: healthReport.storage.detail });
@@ -184,6 +211,14 @@ function createOpsMonitor({ client, config, notifications, health = async () => 
     metric("cf_mail_staff_recipients_24h", "Staff mail recipient outcomes (24h)", "gauge", Object.entries(snap.delivery.staff24h).map(([status, value]) => [{ status }, value]));
     metric("cf_mail_usage_today", "Accepted messages today by brand and purpose", "gauge", snap.usageToday.map((row) => [{ organization: row.organizationId, purpose: row.purpose }, row.accepted]));
     metric("cf_mail_open_alerts", "Open Mail ops alerts", "gauge", ["critical", "warning", "info"].map((severity) => [{ severity }, snap.openAlerts.filter((alert) => alert.severity === severity).length]));
+    metric("cf_mail_provider_retrying_jobs", "Jobs backing off on provider 429/5xx/timeouts", "gauge", [[null, snap.provider.retrying]]);
+    metric("cf_mail_webhook_processing_lag_seconds", "Webhook receive-to-processed lag over the last hour", "gauge", [[{ quantile: "0.95" }, snap.webhookLag1h.p95Seconds], [{ quantile: "max" }, snap.webhookLag1h.maxSeconds]]);
+    metric("cf_mail_inbound_reconciled_24h", "Inbound emails recovered by reconciliation (missed webhooks, 24h)", "gauge", [[null, snap.reconciliation.recovered24h]]);
+    metric("cf_mail_inbound_reconciliation_age_seconds", "Seconds since the last successful inbound reconciliation", "gauge", [[null, snap.reconciliation.lastSuccessAgeSeconds ?? -1]]);
+    if (metrics) {
+      metric("cf_mail_auth_denials_total", "Mail API requests refused with 401/403 (this process)", "counter", metrics.samples("auth_denials"));
+      metric("cf_mail_provider_errors_total", "Provider call errors by channel, kind and status (this process)", "counter", metrics.samples("provider_errors"));
+    }
     metric("cf_mail_halted", "1 when an emergency stop halts the purpose", "gauge", [[{ purpose: "staff" }, snap.runtimeHalt?.staffMail ? 1 : 0], [{ purpose: "marketing" }, snap.runtimeHalt?.marketing ? 1 : 0]]);
     return `${lines.join("\n")}\n`;
   }
