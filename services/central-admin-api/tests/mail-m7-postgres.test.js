@@ -570,6 +570,70 @@ test("CosmicForge Mail M7 broadcasts and automation on real PostgreSQL", { timeo
       assert.equal((await client.marketingConsent.findFirst({ where: { contactId: contact.id, topic: "newsletter" } })).status, "WITHDRAWN");
       assert.ok(await client.mailAuditEvent.findFirst({ where: { action: "MARKETING_ONE_CLICK_UNSUBSCRIBE", targetId: contact.id } }));
     });
+    await t.test("closure: campaign test sends reach active staff only, are flag-gated, rate-limited and audited; brand webhook secrets rotate", async () => {
+      const draft = await call("dave", "POST", `${mbase}/campaigns`, { name: "Test-send draft", topic: "newsletter", templateVersionId, senderAddressId: cf.sender.id });
+      assert.equal(draft.status, 201, draft.text);
+      const path = `${mbase}/campaigns/${draft.body.data.id}/test-send`;
+      assert.equal((await call("dave", "POST", path, {})).body.code, "MAIL_TEST_SEND_DISABLED", "off unless MAIL_MARKETING_TEST_SENDS_ENABLED");
+
+      const app2 = harness.build({ MAIL_MARKETING_TEST_SENDS_ENABLED: "true", MAIL_MARKETING_TEST_SENDS_PER_HOUR: "3" });
+      const server2 = await listen(harness.mountApp(app2));
+      const call2 = caller(server2.base, ids);
+      try {
+        const external = await call2("dave", "POST", path, { recipients: ["ada@reader.example"] });
+        assert.equal(external.status, 400);
+        assert.equal(external.body.errors[0].reason, "TEST_RECIPIENT_NOT_STAFF", "customers and external addresses are never test recipients");
+        const many = await call2("dave", "POST", path, { recipients: ["a@staff.example.invalid", "b@staff.example.invalid", "c@staff.example.invalid", "d@staff.example.invalid", "e@staff.example.invalid", "f@staff.example.invalid"] });
+        assert.equal(many.body.errors[0].reason, "TOO_MANY_RECIPIENTS");
+        assert.equal((await call2("kim", "POST", path, {})).status, 404, "another brand's marketer cannot see the campaign");
+        assert.equal((await call2("erin", "POST", path, {})).status, 403, "approvers without author rights cannot test-send");
+
+        const before = fake.state.emails.length;
+        const queued = await call2("dave", "POST", path, { recipients: ["dave@staff.example.invalid", "erin@staff.example.invalid"] });
+        assert.equal(queued.status, 202, queued.text);
+        assert.equal(queued.body.data.recipientCount, 2);
+        await app2.createWorker({ queues: ["MARKETING"] }).drain();
+        const sent = fake.state.emails.slice(before);
+        assert.deepEqual(sent.map((email) => email.to[0].address).sort(), ["dave@staff.example.invalid", "erin@staff.example.invalid"]);
+        assert.ok(sent.every((email) => email.subject.startsWith("[TEST] ") && email.headers["X-CosmicForge-Test-Send"] === "1" && email.to.length === 1 && email.from.address === cf.sender.address));
+        assert.match(sent[0].html, /Ada/, "rendered with sample data, not a real contact");
+        assert.equal(await client.marketingBroadcastRecipient.count({ where: { email: { in: ["dave@staff.example.invalid", "erin@staff.example.invalid"] } } }), 0, "test sends never touch broadcast records");
+        assert.ok(await client.mailAuditEvent.findFirst({ where: { action: "MARKETING_TEST_SEND_HANDED_TO_PROVIDER", targetId: draft.body.data.id } }));
+
+        assert.equal((await call2("dave", "POST", path, {})).status, 202, "defaults to the requester's own address");
+        harness.advance(61000);
+        assert.equal((await call2("dave", "POST", path, {})).status, 202);
+        harness.advance(61000);
+        const limited = await call2("dave", "POST", path, {});
+        assert.equal(limited.status, 429, "per-campaign hourly limit");
+
+        // Emergency stop holds test sends too.
+        const halted = harness.build({ MAIL_MARKETING_TEST_SENDS_ENABLED: "true", MAIL_EMERGENCY_STOP_MARKETING: "true" });
+        await assert.rejects(halted.services.testSends.requestTestSend(await client.adminUser.findUnique({ where: { id: ids.dave } }), cf.organization.id, draft.body.data.id, {}), (error) => error.code === "MAIL_EMERGENCY_STOP");
+      } finally {
+        await closeServer(server2.server);
+      }
+
+      // Spec §19.3: a brand's previous webhook secret is accepted only while configured.
+      const previous = BRAND_WEBHOOK_SECRETS.cosmicforge;
+      const rotated = `whsec_${crypto.randomBytes(24).toString("base64")}`;
+      const app3 = harness.build({ RESEND_WEBHOOK_SECRET__COSMICFORGE: rotated, RESEND_WEBHOOK_SECRET__COSMICFORGE_PREVIOUS: previous });
+      const server3 = await listen(harness.mountApp(app3));
+      const app4 = harness.build({ RESEND_WEBHOOK_SECRET__COSMICFORGE: rotated });
+      const server4 = await listen(harness.mountApp(app4));
+      try {
+        const event = { id: "ct_rot", email: "nobody@reader.example", unsubscribed: false };
+        const opts = (secret) => ({ path: "/webhooks/resend/brand/cosmicforge", secret });
+        assert.equal((await postWebhook(server3.base, harness.clock, "contact.updated", event, opts(rotated))).status, 200);
+        assert.equal((await postWebhook(server3.base, harness.clock, "contact.updated", event, opts(previous))).status, 200, "grace period");
+        assert.equal((await postWebhook(server4.base, harness.clock, "contact.updated", event, opts(previous))).status, 401, "after the previous secret is removed");
+        assert.equal((await postWebhook(server3.base, harness.clock, "contact.updated", event, opts(BRAND_WEBHOOK_SECRETS.karryam))).status, 401, "another brand's secret never verifies");
+      } finally {
+        await closeServer(server3.server);
+        await closeServer(server4.server);
+      }
+    });
+
     await t.test("concurrent provider events never regress a recipient's status", async () => {
       const recipient = await client.marketingBroadcastRecipient.findFirst({ where: { email: "ada@reader.example", dispatch: { providerBroadcastId: { not: null } } }, include: { dispatch: true } });
       assert.ok(recipient, "pilot recipient exists");

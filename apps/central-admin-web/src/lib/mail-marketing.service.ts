@@ -131,6 +131,9 @@ export const updateCampaign = (orgId: string, campaignId: string, body: Campaign
   patch<Campaign>(`/${orgId}/campaigns/${campaignId}`, body);
 export const preflightCampaign = (orgId: string, campaignId: string) =>
   post<PreflightResult>(`/${orgId}/campaigns/${campaignId}/preflight`);
+/** Sends the rendered campaign to active HQ staff only (never the audience). */
+export const testSendCampaign = (orgId: string, campaignId: string, recipients: string[]) =>
+  post<{ queued: boolean; duplicate: boolean; recipientCount: number }>(`/${orgId}/campaigns/${campaignId}/test-send`, recipients.length ? { recipients } : {});
 export const submitCampaign = (orgId: string, campaignId: string, revision: number) =>
   post<Campaign>(`/${orgId}/campaigns/${campaignId}/submit`, { revision });
 export const approveCampaign = (orgId: string, campaignId: string, body: { revision: number; stepUpId: string; comment?: string }) =>

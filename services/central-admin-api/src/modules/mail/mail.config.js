@@ -47,9 +47,18 @@ function loadMailConfig(env = process.env) {
     workerEnabled: enabled && flag(env.MAIL_WORKER_ENABLED),
     provider: String(env.MAIL_PROVIDER || "resend").trim().toLowerCase(),
     domainAllowlist: list(env.MAIL_DOMAIN_ALLOWLIST),
+    // Spec §19.7: organizations whose slug starts with one of these prefixes
+    // never send through the provider. Lifting it needs the HealthNet owner's
+    // and legal approval of a compliant provider (MAIL_RESTRICTED_HEALTH_PROVIDER_APPROVED).
+    restrictedHealth: {
+      organizations: list(env.MAIL_RESTRICTED_HEALTH_ORGANIZATIONS || "healthnet").map((entry) => entry.toLowerCase()),
+      providerApproved: flag(env.MAIL_RESTRICTED_HEALTH_PROVIDER_APPROVED),
+    },
     resend: {
       apiKey: String(env.RESEND_API_KEY || ""),
       webhookSecret: String(env.RESEND_WEBHOOK_SECRET || ""),
+      // Accepted alongside the current secret during a rotation grace period.
+      previousWebhookSecret: String(env.RESEND_WEBHOOK_SECRET_PREVIOUS || ""),
       baseUrl: String(env.RESEND_API_BASE_URL || "https://api.resend.com").replace(/\/+$/, ""),
       timeoutMs: intInRange(env.RESEND_TIMEOUT_MS, 15000, 1000, 60000),
       attachmentHostAllowlist: list(
@@ -154,6 +163,12 @@ function loadMailConfig(env = process.env) {
     broadcastDispatchEnabled: enabled && flag(env.MAIL_MARKETING_ENABLED) && flag(env.MAIL_BROADCAST_DISPATCH_ENABLED),
     automationEnabled: enabled && flag(env.MAIL_MARKETING_ENABLED) && flag(env.MAIL_AUTOMATION_ENABLED),
     confirmationEmailsEnabled: enabled && flag(env.MAIL_MARKETING_ENABLED) && flag(env.MAIL_MARKETING_CONFIRMATION_EMAILS_ENABLED),
+    // Campaign test sends (spec §5.5, §13.2 step 3): to active staff only.
+    testSendsEnabled: enabled && flag(env.MAIL_MARKETING_ENABLED) && flag(env.MAIL_MARKETING_TEST_SENDS_ENABLED),
+    testSend: {
+      maxRecipients: intInRange(env.MAIL_MARKETING_TEST_SEND_MAX_RECIPIENTS, 5, 1, 10),
+      perCampaignPerHour: intInRange(env.MAIL_MARKETING_TEST_SENDS_PER_HOUR, 10, 1, 50),
+    },
     // Queues served by this worker process. MARKETING is opt-in so the
     // transactional worker never runs marketing jobs unless deployed to.
     workerQueues: (() => {
@@ -273,6 +288,7 @@ function publicStatus(config) {
     broadcastDispatchEnabled: config.broadcastDispatchEnabled,
     automationEnabled: config.automationEnabled,
     confirmationEmailsEnabled: config.confirmationEmailsEnabled,
+    testSendsEnabled: config.testSendsEnabled,
     workerQueues: config.workerQueues,
     unsubscribeConfigured: config.unsubscribe.secret.length >= 32 && Boolean(config.publicApiUrl),
     emergencyStop: { ...config.emergencyStop },

@@ -111,7 +111,7 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
     const approval = approvals.find((entry) => entry.decision === "APPROVED" && entry.snapshotId === snapshot.id);
     if (!approval || approvals.some((entry) => entry.decision === "INVALIDATED" && entry.createdAt > approval.createdAt)) return { error: ["APPROVAL_INVALIDATED", "Approval is no longer valid"] };
     if (now().getTime() - approval.createdAt.getTime() > config.broadcast.approvalTtlDays * 86400000) return { error: ["APPROVAL_EXPIRED", `Approval is older than ${config.broadcast.approvalTtlDays} days`] };
-    const sender = await client.mailAddress.findUnique({ where: { address: snapshot.senderAddress }, include: { domain: true } });
+    const sender = await client.mailAddress.findUnique({ where: { address: snapshot.senderAddress }, include: { domain: { include: { organization: { select: { id: true, slug: true } } } } } });
     if (!sender || sender.organizationId !== organization.id || sender.status !== "ACTIVE" || !["SHARED", "SYSTEM", "ALIAS"].includes(sender.kind)) return { error: ["SENDER_NOT_AUTHORIZED", "Sender identity is no longer an active brand identity"] };
     const blocked = externalSendBlockReason({ config, providerReady: () => provider.configured !== false && provider.name !== "unconfigured", domain: sender.domain });
     if (blocked) return { error: [blocked, `Sending gate: ${blocked}`] };
