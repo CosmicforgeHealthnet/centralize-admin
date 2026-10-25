@@ -38,11 +38,20 @@ function assertKey(key) {
 }
 
 function createEncryptedStore({ encryption, backend }) {
-  if (!encryption?.available || !backend) return createUnavailableStorage("Mail encryption keyring or storage backend not configured");
+  if (!encryption || !backend) return createUnavailableStorage("Mail encryption keyring or storage backend not configured");
+  // The keyring may become available later (KMS unwrap at startup) or never;
+  // every operation re-checks it and fails closed meanwhile.
+  const requireKeyring = () => {
+    if (!encryption.available) throw new MailStorageUnavailableError("Mail encryption keyring is not available");
+  };
   return {
-    available: true,
+    get available() {
+      return Boolean(encryption.available);
+    },
     name: backend.name,
+    backend,
     async put(kind, plaintext, { purpose }) {
+      requireKeyring();
       const buffer = Buffer.isBuffer(plaintext) ? plaintext : Buffer.from(String(plaintext ?? ""), "utf8");
       const key = newObjectKey(kind);
       const sha256 = sha256Hex(buffer);
@@ -50,6 +59,7 @@ function createEncryptedStore({ encryption, backend }) {
       return { key, sha256, sizeBytes: buffer.length };
     },
     async get(key, { purpose, sha256 } = {}) {
+      requireKeyring();
       const envelope = await backend.read(assertKey(key));
       let plaintext;
       try {
@@ -64,7 +74,28 @@ function createEncryptedStore({ encryption, backend }) {
       await backend.remove(assertKey(key));
     },
     async health() {
+      if (!encryption.available) return { ok: false, detail: encryption.loadError ? `keyring-${encryption.loadError.toLowerCase()}` : "keyring-unavailable" };
       return backend.health();
+    },
+    // Re-encrypts one stored object under the active key (rotation). The
+    // object key is part of the AAD, so a rewrapped copy is written in place
+    // through the backend's explicit replace() (normal writes never overwrite).
+    async reencrypt(key, { purpose }) {
+      requireKeyring();
+      const envelope = await backend.read(assertKey(key));
+      const version = encryption.envelopeKeyVersion(envelope);
+      if (version === encryption.activeVersion) return { key, changed: false, from: version };
+      let plaintext;
+      try {
+        plaintext = encryption.decrypt(envelope, `${purpose}:${key}`);
+      } catch {
+        throw new MailStorageIntegrityError();
+      }
+      await backend.replace(assertKey(key), encryption.encrypt(plaintext, `${purpose}:${key}`));
+      return { key, changed: true, from: version, to: encryption.activeVersion };
+    },
+    async keyVersionOf(key) {
+      return encryption.envelopeKeyVersion(await backend.read(assertKey(key)));
     },
   };
 }
@@ -82,6 +113,12 @@ function filesystemBackend(directory) {
       const full = resolve(key);
       await fs.mkdir(path.dirname(full), { recursive: true, mode: 0o700 });
       await fs.writeFile(full, data, { mode: 0o600, flag: "wx" });
+    },
+    async replace(key, data) {
+      const full = resolve(key);
+      const temporary = `${full}.rotate-${crypto.randomUUID()}`;
+      await fs.writeFile(temporary, data, { mode: 0o600, flag: "wx" });
+      await fs.rename(temporary, full);
     },
     async read(key) {
       try {
@@ -115,6 +152,10 @@ function memoryBackend() {
       if (objects.has(key)) throw new Error("exists");
       objects.set(key, Buffer.from(data));
     },
+    async replace(key, data) {
+      if (!objects.has(key)) throw new MailStorageIntegrityError();
+      objects.set(key, Buffer.from(data));
+    },
     async read(key) {
       if (!objects.has(key)) throw new MailStorageIntegrityError();
       return Buffer.from(objects.get(key));
@@ -135,8 +176,18 @@ function createUnavailableStorage(reason) {
   return { available: false, name: "unavailable", put: fail, get: fail, remove: fail, health: async () => ({ ok: false, detail: reason }) };
 }
 
-function createMailStorage({ config, encryption, backend } = {}) {
+function createMailStorage({ config, encryption, backend, logger } = {}) {
   if (backend) return createEncryptedStore({ encryption, backend });
+  const violations = require("../mail.config").infrastructureViolations(config);
+  if (violations.length) {
+    if (config.enabled) logger?.error?.(`[MailStorage] refusing storage configuration: ${violations.join("; ")}`);
+    return createUnavailableStorage(`Mail infrastructure configuration refused: ${violations[0]}`);
+  }
+  if (config.storage.provider === "s3") {
+    const { s3Backend, s3Configured } = require("./s3-backend");
+    if (!s3Configured(config.storage.s3)) return createUnavailableStorage("MAIL_S3_* is not fully configured");
+    return createEncryptedStore({ encryption, backend: s3Backend(config.storage.s3, { logger }) });
+  }
   if (config.storage.provider === "filesystem" && config.storage.localDirectory) {
     return createEncryptedStore({ encryption, backend: filesystemBackend(config.storage.localDirectory) });
   }

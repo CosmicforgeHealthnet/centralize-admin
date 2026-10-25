@@ -18,6 +18,9 @@ async function main() {
   await connectDatabase();
   const { createMailApplication } = require("./modules/mail/application");
   const mail = createMailApplication({ client: prisma, config, logger });
+  // With MAIL_KMS_PROVIDER=aws-kms the keyring is unwrapped asynchronously;
+  // wait for it so the first jobs do not fail closed needlessly.
+  await mail.ready();
   if (!mail.storage.available) logger.warn("[MailWorker] Private storage is unavailable; inbound/outbound jobs will retry until configured.");
   const queues = String(process.env.MAIL_WORKER_QUEUES || "OUTBOUND,INBOUND,EVENTS").split(",").map((queue) => queue.trim().toUpperCase()).filter((queue) => ["OUTBOUND", "INBOUND", "EVENTS"].includes(queue));
   const worker = mail.createWorker({ queues });

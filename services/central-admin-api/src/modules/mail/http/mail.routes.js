@@ -177,6 +177,7 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
     await policy.requireMailAdmin(mail.client, user(req), "VIEW");
     ok(res, { ...publicStatus(config), health: await mail.health() });
   }));
+  router.post("/admin/attachments/:attachmentId/rescan", asyncHandler(async (req, res) => ok(res, await mail.services.attachmentReview.rescanAttachment(user(req), req.params.attachmentId, ctx(req)))));
   router.get("/admin/organizations", asyncHandler(async (req, res) => ok(res, await admin.listOrganizations(user(req)))));
   router.post("/admin/organizations", asyncHandler(async (req, res) => ok(res, await admin.createOrganization(user(req), body(req), ctx(req)), { status: 201 })));
   router.get("/admin/domains", asyncHandler(async (req, res) => ok(res, await admin.listDomains(user(req)))));

@@ -23,16 +23,19 @@ function parseKeyring(keysValue, activeVersion) {
   return { keys, active: active || null };
 }
 
-function createMailEncryption({ keys, activeKey } = {}) {
-  const keyring = parseKeyring(keys, activeKey);
-  const available = Boolean(keyring.active);
+// `keyring` may be passed pre-resolved ({ keys: Map, active }) - e.g. data
+// keys unwrapped by KMS. `deferred: true` starts unavailable until load() is
+// called with a resolved keyring (fail closed while KMS is being contacted).
+function createMailEncryption({ keys, activeKey, keyring: resolvedKeyring, deferred = false } = {}) {
+  let keyring = resolvedKeyring || (deferred ? { keys: new Map(), active: null } : parseKeyring(keys, activeKey));
+  let loadError = null;
 
   function aad(purpose, version) {
     return Buffer.from(JSON.stringify({ v: 1, purpose: String(purpose), key: version }));
   }
 
   function requireAvailable() {
-    if (!available) {
+    if (!keyring.active) {
       const error = new Error("Mail encryption keyring is not configured");
       error.code = "MAIL_STORAGE_UNAVAILABLE";
       throw error;
@@ -73,8 +76,35 @@ function createMailEncryption({ keys, activeKey } = {}) {
   }
 
   return {
-    available,
-    activeVersion: keyring.active,
+    get available() {
+      return Boolean(keyring.active);
+    },
+    get activeVersion() {
+      return keyring.active;
+    },
+    get versions() {
+      return [...keyring.keys.keys()];
+    },
+    get loadError() {
+      return loadError;
+    },
+    load(next) {
+      keyring = { keys: new Map(next.keys), active: next.active };
+      loadError = null;
+    },
+    fail(error) {
+      loadError = error ? String(error.code || "MAIL_KMS_ERROR") : null;
+    },
+    envelopeKeyVersion(envelope) {
+      const buffer = Buffer.from(envelope);
+      if (!buffer.subarray(0, WIRE_PREFIX.length).equals(WIRE_PREFIX)) return null;
+      const headerLength = buffer.readUInt16BE(WIRE_PREFIX.length);
+      try {
+        return JSON.parse(buffer.subarray(WIRE_PREFIX.length + 2, WIRE_PREFIX.length + 2 + headerLength).toString("utf8")).k || null;
+      } catch {
+        return null;
+      }
+    },
     encrypt,
     decrypt,
     encryptJson: (value, purpose) => encrypt(Buffer.from(JSON.stringify(value ?? null)), purpose),

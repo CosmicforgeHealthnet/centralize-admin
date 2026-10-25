@@ -74,6 +74,7 @@ const PATHS = [
   ["get", "/admin/legal-holds", "Legal holds", any],
   ["post", "/admin/legal-holds", "Create legal hold", any],
   ["post", "/admin/legal-holds/{holdId}/release", "Release legal hold", any],
+  ["post", "/admin/attachments/{attachmentId}/rescan", "Re-scan an unscanned/failed attachment (never releases INFECTED)", any],
   ["get", "/admin/retention-policies", "Retention policies", any],
   ["post", "/admin/retention-policies", "Create retention policy", any],
   ["post", "/security/step-up", "TOTP step-up verification", any],
