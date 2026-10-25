@@ -4,9 +4,14 @@ Migration artifact: `services/central-admin-api/prisma/manual-migrations/2026102
 (manifest order 27, checksum in `manifest.json`).
 Rollback artifact: `docs/sql/cosmicforge-mail-m1-m6-rollback.sql` (manual only).
 
-The migration was amended once before any application (post-review remediation added
-`OUTCOME_UNKNOWN` statuses and `mail_message_recipients.provider_message_id`); always use the
-checksum in `manifest.json` from the reviewed commit.
+The migration was amended twice before any application: post-review remediation added
+`OUTCOME_UNKNOWN` statuses and `mail_message_recipients.provider_message_id`, and pre-merge
+hardening replaced plaintext `snippet` / `search_text` / note `body` columns with
+`encrypted_snippet`, `metadata_search_text` and `encrypted_body` (GIN index
+`IDX_mail_messages_metadata_search_fts`). Amending in place is safe only because no environment
+has applied it (see the pre-flight ledger check below); if the ledger row exists anywhere, stop
+and ship a follow-up migration instead. Always use the checksum in `manifest.json` from the
+reviewed commit.
 
 The migration is **additive**: 33 new enums, 36 new tables, indexes, CHECK
 constraints, 3 partial unique indexes, a GIN full-text index, and 2 trigger
@@ -75,7 +80,7 @@ SELECT count(*) FROM information_schema.tables WHERE table_schema='public'
   'marketing_email_campaigns','marketing_email_campaign_snapshots','marketing_email_campaign_approvals'));   -- 36
 SELECT tgname FROM pg_trigger WHERE tgname LIKE 'TRG_mail%' OR tgname LIKE 'TRG_marketing_%';               -- 5 triggers
 SELECT indexname FROM pg_indexes WHERE indexname IN ('UQ_mail_memberships_active_member',
-  'UQ_mail_sender_grants_active','UQ_marketing_email_suppressions_active','IDX_mail_messages_search_fts');  -- 4
+  'UQ_mail_sender_grants_active','UQ_marketing_email_suppressions_active','IDX_mail_messages_metadata_search_fts');  -- 4
 ```
 
 Then restart the staging API (flags still off) and confirm existing login, HR,
@@ -91,7 +96,9 @@ psql "$ADMIN_DB_URL" -v ON_ERROR_STOP=1 -f docs/sql/cosmicforge-mail-m1-m6-rollb
 
 It drops only the Mail objects created by this migration and removes the
 ledger row. Existing tables are untouched (verified against a disposable
-replay database).
+replay database: staging schema -> migration (36 tables, 5 triggers, 4 indexes, zero drift)
+-> rollback (0 Mail tables, 0 Mail types) -> `prisma migrate diff` against the staging schema
+reports no difference).
 
 If Mail data must be preserved, do **not** run the rollback: set
 `MAIL_ENABLED=false` (the API returns 503 for every Mail route and the worker

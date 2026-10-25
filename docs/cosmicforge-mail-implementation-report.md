@@ -272,3 +272,137 @@ been applied to any real database.
 | Staging Admin DB migration approval | **Pending**; runbook ready, nothing applied |
 | Frontend automated E2E / accessibility | **Missing** as CI suites. Manual Playwright smoke run only, no axe audit |
 | M6 gaps | No dispatch (M7 by design), no double-opt-in confirmation email, no retention sweeper, tickets page does not read `?ref=` |
+
+## 10. Final pre-merge hardening (release readiness)
+
+### 10.1 Email content at rest
+
+Before: `mail_messages.search_text` held up to 20k characters of decrypted body,
+`mail_messages.snippet` / `mail_threads.snippet` held plaintext previews,
+`mail_internal_notes.body` was plaintext, and `MAIL_SEARCH_INDEX_BODIES` defaulted to `true`.
+
+After:
+
+- Previews are stored as `encrypted_snippet` (AES-256-GCM, purpose `mail-snippet`) and decrypted
+  per request only for authorized readers (no extra storage fetch per row).
+- Support internal notes are stored as `encrypted_body` (purpose `mail-internal-note`); writing a
+  note fails closed with `MAIL_STORAGE_UNAVAILABLE` when no keyring is configured.
+- Search uses `metadata_search_text` (subject, sender address/name, non-BCC recipients) with GIN
+  index `IDX_mail_messages_metadata_search_fts`. Body search is removed. `MAIL_SEARCH_INDEX_BODIES`
+  cannot re-enable it; a legacy `true` is reported as refused in `GET /status`.
+- Bodies, drafts and attachments were already in encrypted private storage; unchanged.
+
+Proof (`tests/mail-postgres.test.js`, "Confidentiality" subtest): unique canaries in an outbound
+body, inbound body, attachment, draft and support note. Every text, varchar, json/jsonb, array,
+enum and bytea column of every `mail_*` / `marketing_email_*` table plus `notifications` and
+`admin_audit_logs` (more than 100 columns) is scanned. There are zero hits, the FTS index cannot
+match body terms, `GET /search` finds nothing for the body canary but still finds the subject,
+storage objects hold only ciphertext, and BCC addresses never reach search metadata. Positive
+control: authorized readers still get decrypted previews, bodies, drafts and notes.
+
+**Intentionally plaintext (not claimed confidential at rest):** subjects; sender/recipient
+addresses and display names (BCC is visible to the sender's mailbox only); RFC Message-ID / In-Reply-To /
+References; attachment filename, type, size and hash; labels, folders, read/star state; support
+status/assignment; delivery events; audit metadata (ids and actions, never content); Marketing
+Email Studio template/campaign content (authored marketing copy, not correspondence). Database
+encryption at rest / KMS for these remains an infrastructure control (blocker B3).
+
+### 10.2 Mandatory sender-domain allowlist
+
+`src/modules/mail/authz/sending-gate.js` is the single gate for external delivery, applied at
+enqueue (`compose.service`), before every provider call (`outbound.processor`) and in marketing
+preflight (`sender_domain_allowlisted`). External delivery is denied when sending is disabled, the
+provider is not configured, `MAIL_DOMAIN_ALLOWLIST` is empty, the domain is not listed (no implicit
+subdomains), the domain is not verified, or the domain is suspended / sending disabled. The existing
+dispatch checks still deny revoked addresses, identities, memberships and grants. Internal delivery
+never reaches the provider. Legacy SMTP/nodemailer senders are untouched.
+
+Evidence: the unit test covers every reason; the Postgres "Hardening" subtest covers the
+following, and in every dispatch case the provider is never called and `MAIL_SEND_BLOCKED_AT_DISPATCH`
+is audited:
+
+- An empty allowlist gives `SENDER_DOMAIN_ALLOWLIST_EMPTY`, while an internal-only send still works.
+- Sending disabled and provider unconfigured are both refused.
+- A verified but unrelated domain gives `SENDER_DOMAIN_NOT_ALLOWLISTED`, and registering an unlisted
+  domain is refused.
+- Mail queued while allowed and then dispatched after the allowlist changed, after the allowlist was
+  emptied, after provider credentials were removed, or after the domain was suspended ends `FAILED`
+  with the reason.
+- A control send still works.
+
+### 10.3 Transport safety (revalidated, offline only)
+
+Already covered and still green:
+
+- Resend `409 invalid_idempotent_request` gives `OUTCOME_UNKNOWN`; `concurrent_idempotent_requests`
+  is retried.
+- The idempotency window is capped at 23h (below Resend's 24h retention).
+- The recipient cap is 50.
+- Mixed recipients produce one provider call carrying external recipients only.
+- Lease recovery and the dead letter re-read the persisted plan.
+
+New subtest:
+
+- `OUTCOME_UNKNOWN` is never shown as delivered, in the status endpoint or in the thread.
+- An unrelated provider event cannot resolve it.
+- It is never auto-retried.
+
+All tests run behind the network guard; no live calls.
+
+### 10.4 Migration
+
+Evidence that the migration is unapplied: the file is absent from `origin/staging` and `origin/main`;
+every workflow run on this branch was a `pull_request` event with deploy jobs skipped; the staging
+deploy only recreates the container; the image CMD is `node src/server.js`; and
+`db:admin:prepare` does not apply Mail SQL. So it was amended in place, the manifest and committed
+client were regenerated, and the runbook ledger pre-check is the gate on staging. The live database
+was not queried; no credentials were used.
+
+| Check | Result |
+| --- | --- |
+| `prisma validate` / `format` | valid / stable |
+| `db:manifest:verify` | 27 migrations, 0 checksum failures |
+| `migrations:safety` | 27 files, 0 findings |
+| `db:replay:verify` | status ok, 27 migrations, drift none |
+| Apply on staging-schema DB | 36 tables, 5 triggers, 4 named indexes, 0 legacy plaintext columns, `migrate diff` exit 0 |
+| Rollback | 0 Mail tables, 0 Mail enum types; `migrate diff` vs staging schema: "No difference detected" |
+
+### 10.5 Vercel `centralize-admin` failure (`NEXT_NO_VERSION`)
+
+Diagnosis, with no settings changed:
+
+- The production Vercel project builds the repository root.
+- The root `package.json` is a multi-service workspace manifest and has no `next` dependency;
+  Next.js lives in `apps/central-admin-web/package.json`.
+- Vercel's Next.js preset therefore stops with `NEXT_NO_VERSION`.
+- The project tracks `main`, and the failure is not caused by this PR: it fails the same way
+  for any root build.
+
+Fix, for the Vercel project owner (needs authorization):
+
+- Set **Root Directory** to `apps/central-admin-web`, keep Framework Preset = Next.js and
+  enable "Include files outside the root directory" only if needed; or
+- if previews are not wanted for this repo, disable preview deployments / ignored build step for
+  non-`main` branches.
+
+Do not add a fake root `next` dependency or root Next.js files.
+
+### 10.6 Frontend automated regression tests
+
+_Playwright suite (mocked API) lands in the follow-up commit on this branch._
+
+### 10.7 Production release blockers (prioritized)
+
+| # | Priority | Blocker | Prerequisites / owner |
+| --- | --- | --- | --- |
+| B1 | P0 | httpOnly, short-lived HQ sessions (token is in `localStorage` + JS-readable cookie) | Auth migration across the admin app and API; security review |
+| B2 | P0 | MFA (TOTP) enrollment + recovery codes; step-up currently returns `MAIL_MFA_NOT_ENROLLED` | Enrollment UI/API, recovery flow, admin reset procedure |
+| B3 | P0 | Private object storage + KMS-backed keyring (filesystem/env keyring is staging-only) | Cloud bucket, KMS keys, rotation runbook, DB encryption at rest |
+| B4 | P0 | Malware scanner (clamd) provisioned; without it all attachments are quarantined | ClamAV service + health monitoring |
+| B5 | P0 | Approved staging Admin DB migration (runbook) | Admin DB owner change window, backup, ledger pre-check |
+| B6 | P1 | Live Resend validation on a test domain (send, webhook signature, receiving route, idempotency) | Resend account owner, API key + webhook secret in secret store |
+| B7 | P1 | Domain / DNS (SPF, DKIM, DMARC, MX for receiving) for a **test** domain only | Domain owner; production MX out of scope |
+| B8 | P1 | Accessibility audit (axe + keyboard + screen reader) of webmail and studio | Frontend owner; add axe to the E2E suite |
+| B9 | P2 | Retention execution (sweeper honouring legal holds) | Records/legal policy, scheduled job |
+| B10 | P2 | Double opt-in confirmation email for marketing consent | Brand owners, consent policy versions; needs B6/B7 |
+| B11 | P2 | Marketing dispatch (M7) | Separate approval; depends on B6, B7, B10 |

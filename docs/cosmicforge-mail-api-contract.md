@@ -133,6 +133,12 @@ type Draft = { id: string; mailboxId: string; mode: "NEW" | "REPLY" | "REPLY_ALL
 | PUT/DELETE | `/threads/:threadId/labels/:labelId` | add/remove label |
 | GET | `/mailboxes/:mailboxId/search?q=&from=&to=&subject=&after=&before=&labelId=&cursor=&limit=` | `ThreadSummary[]` (mailbox-scoped) |
 | GET | `/search?q=...` | across all mailboxes the caller can read |
+
+Search is **metadata-only**: subject, sender address/name and non-BCC recipients. Message
+bodies, previews and internal notes are not indexed and are never stored in plaintext;
+`MAIL_SEARCH_INDEX_BODIES` is ignored and `GET /status` reports
+`search: { metadataOnly: true, bodySearch: "disabled", bodyIndexingRequestRefused }`.
+`snippet` in `ThreadSummary` is decrypted per request for authorized readers.
 | GET | `/contacts/suggest?q=` | `Party[]` from caller-visible correspondents + staff directory |
 
 ## Drafts and sending
@@ -147,6 +153,8 @@ type Draft = { id: string; mailboxId: string; mode: "NEW" | "REPLY" | "REPLY_ALL
 | POST | `/drafts/:draftId/attachments` | `multipart/form-data` field `file` -> `Attachment` (201). Scanned before it can be sent. |
 | DELETE | `/drafts/:draftId/attachments/:attachmentId` | |
 | POST | `/drafts/:draftId/send` | body `{ revision }`. Header `Idempotency-Key` optional. Returns **202** `{ messageId, threadId, jobId, status: "QUEUED" }`. Never claims delivery. |
+
+External (provider) delivery is gated at enqueue **and** again before every provider call. Denials: `503 MAIL_SENDING_DISABLED`; `503 MAIL_PROVIDER_UNAVAILABLE` (`reason: MAIL_PROVIDER_NOT_CONFIGURED`); `403 MAIL_SENDER_NOT_AUTHORIZED` with `errors[0].reason` one of `SENDER_DOMAIN_ALLOWLIST_EMPTY`, `SENDER_DOMAIN_NOT_ALLOWLISTED`, `SENDER_DOMAIN_NOT_VERIFIED`, `SENDER_DOMAIN_SENDING_DISABLED` (plus the existing identity/membership/grant reasons). An empty `MAIL_DOMAIN_ALLOWLIST` denies all external delivery; purely internal recipients are delivered locally and never reach the provider. A send blocked at dispatch ends `FAILED` with the reason in the recipient `lastEventDetail` and a `MAIL_SEND_BLOCKED_AT_DISPATCH` audit event.
 | GET | `/messages/:messageId/status` | `{ status, recipients: Recipient[], deliveryEvents }` |
 | GET | `/attachments/:attachmentId/download` | streams file with `Content-Disposition: attachment`, `X-Content-Type-Options: nosniff`. 403 `MAIL_ATTACHMENT_QUARANTINED` when not CLEAN. |
 
