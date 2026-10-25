@@ -4012,6 +4012,7 @@ enum MailJobQueue {
   OUTBOUND
   INBOUND
   EVENTS
+  MARKETING
 }
 
 enum MailJobStatus {
@@ -4098,6 +4099,7 @@ enum MarketingEmailCampaignStatus {
   PARTIAL
   FAILED
   CANCELLED
+  OUTCOME_UNKNOWN
 }
 
 enum MarketingCampaignApprovalDecision {
@@ -4121,16 +4123,18 @@ model MailOrganization {
   createdAt DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  domains            MailDomain[]
-  addresses          MailAddress[]
-  mailboxes          MailMailbox[]
-  provisionRequests  MailProvisionRequest[]
-  retentionPolicies  MailRetentionPolicy[]
-  legalHolds         MailLegalHold[]
-  marketingContacts  MarketingContact[]
-  marketingAudiences MarketingAudience[]
-  marketingTemplates MarketingEmailTemplate[]
-  marketingCampaigns MarketingEmailCampaign[]
+  domains                MailDomain[]
+  addresses              MailAddress[]
+  mailboxes              MailMailbox[]
+  provisionRequests      MailProvisionRequest[]
+  retentionPolicies      MailRetentionPolicy[]
+  legalHolds             MailLegalHold[]
+  marketingContacts      MarketingContact[]
+  marketingAudiences     MarketingAudience[]
+  marketingTemplates     MarketingEmailTemplate[]
+  marketingCampaigns     MarketingEmailCampaign[]
+  marketingBrandSettings MarketingBrandSettings?
+  marketingAutomations   MarketingAutomation[]
 
   @@map("mail_organizations")
 }
@@ -4722,9 +4726,11 @@ model MarketingContact {
   createdAt      DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  organization MailOrganization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_contacts_organization")
-  consents     MarketingConsent[]
-  audiences    MarketingAudienceContact[]
+  organization          MailOrganization                @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_contacts_organization")
+  consents              MarketingConsent[]
+  audiences             MarketingAudienceContact[]
+  broadcastRecipients   MarketingBroadcastRecipient[]
+  automationEnrollments MarketingAutomationEnrollment[]
 
   @@unique([organizationId, email], map: "UQ_marketing_contacts_org_email")
   @@index([organizationId, status], map: "IDX_marketing_contacts_org_status")
@@ -4896,6 +4902,7 @@ model MarketingEmailCampaign {
   segment         MarketingSegment?           @relation(fields: [segmentId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_email_campaigns_segment")
   approvals       MarketingCampaignApproval[]
   snapshots       MarketingCampaignSnapshot[]
+  dispatch        MarketingBroadcastDispatch?
 
   @@index([organizationId, status, updatedAt], map: "IDX_marketing_email_campaigns_org_status")
   @@map("marketing_email_campaigns")
@@ -4919,8 +4926,9 @@ model MarketingCampaignSnapshot {
   createdBy         String                        @map("created_by")
   createdAt         DateTime                      @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  campaign  MarketingEmailCampaign      @relation(fields: [campaignId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_campaign_snapshots_campaign")
-  approvals MarketingCampaignApproval[]
+  campaign         MarketingEmailCampaign             @relation(fields: [campaignId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_campaign_snapshots_campaign")
+  approvals        MarketingCampaignApproval[]
+  approvedContacts MarketingCampaignApprovedContact[]
 
   @@unique([campaignId, revision, kind], map: "UQ_marketing_campaign_snapshots_campaign_revision_kind")
   @@map("marketing_email_campaign_snapshots")
@@ -4942,4 +4950,310 @@ model MarketingCampaignApproval {
 
   @@index([campaignId, revision], map: "IDX_marketing_campaign_approvals_campaign_revision")
   @@map("marketing_email_campaign_approvals")
+}
+
+// ===================================================================
+// CosmicForge Mail M7 - broadcasts and marketing automation
+// (manual migration 20261027_mail_m7_broadcasts_automation.sql)
+// ===================================================================
+
+enum MarketingBroadcastStatus {
+  SCHEDULED
+  QUEUED
+  PREPARING
+  SENDING
+  COMPLETED
+  PARTIAL
+  FAILED
+  CANCELLED
+  OUTCOME_UNKNOWN
+  PAUSED
+}
+
+enum MarketingBroadcastRecipientStatus {
+  PENDING
+  EXCLUDED
+  SYNCED
+  PROVIDER_ACCEPTED
+  DELIVERED
+  DELAYED
+  BOUNCED
+  COMPLAINED
+  FAILED
+  SUPPRESSED
+  UNSUBSCRIBED
+  CANCELLED
+  OUTCOME_UNKNOWN
+}
+
+enum MarketingAutomationStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum MarketingAutomationVersionStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  SUPERSEDED
+  REJECTED
+}
+
+enum MarketingAutomationEnrollmentStatus {
+  ACTIVE
+  WAITING
+  COMPLETED
+  EXITED
+  FAILED
+  CANCELLED
+}
+
+enum MarketingAutomationStepRunStatus {
+  RUNNING
+  SUCCEEDED
+  SKIPPED
+  FAILED
+  OUTCOME_UNKNOWN
+}
+
+enum MarketingTriggerEventStatus {
+  RECEIVED
+  PROCESSED
+  IGNORED
+  FAILED
+}
+
+// Brand-level marketing controls (sender for confirmations, caps, pause).
+model MarketingBrandSettings {
+  organizationId         String    @id @map("organization_id") @db.Uuid
+  confirmationSenderId   String?   @map("confirmation_sender_address_id") @db.Uuid
+  defaultTimeZone        String    @default("UTC") @map("default_time_zone") @db.VarChar(64)
+  postalAddress          String?   @map("postal_address") @db.VarChar(500)
+  dailyBroadcastCap      Int       @default(1000) @map("daily_broadcast_cap")
+  dailyAutomationCap     Int       @default(500) @map("daily_automation_cap")
+  maxBroadcastRecipients Int       @default(1000) @map("max_broadcast_recipients")
+  dispatchPaused         Boolean   @default(false) @map("dispatch_paused")
+  pausedReason           String?   @map("paused_reason") @db.VarChar(500)
+  pausedAt               DateTime? @map("paused_at") @db.Timestamptz(6)
+  pausedBy               String?   @map("paused_by")
+  updatedBy              String?   @map("updated_by")
+  createdAt              DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  organization MailOrganization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_brand_settings_organization")
+
+  @@map("marketing_brand_settings")
+}
+
+// Contacts that were eligible at approval time. Dispatch sends only to
+// contacts that are in this set AND still eligible at dispatch.
+model MarketingCampaignApprovedContact {
+  snapshotId String   @map("snapshot_id") @db.Uuid
+  contactId  String   @map("contact_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  snapshot MarketingCampaignSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_campaign_approved_contacts_snapshot")
+
+  @@id([snapshotId, contactId], map: "PK_marketing_campaign_approved_contacts")
+  @@map("marketing_campaign_approved_contacts")
+}
+
+model MarketingBroadcastDispatch {
+  id                      String                   @id @default(uuid()) @db.Uuid
+  campaignId              String                   @unique(map: "UQ_marketing_broadcast_dispatches_campaign") @map("campaign_id") @db.Uuid
+  organizationId          String                   @map("organization_id") @db.Uuid
+  approvalSnapshotId      String                   @map("approval_snapshot_id") @db.Uuid
+  status                  MarketingBroadcastStatus @default(SCHEDULED)
+  scheduledFor            DateTime                 @map("scheduled_for") @db.Timestamptz(6)
+  timeZone                String                   @map("time_zone") @db.VarChar(64)
+  localSendTime           String?                  @map("local_send_time") @db.VarChar(32)
+  provider                String                   @default("resend") @db.VarChar(32)
+  providerSegmentId       String?                  @map("provider_segment_id") @db.VarChar(128)
+  providerBroadcastId     String?                  @map("provider_broadcast_id") @db.VarChar(128)
+  providerStatus          String?                  @map("provider_status") @db.VarChar(32)
+  providerCreateAttemptAt DateTime?                @map("provider_create_attempted_at") @db.Timestamptz(6)
+  providerSendAttemptAt   DateTime?                @map("provider_send_attempted_at") @db.Timestamptz(6)
+  providerSentAt          DateTime?                @map("provider_sent_at") @db.Timestamptz(6)
+  recipientCount          Int                      @default(0) @map("recipient_count")
+  excludedCount           Int                      @default(0) @map("excluded_count")
+  eligibilitySha256       String?                  @map("eligibility_sha256") @db.Char(64)
+  contentSha256           String                   @map("content_sha256") @db.Char(64)
+  scheduledByAdminUserId  String                   @map("scheduled_by_admin_user_id")
+  cancelRequestedAt       DateTime?                @map("cancel_requested_at") @db.Timestamptz(6)
+  cancelRequestedBy       String?                  @map("cancel_requested_by")
+  pausedAt                DateTime?                @map("paused_at") @db.Timestamptz(6)
+  pausedBy                String?                  @map("paused_by")
+  lastErrorCode           String?                  @map("last_error_code") @db.VarChar(64)
+  lastErrorMessage        String?                  @map("last_error_message") @db.VarChar(500)
+  completedAt             DateTime?                @map("completed_at") @db.Timestamptz(6)
+  revision                Int                      @default(1)
+  createdAt               DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  campaign   MarketingEmailCampaign        @relation(fields: [campaignId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_broadcast_dispatches_campaign")
+  recipients MarketingBroadcastRecipient[]
+
+  @@index([organizationId, status], map: "IDX_marketing_broadcast_dispatches_org_status")
+  @@index([providerBroadcastId], map: "IDX_marketing_broadcast_dispatches_provider_broadcast")
+  @@map("marketing_broadcast_dispatches")
+}
+
+model MarketingBroadcastRecipient {
+  id                String                            @id @default(uuid()) @db.Uuid
+  dispatchId        String                            @map("dispatch_id") @db.Uuid
+  organizationId    String                            @map("organization_id") @db.Uuid
+  contactId         String                            @map("contact_id") @db.Uuid
+  email             String                            @db.VarChar(320)
+  status            MarketingBroadcastRecipientStatus @default(PENDING)
+  exclusionReason   String?                           @map("exclusion_reason") @db.VarChar(64)
+  providerContactId String?                           @map("provider_contact_id") @db.VarChar(128)
+  providerEmailId   String?                           @map("provider_email_id") @db.VarChar(255)
+  syncedAt          DateTime?                         @map("synced_at") @db.Timestamptz(6)
+  acceptedAt        DateTime?                         @map("accepted_at") @db.Timestamptz(6)
+  lastEventType     String?                           @map("last_event_type") @db.VarChar(32)
+  lastEventAt       DateTime?                         @map("last_event_at") @db.Timestamptz(6)
+  openedAt          DateTime?                         @map("opened_at") @db.Timestamptz(6)
+  clickedAt         DateTime?                         @map("clicked_at") @db.Timestamptz(6)
+  createdAt         DateTime                          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime                          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  dispatch MarketingBroadcastDispatch @relation(fields: [dispatchId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_broadcast_recipients_dispatch")
+  contact  MarketingContact           @relation(fields: [contactId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_broadcast_recipients_contact")
+
+  @@unique([dispatchId, contactId], map: "UQ_marketing_broadcast_recipients_dispatch_contact")
+  @@index([dispatchId, status], map: "IDX_marketing_broadcast_recipients_dispatch_status")
+  @@index([organizationId, email, acceptedAt], map: "IDX_marketing_broadcast_recipients_org_email")
+  @@index([providerContactId], map: "IDX_marketing_broadcast_recipients_provider_contact")
+  @@map("marketing_broadcast_recipients")
+}
+
+model MarketingAutomation {
+  id                   String                    @id @default(uuid()) @db.Uuid
+  organizationId       String                    @map("organization_id") @db.Uuid
+  name                 String                    @db.VarChar(160)
+  description          String?
+  status               MarketingAutomationStatus @default(DRAFT)
+  triggerType          String                    @map("trigger_type") @db.VarChar(32)
+  activeVersionId      String?                   @map("active_version_id") @db.Uuid
+  enrollmentLimit      Int                       @default(1) @map("enrollment_limit")
+  maxActiveEnrollments Int                       @default(5000) @map("max_active_enrollments")
+  frequencyCapHours    Int                       @default(24) @map("frequency_cap_hours")
+  createdByAdminUserId String                    @map("created_by_admin_user_id")
+  updatedByAdminUserId String                    @map("updated_by_admin_user_id")
+  revision             Int                       @default(1)
+  lastScheduledRunAt   DateTime?                 @map("last_scheduled_run_at") @db.Timestamptz(6)
+  activatedAt          DateTime?                 @map("activated_at") @db.Timestamptz(6)
+  createdAt            DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime                  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  organization MailOrganization                @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_automations_organization")
+  versions     MarketingAutomationVersion[]
+  enrollments  MarketingAutomationEnrollment[]
+
+  @@unique([organizationId, name], map: "UQ_marketing_automations_org_name")
+  @@map("marketing_automations")
+}
+
+model MarketingAutomationVersion {
+  id                     String                           @id @default(uuid()) @db.Uuid
+  automationId           String                           @map("automation_id") @db.Uuid
+  version                Int
+  status                 MarketingAutomationVersionStatus @default(DRAFT)
+  definition             Json
+  triggerConfig          Json                             @map("trigger_config")
+  definitionSha256       String                           @map("definition_sha256") @db.Char(64)
+  createdByAdminUserId   String                           @map("created_by_admin_user_id")
+  submittedByAdminUserId String?                          @map("submitted_by_admin_user_id")
+  submittedAt            DateTime?                        @map("submitted_at") @db.Timestamptz(6)
+  reviewedByAdminUserId  String?                          @map("reviewed_by_admin_user_id")
+  reviewedAt             DateTime?                        @map("reviewed_at") @db.Timestamptz(6)
+  reviewComment          String?                          @map("review_comment")
+  stepUpId               String?                          @map("step_up_id") @db.Uuid
+  publishedAt            DateTime?                        @map("published_at") @db.Timestamptz(6)
+  createdAt              DateTime                         @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  automation  MarketingAutomation             @relation(fields: [automationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_automation_versions_automation")
+  enrollments MarketingAutomationEnrollment[]
+
+  @@unique([automationId, version], map: "UQ_marketing_automation_versions_automation_version")
+  @@map("marketing_automation_versions")
+}
+
+model MarketingAutomationEnrollment {
+  id             String                              @id @default(uuid()) @db.Uuid
+  automationId   String                              @map("automation_id") @db.Uuid
+  versionId      String                              @map("version_id") @db.Uuid
+  organizationId String                              @map("organization_id") @db.Uuid
+  contactId      String                              @map("contact_id") @db.Uuid
+  status         MarketingAutomationEnrollmentStatus @default(ACTIVE)
+  dedupeKey      String                              @map("dedupe_key") @db.VarChar(200)
+  triggerEventId String?                             @map("trigger_event_id") @db.Uuid
+  currentStepId  String?                             @map("current_step_id") @db.VarChar(64)
+  stepCount      Int                                 @default(0) @map("step_count")
+  nextRunAt      DateTime?                           @map("next_run_at") @db.Timestamptz(6)
+  exitReason     String?                             @map("exit_reason") @db.VarChar(64)
+  context        Json?
+  completedAt    DateTime?                           @map("completed_at") @db.Timestamptz(6)
+  createdAt      DateTime                            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime                            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  automation MarketingAutomation          @relation(fields: [automationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_automation_enrollments_automation")
+  version    MarketingAutomationVersion   @relation(fields: [versionId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_automation_enrollments_version")
+  contact    MarketingContact             @relation(fields: [contactId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_automation_enrollments_contact")
+  stepRuns   MarketingAutomationStepRun[]
+
+  @@unique([automationId, dedupeKey], map: "UQ_marketing_automation_enrollments_dedupe")
+  @@index([status, nextRunAt], map: "IDX_marketing_automation_enrollments_due")
+  @@index([automationId, contactId], map: "IDX_marketing_automation_enrollments_contact")
+  @@map("marketing_automation_enrollments")
+}
+
+model MarketingAutomationStepRun {
+  id                String                           @id @default(uuid()) @db.Uuid
+  enrollmentId      String                           @map("enrollment_id") @db.Uuid
+  organizationId    String                           @map("organization_id") @db.Uuid
+  stepId            String                           @map("step_id") @db.VarChar(64)
+  stepType          String                           @map("step_type") @db.VarChar(32)
+  sequence          Int
+  status            MarketingAutomationStepRunStatus @default(RUNNING)
+  idempotencyKey    String?                          @unique(map: "UQ_marketing_automation_step_runs_idempotency") @map("idempotency_key") @db.VarChar(160)
+  recipientEmail    String?                          @map("recipient_email") @db.VarChar(320)
+  templateVersionId String?                          @map("template_version_id") @db.Uuid
+  providerMessageId String?                          @map("provider_message_id") @db.VarChar(255)
+  firstAttemptAt    DateTime?                        @map("first_attempt_at") @db.Timestamptz(6)
+  deliveryStatus    String?                          @map("delivery_status") @db.VarChar(32)
+  outcome           Json?
+  errorCode         String?                          @map("error_code") @db.VarChar(64)
+  createdAt         DateTime                         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime                         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  enrollment MarketingAutomationEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_automation_step_runs_enrollment")
+
+  @@unique([enrollmentId, sequence], map: "UQ_marketing_automation_step_runs_sequence")
+  @@index([providerMessageId], map: "IDX_marketing_automation_step_runs_provider_message")
+  @@index([organizationId, recipientEmail, createdAt], map: "IDX_marketing_automation_step_runs_org_email")
+  @@map("marketing_automation_step_runs")
+}
+
+// Approved, minimal trigger events (consent grants, schedules, approved
+// product events). Never raw product payloads or clinical data.
+model MarketingTriggerEvent {
+  id             String                      @id @default(uuid()) @db.Uuid
+  organizationId String                      @map("organization_id") @db.Uuid
+  source         String                      @db.VarChar(32)
+  eventType      String                      @map("event_type") @db.VarChar(96)
+  eventId        String                      @map("event_id") @db.VarChar(160)
+  contactId      String?                     @map("contact_id") @db.Uuid
+  payload        Json?
+  status         MarketingTriggerEventStatus @default(RECEIVED)
+  error          String?                     @db.VarChar(500)
+  occurredAt     DateTime                    @map("occurred_at") @db.Timestamptz(6)
+  receivedAt     DateTime                    @default(now()) @map("received_at") @db.Timestamptz(6)
+  processedAt    DateTime?                   @map("processed_at") @db.Timestamptz(6)
+
+  @@unique([organizationId, source, eventId], map: "UQ_marketing_trigger_events_source_event")
+  @@index([status, receivedAt], map: "IDX_marketing_trigger_events_status")
+  @@map("marketing_trigger_events")
 }

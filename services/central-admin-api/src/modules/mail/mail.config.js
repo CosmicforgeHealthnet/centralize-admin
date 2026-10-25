@@ -148,6 +148,43 @@ function loadMailConfig(env = process.env) {
         : "reject",
     stepUpTtlSeconds: intInRange(env.MAIL_STEP_UP_TTL_SECONDS, 300, 60, 900),
     publicAppUrl: String(env.MAIL_PUBLIC_APP_URL || env.FRONTEND_URL || ""),
+    // Public base for unsubscribe / preference links (the API origin).
+    publicApiUrl: String(env.MAIL_PUBLIC_API_URL || "").replace(/\/+$/, ""),
+    // M7: each live capability has its own flag and requires Mail + Marketing.
+    broadcastDispatchEnabled: enabled && flag(env.MAIL_MARKETING_ENABLED) && flag(env.MAIL_BROADCAST_DISPATCH_ENABLED),
+    automationEnabled: enabled && flag(env.MAIL_MARKETING_ENABLED) && flag(env.MAIL_AUTOMATION_ENABLED),
+    confirmationEmailsEnabled: enabled && flag(env.MAIL_MARKETING_ENABLED) && flag(env.MAIL_MARKETING_CONFIRMATION_EMAILS_ENABLED),
+    // Queues served by this worker process. MARKETING is opt-in so the
+    // transactional worker never runs marketing jobs unless deployed to.
+    workerQueues: (() => {
+      const requested = list(env.MAIL_WORKER_QUEUES || "outbound,inbound,events").map((entry) => entry.toUpperCase());
+      return requested.filter((entry) => ["OUTBOUND", "INBOUND", "EVENTS", "MARKETING"].includes(entry));
+    })(),
+    broadcast: {
+      // Hard ceiling regardless of brand settings.
+      maxRecipients: intInRange(env.MAIL_BROADCAST_MAX_RECIPIENTS, 1000, 1, 100000),
+      providerRequestsPerSecond: intInRange(env.MAIL_BROADCAST_PROVIDER_RPS, 5, 1, 10),
+      syncBatchSize: intInRange(env.MAIL_BROADCAST_SYNC_BATCH, 100, 10, 1000),
+      approvalTtlDays: intInRange(env.MAIL_CAMPAIGN_APPROVAL_TTL_DAYS, 14, 1, 90),
+      reconcileIntervalSeconds: intInRange(env.MAIL_BROADCAST_RECONCILE_SECONDS, 60, 10, 3600),
+      reconcileMaxHours: intInRange(env.MAIL_BROADCAST_RECONCILE_MAX_HOURS, 48, 1, 168),
+      allowSharedProviderAccount: flag(env.MAIL_BROADCAST_ALLOW_SHARED_PROVIDER_ACCOUNT),
+      minLeadSeconds: intInRange(env.MAIL_BROADCAST_MIN_LEAD_SECONDS, 300, 0, 86400),
+    },
+    automation: {
+      tickBatch: intInRange(env.MAIL_AUTOMATION_TICK_BATCH, 100, 1, 1000),
+      maxStepsPerEnrollment: intInRange(env.MAIL_AUTOMATION_MAX_STEPS, 50, 5, 200),
+      scheduleMaxEnrollmentsPerRun: intInRange(env.MAIL_AUTOMATION_SCHEDULE_MAX_PER_RUN, 1000, 1, 50000),
+    },
+    unsubscribe: {
+      secret: String(env.MAIL_MARKETING_UNSUBSCRIBE_SECRET || ""),
+      previousSecret: String(env.MAIL_MARKETING_UNSUBSCRIBE_PREVIOUS_SECRET || ""),
+    },
+    // Emergency stop (M9/M10). Blocks provider calls without deleting queued records.
+    emergencyStop: {
+      all: flag(env.MAIL_EMERGENCY_STOP_ALL),
+      marketing: flag(env.MAIL_EMERGENCY_STOP_ALL) || flag(env.MAIL_EMERGENCY_STOP_MARKETING),
+    },
   };
   return Object.freeze(config);
 }
@@ -225,6 +262,13 @@ function publicStatus(config) {
     deploymentEnvironment: config.deploymentEnvironment,
     unknownRecipientPolicy: config.unknownRecipientPolicy,
     search: { metadataOnly: true, bodySearch: "disabled", bodyIndexingRequestRefused: config.search.bodyIndexingRequestRefused },
+    broadcastDispatchEnabled: config.broadcastDispatchEnabled,
+    automationEnabled: config.automationEnabled,
+    confirmationEmailsEnabled: config.confirmationEmailsEnabled,
+    workerQueues: config.workerQueues,
+    unsubscribeConfigured: config.unsubscribe.secret.length >= 32 && Boolean(config.publicApiUrl),
+    emergencyStop: { ...config.emergencyStop },
+    broadcastLimits: { maxRecipients: config.broadcast.maxRecipients, providerRequestsPerSecond: config.broadcast.providerRequestsPerSecond, approvalTtlDays: config.broadcast.approvalTtlDays, sharedProviderAccountAllowed: config.broadcast.allowSharedProviderAccount },
   };
 }
 

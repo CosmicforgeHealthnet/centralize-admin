@@ -1,29 +1,75 @@
 "use strict";
 
-// POST /api/mail/v1/webhooks/resend
-// Raw-body route (mounted before JSON parsing / XSS mutation in app.js).
+// POST /api/mail/v1/webhooks/resend                 (company Resend account)
+// POST /api/mail/v1/webhooks/resend/brand/:slug     (a brand's marketing account)
+// Raw-body routes (mounted before JSON parsing / XSS mutation in app.js).
 // Acknowledges only after the event and its processing job are committed in
 // one transaction. No fire-and-forget work happens after the response.
+//
+// Brand endpoints verify with that brand's own signing secret
+// (RESEND_WEBHOOK_SECRET__<SLUG>) and stamp the brand organization id on the
+// stored event, so marketing events from one brand's provider account can
+// never change another brand's contacts, consents or reports. Brand endpoints
+// never accept inbound mail (email.received).
 
 const crypto = require("crypto");
 const { verifyResendWebhook } = require("./resend-webhook.verifier");
 
-function createResendWebhookHandler({ client, config, jobs, audit, logger, clock = () => Date.now() }) {
+const SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
+
+function brandSecretName(slug) {
+  return `RESEND_WEBHOOK_SECRET__${String(slug).toUpperCase().replace(/[^A-Z0-9]/g, "_")}`;
+}
+
+function storedPayload(payload, providerEmailId, brandOrganizationId) {
+  const data = payload.data || {};
+  const isContact = String(payload.type).startsWith("contact.");
+  return {
+    type: payload.type,
+    created_at: payload.created_at || null,
+    ...(brandOrganizationId ? { brand_organization_id: brandOrganizationId } : {}),
+    data: {
+      email_id: providerEmailId,
+      to: Array.isArray(data.to) ? data.to.slice(0, 100).map((value) => String(value).slice(0, 320)) : data.to ? [String(data.to).slice(0, 320)] : [],
+      from: data.from ? String(data.from).slice(0, 320) : null,
+      created_at: data.created_at || null,
+      ...(data.broadcast_id ? { broadcast_id: String(data.broadcast_id).slice(0, 128) } : {}),
+      bounce: data.bounce ? { type: String(data.bounce.type || "").slice(0, 64), message: String(data.bounce.message || "").slice(0, 300) } : undefined,
+      // contact.updated: only the identifiers and the subscription flag.
+      ...(isContact ? { contact_id: String(data.id || "").slice(0, 128), email: data.email ? String(data.email).slice(0, 320) : null, unsubscribed: data.unsubscribed === true } : {}),
+    },
+  };
+}
+
+function createResendWebhookHandler({ client, config, jobs, audit, logger, clock = () => Date.now(), env = process.env, brandMode = false }) {
+  async function resolveTarget(req) {
+    if (!brandMode) return { secret: config.resend.webhookSecret, organizationId: null };
+    const slug = String(req.params?.slug || "").toLowerCase();
+    if (!SLUG.test(slug)) return null;
+    const organization = await client.mailOrganization.findUnique({ where: { slug } }).catch(() => null);
+    if (!organization || organization.status !== "ACTIVE") return null;
+    return { secret: String(env[brandSecretName(slug)] || ""), organizationId: organization.id };
+  }
+
   return async function handleResendWebhook(req, res) {
-    if (!config.enabled || (!config.receivingEnabled && !config.sendingEnabled)) {
+    if (!config.enabled || (!config.receivingEnabled && !config.sendingEnabled && !config.marketingEnabled)) {
       return res.status(503).json({ success: false, code: "MAIL_DISABLED", message: "Mail webhooks are not enabled" });
     }
+    if (brandMode && !config.marketingEnabled) return res.status(503).json({ success: false, code: "MAIL_MARKETING_DISABLED", message: "Marketing webhooks are not enabled" });
+    const target = await resolveTarget(req);
+    // Unknown brand looks exactly like a bad signature (no enumeration).
+    if (!target) return res.status(401).json({ success: false, code: "MAIL_WEBHOOK_SIGNATURE_INVALID", message: "Webhook rejected" });
     const rawBody = Buffer.isBuffer(req.rawBody) ? req.rawBody : Buffer.alloc(0);
     const verification = verifyResendWebhook({
       rawBody,
       headers: req.headers,
-      secret: config.resend.webhookSecret,
+      secret: target.secret,
       toleranceSeconds: config.webhook.toleranceSeconds,
       maxBodyBytes: config.webhook.maxBodyBytes,
       now: clock(),
     });
     if (!verification.ok) {
-      logger?.warn?.(`[MailWebhook] rejected: ${verification.reason}`);
+      logger?.warn?.(`[MailWebhook] rejected${brandMode ? " (brand)" : ""}: ${verification.reason}`);
       const status = verification.reason === "SECRET_NOT_CONFIGURED" ? 503 : verification.reason === "BODY_TOO_LARGE" ? 413 : 401;
       return res.status(status).json({ success: false, code: "MAIL_WEBHOOK_SIGNATURE_INVALID", message: "Webhook rejected" });
     }
@@ -31,31 +77,24 @@ function createResendWebhookHandler({ client, config, jobs, audit, logger, clock
     if (!verification.accepted) return res.status(200).json({ success: true, ignored: true });
 
     const isInbound = payload.type === "email.received";
+    if (isInbound && brandMode) return res.status(200).json({ success: true, ignored: true });
     if (isInbound && !config.receivingEnabled) return res.status(503).json({ success: false, code: "MAIL_RECEIVING_DISABLED", message: "Receiving is not enabled" });
     const providerEmailId = String(payload.data.email_id || payload.data.id || "").slice(0, 255);
     if (!providerEmailId) return res.status(400).json({ success: false, code: "MAIL_VALIDATION_FAILED", message: "Event has no email id" });
 
     const payloadSha256 = crypto.createHash("sha256").update(rawBody).digest("hex");
     // Store only routing metadata from the event; content is fetched later.
-    const stored = {
-      type: payload.type,
-      created_at: payload.created_at || null,
-      data: {
-        email_id: providerEmailId,
-        to: Array.isArray(payload.data.to) ? payload.data.to.slice(0, 100).map((value) => String(value).slice(0, 320)) : payload.data.to ? [String(payload.data.to).slice(0, 320)] : [],
-        from: payload.data.from ? String(payload.data.from).slice(0, 320) : null,
-        created_at: payload.data.created_at || null,
-        bounce: payload.data.bounce ? { type: String(payload.data.bounce.type || "").slice(0, 64), message: String(payload.data.bounce.message || "").slice(0, 300) } : undefined,
-      },
-    };
+    const stored = storedPayload(payload, providerEmailId, target.organizationId);
+    // Brand events are namespaced so two provider accounts can never collide.
+    const providerKey = brandMode ? `resend:${req.params.slug}` : "resend";
     try {
       const result = await client.$transaction(async (tx) => {
-        const existing = await tx.mailWebhookEvent.findUnique({ where: { provider_providerEventId: { provider: "resend", providerEventId: eventId } } });
+        const existing = await tx.mailWebhookEvent.findUnique({ where: { provider_providerEventId: { provider: providerKey, providerEventId: eventId } } });
         if (existing) return { duplicate: true, id: existing.id };
-        const event = await tx.mailWebhookEvent.create({ data: { provider: "resend", providerEventId: eventId, eventType: payload.type, payloadSha256, payload: stored, signatureVerified: true } });
+        const event = await tx.mailWebhookEvent.create({ data: { provider: providerKey, providerEventId: eventId, eventType: payload.type, payloadSha256, payload: stored, signatureVerified: true } });
         await jobs.enqueue(tx, isInbound
           ? { queue: "INBOUND", kind: "PROCESS_INBOUND", idempotencyKey: `inbound:resend:${eventId}`, webhookEventId: event.id, payload: { providerEmailId, to: stored.data.to }, maxAttempts: config.worker.maxAttempts }
-          : { queue: "EVENTS", kind: "PROCESS_DELIVERY_EVENT", idempotencyKey: `event:resend:${eventId}`, webhookEventId: event.id, payload: null, maxAttempts: config.worker.maxAttempts });
+          : { queue: "EVENTS", kind: "PROCESS_DELIVERY_EVENT", idempotencyKey: `event:${providerKey}:${eventId}`, webhookEventId: event.id, payload: null, maxAttempts: config.worker.maxAttempts });
         return { duplicate: false, id: event.id };
       });
       return res.status(200).json({ success: true, received: true, duplicate: result.duplicate });
@@ -68,4 +107,4 @@ function createResendWebhookHandler({ client, config, jobs, audit, logger, clock
   };
 }
 
-module.exports = { createResendWebhookHandler };
+module.exports = { createResendWebhookHandler, brandSecretName };

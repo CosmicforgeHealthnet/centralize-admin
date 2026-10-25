@@ -1151,6 +1151,11 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       const fixed = await call("dave", "PATCH", `${base}/campaigns/${campaign.body.data.id}`, { revision: 1, senderAddressId: state.addr.news.id, replyTo: "support@cosmicforge.example" });
       assert.equal(fixed.body.data.revision, 2);
       preflight = await call("dave", "POST", `${base}/campaigns/${campaign.body.data.id}/preflight`);
+      assert.equal(preflight.body.data.checks.find((check) => check.id === "postal_address").ok, false, "M7: marketing mail needs a postal address");
+      assert.equal((await call("dave", "PATCH", `${base}/settings`, { postalAddress: "x" })).status, 403, "only brand approvers change brand settings");
+      const settings = await call("erin", "PATCH", `${base}/settings`, { postalAddress: "CosmicForge Ltd, 1 Marina Road, Lagos" });
+      assert.equal(settings.status, 200, settings.text);
+      preflight = await call("dave", "POST", `${base}/campaigns/${campaign.body.data.id}/preflight`);
       assert.equal(preflight.body.data.ok, true, JSON.stringify(preflight.body.data.checks));
       assert.equal(preflight.body.data.eligibleCount, 2);
       const submitted = await call("dave", "POST", `${base}/campaigns/${campaign.body.data.id}/submit`, { revision: 2 });

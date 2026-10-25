@@ -2629,6 +2629,175 @@ exports.Prisma.MarketingCampaignApprovalScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.MarketingBrandSettingsScalarFieldEnum = {
+  organizationId: 'organizationId',
+  confirmationSenderId: 'confirmationSenderId',
+  defaultTimeZone: 'defaultTimeZone',
+  postalAddress: 'postalAddress',
+  dailyBroadcastCap: 'dailyBroadcastCap',
+  dailyAutomationCap: 'dailyAutomationCap',
+  maxBroadcastRecipients: 'maxBroadcastRecipients',
+  dispatchPaused: 'dispatchPaused',
+  pausedReason: 'pausedReason',
+  pausedAt: 'pausedAt',
+  pausedBy: 'pausedBy',
+  updatedBy: 'updatedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingCampaignApprovedContactScalarFieldEnum = {
+  snapshotId: 'snapshotId',
+  contactId: 'contactId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MarketingBroadcastDispatchScalarFieldEnum = {
+  id: 'id',
+  campaignId: 'campaignId',
+  organizationId: 'organizationId',
+  approvalSnapshotId: 'approvalSnapshotId',
+  status: 'status',
+  scheduledFor: 'scheduledFor',
+  timeZone: 'timeZone',
+  localSendTime: 'localSendTime',
+  provider: 'provider',
+  providerSegmentId: 'providerSegmentId',
+  providerBroadcastId: 'providerBroadcastId',
+  providerStatus: 'providerStatus',
+  providerCreateAttemptAt: 'providerCreateAttemptAt',
+  providerSendAttemptAt: 'providerSendAttemptAt',
+  providerSentAt: 'providerSentAt',
+  recipientCount: 'recipientCount',
+  excludedCount: 'excludedCount',
+  eligibilitySha256: 'eligibilitySha256',
+  contentSha256: 'contentSha256',
+  scheduledByAdminUserId: 'scheduledByAdminUserId',
+  cancelRequestedAt: 'cancelRequestedAt',
+  cancelRequestedBy: 'cancelRequestedBy',
+  pausedAt: 'pausedAt',
+  pausedBy: 'pausedBy',
+  lastErrorCode: 'lastErrorCode',
+  lastErrorMessage: 'lastErrorMessage',
+  completedAt: 'completedAt',
+  revision: 'revision',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingBroadcastRecipientScalarFieldEnum = {
+  id: 'id',
+  dispatchId: 'dispatchId',
+  organizationId: 'organizationId',
+  contactId: 'contactId',
+  email: 'email',
+  status: 'status',
+  exclusionReason: 'exclusionReason',
+  providerContactId: 'providerContactId',
+  providerEmailId: 'providerEmailId',
+  syncedAt: 'syncedAt',
+  acceptedAt: 'acceptedAt',
+  lastEventType: 'lastEventType',
+  lastEventAt: 'lastEventAt',
+  openedAt: 'openedAt',
+  clickedAt: 'clickedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingAutomationScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  description: 'description',
+  status: 'status',
+  triggerType: 'triggerType',
+  activeVersionId: 'activeVersionId',
+  enrollmentLimit: 'enrollmentLimit',
+  maxActiveEnrollments: 'maxActiveEnrollments',
+  frequencyCapHours: 'frequencyCapHours',
+  createdByAdminUserId: 'createdByAdminUserId',
+  updatedByAdminUserId: 'updatedByAdminUserId',
+  revision: 'revision',
+  lastScheduledRunAt: 'lastScheduledRunAt',
+  activatedAt: 'activatedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingAutomationVersionScalarFieldEnum = {
+  id: 'id',
+  automationId: 'automationId',
+  version: 'version',
+  status: 'status',
+  definition: 'definition',
+  triggerConfig: 'triggerConfig',
+  definitionSha256: 'definitionSha256',
+  createdByAdminUserId: 'createdByAdminUserId',
+  submittedByAdminUserId: 'submittedByAdminUserId',
+  submittedAt: 'submittedAt',
+  reviewedByAdminUserId: 'reviewedByAdminUserId',
+  reviewedAt: 'reviewedAt',
+  reviewComment: 'reviewComment',
+  stepUpId: 'stepUpId',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MarketingAutomationEnrollmentScalarFieldEnum = {
+  id: 'id',
+  automationId: 'automationId',
+  versionId: 'versionId',
+  organizationId: 'organizationId',
+  contactId: 'contactId',
+  status: 'status',
+  dedupeKey: 'dedupeKey',
+  triggerEventId: 'triggerEventId',
+  currentStepId: 'currentStepId',
+  stepCount: 'stepCount',
+  nextRunAt: 'nextRunAt',
+  exitReason: 'exitReason',
+  context: 'context',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingAutomationStepRunScalarFieldEnum = {
+  id: 'id',
+  enrollmentId: 'enrollmentId',
+  organizationId: 'organizationId',
+  stepId: 'stepId',
+  stepType: 'stepType',
+  sequence: 'sequence',
+  status: 'status',
+  idempotencyKey: 'idempotencyKey',
+  recipientEmail: 'recipientEmail',
+  templateVersionId: 'templateVersionId',
+  providerMessageId: 'providerMessageId',
+  firstAttemptAt: 'firstAttemptAt',
+  deliveryStatus: 'deliveryStatus',
+  outcome: 'outcome',
+  errorCode: 'errorCode',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingTriggerEventScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  source: 'source',
+  eventType: 'eventType',
+  eventId: 'eventId',
+  contactId: 'contactId',
+  payload: 'payload',
+  status: 'status',
+  error: 'error',
+  occurredAt: 'occurredAt',
+  receivedAt: 'receivedAt',
+  processedAt: 'processedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -3643,7 +3812,8 @@ exports.MailAttachmentScanStatus = exports.$Enums.MailAttachmentScanStatus = {
 exports.MailJobQueue = exports.$Enums.MailJobQueue = {
   OUTBOUND: 'OUTBOUND',
   INBOUND: 'INBOUND',
-  EVENTS: 'EVENTS'
+  EVENTS: 'EVENTS',
+  MARKETING: 'MARKETING'
 };
 
 exports.MailJobStatus = exports.$Enums.MailJobStatus = {
@@ -3729,7 +3899,8 @@ exports.MarketingEmailCampaignStatus = exports.$Enums.MarketingEmailCampaignStat
   COMPLETE: 'COMPLETE',
   PARTIAL: 'PARTIAL',
   FAILED: 'FAILED',
-  CANCELLED: 'CANCELLED'
+  CANCELLED: 'CANCELLED',
+  OUTCOME_UNKNOWN: 'OUTCOME_UNKNOWN'
 };
 
 exports.MarketingCampaignSnapshotKind = exports.$Enums.MarketingCampaignSnapshotKind = {
@@ -3741,6 +3912,74 @@ exports.MarketingCampaignApprovalDecision = exports.$Enums.MarketingCampaignAppr
   APPROVED: 'APPROVED',
   REJECTED: 'REJECTED',
   INVALIDATED: 'INVALIDATED'
+};
+
+exports.MarketingBroadcastStatus = exports.$Enums.MarketingBroadcastStatus = {
+  SCHEDULED: 'SCHEDULED',
+  QUEUED: 'QUEUED',
+  PREPARING: 'PREPARING',
+  SENDING: 'SENDING',
+  COMPLETED: 'COMPLETED',
+  PARTIAL: 'PARTIAL',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED',
+  OUTCOME_UNKNOWN: 'OUTCOME_UNKNOWN',
+  PAUSED: 'PAUSED'
+};
+
+exports.MarketingBroadcastRecipientStatus = exports.$Enums.MarketingBroadcastRecipientStatus = {
+  PENDING: 'PENDING',
+  EXCLUDED: 'EXCLUDED',
+  SYNCED: 'SYNCED',
+  PROVIDER_ACCEPTED: 'PROVIDER_ACCEPTED',
+  DELIVERED: 'DELIVERED',
+  DELAYED: 'DELAYED',
+  BOUNCED: 'BOUNCED',
+  COMPLAINED: 'COMPLAINED',
+  FAILED: 'FAILED',
+  SUPPRESSED: 'SUPPRESSED',
+  UNSUBSCRIBED: 'UNSUBSCRIBED',
+  CANCELLED: 'CANCELLED',
+  OUTCOME_UNKNOWN: 'OUTCOME_UNKNOWN'
+};
+
+exports.MarketingAutomationStatus = exports.$Enums.MarketingAutomationStatus = {
+  DRAFT: 'DRAFT',
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED',
+  ARCHIVED: 'ARCHIVED'
+};
+
+exports.MarketingAutomationVersionStatus = exports.$Enums.MarketingAutomationVersionStatus = {
+  DRAFT: 'DRAFT',
+  PENDING_REVIEW: 'PENDING_REVIEW',
+  PUBLISHED: 'PUBLISHED',
+  SUPERSEDED: 'SUPERSEDED',
+  REJECTED: 'REJECTED'
+};
+
+exports.MarketingAutomationEnrollmentStatus = exports.$Enums.MarketingAutomationEnrollmentStatus = {
+  ACTIVE: 'ACTIVE',
+  WAITING: 'WAITING',
+  COMPLETED: 'COMPLETED',
+  EXITED: 'EXITED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.MarketingAutomationStepRunStatus = exports.$Enums.MarketingAutomationStepRunStatus = {
+  RUNNING: 'RUNNING',
+  SUCCEEDED: 'SUCCEEDED',
+  SKIPPED: 'SKIPPED',
+  FAILED: 'FAILED',
+  OUTCOME_UNKNOWN: 'OUTCOME_UNKNOWN'
+};
+
+exports.MarketingTriggerEventStatus = exports.$Enums.MarketingTriggerEventStatus = {
+  RECEIVED: 'RECEIVED',
+  PROCESSED: 'PROCESSED',
+  IGNORED: 'IGNORED',
+  FAILED: 'FAILED'
 };
 
 exports.Prisma.ModelName = {
@@ -3900,7 +4139,16 @@ exports.Prisma.ModelName = {
   MarketingTemplateVersion: 'MarketingTemplateVersion',
   MarketingEmailCampaign: 'MarketingEmailCampaign',
   MarketingCampaignSnapshot: 'MarketingCampaignSnapshot',
-  MarketingCampaignApproval: 'MarketingCampaignApproval'
+  MarketingCampaignApproval: 'MarketingCampaignApproval',
+  MarketingBrandSettings: 'MarketingBrandSettings',
+  MarketingCampaignApprovedContact: 'MarketingCampaignApprovedContact',
+  MarketingBroadcastDispatch: 'MarketingBroadcastDispatch',
+  MarketingBroadcastRecipient: 'MarketingBroadcastRecipient',
+  MarketingAutomation: 'MarketingAutomation',
+  MarketingAutomationVersion: 'MarketingAutomationVersion',
+  MarketingAutomationEnrollment: 'MarketingAutomationEnrollment',
+  MarketingAutomationStepRun: 'MarketingAutomationStepRun',
+  MarketingTriggerEvent: 'MarketingTriggerEvent'
 };
 
 /**

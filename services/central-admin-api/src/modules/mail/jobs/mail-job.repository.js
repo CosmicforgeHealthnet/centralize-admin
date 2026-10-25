@@ -76,6 +76,42 @@ function createMailJobRepository({ client, clock = () => new Date(), random = Ma
     return { updated: result.count === 1, status };
   }
 
+  // Re-schedule a claimed job without consuming an attempt (operational pause,
+  // disabled flag, multi-step progress). Never marks success or failure.
+  async function defer(job, { seconds = 60, code = "DEFERRED", message = "" } = {}) {
+    const delay = Math.min(Math.max(Number(seconds) || 1, 1), 86400);
+    const result = await client.mailOutboxJob.updateMany({
+      where: { id: job.id, leaseOwner: job.leaseOwner, status: "LEASED" },
+      data: {
+        status: "RETRY_SCHEDULED",
+        leaseOwner: null,
+        leaseExpiresAt: null,
+        attemptCount: Math.max(0, job.attemptCount - 1),
+        lastErrorCode: String(code).slice(0, 64),
+        lastErrorMessage: String(message || "").slice(0, 500),
+        nextAttemptAt: new Date(clock().getTime() + delay * 1000),
+      },
+    });
+    return { updated: result.count === 1, status: "RETRY_SCHEDULED" };
+  }
+
+  // Pull a pending job forward (e.g. cancellation should act promptly).
+  async function expedite(idempotencyKey) {
+    const result = await client.mailOutboxJob.updateMany({
+      where: { idempotencyKey, status: { in: ["PENDING", "RETRY_SCHEDULED", "RECONCILING"] } },
+      data: { nextAttemptAt: clock() },
+    });
+    return result.count;
+  }
+
+  async function cancelPending(idempotencyKey, reason = "CANCELLED") {
+    const result = await client.mailOutboxJob.updateMany({
+      where: { idempotencyKey, status: { in: ["PENDING", "RETRY_SCHEDULED", "RECONCILING"] } },
+      data: { status: "CANCELLED", completedAt: clock(), lastErrorCode: String(reason).slice(0, 64) },
+    });
+    return result.count;
+  }
+
   // Crash recovery: jobs whose worker died mid-lease become eligible again.
   async function recoverExpiredLeases() {
     const now = clock();
@@ -100,7 +136,7 @@ function createMailJobRepository({ client, clock = () => new Date(), random = Ma
     return rows.map((row) => ({ queue: row.queue, status: row.status, count: row._count._all }));
   }
 
-  return { enqueue, claim, complete, fail, recoverExpiredLeases, stats };
+  return { enqueue, claim, complete, fail, defer, expedite, cancelPending, recoverExpiredLeases, stats };
 }
 
 function leaseOwnerId(prefix = "mail-worker") {

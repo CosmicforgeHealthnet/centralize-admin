@@ -33,10 +33,16 @@ function aggregateMessageStatus(recipients, current) {
   return current === "QUEUED" ? "PROVIDER_ACCEPTED" : current;
 }
 
-function createDeliveryEventProcessor({ client, audit, notifications }) {
+function createDeliveryEventProcessor({ client, audit, notifications, marketingEvents = null }) {
   async function process(job) {
     const event = await client.mailWebhookEvent.findUnique({ where: { id: job.webhookEventId } });
     if (!event) return { skipped: true };
+    // Marketing (M7) events are reconciled against marketing records; anything
+    // else falls through to the transactional mailbox path unchanged.
+    if (marketingEvents) {
+      const routed = await marketingEvents.route(event);
+      if (routed) return routed;
+    }
     const type = EVENT_MAP[event.eventType];
     const data = event.payload?.data || {};
     const providerMessageId = String(data.email_id || data.id || "");

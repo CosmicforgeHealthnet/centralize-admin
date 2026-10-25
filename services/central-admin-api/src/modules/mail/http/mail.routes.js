@@ -29,7 +29,7 @@ function page(res, result) {
 
 function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
   const router = express.Router();
-  const { mailbox, compose, admin, support, marketing, stepUp, breakGlass } = mail.services;
+  const { mailbox, compose, admin, support, marketing, stepUp, breakGlass, broadcasts, automations, publicPreferences } = mail.services;
   const config = mail.config;
   const limits = config.limits;
 
@@ -66,7 +66,27 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
 
   router.get("/openapi.json", (req, res) => res.json(buildOpenApiDocument()));
 
-  router.post("/public/consent/confirm", express.json({ limit: "2kb" }), asyncHandler(async (req, res) => ok(res, await marketing.confirmConsent(req.body?.token))));
+  // ---- public recipient endpoints (signed tokens only, per-IP rate limit) ----
+  let publicLimiterInstance = null;
+  const publicLimiter = (req, res, next) => {
+    if (!publicLimiterInstance) {
+      publicLimiterInstance = rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false, validate: { creationStack: false }, handler: (request, response) => response.status(429).type("text/plain").send("Too many requests") });
+    }
+    return publicLimiterInstance(req, res, next);
+  };
+  const publicForm = express.urlencoded({ extended: false, limit: "2kb" });
+  const sendPage = (res, result) => res.status(result.status).set(publicPreferences.PAGE_HEADERS).send(result.html);
+  router.post("/public/consent/confirm", publicLimiter, express.json({ limit: "2kb" }), asyncHandler(async (req, res) => ok(res, await marketing.confirmConsent(req.body?.token))));
+  router.get("/public/consent/confirm/:token", publicLimiter, (req, res) => sendPage(res, publicPreferences.confirmationLanding(req.params.token)));
+  router.post("/public/consent/confirm/:token", publicLimiter, asyncHandler(async (req, res) => sendPage(res, await publicPreferences.confirm(req.params.token))));
+  router.get("/public/unsubscribe/:token", publicLimiter, asyncHandler(async (req, res) => sendPage(res, await publicPreferences.renderPreferences(req.params.token))));
+  router.post("/public/unsubscribe/:token", publicLimiter, publicForm, asyncHandler(async (req, res) => {
+    // RFC 8058: mail clients POST "List-Unsubscribe=One-Click".
+    const oneClick = req.body?.["List-Unsubscribe"] === "One-Click";
+    const result = await publicPreferences.unsubscribe(req.params.token, { scope: req.body?.scope === "topic" ? "topic" : "all", oneClick, ipAddress: req.ip || null });
+    if (oneClick) return res.status(result.ok ? 200 : 404).type("text/plain").send(result.ok ? "Unsubscribed" : "Not found");
+    return sendPage(res, result.ok ? result : await publicPreferences.renderPreferences(req.params.token));
+  }));
 
   router.use(authenticate);
   router.use((req, res, next) => {
@@ -252,6 +272,38 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
   m.post("/:orgId/campaigns/:campaignId/reject", asyncHandler(async (req, res) => ok(res, await marketing.reject(user(req), req.params.orgId, req.params.campaignId, body(req), ctx(req)))));
   m.get("/:orgId/campaigns/:campaignId/history", asyncHandler(async (req, res) => ok(res, await marketing.history(user(req), req.params.orgId, req.params.campaignId))));
   m.get("/:orgId/campaigns/:campaignId/snapshots/:snapshotId", asyncHandler(async (req, res) => ok(res, await marketing.snapshot(user(req), req.params.orgId, req.params.campaignId, req.params.snapshotId))));
+  // ---- M7: brand controls, broadcasts, reporting -------------------------
+  m.get("/:orgId/settings", asyncHandler(async (req, res) => ok(res, await broadcasts.getBrandSettings(user(req), req.params.orgId))));
+  m.patch("/:orgId/settings", asyncHandler(async (req, res) => ok(res, await broadcasts.updateBrandSettings(user(req), req.params.orgId, body(req), ctx(req)))));
+  m.post("/:orgId/dispatch/pause", asyncHandler(async (req, res) => ok(res, await broadcasts.pauseBrand(user(req), req.params.orgId, body(req), ctx(req)))));
+  m.post("/:orgId/dispatch/resume", asyncHandler(async (req, res) => ok(res, await broadcasts.resumeBrand(user(req), req.params.orgId, body(req), ctx(req)))));
+  m.post("/:orgId/campaigns/:campaignId/schedule", asyncHandler(async (req, res) => ok(res, await broadcasts.schedule(user(req), req.params.orgId, req.params.campaignId, body(req), ctx(req)), { status: 201 })));
+  m.post("/:orgId/campaigns/:campaignId/cancel", asyncHandler(async (req, res) => ok(res, await broadcasts.cancel(user(req), req.params.orgId, req.params.campaignId, body(req), ctx(req)))));
+  m.post("/:orgId/campaigns/:campaignId/pause", asyncHandler(async (req, res) => ok(res, await broadcasts.pause(user(req), req.params.orgId, req.params.campaignId, ctx(req)))));
+  m.post("/:orgId/campaigns/:campaignId/resume", asyncHandler(async (req, res) => ok(res, await broadcasts.resume(user(req), req.params.orgId, req.params.campaignId, ctx(req)))));
+  m.get("/:orgId/campaigns/:campaignId/dispatch", asyncHandler(async (req, res) => ok(res, await broadcasts.getDispatch(user(req), req.params.orgId, req.params.campaignId))));
+  m.get("/:orgId/campaigns/:campaignId/report", asyncHandler(async (req, res) => ok(res, await broadcasts.report(user(req), req.params.orgId, req.params.campaignId))));
+  m.get("/:orgId/campaigns/:campaignId/recipients", asyncHandler(async (req, res) => page(res, await broadcasts.listRecipients(user(req), req.params.orgId, req.params.campaignId, req.query))));
+  m.get("/:orgId/reports/overview", asyncHandler(async (req, res) => ok(res, await broadcasts.overview(user(req), req.params.orgId))));
+  m.get("/:orgId/reports/suppressions", asyncHandler(async (req, res) => ok(res, await broadcasts.suppressionReport(user(req), req.params.orgId, req.query))));
+  // ---- M7: automations ----------------------------------------------------
+  m.get("/:orgId/automation-events", asyncHandler(async (req, res) => {
+    await policy.requireMarketingScope(mail.client, user(req), req.params.orgId, "VIEW");
+    const { APPROVED_PRODUCT_EVENTS } = require("../marketing/automation/event-registry");
+    ok(res, Object.entries(APPROVED_PRODUCT_EVENTS).map(([eventType, entry]) => ({ eventType, versions: entry.versions, product: entry.product, fields: Object.keys(entry.fields) })));
+  }));
+  m.get("/:orgId/automations", asyncHandler(async (req, res) => ok(res, await automations.list(user(req), req.params.orgId))));
+  m.post("/:orgId/automations", asyncHandler(async (req, res) => ok(res, await automations.create(user(req), req.params.orgId, body(req), ctx(req)), { status: 201 })));
+  m.get("/:orgId/automations/:automationId", asyncHandler(async (req, res) => ok(res, await automations.get(user(req), req.params.orgId, req.params.automationId))));
+  m.put("/:orgId/automations/:automationId/draft", asyncHandler(async (req, res) => ok(res, await automations.saveDraft(user(req), req.params.orgId, req.params.automationId, body(req), ctx(req)))));
+  m.post("/:orgId/automations/:automationId/versions/:versionId/submit", asyncHandler(async (req, res) => ok(res, await automations.submit(user(req), req.params.orgId, req.params.automationId, req.params.versionId, ctx(req)))));
+  m.post("/:orgId/automations/:automationId/versions/:versionId/approve", asyncHandler(async (req, res) => ok(res, await automations.approve(user(req), req.params.orgId, req.params.automationId, req.params.versionId, body(req), ctx(req)))));
+  m.post("/:orgId/automations/:automationId/versions/:versionId/reject", asyncHandler(async (req, res) => ok(res, await automations.reject(user(req), req.params.orgId, req.params.automationId, req.params.versionId, body(req), ctx(req)))));
+  m.post("/:orgId/automations/:automationId/activate", asyncHandler(async (req, res) => ok(res, await automations.activate(user(req), req.params.orgId, req.params.automationId, ctx(req)))));
+  m.post("/:orgId/automations/:automationId/pause", asyncHandler(async (req, res) => ok(res, await automations.pause(user(req), req.params.orgId, req.params.automationId, ctx(req)))));
+  m.post("/:orgId/automations/:automationId/archive", asyncHandler(async (req, res) => ok(res, await automations.archive(user(req), req.params.orgId, req.params.automationId, ctx(req)))));
+  m.get("/:orgId/automations/:automationId/enrollments", asyncHandler(async (req, res) => page(res, await automations.enrollments(user(req), req.params.orgId, req.params.automationId, req.query))));
+  m.get("/:orgId/automations/:automationId/history", asyncHandler(async (req, res) => ok(res, await automations.history(user(req), req.params.orgId, req.params.automationId, req.query.enrollmentId))));
   router.use("/marketing", m);
 
   return router;

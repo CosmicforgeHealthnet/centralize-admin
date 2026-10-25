@@ -22,7 +22,13 @@ async function main() {
   // wait for it so the first jobs do not fail closed needlessly.
   await mail.ready();
   if (!mail.storage.available) logger.warn("[MailWorker] Private storage is unavailable; inbound/outbound jobs will retry until configured.");
-  const queues = String(process.env.MAIL_WORKER_QUEUES || "OUTBOUND,INBOUND,EVENTS").split(",").map((queue) => queue.trim().toUpperCase()).filter((queue) => ["OUTBOUND", "INBOUND", "EVENTS"].includes(queue));
+  // MAIL_WORKER_QUEUES selects the queues this process serves. MARKETING
+  // (broadcasts, automation) is opt-in; run it as its own single replica.
+  const queues = config.workerQueues;
+  if (!queues.length) {
+    logger.info("[MailWorker] MAIL_WORKER_QUEUES selects no known queue; exiting without processing.");
+    return 0;
+  }
   const worker = mail.createWorker({ queues });
   logger.info(`[MailWorker] starting ${JSON.stringify({ ...publicStatus(config), queues, leaseOwner: worker.leaseOwner })}`);
   worker.start();
