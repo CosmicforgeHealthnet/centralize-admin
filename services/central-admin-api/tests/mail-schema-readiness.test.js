@@ -38,6 +38,7 @@ test("Mail enabled before its migrations are applied fails readiness gracefully"
       MAIL_ENABLED: "true", MAIL_SENDING_ENABLED: "true", MAIL_RECEIVING_ENABLED: "true", MAIL_MARKETING_ENABLED: "true", MAIL_WORKER_ENABLED: "true",
       MAIL_PROVIDER: "fake", RESEND_WEBHOOK_SECRET: `whsec_${crypto.randomBytes(24).toString("base64")}`,
       MAIL_ENCRYPTION_KEYS: `v1:${crypto.randomBytes(32).toString("base64")}`, MAIL_DOMAIN_ALLOWLIST: "cosmicforge.example",
+      MAIL_INTEGRATIONS_ENABLED: "true", MAIL_INTEGRATION_HASH_SECRET: crypto.randomBytes(32).toString("hex"),
     }),
     adapter: createFakeAdapter(),
     storageBackend: memoryBackend(),
@@ -46,6 +47,7 @@ test("Mail enabled before its migrations are applied fails readiness gracefully"
   });
   const app = express();
   app.post("/api/mail/v1/webhooks/resend", express.raw({ type: "*/*" }), (req, res, next) => { req.rawBody = req.body; next(); }, mail.webhookHandler);
+  if (mail.integrationHandler) app.post("/api/mail/v1/integrations/v1/events", express.raw({ type: "*/*" }), (req, res, next) => { req.rawBody = req.body; next(); }, mail.integrationHandler);
   app.use(express.json());
   // Authentication passes without touching the (absent) Mail tables.
   const authenticate = (req, res, next) => { req.adminUser = { id: "u1", tier: "ADMIN", status: "ACTIVE", name: "Ops" }; req.authSession = { id: null }; next(); };
@@ -79,6 +81,11 @@ test("Mail enabled before its migrations are applied fails readiness gracefully"
   assert.equal(webhook.status, 503, "the provider retries later instead of losing the event");
   assert.equal((await webhook.json()).code, "MAIL_SCHEMA_NOT_READY");
 
+  if (mail.integrationHandler) {
+    const integration = await fetch(`${base}/integrations/v1/events`, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+    assert.equal(integration.status, 503, "product events are not acknowledged; the product retries");
+    assert.equal((await integration.json()).code, "MAIL_SCHEMA_NOT_READY");
+  }
   assert.equal(await mail.createWorker().tick(), 0, "workers idle");
   assert.equal(warnings.filter((message) => message.includes("Mail schema not present")).length, 1, "operators get one clear log line");
 });

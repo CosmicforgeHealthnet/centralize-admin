@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cosmicforge.example/schemas/hq-mail/contract-v1.json",
+  "title": "CosmicForge HQ Mail product integration envelope, contract v1",
+  "description": "POST /api/mail/v1/integrations/v1/events. Strict: unknown keys are rejected. Message content, attachments, credentials and clinical/patient data are prohibited anywhere in data.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "product", "organization", "eventId", "eventType", "eventVersion", "occurredAt", "data"],
+  "properties": {
+    "contractVersion": { "const": 1 },
+    "product": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,63}$" },
+    "organization": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,63}$", "description": "HQ Mail brand organization slug the integration is bound to." },
+    "eventId": { "type": "string", "pattern": "^[A-Za-z0-9_.:-]{1,160}$", "description": "Stable per logical event; reuse on every retry." },
+    "eventType": { "enum": ["mail.delivery_status", "marketing.trigger", "ops.alert"] },
+    "eventVersion": { "const": 1 },
+    "correlationId": { "type": "string", "pattern": "^[A-Za-z0-9_.:-]{1,160}$" },
+    "idempotencyKey": { "type": "string", "pattern": "^[A-Za-z0-9_.:-]{1,160}$" },
+    "occurredAt": { "type": "string", "format": "date-time" },
+    "data": { "type": "object" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "eventType": { "const": "mail.delivery_status" } } },
+      "then": { "properties": { "data": { "$ref": "#/$defs/deliveryStatus" } } }
+    },
+    {
+      "if": { "properties": { "eventType": { "const": "marketing.trigger" } } },
+      "then": { "properties": { "data": { "$ref": "#/$defs/marketingTrigger" } } }
+    },
+    {
+      "if": { "properties": { "eventType": { "const": "ops.alert" } } },
+      "then": { "properties": { "data": { "$ref": "#/$defs/opsAlert" } } }
+    }
+  ],
+  "$defs": {
+    "email": { "type": "string", "maxLength": 320, "format": "email" },
+    "deliveryStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["productMessageId", "provider", "sender", "recipient", "status", "category"],
+      "properties": {
+        "productMessageId": { "type": "string", "pattern": "^[A-Za-z0-9_.:-]{1,160}$" },
+        "provider": { "enum": ["resend", "smtp", "ses", "sendgrid", "mailgun", "other"] },
+        "providerMessageId": { "type": "string", "maxLength": 255 },
+        "sender": { "$ref": "#/$defs/email", "description": "Must be an HQ-authorized sender for this integration." },
+        "recipient": { "$ref": "#/$defs/email", "description": "HMAC-hashed on receipt; only the domain is kept in clear." },
+        "status": { "enum": ["ACCEPTED", "DELIVERED", "DELAYED", "BOUNCED", "COMPLAINED", "FAILED", "SUPPRESSED"] },
+        "category": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]{0,63}$" }
+      }
+    },
+    "marketingTrigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["triggerType", "triggerVersion", "contactEmail"],
+      "properties": {
+        "triggerType": { "type": "string", "description": "Must be an approved product event registered in HQ (e.g. karryam.trip_completed) and allowed on the integration." },
+        "triggerVersion": { "type": "integer" },
+        "contactEmail": { "$ref": "#/$defs/email" },
+        "attributes": { "type": "object", "description": "Minimized to the registered allow-list; other keys are dropped." }
+      }
+    },
+    "opsAlert": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["severity", "code", "summary", "component"],
+      "properties": {
+        "severity": { "enum": ["info", "warning", "critical"] },
+        "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{2,63}$" },
+        "summary": { "type": "string", "maxLength": 200, "description": "No email addresses or phone numbers; RESTRICTED_HEALTH also forbids digit runs of 5+." },
+        "component": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$" }
+      }
+    }
+  }
+}

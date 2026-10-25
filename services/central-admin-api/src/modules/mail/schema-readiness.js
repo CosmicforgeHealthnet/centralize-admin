@@ -31,6 +31,10 @@ const MAIL_SCHEMA_REQUIREMENTS = [
       "marketing_automations", "marketing_automation_versions", "marketing_automation_enrollments", "marketing_automation_step_runs", "marketing_trigger_events",
     ],
   },
+  {
+    migration: "20261028_mail_m8_product_integration.sql",
+    tables: ["mail_product_integrations", "mail_product_sender_authorizations", "mail_product_integration_events", "mail_product_delivery_events"],
+  },
 ];
 
 function quoteLiteral(value) {

@@ -26,9 +26,10 @@ const MAIL_WEBHOOK_PATH = `${MAIL_API_PREFIX}/webhooks/resend`;
 
 // Raw-body Mail endpoints (signature checks need the exact bytes).
 const MAIL_BRAND_WEBHOOK_PATH = new RegExp(`^${MAIL_WEBHOOK_PATH.replace(/\//g, "\\/")}\\/brand\\/[a-z0-9][a-z0-9-]{0,63}$`);
+const MAIL_INTEGRATION_PATH = `${MAIL_API_PREFIX}/integrations/v1/events`;
 function isMailRawPath(url) {
   const path = String(url || "").split("?")[0];
-  return path === MAIL_WEBHOOK_PATH || MAIL_BRAND_WEBHOOK_PATH.test(path);
+  return path === MAIL_WEBHOOK_PATH || path === MAIL_INTEGRATION_PATH || MAIL_BRAND_WEBHOOK_PATH.test(path);
 }
 
 function isMailPath(url) {
@@ -229,6 +230,7 @@ app.use(
   app.use("/api/hrm", routes.hrmRoutes);
   app.post(MAIL_WEBHOOK_PATH, mailHttp.webhookHandler);
   if (mailHttp.brandWebhookHandler) app.post(`${MAIL_WEBHOOK_PATH}/brand/:slug`, mailHttp.brandWebhookHandler);
+  if (mailHttp.integrationHandler) app.post(MAIL_INTEGRATION_PATH, mailHttp.integrationHandler);
   app.use(MAIL_API_PREFIX, mailHttp.router);
 
   app.use("/{*splat}", notFound);

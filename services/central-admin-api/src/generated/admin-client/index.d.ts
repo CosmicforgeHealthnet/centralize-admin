@@ -843,6 +843,26 @@ export type MarketingAutomationStepRun = $Result.DefaultSelection<Prisma.$Market
  * 
  */
 export type MarketingTriggerEvent = $Result.DefaultSelection<Prisma.$MarketingTriggerEventPayload>
+/**
+ * Model MailProductIntegration
+ * 
+ */
+export type MailProductIntegration = $Result.DefaultSelection<Prisma.$MailProductIntegrationPayload>
+/**
+ * Model MailProductSenderAuthorization
+ * 
+ */
+export type MailProductSenderAuthorization = $Result.DefaultSelection<Prisma.$MailProductSenderAuthorizationPayload>
+/**
+ * Model MailProductIntegrationEvent
+ * 
+ */
+export type MailProductIntegrationEvent = $Result.DefaultSelection<Prisma.$MailProductIntegrationEventPayload>
+/**
+ * Model MailProductDeliveryEvent
+ * 
+ */
+export type MailProductDeliveryEvent = $Result.DefaultSelection<Prisma.$MailProductDeliveryEventPayload>
 
 /**
  * Enums
@@ -2395,6 +2415,15 @@ export const MarketingTriggerEventStatus: {
 
 export type MarketingTriggerEventStatus = (typeof MarketingTriggerEventStatus)[keyof typeof MarketingTriggerEventStatus]
 
+
+export const MailProductIntegrationStatus: {
+  DISABLED: 'DISABLED',
+  ACTIVE: 'ACTIVE',
+  SUSPENDED: 'SUSPENDED'
+};
+
+export type MailProductIntegrationStatus = (typeof MailProductIntegrationStatus)[keyof typeof MailProductIntegrationStatus]
+
 }
 
 export type AdminTier = $Enums.AdminTier
@@ -2920,6 +2949,10 @@ export const MarketingAutomationStepRunStatus: typeof $Enums.MarketingAutomation
 export type MarketingTriggerEventStatus = $Enums.MarketingTriggerEventStatus
 
 export const MarketingTriggerEventStatus: typeof $Enums.MarketingTriggerEventStatus
+
+export type MailProductIntegrationStatus = $Enums.MailProductIntegrationStatus
+
+export const MailProductIntegrationStatus: typeof $Enums.MailProductIntegrationStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -4701,6 +4734,46 @@ export class PrismaClient<
     * ```
     */
   get marketingTriggerEvent(): Prisma.MarketingTriggerEventDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mailProductIntegration`: Exposes CRUD operations for the **MailProductIntegration** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MailProductIntegrations
+    * const mailProductIntegrations = await prisma.mailProductIntegration.findMany()
+    * ```
+    */
+  get mailProductIntegration(): Prisma.MailProductIntegrationDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mailProductSenderAuthorization`: Exposes CRUD operations for the **MailProductSenderAuthorization** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MailProductSenderAuthorizations
+    * const mailProductSenderAuthorizations = await prisma.mailProductSenderAuthorization.findMany()
+    * ```
+    */
+  get mailProductSenderAuthorization(): Prisma.MailProductSenderAuthorizationDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mailProductIntegrationEvent`: Exposes CRUD operations for the **MailProductIntegrationEvent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MailProductIntegrationEvents
+    * const mailProductIntegrationEvents = await prisma.mailProductIntegrationEvent.findMany()
+    * ```
+    */
+  get mailProductIntegrationEvent(): Prisma.MailProductIntegrationEventDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mailProductDeliveryEvent`: Exposes CRUD operations for the **MailProductDeliveryEvent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MailProductDeliveryEvents
+    * const mailProductDeliveryEvents = await prisma.mailProductDeliveryEvent.findMany()
+    * ```
+    */
+  get mailProductDeliveryEvent(): Prisma.MailProductDeliveryEventDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -5313,7 +5386,11 @@ export namespace Prisma {
     MarketingAutomationVersion: 'MarketingAutomationVersion',
     MarketingAutomationEnrollment: 'MarketingAutomationEnrollment',
     MarketingAutomationStepRun: 'MarketingAutomationStepRun',
-    MarketingTriggerEvent: 'MarketingTriggerEvent'
+    MarketingTriggerEvent: 'MarketingTriggerEvent',
+    MailProductIntegration: 'MailProductIntegration',
+    MailProductSenderAuthorization: 'MailProductSenderAuthorization',
+    MailProductIntegrationEvent: 'MailProductIntegrationEvent',
+    MailProductDeliveryEvent: 'MailProductDeliveryEvent'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -5329,7 +5406,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "adminUser" | "marketing_campaigns" | "marketing_campaign_performance" | "marketing_campaign_timeline" | "marketing_campaign_team_members" | "marketing_content_items" | "marketing_content_monthly_performance" | "marketing_notification_events" | "marketing_email_templates" | "marketing_social_accounts" | "marketing_social_posts" | "marketing_social_analytics_snapshots" | "marketing_promotions" | "marketing_banners" | "marketing_analytics_snapshots" | "marketing_ad_platform_connections" | "marketing_ad_insights_raw" | "marketing_performance_snapshots" | "marketing_oauth_states" | "marketing_attributions" | "marketing_funnel_events" | "marketing_identity_links" | "marketing_attribution_decisions" | "marketing_intelligence_settings" | "marketing_intelligence_evaluation_runs" | "marketing_creative_assets" | "marketing_creative_performance_snapshots" | "marketing_creative_score_snapshots" | "marketing_recommendations" | "marketing_alerts" | "marketing_experiments" | "marketing_sync_locks" | "marketingExecutionPlan" | "marketingExecutionPlanItem" | "marketingExecutionApproval" | "marketingExecutionApprovalEvent" | "marketingExecutionRun" | "marketingExecutionJob" | "marketingProviderOperation" | "marketingProviderOperationAttempt" | "marketingExecutionStateSnapshot" | "marketingExecutionValidationIssue" | "marketingExecutionReconciliation" | "marketingExecutionPolicy" | "marketingCreativePublication" | "marketingCreativeMediaValidationEvidence" | "marketingCreativePublicationReviewEvent" | "marketingTargetingDiscovery" | "marketingExecutionAccountLock" | "marketingExecutionDeadLetterReview" | "marketingExecutionPolicyHistory" | "marketingExecutionValidationPacket" | "marketingExecutionDriftAcknowledgment" | "marketingExecutionRetryReview" | "marketingExecutionEmergencyOverride" | "marketingExecutionReconciliationJob" | "marketingExecutionCompensationLink" | "socialAccountConnection" | "socialPublishingIdentity" | "socialOAuthState" | "socialPost" | "socialPostRevision" | "socialPostTarget" | "socialPostApproval" | "socialPublication" | "socialPublicationAttempt" | "socialPublishingJob" | "socialMediaAsset" | "socialPostMedia" | "socialContact" | "socialConversation" | "socialMessage" | "socialTag" | "socialConversationTag" | "socialProviderContent" | "socialComment" | "socialEngagementEvent" | "socialEscalation" | "socialWebhookSubscription" | "socialWebhookEvent" | "socialIdentityMetricSnapshot" | "socialProviderContentMetricSnapshot" | "socialIdentitySyncState" | "socialActionJob" | "socialActionAttempt" | "socialInternalNote" | "socialSavedReply" | "socialOperationsSetting" | "adminManualMigrationLedger" | "adminSession" | "adminSessionRefreshToken" | "adminMfaEnrollment" | "adminMfaRecoveryCode" | "adminMfaChallenge" | "adminAuthEvent" | "refreshToken" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event" | "mailOrganization" | "mailDomain" | "mailMailbox" | "mailAddress" | "mailMembership" | "mailSenderGrant" | "mailProvisionRequest" | "mailThread" | "mailMessage" | "mailMessageRecipient" | "mailUserThreadState" | "mailDraft" | "mailLabel" | "mailThreadLabel" | "mailRule" | "mailAttachment" | "mailInternalNote" | "mailOutboxJob" | "mailWebhookEvent" | "mailDeliveryEvent" | "mailAuditEvent" | "mailRetentionPolicy" | "mailLegalHold" | "mailStepUpVerification" | "mailBreakGlassRequest" | "marketingContact" | "marketingConsent" | "marketingSuppression" | "marketingAudience" | "marketingAudienceContact" | "marketingSegment" | "marketingEmailTemplate" | "marketingTemplateVersion" | "marketingEmailCampaign" | "marketingCampaignSnapshot" | "marketingCampaignApproval" | "marketingBrandSettings" | "marketingCampaignApprovedContact" | "marketingBroadcastDispatch" | "marketingBroadcastRecipient" | "marketingAutomation" | "marketingAutomationVersion" | "marketingAutomationEnrollment" | "marketingAutomationStepRun" | "marketingTriggerEvent"
+      modelProps: "adminUser" | "marketing_campaigns" | "marketing_campaign_performance" | "marketing_campaign_timeline" | "marketing_campaign_team_members" | "marketing_content_items" | "marketing_content_monthly_performance" | "marketing_notification_events" | "marketing_email_templates" | "marketing_social_accounts" | "marketing_social_posts" | "marketing_social_analytics_snapshots" | "marketing_promotions" | "marketing_banners" | "marketing_analytics_snapshots" | "marketing_ad_platform_connections" | "marketing_ad_insights_raw" | "marketing_performance_snapshots" | "marketing_oauth_states" | "marketing_attributions" | "marketing_funnel_events" | "marketing_identity_links" | "marketing_attribution_decisions" | "marketing_intelligence_settings" | "marketing_intelligence_evaluation_runs" | "marketing_creative_assets" | "marketing_creative_performance_snapshots" | "marketing_creative_score_snapshots" | "marketing_recommendations" | "marketing_alerts" | "marketing_experiments" | "marketing_sync_locks" | "marketingExecutionPlan" | "marketingExecutionPlanItem" | "marketingExecutionApproval" | "marketingExecutionApprovalEvent" | "marketingExecutionRun" | "marketingExecutionJob" | "marketingProviderOperation" | "marketingProviderOperationAttempt" | "marketingExecutionStateSnapshot" | "marketingExecutionValidationIssue" | "marketingExecutionReconciliation" | "marketingExecutionPolicy" | "marketingCreativePublication" | "marketingCreativeMediaValidationEvidence" | "marketingCreativePublicationReviewEvent" | "marketingTargetingDiscovery" | "marketingExecutionAccountLock" | "marketingExecutionDeadLetterReview" | "marketingExecutionPolicyHistory" | "marketingExecutionValidationPacket" | "marketingExecutionDriftAcknowledgment" | "marketingExecutionRetryReview" | "marketingExecutionEmergencyOverride" | "marketingExecutionReconciliationJob" | "marketingExecutionCompensationLink" | "socialAccountConnection" | "socialPublishingIdentity" | "socialOAuthState" | "socialPost" | "socialPostRevision" | "socialPostTarget" | "socialPostApproval" | "socialPublication" | "socialPublicationAttempt" | "socialPublishingJob" | "socialMediaAsset" | "socialPostMedia" | "socialContact" | "socialConversation" | "socialMessage" | "socialTag" | "socialConversationTag" | "socialProviderContent" | "socialComment" | "socialEngagementEvent" | "socialEscalation" | "socialWebhookSubscription" | "socialWebhookEvent" | "socialIdentityMetricSnapshot" | "socialProviderContentMetricSnapshot" | "socialIdentitySyncState" | "socialActionJob" | "socialActionAttempt" | "socialInternalNote" | "socialSavedReply" | "socialOperationsSetting" | "adminManualMigrationLedger" | "adminSession" | "adminSessionRefreshToken" | "adminMfaEnrollment" | "adminMfaRecoveryCode" | "adminMfaChallenge" | "adminAuthEvent" | "refreshToken" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event" | "mailOrganization" | "mailDomain" | "mailMailbox" | "mailAddress" | "mailMembership" | "mailSenderGrant" | "mailProvisionRequest" | "mailThread" | "mailMessage" | "mailMessageRecipient" | "mailUserThreadState" | "mailDraft" | "mailLabel" | "mailThreadLabel" | "mailRule" | "mailAttachment" | "mailInternalNote" | "mailOutboxJob" | "mailWebhookEvent" | "mailDeliveryEvent" | "mailAuditEvent" | "mailRetentionPolicy" | "mailLegalHold" | "mailStepUpVerification" | "mailBreakGlassRequest" | "marketingContact" | "marketingConsent" | "marketingSuppression" | "marketingAudience" | "marketingAudienceContact" | "marketingSegment" | "marketingEmailTemplate" | "marketingTemplateVersion" | "marketingEmailCampaign" | "marketingCampaignSnapshot" | "marketingCampaignApproval" | "marketingBrandSettings" | "marketingCampaignApprovedContact" | "marketingBroadcastDispatch" | "marketingBroadcastRecipient" | "marketingAutomation" | "marketingAutomationVersion" | "marketingAutomationEnrollment" | "marketingAutomationStepRun" | "marketingTriggerEvent" | "mailProductIntegration" | "mailProductSenderAuthorization" | "mailProductIntegrationEvent" | "mailProductDeliveryEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -17617,6 +17694,302 @@ export namespace Prisma {
           }
         }
       }
+      MailProductIntegration: {
+        payload: Prisma.$MailProductIntegrationPayload<ExtArgs>
+        fields: Prisma.MailProductIntegrationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MailProductIntegrationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MailProductIntegrationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationPayload>
+          }
+          findFirst: {
+            args: Prisma.MailProductIntegrationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MailProductIntegrationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationPayload>
+          }
+          findMany: {
+            args: Prisma.MailProductIntegrationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationPayload>[]
+          }
+          create: {
+            args: Prisma.MailProductIntegrationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationPayload>
+          }
+          createMany: {
+            args: Prisma.MailProductIntegrationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MailProductIntegrationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationPayload>[]
+          }
+          delete: {
+            args: Prisma.MailProductIntegrationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationPayload>
+          }
+          update: {
+            args: Prisma.MailProductIntegrationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationPayload>
+          }
+          deleteMany: {
+            args: Prisma.MailProductIntegrationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MailProductIntegrationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MailProductIntegrationUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationPayload>[]
+          }
+          upsert: {
+            args: Prisma.MailProductIntegrationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationPayload>
+          }
+          aggregate: {
+            args: Prisma.MailProductIntegrationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMailProductIntegration>
+          }
+          groupBy: {
+            args: Prisma.MailProductIntegrationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MailProductIntegrationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MailProductIntegrationCountArgs<ExtArgs>
+            result: $Utils.Optional<MailProductIntegrationCountAggregateOutputType> | number
+          }
+        }
+      }
+      MailProductSenderAuthorization: {
+        payload: Prisma.$MailProductSenderAuthorizationPayload<ExtArgs>
+        fields: Prisma.MailProductSenderAuthorizationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MailProductSenderAuthorizationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductSenderAuthorizationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MailProductSenderAuthorizationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductSenderAuthorizationPayload>
+          }
+          findFirst: {
+            args: Prisma.MailProductSenderAuthorizationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductSenderAuthorizationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MailProductSenderAuthorizationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductSenderAuthorizationPayload>
+          }
+          findMany: {
+            args: Prisma.MailProductSenderAuthorizationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductSenderAuthorizationPayload>[]
+          }
+          create: {
+            args: Prisma.MailProductSenderAuthorizationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductSenderAuthorizationPayload>
+          }
+          createMany: {
+            args: Prisma.MailProductSenderAuthorizationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MailProductSenderAuthorizationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductSenderAuthorizationPayload>[]
+          }
+          delete: {
+            args: Prisma.MailProductSenderAuthorizationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductSenderAuthorizationPayload>
+          }
+          update: {
+            args: Prisma.MailProductSenderAuthorizationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductSenderAuthorizationPayload>
+          }
+          deleteMany: {
+            args: Prisma.MailProductSenderAuthorizationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MailProductSenderAuthorizationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MailProductSenderAuthorizationUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductSenderAuthorizationPayload>[]
+          }
+          upsert: {
+            args: Prisma.MailProductSenderAuthorizationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductSenderAuthorizationPayload>
+          }
+          aggregate: {
+            args: Prisma.MailProductSenderAuthorizationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMailProductSenderAuthorization>
+          }
+          groupBy: {
+            args: Prisma.MailProductSenderAuthorizationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MailProductSenderAuthorizationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MailProductSenderAuthorizationCountArgs<ExtArgs>
+            result: $Utils.Optional<MailProductSenderAuthorizationCountAggregateOutputType> | number
+          }
+        }
+      }
+      MailProductIntegrationEvent: {
+        payload: Prisma.$MailProductIntegrationEventPayload<ExtArgs>
+        fields: Prisma.MailProductIntegrationEventFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MailProductIntegrationEventFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationEventPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MailProductIntegrationEventFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationEventPayload>
+          }
+          findFirst: {
+            args: Prisma.MailProductIntegrationEventFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationEventPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MailProductIntegrationEventFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationEventPayload>
+          }
+          findMany: {
+            args: Prisma.MailProductIntegrationEventFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationEventPayload>[]
+          }
+          create: {
+            args: Prisma.MailProductIntegrationEventCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationEventPayload>
+          }
+          createMany: {
+            args: Prisma.MailProductIntegrationEventCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MailProductIntegrationEventCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationEventPayload>[]
+          }
+          delete: {
+            args: Prisma.MailProductIntegrationEventDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationEventPayload>
+          }
+          update: {
+            args: Prisma.MailProductIntegrationEventUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationEventPayload>
+          }
+          deleteMany: {
+            args: Prisma.MailProductIntegrationEventDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MailProductIntegrationEventUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MailProductIntegrationEventUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationEventPayload>[]
+          }
+          upsert: {
+            args: Prisma.MailProductIntegrationEventUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductIntegrationEventPayload>
+          }
+          aggregate: {
+            args: Prisma.MailProductIntegrationEventAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMailProductIntegrationEvent>
+          }
+          groupBy: {
+            args: Prisma.MailProductIntegrationEventGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MailProductIntegrationEventGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MailProductIntegrationEventCountArgs<ExtArgs>
+            result: $Utils.Optional<MailProductIntegrationEventCountAggregateOutputType> | number
+          }
+        }
+      }
+      MailProductDeliveryEvent: {
+        payload: Prisma.$MailProductDeliveryEventPayload<ExtArgs>
+        fields: Prisma.MailProductDeliveryEventFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MailProductDeliveryEventFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductDeliveryEventPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MailProductDeliveryEventFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductDeliveryEventPayload>
+          }
+          findFirst: {
+            args: Prisma.MailProductDeliveryEventFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductDeliveryEventPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MailProductDeliveryEventFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductDeliveryEventPayload>
+          }
+          findMany: {
+            args: Prisma.MailProductDeliveryEventFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductDeliveryEventPayload>[]
+          }
+          create: {
+            args: Prisma.MailProductDeliveryEventCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductDeliveryEventPayload>
+          }
+          createMany: {
+            args: Prisma.MailProductDeliveryEventCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MailProductDeliveryEventCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductDeliveryEventPayload>[]
+          }
+          delete: {
+            args: Prisma.MailProductDeliveryEventDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductDeliveryEventPayload>
+          }
+          update: {
+            args: Prisma.MailProductDeliveryEventUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductDeliveryEventPayload>
+          }
+          deleteMany: {
+            args: Prisma.MailProductDeliveryEventDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MailProductDeliveryEventUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MailProductDeliveryEventUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductDeliveryEventPayload>[]
+          }
+          upsert: {
+            args: Prisma.MailProductDeliveryEventUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailProductDeliveryEventPayload>
+          }
+          aggregate: {
+            args: Prisma.MailProductDeliveryEventAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMailProductDeliveryEvent>
+          }
+          groupBy: {
+            args: Prisma.MailProductDeliveryEventGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MailProductDeliveryEventGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MailProductDeliveryEventCountArgs<ExtArgs>
+            result: $Utils.Optional<MailProductDeliveryEventCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -17906,6 +18279,10 @@ export namespace Prisma {
     marketingAutomationEnrollment?: MarketingAutomationEnrollmentOmit
     marketingAutomationStepRun?: MarketingAutomationStepRunOmit
     marketingTriggerEvent?: MarketingTriggerEventOmit
+    mailProductIntegration?: MailProductIntegrationOmit
+    mailProductSenderAuthorization?: MailProductSenderAuthorizationOmit
+    mailProductIntegrationEvent?: MailProductIntegrationEventOmit
+    mailProductDeliveryEvent?: MailProductDeliveryEventOmit
   }
 
   /* Types for Logging */
@@ -21494,6 +21871,55 @@ export namespace Prisma {
    */
   export type MarketingAutomationEnrollmentCountOutputTypeCountStepRunsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MarketingAutomationStepRunWhereInput
+  }
+
+
+  /**
+   * Count Type MailProductIntegrationCountOutputType
+   */
+
+  export type MailProductIntegrationCountOutputType = {
+    senders: number
+    events: number
+    deliveryEvents: number
+  }
+
+  export type MailProductIntegrationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    senders?: boolean | MailProductIntegrationCountOutputTypeCountSendersArgs
+    events?: boolean | MailProductIntegrationCountOutputTypeCountEventsArgs
+    deliveryEvents?: boolean | MailProductIntegrationCountOutputTypeCountDeliveryEventsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * MailProductIntegrationCountOutputType without action
+   */
+  export type MailProductIntegrationCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegrationCountOutputType
+     */
+    select?: MailProductIntegrationCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * MailProductIntegrationCountOutputType without action
+   */
+  export type MailProductIntegrationCountOutputTypeCountSendersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailProductSenderAuthorizationWhereInput
+  }
+
+  /**
+   * MailProductIntegrationCountOutputType without action
+   */
+  export type MailProductIntegrationCountOutputTypeCountEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailProductIntegrationEventWhereInput
+  }
+
+  /**
+   * MailProductIntegrationCountOutputType without action
+   */
+  export type MailProductIntegrationCountOutputTypeCountDeliveryEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailProductDeliveryEventWhereInput
   }
 
 
@@ -226642,6 +227068,4824 @@ export namespace Prisma {
 
 
   /**
+   * Model MailProductIntegration
+   */
+
+  export type AggregateMailProductIntegration = {
+    _count: MailProductIntegrationCountAggregateOutputType | null
+    _avg: MailProductIntegrationAvgAggregateOutputType | null
+    _sum: MailProductIntegrationSumAggregateOutputType | null
+    _min: MailProductIntegrationMinAggregateOutputType | null
+    _max: MailProductIntegrationMaxAggregateOutputType | null
+  }
+
+  export type MailProductIntegrationAvgAggregateOutputType = {
+    contractVersion: number | null
+  }
+
+  export type MailProductIntegrationSumAggregateOutputType = {
+    contractVersion: number | null
+  }
+
+  export type MailProductIntegrationMinAggregateOutputType = {
+    id: string | null
+    product: string | null
+    organizationId: string | null
+    serviceName: string | null
+    status: $Enums.MailProductIntegrationStatus | null
+    classification: string | null
+    contractVersion: number | null
+    ownerApprovalReference: string | null
+    ownerApprovedBy: string | null
+    approvedAt: Date | null
+    activatedByAdminUserId: string | null
+    lastEventAt: Date | null
+    lastErrorCode: string | null
+    lastErrorAt: Date | null
+    createdBy: string | null
+    updatedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MailProductIntegrationMaxAggregateOutputType = {
+    id: string | null
+    product: string | null
+    organizationId: string | null
+    serviceName: string | null
+    status: $Enums.MailProductIntegrationStatus | null
+    classification: string | null
+    contractVersion: number | null
+    ownerApprovalReference: string | null
+    ownerApprovedBy: string | null
+    approvedAt: Date | null
+    activatedByAdminUserId: string | null
+    lastEventAt: Date | null
+    lastErrorCode: string | null
+    lastErrorAt: Date | null
+    createdBy: string | null
+    updatedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MailProductIntegrationCountAggregateOutputType = {
+    id: number
+    product: number
+    organizationId: number
+    serviceName: number
+    status: number
+    classification: number
+    contractVersion: number
+    allowedEventTypes: number
+    allowedTriggerTypes: number
+    ownerApprovalReference: number
+    ownerApprovedBy: number
+    approvedAt: number
+    activatedByAdminUserId: number
+    lastEventAt: number
+    lastErrorCode: number
+    lastErrorAt: number
+    createdBy: number
+    updatedBy: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MailProductIntegrationAvgAggregateInputType = {
+    contractVersion?: true
+  }
+
+  export type MailProductIntegrationSumAggregateInputType = {
+    contractVersion?: true
+  }
+
+  export type MailProductIntegrationMinAggregateInputType = {
+    id?: true
+    product?: true
+    organizationId?: true
+    serviceName?: true
+    status?: true
+    classification?: true
+    contractVersion?: true
+    ownerApprovalReference?: true
+    ownerApprovedBy?: true
+    approvedAt?: true
+    activatedByAdminUserId?: true
+    lastEventAt?: true
+    lastErrorCode?: true
+    lastErrorAt?: true
+    createdBy?: true
+    updatedBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MailProductIntegrationMaxAggregateInputType = {
+    id?: true
+    product?: true
+    organizationId?: true
+    serviceName?: true
+    status?: true
+    classification?: true
+    contractVersion?: true
+    ownerApprovalReference?: true
+    ownerApprovedBy?: true
+    approvedAt?: true
+    activatedByAdminUserId?: true
+    lastEventAt?: true
+    lastErrorCode?: true
+    lastErrorAt?: true
+    createdBy?: true
+    updatedBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MailProductIntegrationCountAggregateInputType = {
+    id?: true
+    product?: true
+    organizationId?: true
+    serviceName?: true
+    status?: true
+    classification?: true
+    contractVersion?: true
+    allowedEventTypes?: true
+    allowedTriggerTypes?: true
+    ownerApprovalReference?: true
+    ownerApprovedBy?: true
+    approvedAt?: true
+    activatedByAdminUserId?: true
+    lastEventAt?: true
+    lastErrorCode?: true
+    lastErrorAt?: true
+    createdBy?: true
+    updatedBy?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MailProductIntegrationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailProductIntegration to aggregate.
+     */
+    where?: MailProductIntegrationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailProductIntegrations to fetch.
+     */
+    orderBy?: MailProductIntegrationOrderByWithRelationInput | MailProductIntegrationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MailProductIntegrationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailProductIntegrations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailProductIntegrations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MailProductIntegrations
+    **/
+    _count?: true | MailProductIntegrationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MailProductIntegrationAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MailProductIntegrationSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MailProductIntegrationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MailProductIntegrationMaxAggregateInputType
+  }
+
+  export type GetMailProductIntegrationAggregateType<T extends MailProductIntegrationAggregateArgs> = {
+        [P in keyof T & keyof AggregateMailProductIntegration]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMailProductIntegration[P]>
+      : GetScalarType<T[P], AggregateMailProductIntegration[P]>
+  }
+
+
+
+
+  export type MailProductIntegrationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailProductIntegrationWhereInput
+    orderBy?: MailProductIntegrationOrderByWithAggregationInput | MailProductIntegrationOrderByWithAggregationInput[]
+    by: MailProductIntegrationScalarFieldEnum[] | MailProductIntegrationScalarFieldEnum
+    having?: MailProductIntegrationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MailProductIntegrationCountAggregateInputType | true
+    _avg?: MailProductIntegrationAvgAggregateInputType
+    _sum?: MailProductIntegrationSumAggregateInputType
+    _min?: MailProductIntegrationMinAggregateInputType
+    _max?: MailProductIntegrationMaxAggregateInputType
+  }
+
+  export type MailProductIntegrationGroupByOutputType = {
+    id: string
+    product: string
+    organizationId: string
+    serviceName: string
+    status: $Enums.MailProductIntegrationStatus
+    classification: string
+    contractVersion: number
+    allowedEventTypes: string[]
+    allowedTriggerTypes: string[]
+    ownerApprovalReference: string | null
+    ownerApprovedBy: string | null
+    approvedAt: Date | null
+    activatedByAdminUserId: string | null
+    lastEventAt: Date | null
+    lastErrorCode: string | null
+    lastErrorAt: Date | null
+    createdBy: string
+    updatedBy: string
+    createdAt: Date
+    updatedAt: Date
+    _count: MailProductIntegrationCountAggregateOutputType | null
+    _avg: MailProductIntegrationAvgAggregateOutputType | null
+    _sum: MailProductIntegrationSumAggregateOutputType | null
+    _min: MailProductIntegrationMinAggregateOutputType | null
+    _max: MailProductIntegrationMaxAggregateOutputType | null
+  }
+
+  type GetMailProductIntegrationGroupByPayload<T extends MailProductIntegrationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MailProductIntegrationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MailProductIntegrationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MailProductIntegrationGroupByOutputType[P]>
+            : GetScalarType<T[P], MailProductIntegrationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MailProductIntegrationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    product?: boolean
+    organizationId?: boolean
+    serviceName?: boolean
+    status?: boolean
+    classification?: boolean
+    contractVersion?: boolean
+    allowedEventTypes?: boolean
+    allowedTriggerTypes?: boolean
+    ownerApprovalReference?: boolean
+    ownerApprovedBy?: boolean
+    approvedAt?: boolean
+    activatedByAdminUserId?: boolean
+    lastEventAt?: boolean
+    lastErrorCode?: boolean
+    lastErrorAt?: boolean
+    createdBy?: boolean
+    updatedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    senders?: boolean | MailProductIntegration$sendersArgs<ExtArgs>
+    events?: boolean | MailProductIntegration$eventsArgs<ExtArgs>
+    deliveryEvents?: boolean | MailProductIntegration$deliveryEventsArgs<ExtArgs>
+    _count?: boolean | MailProductIntegrationCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailProductIntegration"]>
+
+  export type MailProductIntegrationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    product?: boolean
+    organizationId?: boolean
+    serviceName?: boolean
+    status?: boolean
+    classification?: boolean
+    contractVersion?: boolean
+    allowedEventTypes?: boolean
+    allowedTriggerTypes?: boolean
+    ownerApprovalReference?: boolean
+    ownerApprovedBy?: boolean
+    approvedAt?: boolean
+    activatedByAdminUserId?: boolean
+    lastEventAt?: boolean
+    lastErrorCode?: boolean
+    lastErrorAt?: boolean
+    createdBy?: boolean
+    updatedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["mailProductIntegration"]>
+
+  export type MailProductIntegrationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    product?: boolean
+    organizationId?: boolean
+    serviceName?: boolean
+    status?: boolean
+    classification?: boolean
+    contractVersion?: boolean
+    allowedEventTypes?: boolean
+    allowedTriggerTypes?: boolean
+    ownerApprovalReference?: boolean
+    ownerApprovedBy?: boolean
+    approvedAt?: boolean
+    activatedByAdminUserId?: boolean
+    lastEventAt?: boolean
+    lastErrorCode?: boolean
+    lastErrorAt?: boolean
+    createdBy?: boolean
+    updatedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["mailProductIntegration"]>
+
+  export type MailProductIntegrationSelectScalar = {
+    id?: boolean
+    product?: boolean
+    organizationId?: boolean
+    serviceName?: boolean
+    status?: boolean
+    classification?: boolean
+    contractVersion?: boolean
+    allowedEventTypes?: boolean
+    allowedTriggerTypes?: boolean
+    ownerApprovalReference?: boolean
+    ownerApprovedBy?: boolean
+    approvedAt?: boolean
+    activatedByAdminUserId?: boolean
+    lastEventAt?: boolean
+    lastErrorCode?: boolean
+    lastErrorAt?: boolean
+    createdBy?: boolean
+    updatedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type MailProductIntegrationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "product" | "organizationId" | "serviceName" | "status" | "classification" | "contractVersion" | "allowedEventTypes" | "allowedTriggerTypes" | "ownerApprovalReference" | "ownerApprovedBy" | "approvedAt" | "activatedByAdminUserId" | "lastEventAt" | "lastErrorCode" | "lastErrorAt" | "createdBy" | "updatedBy" | "createdAt" | "updatedAt", ExtArgs["result"]["mailProductIntegration"]>
+  export type MailProductIntegrationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    senders?: boolean | MailProductIntegration$sendersArgs<ExtArgs>
+    events?: boolean | MailProductIntegration$eventsArgs<ExtArgs>
+    deliveryEvents?: boolean | MailProductIntegration$deliveryEventsArgs<ExtArgs>
+    _count?: boolean | MailProductIntegrationCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type MailProductIntegrationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type MailProductIntegrationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $MailProductIntegrationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MailProductIntegration"
+    objects: {
+      senders: Prisma.$MailProductSenderAuthorizationPayload<ExtArgs>[]
+      events: Prisma.$MailProductIntegrationEventPayload<ExtArgs>[]
+      deliveryEvents: Prisma.$MailProductDeliveryEventPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      product: string
+      organizationId: string
+      serviceName: string
+      status: $Enums.MailProductIntegrationStatus
+      classification: string
+      contractVersion: number
+      allowedEventTypes: string[]
+      allowedTriggerTypes: string[]
+      ownerApprovalReference: string | null
+      ownerApprovedBy: string | null
+      approvedAt: Date | null
+      activatedByAdminUserId: string | null
+      lastEventAt: Date | null
+      lastErrorCode: string | null
+      lastErrorAt: Date | null
+      createdBy: string
+      updatedBy: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["mailProductIntegration"]>
+    composites: {}
+  }
+
+  type MailProductIntegrationGetPayload<S extends boolean | null | undefined | MailProductIntegrationDefaultArgs> = $Result.GetResult<Prisma.$MailProductIntegrationPayload, S>
+
+  type MailProductIntegrationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MailProductIntegrationFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MailProductIntegrationCountAggregateInputType | true
+    }
+
+  export interface MailProductIntegrationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MailProductIntegration'], meta: { name: 'MailProductIntegration' } }
+    /**
+     * Find zero or one MailProductIntegration that matches the filter.
+     * @param {MailProductIntegrationFindUniqueArgs} args - Arguments to find a MailProductIntegration
+     * @example
+     * // Get one MailProductIntegration
+     * const mailProductIntegration = await prisma.mailProductIntegration.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MailProductIntegrationFindUniqueArgs>(args: SelectSubset<T, MailProductIntegrationFindUniqueArgs<ExtArgs>>): Prisma__MailProductIntegrationClient<$Result.GetResult<Prisma.$MailProductIntegrationPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MailProductIntegration that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MailProductIntegrationFindUniqueOrThrowArgs} args - Arguments to find a MailProductIntegration
+     * @example
+     * // Get one MailProductIntegration
+     * const mailProductIntegration = await prisma.mailProductIntegration.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MailProductIntegrationFindUniqueOrThrowArgs>(args: SelectSubset<T, MailProductIntegrationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MailProductIntegrationClient<$Result.GetResult<Prisma.$MailProductIntegrationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailProductIntegration that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductIntegrationFindFirstArgs} args - Arguments to find a MailProductIntegration
+     * @example
+     * // Get one MailProductIntegration
+     * const mailProductIntegration = await prisma.mailProductIntegration.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MailProductIntegrationFindFirstArgs>(args?: SelectSubset<T, MailProductIntegrationFindFirstArgs<ExtArgs>>): Prisma__MailProductIntegrationClient<$Result.GetResult<Prisma.$MailProductIntegrationPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailProductIntegration that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductIntegrationFindFirstOrThrowArgs} args - Arguments to find a MailProductIntegration
+     * @example
+     * // Get one MailProductIntegration
+     * const mailProductIntegration = await prisma.mailProductIntegration.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MailProductIntegrationFindFirstOrThrowArgs>(args?: SelectSubset<T, MailProductIntegrationFindFirstOrThrowArgs<ExtArgs>>): Prisma__MailProductIntegrationClient<$Result.GetResult<Prisma.$MailProductIntegrationPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MailProductIntegrations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductIntegrationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MailProductIntegrations
+     * const mailProductIntegrations = await prisma.mailProductIntegration.findMany()
+     * 
+     * // Get first 10 MailProductIntegrations
+     * const mailProductIntegrations = await prisma.mailProductIntegration.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const mailProductIntegrationWithIdOnly = await prisma.mailProductIntegration.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MailProductIntegrationFindManyArgs>(args?: SelectSubset<T, MailProductIntegrationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailProductIntegrationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MailProductIntegration.
+     * @param {MailProductIntegrationCreateArgs} args - Arguments to create a MailProductIntegration.
+     * @example
+     * // Create one MailProductIntegration
+     * const MailProductIntegration = await prisma.mailProductIntegration.create({
+     *   data: {
+     *     // ... data to create a MailProductIntegration
+     *   }
+     * })
+     * 
+     */
+    create<T extends MailProductIntegrationCreateArgs>(args: SelectSubset<T, MailProductIntegrationCreateArgs<ExtArgs>>): Prisma__MailProductIntegrationClient<$Result.GetResult<Prisma.$MailProductIntegrationPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MailProductIntegrations.
+     * @param {MailProductIntegrationCreateManyArgs} args - Arguments to create many MailProductIntegrations.
+     * @example
+     * // Create many MailProductIntegrations
+     * const mailProductIntegration = await prisma.mailProductIntegration.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MailProductIntegrationCreateManyArgs>(args?: SelectSubset<T, MailProductIntegrationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MailProductIntegrations and returns the data saved in the database.
+     * @param {MailProductIntegrationCreateManyAndReturnArgs} args - Arguments to create many MailProductIntegrations.
+     * @example
+     * // Create many MailProductIntegrations
+     * const mailProductIntegration = await prisma.mailProductIntegration.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MailProductIntegrations and only return the `id`
+     * const mailProductIntegrationWithIdOnly = await prisma.mailProductIntegration.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MailProductIntegrationCreateManyAndReturnArgs>(args?: SelectSubset<T, MailProductIntegrationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailProductIntegrationPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MailProductIntegration.
+     * @param {MailProductIntegrationDeleteArgs} args - Arguments to delete one MailProductIntegration.
+     * @example
+     * // Delete one MailProductIntegration
+     * const MailProductIntegration = await prisma.mailProductIntegration.delete({
+     *   where: {
+     *     // ... filter to delete one MailProductIntegration
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MailProductIntegrationDeleteArgs>(args: SelectSubset<T, MailProductIntegrationDeleteArgs<ExtArgs>>): Prisma__MailProductIntegrationClient<$Result.GetResult<Prisma.$MailProductIntegrationPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MailProductIntegration.
+     * @param {MailProductIntegrationUpdateArgs} args - Arguments to update one MailProductIntegration.
+     * @example
+     * // Update one MailProductIntegration
+     * const mailProductIntegration = await prisma.mailProductIntegration.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MailProductIntegrationUpdateArgs>(args: SelectSubset<T, MailProductIntegrationUpdateArgs<ExtArgs>>): Prisma__MailProductIntegrationClient<$Result.GetResult<Prisma.$MailProductIntegrationPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MailProductIntegrations.
+     * @param {MailProductIntegrationDeleteManyArgs} args - Arguments to filter MailProductIntegrations to delete.
+     * @example
+     * // Delete a few MailProductIntegrations
+     * const { count } = await prisma.mailProductIntegration.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MailProductIntegrationDeleteManyArgs>(args?: SelectSubset<T, MailProductIntegrationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailProductIntegrations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductIntegrationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MailProductIntegrations
+     * const mailProductIntegration = await prisma.mailProductIntegration.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MailProductIntegrationUpdateManyArgs>(args: SelectSubset<T, MailProductIntegrationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailProductIntegrations and returns the data updated in the database.
+     * @param {MailProductIntegrationUpdateManyAndReturnArgs} args - Arguments to update many MailProductIntegrations.
+     * @example
+     * // Update many MailProductIntegrations
+     * const mailProductIntegration = await prisma.mailProductIntegration.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MailProductIntegrations and only return the `id`
+     * const mailProductIntegrationWithIdOnly = await prisma.mailProductIntegration.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MailProductIntegrationUpdateManyAndReturnArgs>(args: SelectSubset<T, MailProductIntegrationUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailProductIntegrationPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MailProductIntegration.
+     * @param {MailProductIntegrationUpsertArgs} args - Arguments to update or create a MailProductIntegration.
+     * @example
+     * // Update or create a MailProductIntegration
+     * const mailProductIntegration = await prisma.mailProductIntegration.upsert({
+     *   create: {
+     *     // ... data to create a MailProductIntegration
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MailProductIntegration we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MailProductIntegrationUpsertArgs>(args: SelectSubset<T, MailProductIntegrationUpsertArgs<ExtArgs>>): Prisma__MailProductIntegrationClient<$Result.GetResult<Prisma.$MailProductIntegrationPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MailProductIntegrations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductIntegrationCountArgs} args - Arguments to filter MailProductIntegrations to count.
+     * @example
+     * // Count the number of MailProductIntegrations
+     * const count = await prisma.mailProductIntegration.count({
+     *   where: {
+     *     // ... the filter for the MailProductIntegrations we want to count
+     *   }
+     * })
+    **/
+    count<T extends MailProductIntegrationCountArgs>(
+      args?: Subset<T, MailProductIntegrationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MailProductIntegrationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MailProductIntegration.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductIntegrationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MailProductIntegrationAggregateArgs>(args: Subset<T, MailProductIntegrationAggregateArgs>): Prisma.PrismaPromise<GetMailProductIntegrationAggregateType<T>>
+
+    /**
+     * Group by MailProductIntegration.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductIntegrationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MailProductIntegrationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MailProductIntegrationGroupByArgs['orderBy'] }
+        : { orderBy?: MailProductIntegrationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MailProductIntegrationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMailProductIntegrationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MailProductIntegration model
+   */
+  readonly fields: MailProductIntegrationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MailProductIntegration.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MailProductIntegrationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    senders<T extends MailProductIntegration$sendersArgs<ExtArgs> = {}>(args?: Subset<T, MailProductIntegration$sendersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailProductSenderAuthorizationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    events<T extends MailProductIntegration$eventsArgs<ExtArgs> = {}>(args?: Subset<T, MailProductIntegration$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailProductIntegrationEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    deliveryEvents<T extends MailProductIntegration$deliveryEventsArgs<ExtArgs> = {}>(args?: Subset<T, MailProductIntegration$deliveryEventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailProductDeliveryEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MailProductIntegration model
+   */
+  interface MailProductIntegrationFieldRefs {
+    readonly id: FieldRef<"MailProductIntegration", 'String'>
+    readonly product: FieldRef<"MailProductIntegration", 'String'>
+    readonly organizationId: FieldRef<"MailProductIntegration", 'String'>
+    readonly serviceName: FieldRef<"MailProductIntegration", 'String'>
+    readonly status: FieldRef<"MailProductIntegration", 'MailProductIntegrationStatus'>
+    readonly classification: FieldRef<"MailProductIntegration", 'String'>
+    readonly contractVersion: FieldRef<"MailProductIntegration", 'Int'>
+    readonly allowedEventTypes: FieldRef<"MailProductIntegration", 'String[]'>
+    readonly allowedTriggerTypes: FieldRef<"MailProductIntegration", 'String[]'>
+    readonly ownerApprovalReference: FieldRef<"MailProductIntegration", 'String'>
+    readonly ownerApprovedBy: FieldRef<"MailProductIntegration", 'String'>
+    readonly approvedAt: FieldRef<"MailProductIntegration", 'DateTime'>
+    readonly activatedByAdminUserId: FieldRef<"MailProductIntegration", 'String'>
+    readonly lastEventAt: FieldRef<"MailProductIntegration", 'DateTime'>
+    readonly lastErrorCode: FieldRef<"MailProductIntegration", 'String'>
+    readonly lastErrorAt: FieldRef<"MailProductIntegration", 'DateTime'>
+    readonly createdBy: FieldRef<"MailProductIntegration", 'String'>
+    readonly updatedBy: FieldRef<"MailProductIntegration", 'String'>
+    readonly createdAt: FieldRef<"MailProductIntegration", 'DateTime'>
+    readonly updatedAt: FieldRef<"MailProductIntegration", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MailProductIntegration findUnique
+   */
+  export type MailProductIntegrationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegration
+     */
+    select?: MailProductIntegrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegration
+     */
+    omit?: MailProductIntegrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationInclude<ExtArgs> | null
+    /**
+     * Filter, which MailProductIntegration to fetch.
+     */
+    where: MailProductIntegrationWhereUniqueInput
+  }
+
+  /**
+   * MailProductIntegration findUniqueOrThrow
+   */
+  export type MailProductIntegrationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegration
+     */
+    select?: MailProductIntegrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegration
+     */
+    omit?: MailProductIntegrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationInclude<ExtArgs> | null
+    /**
+     * Filter, which MailProductIntegration to fetch.
+     */
+    where: MailProductIntegrationWhereUniqueInput
+  }
+
+  /**
+   * MailProductIntegration findFirst
+   */
+  export type MailProductIntegrationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegration
+     */
+    select?: MailProductIntegrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegration
+     */
+    omit?: MailProductIntegrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationInclude<ExtArgs> | null
+    /**
+     * Filter, which MailProductIntegration to fetch.
+     */
+    where?: MailProductIntegrationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailProductIntegrations to fetch.
+     */
+    orderBy?: MailProductIntegrationOrderByWithRelationInput | MailProductIntegrationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailProductIntegrations.
+     */
+    cursor?: MailProductIntegrationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailProductIntegrations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailProductIntegrations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailProductIntegrations.
+     */
+    distinct?: MailProductIntegrationScalarFieldEnum | MailProductIntegrationScalarFieldEnum[]
+  }
+
+  /**
+   * MailProductIntegration findFirstOrThrow
+   */
+  export type MailProductIntegrationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegration
+     */
+    select?: MailProductIntegrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegration
+     */
+    omit?: MailProductIntegrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationInclude<ExtArgs> | null
+    /**
+     * Filter, which MailProductIntegration to fetch.
+     */
+    where?: MailProductIntegrationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailProductIntegrations to fetch.
+     */
+    orderBy?: MailProductIntegrationOrderByWithRelationInput | MailProductIntegrationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailProductIntegrations.
+     */
+    cursor?: MailProductIntegrationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailProductIntegrations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailProductIntegrations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailProductIntegrations.
+     */
+    distinct?: MailProductIntegrationScalarFieldEnum | MailProductIntegrationScalarFieldEnum[]
+  }
+
+  /**
+   * MailProductIntegration findMany
+   */
+  export type MailProductIntegrationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegration
+     */
+    select?: MailProductIntegrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegration
+     */
+    omit?: MailProductIntegrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationInclude<ExtArgs> | null
+    /**
+     * Filter, which MailProductIntegrations to fetch.
+     */
+    where?: MailProductIntegrationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailProductIntegrations to fetch.
+     */
+    orderBy?: MailProductIntegrationOrderByWithRelationInput | MailProductIntegrationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MailProductIntegrations.
+     */
+    cursor?: MailProductIntegrationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailProductIntegrations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailProductIntegrations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailProductIntegrations.
+     */
+    distinct?: MailProductIntegrationScalarFieldEnum | MailProductIntegrationScalarFieldEnum[]
+  }
+
+  /**
+   * MailProductIntegration create
+   */
+  export type MailProductIntegrationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegration
+     */
+    select?: MailProductIntegrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegration
+     */
+    omit?: MailProductIntegrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MailProductIntegration.
+     */
+    data: XOR<MailProductIntegrationCreateInput, MailProductIntegrationUncheckedCreateInput>
+  }
+
+  /**
+   * MailProductIntegration createMany
+   */
+  export type MailProductIntegrationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MailProductIntegrations.
+     */
+    data: MailProductIntegrationCreateManyInput | MailProductIntegrationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailProductIntegration createManyAndReturn
+   */
+  export type MailProductIntegrationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegration
+     */
+    select?: MailProductIntegrationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegration
+     */
+    omit?: MailProductIntegrationOmit<ExtArgs> | null
+    /**
+     * The data used to create many MailProductIntegrations.
+     */
+    data: MailProductIntegrationCreateManyInput | MailProductIntegrationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailProductIntegration update
+   */
+  export type MailProductIntegrationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegration
+     */
+    select?: MailProductIntegrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegration
+     */
+    omit?: MailProductIntegrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MailProductIntegration.
+     */
+    data: XOR<MailProductIntegrationUpdateInput, MailProductIntegrationUncheckedUpdateInput>
+    /**
+     * Choose, which MailProductIntegration to update.
+     */
+    where: MailProductIntegrationWhereUniqueInput
+  }
+
+  /**
+   * MailProductIntegration updateMany
+   */
+  export type MailProductIntegrationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MailProductIntegrations.
+     */
+    data: XOR<MailProductIntegrationUpdateManyMutationInput, MailProductIntegrationUncheckedUpdateManyInput>
+    /**
+     * Filter which MailProductIntegrations to update
+     */
+    where?: MailProductIntegrationWhereInput
+    /**
+     * Limit how many MailProductIntegrations to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailProductIntegration updateManyAndReturn
+   */
+  export type MailProductIntegrationUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegration
+     */
+    select?: MailProductIntegrationSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegration
+     */
+    omit?: MailProductIntegrationOmit<ExtArgs> | null
+    /**
+     * The data used to update MailProductIntegrations.
+     */
+    data: XOR<MailProductIntegrationUpdateManyMutationInput, MailProductIntegrationUncheckedUpdateManyInput>
+    /**
+     * Filter which MailProductIntegrations to update
+     */
+    where?: MailProductIntegrationWhereInput
+    /**
+     * Limit how many MailProductIntegrations to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailProductIntegration upsert
+   */
+  export type MailProductIntegrationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegration
+     */
+    select?: MailProductIntegrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegration
+     */
+    omit?: MailProductIntegrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MailProductIntegration to update in case it exists.
+     */
+    where: MailProductIntegrationWhereUniqueInput
+    /**
+     * In case the MailProductIntegration found by the `where` argument doesn't exist, create a new MailProductIntegration with this data.
+     */
+    create: XOR<MailProductIntegrationCreateInput, MailProductIntegrationUncheckedCreateInput>
+    /**
+     * In case the MailProductIntegration was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MailProductIntegrationUpdateInput, MailProductIntegrationUncheckedUpdateInput>
+  }
+
+  /**
+   * MailProductIntegration delete
+   */
+  export type MailProductIntegrationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegration
+     */
+    select?: MailProductIntegrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegration
+     */
+    omit?: MailProductIntegrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationInclude<ExtArgs> | null
+    /**
+     * Filter which MailProductIntegration to delete.
+     */
+    where: MailProductIntegrationWhereUniqueInput
+  }
+
+  /**
+   * MailProductIntegration deleteMany
+   */
+  export type MailProductIntegrationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailProductIntegrations to delete
+     */
+    where?: MailProductIntegrationWhereInput
+    /**
+     * Limit how many MailProductIntegrations to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailProductIntegration.senders
+   */
+  export type MailProductIntegration$sendersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductSenderAuthorization
+     */
+    select?: MailProductSenderAuthorizationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductSenderAuthorization
+     */
+    omit?: MailProductSenderAuthorizationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductSenderAuthorizationInclude<ExtArgs> | null
+    where?: MailProductSenderAuthorizationWhereInput
+    orderBy?: MailProductSenderAuthorizationOrderByWithRelationInput | MailProductSenderAuthorizationOrderByWithRelationInput[]
+    cursor?: MailProductSenderAuthorizationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MailProductSenderAuthorizationScalarFieldEnum | MailProductSenderAuthorizationScalarFieldEnum[]
+  }
+
+  /**
+   * MailProductIntegration.events
+   */
+  export type MailProductIntegration$eventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegrationEvent
+     */
+    select?: MailProductIntegrationEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegrationEvent
+     */
+    omit?: MailProductIntegrationEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationEventInclude<ExtArgs> | null
+    where?: MailProductIntegrationEventWhereInput
+    orderBy?: MailProductIntegrationEventOrderByWithRelationInput | MailProductIntegrationEventOrderByWithRelationInput[]
+    cursor?: MailProductIntegrationEventWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MailProductIntegrationEventScalarFieldEnum | MailProductIntegrationEventScalarFieldEnum[]
+  }
+
+  /**
+   * MailProductIntegration.deliveryEvents
+   */
+  export type MailProductIntegration$deliveryEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductDeliveryEvent
+     */
+    select?: MailProductDeliveryEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductDeliveryEvent
+     */
+    omit?: MailProductDeliveryEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductDeliveryEventInclude<ExtArgs> | null
+    where?: MailProductDeliveryEventWhereInput
+    orderBy?: MailProductDeliveryEventOrderByWithRelationInput | MailProductDeliveryEventOrderByWithRelationInput[]
+    cursor?: MailProductDeliveryEventWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MailProductDeliveryEventScalarFieldEnum | MailProductDeliveryEventScalarFieldEnum[]
+  }
+
+  /**
+   * MailProductIntegration without action
+   */
+  export type MailProductIntegrationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegration
+     */
+    select?: MailProductIntegrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegration
+     */
+    omit?: MailProductIntegrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MailProductSenderAuthorization
+   */
+
+  export type AggregateMailProductSenderAuthorization = {
+    _count: MailProductSenderAuthorizationCountAggregateOutputType | null
+    _min: MailProductSenderAuthorizationMinAggregateOutputType | null
+    _max: MailProductSenderAuthorizationMaxAggregateOutputType | null
+  }
+
+  export type MailProductSenderAuthorizationMinAggregateOutputType = {
+    id: string | null
+    integrationId: string | null
+    addressId: string | null
+    address: string | null
+    purpose: string | null
+    grantedBy: string | null
+    revokedAt: Date | null
+    revokedBy: string | null
+    createdAt: Date | null
+  }
+
+  export type MailProductSenderAuthorizationMaxAggregateOutputType = {
+    id: string | null
+    integrationId: string | null
+    addressId: string | null
+    address: string | null
+    purpose: string | null
+    grantedBy: string | null
+    revokedAt: Date | null
+    revokedBy: string | null
+    createdAt: Date | null
+  }
+
+  export type MailProductSenderAuthorizationCountAggregateOutputType = {
+    id: number
+    integrationId: number
+    addressId: number
+    address: number
+    purpose: number
+    grantedBy: number
+    revokedAt: number
+    revokedBy: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type MailProductSenderAuthorizationMinAggregateInputType = {
+    id?: true
+    integrationId?: true
+    addressId?: true
+    address?: true
+    purpose?: true
+    grantedBy?: true
+    revokedAt?: true
+    revokedBy?: true
+    createdAt?: true
+  }
+
+  export type MailProductSenderAuthorizationMaxAggregateInputType = {
+    id?: true
+    integrationId?: true
+    addressId?: true
+    address?: true
+    purpose?: true
+    grantedBy?: true
+    revokedAt?: true
+    revokedBy?: true
+    createdAt?: true
+  }
+
+  export type MailProductSenderAuthorizationCountAggregateInputType = {
+    id?: true
+    integrationId?: true
+    addressId?: true
+    address?: true
+    purpose?: true
+    grantedBy?: true
+    revokedAt?: true
+    revokedBy?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type MailProductSenderAuthorizationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailProductSenderAuthorization to aggregate.
+     */
+    where?: MailProductSenderAuthorizationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailProductSenderAuthorizations to fetch.
+     */
+    orderBy?: MailProductSenderAuthorizationOrderByWithRelationInput | MailProductSenderAuthorizationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MailProductSenderAuthorizationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailProductSenderAuthorizations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailProductSenderAuthorizations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MailProductSenderAuthorizations
+    **/
+    _count?: true | MailProductSenderAuthorizationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MailProductSenderAuthorizationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MailProductSenderAuthorizationMaxAggregateInputType
+  }
+
+  export type GetMailProductSenderAuthorizationAggregateType<T extends MailProductSenderAuthorizationAggregateArgs> = {
+        [P in keyof T & keyof AggregateMailProductSenderAuthorization]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMailProductSenderAuthorization[P]>
+      : GetScalarType<T[P], AggregateMailProductSenderAuthorization[P]>
+  }
+
+
+
+
+  export type MailProductSenderAuthorizationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailProductSenderAuthorizationWhereInput
+    orderBy?: MailProductSenderAuthorizationOrderByWithAggregationInput | MailProductSenderAuthorizationOrderByWithAggregationInput[]
+    by: MailProductSenderAuthorizationScalarFieldEnum[] | MailProductSenderAuthorizationScalarFieldEnum
+    having?: MailProductSenderAuthorizationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MailProductSenderAuthorizationCountAggregateInputType | true
+    _min?: MailProductSenderAuthorizationMinAggregateInputType
+    _max?: MailProductSenderAuthorizationMaxAggregateInputType
+  }
+
+  export type MailProductSenderAuthorizationGroupByOutputType = {
+    id: string
+    integrationId: string
+    addressId: string
+    address: string
+    purpose: string
+    grantedBy: string
+    revokedAt: Date | null
+    revokedBy: string | null
+    createdAt: Date
+    _count: MailProductSenderAuthorizationCountAggregateOutputType | null
+    _min: MailProductSenderAuthorizationMinAggregateOutputType | null
+    _max: MailProductSenderAuthorizationMaxAggregateOutputType | null
+  }
+
+  type GetMailProductSenderAuthorizationGroupByPayload<T extends MailProductSenderAuthorizationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MailProductSenderAuthorizationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MailProductSenderAuthorizationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MailProductSenderAuthorizationGroupByOutputType[P]>
+            : GetScalarType<T[P], MailProductSenderAuthorizationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MailProductSenderAuthorizationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    integrationId?: boolean
+    addressId?: boolean
+    address?: boolean
+    purpose?: boolean
+    grantedBy?: boolean
+    revokedAt?: boolean
+    revokedBy?: boolean
+    createdAt?: boolean
+    integration?: boolean | MailProductIntegrationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailProductSenderAuthorization"]>
+
+  export type MailProductSenderAuthorizationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    integrationId?: boolean
+    addressId?: boolean
+    address?: boolean
+    purpose?: boolean
+    grantedBy?: boolean
+    revokedAt?: boolean
+    revokedBy?: boolean
+    createdAt?: boolean
+    integration?: boolean | MailProductIntegrationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailProductSenderAuthorization"]>
+
+  export type MailProductSenderAuthorizationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    integrationId?: boolean
+    addressId?: boolean
+    address?: boolean
+    purpose?: boolean
+    grantedBy?: boolean
+    revokedAt?: boolean
+    revokedBy?: boolean
+    createdAt?: boolean
+    integration?: boolean | MailProductIntegrationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailProductSenderAuthorization"]>
+
+  export type MailProductSenderAuthorizationSelectScalar = {
+    id?: boolean
+    integrationId?: boolean
+    addressId?: boolean
+    address?: boolean
+    purpose?: boolean
+    grantedBy?: boolean
+    revokedAt?: boolean
+    revokedBy?: boolean
+    createdAt?: boolean
+  }
+
+  export type MailProductSenderAuthorizationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "integrationId" | "addressId" | "address" | "purpose" | "grantedBy" | "revokedAt" | "revokedBy" | "createdAt", ExtArgs["result"]["mailProductSenderAuthorization"]>
+  export type MailProductSenderAuthorizationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    integration?: boolean | MailProductIntegrationDefaultArgs<ExtArgs>
+  }
+  export type MailProductSenderAuthorizationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    integration?: boolean | MailProductIntegrationDefaultArgs<ExtArgs>
+  }
+  export type MailProductSenderAuthorizationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    integration?: boolean | MailProductIntegrationDefaultArgs<ExtArgs>
+  }
+
+  export type $MailProductSenderAuthorizationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MailProductSenderAuthorization"
+    objects: {
+      integration: Prisma.$MailProductIntegrationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      integrationId: string
+      addressId: string
+      address: string
+      purpose: string
+      grantedBy: string
+      revokedAt: Date | null
+      revokedBy: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["mailProductSenderAuthorization"]>
+    composites: {}
+  }
+
+  type MailProductSenderAuthorizationGetPayload<S extends boolean | null | undefined | MailProductSenderAuthorizationDefaultArgs> = $Result.GetResult<Prisma.$MailProductSenderAuthorizationPayload, S>
+
+  type MailProductSenderAuthorizationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MailProductSenderAuthorizationFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MailProductSenderAuthorizationCountAggregateInputType | true
+    }
+
+  export interface MailProductSenderAuthorizationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MailProductSenderAuthorization'], meta: { name: 'MailProductSenderAuthorization' } }
+    /**
+     * Find zero or one MailProductSenderAuthorization that matches the filter.
+     * @param {MailProductSenderAuthorizationFindUniqueArgs} args - Arguments to find a MailProductSenderAuthorization
+     * @example
+     * // Get one MailProductSenderAuthorization
+     * const mailProductSenderAuthorization = await prisma.mailProductSenderAuthorization.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MailProductSenderAuthorizationFindUniqueArgs>(args: SelectSubset<T, MailProductSenderAuthorizationFindUniqueArgs<ExtArgs>>): Prisma__MailProductSenderAuthorizationClient<$Result.GetResult<Prisma.$MailProductSenderAuthorizationPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MailProductSenderAuthorization that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MailProductSenderAuthorizationFindUniqueOrThrowArgs} args - Arguments to find a MailProductSenderAuthorization
+     * @example
+     * // Get one MailProductSenderAuthorization
+     * const mailProductSenderAuthorization = await prisma.mailProductSenderAuthorization.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MailProductSenderAuthorizationFindUniqueOrThrowArgs>(args: SelectSubset<T, MailProductSenderAuthorizationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MailProductSenderAuthorizationClient<$Result.GetResult<Prisma.$MailProductSenderAuthorizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailProductSenderAuthorization that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductSenderAuthorizationFindFirstArgs} args - Arguments to find a MailProductSenderAuthorization
+     * @example
+     * // Get one MailProductSenderAuthorization
+     * const mailProductSenderAuthorization = await prisma.mailProductSenderAuthorization.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MailProductSenderAuthorizationFindFirstArgs>(args?: SelectSubset<T, MailProductSenderAuthorizationFindFirstArgs<ExtArgs>>): Prisma__MailProductSenderAuthorizationClient<$Result.GetResult<Prisma.$MailProductSenderAuthorizationPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailProductSenderAuthorization that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductSenderAuthorizationFindFirstOrThrowArgs} args - Arguments to find a MailProductSenderAuthorization
+     * @example
+     * // Get one MailProductSenderAuthorization
+     * const mailProductSenderAuthorization = await prisma.mailProductSenderAuthorization.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MailProductSenderAuthorizationFindFirstOrThrowArgs>(args?: SelectSubset<T, MailProductSenderAuthorizationFindFirstOrThrowArgs<ExtArgs>>): Prisma__MailProductSenderAuthorizationClient<$Result.GetResult<Prisma.$MailProductSenderAuthorizationPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MailProductSenderAuthorizations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductSenderAuthorizationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MailProductSenderAuthorizations
+     * const mailProductSenderAuthorizations = await prisma.mailProductSenderAuthorization.findMany()
+     * 
+     * // Get first 10 MailProductSenderAuthorizations
+     * const mailProductSenderAuthorizations = await prisma.mailProductSenderAuthorization.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const mailProductSenderAuthorizationWithIdOnly = await prisma.mailProductSenderAuthorization.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MailProductSenderAuthorizationFindManyArgs>(args?: SelectSubset<T, MailProductSenderAuthorizationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailProductSenderAuthorizationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MailProductSenderAuthorization.
+     * @param {MailProductSenderAuthorizationCreateArgs} args - Arguments to create a MailProductSenderAuthorization.
+     * @example
+     * // Create one MailProductSenderAuthorization
+     * const MailProductSenderAuthorization = await prisma.mailProductSenderAuthorization.create({
+     *   data: {
+     *     // ... data to create a MailProductSenderAuthorization
+     *   }
+     * })
+     * 
+     */
+    create<T extends MailProductSenderAuthorizationCreateArgs>(args: SelectSubset<T, MailProductSenderAuthorizationCreateArgs<ExtArgs>>): Prisma__MailProductSenderAuthorizationClient<$Result.GetResult<Prisma.$MailProductSenderAuthorizationPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MailProductSenderAuthorizations.
+     * @param {MailProductSenderAuthorizationCreateManyArgs} args - Arguments to create many MailProductSenderAuthorizations.
+     * @example
+     * // Create many MailProductSenderAuthorizations
+     * const mailProductSenderAuthorization = await prisma.mailProductSenderAuthorization.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MailProductSenderAuthorizationCreateManyArgs>(args?: SelectSubset<T, MailProductSenderAuthorizationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MailProductSenderAuthorizations and returns the data saved in the database.
+     * @param {MailProductSenderAuthorizationCreateManyAndReturnArgs} args - Arguments to create many MailProductSenderAuthorizations.
+     * @example
+     * // Create many MailProductSenderAuthorizations
+     * const mailProductSenderAuthorization = await prisma.mailProductSenderAuthorization.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MailProductSenderAuthorizations and only return the `id`
+     * const mailProductSenderAuthorizationWithIdOnly = await prisma.mailProductSenderAuthorization.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MailProductSenderAuthorizationCreateManyAndReturnArgs>(args?: SelectSubset<T, MailProductSenderAuthorizationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailProductSenderAuthorizationPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MailProductSenderAuthorization.
+     * @param {MailProductSenderAuthorizationDeleteArgs} args - Arguments to delete one MailProductSenderAuthorization.
+     * @example
+     * // Delete one MailProductSenderAuthorization
+     * const MailProductSenderAuthorization = await prisma.mailProductSenderAuthorization.delete({
+     *   where: {
+     *     // ... filter to delete one MailProductSenderAuthorization
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MailProductSenderAuthorizationDeleteArgs>(args: SelectSubset<T, MailProductSenderAuthorizationDeleteArgs<ExtArgs>>): Prisma__MailProductSenderAuthorizationClient<$Result.GetResult<Prisma.$MailProductSenderAuthorizationPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MailProductSenderAuthorization.
+     * @param {MailProductSenderAuthorizationUpdateArgs} args - Arguments to update one MailProductSenderAuthorization.
+     * @example
+     * // Update one MailProductSenderAuthorization
+     * const mailProductSenderAuthorization = await prisma.mailProductSenderAuthorization.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MailProductSenderAuthorizationUpdateArgs>(args: SelectSubset<T, MailProductSenderAuthorizationUpdateArgs<ExtArgs>>): Prisma__MailProductSenderAuthorizationClient<$Result.GetResult<Prisma.$MailProductSenderAuthorizationPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MailProductSenderAuthorizations.
+     * @param {MailProductSenderAuthorizationDeleteManyArgs} args - Arguments to filter MailProductSenderAuthorizations to delete.
+     * @example
+     * // Delete a few MailProductSenderAuthorizations
+     * const { count } = await prisma.mailProductSenderAuthorization.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MailProductSenderAuthorizationDeleteManyArgs>(args?: SelectSubset<T, MailProductSenderAuthorizationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailProductSenderAuthorizations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductSenderAuthorizationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MailProductSenderAuthorizations
+     * const mailProductSenderAuthorization = await prisma.mailProductSenderAuthorization.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MailProductSenderAuthorizationUpdateManyArgs>(args: SelectSubset<T, MailProductSenderAuthorizationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailProductSenderAuthorizations and returns the data updated in the database.
+     * @param {MailProductSenderAuthorizationUpdateManyAndReturnArgs} args - Arguments to update many MailProductSenderAuthorizations.
+     * @example
+     * // Update many MailProductSenderAuthorizations
+     * const mailProductSenderAuthorization = await prisma.mailProductSenderAuthorization.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MailProductSenderAuthorizations and only return the `id`
+     * const mailProductSenderAuthorizationWithIdOnly = await prisma.mailProductSenderAuthorization.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MailProductSenderAuthorizationUpdateManyAndReturnArgs>(args: SelectSubset<T, MailProductSenderAuthorizationUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailProductSenderAuthorizationPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MailProductSenderAuthorization.
+     * @param {MailProductSenderAuthorizationUpsertArgs} args - Arguments to update or create a MailProductSenderAuthorization.
+     * @example
+     * // Update or create a MailProductSenderAuthorization
+     * const mailProductSenderAuthorization = await prisma.mailProductSenderAuthorization.upsert({
+     *   create: {
+     *     // ... data to create a MailProductSenderAuthorization
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MailProductSenderAuthorization we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MailProductSenderAuthorizationUpsertArgs>(args: SelectSubset<T, MailProductSenderAuthorizationUpsertArgs<ExtArgs>>): Prisma__MailProductSenderAuthorizationClient<$Result.GetResult<Prisma.$MailProductSenderAuthorizationPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MailProductSenderAuthorizations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductSenderAuthorizationCountArgs} args - Arguments to filter MailProductSenderAuthorizations to count.
+     * @example
+     * // Count the number of MailProductSenderAuthorizations
+     * const count = await prisma.mailProductSenderAuthorization.count({
+     *   where: {
+     *     // ... the filter for the MailProductSenderAuthorizations we want to count
+     *   }
+     * })
+    **/
+    count<T extends MailProductSenderAuthorizationCountArgs>(
+      args?: Subset<T, MailProductSenderAuthorizationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MailProductSenderAuthorizationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MailProductSenderAuthorization.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductSenderAuthorizationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MailProductSenderAuthorizationAggregateArgs>(args: Subset<T, MailProductSenderAuthorizationAggregateArgs>): Prisma.PrismaPromise<GetMailProductSenderAuthorizationAggregateType<T>>
+
+    /**
+     * Group by MailProductSenderAuthorization.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductSenderAuthorizationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MailProductSenderAuthorizationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MailProductSenderAuthorizationGroupByArgs['orderBy'] }
+        : { orderBy?: MailProductSenderAuthorizationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MailProductSenderAuthorizationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMailProductSenderAuthorizationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MailProductSenderAuthorization model
+   */
+  readonly fields: MailProductSenderAuthorizationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MailProductSenderAuthorization.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MailProductSenderAuthorizationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    integration<T extends MailProductIntegrationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MailProductIntegrationDefaultArgs<ExtArgs>>): Prisma__MailProductIntegrationClient<$Result.GetResult<Prisma.$MailProductIntegrationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MailProductSenderAuthorization model
+   */
+  interface MailProductSenderAuthorizationFieldRefs {
+    readonly id: FieldRef<"MailProductSenderAuthorization", 'String'>
+    readonly integrationId: FieldRef<"MailProductSenderAuthorization", 'String'>
+    readonly addressId: FieldRef<"MailProductSenderAuthorization", 'String'>
+    readonly address: FieldRef<"MailProductSenderAuthorization", 'String'>
+    readonly purpose: FieldRef<"MailProductSenderAuthorization", 'String'>
+    readonly grantedBy: FieldRef<"MailProductSenderAuthorization", 'String'>
+    readonly revokedAt: FieldRef<"MailProductSenderAuthorization", 'DateTime'>
+    readonly revokedBy: FieldRef<"MailProductSenderAuthorization", 'String'>
+    readonly createdAt: FieldRef<"MailProductSenderAuthorization", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MailProductSenderAuthorization findUnique
+   */
+  export type MailProductSenderAuthorizationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductSenderAuthorization
+     */
+    select?: MailProductSenderAuthorizationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductSenderAuthorization
+     */
+    omit?: MailProductSenderAuthorizationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductSenderAuthorizationInclude<ExtArgs> | null
+    /**
+     * Filter, which MailProductSenderAuthorization to fetch.
+     */
+    where: MailProductSenderAuthorizationWhereUniqueInput
+  }
+
+  /**
+   * MailProductSenderAuthorization findUniqueOrThrow
+   */
+  export type MailProductSenderAuthorizationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductSenderAuthorization
+     */
+    select?: MailProductSenderAuthorizationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductSenderAuthorization
+     */
+    omit?: MailProductSenderAuthorizationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductSenderAuthorizationInclude<ExtArgs> | null
+    /**
+     * Filter, which MailProductSenderAuthorization to fetch.
+     */
+    where: MailProductSenderAuthorizationWhereUniqueInput
+  }
+
+  /**
+   * MailProductSenderAuthorization findFirst
+   */
+  export type MailProductSenderAuthorizationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductSenderAuthorization
+     */
+    select?: MailProductSenderAuthorizationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductSenderAuthorization
+     */
+    omit?: MailProductSenderAuthorizationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductSenderAuthorizationInclude<ExtArgs> | null
+    /**
+     * Filter, which MailProductSenderAuthorization to fetch.
+     */
+    where?: MailProductSenderAuthorizationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailProductSenderAuthorizations to fetch.
+     */
+    orderBy?: MailProductSenderAuthorizationOrderByWithRelationInput | MailProductSenderAuthorizationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailProductSenderAuthorizations.
+     */
+    cursor?: MailProductSenderAuthorizationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailProductSenderAuthorizations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailProductSenderAuthorizations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailProductSenderAuthorizations.
+     */
+    distinct?: MailProductSenderAuthorizationScalarFieldEnum | MailProductSenderAuthorizationScalarFieldEnum[]
+  }
+
+  /**
+   * MailProductSenderAuthorization findFirstOrThrow
+   */
+  export type MailProductSenderAuthorizationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductSenderAuthorization
+     */
+    select?: MailProductSenderAuthorizationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductSenderAuthorization
+     */
+    omit?: MailProductSenderAuthorizationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductSenderAuthorizationInclude<ExtArgs> | null
+    /**
+     * Filter, which MailProductSenderAuthorization to fetch.
+     */
+    where?: MailProductSenderAuthorizationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailProductSenderAuthorizations to fetch.
+     */
+    orderBy?: MailProductSenderAuthorizationOrderByWithRelationInput | MailProductSenderAuthorizationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailProductSenderAuthorizations.
+     */
+    cursor?: MailProductSenderAuthorizationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailProductSenderAuthorizations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailProductSenderAuthorizations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailProductSenderAuthorizations.
+     */
+    distinct?: MailProductSenderAuthorizationScalarFieldEnum | MailProductSenderAuthorizationScalarFieldEnum[]
+  }
+
+  /**
+   * MailProductSenderAuthorization findMany
+   */
+  export type MailProductSenderAuthorizationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductSenderAuthorization
+     */
+    select?: MailProductSenderAuthorizationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductSenderAuthorization
+     */
+    omit?: MailProductSenderAuthorizationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductSenderAuthorizationInclude<ExtArgs> | null
+    /**
+     * Filter, which MailProductSenderAuthorizations to fetch.
+     */
+    where?: MailProductSenderAuthorizationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailProductSenderAuthorizations to fetch.
+     */
+    orderBy?: MailProductSenderAuthorizationOrderByWithRelationInput | MailProductSenderAuthorizationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MailProductSenderAuthorizations.
+     */
+    cursor?: MailProductSenderAuthorizationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailProductSenderAuthorizations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailProductSenderAuthorizations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailProductSenderAuthorizations.
+     */
+    distinct?: MailProductSenderAuthorizationScalarFieldEnum | MailProductSenderAuthorizationScalarFieldEnum[]
+  }
+
+  /**
+   * MailProductSenderAuthorization create
+   */
+  export type MailProductSenderAuthorizationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductSenderAuthorization
+     */
+    select?: MailProductSenderAuthorizationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductSenderAuthorization
+     */
+    omit?: MailProductSenderAuthorizationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductSenderAuthorizationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MailProductSenderAuthorization.
+     */
+    data: XOR<MailProductSenderAuthorizationCreateInput, MailProductSenderAuthorizationUncheckedCreateInput>
+  }
+
+  /**
+   * MailProductSenderAuthorization createMany
+   */
+  export type MailProductSenderAuthorizationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MailProductSenderAuthorizations.
+     */
+    data: MailProductSenderAuthorizationCreateManyInput | MailProductSenderAuthorizationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailProductSenderAuthorization createManyAndReturn
+   */
+  export type MailProductSenderAuthorizationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductSenderAuthorization
+     */
+    select?: MailProductSenderAuthorizationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductSenderAuthorization
+     */
+    omit?: MailProductSenderAuthorizationOmit<ExtArgs> | null
+    /**
+     * The data used to create many MailProductSenderAuthorizations.
+     */
+    data: MailProductSenderAuthorizationCreateManyInput | MailProductSenderAuthorizationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductSenderAuthorizationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MailProductSenderAuthorization update
+   */
+  export type MailProductSenderAuthorizationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductSenderAuthorization
+     */
+    select?: MailProductSenderAuthorizationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductSenderAuthorization
+     */
+    omit?: MailProductSenderAuthorizationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductSenderAuthorizationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MailProductSenderAuthorization.
+     */
+    data: XOR<MailProductSenderAuthorizationUpdateInput, MailProductSenderAuthorizationUncheckedUpdateInput>
+    /**
+     * Choose, which MailProductSenderAuthorization to update.
+     */
+    where: MailProductSenderAuthorizationWhereUniqueInput
+  }
+
+  /**
+   * MailProductSenderAuthorization updateMany
+   */
+  export type MailProductSenderAuthorizationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MailProductSenderAuthorizations.
+     */
+    data: XOR<MailProductSenderAuthorizationUpdateManyMutationInput, MailProductSenderAuthorizationUncheckedUpdateManyInput>
+    /**
+     * Filter which MailProductSenderAuthorizations to update
+     */
+    where?: MailProductSenderAuthorizationWhereInput
+    /**
+     * Limit how many MailProductSenderAuthorizations to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailProductSenderAuthorization updateManyAndReturn
+   */
+  export type MailProductSenderAuthorizationUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductSenderAuthorization
+     */
+    select?: MailProductSenderAuthorizationSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductSenderAuthorization
+     */
+    omit?: MailProductSenderAuthorizationOmit<ExtArgs> | null
+    /**
+     * The data used to update MailProductSenderAuthorizations.
+     */
+    data: XOR<MailProductSenderAuthorizationUpdateManyMutationInput, MailProductSenderAuthorizationUncheckedUpdateManyInput>
+    /**
+     * Filter which MailProductSenderAuthorizations to update
+     */
+    where?: MailProductSenderAuthorizationWhereInput
+    /**
+     * Limit how many MailProductSenderAuthorizations to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductSenderAuthorizationIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MailProductSenderAuthorization upsert
+   */
+  export type MailProductSenderAuthorizationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductSenderAuthorization
+     */
+    select?: MailProductSenderAuthorizationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductSenderAuthorization
+     */
+    omit?: MailProductSenderAuthorizationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductSenderAuthorizationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MailProductSenderAuthorization to update in case it exists.
+     */
+    where: MailProductSenderAuthorizationWhereUniqueInput
+    /**
+     * In case the MailProductSenderAuthorization found by the `where` argument doesn't exist, create a new MailProductSenderAuthorization with this data.
+     */
+    create: XOR<MailProductSenderAuthorizationCreateInput, MailProductSenderAuthorizationUncheckedCreateInput>
+    /**
+     * In case the MailProductSenderAuthorization was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MailProductSenderAuthorizationUpdateInput, MailProductSenderAuthorizationUncheckedUpdateInput>
+  }
+
+  /**
+   * MailProductSenderAuthorization delete
+   */
+  export type MailProductSenderAuthorizationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductSenderAuthorization
+     */
+    select?: MailProductSenderAuthorizationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductSenderAuthorization
+     */
+    omit?: MailProductSenderAuthorizationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductSenderAuthorizationInclude<ExtArgs> | null
+    /**
+     * Filter which MailProductSenderAuthorization to delete.
+     */
+    where: MailProductSenderAuthorizationWhereUniqueInput
+  }
+
+  /**
+   * MailProductSenderAuthorization deleteMany
+   */
+  export type MailProductSenderAuthorizationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailProductSenderAuthorizations to delete
+     */
+    where?: MailProductSenderAuthorizationWhereInput
+    /**
+     * Limit how many MailProductSenderAuthorizations to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailProductSenderAuthorization without action
+   */
+  export type MailProductSenderAuthorizationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductSenderAuthorization
+     */
+    select?: MailProductSenderAuthorizationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductSenderAuthorization
+     */
+    omit?: MailProductSenderAuthorizationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductSenderAuthorizationInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MailProductIntegrationEvent
+   */
+
+  export type AggregateMailProductIntegrationEvent = {
+    _count: MailProductIntegrationEventCountAggregateOutputType | null
+    _avg: MailProductIntegrationEventAvgAggregateOutputType | null
+    _sum: MailProductIntegrationEventSumAggregateOutputType | null
+    _min: MailProductIntegrationEventMinAggregateOutputType | null
+    _max: MailProductIntegrationEventMaxAggregateOutputType | null
+  }
+
+  export type MailProductIntegrationEventAvgAggregateOutputType = {
+    eventVersion: number | null
+  }
+
+  export type MailProductIntegrationEventSumAggregateOutputType = {
+    eventVersion: number | null
+  }
+
+  export type MailProductIntegrationEventMinAggregateOutputType = {
+    id: string | null
+    integrationId: string | null
+    eventId: string | null
+    eventType: string | null
+    eventVersion: number | null
+    correlationId: string | null
+    payloadSha256: string | null
+    status: string | null
+    errorCode: string | null
+    occurredAt: Date | null
+    receivedAt: Date | null
+  }
+
+  export type MailProductIntegrationEventMaxAggregateOutputType = {
+    id: string | null
+    integrationId: string | null
+    eventId: string | null
+    eventType: string | null
+    eventVersion: number | null
+    correlationId: string | null
+    payloadSha256: string | null
+    status: string | null
+    errorCode: string | null
+    occurredAt: Date | null
+    receivedAt: Date | null
+  }
+
+  export type MailProductIntegrationEventCountAggregateOutputType = {
+    id: number
+    integrationId: number
+    eventId: number
+    eventType: number
+    eventVersion: number
+    correlationId: number
+    payloadSha256: number
+    status: number
+    errorCode: number
+    outcome: number
+    occurredAt: number
+    receivedAt: number
+    _all: number
+  }
+
+
+  export type MailProductIntegrationEventAvgAggregateInputType = {
+    eventVersion?: true
+  }
+
+  export type MailProductIntegrationEventSumAggregateInputType = {
+    eventVersion?: true
+  }
+
+  export type MailProductIntegrationEventMinAggregateInputType = {
+    id?: true
+    integrationId?: true
+    eventId?: true
+    eventType?: true
+    eventVersion?: true
+    correlationId?: true
+    payloadSha256?: true
+    status?: true
+    errorCode?: true
+    occurredAt?: true
+    receivedAt?: true
+  }
+
+  export type MailProductIntegrationEventMaxAggregateInputType = {
+    id?: true
+    integrationId?: true
+    eventId?: true
+    eventType?: true
+    eventVersion?: true
+    correlationId?: true
+    payloadSha256?: true
+    status?: true
+    errorCode?: true
+    occurredAt?: true
+    receivedAt?: true
+  }
+
+  export type MailProductIntegrationEventCountAggregateInputType = {
+    id?: true
+    integrationId?: true
+    eventId?: true
+    eventType?: true
+    eventVersion?: true
+    correlationId?: true
+    payloadSha256?: true
+    status?: true
+    errorCode?: true
+    outcome?: true
+    occurredAt?: true
+    receivedAt?: true
+    _all?: true
+  }
+
+  export type MailProductIntegrationEventAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailProductIntegrationEvent to aggregate.
+     */
+    where?: MailProductIntegrationEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailProductIntegrationEvents to fetch.
+     */
+    orderBy?: MailProductIntegrationEventOrderByWithRelationInput | MailProductIntegrationEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MailProductIntegrationEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailProductIntegrationEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailProductIntegrationEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MailProductIntegrationEvents
+    **/
+    _count?: true | MailProductIntegrationEventCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MailProductIntegrationEventAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MailProductIntegrationEventSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MailProductIntegrationEventMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MailProductIntegrationEventMaxAggregateInputType
+  }
+
+  export type GetMailProductIntegrationEventAggregateType<T extends MailProductIntegrationEventAggregateArgs> = {
+        [P in keyof T & keyof AggregateMailProductIntegrationEvent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMailProductIntegrationEvent[P]>
+      : GetScalarType<T[P], AggregateMailProductIntegrationEvent[P]>
+  }
+
+
+
+
+  export type MailProductIntegrationEventGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailProductIntegrationEventWhereInput
+    orderBy?: MailProductIntegrationEventOrderByWithAggregationInput | MailProductIntegrationEventOrderByWithAggregationInput[]
+    by: MailProductIntegrationEventScalarFieldEnum[] | MailProductIntegrationEventScalarFieldEnum
+    having?: MailProductIntegrationEventScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MailProductIntegrationEventCountAggregateInputType | true
+    _avg?: MailProductIntegrationEventAvgAggregateInputType
+    _sum?: MailProductIntegrationEventSumAggregateInputType
+    _min?: MailProductIntegrationEventMinAggregateInputType
+    _max?: MailProductIntegrationEventMaxAggregateInputType
+  }
+
+  export type MailProductIntegrationEventGroupByOutputType = {
+    id: string
+    integrationId: string
+    eventId: string
+    eventType: string
+    eventVersion: number
+    correlationId: string | null
+    payloadSha256: string
+    status: string
+    errorCode: string | null
+    outcome: JsonValue | null
+    occurredAt: Date | null
+    receivedAt: Date
+    _count: MailProductIntegrationEventCountAggregateOutputType | null
+    _avg: MailProductIntegrationEventAvgAggregateOutputType | null
+    _sum: MailProductIntegrationEventSumAggregateOutputType | null
+    _min: MailProductIntegrationEventMinAggregateOutputType | null
+    _max: MailProductIntegrationEventMaxAggregateOutputType | null
+  }
+
+  type GetMailProductIntegrationEventGroupByPayload<T extends MailProductIntegrationEventGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MailProductIntegrationEventGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MailProductIntegrationEventGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MailProductIntegrationEventGroupByOutputType[P]>
+            : GetScalarType<T[P], MailProductIntegrationEventGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MailProductIntegrationEventSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    integrationId?: boolean
+    eventId?: boolean
+    eventType?: boolean
+    eventVersion?: boolean
+    correlationId?: boolean
+    payloadSha256?: boolean
+    status?: boolean
+    errorCode?: boolean
+    outcome?: boolean
+    occurredAt?: boolean
+    receivedAt?: boolean
+    integration?: boolean | MailProductIntegrationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailProductIntegrationEvent"]>
+
+  export type MailProductIntegrationEventSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    integrationId?: boolean
+    eventId?: boolean
+    eventType?: boolean
+    eventVersion?: boolean
+    correlationId?: boolean
+    payloadSha256?: boolean
+    status?: boolean
+    errorCode?: boolean
+    outcome?: boolean
+    occurredAt?: boolean
+    receivedAt?: boolean
+    integration?: boolean | MailProductIntegrationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailProductIntegrationEvent"]>
+
+  export type MailProductIntegrationEventSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    integrationId?: boolean
+    eventId?: boolean
+    eventType?: boolean
+    eventVersion?: boolean
+    correlationId?: boolean
+    payloadSha256?: boolean
+    status?: boolean
+    errorCode?: boolean
+    outcome?: boolean
+    occurredAt?: boolean
+    receivedAt?: boolean
+    integration?: boolean | MailProductIntegrationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailProductIntegrationEvent"]>
+
+  export type MailProductIntegrationEventSelectScalar = {
+    id?: boolean
+    integrationId?: boolean
+    eventId?: boolean
+    eventType?: boolean
+    eventVersion?: boolean
+    correlationId?: boolean
+    payloadSha256?: boolean
+    status?: boolean
+    errorCode?: boolean
+    outcome?: boolean
+    occurredAt?: boolean
+    receivedAt?: boolean
+  }
+
+  export type MailProductIntegrationEventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "integrationId" | "eventId" | "eventType" | "eventVersion" | "correlationId" | "payloadSha256" | "status" | "errorCode" | "outcome" | "occurredAt" | "receivedAt", ExtArgs["result"]["mailProductIntegrationEvent"]>
+  export type MailProductIntegrationEventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    integration?: boolean | MailProductIntegrationDefaultArgs<ExtArgs>
+  }
+  export type MailProductIntegrationEventIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    integration?: boolean | MailProductIntegrationDefaultArgs<ExtArgs>
+  }
+  export type MailProductIntegrationEventIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    integration?: boolean | MailProductIntegrationDefaultArgs<ExtArgs>
+  }
+
+  export type $MailProductIntegrationEventPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MailProductIntegrationEvent"
+    objects: {
+      integration: Prisma.$MailProductIntegrationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      integrationId: string
+      eventId: string
+      eventType: string
+      eventVersion: number
+      correlationId: string | null
+      payloadSha256: string
+      status: string
+      errorCode: string | null
+      outcome: Prisma.JsonValue | null
+      occurredAt: Date | null
+      receivedAt: Date
+    }, ExtArgs["result"]["mailProductIntegrationEvent"]>
+    composites: {}
+  }
+
+  type MailProductIntegrationEventGetPayload<S extends boolean | null | undefined | MailProductIntegrationEventDefaultArgs> = $Result.GetResult<Prisma.$MailProductIntegrationEventPayload, S>
+
+  type MailProductIntegrationEventCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MailProductIntegrationEventFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MailProductIntegrationEventCountAggregateInputType | true
+    }
+
+  export interface MailProductIntegrationEventDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MailProductIntegrationEvent'], meta: { name: 'MailProductIntegrationEvent' } }
+    /**
+     * Find zero or one MailProductIntegrationEvent that matches the filter.
+     * @param {MailProductIntegrationEventFindUniqueArgs} args - Arguments to find a MailProductIntegrationEvent
+     * @example
+     * // Get one MailProductIntegrationEvent
+     * const mailProductIntegrationEvent = await prisma.mailProductIntegrationEvent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MailProductIntegrationEventFindUniqueArgs>(args: SelectSubset<T, MailProductIntegrationEventFindUniqueArgs<ExtArgs>>): Prisma__MailProductIntegrationEventClient<$Result.GetResult<Prisma.$MailProductIntegrationEventPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MailProductIntegrationEvent that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MailProductIntegrationEventFindUniqueOrThrowArgs} args - Arguments to find a MailProductIntegrationEvent
+     * @example
+     * // Get one MailProductIntegrationEvent
+     * const mailProductIntegrationEvent = await prisma.mailProductIntegrationEvent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MailProductIntegrationEventFindUniqueOrThrowArgs>(args: SelectSubset<T, MailProductIntegrationEventFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MailProductIntegrationEventClient<$Result.GetResult<Prisma.$MailProductIntegrationEventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailProductIntegrationEvent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductIntegrationEventFindFirstArgs} args - Arguments to find a MailProductIntegrationEvent
+     * @example
+     * // Get one MailProductIntegrationEvent
+     * const mailProductIntegrationEvent = await prisma.mailProductIntegrationEvent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MailProductIntegrationEventFindFirstArgs>(args?: SelectSubset<T, MailProductIntegrationEventFindFirstArgs<ExtArgs>>): Prisma__MailProductIntegrationEventClient<$Result.GetResult<Prisma.$MailProductIntegrationEventPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailProductIntegrationEvent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductIntegrationEventFindFirstOrThrowArgs} args - Arguments to find a MailProductIntegrationEvent
+     * @example
+     * // Get one MailProductIntegrationEvent
+     * const mailProductIntegrationEvent = await prisma.mailProductIntegrationEvent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MailProductIntegrationEventFindFirstOrThrowArgs>(args?: SelectSubset<T, MailProductIntegrationEventFindFirstOrThrowArgs<ExtArgs>>): Prisma__MailProductIntegrationEventClient<$Result.GetResult<Prisma.$MailProductIntegrationEventPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MailProductIntegrationEvents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductIntegrationEventFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MailProductIntegrationEvents
+     * const mailProductIntegrationEvents = await prisma.mailProductIntegrationEvent.findMany()
+     * 
+     * // Get first 10 MailProductIntegrationEvents
+     * const mailProductIntegrationEvents = await prisma.mailProductIntegrationEvent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const mailProductIntegrationEventWithIdOnly = await prisma.mailProductIntegrationEvent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MailProductIntegrationEventFindManyArgs>(args?: SelectSubset<T, MailProductIntegrationEventFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailProductIntegrationEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MailProductIntegrationEvent.
+     * @param {MailProductIntegrationEventCreateArgs} args - Arguments to create a MailProductIntegrationEvent.
+     * @example
+     * // Create one MailProductIntegrationEvent
+     * const MailProductIntegrationEvent = await prisma.mailProductIntegrationEvent.create({
+     *   data: {
+     *     // ... data to create a MailProductIntegrationEvent
+     *   }
+     * })
+     * 
+     */
+    create<T extends MailProductIntegrationEventCreateArgs>(args: SelectSubset<T, MailProductIntegrationEventCreateArgs<ExtArgs>>): Prisma__MailProductIntegrationEventClient<$Result.GetResult<Prisma.$MailProductIntegrationEventPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MailProductIntegrationEvents.
+     * @param {MailProductIntegrationEventCreateManyArgs} args - Arguments to create many MailProductIntegrationEvents.
+     * @example
+     * // Create many MailProductIntegrationEvents
+     * const mailProductIntegrationEvent = await prisma.mailProductIntegrationEvent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MailProductIntegrationEventCreateManyArgs>(args?: SelectSubset<T, MailProductIntegrationEventCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MailProductIntegrationEvents and returns the data saved in the database.
+     * @param {MailProductIntegrationEventCreateManyAndReturnArgs} args - Arguments to create many MailProductIntegrationEvents.
+     * @example
+     * // Create many MailProductIntegrationEvents
+     * const mailProductIntegrationEvent = await prisma.mailProductIntegrationEvent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MailProductIntegrationEvents and only return the `id`
+     * const mailProductIntegrationEventWithIdOnly = await prisma.mailProductIntegrationEvent.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MailProductIntegrationEventCreateManyAndReturnArgs>(args?: SelectSubset<T, MailProductIntegrationEventCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailProductIntegrationEventPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MailProductIntegrationEvent.
+     * @param {MailProductIntegrationEventDeleteArgs} args - Arguments to delete one MailProductIntegrationEvent.
+     * @example
+     * // Delete one MailProductIntegrationEvent
+     * const MailProductIntegrationEvent = await prisma.mailProductIntegrationEvent.delete({
+     *   where: {
+     *     // ... filter to delete one MailProductIntegrationEvent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MailProductIntegrationEventDeleteArgs>(args: SelectSubset<T, MailProductIntegrationEventDeleteArgs<ExtArgs>>): Prisma__MailProductIntegrationEventClient<$Result.GetResult<Prisma.$MailProductIntegrationEventPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MailProductIntegrationEvent.
+     * @param {MailProductIntegrationEventUpdateArgs} args - Arguments to update one MailProductIntegrationEvent.
+     * @example
+     * // Update one MailProductIntegrationEvent
+     * const mailProductIntegrationEvent = await prisma.mailProductIntegrationEvent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MailProductIntegrationEventUpdateArgs>(args: SelectSubset<T, MailProductIntegrationEventUpdateArgs<ExtArgs>>): Prisma__MailProductIntegrationEventClient<$Result.GetResult<Prisma.$MailProductIntegrationEventPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MailProductIntegrationEvents.
+     * @param {MailProductIntegrationEventDeleteManyArgs} args - Arguments to filter MailProductIntegrationEvents to delete.
+     * @example
+     * // Delete a few MailProductIntegrationEvents
+     * const { count } = await prisma.mailProductIntegrationEvent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MailProductIntegrationEventDeleteManyArgs>(args?: SelectSubset<T, MailProductIntegrationEventDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailProductIntegrationEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductIntegrationEventUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MailProductIntegrationEvents
+     * const mailProductIntegrationEvent = await prisma.mailProductIntegrationEvent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MailProductIntegrationEventUpdateManyArgs>(args: SelectSubset<T, MailProductIntegrationEventUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailProductIntegrationEvents and returns the data updated in the database.
+     * @param {MailProductIntegrationEventUpdateManyAndReturnArgs} args - Arguments to update many MailProductIntegrationEvents.
+     * @example
+     * // Update many MailProductIntegrationEvents
+     * const mailProductIntegrationEvent = await prisma.mailProductIntegrationEvent.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MailProductIntegrationEvents and only return the `id`
+     * const mailProductIntegrationEventWithIdOnly = await prisma.mailProductIntegrationEvent.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MailProductIntegrationEventUpdateManyAndReturnArgs>(args: SelectSubset<T, MailProductIntegrationEventUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailProductIntegrationEventPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MailProductIntegrationEvent.
+     * @param {MailProductIntegrationEventUpsertArgs} args - Arguments to update or create a MailProductIntegrationEvent.
+     * @example
+     * // Update or create a MailProductIntegrationEvent
+     * const mailProductIntegrationEvent = await prisma.mailProductIntegrationEvent.upsert({
+     *   create: {
+     *     // ... data to create a MailProductIntegrationEvent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MailProductIntegrationEvent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MailProductIntegrationEventUpsertArgs>(args: SelectSubset<T, MailProductIntegrationEventUpsertArgs<ExtArgs>>): Prisma__MailProductIntegrationEventClient<$Result.GetResult<Prisma.$MailProductIntegrationEventPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MailProductIntegrationEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductIntegrationEventCountArgs} args - Arguments to filter MailProductIntegrationEvents to count.
+     * @example
+     * // Count the number of MailProductIntegrationEvents
+     * const count = await prisma.mailProductIntegrationEvent.count({
+     *   where: {
+     *     // ... the filter for the MailProductIntegrationEvents we want to count
+     *   }
+     * })
+    **/
+    count<T extends MailProductIntegrationEventCountArgs>(
+      args?: Subset<T, MailProductIntegrationEventCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MailProductIntegrationEventCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MailProductIntegrationEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductIntegrationEventAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MailProductIntegrationEventAggregateArgs>(args: Subset<T, MailProductIntegrationEventAggregateArgs>): Prisma.PrismaPromise<GetMailProductIntegrationEventAggregateType<T>>
+
+    /**
+     * Group by MailProductIntegrationEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductIntegrationEventGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MailProductIntegrationEventGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MailProductIntegrationEventGroupByArgs['orderBy'] }
+        : { orderBy?: MailProductIntegrationEventGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MailProductIntegrationEventGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMailProductIntegrationEventGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MailProductIntegrationEvent model
+   */
+  readonly fields: MailProductIntegrationEventFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MailProductIntegrationEvent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MailProductIntegrationEventClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    integration<T extends MailProductIntegrationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MailProductIntegrationDefaultArgs<ExtArgs>>): Prisma__MailProductIntegrationClient<$Result.GetResult<Prisma.$MailProductIntegrationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MailProductIntegrationEvent model
+   */
+  interface MailProductIntegrationEventFieldRefs {
+    readonly id: FieldRef<"MailProductIntegrationEvent", 'String'>
+    readonly integrationId: FieldRef<"MailProductIntegrationEvent", 'String'>
+    readonly eventId: FieldRef<"MailProductIntegrationEvent", 'String'>
+    readonly eventType: FieldRef<"MailProductIntegrationEvent", 'String'>
+    readonly eventVersion: FieldRef<"MailProductIntegrationEvent", 'Int'>
+    readonly correlationId: FieldRef<"MailProductIntegrationEvent", 'String'>
+    readonly payloadSha256: FieldRef<"MailProductIntegrationEvent", 'String'>
+    readonly status: FieldRef<"MailProductIntegrationEvent", 'String'>
+    readonly errorCode: FieldRef<"MailProductIntegrationEvent", 'String'>
+    readonly outcome: FieldRef<"MailProductIntegrationEvent", 'Json'>
+    readonly occurredAt: FieldRef<"MailProductIntegrationEvent", 'DateTime'>
+    readonly receivedAt: FieldRef<"MailProductIntegrationEvent", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MailProductIntegrationEvent findUnique
+   */
+  export type MailProductIntegrationEventFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegrationEvent
+     */
+    select?: MailProductIntegrationEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegrationEvent
+     */
+    omit?: MailProductIntegrationEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationEventInclude<ExtArgs> | null
+    /**
+     * Filter, which MailProductIntegrationEvent to fetch.
+     */
+    where: MailProductIntegrationEventWhereUniqueInput
+  }
+
+  /**
+   * MailProductIntegrationEvent findUniqueOrThrow
+   */
+  export type MailProductIntegrationEventFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegrationEvent
+     */
+    select?: MailProductIntegrationEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegrationEvent
+     */
+    omit?: MailProductIntegrationEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationEventInclude<ExtArgs> | null
+    /**
+     * Filter, which MailProductIntegrationEvent to fetch.
+     */
+    where: MailProductIntegrationEventWhereUniqueInput
+  }
+
+  /**
+   * MailProductIntegrationEvent findFirst
+   */
+  export type MailProductIntegrationEventFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegrationEvent
+     */
+    select?: MailProductIntegrationEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegrationEvent
+     */
+    omit?: MailProductIntegrationEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationEventInclude<ExtArgs> | null
+    /**
+     * Filter, which MailProductIntegrationEvent to fetch.
+     */
+    where?: MailProductIntegrationEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailProductIntegrationEvents to fetch.
+     */
+    orderBy?: MailProductIntegrationEventOrderByWithRelationInput | MailProductIntegrationEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailProductIntegrationEvents.
+     */
+    cursor?: MailProductIntegrationEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailProductIntegrationEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailProductIntegrationEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailProductIntegrationEvents.
+     */
+    distinct?: MailProductIntegrationEventScalarFieldEnum | MailProductIntegrationEventScalarFieldEnum[]
+  }
+
+  /**
+   * MailProductIntegrationEvent findFirstOrThrow
+   */
+  export type MailProductIntegrationEventFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegrationEvent
+     */
+    select?: MailProductIntegrationEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegrationEvent
+     */
+    omit?: MailProductIntegrationEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationEventInclude<ExtArgs> | null
+    /**
+     * Filter, which MailProductIntegrationEvent to fetch.
+     */
+    where?: MailProductIntegrationEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailProductIntegrationEvents to fetch.
+     */
+    orderBy?: MailProductIntegrationEventOrderByWithRelationInput | MailProductIntegrationEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailProductIntegrationEvents.
+     */
+    cursor?: MailProductIntegrationEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailProductIntegrationEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailProductIntegrationEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailProductIntegrationEvents.
+     */
+    distinct?: MailProductIntegrationEventScalarFieldEnum | MailProductIntegrationEventScalarFieldEnum[]
+  }
+
+  /**
+   * MailProductIntegrationEvent findMany
+   */
+  export type MailProductIntegrationEventFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegrationEvent
+     */
+    select?: MailProductIntegrationEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegrationEvent
+     */
+    omit?: MailProductIntegrationEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationEventInclude<ExtArgs> | null
+    /**
+     * Filter, which MailProductIntegrationEvents to fetch.
+     */
+    where?: MailProductIntegrationEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailProductIntegrationEvents to fetch.
+     */
+    orderBy?: MailProductIntegrationEventOrderByWithRelationInput | MailProductIntegrationEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MailProductIntegrationEvents.
+     */
+    cursor?: MailProductIntegrationEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailProductIntegrationEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailProductIntegrationEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailProductIntegrationEvents.
+     */
+    distinct?: MailProductIntegrationEventScalarFieldEnum | MailProductIntegrationEventScalarFieldEnum[]
+  }
+
+  /**
+   * MailProductIntegrationEvent create
+   */
+  export type MailProductIntegrationEventCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegrationEvent
+     */
+    select?: MailProductIntegrationEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegrationEvent
+     */
+    omit?: MailProductIntegrationEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationEventInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MailProductIntegrationEvent.
+     */
+    data: XOR<MailProductIntegrationEventCreateInput, MailProductIntegrationEventUncheckedCreateInput>
+  }
+
+  /**
+   * MailProductIntegrationEvent createMany
+   */
+  export type MailProductIntegrationEventCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MailProductIntegrationEvents.
+     */
+    data: MailProductIntegrationEventCreateManyInput | MailProductIntegrationEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailProductIntegrationEvent createManyAndReturn
+   */
+  export type MailProductIntegrationEventCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegrationEvent
+     */
+    select?: MailProductIntegrationEventSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegrationEvent
+     */
+    omit?: MailProductIntegrationEventOmit<ExtArgs> | null
+    /**
+     * The data used to create many MailProductIntegrationEvents.
+     */
+    data: MailProductIntegrationEventCreateManyInput | MailProductIntegrationEventCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationEventIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MailProductIntegrationEvent update
+   */
+  export type MailProductIntegrationEventUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegrationEvent
+     */
+    select?: MailProductIntegrationEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegrationEvent
+     */
+    omit?: MailProductIntegrationEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationEventInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MailProductIntegrationEvent.
+     */
+    data: XOR<MailProductIntegrationEventUpdateInput, MailProductIntegrationEventUncheckedUpdateInput>
+    /**
+     * Choose, which MailProductIntegrationEvent to update.
+     */
+    where: MailProductIntegrationEventWhereUniqueInput
+  }
+
+  /**
+   * MailProductIntegrationEvent updateMany
+   */
+  export type MailProductIntegrationEventUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MailProductIntegrationEvents.
+     */
+    data: XOR<MailProductIntegrationEventUpdateManyMutationInput, MailProductIntegrationEventUncheckedUpdateManyInput>
+    /**
+     * Filter which MailProductIntegrationEvents to update
+     */
+    where?: MailProductIntegrationEventWhereInput
+    /**
+     * Limit how many MailProductIntegrationEvents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailProductIntegrationEvent updateManyAndReturn
+   */
+  export type MailProductIntegrationEventUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegrationEvent
+     */
+    select?: MailProductIntegrationEventSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegrationEvent
+     */
+    omit?: MailProductIntegrationEventOmit<ExtArgs> | null
+    /**
+     * The data used to update MailProductIntegrationEvents.
+     */
+    data: XOR<MailProductIntegrationEventUpdateManyMutationInput, MailProductIntegrationEventUncheckedUpdateManyInput>
+    /**
+     * Filter which MailProductIntegrationEvents to update
+     */
+    where?: MailProductIntegrationEventWhereInput
+    /**
+     * Limit how many MailProductIntegrationEvents to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationEventIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MailProductIntegrationEvent upsert
+   */
+  export type MailProductIntegrationEventUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegrationEvent
+     */
+    select?: MailProductIntegrationEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegrationEvent
+     */
+    omit?: MailProductIntegrationEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationEventInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MailProductIntegrationEvent to update in case it exists.
+     */
+    where: MailProductIntegrationEventWhereUniqueInput
+    /**
+     * In case the MailProductIntegrationEvent found by the `where` argument doesn't exist, create a new MailProductIntegrationEvent with this data.
+     */
+    create: XOR<MailProductIntegrationEventCreateInput, MailProductIntegrationEventUncheckedCreateInput>
+    /**
+     * In case the MailProductIntegrationEvent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MailProductIntegrationEventUpdateInput, MailProductIntegrationEventUncheckedUpdateInput>
+  }
+
+  /**
+   * MailProductIntegrationEvent delete
+   */
+  export type MailProductIntegrationEventDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegrationEvent
+     */
+    select?: MailProductIntegrationEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegrationEvent
+     */
+    omit?: MailProductIntegrationEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationEventInclude<ExtArgs> | null
+    /**
+     * Filter which MailProductIntegrationEvent to delete.
+     */
+    where: MailProductIntegrationEventWhereUniqueInput
+  }
+
+  /**
+   * MailProductIntegrationEvent deleteMany
+   */
+  export type MailProductIntegrationEventDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailProductIntegrationEvents to delete
+     */
+    where?: MailProductIntegrationEventWhereInput
+    /**
+     * Limit how many MailProductIntegrationEvents to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailProductIntegrationEvent without action
+   */
+  export type MailProductIntegrationEventDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductIntegrationEvent
+     */
+    select?: MailProductIntegrationEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductIntegrationEvent
+     */
+    omit?: MailProductIntegrationEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductIntegrationEventInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MailProductDeliveryEvent
+   */
+
+  export type AggregateMailProductDeliveryEvent = {
+    _count: MailProductDeliveryEventCountAggregateOutputType | null
+    _min: MailProductDeliveryEventMinAggregateOutputType | null
+    _max: MailProductDeliveryEventMaxAggregateOutputType | null
+  }
+
+  export type MailProductDeliveryEventMinAggregateOutputType = {
+    id: string | null
+    integrationId: string | null
+    organizationId: string | null
+    productMessageId: string | null
+    provider: string | null
+    providerMessageId: string | null
+    senderAddress: string | null
+    recipientHash: string | null
+    recipientDomain: string | null
+    category: string | null
+    status: string | null
+    occurredAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type MailProductDeliveryEventMaxAggregateOutputType = {
+    id: string | null
+    integrationId: string | null
+    organizationId: string | null
+    productMessageId: string | null
+    provider: string | null
+    providerMessageId: string | null
+    senderAddress: string | null
+    recipientHash: string | null
+    recipientDomain: string | null
+    category: string | null
+    status: string | null
+    occurredAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type MailProductDeliveryEventCountAggregateOutputType = {
+    id: number
+    integrationId: number
+    organizationId: number
+    productMessageId: number
+    provider: number
+    providerMessageId: number
+    senderAddress: number
+    recipientHash: number
+    recipientDomain: number
+    category: number
+    status: number
+    occurredAt: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type MailProductDeliveryEventMinAggregateInputType = {
+    id?: true
+    integrationId?: true
+    organizationId?: true
+    productMessageId?: true
+    provider?: true
+    providerMessageId?: true
+    senderAddress?: true
+    recipientHash?: true
+    recipientDomain?: true
+    category?: true
+    status?: true
+    occurredAt?: true
+    createdAt?: true
+  }
+
+  export type MailProductDeliveryEventMaxAggregateInputType = {
+    id?: true
+    integrationId?: true
+    organizationId?: true
+    productMessageId?: true
+    provider?: true
+    providerMessageId?: true
+    senderAddress?: true
+    recipientHash?: true
+    recipientDomain?: true
+    category?: true
+    status?: true
+    occurredAt?: true
+    createdAt?: true
+  }
+
+  export type MailProductDeliveryEventCountAggregateInputType = {
+    id?: true
+    integrationId?: true
+    organizationId?: true
+    productMessageId?: true
+    provider?: true
+    providerMessageId?: true
+    senderAddress?: true
+    recipientHash?: true
+    recipientDomain?: true
+    category?: true
+    status?: true
+    occurredAt?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type MailProductDeliveryEventAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailProductDeliveryEvent to aggregate.
+     */
+    where?: MailProductDeliveryEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailProductDeliveryEvents to fetch.
+     */
+    orderBy?: MailProductDeliveryEventOrderByWithRelationInput | MailProductDeliveryEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MailProductDeliveryEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailProductDeliveryEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailProductDeliveryEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MailProductDeliveryEvents
+    **/
+    _count?: true | MailProductDeliveryEventCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MailProductDeliveryEventMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MailProductDeliveryEventMaxAggregateInputType
+  }
+
+  export type GetMailProductDeliveryEventAggregateType<T extends MailProductDeliveryEventAggregateArgs> = {
+        [P in keyof T & keyof AggregateMailProductDeliveryEvent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMailProductDeliveryEvent[P]>
+      : GetScalarType<T[P], AggregateMailProductDeliveryEvent[P]>
+  }
+
+
+
+
+  export type MailProductDeliveryEventGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailProductDeliveryEventWhereInput
+    orderBy?: MailProductDeliveryEventOrderByWithAggregationInput | MailProductDeliveryEventOrderByWithAggregationInput[]
+    by: MailProductDeliveryEventScalarFieldEnum[] | MailProductDeliveryEventScalarFieldEnum
+    having?: MailProductDeliveryEventScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MailProductDeliveryEventCountAggregateInputType | true
+    _min?: MailProductDeliveryEventMinAggregateInputType
+    _max?: MailProductDeliveryEventMaxAggregateInputType
+  }
+
+  export type MailProductDeliveryEventGroupByOutputType = {
+    id: string
+    integrationId: string
+    organizationId: string
+    productMessageId: string
+    provider: string
+    providerMessageId: string | null
+    senderAddress: string
+    recipientHash: string
+    recipientDomain: string
+    category: string
+    status: string
+    occurredAt: Date
+    createdAt: Date
+    _count: MailProductDeliveryEventCountAggregateOutputType | null
+    _min: MailProductDeliveryEventMinAggregateOutputType | null
+    _max: MailProductDeliveryEventMaxAggregateOutputType | null
+  }
+
+  type GetMailProductDeliveryEventGroupByPayload<T extends MailProductDeliveryEventGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MailProductDeliveryEventGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MailProductDeliveryEventGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MailProductDeliveryEventGroupByOutputType[P]>
+            : GetScalarType<T[P], MailProductDeliveryEventGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MailProductDeliveryEventSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    integrationId?: boolean
+    organizationId?: boolean
+    productMessageId?: boolean
+    provider?: boolean
+    providerMessageId?: boolean
+    senderAddress?: boolean
+    recipientHash?: boolean
+    recipientDomain?: boolean
+    category?: boolean
+    status?: boolean
+    occurredAt?: boolean
+    createdAt?: boolean
+    integration?: boolean | MailProductIntegrationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailProductDeliveryEvent"]>
+
+  export type MailProductDeliveryEventSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    integrationId?: boolean
+    organizationId?: boolean
+    productMessageId?: boolean
+    provider?: boolean
+    providerMessageId?: boolean
+    senderAddress?: boolean
+    recipientHash?: boolean
+    recipientDomain?: boolean
+    category?: boolean
+    status?: boolean
+    occurredAt?: boolean
+    createdAt?: boolean
+    integration?: boolean | MailProductIntegrationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailProductDeliveryEvent"]>
+
+  export type MailProductDeliveryEventSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    integrationId?: boolean
+    organizationId?: boolean
+    productMessageId?: boolean
+    provider?: boolean
+    providerMessageId?: boolean
+    senderAddress?: boolean
+    recipientHash?: boolean
+    recipientDomain?: boolean
+    category?: boolean
+    status?: boolean
+    occurredAt?: boolean
+    createdAt?: boolean
+    integration?: boolean | MailProductIntegrationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mailProductDeliveryEvent"]>
+
+  export type MailProductDeliveryEventSelectScalar = {
+    id?: boolean
+    integrationId?: boolean
+    organizationId?: boolean
+    productMessageId?: boolean
+    provider?: boolean
+    providerMessageId?: boolean
+    senderAddress?: boolean
+    recipientHash?: boolean
+    recipientDomain?: boolean
+    category?: boolean
+    status?: boolean
+    occurredAt?: boolean
+    createdAt?: boolean
+  }
+
+  export type MailProductDeliveryEventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "integrationId" | "organizationId" | "productMessageId" | "provider" | "providerMessageId" | "senderAddress" | "recipientHash" | "recipientDomain" | "category" | "status" | "occurredAt" | "createdAt", ExtArgs["result"]["mailProductDeliveryEvent"]>
+  export type MailProductDeliveryEventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    integration?: boolean | MailProductIntegrationDefaultArgs<ExtArgs>
+  }
+  export type MailProductDeliveryEventIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    integration?: boolean | MailProductIntegrationDefaultArgs<ExtArgs>
+  }
+  export type MailProductDeliveryEventIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    integration?: boolean | MailProductIntegrationDefaultArgs<ExtArgs>
+  }
+
+  export type $MailProductDeliveryEventPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MailProductDeliveryEvent"
+    objects: {
+      integration: Prisma.$MailProductIntegrationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      integrationId: string
+      organizationId: string
+      productMessageId: string
+      provider: string
+      providerMessageId: string | null
+      senderAddress: string
+      recipientHash: string
+      recipientDomain: string
+      category: string
+      status: string
+      occurredAt: Date
+      createdAt: Date
+    }, ExtArgs["result"]["mailProductDeliveryEvent"]>
+    composites: {}
+  }
+
+  type MailProductDeliveryEventGetPayload<S extends boolean | null | undefined | MailProductDeliveryEventDefaultArgs> = $Result.GetResult<Prisma.$MailProductDeliveryEventPayload, S>
+
+  type MailProductDeliveryEventCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MailProductDeliveryEventFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MailProductDeliveryEventCountAggregateInputType | true
+    }
+
+  export interface MailProductDeliveryEventDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MailProductDeliveryEvent'], meta: { name: 'MailProductDeliveryEvent' } }
+    /**
+     * Find zero or one MailProductDeliveryEvent that matches the filter.
+     * @param {MailProductDeliveryEventFindUniqueArgs} args - Arguments to find a MailProductDeliveryEvent
+     * @example
+     * // Get one MailProductDeliveryEvent
+     * const mailProductDeliveryEvent = await prisma.mailProductDeliveryEvent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MailProductDeliveryEventFindUniqueArgs>(args: SelectSubset<T, MailProductDeliveryEventFindUniqueArgs<ExtArgs>>): Prisma__MailProductDeliveryEventClient<$Result.GetResult<Prisma.$MailProductDeliveryEventPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MailProductDeliveryEvent that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MailProductDeliveryEventFindUniqueOrThrowArgs} args - Arguments to find a MailProductDeliveryEvent
+     * @example
+     * // Get one MailProductDeliveryEvent
+     * const mailProductDeliveryEvent = await prisma.mailProductDeliveryEvent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MailProductDeliveryEventFindUniqueOrThrowArgs>(args: SelectSubset<T, MailProductDeliveryEventFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MailProductDeliveryEventClient<$Result.GetResult<Prisma.$MailProductDeliveryEventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailProductDeliveryEvent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductDeliveryEventFindFirstArgs} args - Arguments to find a MailProductDeliveryEvent
+     * @example
+     * // Get one MailProductDeliveryEvent
+     * const mailProductDeliveryEvent = await prisma.mailProductDeliveryEvent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MailProductDeliveryEventFindFirstArgs>(args?: SelectSubset<T, MailProductDeliveryEventFindFirstArgs<ExtArgs>>): Prisma__MailProductDeliveryEventClient<$Result.GetResult<Prisma.$MailProductDeliveryEventPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailProductDeliveryEvent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductDeliveryEventFindFirstOrThrowArgs} args - Arguments to find a MailProductDeliveryEvent
+     * @example
+     * // Get one MailProductDeliveryEvent
+     * const mailProductDeliveryEvent = await prisma.mailProductDeliveryEvent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MailProductDeliveryEventFindFirstOrThrowArgs>(args?: SelectSubset<T, MailProductDeliveryEventFindFirstOrThrowArgs<ExtArgs>>): Prisma__MailProductDeliveryEventClient<$Result.GetResult<Prisma.$MailProductDeliveryEventPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MailProductDeliveryEvents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductDeliveryEventFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MailProductDeliveryEvents
+     * const mailProductDeliveryEvents = await prisma.mailProductDeliveryEvent.findMany()
+     * 
+     * // Get first 10 MailProductDeliveryEvents
+     * const mailProductDeliveryEvents = await prisma.mailProductDeliveryEvent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const mailProductDeliveryEventWithIdOnly = await prisma.mailProductDeliveryEvent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MailProductDeliveryEventFindManyArgs>(args?: SelectSubset<T, MailProductDeliveryEventFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailProductDeliveryEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MailProductDeliveryEvent.
+     * @param {MailProductDeliveryEventCreateArgs} args - Arguments to create a MailProductDeliveryEvent.
+     * @example
+     * // Create one MailProductDeliveryEvent
+     * const MailProductDeliveryEvent = await prisma.mailProductDeliveryEvent.create({
+     *   data: {
+     *     // ... data to create a MailProductDeliveryEvent
+     *   }
+     * })
+     * 
+     */
+    create<T extends MailProductDeliveryEventCreateArgs>(args: SelectSubset<T, MailProductDeliveryEventCreateArgs<ExtArgs>>): Prisma__MailProductDeliveryEventClient<$Result.GetResult<Prisma.$MailProductDeliveryEventPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MailProductDeliveryEvents.
+     * @param {MailProductDeliveryEventCreateManyArgs} args - Arguments to create many MailProductDeliveryEvents.
+     * @example
+     * // Create many MailProductDeliveryEvents
+     * const mailProductDeliveryEvent = await prisma.mailProductDeliveryEvent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MailProductDeliveryEventCreateManyArgs>(args?: SelectSubset<T, MailProductDeliveryEventCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MailProductDeliveryEvents and returns the data saved in the database.
+     * @param {MailProductDeliveryEventCreateManyAndReturnArgs} args - Arguments to create many MailProductDeliveryEvents.
+     * @example
+     * // Create many MailProductDeliveryEvents
+     * const mailProductDeliveryEvent = await prisma.mailProductDeliveryEvent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MailProductDeliveryEvents and only return the `id`
+     * const mailProductDeliveryEventWithIdOnly = await prisma.mailProductDeliveryEvent.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MailProductDeliveryEventCreateManyAndReturnArgs>(args?: SelectSubset<T, MailProductDeliveryEventCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailProductDeliveryEventPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MailProductDeliveryEvent.
+     * @param {MailProductDeliveryEventDeleteArgs} args - Arguments to delete one MailProductDeliveryEvent.
+     * @example
+     * // Delete one MailProductDeliveryEvent
+     * const MailProductDeliveryEvent = await prisma.mailProductDeliveryEvent.delete({
+     *   where: {
+     *     // ... filter to delete one MailProductDeliveryEvent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MailProductDeliveryEventDeleteArgs>(args: SelectSubset<T, MailProductDeliveryEventDeleteArgs<ExtArgs>>): Prisma__MailProductDeliveryEventClient<$Result.GetResult<Prisma.$MailProductDeliveryEventPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MailProductDeliveryEvent.
+     * @param {MailProductDeliveryEventUpdateArgs} args - Arguments to update one MailProductDeliveryEvent.
+     * @example
+     * // Update one MailProductDeliveryEvent
+     * const mailProductDeliveryEvent = await prisma.mailProductDeliveryEvent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MailProductDeliveryEventUpdateArgs>(args: SelectSubset<T, MailProductDeliveryEventUpdateArgs<ExtArgs>>): Prisma__MailProductDeliveryEventClient<$Result.GetResult<Prisma.$MailProductDeliveryEventPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MailProductDeliveryEvents.
+     * @param {MailProductDeliveryEventDeleteManyArgs} args - Arguments to filter MailProductDeliveryEvents to delete.
+     * @example
+     * // Delete a few MailProductDeliveryEvents
+     * const { count } = await prisma.mailProductDeliveryEvent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MailProductDeliveryEventDeleteManyArgs>(args?: SelectSubset<T, MailProductDeliveryEventDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailProductDeliveryEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductDeliveryEventUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MailProductDeliveryEvents
+     * const mailProductDeliveryEvent = await prisma.mailProductDeliveryEvent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MailProductDeliveryEventUpdateManyArgs>(args: SelectSubset<T, MailProductDeliveryEventUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailProductDeliveryEvents and returns the data updated in the database.
+     * @param {MailProductDeliveryEventUpdateManyAndReturnArgs} args - Arguments to update many MailProductDeliveryEvents.
+     * @example
+     * // Update many MailProductDeliveryEvents
+     * const mailProductDeliveryEvent = await prisma.mailProductDeliveryEvent.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MailProductDeliveryEvents and only return the `id`
+     * const mailProductDeliveryEventWithIdOnly = await prisma.mailProductDeliveryEvent.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MailProductDeliveryEventUpdateManyAndReturnArgs>(args: SelectSubset<T, MailProductDeliveryEventUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailProductDeliveryEventPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MailProductDeliveryEvent.
+     * @param {MailProductDeliveryEventUpsertArgs} args - Arguments to update or create a MailProductDeliveryEvent.
+     * @example
+     * // Update or create a MailProductDeliveryEvent
+     * const mailProductDeliveryEvent = await prisma.mailProductDeliveryEvent.upsert({
+     *   create: {
+     *     // ... data to create a MailProductDeliveryEvent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MailProductDeliveryEvent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MailProductDeliveryEventUpsertArgs>(args: SelectSubset<T, MailProductDeliveryEventUpsertArgs<ExtArgs>>): Prisma__MailProductDeliveryEventClient<$Result.GetResult<Prisma.$MailProductDeliveryEventPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MailProductDeliveryEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductDeliveryEventCountArgs} args - Arguments to filter MailProductDeliveryEvents to count.
+     * @example
+     * // Count the number of MailProductDeliveryEvents
+     * const count = await prisma.mailProductDeliveryEvent.count({
+     *   where: {
+     *     // ... the filter for the MailProductDeliveryEvents we want to count
+     *   }
+     * })
+    **/
+    count<T extends MailProductDeliveryEventCountArgs>(
+      args?: Subset<T, MailProductDeliveryEventCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MailProductDeliveryEventCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MailProductDeliveryEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductDeliveryEventAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MailProductDeliveryEventAggregateArgs>(args: Subset<T, MailProductDeliveryEventAggregateArgs>): Prisma.PrismaPromise<GetMailProductDeliveryEventAggregateType<T>>
+
+    /**
+     * Group by MailProductDeliveryEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailProductDeliveryEventGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MailProductDeliveryEventGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MailProductDeliveryEventGroupByArgs['orderBy'] }
+        : { orderBy?: MailProductDeliveryEventGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MailProductDeliveryEventGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMailProductDeliveryEventGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MailProductDeliveryEvent model
+   */
+  readonly fields: MailProductDeliveryEventFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MailProductDeliveryEvent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MailProductDeliveryEventClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    integration<T extends MailProductIntegrationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MailProductIntegrationDefaultArgs<ExtArgs>>): Prisma__MailProductIntegrationClient<$Result.GetResult<Prisma.$MailProductIntegrationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MailProductDeliveryEvent model
+   */
+  interface MailProductDeliveryEventFieldRefs {
+    readonly id: FieldRef<"MailProductDeliveryEvent", 'String'>
+    readonly integrationId: FieldRef<"MailProductDeliveryEvent", 'String'>
+    readonly organizationId: FieldRef<"MailProductDeliveryEvent", 'String'>
+    readonly productMessageId: FieldRef<"MailProductDeliveryEvent", 'String'>
+    readonly provider: FieldRef<"MailProductDeliveryEvent", 'String'>
+    readonly providerMessageId: FieldRef<"MailProductDeliveryEvent", 'String'>
+    readonly senderAddress: FieldRef<"MailProductDeliveryEvent", 'String'>
+    readonly recipientHash: FieldRef<"MailProductDeliveryEvent", 'String'>
+    readonly recipientDomain: FieldRef<"MailProductDeliveryEvent", 'String'>
+    readonly category: FieldRef<"MailProductDeliveryEvent", 'String'>
+    readonly status: FieldRef<"MailProductDeliveryEvent", 'String'>
+    readonly occurredAt: FieldRef<"MailProductDeliveryEvent", 'DateTime'>
+    readonly createdAt: FieldRef<"MailProductDeliveryEvent", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MailProductDeliveryEvent findUnique
+   */
+  export type MailProductDeliveryEventFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductDeliveryEvent
+     */
+    select?: MailProductDeliveryEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductDeliveryEvent
+     */
+    omit?: MailProductDeliveryEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductDeliveryEventInclude<ExtArgs> | null
+    /**
+     * Filter, which MailProductDeliveryEvent to fetch.
+     */
+    where: MailProductDeliveryEventWhereUniqueInput
+  }
+
+  /**
+   * MailProductDeliveryEvent findUniqueOrThrow
+   */
+  export type MailProductDeliveryEventFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductDeliveryEvent
+     */
+    select?: MailProductDeliveryEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductDeliveryEvent
+     */
+    omit?: MailProductDeliveryEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductDeliveryEventInclude<ExtArgs> | null
+    /**
+     * Filter, which MailProductDeliveryEvent to fetch.
+     */
+    where: MailProductDeliveryEventWhereUniqueInput
+  }
+
+  /**
+   * MailProductDeliveryEvent findFirst
+   */
+  export type MailProductDeliveryEventFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductDeliveryEvent
+     */
+    select?: MailProductDeliveryEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductDeliveryEvent
+     */
+    omit?: MailProductDeliveryEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductDeliveryEventInclude<ExtArgs> | null
+    /**
+     * Filter, which MailProductDeliveryEvent to fetch.
+     */
+    where?: MailProductDeliveryEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailProductDeliveryEvents to fetch.
+     */
+    orderBy?: MailProductDeliveryEventOrderByWithRelationInput | MailProductDeliveryEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailProductDeliveryEvents.
+     */
+    cursor?: MailProductDeliveryEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailProductDeliveryEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailProductDeliveryEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailProductDeliveryEvents.
+     */
+    distinct?: MailProductDeliveryEventScalarFieldEnum | MailProductDeliveryEventScalarFieldEnum[]
+  }
+
+  /**
+   * MailProductDeliveryEvent findFirstOrThrow
+   */
+  export type MailProductDeliveryEventFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductDeliveryEvent
+     */
+    select?: MailProductDeliveryEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductDeliveryEvent
+     */
+    omit?: MailProductDeliveryEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductDeliveryEventInclude<ExtArgs> | null
+    /**
+     * Filter, which MailProductDeliveryEvent to fetch.
+     */
+    where?: MailProductDeliveryEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailProductDeliveryEvents to fetch.
+     */
+    orderBy?: MailProductDeliveryEventOrderByWithRelationInput | MailProductDeliveryEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailProductDeliveryEvents.
+     */
+    cursor?: MailProductDeliveryEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailProductDeliveryEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailProductDeliveryEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailProductDeliveryEvents.
+     */
+    distinct?: MailProductDeliveryEventScalarFieldEnum | MailProductDeliveryEventScalarFieldEnum[]
+  }
+
+  /**
+   * MailProductDeliveryEvent findMany
+   */
+  export type MailProductDeliveryEventFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductDeliveryEvent
+     */
+    select?: MailProductDeliveryEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductDeliveryEvent
+     */
+    omit?: MailProductDeliveryEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductDeliveryEventInclude<ExtArgs> | null
+    /**
+     * Filter, which MailProductDeliveryEvents to fetch.
+     */
+    where?: MailProductDeliveryEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailProductDeliveryEvents to fetch.
+     */
+    orderBy?: MailProductDeliveryEventOrderByWithRelationInput | MailProductDeliveryEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MailProductDeliveryEvents.
+     */
+    cursor?: MailProductDeliveryEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailProductDeliveryEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailProductDeliveryEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailProductDeliveryEvents.
+     */
+    distinct?: MailProductDeliveryEventScalarFieldEnum | MailProductDeliveryEventScalarFieldEnum[]
+  }
+
+  /**
+   * MailProductDeliveryEvent create
+   */
+  export type MailProductDeliveryEventCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductDeliveryEvent
+     */
+    select?: MailProductDeliveryEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductDeliveryEvent
+     */
+    omit?: MailProductDeliveryEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductDeliveryEventInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MailProductDeliveryEvent.
+     */
+    data: XOR<MailProductDeliveryEventCreateInput, MailProductDeliveryEventUncheckedCreateInput>
+  }
+
+  /**
+   * MailProductDeliveryEvent createMany
+   */
+  export type MailProductDeliveryEventCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MailProductDeliveryEvents.
+     */
+    data: MailProductDeliveryEventCreateManyInput | MailProductDeliveryEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailProductDeliveryEvent createManyAndReturn
+   */
+  export type MailProductDeliveryEventCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductDeliveryEvent
+     */
+    select?: MailProductDeliveryEventSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductDeliveryEvent
+     */
+    omit?: MailProductDeliveryEventOmit<ExtArgs> | null
+    /**
+     * The data used to create many MailProductDeliveryEvents.
+     */
+    data: MailProductDeliveryEventCreateManyInput | MailProductDeliveryEventCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductDeliveryEventIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MailProductDeliveryEvent update
+   */
+  export type MailProductDeliveryEventUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductDeliveryEvent
+     */
+    select?: MailProductDeliveryEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductDeliveryEvent
+     */
+    omit?: MailProductDeliveryEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductDeliveryEventInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MailProductDeliveryEvent.
+     */
+    data: XOR<MailProductDeliveryEventUpdateInput, MailProductDeliveryEventUncheckedUpdateInput>
+    /**
+     * Choose, which MailProductDeliveryEvent to update.
+     */
+    where: MailProductDeliveryEventWhereUniqueInput
+  }
+
+  /**
+   * MailProductDeliveryEvent updateMany
+   */
+  export type MailProductDeliveryEventUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MailProductDeliveryEvents.
+     */
+    data: XOR<MailProductDeliveryEventUpdateManyMutationInput, MailProductDeliveryEventUncheckedUpdateManyInput>
+    /**
+     * Filter which MailProductDeliveryEvents to update
+     */
+    where?: MailProductDeliveryEventWhereInput
+    /**
+     * Limit how many MailProductDeliveryEvents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailProductDeliveryEvent updateManyAndReturn
+   */
+  export type MailProductDeliveryEventUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductDeliveryEvent
+     */
+    select?: MailProductDeliveryEventSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductDeliveryEvent
+     */
+    omit?: MailProductDeliveryEventOmit<ExtArgs> | null
+    /**
+     * The data used to update MailProductDeliveryEvents.
+     */
+    data: XOR<MailProductDeliveryEventUpdateManyMutationInput, MailProductDeliveryEventUncheckedUpdateManyInput>
+    /**
+     * Filter which MailProductDeliveryEvents to update
+     */
+    where?: MailProductDeliveryEventWhereInput
+    /**
+     * Limit how many MailProductDeliveryEvents to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductDeliveryEventIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MailProductDeliveryEvent upsert
+   */
+  export type MailProductDeliveryEventUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductDeliveryEvent
+     */
+    select?: MailProductDeliveryEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductDeliveryEvent
+     */
+    omit?: MailProductDeliveryEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductDeliveryEventInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MailProductDeliveryEvent to update in case it exists.
+     */
+    where: MailProductDeliveryEventWhereUniqueInput
+    /**
+     * In case the MailProductDeliveryEvent found by the `where` argument doesn't exist, create a new MailProductDeliveryEvent with this data.
+     */
+    create: XOR<MailProductDeliveryEventCreateInput, MailProductDeliveryEventUncheckedCreateInput>
+    /**
+     * In case the MailProductDeliveryEvent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MailProductDeliveryEventUpdateInput, MailProductDeliveryEventUncheckedUpdateInput>
+  }
+
+  /**
+   * MailProductDeliveryEvent delete
+   */
+  export type MailProductDeliveryEventDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductDeliveryEvent
+     */
+    select?: MailProductDeliveryEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductDeliveryEvent
+     */
+    omit?: MailProductDeliveryEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductDeliveryEventInclude<ExtArgs> | null
+    /**
+     * Filter which MailProductDeliveryEvent to delete.
+     */
+    where: MailProductDeliveryEventWhereUniqueInput
+  }
+
+  /**
+   * MailProductDeliveryEvent deleteMany
+   */
+  export type MailProductDeliveryEventDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailProductDeliveryEvents to delete
+     */
+    where?: MailProductDeliveryEventWhereInput
+    /**
+     * Limit how many MailProductDeliveryEvents to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailProductDeliveryEvent without action
+   */
+  export type MailProductDeliveryEventDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailProductDeliveryEvent
+     */
+    select?: MailProductDeliveryEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailProductDeliveryEvent
+     */
+    omit?: MailProductDeliveryEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailProductDeliveryEventInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -229831,6 +235075,84 @@ export namespace Prisma {
   export type MarketingTriggerEventScalarFieldEnum = (typeof MarketingTriggerEventScalarFieldEnum)[keyof typeof MarketingTriggerEventScalarFieldEnum]
 
 
+  export const MailProductIntegrationScalarFieldEnum: {
+    id: 'id',
+    product: 'product',
+    organizationId: 'organizationId',
+    serviceName: 'serviceName',
+    status: 'status',
+    classification: 'classification',
+    contractVersion: 'contractVersion',
+    allowedEventTypes: 'allowedEventTypes',
+    allowedTriggerTypes: 'allowedTriggerTypes',
+    ownerApprovalReference: 'ownerApprovalReference',
+    ownerApprovedBy: 'ownerApprovedBy',
+    approvedAt: 'approvedAt',
+    activatedByAdminUserId: 'activatedByAdminUserId',
+    lastEventAt: 'lastEventAt',
+    lastErrorCode: 'lastErrorCode',
+    lastErrorAt: 'lastErrorAt',
+    createdBy: 'createdBy',
+    updatedBy: 'updatedBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MailProductIntegrationScalarFieldEnum = (typeof MailProductIntegrationScalarFieldEnum)[keyof typeof MailProductIntegrationScalarFieldEnum]
+
+
+  export const MailProductSenderAuthorizationScalarFieldEnum: {
+    id: 'id',
+    integrationId: 'integrationId',
+    addressId: 'addressId',
+    address: 'address',
+    purpose: 'purpose',
+    grantedBy: 'grantedBy',
+    revokedAt: 'revokedAt',
+    revokedBy: 'revokedBy',
+    createdAt: 'createdAt'
+  };
+
+  export type MailProductSenderAuthorizationScalarFieldEnum = (typeof MailProductSenderAuthorizationScalarFieldEnum)[keyof typeof MailProductSenderAuthorizationScalarFieldEnum]
+
+
+  export const MailProductIntegrationEventScalarFieldEnum: {
+    id: 'id',
+    integrationId: 'integrationId',
+    eventId: 'eventId',
+    eventType: 'eventType',
+    eventVersion: 'eventVersion',
+    correlationId: 'correlationId',
+    payloadSha256: 'payloadSha256',
+    status: 'status',
+    errorCode: 'errorCode',
+    outcome: 'outcome',
+    occurredAt: 'occurredAt',
+    receivedAt: 'receivedAt'
+  };
+
+  export type MailProductIntegrationEventScalarFieldEnum = (typeof MailProductIntegrationEventScalarFieldEnum)[keyof typeof MailProductIntegrationEventScalarFieldEnum]
+
+
+  export const MailProductDeliveryEventScalarFieldEnum: {
+    id: 'id',
+    integrationId: 'integrationId',
+    organizationId: 'organizationId',
+    productMessageId: 'productMessageId',
+    provider: 'provider',
+    providerMessageId: 'providerMessageId',
+    senderAddress: 'senderAddress',
+    recipientHash: 'recipientHash',
+    recipientDomain: 'recipientDomain',
+    category: 'category',
+    status: 'status',
+    occurredAt: 'occurredAt',
+    createdAt: 'createdAt'
+  };
+
+  export type MailProductDeliveryEventScalarFieldEnum = (typeof MailProductDeliveryEventScalarFieldEnum)[keyof typeof MailProductDeliveryEventScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -231820,6 +237142,20 @@ export namespace Prisma {
    * Reference to a field of type 'MarketingTriggerEventStatus[]'
    */
   export type ListEnumMarketingTriggerEventStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MarketingTriggerEventStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'MailProductIntegrationStatus'
+   */
+  export type EnumMailProductIntegrationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MailProductIntegrationStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'MailProductIntegrationStatus[]'
+   */
+  export type ListEnumMailProductIntegrationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MailProductIntegrationStatus[]'>
     
 
 
@@ -248968,6 +254304,407 @@ export namespace Prisma {
     occurredAt?: DateTimeWithAggregatesFilter<"MarketingTriggerEvent"> | Date | string
     receivedAt?: DateTimeWithAggregatesFilter<"MarketingTriggerEvent"> | Date | string
     processedAt?: DateTimeNullableWithAggregatesFilter<"MarketingTriggerEvent"> | Date | string | null
+  }
+
+  export type MailProductIntegrationWhereInput = {
+    AND?: MailProductIntegrationWhereInput | MailProductIntegrationWhereInput[]
+    OR?: MailProductIntegrationWhereInput[]
+    NOT?: MailProductIntegrationWhereInput | MailProductIntegrationWhereInput[]
+    id?: UuidFilter<"MailProductIntegration"> | string
+    product?: StringFilter<"MailProductIntegration"> | string
+    organizationId?: UuidFilter<"MailProductIntegration"> | string
+    serviceName?: StringFilter<"MailProductIntegration"> | string
+    status?: EnumMailProductIntegrationStatusFilter<"MailProductIntegration"> | $Enums.MailProductIntegrationStatus
+    classification?: StringFilter<"MailProductIntegration"> | string
+    contractVersion?: IntFilter<"MailProductIntegration"> | number
+    allowedEventTypes?: StringNullableListFilter<"MailProductIntegration">
+    allowedTriggerTypes?: StringNullableListFilter<"MailProductIntegration">
+    ownerApprovalReference?: StringNullableFilter<"MailProductIntegration"> | string | null
+    ownerApprovedBy?: StringNullableFilter<"MailProductIntegration"> | string | null
+    approvedAt?: DateTimeNullableFilter<"MailProductIntegration"> | Date | string | null
+    activatedByAdminUserId?: StringNullableFilter<"MailProductIntegration"> | string | null
+    lastEventAt?: DateTimeNullableFilter<"MailProductIntegration"> | Date | string | null
+    lastErrorCode?: StringNullableFilter<"MailProductIntegration"> | string | null
+    lastErrorAt?: DateTimeNullableFilter<"MailProductIntegration"> | Date | string | null
+    createdBy?: StringFilter<"MailProductIntegration"> | string
+    updatedBy?: StringFilter<"MailProductIntegration"> | string
+    createdAt?: DateTimeFilter<"MailProductIntegration"> | Date | string
+    updatedAt?: DateTimeFilter<"MailProductIntegration"> | Date | string
+    senders?: MailProductSenderAuthorizationListRelationFilter
+    events?: MailProductIntegrationEventListRelationFilter
+    deliveryEvents?: MailProductDeliveryEventListRelationFilter
+  }
+
+  export type MailProductIntegrationOrderByWithRelationInput = {
+    id?: SortOrder
+    product?: SortOrder
+    organizationId?: SortOrder
+    serviceName?: SortOrder
+    status?: SortOrder
+    classification?: SortOrder
+    contractVersion?: SortOrder
+    allowedEventTypes?: SortOrder
+    allowedTriggerTypes?: SortOrder
+    ownerApprovalReference?: SortOrderInput | SortOrder
+    ownerApprovedBy?: SortOrderInput | SortOrder
+    approvedAt?: SortOrderInput | SortOrder
+    activatedByAdminUserId?: SortOrderInput | SortOrder
+    lastEventAt?: SortOrderInput | SortOrder
+    lastErrorCode?: SortOrderInput | SortOrder
+    lastErrorAt?: SortOrderInput | SortOrder
+    createdBy?: SortOrder
+    updatedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    senders?: MailProductSenderAuthorizationOrderByRelationAggregateInput
+    events?: MailProductIntegrationEventOrderByRelationAggregateInput
+    deliveryEvents?: MailProductDeliveryEventOrderByRelationAggregateInput
+  }
+
+  export type MailProductIntegrationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    product?: string
+    serviceName?: string
+    AND?: MailProductIntegrationWhereInput | MailProductIntegrationWhereInput[]
+    OR?: MailProductIntegrationWhereInput[]
+    NOT?: MailProductIntegrationWhereInput | MailProductIntegrationWhereInput[]
+    organizationId?: UuidFilter<"MailProductIntegration"> | string
+    status?: EnumMailProductIntegrationStatusFilter<"MailProductIntegration"> | $Enums.MailProductIntegrationStatus
+    classification?: StringFilter<"MailProductIntegration"> | string
+    contractVersion?: IntFilter<"MailProductIntegration"> | number
+    allowedEventTypes?: StringNullableListFilter<"MailProductIntegration">
+    allowedTriggerTypes?: StringNullableListFilter<"MailProductIntegration">
+    ownerApprovalReference?: StringNullableFilter<"MailProductIntegration"> | string | null
+    ownerApprovedBy?: StringNullableFilter<"MailProductIntegration"> | string | null
+    approvedAt?: DateTimeNullableFilter<"MailProductIntegration"> | Date | string | null
+    activatedByAdminUserId?: StringNullableFilter<"MailProductIntegration"> | string | null
+    lastEventAt?: DateTimeNullableFilter<"MailProductIntegration"> | Date | string | null
+    lastErrorCode?: StringNullableFilter<"MailProductIntegration"> | string | null
+    lastErrorAt?: DateTimeNullableFilter<"MailProductIntegration"> | Date | string | null
+    createdBy?: StringFilter<"MailProductIntegration"> | string
+    updatedBy?: StringFilter<"MailProductIntegration"> | string
+    createdAt?: DateTimeFilter<"MailProductIntegration"> | Date | string
+    updatedAt?: DateTimeFilter<"MailProductIntegration"> | Date | string
+    senders?: MailProductSenderAuthorizationListRelationFilter
+    events?: MailProductIntegrationEventListRelationFilter
+    deliveryEvents?: MailProductDeliveryEventListRelationFilter
+  }, "id" | "product" | "serviceName">
+
+  export type MailProductIntegrationOrderByWithAggregationInput = {
+    id?: SortOrder
+    product?: SortOrder
+    organizationId?: SortOrder
+    serviceName?: SortOrder
+    status?: SortOrder
+    classification?: SortOrder
+    contractVersion?: SortOrder
+    allowedEventTypes?: SortOrder
+    allowedTriggerTypes?: SortOrder
+    ownerApprovalReference?: SortOrderInput | SortOrder
+    ownerApprovedBy?: SortOrderInput | SortOrder
+    approvedAt?: SortOrderInput | SortOrder
+    activatedByAdminUserId?: SortOrderInput | SortOrder
+    lastEventAt?: SortOrderInput | SortOrder
+    lastErrorCode?: SortOrderInput | SortOrder
+    lastErrorAt?: SortOrderInput | SortOrder
+    createdBy?: SortOrder
+    updatedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MailProductIntegrationCountOrderByAggregateInput
+    _avg?: MailProductIntegrationAvgOrderByAggregateInput
+    _max?: MailProductIntegrationMaxOrderByAggregateInput
+    _min?: MailProductIntegrationMinOrderByAggregateInput
+    _sum?: MailProductIntegrationSumOrderByAggregateInput
+  }
+
+  export type MailProductIntegrationScalarWhereWithAggregatesInput = {
+    AND?: MailProductIntegrationScalarWhereWithAggregatesInput | MailProductIntegrationScalarWhereWithAggregatesInput[]
+    OR?: MailProductIntegrationScalarWhereWithAggregatesInput[]
+    NOT?: MailProductIntegrationScalarWhereWithAggregatesInput | MailProductIntegrationScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MailProductIntegration"> | string
+    product?: StringWithAggregatesFilter<"MailProductIntegration"> | string
+    organizationId?: UuidWithAggregatesFilter<"MailProductIntegration"> | string
+    serviceName?: StringWithAggregatesFilter<"MailProductIntegration"> | string
+    status?: EnumMailProductIntegrationStatusWithAggregatesFilter<"MailProductIntegration"> | $Enums.MailProductIntegrationStatus
+    classification?: StringWithAggregatesFilter<"MailProductIntegration"> | string
+    contractVersion?: IntWithAggregatesFilter<"MailProductIntegration"> | number
+    allowedEventTypes?: StringNullableListFilter<"MailProductIntegration">
+    allowedTriggerTypes?: StringNullableListFilter<"MailProductIntegration">
+    ownerApprovalReference?: StringNullableWithAggregatesFilter<"MailProductIntegration"> | string | null
+    ownerApprovedBy?: StringNullableWithAggregatesFilter<"MailProductIntegration"> | string | null
+    approvedAt?: DateTimeNullableWithAggregatesFilter<"MailProductIntegration"> | Date | string | null
+    activatedByAdminUserId?: StringNullableWithAggregatesFilter<"MailProductIntegration"> | string | null
+    lastEventAt?: DateTimeNullableWithAggregatesFilter<"MailProductIntegration"> | Date | string | null
+    lastErrorCode?: StringNullableWithAggregatesFilter<"MailProductIntegration"> | string | null
+    lastErrorAt?: DateTimeNullableWithAggregatesFilter<"MailProductIntegration"> | Date | string | null
+    createdBy?: StringWithAggregatesFilter<"MailProductIntegration"> | string
+    updatedBy?: StringWithAggregatesFilter<"MailProductIntegration"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"MailProductIntegration"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MailProductIntegration"> | Date | string
+  }
+
+  export type MailProductSenderAuthorizationWhereInput = {
+    AND?: MailProductSenderAuthorizationWhereInput | MailProductSenderAuthorizationWhereInput[]
+    OR?: MailProductSenderAuthorizationWhereInput[]
+    NOT?: MailProductSenderAuthorizationWhereInput | MailProductSenderAuthorizationWhereInput[]
+    id?: UuidFilter<"MailProductSenderAuthorization"> | string
+    integrationId?: UuidFilter<"MailProductSenderAuthorization"> | string
+    addressId?: UuidFilter<"MailProductSenderAuthorization"> | string
+    address?: StringFilter<"MailProductSenderAuthorization"> | string
+    purpose?: StringFilter<"MailProductSenderAuthorization"> | string
+    grantedBy?: StringFilter<"MailProductSenderAuthorization"> | string
+    revokedAt?: DateTimeNullableFilter<"MailProductSenderAuthorization"> | Date | string | null
+    revokedBy?: StringNullableFilter<"MailProductSenderAuthorization"> | string | null
+    createdAt?: DateTimeFilter<"MailProductSenderAuthorization"> | Date | string
+    integration?: XOR<MailProductIntegrationScalarRelationFilter, MailProductIntegrationWhereInput>
+  }
+
+  export type MailProductSenderAuthorizationOrderByWithRelationInput = {
+    id?: SortOrder
+    integrationId?: SortOrder
+    addressId?: SortOrder
+    address?: SortOrder
+    purpose?: SortOrder
+    grantedBy?: SortOrder
+    revokedAt?: SortOrderInput | SortOrder
+    revokedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    integration?: MailProductIntegrationOrderByWithRelationInput
+  }
+
+  export type MailProductSenderAuthorizationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: MailProductSenderAuthorizationWhereInput | MailProductSenderAuthorizationWhereInput[]
+    OR?: MailProductSenderAuthorizationWhereInput[]
+    NOT?: MailProductSenderAuthorizationWhereInput | MailProductSenderAuthorizationWhereInput[]
+    integrationId?: UuidFilter<"MailProductSenderAuthorization"> | string
+    addressId?: UuidFilter<"MailProductSenderAuthorization"> | string
+    address?: StringFilter<"MailProductSenderAuthorization"> | string
+    purpose?: StringFilter<"MailProductSenderAuthorization"> | string
+    grantedBy?: StringFilter<"MailProductSenderAuthorization"> | string
+    revokedAt?: DateTimeNullableFilter<"MailProductSenderAuthorization"> | Date | string | null
+    revokedBy?: StringNullableFilter<"MailProductSenderAuthorization"> | string | null
+    createdAt?: DateTimeFilter<"MailProductSenderAuthorization"> | Date | string
+    integration?: XOR<MailProductIntegrationScalarRelationFilter, MailProductIntegrationWhereInput>
+  }, "id">
+
+  export type MailProductSenderAuthorizationOrderByWithAggregationInput = {
+    id?: SortOrder
+    integrationId?: SortOrder
+    addressId?: SortOrder
+    address?: SortOrder
+    purpose?: SortOrder
+    grantedBy?: SortOrder
+    revokedAt?: SortOrderInput | SortOrder
+    revokedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: MailProductSenderAuthorizationCountOrderByAggregateInput
+    _max?: MailProductSenderAuthorizationMaxOrderByAggregateInput
+    _min?: MailProductSenderAuthorizationMinOrderByAggregateInput
+  }
+
+  export type MailProductSenderAuthorizationScalarWhereWithAggregatesInput = {
+    AND?: MailProductSenderAuthorizationScalarWhereWithAggregatesInput | MailProductSenderAuthorizationScalarWhereWithAggregatesInput[]
+    OR?: MailProductSenderAuthorizationScalarWhereWithAggregatesInput[]
+    NOT?: MailProductSenderAuthorizationScalarWhereWithAggregatesInput | MailProductSenderAuthorizationScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MailProductSenderAuthorization"> | string
+    integrationId?: UuidWithAggregatesFilter<"MailProductSenderAuthorization"> | string
+    addressId?: UuidWithAggregatesFilter<"MailProductSenderAuthorization"> | string
+    address?: StringWithAggregatesFilter<"MailProductSenderAuthorization"> | string
+    purpose?: StringWithAggregatesFilter<"MailProductSenderAuthorization"> | string
+    grantedBy?: StringWithAggregatesFilter<"MailProductSenderAuthorization"> | string
+    revokedAt?: DateTimeNullableWithAggregatesFilter<"MailProductSenderAuthorization"> | Date | string | null
+    revokedBy?: StringNullableWithAggregatesFilter<"MailProductSenderAuthorization"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"MailProductSenderAuthorization"> | Date | string
+  }
+
+  export type MailProductIntegrationEventWhereInput = {
+    AND?: MailProductIntegrationEventWhereInput | MailProductIntegrationEventWhereInput[]
+    OR?: MailProductIntegrationEventWhereInput[]
+    NOT?: MailProductIntegrationEventWhereInput | MailProductIntegrationEventWhereInput[]
+    id?: UuidFilter<"MailProductIntegrationEvent"> | string
+    integrationId?: UuidFilter<"MailProductIntegrationEvent"> | string
+    eventId?: StringFilter<"MailProductIntegrationEvent"> | string
+    eventType?: StringFilter<"MailProductIntegrationEvent"> | string
+    eventVersion?: IntFilter<"MailProductIntegrationEvent"> | number
+    correlationId?: StringNullableFilter<"MailProductIntegrationEvent"> | string | null
+    payloadSha256?: StringFilter<"MailProductIntegrationEvent"> | string
+    status?: StringFilter<"MailProductIntegrationEvent"> | string
+    errorCode?: StringNullableFilter<"MailProductIntegrationEvent"> | string | null
+    outcome?: JsonNullableFilter<"MailProductIntegrationEvent">
+    occurredAt?: DateTimeNullableFilter<"MailProductIntegrationEvent"> | Date | string | null
+    receivedAt?: DateTimeFilter<"MailProductIntegrationEvent"> | Date | string
+    integration?: XOR<MailProductIntegrationScalarRelationFilter, MailProductIntegrationWhereInput>
+  }
+
+  export type MailProductIntegrationEventOrderByWithRelationInput = {
+    id?: SortOrder
+    integrationId?: SortOrder
+    eventId?: SortOrder
+    eventType?: SortOrder
+    eventVersion?: SortOrder
+    correlationId?: SortOrderInput | SortOrder
+    payloadSha256?: SortOrder
+    status?: SortOrder
+    errorCode?: SortOrderInput | SortOrder
+    outcome?: SortOrderInput | SortOrder
+    occurredAt?: SortOrderInput | SortOrder
+    receivedAt?: SortOrder
+    integration?: MailProductIntegrationOrderByWithRelationInput
+  }
+
+  export type MailProductIntegrationEventWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    integrationId_eventId?: MailProductIntegrationEventIntegrationIdEventIdCompoundUniqueInput
+    AND?: MailProductIntegrationEventWhereInput | MailProductIntegrationEventWhereInput[]
+    OR?: MailProductIntegrationEventWhereInput[]
+    NOT?: MailProductIntegrationEventWhereInput | MailProductIntegrationEventWhereInput[]
+    integrationId?: UuidFilter<"MailProductIntegrationEvent"> | string
+    eventId?: StringFilter<"MailProductIntegrationEvent"> | string
+    eventType?: StringFilter<"MailProductIntegrationEvent"> | string
+    eventVersion?: IntFilter<"MailProductIntegrationEvent"> | number
+    correlationId?: StringNullableFilter<"MailProductIntegrationEvent"> | string | null
+    payloadSha256?: StringFilter<"MailProductIntegrationEvent"> | string
+    status?: StringFilter<"MailProductIntegrationEvent"> | string
+    errorCode?: StringNullableFilter<"MailProductIntegrationEvent"> | string | null
+    outcome?: JsonNullableFilter<"MailProductIntegrationEvent">
+    occurredAt?: DateTimeNullableFilter<"MailProductIntegrationEvent"> | Date | string | null
+    receivedAt?: DateTimeFilter<"MailProductIntegrationEvent"> | Date | string
+    integration?: XOR<MailProductIntegrationScalarRelationFilter, MailProductIntegrationWhereInput>
+  }, "id" | "integrationId_eventId">
+
+  export type MailProductIntegrationEventOrderByWithAggregationInput = {
+    id?: SortOrder
+    integrationId?: SortOrder
+    eventId?: SortOrder
+    eventType?: SortOrder
+    eventVersion?: SortOrder
+    correlationId?: SortOrderInput | SortOrder
+    payloadSha256?: SortOrder
+    status?: SortOrder
+    errorCode?: SortOrderInput | SortOrder
+    outcome?: SortOrderInput | SortOrder
+    occurredAt?: SortOrderInput | SortOrder
+    receivedAt?: SortOrder
+    _count?: MailProductIntegrationEventCountOrderByAggregateInput
+    _avg?: MailProductIntegrationEventAvgOrderByAggregateInput
+    _max?: MailProductIntegrationEventMaxOrderByAggregateInput
+    _min?: MailProductIntegrationEventMinOrderByAggregateInput
+    _sum?: MailProductIntegrationEventSumOrderByAggregateInput
+  }
+
+  export type MailProductIntegrationEventScalarWhereWithAggregatesInput = {
+    AND?: MailProductIntegrationEventScalarWhereWithAggregatesInput | MailProductIntegrationEventScalarWhereWithAggregatesInput[]
+    OR?: MailProductIntegrationEventScalarWhereWithAggregatesInput[]
+    NOT?: MailProductIntegrationEventScalarWhereWithAggregatesInput | MailProductIntegrationEventScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MailProductIntegrationEvent"> | string
+    integrationId?: UuidWithAggregatesFilter<"MailProductIntegrationEvent"> | string
+    eventId?: StringWithAggregatesFilter<"MailProductIntegrationEvent"> | string
+    eventType?: StringWithAggregatesFilter<"MailProductIntegrationEvent"> | string
+    eventVersion?: IntWithAggregatesFilter<"MailProductIntegrationEvent"> | number
+    correlationId?: StringNullableWithAggregatesFilter<"MailProductIntegrationEvent"> | string | null
+    payloadSha256?: StringWithAggregatesFilter<"MailProductIntegrationEvent"> | string
+    status?: StringWithAggregatesFilter<"MailProductIntegrationEvent"> | string
+    errorCode?: StringNullableWithAggregatesFilter<"MailProductIntegrationEvent"> | string | null
+    outcome?: JsonNullableWithAggregatesFilter<"MailProductIntegrationEvent">
+    occurredAt?: DateTimeNullableWithAggregatesFilter<"MailProductIntegrationEvent"> | Date | string | null
+    receivedAt?: DateTimeWithAggregatesFilter<"MailProductIntegrationEvent"> | Date | string
+  }
+
+  export type MailProductDeliveryEventWhereInput = {
+    AND?: MailProductDeliveryEventWhereInput | MailProductDeliveryEventWhereInput[]
+    OR?: MailProductDeliveryEventWhereInput[]
+    NOT?: MailProductDeliveryEventWhereInput | MailProductDeliveryEventWhereInput[]
+    id?: UuidFilter<"MailProductDeliveryEvent"> | string
+    integrationId?: UuidFilter<"MailProductDeliveryEvent"> | string
+    organizationId?: UuidFilter<"MailProductDeliveryEvent"> | string
+    productMessageId?: StringFilter<"MailProductDeliveryEvent"> | string
+    provider?: StringFilter<"MailProductDeliveryEvent"> | string
+    providerMessageId?: StringNullableFilter<"MailProductDeliveryEvent"> | string | null
+    senderAddress?: StringFilter<"MailProductDeliveryEvent"> | string
+    recipientHash?: StringFilter<"MailProductDeliveryEvent"> | string
+    recipientDomain?: StringFilter<"MailProductDeliveryEvent"> | string
+    category?: StringFilter<"MailProductDeliveryEvent"> | string
+    status?: StringFilter<"MailProductDeliveryEvent"> | string
+    occurredAt?: DateTimeFilter<"MailProductDeliveryEvent"> | Date | string
+    createdAt?: DateTimeFilter<"MailProductDeliveryEvent"> | Date | string
+    integration?: XOR<MailProductIntegrationScalarRelationFilter, MailProductIntegrationWhereInput>
+  }
+
+  export type MailProductDeliveryEventOrderByWithRelationInput = {
+    id?: SortOrder
+    integrationId?: SortOrder
+    organizationId?: SortOrder
+    productMessageId?: SortOrder
+    provider?: SortOrder
+    providerMessageId?: SortOrderInput | SortOrder
+    senderAddress?: SortOrder
+    recipientHash?: SortOrder
+    recipientDomain?: SortOrder
+    category?: SortOrder
+    status?: SortOrder
+    occurredAt?: SortOrder
+    createdAt?: SortOrder
+    integration?: MailProductIntegrationOrderByWithRelationInput
+  }
+
+  export type MailProductDeliveryEventWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: MailProductDeliveryEventWhereInput | MailProductDeliveryEventWhereInput[]
+    OR?: MailProductDeliveryEventWhereInput[]
+    NOT?: MailProductDeliveryEventWhereInput | MailProductDeliveryEventWhereInput[]
+    integrationId?: UuidFilter<"MailProductDeliveryEvent"> | string
+    organizationId?: UuidFilter<"MailProductDeliveryEvent"> | string
+    productMessageId?: StringFilter<"MailProductDeliveryEvent"> | string
+    provider?: StringFilter<"MailProductDeliveryEvent"> | string
+    providerMessageId?: StringNullableFilter<"MailProductDeliveryEvent"> | string | null
+    senderAddress?: StringFilter<"MailProductDeliveryEvent"> | string
+    recipientHash?: StringFilter<"MailProductDeliveryEvent"> | string
+    recipientDomain?: StringFilter<"MailProductDeliveryEvent"> | string
+    category?: StringFilter<"MailProductDeliveryEvent"> | string
+    status?: StringFilter<"MailProductDeliveryEvent"> | string
+    occurredAt?: DateTimeFilter<"MailProductDeliveryEvent"> | Date | string
+    createdAt?: DateTimeFilter<"MailProductDeliveryEvent"> | Date | string
+    integration?: XOR<MailProductIntegrationScalarRelationFilter, MailProductIntegrationWhereInput>
+  }, "id">
+
+  export type MailProductDeliveryEventOrderByWithAggregationInput = {
+    id?: SortOrder
+    integrationId?: SortOrder
+    organizationId?: SortOrder
+    productMessageId?: SortOrder
+    provider?: SortOrder
+    providerMessageId?: SortOrderInput | SortOrder
+    senderAddress?: SortOrder
+    recipientHash?: SortOrder
+    recipientDomain?: SortOrder
+    category?: SortOrder
+    status?: SortOrder
+    occurredAt?: SortOrder
+    createdAt?: SortOrder
+    _count?: MailProductDeliveryEventCountOrderByAggregateInput
+    _max?: MailProductDeliveryEventMaxOrderByAggregateInput
+    _min?: MailProductDeliveryEventMinOrderByAggregateInput
+  }
+
+  export type MailProductDeliveryEventScalarWhereWithAggregatesInput = {
+    AND?: MailProductDeliveryEventScalarWhereWithAggregatesInput | MailProductDeliveryEventScalarWhereWithAggregatesInput[]
+    OR?: MailProductDeliveryEventScalarWhereWithAggregatesInput[]
+    NOT?: MailProductDeliveryEventScalarWhereWithAggregatesInput | MailProductDeliveryEventScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MailProductDeliveryEvent"> | string
+    integrationId?: UuidWithAggregatesFilter<"MailProductDeliveryEvent"> | string
+    organizationId?: UuidWithAggregatesFilter<"MailProductDeliveryEvent"> | string
+    productMessageId?: StringWithAggregatesFilter<"MailProductDeliveryEvent"> | string
+    provider?: StringWithAggregatesFilter<"MailProductDeliveryEvent"> | string
+    providerMessageId?: StringNullableWithAggregatesFilter<"MailProductDeliveryEvent"> | string | null
+    senderAddress?: StringWithAggregatesFilter<"MailProductDeliveryEvent"> | string
+    recipientHash?: StringWithAggregatesFilter<"MailProductDeliveryEvent"> | string
+    recipientDomain?: StringWithAggregatesFilter<"MailProductDeliveryEvent"> | string
+    category?: StringWithAggregatesFilter<"MailProductDeliveryEvent"> | string
+    status?: StringWithAggregatesFilter<"MailProductDeliveryEvent"> | string
+    occurredAt?: DateTimeWithAggregatesFilter<"MailProductDeliveryEvent"> | Date | string
+    createdAt?: DateTimeWithAggregatesFilter<"MailProductDeliveryEvent"> | Date | string
   }
 
   export type AdminUserCreateInput = {
@@ -268475,6 +274212,477 @@ export namespace Prisma {
     processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type MailProductIntegrationCreateInput = {
+    id?: string
+    product: string
+    organizationId: string
+    serviceName: string
+    status?: $Enums.MailProductIntegrationStatus
+    classification?: string
+    contractVersion?: number
+    allowedEventTypes?: MailProductIntegrationCreateallowedEventTypesInput | string[]
+    allowedTriggerTypes?: MailProductIntegrationCreateallowedTriggerTypesInput | string[]
+    ownerApprovalReference?: string | null
+    ownerApprovedBy?: string | null
+    approvedAt?: Date | string | null
+    activatedByAdminUserId?: string | null
+    lastEventAt?: Date | string | null
+    lastErrorCode?: string | null
+    lastErrorAt?: Date | string | null
+    createdBy: string
+    updatedBy: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    senders?: MailProductSenderAuthorizationCreateNestedManyWithoutIntegrationInput
+    events?: MailProductIntegrationEventCreateNestedManyWithoutIntegrationInput
+    deliveryEvents?: MailProductDeliveryEventCreateNestedManyWithoutIntegrationInput
+  }
+
+  export type MailProductIntegrationUncheckedCreateInput = {
+    id?: string
+    product: string
+    organizationId: string
+    serviceName: string
+    status?: $Enums.MailProductIntegrationStatus
+    classification?: string
+    contractVersion?: number
+    allowedEventTypes?: MailProductIntegrationCreateallowedEventTypesInput | string[]
+    allowedTriggerTypes?: MailProductIntegrationCreateallowedTriggerTypesInput | string[]
+    ownerApprovalReference?: string | null
+    ownerApprovedBy?: string | null
+    approvedAt?: Date | string | null
+    activatedByAdminUserId?: string | null
+    lastEventAt?: Date | string | null
+    lastErrorCode?: string | null
+    lastErrorAt?: Date | string | null
+    createdBy: string
+    updatedBy: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    senders?: MailProductSenderAuthorizationUncheckedCreateNestedManyWithoutIntegrationInput
+    events?: MailProductIntegrationEventUncheckedCreateNestedManyWithoutIntegrationInput
+    deliveryEvents?: MailProductDeliveryEventUncheckedCreateNestedManyWithoutIntegrationInput
+  }
+
+  export type MailProductIntegrationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    product?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    serviceName?: StringFieldUpdateOperationsInput | string
+    status?: EnumMailProductIntegrationStatusFieldUpdateOperationsInput | $Enums.MailProductIntegrationStatus
+    classification?: StringFieldUpdateOperationsInput | string
+    contractVersion?: IntFieldUpdateOperationsInput | number
+    allowedEventTypes?: MailProductIntegrationUpdateallowedEventTypesInput | string[]
+    allowedTriggerTypes?: MailProductIntegrationUpdateallowedTriggerTypesInput | string[]
+    ownerApprovalReference?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerApprovedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    senders?: MailProductSenderAuthorizationUpdateManyWithoutIntegrationNestedInput
+    events?: MailProductIntegrationEventUpdateManyWithoutIntegrationNestedInput
+    deliveryEvents?: MailProductDeliveryEventUpdateManyWithoutIntegrationNestedInput
+  }
+
+  export type MailProductIntegrationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    product?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    serviceName?: StringFieldUpdateOperationsInput | string
+    status?: EnumMailProductIntegrationStatusFieldUpdateOperationsInput | $Enums.MailProductIntegrationStatus
+    classification?: StringFieldUpdateOperationsInput | string
+    contractVersion?: IntFieldUpdateOperationsInput | number
+    allowedEventTypes?: MailProductIntegrationUpdateallowedEventTypesInput | string[]
+    allowedTriggerTypes?: MailProductIntegrationUpdateallowedTriggerTypesInput | string[]
+    ownerApprovalReference?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerApprovedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    senders?: MailProductSenderAuthorizationUncheckedUpdateManyWithoutIntegrationNestedInput
+    events?: MailProductIntegrationEventUncheckedUpdateManyWithoutIntegrationNestedInput
+    deliveryEvents?: MailProductDeliveryEventUncheckedUpdateManyWithoutIntegrationNestedInput
+  }
+
+  export type MailProductIntegrationCreateManyInput = {
+    id?: string
+    product: string
+    organizationId: string
+    serviceName: string
+    status?: $Enums.MailProductIntegrationStatus
+    classification?: string
+    contractVersion?: number
+    allowedEventTypes?: MailProductIntegrationCreateallowedEventTypesInput | string[]
+    allowedTriggerTypes?: MailProductIntegrationCreateallowedTriggerTypesInput | string[]
+    ownerApprovalReference?: string | null
+    ownerApprovedBy?: string | null
+    approvedAt?: Date | string | null
+    activatedByAdminUserId?: string | null
+    lastEventAt?: Date | string | null
+    lastErrorCode?: string | null
+    lastErrorAt?: Date | string | null
+    createdBy: string
+    updatedBy: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MailProductIntegrationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    product?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    serviceName?: StringFieldUpdateOperationsInput | string
+    status?: EnumMailProductIntegrationStatusFieldUpdateOperationsInput | $Enums.MailProductIntegrationStatus
+    classification?: StringFieldUpdateOperationsInput | string
+    contractVersion?: IntFieldUpdateOperationsInput | number
+    allowedEventTypes?: MailProductIntegrationUpdateallowedEventTypesInput | string[]
+    allowedTriggerTypes?: MailProductIntegrationUpdateallowedTriggerTypesInput | string[]
+    ownerApprovalReference?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerApprovedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailProductIntegrationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    product?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    serviceName?: StringFieldUpdateOperationsInput | string
+    status?: EnumMailProductIntegrationStatusFieldUpdateOperationsInput | $Enums.MailProductIntegrationStatus
+    classification?: StringFieldUpdateOperationsInput | string
+    contractVersion?: IntFieldUpdateOperationsInput | number
+    allowedEventTypes?: MailProductIntegrationUpdateallowedEventTypesInput | string[]
+    allowedTriggerTypes?: MailProductIntegrationUpdateallowedTriggerTypesInput | string[]
+    ownerApprovalReference?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerApprovedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailProductSenderAuthorizationCreateInput = {
+    id?: string
+    addressId: string
+    address: string
+    purpose: string
+    grantedBy: string
+    revokedAt?: Date | string | null
+    revokedBy?: string | null
+    createdAt?: Date | string
+    integration: MailProductIntegrationCreateNestedOneWithoutSendersInput
+  }
+
+  export type MailProductSenderAuthorizationUncheckedCreateInput = {
+    id?: string
+    integrationId: string
+    addressId: string
+    address: string
+    purpose: string
+    grantedBy: string
+    revokedAt?: Date | string | null
+    revokedBy?: string | null
+    createdAt?: Date | string
+  }
+
+  export type MailProductSenderAuthorizationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    addressId?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    grantedBy?: StringFieldUpdateOperationsInput | string
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integration?: MailProductIntegrationUpdateOneRequiredWithoutSendersNestedInput
+  }
+
+  export type MailProductSenderAuthorizationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    integrationId?: StringFieldUpdateOperationsInput | string
+    addressId?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    grantedBy?: StringFieldUpdateOperationsInput | string
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailProductSenderAuthorizationCreateManyInput = {
+    id?: string
+    integrationId: string
+    addressId: string
+    address: string
+    purpose: string
+    grantedBy: string
+    revokedAt?: Date | string | null
+    revokedBy?: string | null
+    createdAt?: Date | string
+  }
+
+  export type MailProductSenderAuthorizationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    addressId?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    grantedBy?: StringFieldUpdateOperationsInput | string
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailProductSenderAuthorizationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    integrationId?: StringFieldUpdateOperationsInput | string
+    addressId?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    grantedBy?: StringFieldUpdateOperationsInput | string
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailProductIntegrationEventCreateInput = {
+    id?: string
+    eventId: string
+    eventType: string
+    eventVersion: number
+    correlationId?: string | null
+    payloadSha256: string
+    status: string
+    errorCode?: string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: Date | string | null
+    receivedAt: Date | string
+    integration: MailProductIntegrationCreateNestedOneWithoutEventsInput
+  }
+
+  export type MailProductIntegrationEventUncheckedCreateInput = {
+    id?: string
+    integrationId: string
+    eventId: string
+    eventType: string
+    eventVersion: number
+    correlationId?: string | null
+    payloadSha256: string
+    status: string
+    errorCode?: string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: Date | string | null
+    receivedAt: Date | string
+  }
+
+  export type MailProductIntegrationEventUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    eventVersion?: IntFieldUpdateOperationsInput | number
+    correlationId?: NullableStringFieldUpdateOperationsInput | string | null
+    payloadSha256?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integration?: MailProductIntegrationUpdateOneRequiredWithoutEventsNestedInput
+  }
+
+  export type MailProductIntegrationEventUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    integrationId?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    eventVersion?: IntFieldUpdateOperationsInput | number
+    correlationId?: NullableStringFieldUpdateOperationsInput | string | null
+    payloadSha256?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailProductIntegrationEventCreateManyInput = {
+    id?: string
+    integrationId: string
+    eventId: string
+    eventType: string
+    eventVersion: number
+    correlationId?: string | null
+    payloadSha256: string
+    status: string
+    errorCode?: string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: Date | string | null
+    receivedAt: Date | string
+  }
+
+  export type MailProductIntegrationEventUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    eventVersion?: IntFieldUpdateOperationsInput | number
+    correlationId?: NullableStringFieldUpdateOperationsInput | string | null
+    payloadSha256?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailProductIntegrationEventUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    integrationId?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    eventVersion?: IntFieldUpdateOperationsInput | number
+    correlationId?: NullableStringFieldUpdateOperationsInput | string | null
+    payloadSha256?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailProductDeliveryEventCreateInput = {
+    id?: string
+    organizationId: string
+    productMessageId: string
+    provider: string
+    providerMessageId?: string | null
+    senderAddress: string
+    recipientHash: string
+    recipientDomain: string
+    category: string
+    status: string
+    occurredAt: Date | string
+    createdAt: Date | string
+    integration: MailProductIntegrationCreateNestedOneWithoutDeliveryEventsInput
+  }
+
+  export type MailProductDeliveryEventUncheckedCreateInput = {
+    id?: string
+    integrationId: string
+    organizationId: string
+    productMessageId: string
+    provider: string
+    providerMessageId?: string | null
+    senderAddress: string
+    recipientHash: string
+    recipientDomain: string
+    category: string
+    status: string
+    occurredAt: Date | string
+    createdAt: Date | string
+  }
+
+  export type MailProductDeliveryEventUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    productMessageId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    senderAddress?: StringFieldUpdateOperationsInput | string
+    recipientHash?: StringFieldUpdateOperationsInput | string
+    recipientDomain?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integration?: MailProductIntegrationUpdateOneRequiredWithoutDeliveryEventsNestedInput
+  }
+
+  export type MailProductDeliveryEventUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    integrationId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    productMessageId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    senderAddress?: StringFieldUpdateOperationsInput | string
+    recipientHash?: StringFieldUpdateOperationsInput | string
+    recipientDomain?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailProductDeliveryEventCreateManyInput = {
+    id?: string
+    integrationId: string
+    organizationId: string
+    productMessageId: string
+    provider: string
+    providerMessageId?: string | null
+    senderAddress: string
+    recipientHash: string
+    recipientDomain: string
+    category: string
+    status: string
+    occurredAt: Date | string
+    createdAt: Date | string
+  }
+
+  export type MailProductDeliveryEventUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    productMessageId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    senderAddress?: StringFieldUpdateOperationsInput | string
+    recipientHash?: StringFieldUpdateOperationsInput | string
+    recipientDomain?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailProductDeliveryEventUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    integrationId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    productMessageId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    senderAddress?: StringFieldUpdateOperationsInput | string
+    recipientHash?: StringFieldUpdateOperationsInput | string
+    recipientDomain?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -282081,6 +288289,271 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumMarketingTriggerEventStatusFilter<$PrismaModel>
     _max?: NestedEnumMarketingTriggerEventStatusFilter<$PrismaModel>
+  }
+
+  export type EnumMailProductIntegrationStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MailProductIntegrationStatus | EnumMailProductIntegrationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MailProductIntegrationStatus[] | ListEnumMailProductIntegrationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MailProductIntegrationStatus[] | ListEnumMailProductIntegrationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMailProductIntegrationStatusFilter<$PrismaModel> | $Enums.MailProductIntegrationStatus
+  }
+
+  export type MailProductSenderAuthorizationListRelationFilter = {
+    every?: MailProductSenderAuthorizationWhereInput
+    some?: MailProductSenderAuthorizationWhereInput
+    none?: MailProductSenderAuthorizationWhereInput
+  }
+
+  export type MailProductIntegrationEventListRelationFilter = {
+    every?: MailProductIntegrationEventWhereInput
+    some?: MailProductIntegrationEventWhereInput
+    none?: MailProductIntegrationEventWhereInput
+  }
+
+  export type MailProductDeliveryEventListRelationFilter = {
+    every?: MailProductDeliveryEventWhereInput
+    some?: MailProductDeliveryEventWhereInput
+    none?: MailProductDeliveryEventWhereInput
+  }
+
+  export type MailProductSenderAuthorizationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MailProductIntegrationEventOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MailProductDeliveryEventOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MailProductIntegrationCountOrderByAggregateInput = {
+    id?: SortOrder
+    product?: SortOrder
+    organizationId?: SortOrder
+    serviceName?: SortOrder
+    status?: SortOrder
+    classification?: SortOrder
+    contractVersion?: SortOrder
+    allowedEventTypes?: SortOrder
+    allowedTriggerTypes?: SortOrder
+    ownerApprovalReference?: SortOrder
+    ownerApprovedBy?: SortOrder
+    approvedAt?: SortOrder
+    activatedByAdminUserId?: SortOrder
+    lastEventAt?: SortOrder
+    lastErrorCode?: SortOrder
+    lastErrorAt?: SortOrder
+    createdBy?: SortOrder
+    updatedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MailProductIntegrationAvgOrderByAggregateInput = {
+    contractVersion?: SortOrder
+  }
+
+  export type MailProductIntegrationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    product?: SortOrder
+    organizationId?: SortOrder
+    serviceName?: SortOrder
+    status?: SortOrder
+    classification?: SortOrder
+    contractVersion?: SortOrder
+    ownerApprovalReference?: SortOrder
+    ownerApprovedBy?: SortOrder
+    approvedAt?: SortOrder
+    activatedByAdminUserId?: SortOrder
+    lastEventAt?: SortOrder
+    lastErrorCode?: SortOrder
+    lastErrorAt?: SortOrder
+    createdBy?: SortOrder
+    updatedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MailProductIntegrationMinOrderByAggregateInput = {
+    id?: SortOrder
+    product?: SortOrder
+    organizationId?: SortOrder
+    serviceName?: SortOrder
+    status?: SortOrder
+    classification?: SortOrder
+    contractVersion?: SortOrder
+    ownerApprovalReference?: SortOrder
+    ownerApprovedBy?: SortOrder
+    approvedAt?: SortOrder
+    activatedByAdminUserId?: SortOrder
+    lastEventAt?: SortOrder
+    lastErrorCode?: SortOrder
+    lastErrorAt?: SortOrder
+    createdBy?: SortOrder
+    updatedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MailProductIntegrationSumOrderByAggregateInput = {
+    contractVersion?: SortOrder
+  }
+
+  export type EnumMailProductIntegrationStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MailProductIntegrationStatus | EnumMailProductIntegrationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MailProductIntegrationStatus[] | ListEnumMailProductIntegrationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MailProductIntegrationStatus[] | ListEnumMailProductIntegrationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMailProductIntegrationStatusWithAggregatesFilter<$PrismaModel> | $Enums.MailProductIntegrationStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMailProductIntegrationStatusFilter<$PrismaModel>
+    _max?: NestedEnumMailProductIntegrationStatusFilter<$PrismaModel>
+  }
+
+  export type MailProductIntegrationScalarRelationFilter = {
+    is?: MailProductIntegrationWhereInput
+    isNot?: MailProductIntegrationWhereInput
+  }
+
+  export type MailProductSenderAuthorizationCountOrderByAggregateInput = {
+    id?: SortOrder
+    integrationId?: SortOrder
+    addressId?: SortOrder
+    address?: SortOrder
+    purpose?: SortOrder
+    grantedBy?: SortOrder
+    revokedAt?: SortOrder
+    revokedBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MailProductSenderAuthorizationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    integrationId?: SortOrder
+    addressId?: SortOrder
+    address?: SortOrder
+    purpose?: SortOrder
+    grantedBy?: SortOrder
+    revokedAt?: SortOrder
+    revokedBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MailProductSenderAuthorizationMinOrderByAggregateInput = {
+    id?: SortOrder
+    integrationId?: SortOrder
+    addressId?: SortOrder
+    address?: SortOrder
+    purpose?: SortOrder
+    grantedBy?: SortOrder
+    revokedAt?: SortOrder
+    revokedBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MailProductIntegrationEventIntegrationIdEventIdCompoundUniqueInput = {
+    integrationId: string
+    eventId: string
+  }
+
+  export type MailProductIntegrationEventCountOrderByAggregateInput = {
+    id?: SortOrder
+    integrationId?: SortOrder
+    eventId?: SortOrder
+    eventType?: SortOrder
+    eventVersion?: SortOrder
+    correlationId?: SortOrder
+    payloadSha256?: SortOrder
+    status?: SortOrder
+    errorCode?: SortOrder
+    outcome?: SortOrder
+    occurredAt?: SortOrder
+    receivedAt?: SortOrder
+  }
+
+  export type MailProductIntegrationEventAvgOrderByAggregateInput = {
+    eventVersion?: SortOrder
+  }
+
+  export type MailProductIntegrationEventMaxOrderByAggregateInput = {
+    id?: SortOrder
+    integrationId?: SortOrder
+    eventId?: SortOrder
+    eventType?: SortOrder
+    eventVersion?: SortOrder
+    correlationId?: SortOrder
+    payloadSha256?: SortOrder
+    status?: SortOrder
+    errorCode?: SortOrder
+    occurredAt?: SortOrder
+    receivedAt?: SortOrder
+  }
+
+  export type MailProductIntegrationEventMinOrderByAggregateInput = {
+    id?: SortOrder
+    integrationId?: SortOrder
+    eventId?: SortOrder
+    eventType?: SortOrder
+    eventVersion?: SortOrder
+    correlationId?: SortOrder
+    payloadSha256?: SortOrder
+    status?: SortOrder
+    errorCode?: SortOrder
+    occurredAt?: SortOrder
+    receivedAt?: SortOrder
+  }
+
+  export type MailProductIntegrationEventSumOrderByAggregateInput = {
+    eventVersion?: SortOrder
+  }
+
+  export type MailProductDeliveryEventCountOrderByAggregateInput = {
+    id?: SortOrder
+    integrationId?: SortOrder
+    organizationId?: SortOrder
+    productMessageId?: SortOrder
+    provider?: SortOrder
+    providerMessageId?: SortOrder
+    senderAddress?: SortOrder
+    recipientHash?: SortOrder
+    recipientDomain?: SortOrder
+    category?: SortOrder
+    status?: SortOrder
+    occurredAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MailProductDeliveryEventMaxOrderByAggregateInput = {
+    id?: SortOrder
+    integrationId?: SortOrder
+    organizationId?: SortOrder
+    productMessageId?: SortOrder
+    provider?: SortOrder
+    providerMessageId?: SortOrder
+    senderAddress?: SortOrder
+    recipientHash?: SortOrder
+    recipientDomain?: SortOrder
+    category?: SortOrder
+    status?: SortOrder
+    occurredAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MailProductDeliveryEventMinOrderByAggregateInput = {
+    id?: SortOrder
+    integrationId?: SortOrder
+    organizationId?: SortOrder
+    productMessageId?: SortOrder
+    provider?: SortOrder
+    providerMessageId?: SortOrder
+    senderAddress?: SortOrder
+    recipientHash?: SortOrder
+    recipientDomain?: SortOrder
+    category?: SortOrder
+    status?: SortOrder
+    occurredAt?: SortOrder
+    createdAt?: SortOrder
   }
 
   export type AdminSessionCreateNestedManyWithoutAdminUserInput = {
@@ -296984,6 +303457,196 @@ export namespace Prisma {
     set?: $Enums.MarketingTriggerEventStatus
   }
 
+  export type MailProductIntegrationCreateallowedEventTypesInput = {
+    set: string[]
+  }
+
+  export type MailProductIntegrationCreateallowedTriggerTypesInput = {
+    set: string[]
+  }
+
+  export type MailProductSenderAuthorizationCreateNestedManyWithoutIntegrationInput = {
+    create?: XOR<MailProductSenderAuthorizationCreateWithoutIntegrationInput, MailProductSenderAuthorizationUncheckedCreateWithoutIntegrationInput> | MailProductSenderAuthorizationCreateWithoutIntegrationInput[] | MailProductSenderAuthorizationUncheckedCreateWithoutIntegrationInput[]
+    connectOrCreate?: MailProductSenderAuthorizationCreateOrConnectWithoutIntegrationInput | MailProductSenderAuthorizationCreateOrConnectWithoutIntegrationInput[]
+    createMany?: MailProductSenderAuthorizationCreateManyIntegrationInputEnvelope
+    connect?: MailProductSenderAuthorizationWhereUniqueInput | MailProductSenderAuthorizationWhereUniqueInput[]
+  }
+
+  export type MailProductIntegrationEventCreateNestedManyWithoutIntegrationInput = {
+    create?: XOR<MailProductIntegrationEventCreateWithoutIntegrationInput, MailProductIntegrationEventUncheckedCreateWithoutIntegrationInput> | MailProductIntegrationEventCreateWithoutIntegrationInput[] | MailProductIntegrationEventUncheckedCreateWithoutIntegrationInput[]
+    connectOrCreate?: MailProductIntegrationEventCreateOrConnectWithoutIntegrationInput | MailProductIntegrationEventCreateOrConnectWithoutIntegrationInput[]
+    createMany?: MailProductIntegrationEventCreateManyIntegrationInputEnvelope
+    connect?: MailProductIntegrationEventWhereUniqueInput | MailProductIntegrationEventWhereUniqueInput[]
+  }
+
+  export type MailProductDeliveryEventCreateNestedManyWithoutIntegrationInput = {
+    create?: XOR<MailProductDeliveryEventCreateWithoutIntegrationInput, MailProductDeliveryEventUncheckedCreateWithoutIntegrationInput> | MailProductDeliveryEventCreateWithoutIntegrationInput[] | MailProductDeliveryEventUncheckedCreateWithoutIntegrationInput[]
+    connectOrCreate?: MailProductDeliveryEventCreateOrConnectWithoutIntegrationInput | MailProductDeliveryEventCreateOrConnectWithoutIntegrationInput[]
+    createMany?: MailProductDeliveryEventCreateManyIntegrationInputEnvelope
+    connect?: MailProductDeliveryEventWhereUniqueInput | MailProductDeliveryEventWhereUniqueInput[]
+  }
+
+  export type MailProductSenderAuthorizationUncheckedCreateNestedManyWithoutIntegrationInput = {
+    create?: XOR<MailProductSenderAuthorizationCreateWithoutIntegrationInput, MailProductSenderAuthorizationUncheckedCreateWithoutIntegrationInput> | MailProductSenderAuthorizationCreateWithoutIntegrationInput[] | MailProductSenderAuthorizationUncheckedCreateWithoutIntegrationInput[]
+    connectOrCreate?: MailProductSenderAuthorizationCreateOrConnectWithoutIntegrationInput | MailProductSenderAuthorizationCreateOrConnectWithoutIntegrationInput[]
+    createMany?: MailProductSenderAuthorizationCreateManyIntegrationInputEnvelope
+    connect?: MailProductSenderAuthorizationWhereUniqueInput | MailProductSenderAuthorizationWhereUniqueInput[]
+  }
+
+  export type MailProductIntegrationEventUncheckedCreateNestedManyWithoutIntegrationInput = {
+    create?: XOR<MailProductIntegrationEventCreateWithoutIntegrationInput, MailProductIntegrationEventUncheckedCreateWithoutIntegrationInput> | MailProductIntegrationEventCreateWithoutIntegrationInput[] | MailProductIntegrationEventUncheckedCreateWithoutIntegrationInput[]
+    connectOrCreate?: MailProductIntegrationEventCreateOrConnectWithoutIntegrationInput | MailProductIntegrationEventCreateOrConnectWithoutIntegrationInput[]
+    createMany?: MailProductIntegrationEventCreateManyIntegrationInputEnvelope
+    connect?: MailProductIntegrationEventWhereUniqueInput | MailProductIntegrationEventWhereUniqueInput[]
+  }
+
+  export type MailProductDeliveryEventUncheckedCreateNestedManyWithoutIntegrationInput = {
+    create?: XOR<MailProductDeliveryEventCreateWithoutIntegrationInput, MailProductDeliveryEventUncheckedCreateWithoutIntegrationInput> | MailProductDeliveryEventCreateWithoutIntegrationInput[] | MailProductDeliveryEventUncheckedCreateWithoutIntegrationInput[]
+    connectOrCreate?: MailProductDeliveryEventCreateOrConnectWithoutIntegrationInput | MailProductDeliveryEventCreateOrConnectWithoutIntegrationInput[]
+    createMany?: MailProductDeliveryEventCreateManyIntegrationInputEnvelope
+    connect?: MailProductDeliveryEventWhereUniqueInput | MailProductDeliveryEventWhereUniqueInput[]
+  }
+
+  export type EnumMailProductIntegrationStatusFieldUpdateOperationsInput = {
+    set?: $Enums.MailProductIntegrationStatus
+  }
+
+  export type MailProductIntegrationUpdateallowedEventTypesInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type MailProductIntegrationUpdateallowedTriggerTypesInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type MailProductSenderAuthorizationUpdateManyWithoutIntegrationNestedInput = {
+    create?: XOR<MailProductSenderAuthorizationCreateWithoutIntegrationInput, MailProductSenderAuthorizationUncheckedCreateWithoutIntegrationInput> | MailProductSenderAuthorizationCreateWithoutIntegrationInput[] | MailProductSenderAuthorizationUncheckedCreateWithoutIntegrationInput[]
+    connectOrCreate?: MailProductSenderAuthorizationCreateOrConnectWithoutIntegrationInput | MailProductSenderAuthorizationCreateOrConnectWithoutIntegrationInput[]
+    upsert?: MailProductSenderAuthorizationUpsertWithWhereUniqueWithoutIntegrationInput | MailProductSenderAuthorizationUpsertWithWhereUniqueWithoutIntegrationInput[]
+    createMany?: MailProductSenderAuthorizationCreateManyIntegrationInputEnvelope
+    set?: MailProductSenderAuthorizationWhereUniqueInput | MailProductSenderAuthorizationWhereUniqueInput[]
+    disconnect?: MailProductSenderAuthorizationWhereUniqueInput | MailProductSenderAuthorizationWhereUniqueInput[]
+    delete?: MailProductSenderAuthorizationWhereUniqueInput | MailProductSenderAuthorizationWhereUniqueInput[]
+    connect?: MailProductSenderAuthorizationWhereUniqueInput | MailProductSenderAuthorizationWhereUniqueInput[]
+    update?: MailProductSenderAuthorizationUpdateWithWhereUniqueWithoutIntegrationInput | MailProductSenderAuthorizationUpdateWithWhereUniqueWithoutIntegrationInput[]
+    updateMany?: MailProductSenderAuthorizationUpdateManyWithWhereWithoutIntegrationInput | MailProductSenderAuthorizationUpdateManyWithWhereWithoutIntegrationInput[]
+    deleteMany?: MailProductSenderAuthorizationScalarWhereInput | MailProductSenderAuthorizationScalarWhereInput[]
+  }
+
+  export type MailProductIntegrationEventUpdateManyWithoutIntegrationNestedInput = {
+    create?: XOR<MailProductIntegrationEventCreateWithoutIntegrationInput, MailProductIntegrationEventUncheckedCreateWithoutIntegrationInput> | MailProductIntegrationEventCreateWithoutIntegrationInput[] | MailProductIntegrationEventUncheckedCreateWithoutIntegrationInput[]
+    connectOrCreate?: MailProductIntegrationEventCreateOrConnectWithoutIntegrationInput | MailProductIntegrationEventCreateOrConnectWithoutIntegrationInput[]
+    upsert?: MailProductIntegrationEventUpsertWithWhereUniqueWithoutIntegrationInput | MailProductIntegrationEventUpsertWithWhereUniqueWithoutIntegrationInput[]
+    createMany?: MailProductIntegrationEventCreateManyIntegrationInputEnvelope
+    set?: MailProductIntegrationEventWhereUniqueInput | MailProductIntegrationEventWhereUniqueInput[]
+    disconnect?: MailProductIntegrationEventWhereUniqueInput | MailProductIntegrationEventWhereUniqueInput[]
+    delete?: MailProductIntegrationEventWhereUniqueInput | MailProductIntegrationEventWhereUniqueInput[]
+    connect?: MailProductIntegrationEventWhereUniqueInput | MailProductIntegrationEventWhereUniqueInput[]
+    update?: MailProductIntegrationEventUpdateWithWhereUniqueWithoutIntegrationInput | MailProductIntegrationEventUpdateWithWhereUniqueWithoutIntegrationInput[]
+    updateMany?: MailProductIntegrationEventUpdateManyWithWhereWithoutIntegrationInput | MailProductIntegrationEventUpdateManyWithWhereWithoutIntegrationInput[]
+    deleteMany?: MailProductIntegrationEventScalarWhereInput | MailProductIntegrationEventScalarWhereInput[]
+  }
+
+  export type MailProductDeliveryEventUpdateManyWithoutIntegrationNestedInput = {
+    create?: XOR<MailProductDeliveryEventCreateWithoutIntegrationInput, MailProductDeliveryEventUncheckedCreateWithoutIntegrationInput> | MailProductDeliveryEventCreateWithoutIntegrationInput[] | MailProductDeliveryEventUncheckedCreateWithoutIntegrationInput[]
+    connectOrCreate?: MailProductDeliveryEventCreateOrConnectWithoutIntegrationInput | MailProductDeliveryEventCreateOrConnectWithoutIntegrationInput[]
+    upsert?: MailProductDeliveryEventUpsertWithWhereUniqueWithoutIntegrationInput | MailProductDeliveryEventUpsertWithWhereUniqueWithoutIntegrationInput[]
+    createMany?: MailProductDeliveryEventCreateManyIntegrationInputEnvelope
+    set?: MailProductDeliveryEventWhereUniqueInput | MailProductDeliveryEventWhereUniqueInput[]
+    disconnect?: MailProductDeliveryEventWhereUniqueInput | MailProductDeliveryEventWhereUniqueInput[]
+    delete?: MailProductDeliveryEventWhereUniqueInput | MailProductDeliveryEventWhereUniqueInput[]
+    connect?: MailProductDeliveryEventWhereUniqueInput | MailProductDeliveryEventWhereUniqueInput[]
+    update?: MailProductDeliveryEventUpdateWithWhereUniqueWithoutIntegrationInput | MailProductDeliveryEventUpdateWithWhereUniqueWithoutIntegrationInput[]
+    updateMany?: MailProductDeliveryEventUpdateManyWithWhereWithoutIntegrationInput | MailProductDeliveryEventUpdateManyWithWhereWithoutIntegrationInput[]
+    deleteMany?: MailProductDeliveryEventScalarWhereInput | MailProductDeliveryEventScalarWhereInput[]
+  }
+
+  export type MailProductSenderAuthorizationUncheckedUpdateManyWithoutIntegrationNestedInput = {
+    create?: XOR<MailProductSenderAuthorizationCreateWithoutIntegrationInput, MailProductSenderAuthorizationUncheckedCreateWithoutIntegrationInput> | MailProductSenderAuthorizationCreateWithoutIntegrationInput[] | MailProductSenderAuthorizationUncheckedCreateWithoutIntegrationInput[]
+    connectOrCreate?: MailProductSenderAuthorizationCreateOrConnectWithoutIntegrationInput | MailProductSenderAuthorizationCreateOrConnectWithoutIntegrationInput[]
+    upsert?: MailProductSenderAuthorizationUpsertWithWhereUniqueWithoutIntegrationInput | MailProductSenderAuthorizationUpsertWithWhereUniqueWithoutIntegrationInput[]
+    createMany?: MailProductSenderAuthorizationCreateManyIntegrationInputEnvelope
+    set?: MailProductSenderAuthorizationWhereUniqueInput | MailProductSenderAuthorizationWhereUniqueInput[]
+    disconnect?: MailProductSenderAuthorizationWhereUniqueInput | MailProductSenderAuthorizationWhereUniqueInput[]
+    delete?: MailProductSenderAuthorizationWhereUniqueInput | MailProductSenderAuthorizationWhereUniqueInput[]
+    connect?: MailProductSenderAuthorizationWhereUniqueInput | MailProductSenderAuthorizationWhereUniqueInput[]
+    update?: MailProductSenderAuthorizationUpdateWithWhereUniqueWithoutIntegrationInput | MailProductSenderAuthorizationUpdateWithWhereUniqueWithoutIntegrationInput[]
+    updateMany?: MailProductSenderAuthorizationUpdateManyWithWhereWithoutIntegrationInput | MailProductSenderAuthorizationUpdateManyWithWhereWithoutIntegrationInput[]
+    deleteMany?: MailProductSenderAuthorizationScalarWhereInput | MailProductSenderAuthorizationScalarWhereInput[]
+  }
+
+  export type MailProductIntegrationEventUncheckedUpdateManyWithoutIntegrationNestedInput = {
+    create?: XOR<MailProductIntegrationEventCreateWithoutIntegrationInput, MailProductIntegrationEventUncheckedCreateWithoutIntegrationInput> | MailProductIntegrationEventCreateWithoutIntegrationInput[] | MailProductIntegrationEventUncheckedCreateWithoutIntegrationInput[]
+    connectOrCreate?: MailProductIntegrationEventCreateOrConnectWithoutIntegrationInput | MailProductIntegrationEventCreateOrConnectWithoutIntegrationInput[]
+    upsert?: MailProductIntegrationEventUpsertWithWhereUniqueWithoutIntegrationInput | MailProductIntegrationEventUpsertWithWhereUniqueWithoutIntegrationInput[]
+    createMany?: MailProductIntegrationEventCreateManyIntegrationInputEnvelope
+    set?: MailProductIntegrationEventWhereUniqueInput | MailProductIntegrationEventWhereUniqueInput[]
+    disconnect?: MailProductIntegrationEventWhereUniqueInput | MailProductIntegrationEventWhereUniqueInput[]
+    delete?: MailProductIntegrationEventWhereUniqueInput | MailProductIntegrationEventWhereUniqueInput[]
+    connect?: MailProductIntegrationEventWhereUniqueInput | MailProductIntegrationEventWhereUniqueInput[]
+    update?: MailProductIntegrationEventUpdateWithWhereUniqueWithoutIntegrationInput | MailProductIntegrationEventUpdateWithWhereUniqueWithoutIntegrationInput[]
+    updateMany?: MailProductIntegrationEventUpdateManyWithWhereWithoutIntegrationInput | MailProductIntegrationEventUpdateManyWithWhereWithoutIntegrationInput[]
+    deleteMany?: MailProductIntegrationEventScalarWhereInput | MailProductIntegrationEventScalarWhereInput[]
+  }
+
+  export type MailProductDeliveryEventUncheckedUpdateManyWithoutIntegrationNestedInput = {
+    create?: XOR<MailProductDeliveryEventCreateWithoutIntegrationInput, MailProductDeliveryEventUncheckedCreateWithoutIntegrationInput> | MailProductDeliveryEventCreateWithoutIntegrationInput[] | MailProductDeliveryEventUncheckedCreateWithoutIntegrationInput[]
+    connectOrCreate?: MailProductDeliveryEventCreateOrConnectWithoutIntegrationInput | MailProductDeliveryEventCreateOrConnectWithoutIntegrationInput[]
+    upsert?: MailProductDeliveryEventUpsertWithWhereUniqueWithoutIntegrationInput | MailProductDeliveryEventUpsertWithWhereUniqueWithoutIntegrationInput[]
+    createMany?: MailProductDeliveryEventCreateManyIntegrationInputEnvelope
+    set?: MailProductDeliveryEventWhereUniqueInput | MailProductDeliveryEventWhereUniqueInput[]
+    disconnect?: MailProductDeliveryEventWhereUniqueInput | MailProductDeliveryEventWhereUniqueInput[]
+    delete?: MailProductDeliveryEventWhereUniqueInput | MailProductDeliveryEventWhereUniqueInput[]
+    connect?: MailProductDeliveryEventWhereUniqueInput | MailProductDeliveryEventWhereUniqueInput[]
+    update?: MailProductDeliveryEventUpdateWithWhereUniqueWithoutIntegrationInput | MailProductDeliveryEventUpdateWithWhereUniqueWithoutIntegrationInput[]
+    updateMany?: MailProductDeliveryEventUpdateManyWithWhereWithoutIntegrationInput | MailProductDeliveryEventUpdateManyWithWhereWithoutIntegrationInput[]
+    deleteMany?: MailProductDeliveryEventScalarWhereInput | MailProductDeliveryEventScalarWhereInput[]
+  }
+
+  export type MailProductIntegrationCreateNestedOneWithoutSendersInput = {
+    create?: XOR<MailProductIntegrationCreateWithoutSendersInput, MailProductIntegrationUncheckedCreateWithoutSendersInput>
+    connectOrCreate?: MailProductIntegrationCreateOrConnectWithoutSendersInput
+    connect?: MailProductIntegrationWhereUniqueInput
+  }
+
+  export type MailProductIntegrationUpdateOneRequiredWithoutSendersNestedInput = {
+    create?: XOR<MailProductIntegrationCreateWithoutSendersInput, MailProductIntegrationUncheckedCreateWithoutSendersInput>
+    connectOrCreate?: MailProductIntegrationCreateOrConnectWithoutSendersInput
+    upsert?: MailProductIntegrationUpsertWithoutSendersInput
+    connect?: MailProductIntegrationWhereUniqueInput
+    update?: XOR<XOR<MailProductIntegrationUpdateToOneWithWhereWithoutSendersInput, MailProductIntegrationUpdateWithoutSendersInput>, MailProductIntegrationUncheckedUpdateWithoutSendersInput>
+  }
+
+  export type MailProductIntegrationCreateNestedOneWithoutEventsInput = {
+    create?: XOR<MailProductIntegrationCreateWithoutEventsInput, MailProductIntegrationUncheckedCreateWithoutEventsInput>
+    connectOrCreate?: MailProductIntegrationCreateOrConnectWithoutEventsInput
+    connect?: MailProductIntegrationWhereUniqueInput
+  }
+
+  export type MailProductIntegrationUpdateOneRequiredWithoutEventsNestedInput = {
+    create?: XOR<MailProductIntegrationCreateWithoutEventsInput, MailProductIntegrationUncheckedCreateWithoutEventsInput>
+    connectOrCreate?: MailProductIntegrationCreateOrConnectWithoutEventsInput
+    upsert?: MailProductIntegrationUpsertWithoutEventsInput
+    connect?: MailProductIntegrationWhereUniqueInput
+    update?: XOR<XOR<MailProductIntegrationUpdateToOneWithWhereWithoutEventsInput, MailProductIntegrationUpdateWithoutEventsInput>, MailProductIntegrationUncheckedUpdateWithoutEventsInput>
+  }
+
+  export type MailProductIntegrationCreateNestedOneWithoutDeliveryEventsInput = {
+    create?: XOR<MailProductIntegrationCreateWithoutDeliveryEventsInput, MailProductIntegrationUncheckedCreateWithoutDeliveryEventsInput>
+    connectOrCreate?: MailProductIntegrationCreateOrConnectWithoutDeliveryEventsInput
+    connect?: MailProductIntegrationWhereUniqueInput
+  }
+
+  export type MailProductIntegrationUpdateOneRequiredWithoutDeliveryEventsNestedInput = {
+    create?: XOR<MailProductIntegrationCreateWithoutDeliveryEventsInput, MailProductIntegrationUncheckedCreateWithoutDeliveryEventsInput>
+    connectOrCreate?: MailProductIntegrationCreateOrConnectWithoutDeliveryEventsInput
+    upsert?: MailProductIntegrationUpsertWithoutDeliveryEventsInput
+    connect?: MailProductIntegrationWhereUniqueInput
+    update?: XOR<XOR<MailProductIntegrationUpdateToOneWithWhereWithoutDeliveryEventsInput, MailProductIntegrationUpdateWithoutDeliveryEventsInput>, MailProductIntegrationUncheckedUpdateWithoutDeliveryEventsInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -299712,6 +306375,23 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumMarketingTriggerEventStatusFilter<$PrismaModel>
     _max?: NestedEnumMarketingTriggerEventStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumMailProductIntegrationStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MailProductIntegrationStatus | EnumMailProductIntegrationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MailProductIntegrationStatus[] | ListEnumMailProductIntegrationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MailProductIntegrationStatus[] | ListEnumMailProductIntegrationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMailProductIntegrationStatusFilter<$PrismaModel> | $Enums.MailProductIntegrationStatus
+  }
+
+  export type NestedEnumMailProductIntegrationStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MailProductIntegrationStatus | EnumMailProductIntegrationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MailProductIntegrationStatus[] | ListEnumMailProductIntegrationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MailProductIntegrationStatus[] | ListEnumMailProductIntegrationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMailProductIntegrationStatusWithAggregatesFilter<$PrismaModel> | $Enums.MailProductIntegrationStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMailProductIntegrationStatusFilter<$PrismaModel>
+    _max?: NestedEnumMailProductIntegrationStatusFilter<$PrismaModel>
   }
 
   export type AdminSessionCreateWithoutAdminUserInput = {
@@ -378185,6 +384865,564 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type MailProductSenderAuthorizationCreateWithoutIntegrationInput = {
+    id?: string
+    addressId: string
+    address: string
+    purpose: string
+    grantedBy: string
+    revokedAt?: Date | string | null
+    revokedBy?: string | null
+    createdAt?: Date | string
+  }
+
+  export type MailProductSenderAuthorizationUncheckedCreateWithoutIntegrationInput = {
+    id?: string
+    addressId: string
+    address: string
+    purpose: string
+    grantedBy: string
+    revokedAt?: Date | string | null
+    revokedBy?: string | null
+    createdAt?: Date | string
+  }
+
+  export type MailProductSenderAuthorizationCreateOrConnectWithoutIntegrationInput = {
+    where: MailProductSenderAuthorizationWhereUniqueInput
+    create: XOR<MailProductSenderAuthorizationCreateWithoutIntegrationInput, MailProductSenderAuthorizationUncheckedCreateWithoutIntegrationInput>
+  }
+
+  export type MailProductSenderAuthorizationCreateManyIntegrationInputEnvelope = {
+    data: MailProductSenderAuthorizationCreateManyIntegrationInput | MailProductSenderAuthorizationCreateManyIntegrationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MailProductIntegrationEventCreateWithoutIntegrationInput = {
+    id?: string
+    eventId: string
+    eventType: string
+    eventVersion: number
+    correlationId?: string | null
+    payloadSha256: string
+    status: string
+    errorCode?: string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: Date | string | null
+    receivedAt: Date | string
+  }
+
+  export type MailProductIntegrationEventUncheckedCreateWithoutIntegrationInput = {
+    id?: string
+    eventId: string
+    eventType: string
+    eventVersion: number
+    correlationId?: string | null
+    payloadSha256: string
+    status: string
+    errorCode?: string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: Date | string | null
+    receivedAt: Date | string
+  }
+
+  export type MailProductIntegrationEventCreateOrConnectWithoutIntegrationInput = {
+    where: MailProductIntegrationEventWhereUniqueInput
+    create: XOR<MailProductIntegrationEventCreateWithoutIntegrationInput, MailProductIntegrationEventUncheckedCreateWithoutIntegrationInput>
+  }
+
+  export type MailProductIntegrationEventCreateManyIntegrationInputEnvelope = {
+    data: MailProductIntegrationEventCreateManyIntegrationInput | MailProductIntegrationEventCreateManyIntegrationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MailProductDeliveryEventCreateWithoutIntegrationInput = {
+    id?: string
+    organizationId: string
+    productMessageId: string
+    provider: string
+    providerMessageId?: string | null
+    senderAddress: string
+    recipientHash: string
+    recipientDomain: string
+    category: string
+    status: string
+    occurredAt: Date | string
+    createdAt: Date | string
+  }
+
+  export type MailProductDeliveryEventUncheckedCreateWithoutIntegrationInput = {
+    id?: string
+    organizationId: string
+    productMessageId: string
+    provider: string
+    providerMessageId?: string | null
+    senderAddress: string
+    recipientHash: string
+    recipientDomain: string
+    category: string
+    status: string
+    occurredAt: Date | string
+    createdAt: Date | string
+  }
+
+  export type MailProductDeliveryEventCreateOrConnectWithoutIntegrationInput = {
+    where: MailProductDeliveryEventWhereUniqueInput
+    create: XOR<MailProductDeliveryEventCreateWithoutIntegrationInput, MailProductDeliveryEventUncheckedCreateWithoutIntegrationInput>
+  }
+
+  export type MailProductDeliveryEventCreateManyIntegrationInputEnvelope = {
+    data: MailProductDeliveryEventCreateManyIntegrationInput | MailProductDeliveryEventCreateManyIntegrationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MailProductSenderAuthorizationUpsertWithWhereUniqueWithoutIntegrationInput = {
+    where: MailProductSenderAuthorizationWhereUniqueInput
+    update: XOR<MailProductSenderAuthorizationUpdateWithoutIntegrationInput, MailProductSenderAuthorizationUncheckedUpdateWithoutIntegrationInput>
+    create: XOR<MailProductSenderAuthorizationCreateWithoutIntegrationInput, MailProductSenderAuthorizationUncheckedCreateWithoutIntegrationInput>
+  }
+
+  export type MailProductSenderAuthorizationUpdateWithWhereUniqueWithoutIntegrationInput = {
+    where: MailProductSenderAuthorizationWhereUniqueInput
+    data: XOR<MailProductSenderAuthorizationUpdateWithoutIntegrationInput, MailProductSenderAuthorizationUncheckedUpdateWithoutIntegrationInput>
+  }
+
+  export type MailProductSenderAuthorizationUpdateManyWithWhereWithoutIntegrationInput = {
+    where: MailProductSenderAuthorizationScalarWhereInput
+    data: XOR<MailProductSenderAuthorizationUpdateManyMutationInput, MailProductSenderAuthorizationUncheckedUpdateManyWithoutIntegrationInput>
+  }
+
+  export type MailProductSenderAuthorizationScalarWhereInput = {
+    AND?: MailProductSenderAuthorizationScalarWhereInput | MailProductSenderAuthorizationScalarWhereInput[]
+    OR?: MailProductSenderAuthorizationScalarWhereInput[]
+    NOT?: MailProductSenderAuthorizationScalarWhereInput | MailProductSenderAuthorizationScalarWhereInput[]
+    id?: UuidFilter<"MailProductSenderAuthorization"> | string
+    integrationId?: UuidFilter<"MailProductSenderAuthorization"> | string
+    addressId?: UuidFilter<"MailProductSenderAuthorization"> | string
+    address?: StringFilter<"MailProductSenderAuthorization"> | string
+    purpose?: StringFilter<"MailProductSenderAuthorization"> | string
+    grantedBy?: StringFilter<"MailProductSenderAuthorization"> | string
+    revokedAt?: DateTimeNullableFilter<"MailProductSenderAuthorization"> | Date | string | null
+    revokedBy?: StringNullableFilter<"MailProductSenderAuthorization"> | string | null
+    createdAt?: DateTimeFilter<"MailProductSenderAuthorization"> | Date | string
+  }
+
+  export type MailProductIntegrationEventUpsertWithWhereUniqueWithoutIntegrationInput = {
+    where: MailProductIntegrationEventWhereUniqueInput
+    update: XOR<MailProductIntegrationEventUpdateWithoutIntegrationInput, MailProductIntegrationEventUncheckedUpdateWithoutIntegrationInput>
+    create: XOR<MailProductIntegrationEventCreateWithoutIntegrationInput, MailProductIntegrationEventUncheckedCreateWithoutIntegrationInput>
+  }
+
+  export type MailProductIntegrationEventUpdateWithWhereUniqueWithoutIntegrationInput = {
+    where: MailProductIntegrationEventWhereUniqueInput
+    data: XOR<MailProductIntegrationEventUpdateWithoutIntegrationInput, MailProductIntegrationEventUncheckedUpdateWithoutIntegrationInput>
+  }
+
+  export type MailProductIntegrationEventUpdateManyWithWhereWithoutIntegrationInput = {
+    where: MailProductIntegrationEventScalarWhereInput
+    data: XOR<MailProductIntegrationEventUpdateManyMutationInput, MailProductIntegrationEventUncheckedUpdateManyWithoutIntegrationInput>
+  }
+
+  export type MailProductIntegrationEventScalarWhereInput = {
+    AND?: MailProductIntegrationEventScalarWhereInput | MailProductIntegrationEventScalarWhereInput[]
+    OR?: MailProductIntegrationEventScalarWhereInput[]
+    NOT?: MailProductIntegrationEventScalarWhereInput | MailProductIntegrationEventScalarWhereInput[]
+    id?: UuidFilter<"MailProductIntegrationEvent"> | string
+    integrationId?: UuidFilter<"MailProductIntegrationEvent"> | string
+    eventId?: StringFilter<"MailProductIntegrationEvent"> | string
+    eventType?: StringFilter<"MailProductIntegrationEvent"> | string
+    eventVersion?: IntFilter<"MailProductIntegrationEvent"> | number
+    correlationId?: StringNullableFilter<"MailProductIntegrationEvent"> | string | null
+    payloadSha256?: StringFilter<"MailProductIntegrationEvent"> | string
+    status?: StringFilter<"MailProductIntegrationEvent"> | string
+    errorCode?: StringNullableFilter<"MailProductIntegrationEvent"> | string | null
+    outcome?: JsonNullableFilter<"MailProductIntegrationEvent">
+    occurredAt?: DateTimeNullableFilter<"MailProductIntegrationEvent"> | Date | string | null
+    receivedAt?: DateTimeFilter<"MailProductIntegrationEvent"> | Date | string
+  }
+
+  export type MailProductDeliveryEventUpsertWithWhereUniqueWithoutIntegrationInput = {
+    where: MailProductDeliveryEventWhereUniqueInput
+    update: XOR<MailProductDeliveryEventUpdateWithoutIntegrationInput, MailProductDeliveryEventUncheckedUpdateWithoutIntegrationInput>
+    create: XOR<MailProductDeliveryEventCreateWithoutIntegrationInput, MailProductDeliveryEventUncheckedCreateWithoutIntegrationInput>
+  }
+
+  export type MailProductDeliveryEventUpdateWithWhereUniqueWithoutIntegrationInput = {
+    where: MailProductDeliveryEventWhereUniqueInput
+    data: XOR<MailProductDeliveryEventUpdateWithoutIntegrationInput, MailProductDeliveryEventUncheckedUpdateWithoutIntegrationInput>
+  }
+
+  export type MailProductDeliveryEventUpdateManyWithWhereWithoutIntegrationInput = {
+    where: MailProductDeliveryEventScalarWhereInput
+    data: XOR<MailProductDeliveryEventUpdateManyMutationInput, MailProductDeliveryEventUncheckedUpdateManyWithoutIntegrationInput>
+  }
+
+  export type MailProductDeliveryEventScalarWhereInput = {
+    AND?: MailProductDeliveryEventScalarWhereInput | MailProductDeliveryEventScalarWhereInput[]
+    OR?: MailProductDeliveryEventScalarWhereInput[]
+    NOT?: MailProductDeliveryEventScalarWhereInput | MailProductDeliveryEventScalarWhereInput[]
+    id?: UuidFilter<"MailProductDeliveryEvent"> | string
+    integrationId?: UuidFilter<"MailProductDeliveryEvent"> | string
+    organizationId?: UuidFilter<"MailProductDeliveryEvent"> | string
+    productMessageId?: StringFilter<"MailProductDeliveryEvent"> | string
+    provider?: StringFilter<"MailProductDeliveryEvent"> | string
+    providerMessageId?: StringNullableFilter<"MailProductDeliveryEvent"> | string | null
+    senderAddress?: StringFilter<"MailProductDeliveryEvent"> | string
+    recipientHash?: StringFilter<"MailProductDeliveryEvent"> | string
+    recipientDomain?: StringFilter<"MailProductDeliveryEvent"> | string
+    category?: StringFilter<"MailProductDeliveryEvent"> | string
+    status?: StringFilter<"MailProductDeliveryEvent"> | string
+    occurredAt?: DateTimeFilter<"MailProductDeliveryEvent"> | Date | string
+    createdAt?: DateTimeFilter<"MailProductDeliveryEvent"> | Date | string
+  }
+
+  export type MailProductIntegrationCreateWithoutSendersInput = {
+    id?: string
+    product: string
+    organizationId: string
+    serviceName: string
+    status?: $Enums.MailProductIntegrationStatus
+    classification?: string
+    contractVersion?: number
+    allowedEventTypes?: MailProductIntegrationCreateallowedEventTypesInput | string[]
+    allowedTriggerTypes?: MailProductIntegrationCreateallowedTriggerTypesInput | string[]
+    ownerApprovalReference?: string | null
+    ownerApprovedBy?: string | null
+    approvedAt?: Date | string | null
+    activatedByAdminUserId?: string | null
+    lastEventAt?: Date | string | null
+    lastErrorCode?: string | null
+    lastErrorAt?: Date | string | null
+    createdBy: string
+    updatedBy: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    events?: MailProductIntegrationEventCreateNestedManyWithoutIntegrationInput
+    deliveryEvents?: MailProductDeliveryEventCreateNestedManyWithoutIntegrationInput
+  }
+
+  export type MailProductIntegrationUncheckedCreateWithoutSendersInput = {
+    id?: string
+    product: string
+    organizationId: string
+    serviceName: string
+    status?: $Enums.MailProductIntegrationStatus
+    classification?: string
+    contractVersion?: number
+    allowedEventTypes?: MailProductIntegrationCreateallowedEventTypesInput | string[]
+    allowedTriggerTypes?: MailProductIntegrationCreateallowedTriggerTypesInput | string[]
+    ownerApprovalReference?: string | null
+    ownerApprovedBy?: string | null
+    approvedAt?: Date | string | null
+    activatedByAdminUserId?: string | null
+    lastEventAt?: Date | string | null
+    lastErrorCode?: string | null
+    lastErrorAt?: Date | string | null
+    createdBy: string
+    updatedBy: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    events?: MailProductIntegrationEventUncheckedCreateNestedManyWithoutIntegrationInput
+    deliveryEvents?: MailProductDeliveryEventUncheckedCreateNestedManyWithoutIntegrationInput
+  }
+
+  export type MailProductIntegrationCreateOrConnectWithoutSendersInput = {
+    where: MailProductIntegrationWhereUniqueInput
+    create: XOR<MailProductIntegrationCreateWithoutSendersInput, MailProductIntegrationUncheckedCreateWithoutSendersInput>
+  }
+
+  export type MailProductIntegrationUpsertWithoutSendersInput = {
+    update: XOR<MailProductIntegrationUpdateWithoutSendersInput, MailProductIntegrationUncheckedUpdateWithoutSendersInput>
+    create: XOR<MailProductIntegrationCreateWithoutSendersInput, MailProductIntegrationUncheckedCreateWithoutSendersInput>
+    where?: MailProductIntegrationWhereInput
+  }
+
+  export type MailProductIntegrationUpdateToOneWithWhereWithoutSendersInput = {
+    where?: MailProductIntegrationWhereInput
+    data: XOR<MailProductIntegrationUpdateWithoutSendersInput, MailProductIntegrationUncheckedUpdateWithoutSendersInput>
+  }
+
+  export type MailProductIntegrationUpdateWithoutSendersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    product?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    serviceName?: StringFieldUpdateOperationsInput | string
+    status?: EnumMailProductIntegrationStatusFieldUpdateOperationsInput | $Enums.MailProductIntegrationStatus
+    classification?: StringFieldUpdateOperationsInput | string
+    contractVersion?: IntFieldUpdateOperationsInput | number
+    allowedEventTypes?: MailProductIntegrationUpdateallowedEventTypesInput | string[]
+    allowedTriggerTypes?: MailProductIntegrationUpdateallowedTriggerTypesInput | string[]
+    ownerApprovalReference?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerApprovedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: MailProductIntegrationEventUpdateManyWithoutIntegrationNestedInput
+    deliveryEvents?: MailProductDeliveryEventUpdateManyWithoutIntegrationNestedInput
+  }
+
+  export type MailProductIntegrationUncheckedUpdateWithoutSendersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    product?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    serviceName?: StringFieldUpdateOperationsInput | string
+    status?: EnumMailProductIntegrationStatusFieldUpdateOperationsInput | $Enums.MailProductIntegrationStatus
+    classification?: StringFieldUpdateOperationsInput | string
+    contractVersion?: IntFieldUpdateOperationsInput | number
+    allowedEventTypes?: MailProductIntegrationUpdateallowedEventTypesInput | string[]
+    allowedTriggerTypes?: MailProductIntegrationUpdateallowedTriggerTypesInput | string[]
+    ownerApprovalReference?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerApprovedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: MailProductIntegrationEventUncheckedUpdateManyWithoutIntegrationNestedInput
+    deliveryEvents?: MailProductDeliveryEventUncheckedUpdateManyWithoutIntegrationNestedInput
+  }
+
+  export type MailProductIntegrationCreateWithoutEventsInput = {
+    id?: string
+    product: string
+    organizationId: string
+    serviceName: string
+    status?: $Enums.MailProductIntegrationStatus
+    classification?: string
+    contractVersion?: number
+    allowedEventTypes?: MailProductIntegrationCreateallowedEventTypesInput | string[]
+    allowedTriggerTypes?: MailProductIntegrationCreateallowedTriggerTypesInput | string[]
+    ownerApprovalReference?: string | null
+    ownerApprovedBy?: string | null
+    approvedAt?: Date | string | null
+    activatedByAdminUserId?: string | null
+    lastEventAt?: Date | string | null
+    lastErrorCode?: string | null
+    lastErrorAt?: Date | string | null
+    createdBy: string
+    updatedBy: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    senders?: MailProductSenderAuthorizationCreateNestedManyWithoutIntegrationInput
+    deliveryEvents?: MailProductDeliveryEventCreateNestedManyWithoutIntegrationInput
+  }
+
+  export type MailProductIntegrationUncheckedCreateWithoutEventsInput = {
+    id?: string
+    product: string
+    organizationId: string
+    serviceName: string
+    status?: $Enums.MailProductIntegrationStatus
+    classification?: string
+    contractVersion?: number
+    allowedEventTypes?: MailProductIntegrationCreateallowedEventTypesInput | string[]
+    allowedTriggerTypes?: MailProductIntegrationCreateallowedTriggerTypesInput | string[]
+    ownerApprovalReference?: string | null
+    ownerApprovedBy?: string | null
+    approvedAt?: Date | string | null
+    activatedByAdminUserId?: string | null
+    lastEventAt?: Date | string | null
+    lastErrorCode?: string | null
+    lastErrorAt?: Date | string | null
+    createdBy: string
+    updatedBy: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    senders?: MailProductSenderAuthorizationUncheckedCreateNestedManyWithoutIntegrationInput
+    deliveryEvents?: MailProductDeliveryEventUncheckedCreateNestedManyWithoutIntegrationInput
+  }
+
+  export type MailProductIntegrationCreateOrConnectWithoutEventsInput = {
+    where: MailProductIntegrationWhereUniqueInput
+    create: XOR<MailProductIntegrationCreateWithoutEventsInput, MailProductIntegrationUncheckedCreateWithoutEventsInput>
+  }
+
+  export type MailProductIntegrationUpsertWithoutEventsInput = {
+    update: XOR<MailProductIntegrationUpdateWithoutEventsInput, MailProductIntegrationUncheckedUpdateWithoutEventsInput>
+    create: XOR<MailProductIntegrationCreateWithoutEventsInput, MailProductIntegrationUncheckedCreateWithoutEventsInput>
+    where?: MailProductIntegrationWhereInput
+  }
+
+  export type MailProductIntegrationUpdateToOneWithWhereWithoutEventsInput = {
+    where?: MailProductIntegrationWhereInput
+    data: XOR<MailProductIntegrationUpdateWithoutEventsInput, MailProductIntegrationUncheckedUpdateWithoutEventsInput>
+  }
+
+  export type MailProductIntegrationUpdateWithoutEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    product?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    serviceName?: StringFieldUpdateOperationsInput | string
+    status?: EnumMailProductIntegrationStatusFieldUpdateOperationsInput | $Enums.MailProductIntegrationStatus
+    classification?: StringFieldUpdateOperationsInput | string
+    contractVersion?: IntFieldUpdateOperationsInput | number
+    allowedEventTypes?: MailProductIntegrationUpdateallowedEventTypesInput | string[]
+    allowedTriggerTypes?: MailProductIntegrationUpdateallowedTriggerTypesInput | string[]
+    ownerApprovalReference?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerApprovedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    senders?: MailProductSenderAuthorizationUpdateManyWithoutIntegrationNestedInput
+    deliveryEvents?: MailProductDeliveryEventUpdateManyWithoutIntegrationNestedInput
+  }
+
+  export type MailProductIntegrationUncheckedUpdateWithoutEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    product?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    serviceName?: StringFieldUpdateOperationsInput | string
+    status?: EnumMailProductIntegrationStatusFieldUpdateOperationsInput | $Enums.MailProductIntegrationStatus
+    classification?: StringFieldUpdateOperationsInput | string
+    contractVersion?: IntFieldUpdateOperationsInput | number
+    allowedEventTypes?: MailProductIntegrationUpdateallowedEventTypesInput | string[]
+    allowedTriggerTypes?: MailProductIntegrationUpdateallowedTriggerTypesInput | string[]
+    ownerApprovalReference?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerApprovedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    senders?: MailProductSenderAuthorizationUncheckedUpdateManyWithoutIntegrationNestedInput
+    deliveryEvents?: MailProductDeliveryEventUncheckedUpdateManyWithoutIntegrationNestedInput
+  }
+
+  export type MailProductIntegrationCreateWithoutDeliveryEventsInput = {
+    id?: string
+    product: string
+    organizationId: string
+    serviceName: string
+    status?: $Enums.MailProductIntegrationStatus
+    classification?: string
+    contractVersion?: number
+    allowedEventTypes?: MailProductIntegrationCreateallowedEventTypesInput | string[]
+    allowedTriggerTypes?: MailProductIntegrationCreateallowedTriggerTypesInput | string[]
+    ownerApprovalReference?: string | null
+    ownerApprovedBy?: string | null
+    approvedAt?: Date | string | null
+    activatedByAdminUserId?: string | null
+    lastEventAt?: Date | string | null
+    lastErrorCode?: string | null
+    lastErrorAt?: Date | string | null
+    createdBy: string
+    updatedBy: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    senders?: MailProductSenderAuthorizationCreateNestedManyWithoutIntegrationInput
+    events?: MailProductIntegrationEventCreateNestedManyWithoutIntegrationInput
+  }
+
+  export type MailProductIntegrationUncheckedCreateWithoutDeliveryEventsInput = {
+    id?: string
+    product: string
+    organizationId: string
+    serviceName: string
+    status?: $Enums.MailProductIntegrationStatus
+    classification?: string
+    contractVersion?: number
+    allowedEventTypes?: MailProductIntegrationCreateallowedEventTypesInput | string[]
+    allowedTriggerTypes?: MailProductIntegrationCreateallowedTriggerTypesInput | string[]
+    ownerApprovalReference?: string | null
+    ownerApprovedBy?: string | null
+    approvedAt?: Date | string | null
+    activatedByAdminUserId?: string | null
+    lastEventAt?: Date | string | null
+    lastErrorCode?: string | null
+    lastErrorAt?: Date | string | null
+    createdBy: string
+    updatedBy: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    senders?: MailProductSenderAuthorizationUncheckedCreateNestedManyWithoutIntegrationInput
+    events?: MailProductIntegrationEventUncheckedCreateNestedManyWithoutIntegrationInput
+  }
+
+  export type MailProductIntegrationCreateOrConnectWithoutDeliveryEventsInput = {
+    where: MailProductIntegrationWhereUniqueInput
+    create: XOR<MailProductIntegrationCreateWithoutDeliveryEventsInput, MailProductIntegrationUncheckedCreateWithoutDeliveryEventsInput>
+  }
+
+  export type MailProductIntegrationUpsertWithoutDeliveryEventsInput = {
+    update: XOR<MailProductIntegrationUpdateWithoutDeliveryEventsInput, MailProductIntegrationUncheckedUpdateWithoutDeliveryEventsInput>
+    create: XOR<MailProductIntegrationCreateWithoutDeliveryEventsInput, MailProductIntegrationUncheckedCreateWithoutDeliveryEventsInput>
+    where?: MailProductIntegrationWhereInput
+  }
+
+  export type MailProductIntegrationUpdateToOneWithWhereWithoutDeliveryEventsInput = {
+    where?: MailProductIntegrationWhereInput
+    data: XOR<MailProductIntegrationUpdateWithoutDeliveryEventsInput, MailProductIntegrationUncheckedUpdateWithoutDeliveryEventsInput>
+  }
+
+  export type MailProductIntegrationUpdateWithoutDeliveryEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    product?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    serviceName?: StringFieldUpdateOperationsInput | string
+    status?: EnumMailProductIntegrationStatusFieldUpdateOperationsInput | $Enums.MailProductIntegrationStatus
+    classification?: StringFieldUpdateOperationsInput | string
+    contractVersion?: IntFieldUpdateOperationsInput | number
+    allowedEventTypes?: MailProductIntegrationUpdateallowedEventTypesInput | string[]
+    allowedTriggerTypes?: MailProductIntegrationUpdateallowedTriggerTypesInput | string[]
+    ownerApprovalReference?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerApprovedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    senders?: MailProductSenderAuthorizationUpdateManyWithoutIntegrationNestedInput
+    events?: MailProductIntegrationEventUpdateManyWithoutIntegrationNestedInput
+  }
+
+  export type MailProductIntegrationUncheckedUpdateWithoutDeliveryEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    product?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    serviceName?: StringFieldUpdateOperationsInput | string
+    status?: EnumMailProductIntegrationStatusFieldUpdateOperationsInput | $Enums.MailProductIntegrationStatus
+    classification?: StringFieldUpdateOperationsInput | string
+    contractVersion?: IntFieldUpdateOperationsInput | number
+    allowedEventTypes?: MailProductIntegrationUpdateallowedEventTypesInput | string[]
+    allowedTriggerTypes?: MailProductIntegrationUpdateallowedTriggerTypesInput | string[]
+    ownerApprovalReference?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerApprovedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    activatedByAdminUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    lastErrorAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    senders?: MailProductSenderAuthorizationUncheckedUpdateManyWithoutIntegrationNestedInput
+    events?: MailProductIntegrationEventUncheckedUpdateManyWithoutIntegrationNestedInput
+  }
+
   export type AdminSessionCreateManyAdminUserInput = {
     id?: string
     mode: string
@@ -395089,6 +402327,166 @@ export namespace Prisma {
     errorCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailProductSenderAuthorizationCreateManyIntegrationInput = {
+    id?: string
+    addressId: string
+    address: string
+    purpose: string
+    grantedBy: string
+    revokedAt?: Date | string | null
+    revokedBy?: string | null
+    createdAt?: Date | string
+  }
+
+  export type MailProductIntegrationEventCreateManyIntegrationInput = {
+    id?: string
+    eventId: string
+    eventType: string
+    eventVersion: number
+    correlationId?: string | null
+    payloadSha256: string
+    status: string
+    errorCode?: string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: Date | string | null
+    receivedAt: Date | string
+  }
+
+  export type MailProductDeliveryEventCreateManyIntegrationInput = {
+    id?: string
+    organizationId: string
+    productMessageId: string
+    provider: string
+    providerMessageId?: string | null
+    senderAddress: string
+    recipientHash: string
+    recipientDomain: string
+    category: string
+    status: string
+    occurredAt: Date | string
+    createdAt: Date | string
+  }
+
+  export type MailProductSenderAuthorizationUpdateWithoutIntegrationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    addressId?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    grantedBy?: StringFieldUpdateOperationsInput | string
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailProductSenderAuthorizationUncheckedUpdateWithoutIntegrationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    addressId?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    grantedBy?: StringFieldUpdateOperationsInput | string
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailProductSenderAuthorizationUncheckedUpdateManyWithoutIntegrationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    addressId?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    grantedBy?: StringFieldUpdateOperationsInput | string
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailProductIntegrationEventUpdateWithoutIntegrationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    eventVersion?: IntFieldUpdateOperationsInput | number
+    correlationId?: NullableStringFieldUpdateOperationsInput | string | null
+    payloadSha256?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailProductIntegrationEventUncheckedUpdateWithoutIntegrationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    eventVersion?: IntFieldUpdateOperationsInput | number
+    correlationId?: NullableStringFieldUpdateOperationsInput | string | null
+    payloadSha256?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailProductIntegrationEventUncheckedUpdateManyWithoutIntegrationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    eventVersion?: IntFieldUpdateOperationsInput | number
+    correlationId?: NullableStringFieldUpdateOperationsInput | string | null
+    payloadSha256?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    outcome?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailProductDeliveryEventUpdateWithoutIntegrationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    productMessageId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    senderAddress?: StringFieldUpdateOperationsInput | string
+    recipientHash?: StringFieldUpdateOperationsInput | string
+    recipientDomain?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailProductDeliveryEventUncheckedUpdateWithoutIntegrationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    productMessageId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    senderAddress?: StringFieldUpdateOperationsInput | string
+    recipientHash?: StringFieldUpdateOperationsInput | string
+    recipientDomain?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailProductDeliveryEventUncheckedUpdateManyWithoutIntegrationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    productMessageId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    senderAddress?: StringFieldUpdateOperationsInput | string
+    recipientHash?: StringFieldUpdateOperationsInput | string
+    recipientDomain?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

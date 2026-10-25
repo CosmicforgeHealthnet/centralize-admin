@@ -5257,3 +5257,108 @@ model MarketingTriggerEvent {
   @@index([status, receivedAt], map: "IDX_marketing_trigger_events_status")
   @@map("marketing_trigger_events")
 }
+
+// ===================================================================
+// CosmicForge Mail M8 - product integration contracts
+// (manual migration 20261028_mail_m8_product_integration.sql)
+// Products (Karryam Go, HealthNet, ...) keep their own transactional mail.
+// HQ only receives authenticated, minimal, versioned events.
+// ===================================================================
+
+enum MailProductIntegrationStatus {
+  DISABLED
+  ACTIVE
+  SUSPENDED
+}
+
+model MailProductIntegration {
+  id                     String                       @id @default(uuid()) @db.Uuid
+  product                String                       @unique(map: "UQ_mail_product_integrations_product") @db.VarChar(64)
+  organizationId         String                       @map("organization_id") @db.Uuid
+  serviceName            String                       @unique(map: "UQ_mail_product_integrations_service") @map("service_name") @db.VarChar(96)
+  status                 MailProductIntegrationStatus @default(DISABLED)
+  // STANDARD or RESTRICTED_HEALTH (clinical-adjacent products: ops alerts only).
+  classification         String                       @default("STANDARD") @db.VarChar(32)
+  contractVersion        Int                          @default(1) @map("contract_version")
+  allowedEventTypes      String[]                     @default([]) @map("allowed_event_types")
+  allowedTriggerTypes    String[]                     @default([]) @map("allowed_trigger_types")
+  ownerApprovalReference String?                      @map("owner_approval_reference") @db.VarChar(200)
+  ownerApprovedBy        String?                      @map("owner_approved_by") @db.VarChar(160)
+  approvedAt             DateTime?                    @map("approved_at") @db.Timestamptz(6)
+  activatedByAdminUserId String?                      @map("activated_by_admin_user_id")
+  lastEventAt            DateTime?                    @map("last_event_at") @db.Timestamptz(6)
+  lastErrorCode          String?                      @map("last_error_code") @db.VarChar(64)
+  lastErrorAt            DateTime?                    @map("last_error_at") @db.Timestamptz(6)
+  createdBy              String                       @map("created_by")
+  updatedBy              String                       @map("updated_by")
+  createdAt              DateTime                     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime                     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  senders        MailProductSenderAuthorization[]
+  events         MailProductIntegrationEvent[]
+  deliveryEvents MailProductDeliveryEvent[]
+
+  @@map("mail_product_integrations")
+}
+
+model MailProductSenderAuthorization {
+  id            String    @id @default(uuid()) @db.Uuid
+  integrationId String    @map("integration_id") @db.Uuid
+  addressId     String    @map("address_id") @db.Uuid
+  address       String    @db.VarChar(320)
+  purpose       String    @db.VarChar(32)
+  grantedBy     String    @map("granted_by")
+  revokedAt     DateTime? @map("revoked_at") @db.Timestamptz(6)
+  revokedBy     String?   @map("revoked_by")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  integration MailProductIntegration @relation(fields: [integrationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_product_sender_authorizations_integration")
+
+  @@index([integrationId, address], map: "IDX_mail_product_sender_authorizations_lookup")
+  @@map("mail_product_sender_authorizations")
+}
+
+model MailProductIntegrationEvent {
+  id            String    @id @default(uuid()) @db.Uuid
+  integrationId String    @map("integration_id") @db.Uuid
+  eventId       String    @map("event_id") @db.VarChar(160)
+  eventType     String    @map("event_type") @db.VarChar(96)
+  eventVersion  Int       @map("event_version")
+  correlationId String?   @map("correlation_id") @db.VarChar(160)
+  payloadSha256 String    @map("payload_sha256") @db.Char(64)
+  status        String    @db.VarChar(16)
+  errorCode     String?   @map("error_code") @db.VarChar(64)
+  outcome       Json?
+  occurredAt    DateTime? @map("occurred_at") @db.Timestamptz(6)
+  receivedAt    DateTime  @map("received_at") @db.Timestamptz(6)
+
+  integration MailProductIntegration @relation(fields: [integrationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_product_integration_events_integration")
+
+  @@unique([integrationId, eventId], map: "UQ_mail_product_integration_events_event")
+  @@index([integrationId, receivedAt], map: "IDX_mail_product_integration_events_time")
+  @@map("mail_product_integration_events")
+}
+
+// Normalised, minimal delivery metadata for product-owned transactional mail.
+// Recipients are stored only as a keyed hash + domain (never the address).
+model MailProductDeliveryEvent {
+  id                String   @id @default(uuid()) @db.Uuid
+  integrationId     String   @map("integration_id") @db.Uuid
+  organizationId    String   @map("organization_id") @db.Uuid
+  productMessageId  String   @map("product_message_id") @db.VarChar(160)
+  provider          String   @db.VarChar(32)
+  providerMessageId String?  @map("provider_message_id") @db.VarChar(255)
+  senderAddress     String   @map("sender_address") @db.VarChar(320)
+  recipientHash     String   @map("recipient_hash") @db.Char(64)
+  recipientDomain   String   @map("recipient_domain") @db.VarChar(253)
+  category          String   @db.VarChar(64)
+  status            String   @db.VarChar(32)
+  occurredAt        DateTime @map("occurred_at") @db.Timestamptz(6)
+  createdAt         DateTime @map("created_at") @db.Timestamptz(6)
+
+  integration MailProductIntegration @relation(fields: [integrationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_product_delivery_events_integration")
+
+  @@index([integrationId, occurredAt], map: "IDX_mail_product_delivery_events_time")
+  @@index([integrationId, productMessageId], map: "IDX_mail_product_delivery_events_message")
+  @@map("mail_product_delivery_events")
+}
