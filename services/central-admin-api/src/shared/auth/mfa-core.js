@@ -15,11 +15,12 @@ const DIGITS = 6;
 const SECRET_BYTES = 20;
 const ENVELOPE_PREFIX = "cfmfa1";
 
-class MfaError extends Error {
+const ApiError = require("../utils/ApiError");
+
+// Surfaces through the standard error envelope ({ code, message }).
+class MfaError extends ApiError {
   constructor(code, status = 400, message = code) {
-    super(message);
-    this.code = code;
-    this.status = status;
+    super(status, message, [{ code }]);
   }
 }
 

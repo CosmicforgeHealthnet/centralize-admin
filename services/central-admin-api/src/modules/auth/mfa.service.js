@@ -58,7 +58,7 @@ function createMfaService({ client, sessions, audit = async () => {}, notify = a
       where: { id: user.id },
       data: { mfaFailedAttempts: lock ? 0 : attempts, mfaLockedUntil: lock ? new Date(now().getTime() + USER_LOCK_MS) : user.mfaLockedUntil },
     });
-    await audit({ adminUserId: user.id, action: lock ? "MFA_LOCKED" : "MFA_FAILED", targetId: user.id, targetType: "admin_user", metadata: { context, attempts }, req: context.req });
+    await audit({ adminUserId: user.id, action: lock ? "MFA_LOCKED" : "MFA_FAILED", targetId: user.id, targetType: "admin_user", metadata: { context: context.kind, attempts }, req: context.req });
   }
 
   async function clearFailures(user) {
