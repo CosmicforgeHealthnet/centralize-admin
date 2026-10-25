@@ -570,6 +570,17 @@ test("CosmicForge Mail M7 broadcasts and automation on real PostgreSQL", { timeo
       assert.equal((await client.marketingConsent.findFirst({ where: { contactId: contact.id, topic: "newsletter" } })).status, "WITHDRAWN");
       assert.ok(await client.mailAuditEvent.findFirst({ where: { action: "MARKETING_ONE_CLICK_UNSUBSCRIBE", targetId: contact.id } }));
     });
+    await t.test("concurrent provider events never regress a recipient's status", async () => {
+      const recipient = await client.marketingBroadcastRecipient.findFirst({ where: { email: "ada@reader.example", dispatch: { providerBroadcastId: { not: null } } }, include: { dispatch: true } });
+      assert.ok(recipient, "pilot recipient exists");
+      const event = (type) => ({ eventType: type, receivedAt: harness.clock(), payload: { created_at: harness.clock().toISOString(), data: { email_id: "bc_race", broadcast_id: recipient.dispatch.providerBroadcastId, to: [recipient.email] } } });
+      const router = harness.mail.processors.marketingEvents;
+      for (let round = 0; round < 10; round += 1) {
+        await client.marketingBroadcastRecipient.update({ where: { id: recipient.id }, data: { status: "PROVIDER_ACCEPTED" } });
+        await Promise.all([router.route(event("email.sent")), router.route(event("email.delivered")), router.route(event("email.sent"))]);
+        assert.equal((await client.marketingBroadcastRecipient.findUnique({ where: { id: recipient.id } })).status, "DELIVERED", `round ${round}`);
+      }
+    });
   } finally {
     await closeServer(server);
     await db.close();

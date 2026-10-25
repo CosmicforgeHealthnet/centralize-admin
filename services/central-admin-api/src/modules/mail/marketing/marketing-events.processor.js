@@ -26,6 +26,13 @@ const EVENT_TO_STATUS = {
 const RANK = { PENDING: 0, SYNCED: 1, OUTCOME_UNKNOWN: 1.5, PROVIDER_ACCEPTED: 2, DELAYED: 3, DELIVERED: 4, FAILED: 5, SUPPRESSED: 5, BOUNCED: 6, COMPLAINED: 7 };
 const FINAL_SKIP = new Set(["EXCLUDED", "CANCELLED", "UNSUBSCRIBED"]);
 
+// Statuses a new status may replace. Used as a conditional UPDATE predicate
+// so two concurrent events for one recipient can never regress its status:
+// PostgreSQL re-checks the WHERE clause after waiting for the row lock.
+function replaceable(status) {
+  return Object.keys(RANK).filter((key) => RANK[key] <= RANK[status]);
+}
+
 function createMarketingEventsProcessor({ client, audit, clock = () => new Date() }) {
   function eventMeta(event) {
     const payload = event.payload || {};
@@ -60,8 +67,8 @@ function createMarketingEventsProcessor({ client, audit, clock = () => new Date(
         const data = { lastEventType: meta.type.slice(0, 32), lastEventAt: meta.occurredAt, providerEmailId: recipient.providerEmailId || String(meta.data.email_id || "").slice(0, 255) || null };
         if (meta.type === "email.opened" && !recipient.openedAt) data.openedAt = meta.occurredAt;
         if (meta.type === "email.clicked" && !recipient.clickedAt) data.clickedAt = meta.occurredAt;
-        if (status && !FINAL_SKIP.has(recipient.status) && (RANK[status] ?? 0) >= (RANK[recipient.status] ?? 0)) data.status = status;
         await tx.marketingBroadcastRecipient.update({ where: { id: recipient.id }, data });
+        if (status && !FINAL_SKIP.has(recipient.status)) await tx.marketingBroadcastRecipient.updateMany({ where: { id: recipient.id, status: { in: replaceable(status) } }, data: { status } });
         if (status === "BOUNCED" || status === "COMPLAINED") await suppress(tx, dispatch.organizationId, email, status);
       }
       if (matched) await audit.record({ action: `MARKETING_BROADCAST_EVENT_${String(meta.type).split(".")[1].toUpperCase()}`, targetType: "marketing_broadcast", targetId: dispatch.id, organizationId: dispatch.organizationId, metadata: { recipients: matched } }, {}, tx);
@@ -74,9 +81,7 @@ function createMarketingEventsProcessor({ client, audit, clock = () => new Date(
     if (meta.brandOrganizationId && meta.brandOrganizationId !== run.organizationId) return { matched: 0, reason: "CROSS_BRAND_EVENT_REJECTED" };
     const status = EVENT_TO_STATUS[meta.type];
     await client.$transaction(async (tx) => {
-      if (status && (RANK[status] ?? 0) >= (RANK[run.deliveryStatus] ?? 0)) {
-        await tx.marketingAutomationStepRun.update({ where: { id: run.id }, data: { deliveryStatus: status } });
-      }
+      if (status) await tx.marketingAutomationStepRun.updateMany({ where: { id: run.id, OR: [{ deliveryStatus: null }, { deliveryStatus: { in: replaceable(status) } }] }, data: { deliveryStatus: status } });
       if ((status === "BOUNCED" || status === "COMPLAINED") && run.recipientEmail) await suppress(tx, run.organizationId, run.recipientEmail, status);
       await audit.record({ action: `MARKETING_AUTOMATION_EVENT_${String(meta.type).split(".")[1].toUpperCase()}`, targetType: "marketing_automation_step_run", targetId: run.id, organizationId: run.organizationId }, {}, tx);
     });
