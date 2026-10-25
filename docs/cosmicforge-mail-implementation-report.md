@@ -264,8 +264,8 @@ been applied to any real database.
 | JavaScript-readable access token (`localStorage` + non-httpOnly cookie) | **Open, production blocker.** Mail mitigates (sandboxed rendering, sanitizer, in-memory cache cleared on login/logout/401/403) but cannot fix it |
 | Secure httpOnly session migration | **Not started**; needs a separate auth migration across the admin app |
 | TOTP enrollment | **Missing.** No enrollment flow exists, so step-up returns `MAIL_MFA_NOT_ENROLLED` and break-glass / campaign approval cannot be used yet |
-| Private object storage + KMS | **Not provisioned.** Filesystem + env keyring is staging-only; fails closed when unset |
-| Malware scanner | **Not provisioned** (clamd adapter implemented); without it every attachment is quarantined |
+| Private object storage + KMS | **Code ready, infrastructure not provisioned.** S3 backend, KMS-wrapped keyring, rotation tooling and environment separation implemented and tested offline (section 11); no bucket/KMS key/IAM exists yet |
+| Malware scanner | **Code ready, infrastructure not provisioned.** Hardened clamd adapter, rescan path, health/metrics and deployment artifacts (section 11); no clamd running in any environment, so attachments stay quarantined |
 | Real Resend staging credentials | **Not provided**; adapter tested offline only |
 | Verified staging test domain | **Not provided** |
 | DNS / receiving route confirmation | **Not done** (out of scope; the app makes no DNS changes) |
@@ -414,8 +414,8 @@ break-glass request UI and axe accessibility (blocker B8).
 | --- | --- | --- | --- |
 | B1 | P0 | httpOnly, short-lived HQ sessions (token is in `localStorage` + JS-readable cookie) | Auth migration across the admin app and API; security review |
 | B2 | P0 | MFA (TOTP) enrollment + recovery codes; step-up currently returns `MAIL_MFA_NOT_ENROLLED` | Enrollment UI/API, recovery flow, admin reset procedure |
-| B3 | P0 | Private object storage + KMS-backed keyring (filesystem/env keyring is staging-only) | Cloud bucket, KMS keys, rotation runbook, DB encryption at rest |
-| B4 | P0 | Malware scanner (clamd) provisioned; without it all attachments are quarantined | ClamAV service + health monitoring |
+| B3 | P0 | Private object storage + KMS-backed keyring. **Code ready** (S3 + aws-kms + rotation, section 11); infrastructure not provisioned | Infra owner applies `infrastructure/mail/storage` (bucket, KMS keys, IAM, secret store) per environment; DB encryption at rest; restore drill |
+| B4 | P0 | Malware scanner. **Code ready** (hardened clamd adapter, rescan, metrics, section 11); no clamd deployed | Deploy `infrastructure/mail/clamav` on a private network, run the manual "Mail ClamAV live" workflow, wire alerts |
 | B5 | P0 | Approved staging Admin DB migration (runbook) | Admin DB owner change window, backup, ledger pre-check |
 | B6 | P1 | Live Resend validation on a test domain (send, webhook signature, receiving route, idempotency) | Resend account owner, API key + webhook secret in secret store |
 | B7 | P1 | Domain / DNS (SPF, DKIM, DMARC, MX for receiving) for a **test** domain only | Domain owner; production MX out of scope |
@@ -423,3 +423,44 @@ break-glass request UI and axe accessibility (blocker B8).
 | B9 | P2 | Retention execution (sweeper honouring legal holds) | Records/legal policy, scheduled job |
 | B10 | P2 | Double opt-in confirmation email for marketing consent | Brand owners, consent policy versions; needs B6/B7 |
 | B11 | P2 | Marketing dispatch (M7) | Separate approval; depends on B6, B7, B10 |
+
+## 11. P0 storage, KMS and malware scanning (Workstreams C + D)
+
+Branch `claude/gallant-ramanujan-0h6e6b-mail-storage-scanner`, stacked on PR #13. There is
+no migration, and Mail flags and infrastructure are unchanged.
+
+- **Storage:** an S3-compatible private backend (`MAIL_STORAGE_PROVIDER=s3`).
+  - SigV4 signing with `node:crypto`, checked against the AWS reference vectors.
+  - Private ACL, SSE-S3 or SSE-KMS, `If-None-Match` immutable writes.
+  - An envelope SHA-256 checked on upload and on read.
+  - Bounded retries and timeouts, plus a cached HEAD and canary health check.
+  - No public or presigned URLs.
+- **KMS:** `MAIL_KMS_PROVIDER=aws-kms` keyring entries are KMS-wrapped data keys.
+  - They are unwrapped once with an environment- and version-bound encryption context.
+  - Mail fails closed until the unwrap succeeds or if it fails.
+  - Key material is never logged or exposed.
+- **Separation:** production requires s3, aws-kms, clamd and SSE. Buckets and KMS
+  aliases must carry their own environment marker and must not carry the other one.
+- **Rotation:** `mail:kms:generate-data-key` and `mail:keys:rotate`.
+  - Dry run by default, batched, resumable, compare-and-set.
+  - Audited with counts only.
+  - Covers bodies, attachments, drafts, previews and notes.
+- **Scanner:** strict clamd parsing (only `stream: OK` counts as clean).
+  - PING/VERSION health, connect timeout plus a hard deadline, a maximum stream size.
+  - Metrics, and an admin rescan path that never releases INFECTED files.
+- **Artifacts:** `infrastructure/mail/clamav`, `infrastructure/mail/storage` (policies
+  and example Terraform). Docs: `docs/cosmicforge-mail-storage-kms.md` and
+  `docs/cosmicforge-mail-malware-scanning.md`.
+- **Tests:**
+  - `tests/mail-infra.test.js` (offline S3, KMS and clamd fakes).
+  - New Postgres subtests: malware scanning and key rotation.
+  - The whole Mail Postgres suite also runs on the S3 backend (`npm run test:mail:s3`).
+  - Opt-in `tests/mail-clamd-live.test.js` with the manual workflow.
+
+Not done, and requiring separate approval:
+
+- creating buckets, KMS keys, IAM roles or secrets;
+- deploying clamd;
+- wiring alerts into monitoring;
+- Object Lock legal-hold sync (B9);
+- a restore drill.
