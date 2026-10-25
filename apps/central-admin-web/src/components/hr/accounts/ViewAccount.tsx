@@ -6,6 +6,7 @@ import { useHrmStore } from "@/stores/hrm.store";
 import { formatEnumLabel, AccountTier } from "@/types/hrm.types";
 import SectionGrantManager from "./SectionGrantManager";
 import PermissionChip from "./PermissionChip";
+import MailProvisioningCard from "./MailProvisioningCard";
 import { useRouter } from "next/navigation";
 
 const TIER_PERMISSIONS: Record<AccountTier, { heading: string; items: string[] }[]> = {
@@ -411,6 +412,8 @@ export default function ViewAccount({
             </div>
           </div>
         </div>
+
+        <MailProvisioningCard accountId={accountId} accountName={acc.name} />
 
         {/* Bottom action buttons */}
         <div className="grid grid-cols-2 gap-4 mt-2">

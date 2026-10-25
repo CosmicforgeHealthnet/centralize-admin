@@ -47,9 +47,18 @@ function loadMailConfig(env = process.env) {
     workerEnabled: enabled && flag(env.MAIL_WORKER_ENABLED),
     provider: String(env.MAIL_PROVIDER || "resend").trim().toLowerCase(),
     domainAllowlist: list(env.MAIL_DOMAIN_ALLOWLIST),
+    // Spec §19.7: organizations whose slug starts with one of these prefixes
+    // never send through the provider. Lifting it needs the HealthNet owner's
+    // and legal approval of a compliant provider (MAIL_RESTRICTED_HEALTH_PROVIDER_APPROVED).
+    restrictedHealth: {
+      organizations: list(env.MAIL_RESTRICTED_HEALTH_ORGANIZATIONS || "healthnet").map((entry) => entry.toLowerCase()),
+      providerApproved: flag(env.MAIL_RESTRICTED_HEALTH_PROVIDER_APPROVED),
+    },
     resend: {
       apiKey: String(env.RESEND_API_KEY || ""),
       webhookSecret: String(env.RESEND_WEBHOOK_SECRET || ""),
+      // Accepted alongside the current secret during a rotation grace period.
+      previousWebhookSecret: String(env.RESEND_WEBHOOK_SECRET_PREVIOUS || ""),
       baseUrl: String(env.RESEND_API_BASE_URL || "https://api.resend.com").replace(/\/+$/, ""),
       timeoutMs: intInRange(env.RESEND_TIMEOUT_MS, 15000, 1000, 60000),
       attachmentHostAllowlist: list(

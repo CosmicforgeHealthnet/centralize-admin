@@ -11,6 +11,8 @@ const { mailError } = require("../mail.errors");
 const policy = require("../authz/mail.policy");
 const { normalizeAddress } = require("../security/address.util");
 const { renderTemplate, TemplateError } = require("./template-renderer");
+const { scanLinks } = require("./link-scan");
+const { isRestrictedHealthOrganization } = require("../authz/sending-gate");
 const { parseCsv, neutralizeCell, isFormula } = require("./csv");
 const { iso, decodeCursor, encodeCursor, pageLimit } = require("../services/serializers");
 
@@ -48,6 +50,9 @@ function validateConsentInput(consent) {
   const evidence = consent.evidence;
   const reference = typeof evidence === "string" ? evidence : evidence?.reference;
   if (!reference || String(reference).trim().length < 3) throw mailError("MAIL_CONSENT_REQUIRED", { field: "consent.evidence" });
+  // Spec §13.4: record the jurisdiction the consent was captured in when known.
+  const country = consent.country ?? evidence?.country ?? null;
+  if (country != null && country !== "" && !/^[A-Z]{2}$/.test(String(country).toUpperCase())) throw mailError("MAIL_VALIDATION_FAILED", { field: "consent.country" });
   const consentedAt = consent.consentedAt ? new Date(consent.consentedAt) : null;
   if (consentedAt && (Number.isNaN(consentedAt.getTime()) || consentedAt > new Date())) throw mailError("MAIL_VALIDATION_FAILED", { field: "consent.consentedAt" });
   return {
@@ -60,6 +65,7 @@ function validateConsentInput(consent) {
       ipAddress: evidence?.ipAddress ? String(evidence.ipAddress).slice(0, 64) : null,
       formUrl: evidence?.formUrl ? String(evidence.formUrl).slice(0, 500) : null,
       capturedText: evidence?.capturedText ? String(evidence.capturedText).slice(0, 1000) : null,
+      country: country ? String(country).toUpperCase() : null,
     },
     consentedAt,
   };
@@ -213,14 +219,14 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     return { confirmed: true };
   }
 
-  async function importCsv(user, organizationId, { buffer, topic, source, policyVersion, evidenceReference, audienceId, attestOptIn }, context) {
+  async function importCsv(user, organizationId, { buffer, topic, source, policyVersion, evidenceReference, audienceId, attestOptIn, country }, context) {
     await scope(user, organizationId, "EDIT");
     if (!buffer || buffer.length > 2 * 1024 * 1024) throw mailError("MAIL_VALIDATION_FAILED", { field: "file", reason: "MAX_2MB" });
     // Purchased, scraped or unverifiable lists are not eligible: every import
     // must carry an evidence reference and an explicit opt-in attestation.
     if (String(attestOptIn) !== "true") throw mailError("MAIL_CONSENT_REQUIRED", { field: "attestOptIn" });
     if (!["WEB_FORM", "EVENT", "IMPORT"].includes(source)) throw mailError("MAIL_VALIDATION_FAILED", { field: "source" });
-    const baseConsent = validateConsentInput({ topic, source, policyVersion, evidence: evidenceReference });
+    const baseConsent = validateConsentInput({ topic, source, policyVersion, evidence: evidenceReference, country });
     let audience = null;
     if (audienceId) {
       audience = policy.isUuid(audienceId) ? await client.marketingAudience.findUnique({ where: { id: audienceId } }) : null;
@@ -677,13 +683,16 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     const add = (id, ok, detail) => checks.push({ id, ok, detail });
     const version = campaign.templateVersionId ? await client.marketingTemplateVersion.findUnique({ where: { id: campaign.templateVersionId }, include: { template: true } }) : null;
     add("template", Boolean(version && version.template.organizationId === campaign.organizationId), version ? `Template version ${version.version}` : "Select an approved template version");
-    const sender = campaign.senderAddressId ? await client.mailAddress.findUnique({ where: { id: campaign.senderAddressId }, include: { domain: true } }) : null;
+    const sender = campaign.senderAddressId ? await client.mailAddress.findUnique({ where: { id: campaign.senderAddressId }, include: { domain: { include: { organization: { select: { id: true, slug: true } } } } } }) : null;
     const senderOk = Boolean(sender && sender.organizationId === campaign.organizationId && sender.status === "ACTIVE" && ["SHARED", "SYSTEM", "ALIAS"].includes(sender.kind));
     add("sender_identity", senderOk, sender ? (senderOk ? sender.address : "Sender must be an active brand (non-personal) address") : "Select an approved sender identity");
     add("sender_domain_verified", Boolean(sender && sender.domain.status === "VERIFIED" && sender.domain.sendingStatus === "VERIFIED"), sender ? `${sender.domain.domain}: ${sender.domain.status}/${sender.domain.sendingStatus}` : "No sender");
     // Approval requires the same allowlist the dispatch gate enforces (M7
     // dispatch does not exist yet; this keeps approvals honest).
     const allowlisted = Boolean(sender && config.domainAllowlist.length && config.domainAllowlist.includes(sender.domain.domain));
+    // Spec §19.7: restricted-health brands never send through the provider.
+    const restricted = Boolean(sender && isRestrictedHealthOrganization(config, sender.domain.organization)) && !config.restrictedHealth?.providerApproved;
+    add("brand_provider_allowed", !restricted, restricted ? "Restricted-health brand: provider sending is not approved" : "Brand may use the provider");
     add("sender_domain_allowlisted", allowlisted, !config.domainAllowlist.length ? "MAIL_DOMAIN_ALLOWLIST is empty" : sender ? (allowlisted ? sender.domain.domain : `${sender.domain.domain} is not in MAIL_DOMAIN_ALLOWLIST`) : "No sender");
     let replyOk = true;
     let replyDetail = "Replies go to the sender address";
@@ -712,6 +721,8 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
       try {
         rendered = renderTemplate({ subject: campaign.subjectOverride || version.subject, preheader: version.preheader, blocks: version.blocks, brand: version.brand || {} });
         add("template_renders", true, `${rendered.variables.length} variables`);
+        const links = scanLinks(rendered.html);
+        add("links_safe", links.ok, links.ok ? `${links.linkCount} link(s) checked` : links.issues.slice(0, 5).map((issue) => `${issue.kind}: ${issue.detail}`).join("; "));
       } catch (error) {
         add("template_renders", false, error.code || "render failed");
       }

@@ -7,7 +7,7 @@
 
 const { leaseOwnerId } = require("./mail-job.repository");
 
-function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, queues = ["OUTBOUND", "INBOUND", "EVENTS"], setTimer = setTimeout, clearTimer = clearTimeout }) {
+function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, queues = ["OUTBOUND", "INBOUND", "EVENTS"], schemaReady = null, setTimer = setTimeout, clearTimer = clearTimeout }) {
   const leaseOwner = leaseOwnerId();
   const metrics = { claimed: 0, succeeded: 0, retried: 0, failed: 0, deadLettered: 0, recovered: 0, lastTickAt: null, lastError: null };
   let running = false;
@@ -39,6 +39,12 @@ function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, q
 
   async function tick() {
     metrics.lastTickAt = new Date().toISOString();
+    // Idle (claim nothing, touch no table) until the Mail schema exists.
+    if (schemaReady && !(await schemaReady())) {
+      metrics.schemaReady = false;
+      return 0;
+    }
+    metrics.schemaReady = true;
     const recovered = await jobs.recoverExpiredLeases();
     metrics.recovered += recovered.length;
     for (const entry of recovered) {

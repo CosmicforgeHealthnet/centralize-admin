@@ -66,6 +66,21 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
 
   router.get("/openapi.json", (req, res) => res.json(buildOpenApiDocument()));
 
+  // ---- liveness / readiness (spec §20): public, booleans only ----
+  router.get("/health/live", (req, res) => res.set("Cache-Control", "no-store").json({ success: true, data: { live: true } }));
+  router.get("/health/ready", asyncHandler(async (req, res) => {
+    const state = mail.readiness ? await mail.readiness() : { ready: true, enabled: config.enabled, checks: {} };
+    res.status(state.ready ? 200 : 503).set("Cache-Control", "no-store").json({ success: state.ready, data: state });
+  }));
+
+  // Every other Mail route: an enabled Mail without its schema answers an
+  // honest, retryable 503 instead of a database error (spec §22).
+  router.use(asyncHandler(async (req, res, next) => {
+    if (!config.enabled || !mail.schema) return next();
+    if (await mail.schema.isReady()) return next();
+    throw mailError("MAIL_SCHEMA_NOT_READY");
+  }));
+
   router.post("/public/consent/confirm", express.json({ limit: "2kb" }), asyncHandler(async (req, res) => ok(res, await marketing.confirmConsent(req.body?.token))));
 
   router.use(authenticate);
@@ -193,12 +208,17 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
   router.post("/admin/mailboxes/:mailboxId/suspend", asyncHandler(async (req, res) => ok(res, await admin.setMailboxStatus(user(req), req.params.mailboxId, "SUSPENDED", ctx(req)))));
   router.post("/admin/mailboxes/:mailboxId/reactivate", asyncHandler(async (req, res) => ok(res, await admin.setMailboxStatus(user(req), req.params.mailboxId, "ACTIVE", ctx(req)))));
   router.post("/admin/users/:adminUserId/offboard", asyncHandler(async (req, res) => ok(res, await admin.offboardUser(user(req), req.params.adminUserId, ctx(req)))));
+  router.get("/admin/sender-grants", asyncHandler(async (req, res) => ok(res, await admin.listSenderGrants(user(req), req.query))));
   router.post("/admin/sender-grants", asyncHandler(async (req, res) => ok(res, await admin.grantSender(user(req), body(req), ctx(req)), { status: 201 })));
   router.delete("/admin/sender-grants/:grantId", asyncHandler(async (req, res) => ok(res, await admin.revokeSender(user(req), req.params.grantId, ctx(req)))));
   router.get("/provisioning/requests", asyncHandler(async (req, res) => ok(res, await admin.listProvisionRequests(user(req)))));
   router.post("/provisioning/requests", asyncHandler(async (req, res) => ok(res, await admin.createProvisionRequest(user(req), body(req), ctx(req)), { status: 201 })));
   router.post("/provisioning/requests/:requestId/approve", asyncHandler(async (req, res) => ok(res, await admin.decideProvisionRequest(user(req), req.params.requestId, { approve: true, note: body(req).note }, ctx(req)))));
   router.post("/provisioning/requests/:requestId/reject", asyncHandler(async (req, res) => ok(res, await admin.decideProvisionRequest(user(req), req.params.requestId, { approve: false, note: body(req).note }, ctx(req)))));
+  router.get("/admin/audit-events", asyncHandler(async (req, res) => ok(res, await admin.listAuditEvents(user(req), req.query))));
+  router.get("/admin/webhook-events", asyncHandler(async (req, res) => ok(res, await admin.listWebhookEvents(user(req), req.query))));
+  router.get("/admin/delivery-events", asyncHandler(async (req, res) => ok(res, await admin.listDeliveryEvents(user(req), req.query))));
+  router.get("/admin/jobs", asyncHandler(async (req, res) => ok(res, await admin.listJobs(user(req), req.query))));
   router.get("/admin/legal-holds", asyncHandler(async (req, res) => ok(res, await admin.listLegalHolds(user(req)))));
   router.post("/admin/legal-holds", asyncHandler(async (req, res) => ok(res, await admin.createLegalHold(user(req), body(req), ctx(req)), { status: 201 })));
   router.post("/admin/legal-holds/:holdId/release", asyncHandler(async (req, res) => ok(res, await admin.releaseLegalHold(user(req), req.params.holdId, ctx(req)))));

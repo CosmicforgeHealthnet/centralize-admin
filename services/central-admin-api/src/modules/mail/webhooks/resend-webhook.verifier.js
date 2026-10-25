@@ -30,8 +30,9 @@ function decodeSecret(secret) {
 
 function verifyResendWebhook({ rawBody, headers, secret, toleranceSeconds = 300, maxBodyBytes = 262144, now = Date.now() }) {
   const fail = (reason) => ({ ok: false, reason });
-  const key = decodeSecret(secret);
-  if (!key) return fail("SECRET_NOT_CONFIGURED");
+  // `secret` may be a list during rotation (current first, then previous).
+  const keys = (Array.isArray(secret) ? secret : [secret]).map(decodeSecret).filter(Boolean);
+  if (!keys.length) return fail("SECRET_NOT_CONFIGURED");
   if (!Buffer.isBuffer(rawBody) || rawBody.length === 0) return fail("EMPTY_BODY");
   if (rawBody.length > maxBodyBytes) return fail("BODY_TOO_LARGE");
   const id = String(headers["svix-id"] || headers["webhook-id"] || "");
@@ -40,13 +41,14 @@ function verifyResendWebhook({ rawBody, headers, secret, toleranceSeconds = 300,
   if (!EVENT_ID.test(id) || !/^\d{1,12}$/.test(timestamp) || !signatureHeader) return fail("MISSING_HEADERS");
   const skew = Math.abs(Math.floor(now / 1000) - Number(timestamp));
   if (skew > toleranceSeconds) return fail("TIMESTAMP_OUT_OF_TOLERANCE");
-  const expected = crypto.createHmac("sha256", key).update(Buffer.concat([Buffer.from(`${id}.${timestamp}.`), rawBody])).digest();
+  const signed = Buffer.concat([Buffer.from(`${id}.${timestamp}.`), rawBody]);
+  const expectedList = keys.map((key) => crypto.createHmac("sha256", key).update(signed).digest());
   const candidates = signatureHeader.split(" ").map((part) => part.trim()).filter(Boolean);
   const matched = candidates.some((candidate) => {
     const [version, signature] = candidate.split(",");
     if (version !== "v1" || !signature) return false;
     const provided = Buffer.from(signature, "base64");
-    return provided.length === expected.length && crypto.timingSafeEqual(provided, expected);
+    return expectedList.some((expected) => provided.length === expected.length && crypto.timingSafeEqual(provided, expected));
   });
   if (!matched) return fail("SIGNATURE_MISMATCH");
   let payload;

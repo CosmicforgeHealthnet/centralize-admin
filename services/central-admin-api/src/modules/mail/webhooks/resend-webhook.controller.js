@@ -8,16 +8,18 @@
 const crypto = require("crypto");
 const { verifyResendWebhook } = require("./resend-webhook.verifier");
 
-function createResendWebhookHandler({ client, config, jobs, audit, logger, clock = () => Date.now() }) {
+function createResendWebhookHandler({ client, config, jobs, audit, logger, clock = () => Date.now(), schemaReady = null }) {
   return async function handleResendWebhook(req, res) {
     if (!config.enabled || (!config.receivingEnabled && !config.sendingEnabled)) {
       return res.status(503).json({ success: false, code: "MAIL_DISABLED", message: "Mail webhooks are not enabled" });
     }
+    // Not acknowledged until the schema exists: the provider retries later.
+    if (schemaReady && !(await schemaReady())) return res.status(503).json({ success: false, code: "MAIL_SCHEMA_NOT_READY", message: "Mail is not ready" });
     const rawBody = Buffer.isBuffer(req.rawBody) ? req.rawBody : Buffer.alloc(0);
     const verification = verifyResendWebhook({
       rawBody,
       headers: req.headers,
-      secret: config.resend.webhookSecret,
+      secret: [config.resend.webhookSecret, config.resend.previousWebhookSecret].filter(Boolean),
       toleranceSeconds: config.webhook.toleranceSeconds,
       maxBodyBytes: config.webhook.maxBodyBytes,
       now: clock(),

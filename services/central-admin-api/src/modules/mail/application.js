@@ -25,6 +25,7 @@ const { createInboundProcessor } = require("./pipelines/inbound.processor");
 const { createOutboundProcessor } = require("./pipelines/outbound.processor");
 const { createDeliveryEventProcessor } = require("./pipelines/delivery-event.processor");
 const { createResendWebhookHandler } = require("./webhooks/resend-webhook.controller");
+const { createMailSchemaReadiness } = require("./schema-readiness");
 
 async function unwrapKeyring({ config, encryption, logger, kmsClient }) {
   const { resolveMailKeyring, createAwsKmsClient } = require("./security/kms-keyring");
@@ -53,6 +54,7 @@ async function unwrapKeyring({ config, encryption, logger, kmsClient }) {
 
 function createMailApplication({ client, env = process.env, config = loadMailConfig(env), adapter, storageBackend, scanner, encryption, kmsClient, mfa, authSchema, logger = console, clock = () => new Date() } = {}) {
   if (!client) client = require("../../shared/config/database").prisma;
+  const schema = createMailSchemaReadiness({ client, logger });
   const useKms = !encryption && config.kms?.provider === "aws-kms";
   const resolvedEncryption = encryption || createMailEncryption(useKms ? { deferred: true } : config.encryption);
   // KMS-wrapped data keys are unwrapped once, asynchronously. Until then (or if
@@ -86,6 +88,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
       logger,
       handlers: { SEND_MESSAGE: outbound.process, PROCESS_INBOUND: inbound.process, PROCESS_DELIVERY_EVENT: deliveryEvents.process },
       onDeadLetter: { SEND_MESSAGE: outbound.onDeadLetter },
+      schemaReady: schema.isReady,
       ...options,
     });
   }
@@ -119,9 +122,22 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
     jobs,
     services: { mailbox, compose, admin, support, marketing, stepUp, breakGlass, attachmentReview },
     processors: { inbound, outbound, deliveryEvents },
-    webhookHandler: createResendWebhookHandler({ client, config, jobs, audit, logger, clock: () => clock().getTime() }),
+    webhookHandler: createResendWebhookHandler({ client, config, jobs, audit, logger, clock: () => clock().getTime(), schemaReady: schema.isReady }),
     createWorker,
     health,
+    schema,
+    // Public readiness (booleans only; never secrets or migration names).
+    readiness: async () => {
+      if (!config.enabled) return { ready: true, enabled: false, checks: {} };
+      const schemaState = await schema.check();
+      const checks = {
+        schema: schemaState.ready,
+        encryption: Boolean(resolvedEncryption.available),
+        storage: Boolean(storage.available),
+        infrastructure: infrastructureViolations(config).length === 0,
+      };
+      return { ready: Object.values(checks).every(Boolean), enabled: true, checks };
+    },
     ready: () => keyringReady,
   };
 }
