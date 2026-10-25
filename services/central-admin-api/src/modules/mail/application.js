@@ -51,7 +51,7 @@ async function unwrapKeyring({ config, encryption, logger, kmsClient }) {
   }
 }
 
-function createMailApplication({ client, env = process.env, config = loadMailConfig(env), adapter, storageBackend, scanner, encryption, kmsClient, logger = console, clock = () => new Date() } = {}) {
+function createMailApplication({ client, env = process.env, config = loadMailConfig(env), adapter, storageBackend, scanner, encryption, kmsClient, mfa, authSchema, logger = console, clock = () => new Date() } = {}) {
   if (!client) client = require("../../shared/config/database").prisma;
   const useKms = !encryption && config.kms?.provider === "aws-kms";
   const resolvedEncryption = encryption || createMailEncryption(useKms ? { deferred: true } : config.encryption);
@@ -65,7 +65,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const notifications = createMailNotifications({ client, logger });
   const store = createMessageStore({ client, storage, config, encryption: resolvedEncryption });
   const jobs = createMailJobRepository({ client, clock });
-  const stepUp = createStepUpService({ client, config, clock, audit });
+  const stepUp = createStepUpService({ client, config, clock, audit, mfa, authSchema, env, logger });
   const breakGlass = createBreakGlassService({ client, stepUp, audit, clock });
   const mailbox = createMailboxService({ client, config, store, audit });
   const providerReady = () => resolvedAdapter.name !== "unconfigured";

@@ -8,7 +8,7 @@ const { sanitizeEmailHtml } = require("../security/html-sanitizer");
 const { normalizeAddress, parsePartyList } = require("../security/address.util");
 const { assertHeaderSafe, normalizeSubject, parseReferences, normalizeMessageId } = require("../security/header-safety");
 const { createMailEncryption } = require("../security/mail-encryption.service");
-const { matchTotp, totpAt, decodeBase32 } = require("../authz/step-up.service");
+const { matchTotp, totpAt, decodeBase32 } = require("../../../shared/auth/mfa-core");
 const { renderTemplate } = require("../marketing/template-renderer");
 const { parseCsv, neutralizeCell } = require("../marketing/csv");
 const { policyCheck, evaluateAttachment, signatureScanner, unavailableScanner, EICAR } = require("../scanning/attachment-scanner");
@@ -112,9 +112,10 @@ test("TOTP step-up matches RFC 6238 vectors and rejects malformed codes", () => 
   // RFC 6238 SHA-1 secret "12345678901234567890" at T=59s -> 94287082 (8 digits) => 287082 (6 digits)
   const secret = Buffer.from("12345678901234567890");
   assert.equal(totpAt(secret, Math.floor(59 / 30)), "287082");
-  assert.equal(matchTotp(secret, "287082", { now: 59000 }), 1);
-  assert.equal(matchTotp(secret, "000000", { now: 59000 }), null);
-  assert.equal(matchTotp(secret, "28708", { now: 59000 }), null);
+  // Mail step-up now uses the shared HQ verifier (src/shared/auth/mfa-core).
+  assert.equal(matchTotp(secret, "287082", 59000), 1);
+  assert.equal(matchTotp(secret, "000000", 59000), null);
+  assert.equal(matchTotp(secret, "28708", 59000), null);
   assert.equal(decodeBase32("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ").toString(), "12345678901234567890");
   assert.equal(decodeBase32("not base32!"), null);
 });

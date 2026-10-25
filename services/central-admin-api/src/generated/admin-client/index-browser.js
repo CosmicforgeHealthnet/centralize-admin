@@ -2446,7 +2446,8 @@ exports.Prisma.MailStepUpVerificationScalarFieldEnum = {
   expiresAt: 'expiresAt',
   consumedAt: 'consumedAt',
   totpCounter: 'totpCounter',
-  ipAddress: 'ipAddress'
+  ipAddress: 'ipAddress',
+  sessionId: 'sessionId'
 };
 
 exports.Prisma.MailBreakGlassRequestScalarFieldEnum = {

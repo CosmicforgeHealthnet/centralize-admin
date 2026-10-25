@@ -764,7 +764,7 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     const result = await preflight(campaign);
     if (!result.ok) throw mailError("MAIL_PREFLIGHT_FAILED", { checks: result.checks.filter((check) => !check.ok) });
     const row = await client.$transaction(async (tx) => {
-      const consumed = await stepUp.consume(tx, user, stepUpId, "MARKETING_CAMPAIGN_APPROVAL");
+      const consumed = await stepUp.consume(tx, user, stepUpId, "MARKETING_CAMPAIGN_APPROVAL", context);
       const submission = await tx.marketingCampaignSnapshot.findUnique({ where: { campaignId_revision_kind: { campaignId, revision: campaign.revision, kind: "SUBMISSION" } } });
       const snapshot = await createSnapshot(tx, user, campaign, result, "APPROVAL");
       // Approval binds exactly the reviewed content.

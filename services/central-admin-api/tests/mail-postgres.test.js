@@ -20,13 +20,17 @@ const { createFakeAdapter } = require("../src/modules/mail/adapters/fake.adapter
 const { memoryBackend } = require("../src/modules/mail/storage/mail-storage");
 const { signatureScanner, EICAR } = require("../src/modules/mail/scanning/attachment-scanner");
 const { signResendWebhook } = require("../src/modules/mail/webhooks/resend-webhook.verifier");
-const { totpAt, decodeBase32 } = require("../src/modules/mail/authz/step-up.service");
+const { totpAt, decodeBase32, encryptSecret } = require("../src/shared/auth/mfa-core");
 const { errorHandler } = require("../src/shared/middlewares/error.middleware");
 const { closeServer } = require("./helpers/server-close");
 
 const BASE_DATABASE_URL = process.env.DATABASE_URL;
 const WEBHOOK_SECRET = `whsec_${crypto.randomBytes(24).toString("base64")}`;
 const TOTP_SECRET = "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP";
+// Shared HQ MFA keyring for this test process (verified enrollments are stored encrypted).
+process.env.AUTH_MFA_ENCRYPTION_KEYS = `t1:${crypto.randomBytes(32).toString("base64")}`;
+// Per-user live HQ session ids (admin_sessions), used by the test authenticator.
+const SESSIONS = new Map();
 
 const USERS = {
   super: { tier: "SUPER", name: "Super Admin" },
@@ -55,9 +59,15 @@ async function seedUsers(client) {
       data: {
         id: ids[key], email: `${key}@staff.example.invalid`, password: "test-only-hash", name: spec.name, tier: spec.tier,
         status: spec.status || "ACTIVE", mustChangePassword: false,
+        // Legacy plaintext columns are set on purpose: Mail must ignore them.
         twoFactorEnabled: Boolean(spec.twoFactor), twoFactorSecret: spec.twoFactor ? TOTP_SECRET : null,
       },
     });
+    if (spec.twoFactor) {
+      await client.adminMfaEnrollment.create({ data: { adminUserId: ids[key], enrolledAt: new Date(Date.now() - 86400000), secretEncrypted: encryptSecret(decodeBase32(TOTP_SECRET), ids[key]), updatedAt: new Date() } });
+    }
+    const session = await client.adminSession.create({ data: { id: crypto.randomUUID(), adminUserId: ids[key], mode: "dual", authMethod: "PASSWORD", csrfNonce: crypto.randomBytes(16).toString("hex"), idleExpiresAt: new Date(Date.now() + 3650 * 86400000), absoluteExpiresAt: new Date(Date.now() + 3650 * 86400000) } });
+    SESSIONS.set(ids[key], session.id);
   }
   const grant = (adminUserId, module, section, mode = "EDIT") => client.adminSectionGrant.create({ data: { adminUserId, module, section, mode, grantedBy: ids.super } });
   await grant(ids.mailAdmin, "mail", "admin");
@@ -98,6 +108,9 @@ function createHarness(client, { storageBackend } = {}) {
       if (!user) return res.status(401).json({ success: false });
       if (user.status === "INACTIVE" || user.status === "LOCKED") return res.status(403).json({ success: false });
       req.adminUser = user;
+      // x-test-session overrides (e.g. "none" = legacy session-less token).
+      const override = req.get("x-test-session");
+      req.authSession = { id: override === "none" ? null : override || SESSIONS.get(user.id) || null, mfaVerifiedAt: null, mfaEnrolled: false };
       return next();
     } catch (error) {
       return next(error);
@@ -529,6 +542,81 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       assert.equal((await call("frank", "POST", `/mailboxes/${state.aliceBox}/drafts`, { to: ["x@y.example"] })).status, 403);
       await client.mailBreakGlassRequest.update({ where: { id: request.body.data.id }, data: { accessExpiresAt: new Date(Date.now() - 1000) } });
       assert.equal((await call("frank", "GET", `/mailboxes/${state.aliceBox}/threads`)).status, 404, "access expires");
+    });
+
+    await t.test("Stage A3: Mail step-up runs on the shared HQ MFA (session-bound, fail-closed)", async () => {
+      const newSession = async (adminUserId) => (await client.adminSession.create({ data: { id: crypto.randomUUID(), adminUserId, mode: "dual", authMethod: "PASSWORD", csrfNonce: "n", idleExpiresAt: new Date(harness.clock().getTime() + 3650 * 86400000), absoluteExpiresAt: new Date(harness.clock().getTime() + 3650 * 86400000) } })).id;
+      const makeUser = async (key, { enrolled = false, legacyPlaintext = false } = {}) => {
+        const id = crypto.randomUUID();
+        await client.adminUser.create({ data: { id, email: `${key}@staff.example.invalid`, password: "test-only-hash", name: key, tier: "ADMIN", status: "ACTIVE", mustChangePassword: false, twoFactorEnabled: legacyPlaintext, twoFactorSecret: legacyPlaintext ? TOTP_SECRET : null } });
+        if (enrolled) await client.adminMfaEnrollment.create({ data: { adminUserId: id, enrolledAt: new Date(Date.now() - 86400000), secretEncrypted: encryptSecret(decodeBase32(TOTP_SECRET), id), updatedAt: new Date() } });
+        await client.adminSectionGrant.create({ data: { adminUserId: id, module: "mail", section: "break-glass-request", mode: "EDIT", grantedBy: ids.super } });
+        ids[key] = id;
+        SESSIONS.set(id, await newSession(id));
+        return id;
+      };
+      const request = (key, stepUpId, headers = {}) => call(key, "POST", "/break-glass/requests", { mailboxId: state.aliceBox, justification: "Stage A3 shared MFA verification of break-glass", caseReference: `A3-${crypto.randomUUID().slice(0, 8)}`, stepUpId }, headers);
+      const step = (key, headers = {}, code = totp(harness.clock), purpose = "BREAK_GLASS_REQUEST") => call(key, "POST", "/security/step-up", { code, purpose }, headers);
+
+      // Legacy plaintext twoFactorSecret alone is never MFA evidence.
+      await makeUser("legacy2fa", { legacyPlaintext: true });
+      assert.equal((await step("legacy2fa")).body.code, "MAIL_MFA_NOT_ENROLLED");
+
+      // Session-less (legacy) tokens cannot step up.
+      await makeUser("investigator", { enrolled: true });
+      harness.advance(31000);
+      const legacy = await step("investigator", { "x-test-session": "none" });
+      assert.equal(legacy.body.code, "MAIL_MFA_SESSION_REQUIRED", legacy.text);
+
+      // Bound to the session it was verified on.
+      const ok = await step("investigator");
+      assert.equal(ok.status, 201, ok.text);
+      const otherSession = await newSession(ids.investigator);
+      assert.equal((await request("investigator", ok.body.data.stepUpId, { "x-test-session": otherSession })).body.code, "MAIL_STEP_UP_REQUIRED", "another session cannot use it");
+      // Purpose-bound.
+      assert.equal((await call("investigator", "POST", "/break-glass/requests/00000000-0000-4000-8000-000000000000/approve", { stepUpId: ok.body.data.stepUpId })).status >= 403, true);
+      // Session revocation (logout / password change / deactivation) voids it.
+      await client.adminSession.update({ where: { id: SESSIONS.get(ids.investigator) }, data: { revokedAt: new Date(), revokeReason: "LOGOUT" } });
+      assert.equal((await request("investigator", ok.body.data.stepUpId)).body.code, "MAIL_STEP_UP_REQUIRED", "revoked session");
+      SESSIONS.set(ids.investigator, await newSession(ids.investigator));
+
+      // MFA reset between verification and use voids it.
+      harness.advance(31000);
+      const beforeReset = await step("investigator");
+      assert.equal(beforeReset.status, 201, beforeReset.text);
+      const enrollment = await client.adminMfaEnrollment.findUnique({ where: { adminUserId: ids.investigator } });
+      await client.adminMfaEnrollment.delete({ where: { adminUserId: ids.investigator } });
+      assert.equal((await request("investigator", beforeReset.body.data.stepUpId)).body.code, "MAIL_STEP_UP_REQUIRED", "MFA reset");
+      await client.adminMfaEnrollment.create({ data: { ...enrollment, enrolledAt: new Date(harness.clock().getTime() + 1000) } });
+      assert.equal((await request("investigator", beforeReset.body.data.stepUpId)).body.code, "MAIL_STEP_UP_REQUIRED", "re-enrollment does not revive an older step-up");
+
+      // Expiry.
+      harness.advance(31000);
+      const expiring = await step("investigator");
+      assert.equal(expiring.status, 201, expiring.text);
+      harness.advance(301000);
+      assert.equal((await request("investigator", expiring.body.data.stepUpId)).body.code, "MAIL_STEP_UP_REQUIRED", "expired");
+
+      // Positive path still works end to end and is audited in both systems.
+      harness.advance(31000);
+      const good = await step("investigator");
+      const created = await request("investigator", good.body.data.stepUpId);
+      assert.equal(created.status, 201, created.text);
+      const stepUpRow = await client.mailStepUpVerification.findUnique({ where: { id: good.body.data.stepUpId } });
+      assert.equal(stepUpRow.sessionId, SESSIONS.get(ids.investigator));
+      assert.ok(stepUpRow.consumedAt);
+      // The step-up did not grant general session MFA freshness.
+      assert.equal((await client.adminSession.findUnique({ where: { id: SESSIONS.get(ids.investigator) } })).mfaVerifiedAt, null);
+
+      // Recovery codes are refused; repeated failures lock via the shared limiter.
+      await makeUser("locker", { enrolled: true });
+      assert.equal((await step("locker", {}, "ABCDE-FGHJK")).body.code, "MAIL_MFA_INVALID");
+      for (let attempt = 0; attempt < 4; attempt += 1) await step("locker", {}, "000000");
+      const locked = await step("locker");
+      assert.equal(locked.status, 429, locked.text);
+      assert.equal(locked.body.code, "MAIL_MFA_LOCKED");
+      assert.ok(await client.adminAuthEvent.count({ where: { adminUserId: ids.locker, action: "MFA_LOCKED" } }) >= 1, "shared auth audit records the lockout");
+      assert.ok(await client.mailAuditEvent.count({ where: { actorAdminUserId: ids.locker, action: "MAIL_STEP_UP_FAILED" } }) >= 1);
     });
 
     await t.test("Remediation: mixed internal/external recipients reach the provider exactly once, external only", async () => {

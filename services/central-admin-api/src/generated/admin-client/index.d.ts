@@ -198794,6 +198794,7 @@ export namespace Prisma {
     consumedAt: Date | null
     totpCounter: bigint | null
     ipAddress: string | null
+    sessionId: string | null
   }
 
   export type MailStepUpVerificationMaxAggregateOutputType = {
@@ -198806,6 +198807,7 @@ export namespace Prisma {
     consumedAt: Date | null
     totpCounter: bigint | null
     ipAddress: string | null
+    sessionId: string | null
   }
 
   export type MailStepUpVerificationCountAggregateOutputType = {
@@ -198818,6 +198820,7 @@ export namespace Prisma {
     consumedAt: number
     totpCounter: number
     ipAddress: number
+    sessionId: number
     _all: number
   }
 
@@ -198840,6 +198843,7 @@ export namespace Prisma {
     consumedAt?: true
     totpCounter?: true
     ipAddress?: true
+    sessionId?: true
   }
 
   export type MailStepUpVerificationMaxAggregateInputType = {
@@ -198852,6 +198856,7 @@ export namespace Prisma {
     consumedAt?: true
     totpCounter?: true
     ipAddress?: true
+    sessionId?: true
   }
 
   export type MailStepUpVerificationCountAggregateInputType = {
@@ -198864,6 +198869,7 @@ export namespace Prisma {
     consumedAt?: true
     totpCounter?: true
     ipAddress?: true
+    sessionId?: true
     _all?: true
   }
 
@@ -198963,6 +198969,7 @@ export namespace Prisma {
     consumedAt: Date | null
     totpCounter: bigint | null
     ipAddress: string | null
+    sessionId: string | null
     _count: MailStepUpVerificationCountAggregateOutputType | null
     _avg: MailStepUpVerificationAvgAggregateOutputType | null
     _sum: MailStepUpVerificationSumAggregateOutputType | null
@@ -198994,6 +199001,7 @@ export namespace Prisma {
     consumedAt?: boolean
     totpCounter?: boolean
     ipAddress?: boolean
+    sessionId?: boolean
   }, ExtArgs["result"]["mailStepUpVerification"]>
 
   export type MailStepUpVerificationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -199006,6 +199014,7 @@ export namespace Prisma {
     consumedAt?: boolean
     totpCounter?: boolean
     ipAddress?: boolean
+    sessionId?: boolean
   }, ExtArgs["result"]["mailStepUpVerification"]>
 
   export type MailStepUpVerificationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -199018,6 +199027,7 @@ export namespace Prisma {
     consumedAt?: boolean
     totpCounter?: boolean
     ipAddress?: boolean
+    sessionId?: boolean
   }, ExtArgs["result"]["mailStepUpVerification"]>
 
   export type MailStepUpVerificationSelectScalar = {
@@ -199030,9 +199040,10 @@ export namespace Prisma {
     consumedAt?: boolean
     totpCounter?: boolean
     ipAddress?: boolean
+    sessionId?: boolean
   }
 
-  export type MailStepUpVerificationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "adminUserId" | "method" | "purpose" | "verifiedAt" | "expiresAt" | "consumedAt" | "totpCounter" | "ipAddress", ExtArgs["result"]["mailStepUpVerification"]>
+  export type MailStepUpVerificationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "adminUserId" | "method" | "purpose" | "verifiedAt" | "expiresAt" | "consumedAt" | "totpCounter" | "ipAddress" | "sessionId", ExtArgs["result"]["mailStepUpVerification"]>
 
   export type $MailStepUpVerificationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "MailStepUpVerification"
@@ -199047,6 +199058,7 @@ export namespace Prisma {
       consumedAt: Date | null
       totpCounter: bigint | null
       ipAddress: string | null
+      sessionId: string | null
     }, ExtArgs["result"]["mailStepUpVerification"]>
     composites: {}
   }
@@ -199479,6 +199491,7 @@ export namespace Prisma {
     readonly consumedAt: FieldRef<"MailStepUpVerification", 'DateTime'>
     readonly totpCounter: FieldRef<"MailStepUpVerification", 'BigInt'>
     readonly ipAddress: FieldRef<"MailStepUpVerification", 'String'>
+    readonly sessionId: FieldRef<"MailStepUpVerification", 'String'>
   }
     
 
@@ -216986,7 +216999,8 @@ export namespace Prisma {
     expiresAt: 'expiresAt',
     consumedAt: 'consumedAt',
     totpCounter: 'totpCounter',
-    ipAddress: 'ipAddress'
+    ipAddress: 'ipAddress',
+    sessionId: 'sessionId'
   };
 
   export type MailStepUpVerificationScalarFieldEnum = (typeof MailStepUpVerificationScalarFieldEnum)[keyof typeof MailStepUpVerificationScalarFieldEnum]
@@ -234005,6 +234019,7 @@ export namespace Prisma {
     consumedAt?: DateTimeNullableFilter<"MailStepUpVerification"> | Date | string | null
     totpCounter?: BigIntNullableFilter<"MailStepUpVerification"> | bigint | number | null
     ipAddress?: StringNullableFilter<"MailStepUpVerification"> | string | null
+    sessionId?: UuidNullableFilter<"MailStepUpVerification"> | string | null
   }
 
   export type MailStepUpVerificationOrderByWithRelationInput = {
@@ -234017,6 +234032,7 @@ export namespace Prisma {
     consumedAt?: SortOrderInput | SortOrder
     totpCounter?: SortOrderInput | SortOrder
     ipAddress?: SortOrderInput | SortOrder
+    sessionId?: SortOrderInput | SortOrder
   }
 
   export type MailStepUpVerificationWhereUniqueInput = Prisma.AtLeast<{
@@ -234033,6 +234049,7 @@ export namespace Prisma {
     consumedAt?: DateTimeNullableFilter<"MailStepUpVerification"> | Date | string | null
     totpCounter?: BigIntNullableFilter<"MailStepUpVerification"> | bigint | number | null
     ipAddress?: StringNullableFilter<"MailStepUpVerification"> | string | null
+    sessionId?: UuidNullableFilter<"MailStepUpVerification"> | string | null
   }, "id" | "adminUserId_totpCounter">
 
   export type MailStepUpVerificationOrderByWithAggregationInput = {
@@ -234045,6 +234062,7 @@ export namespace Prisma {
     consumedAt?: SortOrderInput | SortOrder
     totpCounter?: SortOrderInput | SortOrder
     ipAddress?: SortOrderInput | SortOrder
+    sessionId?: SortOrderInput | SortOrder
     _count?: MailStepUpVerificationCountOrderByAggregateInput
     _avg?: MailStepUpVerificationAvgOrderByAggregateInput
     _max?: MailStepUpVerificationMaxOrderByAggregateInput
@@ -234065,6 +234083,7 @@ export namespace Prisma {
     consumedAt?: DateTimeNullableWithAggregatesFilter<"MailStepUpVerification"> | Date | string | null
     totpCounter?: BigIntNullableWithAggregatesFilter<"MailStepUpVerification"> | bigint | number | null
     ipAddress?: StringNullableWithAggregatesFilter<"MailStepUpVerification"> | string | null
+    sessionId?: UuidNullableWithAggregatesFilter<"MailStepUpVerification"> | string | null
   }
 
   export type MailBreakGlassRequestWhereInput = {
@@ -252132,6 +252151,7 @@ export namespace Prisma {
     consumedAt?: Date | string | null
     totpCounter?: bigint | number | null
     ipAddress?: string | null
+    sessionId?: string | null
   }
 
   export type MailStepUpVerificationUncheckedCreateInput = {
@@ -252144,6 +252164,7 @@ export namespace Prisma {
     consumedAt?: Date | string | null
     totpCounter?: bigint | number | null
     ipAddress?: string | null
+    sessionId?: string | null
   }
 
   export type MailStepUpVerificationUpdateInput = {
@@ -252156,6 +252177,7 @@ export namespace Prisma {
     consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     totpCounter?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    sessionId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type MailStepUpVerificationUncheckedUpdateInput = {
@@ -252168,6 +252190,7 @@ export namespace Prisma {
     consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     totpCounter?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    sessionId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type MailStepUpVerificationCreateManyInput = {
@@ -252180,6 +252203,7 @@ export namespace Prisma {
     consumedAt?: Date | string | null
     totpCounter?: bigint | number | null
     ipAddress?: string | null
+    sessionId?: string | null
   }
 
   export type MailStepUpVerificationUpdateManyMutationInput = {
@@ -252192,6 +252216,7 @@ export namespace Prisma {
     consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     totpCounter?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    sessionId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type MailStepUpVerificationUncheckedUpdateManyInput = {
@@ -252204,6 +252229,7 @@ export namespace Prisma {
     consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     totpCounter?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    sessionId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type MailBreakGlassRequestCreateInput = {
@@ -265403,6 +265429,7 @@ export namespace Prisma {
     consumedAt?: SortOrder
     totpCounter?: SortOrder
     ipAddress?: SortOrder
+    sessionId?: SortOrder
   }
 
   export type MailStepUpVerificationAvgOrderByAggregateInput = {
@@ -265419,6 +265446,7 @@ export namespace Prisma {
     consumedAt?: SortOrder
     totpCounter?: SortOrder
     ipAddress?: SortOrder
+    sessionId?: SortOrder
   }
 
   export type MailStepUpVerificationMinOrderByAggregateInput = {
@@ -265431,6 +265459,7 @@ export namespace Prisma {
     consumedAt?: SortOrder
     totpCounter?: SortOrder
     ipAddress?: SortOrder
+    sessionId?: SortOrder
   }
 
   export type MailStepUpVerificationSumOrderByAggregateInput = {

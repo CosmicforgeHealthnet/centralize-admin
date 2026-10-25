@@ -23,7 +23,7 @@ function createBreakGlassService({ client, stepUp, audit, clock = () => new Date
     const mailbox = await client.mailMailbox.findUnique({ where: { id: input.mailboxId } });
     if (!mailbox) throw mailError("MAIL_NOT_FOUND", { resource: "mailbox" });
     return client.$transaction(async (tx) => {
-      const stepUpId = await stepUp.consume(tx, user, input.stepUpId, "BREAK_GLASS_REQUEST");
+      const stepUpId = await stepUp.consume(tx, user, input.stepUpId, "BREAK_GLASS_REQUEST", context);
       const row = await tx.mailBreakGlassRequest.create({
         data: { mailboxId: mailbox.id, requesterAdminUserId: user.id, justification: justification.slice(0, 2000), caseReference, requesterStepUpId: stepUpId },
       });
@@ -42,7 +42,7 @@ function createBreakGlassService({ client, stepUp, audit, clock = () => new Date
     const minutes = Math.min(Math.max(Number(durationMinutes) || 60, 5), MAX_MINUTES);
     const now = clock();
     return client.$transaction(async (tx) => {
-      const consumed = approve ? await stepUp.consume(tx, user, stepUpId, "BREAK_GLASS_APPROVAL") : null;
+      const consumed = approve ? await stepUp.consume(tx, user, stepUpId, "BREAK_GLASS_APPROVAL", context) : null;
       const updated = await tx.mailBreakGlassRequest.updateMany({
         where: { id: requestId, status: "PENDING" },
         data: {

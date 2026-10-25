@@ -4676,8 +4676,12 @@ model MailStepUpVerification {
   consumedAt  DateTime? @map("consumed_at") @db.Timestamptz(6)
   totpCounter BigInt?   @map("totp_counter")
   ipAddress   String?   @map("ip_address") @db.VarChar(64)
+  // HQ session (admin_sessions.id) the step-up was verified on; consumption
+  // requires the same live session. NULL only for rows created before M7.
+  sessionId   String?   @map("session_id") @db.Uuid
 
   @@unique([adminUserId, totpCounter], map: "UQ_mail_step_up_user_totp_counter")
+  @@index([sessionId], map: "IDX_mail_step_up_session")
   @@index([adminUserId, purpose, expiresAt], map: "IDX_mail_step_up_user_purpose_expires")
   @@map("mail_step_up_verifications")
 }

@@ -142,6 +142,11 @@
       "order": 28,
       "file": "20261025_add_admin_sessions_mfa.sql",
       "sha256": "e8d1b5537677367aed24c2a09191bb95568cde2ad14d6b4d62c6fa083adbf883"
+    },
+    {
+      "order": 29,
+      "file": "20261026_mail_step_up_session_binding.sql",
+      "sha256": "5bfc3b52d1eb6d4dd957d139045f1bddecb00f818c2d856997c30be8cdf56fbf"
     }
   ]
 }

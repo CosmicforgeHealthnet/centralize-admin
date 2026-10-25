@@ -13,8 +13,10 @@ const policy = require("../authz/mail.policy");
 const { publicStatus } = require("../mail.config");
 const { buildOpenApiDocument } = require("../openapi/mail.openapi");
 
+// Request context passed to services. sessionId binds MFA step-ups to the
+// caller's live HQ session (null for legacy, session-less tokens).
 function ctx(req) {
-  return { requestId: req.correlationId || null, ipAddress: req.ip || null };
+  return { requestId: req.correlationId || null, ipAddress: req.ip || null, sessionId: req.authSession?.id || null };
 }
 
 function ok(res, data, { status = 200, message = "OK", meta = null } = {}) {
