@@ -40,12 +40,19 @@ function accessPayload(user, session) {
   return { sub: user.id, email: user.email, tier: user.tier, name: user.name, isTeamLead: user.isTeamLead, sid: session.id };
 }
 
-function createSessionService({ client, clock = () => new Date(), env = process.env, audit = async () => {} } = {}) {
+// Only call the service once getAuthRuntime().ready is true: it reads and
+// writes the session tables added by migration 20261025.
+function createSessionService({ client, clock = () => new Date(), env = process.env, events = async () => {} } = {}) {
   if (!client) throw new Error("createSessionService requires a Prisma client");
   const config = () => loadSessionConfig(env);
 
   function isLive(session, now = clock()) {
     return Boolean(session && !session.revokedAt && session.idleExpiresAt > now && session.absoluteExpiresAt > now);
+  }
+
+  async function revokeTokensOfSessions(ids, now = clock()) {
+    if (!ids.length) return;
+    await client.adminSessionRefreshToken.updateMany({ where: { sessionId: { in: ids }, revokedAt: null }, data: { revokedAt: now } });
   }
 
   async function enforceCap(adminUserId, cfg) {
@@ -59,7 +66,7 @@ function createSessionService({ client, clock = () => new Date(), env = process.
     if (excess > 0) {
       const ids = active.slice(0, excess).map((row) => row.id);
       await client.adminSession.updateMany({ where: { id: { in: ids }, revokedAt: null }, data: { revokedAt: now, revokeReason: "SESSION_LIMIT" } });
-      await client.refreshToken.updateMany({ where: { sessionId: { in: ids } }, data: { isRevoked: true } });
+      await revokeTokensOfSessions(ids, now);
     }
   }
 
@@ -67,16 +74,22 @@ function createSessionService({ client, clock = () => new Date(), env = process.
     const cfg = config();
     const now = clock();
     const refreshToken = crypto.randomBytes(32).toString("base64url");
-    const refreshExpiresAt = session.absoluteExpiresAt;
-    await client.refreshToken.create({
-      data: { token: sha256(refreshToken), adminUserId: user.id, sessionId: session.id, expiresAt: refreshExpiresAt, ipAddress, userAgent },
+    await client.adminSessionRefreshToken.create({
+      data: {
+        sessionId: session.id,
+        adminUserId: user.id,
+        tokenHash: sha256(refreshToken),
+        expiresAt: session.absoluteExpiresAt,
+        ipAddress: ipAddress ? String(ipAddress).slice(0, 64) : null,
+        userAgent: userAgent ? String(userAgent).slice(0, 512) : null,
+      },
     });
     const accessTtlSeconds = Math.max(1, Math.min(cfg.accessTokenTtlSeconds, Math.floor((session.absoluteExpiresAt - now) / 1000)));
     return {
       accessToken: generateAccessToken(accessPayload(user, session), { expiresInSeconds: accessTtlSeconds }),
       refreshToken,
       accessTtlSeconds,
-      refreshTtlMs: Math.max(0, refreshExpiresAt - now),
+      refreshTtlMs: Math.max(0, session.absoluteExpiresAt - now),
       csrfToken: csrfTokenFor(session, env),
     };
   }
@@ -102,7 +115,7 @@ function createSessionService({ client, clock = () => new Date(), env = process.
       },
     });
     await enforceCap(user.id, cfg);
-    await audit({ adminUserId: user.id, action: "SESSION_CREATED", targetId: session.id, targetType: "admin_session", metadata: { authMethod, mode: cfg.mode, mfaVerified } });
+    await events({ adminUserId: user.id, action: "SESSION_CREATED", targetId: session.id, targetType: "admin_session", metadata: { authMethod, mode: cfg.mode, mfaVerified } });
     const tokens = await issueTokens(session, user, { ipAddress, userAgent });
     return { session, ...tokens };
   }
@@ -110,24 +123,23 @@ function createSessionService({ client, clock = () => new Date(), env = process.
   async function revokeSession(sessionId, reason, { actorId = null } = {}) {
     const now = clock();
     const changed = await client.adminSession.updateMany({ where: { id: sessionId, revokedAt: null }, data: { revokedAt: now, revokeReason: reason } });
-    await client.refreshToken.updateMany({ where: { sessionId }, data: { isRevoked: true } });
+    await revokeTokensOfSessions([sessionId], now);
     if (changed.count) {
       const session = await client.adminSession.findUnique({ where: { id: sessionId }, select: { adminUserId: true } });
-      await audit({ adminUserId: actorId || session?.adminUserId, action: "SESSION_REVOKED", targetId: sessionId, targetType: "admin_session", metadata: { reason } });
+      await events({ adminUserId: actorId || session?.adminUserId, action: "SESSION_REVOKED", targetId: sessionId, targetType: "admin_session", metadata: { reason } });
     }
     return changed.count > 0;
   }
 
+  // Ends every session of a user AND their pre-session refresh tokens.
   async function revokeAllForUser(adminUserId, reason, { exceptSessionId = null, actorId = null } = {}) {
     const now = clock();
     const where = { adminUserId, revokedAt: null, ...(exceptSessionId ? { id: { not: exceptSessionId } } : {}) };
     const sessions = await client.adminSession.findMany({ where, select: { id: true } });
     await client.adminSession.updateMany({ where, data: { revokedAt: now, revokeReason: reason } });
-    await client.refreshToken.updateMany({
-      where: exceptSessionId ? { adminUserId, OR: [{ sessionId: null }, { sessionId: { not: exceptSessionId } }] } : { adminUserId },
-      data: { isRevoked: true },
-    });
-    await audit({ adminUserId: actorId || adminUserId, action: "SESSIONS_REVOKED_ALL", targetId: adminUserId, targetType: "admin_user", metadata: { reason, count: sessions.length } });
+    await revokeTokensOfSessions(sessions.map((row) => row.id), now);
+    await client.refreshToken.updateMany({ where: { adminUserId, isRevoked: false }, data: { isRevoked: true } });
+    await events({ adminUserId: actorId || adminUserId, action: "SESSIONS_REVOKED_ALL", targetId: adminUserId, targetType: "admin_user", metadata: { reason, count: sessions.length } });
     return sessions.length;
   }
 
@@ -149,51 +161,63 @@ function createSessionService({ client, clock = () => new Date(), env = process.
     return session;
   }
 
-  // Rotate a refresh token. `legacyUpgrade` lets pre-session refresh rows
-  // (issued before this release) start a tracked session instead of failing.
+  // A refresh token minted before activation lives in admin_refresh_tokens.
+  // Upgrade it into a tracked session (same semantics as the old rotation).
+  async function upgradeLegacyRefresh(token, { ipAddress, userAgent }) {
+    const now = clock();
+    const legacy = await client.refreshToken.findUnique({ where: { token: sha256(token) }, include: { adminUser: true } });
+    if (!legacy || legacy.isRevoked || legacy.expiresAt <= now) throw authError(401, "AUTH_REFRESH_INVALID", "Invalid or expired refresh token");
+    if (legacy.adminUser.status !== "ACTIVE") throw authError(403, "AUTH_ACCOUNT_INACTIVE", "Account is not active");
+    const claimed = await client.refreshToken.updateMany({ where: { id: legacy.id, isRevoked: false }, data: { isRevoked: true } });
+    if (claimed.count !== 1) throw authError(401, "AUTH_REFRESH_INVALID", "Invalid or expired refresh token");
+    const created = await createSession(legacy.adminUser, { authMethod: "LEGACY_REFRESH", ipAddress, userAgent });
+    return { user: legacy.adminUser, ...created };
+  }
+
   async function rotateRefresh(token, { ipAddress, userAgent }) {
     const cfg = config();
     const now = clock();
-    const stored = await client.refreshToken.findUnique({ where: { token: sha256(token) }, include: { adminUser: true, session: true } });
-    if (!stored) throw authError(401, "AUTH_REFRESH_INVALID", "Invalid or expired refresh token");
+    const stored = await client.adminSessionRefreshToken.findUnique({ where: { tokenHash: sha256(token) }, include: { session: { include: { adminUser: true } } } });
+    if (!stored) return upgradeLegacyRefresh(token, { ipAddress, userAgent });
 
+    const session = stored.session;
     if (stored.rotatedAt) {
       const withinGrace = now - stored.rotatedAt <= cfg.refreshReuseGraceSeconds * 1000;
-      if (withinGrace && isLive(stored.session, now)) {
+      if (withinGrace && isLive(session, now)) {
         // Two tabs refreshed at once; the browser already holds the newer cookie.
         throw authError(401, "AUTH_REFRESH_RACE", "Session was just refreshed. Retry the request");
       }
-      if (stored.sessionId && !stored.session?.revokedAt) {
-        await revokeSession(stored.sessionId, "REFRESH_TOKEN_REUSE");
-      }
-      await audit({ adminUserId: stored.adminUserId, action: "REFRESH_TOKEN_REUSE_DETECTED", targetId: stored.sessionId, targetType: "admin_session", metadata: { ipAddress } });
+      if (!session.revokedAt) await revokeSession(session.id, "REFRESH_TOKEN_REUSE");
+      await events({ adminUserId: stored.adminUserId, action: "REFRESH_TOKEN_REUSE_DETECTED", targetId: session.id, targetType: "admin_session", metadata: { ipAddress } });
       throw authError(401, "AUTH_REFRESH_REUSED", "Refresh token was already used. Please log in again");
     }
-    if (stored.isRevoked || stored.expiresAt <= now) throw authError(401, "AUTH_REFRESH_INVALID", "Invalid or expired refresh token");
-    if (stored.adminUser.status !== "ACTIVE") throw authError(403, "AUTH_ACCOUNT_INACTIVE", "Account is not active");
+    if (stored.revokedAt || stored.expiresAt <= now) throw authError(401, "AUTH_REFRESH_INVALID", "Invalid or expired refresh token");
+    if (session.adminUser.status !== "ACTIVE") throw authError(403, "AUTH_ACCOUNT_INACTIVE", "Account is not active");
+    if (!isLive(session, now)) throw authError(401, "AUTH_SESSION_EXPIRED", "Session expired. Please log in again");
 
-    let session = stored.session;
-    if (session && !isLive(session, now)) throw authError(401, "AUTH_SESSION_EXPIRED", "Session expired. Please log in again");
-
-    const claimed = await client.refreshToken.updateMany({ where: { id: stored.id, rotatedAt: null, isRevoked: false }, data: { rotatedAt: now, isRevoked: true } });
+    const claimed = await client.adminSessionRefreshToken.updateMany({ where: { id: stored.id, rotatedAt: null, revokedAt: null }, data: { rotatedAt: now } });
     if (claimed.count !== 1) throw authError(401, "AUTH_REFRESH_RACE", "Session was just refreshed. Retry the request");
 
-    if (!session) {
-      const created = await createSession(stored.adminUser, { authMethod: "LEGACY_REFRESH", ipAddress, userAgent });
-      return { user: stored.adminUser, ...created };
-    }
     const idleExpiresAt = new Date(Math.min(session.absoluteExpiresAt.getTime(), now.getTime() + cfg.idleTimeoutSeconds * 1000));
-    session = await client.adminSession.update({ where: { id: session.id }, data: { lastSeenAt: now, idleExpiresAt } });
-    const tokens = await issueTokens(session, stored.adminUser, { ipAddress, userAgent });
-    return { user: stored.adminUser, session, ...tokens };
+    const updated = await client.adminSession.update({ where: { id: session.id }, data: { lastSeenAt: now, idleExpiresAt } });
+    const tokens = await issueTokens(updated, session.adminUser, { ipAddress, userAgent });
+    return { user: session.adminUser, session: updated, ...tokens };
   }
 
+  // Logout by refresh token, whichever table it lives in.
   async function revokeByRefreshToken(token, reason) {
-    const stored = await client.refreshToken.findUnique({ where: { token: sha256(token) } });
-    if (!stored) return null;
-    await client.refreshToken.update({ where: { id: stored.id }, data: { isRevoked: true } });
-    if (stored.sessionId) await revokeSession(stored.sessionId, reason);
-    return stored;
+    const hash = sha256(token);
+    const stored = await client.adminSessionRefreshToken.findUnique({ where: { tokenHash: hash } });
+    if (stored) {
+      await revokeSession(stored.sessionId, reason);
+      return { adminUserId: stored.adminUserId, sessionId: stored.sessionId };
+    }
+    const legacy = await client.refreshToken.findUnique({ where: { token: hash } });
+    if (legacy) {
+      await client.refreshToken.update({ where: { id: legacy.id }, data: { isRevoked: true } });
+      return { adminUserId: legacy.adminUserId, sessionId: null };
+    }
+    return null;
   }
 
   async function listActive(adminUserId) {
@@ -211,7 +235,7 @@ function createSessionService({ client, clock = () => new Date(), env = process.
     return now;
   }
 
-  return Object.freeze({ config, isLive, createSession, issueTokens, rotateRefresh, revokeSession, revokeAllForUser, revokeByRefreshToken, validateAccess, listActive, markMfaVerified, csrfTokenFor: (s) => csrfTokenFor(s, env) });
+  return Object.freeze({ config, isLive, createSession, issueTokens, rotateRefresh, revokeSession, revokeAllForUser, revokeByRefreshToken, validateAccess, listActive, markMfaVerified, csrfTokenFor: (session) => csrfTokenFor(session, env) });
 }
 
 module.exports = { createSessionService, csrfTokenFor, verifyCsrfToken, hashRefreshToken: sha256, authError };

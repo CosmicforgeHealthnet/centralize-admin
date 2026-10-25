@@ -3,8 +3,12 @@ const {
   hashPassword,
   comparePassword,
 } = require("../../shared/utils/password.util");
-const { sessionService } = require("../../shared/auth");
+const { sessionService, getAuthRuntime } = require("../../shared/auth");
 const { mfaService } = require("./mfa.instance");
+const {
+  generateAccessToken,
+  generateRefreshToken,
+} = require("../../shared/utils/jwt.util");
 const { createAuditLog } = require("../../shared/middlewares/audit.middleware");
 const { sendEmail } = require("../../shared/utils/email.util");
 const ApiError = require("../../shared/utils/ApiError");
@@ -13,7 +17,26 @@ const notificationService = require("../notifications/notifications.service");
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_DURATION_MINUTES = 30;
+const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const PASSWORD_RESET_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
+
+const publicUser = (user) => ({
+  id: user.id,
+  name: user.name,
+  email: user.email,
+  tier: user.tier,
+  department: user.department,
+  isTeamLead: user.isTeamLead,
+});
+
+const legacyAccessToken = (user) =>
+  generateAccessToken({
+    sub: user.id,
+    email: user.email,
+    tier: user.tier,
+    name: user.name,
+    isTeamLead: user.isTeamLead,
+  });
 
 const hashToken = (token) =>
   crypto.createHash("sha256").update(token).digest("hex");
@@ -121,8 +144,14 @@ class AuthService {
       },
     });
 
+    const { ready } = await getAuthRuntime();
+    if (!ready) {
+      // Session/MFA schema not migrated yet: exact pre-release behaviour.
+      return this._legacyLogin({ user, method: "PASSWORD", ipAddress, userAgent });
+    }
+
     // Verified MFA users get a second step; no session exists until it passes.
-    if (mfaService.isEnrolled(user)) {
+    if (await mfaService.isEnrolled(user.id)) {
       const challenge = await mfaService.createChallenge(user, { authMethod: "PASSWORD", ipAddress, userAgent });
       return { mfaRequired: true, ...challenge };
     }
@@ -130,8 +159,50 @@ class AuthService {
     return this._startSession({ user, authMethod: "PASSWORD", ipAddress, userAgent, mfaVerified: false });
   }
 
+  // Pre-release login, byte-for-byte equivalent behaviour: 8h JWT without a
+  // session id, UUID refresh token in admin_refresh_tokens.
+  async _legacyLogin({ user, method, ipAddress, userAgent }) {
+    const accessToken = legacyAccessToken(user);
+    const refreshToken = generateRefreshToken();
+
+    await prisma.refreshToken.create({
+      data: {
+        token: hashToken(refreshToken),
+        adminUserId: user.id,
+        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+        ipAddress,
+        userAgent,
+      },
+    });
+
+    await createAuditLog({
+      adminUserId: user.id,
+      action: "LOGIN",
+      metadata: method === "GOOGLE" ? { ipAddress, method: "GOOGLE" } : { ipAddress },
+      req: { ip: ipAddress, headers: { "user-agent": userAgent } },
+    });
+
+    await notificationService.createNotification({
+      adminUserId: user.id,
+      icon: "bell",
+      title: method === "GOOGLE" ? "Google Login" : "New Login Detected",
+      subtitle: method === "GOOGLE"
+        ? `You logged in using Google from IP: ${ipAddress || "Unknown location"}`
+        : `You logged in from IP: ${ipAddress || "Unknown location"}`,
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+      session: null,
+      mustChangePassword: method === "GOOGLE" ? false : user.mustChangePassword,
+      user: publicUser(user),
+    };
+  }
+
   // Second login step (password or Google, then TOTP / recovery code).
   async completeMfaLogin({ challengeToken, code, recoveryCode, ipAddress, userAgent, req }) {
+    await this._requireSchema();
     const { user, authMethod } = await mfaService.completeChallenge({ challengeToken, code, recoveryCode, req });
     return this._startSession({ user, authMethod, ipAddress, userAgent, mfaVerified: true });
   }
@@ -164,21 +235,22 @@ class AuthService {
       refreshTtlMs: created.refreshTtlMs,
       session: created.session,
       mustChangePassword: authMethod.startsWith("GOOGLE") ? false : user.mustChangePassword,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        tier: user.tier,
-        department: user.department,
-        isTeamLead: user.isTeamLead,
-      },
+      user: publicUser(user),
     };
+  }
+
+  async _requireSchema() {
+    const { ready } = await getAuthRuntime();
+    if (!ready) throw new ApiError(503, "Sessions and two-factor authentication are not available yet", [{ code: "AUTH_SCHEMA_NOT_READY" }]);
   }
 
   // ─────────────────────────────────────────────────────────────
   // REFRESH TOKEN (rotation + reuse detection, see session.service)
   // ─────────────────────────────────────────────────────────────
   async refreshToken({ token, ipAddress, userAgent }) {
+    const { ready } = await getAuthRuntime();
+    if (!ready) return this._legacyRefresh({ token, ipAddress, userAgent });
+
     const result = await sessionService.rotateRefresh(token, { ipAddress, userAgent });
 
     await createAuditLog({
@@ -191,10 +263,63 @@ class AuthService {
     return result;
   }
 
+  // Pre-release refresh: rotate the UUID in admin_refresh_tokens.
+  async _legacyRefresh({ token, ipAddress, userAgent }) {
+    const stored = await prisma.refreshToken.findUnique({
+      where: { token: hashToken(token) },
+      include: { adminUser: true },
+    });
+
+    if (!stored || stored.isRevoked || stored.expiresAt < new Date()) {
+      throw new ApiError(401, "Invalid or expired refresh token");
+    }
+
+    if (stored.adminUser.status !== "ACTIVE") {
+      throw new ApiError(403, "Account is not active");
+    }
+
+    await prisma.refreshToken.update({
+      where: { id: stored.id },
+      data: { isRevoked: true },
+    });
+
+    const newRefreshToken = generateRefreshToken();
+
+    await prisma.refreshToken.create({
+      data: {
+        token: hashToken(newRefreshToken),
+        adminUserId: stored.adminUser.id,
+        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+        ipAddress,
+        userAgent,
+      },
+    });
+
+    await createAuditLog({
+      adminUserId: stored.adminUser.id,
+      action: "TOKEN_REFRESHED",
+      req: { ip: ipAddress, headers: { "user-agent": userAgent } },
+    });
+
+    return { accessToken: legacyAccessToken(stored.adminUser), refreshToken: newRefreshToken, session: null, user: stored.adminUser };
+  }
+
   // ─────────────────────────────────────────────────────────────
   // LOGOUT
   // ─────────────────────────────────────────────────────────────
   async logout({ refreshToken, sessionId, req }) {
+    const { ready } = await getAuthRuntime();
+    if (!ready) {
+      // Pre-release logout.
+      if (refreshToken) {
+        const stored = await prisma.refreshToken.findUnique({ where: { token: hashToken(refreshToken) } });
+        if (stored) {
+          await prisma.refreshToken.update({ where: { id: stored.id }, data: { isRevoked: true } });
+          await createAuditLog({ adminUserId: stored.adminUserId, action: "LOGOUT", req });
+        }
+      }
+      return;
+    }
     let adminUserId = null;
     if (refreshToken) {
       const stored = await sessionService.revokeByRefreshToken(refreshToken, "LOGOUT");
@@ -209,21 +334,23 @@ class AuthService {
   }
 
   async logoutAll({ adminUserId, req }) {
+    await this._requireSchema();
     const count = await sessionService.revokeAllForUser(adminUserId, "LOGOUT_ALL");
     await createAuditLog({ adminUserId, action: "LOGOUT", metadata: { scope: "all", sessions: count }, req });
     return count;
   }
 
   async listSessions({ adminUserId, currentSessionId }) {
+    await this._requireSchema();
     const rows = await sessionService.listActive(adminUserId);
     return rows.map((row) => ({ ...row, current: row.id === currentSessionId }));
   }
 
   async revokeOwnSession({ adminUserId, sessionId, req }) {
+    await this._requireSchema();
     const sessions = await sessionService.listActive(adminUserId);
     if (!sessions.some((row) => row.id === sessionId)) throw new ApiError(404, "Session not found");
     await sessionService.revokeSession(sessionId, "USER_REVOKED", { actorId: adminUserId });
-    await createAuditLog({ adminUserId, action: "SESSION_REVOKED", targetId: sessionId, targetType: "admin_session", req });
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -258,7 +385,13 @@ class AuthService {
       },
     });
 
-    await sessionService.revokeAllForUser(adminUserId, "PASSWORD_CHANGED");
+    await prisma.refreshToken.updateMany({
+      where: { adminUserId },
+      data: { isRevoked: true },
+    });
+    if ((await getAuthRuntime()).ready) {
+      await sessionService.revokeAllForUser(adminUserId, "PASSWORD_CHANGED");
+    }
 
     await createAuditLog({
       adminUserId,
@@ -291,7 +424,9 @@ class AuthService {
     });
 
     const fresh = await prisma.adminUser.findUnique({ where: { id: user.id } });
-    if (mfaService.isEnrolled(fresh)) {
+    const { ready } = await getAuthRuntime();
+    if (!ready) return this._legacyLogin({ user: fresh, method: "GOOGLE", ipAddress, userAgent });
+    if (await mfaService.isEnrolled(fresh.id)) {
       const challenge = await mfaService.createChallenge(fresh, { authMethod: "GOOGLE", ipAddress, userAgent });
       return { mfaRequired: true, ...challenge };
     }
@@ -416,7 +551,13 @@ class AuthService {
       },
     });
 
-    await sessionService.revokeAllForUser(user.id, "PASSWORD_RESET_APPROVED", { actorId: approvedBy });
+    await prisma.refreshToken.updateMany({
+      where: { adminUserId: user.id },
+      data: { isRevoked: true },
+    });
+    if ((await getAuthRuntime()).ready) {
+      await sessionService.revokeAllForUser(user.id, "PASSWORD_RESET_APPROVED", { actorId: approvedBy });
+    }
 
     await sendEmail({
       to: user.email,

@@ -1,35 +1,24 @@
 -- Rollback for 20261025_add_admin_sessions_mfa.sql (manual, reviewed use only).
 --
--- Run ONLY after the API is back on a build without server-side sessions
--- (or with AUTH_SESSION_MODE=legacy on a build that still tolerates the
--- columns being absent - i.e. the previous release). Effects:
---   * every session-based login ends (users sign in again);
---   * every MFA enrollment and recovery code is DELETED (users re-enroll);
---   * AuditAction values added by the migration stay (PostgreSQL cannot drop
---     enum values); they are unused afterwards and harmless.
+-- The migration only ADDED tables, so rollback only drops them.
+-- ORDER: set AUTH_SESSION_MODE=legacy, run this script, then RESTART the API.
+-- Schema readiness is cached as "ready" for the life of the process; after the
+-- restart the probe sees the tables are gone and serves the pre-release legacy
+-- login (tokens bound to a session are refused; users sign in again).
+-- Effects: every session-based login ends (users sign in again); every MFA
+-- enrollment, recovery code and auth event is DELETED. admin_users and
+-- admin_refresh_tokens are untouched (twoFactorEnabled may stay true for users
+-- who had enrolled; it is a compatibility flag and is never MFA evidence).
 -- Take a backup first (see docs/hq-auth-sessions-and-mfa.md).
 
 BEGIN;
 
-ALTER TABLE "admin_refresh_tokens" DROP CONSTRAINT IF EXISTS "admin_refresh_tokens_session_id_fkey";
-DROP INDEX IF EXISTS "IDX_admin_refresh_tokens_session";
-ALTER TABLE "admin_refresh_tokens" DROP COLUMN IF EXISTS "session_id", DROP COLUMN IF EXISTS "rotated_at";
-
+DROP TABLE IF EXISTS "admin_session_refresh_tokens";
+DROP TABLE IF EXISTS "admin_sessions";
 DROP TABLE IF EXISTS "admin_mfa_challenges";
 DROP TABLE IF EXISTS "admin_mfa_recovery_codes";
-DROP TABLE IF EXISTS "admin_sessions";
-
--- Keep the compatibility flag honest: no verified enrollment survives rollback.
-UPDATE "admin_users" SET "twoFactorEnabled" = false WHERE "mfa_enrolled_at" IS NOT NULL;
-
-ALTER TABLE "admin_users"
-  DROP COLUMN IF EXISTS "mfa_enrolled_at",
-  DROP COLUMN IF EXISTS "mfa_secret_encrypted",
-  DROP COLUMN IF EXISTS "mfa_pending_secret_encrypted",
-  DROP COLUMN IF EXISTS "mfa_pending_expires_at",
-  DROP COLUMN IF EXISTS "mfa_last_used_step",
-  DROP COLUMN IF EXISTS "mfa_failed_attempts",
-  DROP COLUMN IF EXISTS "mfa_locked_until";
+DROP TABLE IF EXISTS "admin_mfa_enrollments";
+DROP TABLE IF EXISTS "admin_auth_events";
 
 DELETE FROM "social_manual_migrations" WHERE "file" = '20261025_add_admin_sessions_mfa.sql';
 

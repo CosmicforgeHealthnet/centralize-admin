@@ -6,14 +6,15 @@
 // Security properties:
 // - enrollment requires the current password; the pending secret is encrypted
 //   at rest and only becomes active after a valid TOTP;
-// - verified MFA = mfaEnrolledAt + mfaSecretEncrypted (twoFactorEnabled alone
-//   is never accepted);
+// - verified MFA = an admin_mfa_enrollments row with enrolledAt + an encrypted
+//   secret (admin_users.twoFactorEnabled alone is never accepted);
 // - each TOTP time-step is accepted at most once per user (replay guard,
 //   enforced atomically in the database);
 // - 5 consecutive failures lock MFA for 15 minutes; challenges allow 5 tries;
 // - recovery codes are random, shown once, stored salted+hashed and consumed
 //   atomically;
-// - every MFA event is written to the audit log.
+// - every MFA event is written to admin_auth_events.
+// Only call this service once the session/MFA schema is ready.
 
 const crypto = require("node:crypto");
 const { comparePassword } = require("../../shared/utils/password.util");
@@ -36,8 +37,9 @@ function canResetOthersMfa(actor) {
   return actor.tier === "ADMIN" && actor.department === "MANAGEMENT" && actor.isTeamLead === true;
 }
 
-function createMfaService({ client, sessions, audit = async () => {}, notify = async () => {}, clock = () => new Date(), env = process.env }) {
+function createMfaService({ client, sessions, events = async () => {}, notify = async () => {}, clock = () => new Date(), env = process.env }) {
   const now = () => clock();
+  const audit = events;
 
   async function loadUser(id) {
     const user = await client.adminUser.findUnique({ where: { id } });
@@ -45,44 +47,50 @@ function createMfaService({ client, sessions, audit = async () => {}, notify = a
     return user;
   }
 
-  function assertNotLocked(user) {
-    if (user.mfaLockedUntil && user.mfaLockedUntil > now()) {
+  const loadEnrollment = (adminUserId) => client.adminMfaEnrollment.findUnique({ where: { adminUserId } });
+
+  async function isEnrolled(userId) {
+    return core.isMfaEnrolled(await loadEnrollment(userId));
+  }
+
+  function assertNotLocked(enrollment) {
+    if (enrollment?.lockedUntil && enrollment.lockedUntil > now()) {
       throw authError(429, "MFA_LOCKED", "Too many failed codes. Try again later");
     }
   }
 
-  async function recordFailure(user, context) {
-    const attempts = (user.mfaFailedAttempts || 0) + 1;
+  async function recordFailure(enrollment, context) {
+    const attempts = (enrollment.failedAttempts || 0) + 1;
     const lock = attempts >= USER_MAX_FAILURES;
-    await client.adminUser.update({
-      where: { id: user.id },
-      data: { mfaFailedAttempts: lock ? 0 : attempts, mfaLockedUntil: lock ? new Date(now().getTime() + USER_LOCK_MS) : user.mfaLockedUntil },
+    await client.adminMfaEnrollment.update({
+      where: { adminUserId: enrollment.adminUserId },
+      data: { failedAttempts: lock ? 0 : attempts, lockedUntil: lock ? new Date(now().getTime() + USER_LOCK_MS) : enrollment.lockedUntil },
     });
-    await audit({ adminUserId: user.id, action: lock ? "MFA_LOCKED" : "MFA_FAILED", targetId: user.id, targetType: "admin_user", metadata: { context: context.kind, attempts }, req: context.req });
+    await audit({ adminUserId: enrollment.adminUserId, action: lock ? "MFA_LOCKED" : "MFA_FAILED", targetId: enrollment.adminUserId, targetType: "admin_user", metadata: { context: context.kind, attempts }, req: context.req });
   }
 
-  async function clearFailures(user) {
-    if (user.mfaFailedAttempts || user.mfaLockedUntil) {
-      await client.adminUser.update({ where: { id: user.id }, data: { mfaFailedAttempts: 0, mfaLockedUntil: null } });
+  async function clearFailures(enrollment) {
+    if (enrollment.failedAttempts || enrollment.lockedUntil) {
+      await client.adminMfaEnrollment.update({ where: { adminUserId: enrollment.adminUserId }, data: { failedAttempts: 0, lockedUntil: null } });
     }
   }
 
-  // Verify a TOTP against the user's ACTIVE secret with an atomic replay guard.
-  async function acceptTotp(user, code) {
-    const secret = core.resolveTotpSecret(user, { env });
+  // Verify a TOTP against the ACTIVE secret with an atomic replay guard.
+  async function acceptTotp(enrollment, code) {
+    const secret = core.resolveTotpSecret({ enrollment }, { env });
     if (!secret) return false;
     const step = core.matchTotp(secret, code, now().getTime());
     if (step === null) return false;
-    const claimed = await client.adminUser.updateMany({
-      where: { id: user.id, OR: [{ mfaLastUsedStep: null }, { mfaLastUsedStep: { lt: step } }] },
-      data: { mfaLastUsedStep: step },
+    const claimed = await client.adminMfaEnrollment.updateMany({
+      where: { adminUserId: enrollment.adminUserId, OR: [{ lastUsedStep: null }, { lastUsedStep: { lt: step } }] },
+      data: { lastUsedStep: step },
     });
     return claimed.count === 1;
   }
 
-  async function acceptRecoveryCode(user, code) {
+  async function acceptRecoveryCode(userId, code) {
     if (!core.looksLikeRecoveryCode(code)) return false;
-    const rows = await client.adminMfaRecoveryCode.findMany({ where: { adminUserId: user.id, usedAt: null } });
+    const rows = await client.adminMfaRecoveryCode.findMany({ where: { adminUserId: userId, usedAt: null } });
     for (const row of rows) {
       const expected = Buffer.from(row.codeHash);
       const actual = Buffer.from(core.hashRecoveryCode(code, row.salt));
@@ -95,21 +103,22 @@ function createMfaService({ client, sessions, audit = async () => {}, notify = a
   }
 
   // Shared factor check: TOTP or (when allowed) a recovery code.
-  async function verifyFactor(user, { code, recoveryCode, allowRecovery = true, context }) {
-    if (!core.isMfaEnrolled(user)) throw authError(400, "MFA_NOT_ENROLLED", "Two-factor authentication is not set up");
-    assertNotLocked(user);
+  async function verifyFactor(userId, { code, recoveryCode, allowRecovery = true, context }) {
+    const enrollment = await loadEnrollment(userId);
+    if (!core.isMfaEnrolled(enrollment)) throw authError(400, "MFA_NOT_ENROLLED", "Two-factor authentication is not set up");
+    assertNotLocked(enrollment);
     let method = null;
-    if (code && (await acceptTotp(user, code))) method = "totp";
-    else if (allowRecovery && recoveryCode && (await acceptRecoveryCode(user, recoveryCode))) method = "recovery_code";
+    if (code && (await acceptTotp(enrollment, code))) method = "totp";
+    else if (allowRecovery && recoveryCode && (await acceptRecoveryCode(userId, recoveryCode))) method = "recovery_code";
     if (!method) {
-      await recordFailure(user, context);
+      await recordFailure(enrollment, context);
       throw authError(401, "MFA_CODE_INVALID", "The code is not valid");
     }
-    await clearFailures(user);
+    await clearFailures(enrollment);
     if (method === "recovery_code") {
-      const remaining = await client.adminMfaRecoveryCode.count({ where: { adminUserId: user.id, usedAt: null } });
-      await audit({ adminUserId: user.id, action: "MFA_RECOVERY_CODE_USED", targetId: user.id, targetType: "admin_user", metadata: { context: context.kind, remaining }, req: context.req });
-      await notify(user.id, { icon: "alert", title: "Recovery code used", subtitle: `A two-factor recovery code was used. ${remaining} remaining. If this wasn't you, contact security.` });
+      const remaining = await client.adminMfaRecoveryCode.count({ where: { adminUserId: userId, usedAt: null } });
+      await audit({ adminUserId: userId, action: "MFA_RECOVERY_CODE_USED", targetId: userId, targetType: "admin_user", metadata: { context: context.kind, remaining }, req: context.req });
+      await notify(userId, { icon: "alert", title: "Recovery code used", subtitle: `A two-factor recovery code was used. ${remaining} remaining. If this wasn't you, contact security.` });
     }
     return method;
   }
@@ -129,105 +138,98 @@ function createMfaService({ client, sessions, audit = async () => {}, notify = a
   }
 
   async function status(userId) {
-    const user = await loadUser(userId);
-    const remaining = core.isMfaEnrolled(user) ? await client.adminMfaRecoveryCode.count({ where: { adminUserId: userId, usedAt: null } }) : 0;
+    const enrollment = await loadEnrollment(userId);
+    const enrolled = core.isMfaEnrolled(enrollment);
+    const remaining = enrolled ? await client.adminMfaRecoveryCode.count({ where: { adminUserId: userId, usedAt: null } }) : 0;
     return {
-      enrolled: core.isMfaEnrolled(user),
-      enrolledAt: user.mfaEnrolledAt,
-      pending: Boolean(user.mfaPendingSecretEncrypted && user.mfaPendingExpiresAt > now()),
+      enrolled,
+      enrolledAt: enrolled ? enrollment.enrolledAt : null,
+      pending: Boolean(enrollment?.pendingSecretEncrypted && enrollment.pendingExpiresAt > now()),
       recoveryCodesRemaining: remaining,
-      lockedUntil: user.mfaLockedUntil && user.mfaLockedUntil > now() ? user.mfaLockedUntil : null,
+      lockedUntil: enrollment?.lockedUntil && enrollment.lockedUntil > now() ? enrollment.lockedUntil : null,
       available: core.loadKeyring(env).available,
     };
   }
 
   async function startEnrollment(userId, { password, req }) {
     const user = await loadUser(userId);
-    if (core.isMfaEnrolled(user)) throw authError(409, "MFA_ALREADY_ENROLLED", "Two-factor authentication is already active. Disable it first to change devices");
+    if (await isEnrolled(user.id)) throw authError(409, "MFA_ALREADY_ENROLLED", "Two-factor authentication is already active. Disable it first to change devices");
     if (!password || !(await comparePassword(password, user.password))) throw authError(401, "AUTH_PASSWORD_INVALID", "Password is incorrect");
     const secret = core.generateSecret();
     const encrypted = core.encryptSecret(secret, user.id, env); // fails closed (503) without a key
     const expiresAt = new Date(now().getTime() + PENDING_TTL_MS);
-    await client.adminUser.update({ where: { id: user.id }, data: { mfaPendingSecretEncrypted: encrypted, mfaPendingExpiresAt: expiresAt } });
+    await client.adminMfaEnrollment.upsert({
+      where: { adminUserId: user.id },
+      create: { adminUserId: user.id, pendingSecretEncrypted: encrypted, pendingExpiresAt: expiresAt },
+      update: { pendingSecretEncrypted: encrypted, pendingExpiresAt: expiresAt },
+    });
     await audit({ adminUserId: user.id, action: "MFA_ENROLLMENT_STARTED", targetId: user.id, targetType: "admin_user", req });
     const secretBase32 = core.encodeBase32(secret);
     return { secret: secretBase32, otpauthUri: core.otpauthUri({ secretBase32, accountName: user.email }), expiresAt };
   }
 
   async function activate(userId, { code, sessionId, req }) {
-    const user = await loadUser(userId);
-    if (core.isMfaEnrolled(user)) throw authError(409, "MFA_ALREADY_ENROLLED", "Two-factor authentication is already active");
-    if (!user.mfaPendingSecretEncrypted || !user.mfaPendingExpiresAt || user.mfaPendingExpiresAt <= now()) {
+    const enrollment = await loadEnrollment(userId);
+    if (core.isMfaEnrolled(enrollment)) throw authError(409, "MFA_ALREADY_ENROLLED", "Two-factor authentication is already active");
+    if (!enrollment?.pendingSecretEncrypted || !enrollment.pendingExpiresAt || enrollment.pendingExpiresAt <= now()) {
       throw authError(400, "MFA_ENROLLMENT_EXPIRED", "Start the setup again");
     }
-    assertNotLocked(user);
-    const secret = core.decryptSecret(user.mfaPendingSecretEncrypted, user.id, env);
+    assertNotLocked(enrollment);
+    const secret = core.decryptSecret(enrollment.pendingSecretEncrypted, userId, env);
     const step = core.matchTotp(secret, code, now().getTime());
     if (step === null) {
-      await recordFailure(user, { kind: "enrollment", req });
+      await recordFailure(enrollment, { kind: "enrollment", req });
       throw authError(401, "MFA_CODE_INVALID", "The code is not valid");
     }
-    const activated = await client.adminUser.updateMany({
-      where: { id: user.id, mfaEnrolledAt: null, mfaPendingSecretEncrypted: user.mfaPendingSecretEncrypted },
-      data: {
-        mfaEnrolledAt: now(),
-        mfaSecretEncrypted: user.mfaPendingSecretEncrypted,
-        mfaPendingSecretEncrypted: null,
-        mfaPendingExpiresAt: null,
-        mfaLastUsedStep: step,
-        mfaFailedAttempts: 0,
-        mfaLockedUntil: null,
-        twoFactorEnabled: true,
-        twoFactorSecret: null, // never keep a plaintext copy
-      },
+    const activated = await client.adminMfaEnrollment.updateMany({
+      where: { adminUserId: userId, enrolledAt: null, pendingSecretEncrypted: enrollment.pendingSecretEncrypted },
+      data: { enrolledAt: now(), secretEncrypted: enrollment.pendingSecretEncrypted, pendingSecretEncrypted: null, pendingExpiresAt: null, lastUsedStep: step, failedAttempts: 0, lockedUntil: null },
     });
     if (activated.count !== 1) throw authError(409, "MFA_ENROLLMENT_CHANGED", "Setup changed. Start again");
-    const recoveryCodes = await issueRecoveryCodes(user.id);
+    // Compatibility flag only (existing column); never keep a plaintext secret.
+    await client.adminUser.update({ where: { id: userId }, data: { twoFactorEnabled: true, twoFactorSecret: null } });
+    const recoveryCodes = await issueRecoveryCodes(userId);
     if (sessionId) await sessions.markMfaVerified(sessionId);
-    await audit({ adminUserId: user.id, action: "MFA_ENROLLED", targetId: user.id, targetType: "admin_user", req });
-    await notify(user.id, { icon: "check", title: "Two-factor authentication enabled", subtitle: "Your account now requires an authenticator code to sign in." });
+    await audit({ adminUserId: userId, action: "MFA_ENROLLED", targetId: userId, targetType: "admin_user", req });
+    await notify(userId, { icon: "check", title: "Two-factor authentication enabled", subtitle: "Your account now requires an authenticator code to sign in." });
     return { recoveryCodes };
   }
 
   async function stepUp(userId, { sessionId, code, recoveryCode, req }) {
     if (!sessionId) throw authError(403, "MFA_SESSION_REQUIRED", "Sign in again to confirm with two-factor authentication");
-    const user = await loadUser(userId);
-    const method = await verifyFactor(user, { code, recoveryCode, context: { kind: "step_up", req } });
+    const method = await verifyFactor(userId, { code, recoveryCode, context: { kind: "step_up", req } });
     const verifiedAt = await sessions.markMfaVerified(sessionId);
-    await audit({ adminUserId: user.id, action: "MFA_STEP_UP", targetId: sessionId, targetType: "admin_session", metadata: { method }, req });
+    await audit({ adminUserId: userId, action: "MFA_STEP_UP", targetId: sessionId, targetType: "admin_session", metadata: { method }, req });
     return { verifiedAt, method };
   }
 
   async function regenerateRecoveryCodes(userId, { req }) {
-    const user = await loadUser(userId);
-    if (!core.isMfaEnrolled(user)) throw authError(400, "MFA_NOT_ENROLLED", "Two-factor authentication is not set up");
-    const recoveryCodes = await issueRecoveryCodes(user.id);
-    await audit({ adminUserId: user.id, action: "MFA_RECOVERY_CODES_REGENERATED", targetId: user.id, targetType: "admin_user", req });
-    await notify(user.id, { icon: "alert", title: "Recovery codes regenerated", subtitle: "Your previous recovery codes no longer work." });
+    if (!(await isEnrolled(userId))) throw authError(400, "MFA_NOT_ENROLLED", "Two-factor authentication is not set up");
+    const recoveryCodes = await issueRecoveryCodes(userId);
+    await audit({ adminUserId: userId, action: "MFA_RECOVERY_CODES_REGENERATED", targetId: userId, targetType: "admin_user", req });
+    await notify(userId, { icon: "alert", title: "Recovery codes regenerated", subtitle: "Your previous recovery codes no longer work." });
     return { recoveryCodes };
   }
 
   async function clearEnrollment(userId) {
     await client.$transaction([
-      client.adminUser.update({
-        where: { id: userId },
-        data: { mfaEnrolledAt: null, mfaSecretEncrypted: null, mfaPendingSecretEncrypted: null, mfaPendingExpiresAt: null, mfaLastUsedStep: null, mfaFailedAttempts: 0, mfaLockedUntil: null, twoFactorEnabled: false, twoFactorSecret: null },
-      }),
+      client.adminMfaEnrollment.deleteMany({ where: { adminUserId: userId } }),
       client.adminMfaRecoveryCode.deleteMany({ where: { adminUserId: userId } }),
       client.adminMfaChallenge.deleteMany({ where: { adminUserId: userId } }),
+      client.adminUser.update({ where: { id: userId }, data: { twoFactorEnabled: false, twoFactorSecret: null } }),
     ]);
   }
 
   async function disable(userId, { password, code, recoveryCode, sessionId, req }) {
     const user = await loadUser(userId);
-    if (!core.isMfaEnrolled(user)) throw authError(400, "MFA_NOT_ENROLLED", "Two-factor authentication is not set up");
+    if (!(await isEnrolled(userId))) throw authError(400, "MFA_NOT_ENROLLED", "Two-factor authentication is not set up");
     if (!password || !(await comparePassword(password, user.password))) throw authError(401, "AUTH_PASSWORD_INVALID", "Password is incorrect");
-    await verifyFactor(user, { code, recoveryCode, context: { kind: "disable", req } });
-    await clearEnrollment(user.id);
+    await verifyFactor(userId, { code, recoveryCode, context: { kind: "disable", req } });
+    await clearEnrollment(userId);
     // Other sessions may have been opened with the old factor; end them.
-    await sessions.revokeAllForUser(user.id, "MFA_DISABLED", { exceptSessionId: sessionId });
-    await audit({ adminUserId: user.id, action: "MFA_DISABLED", targetId: user.id, targetType: "admin_user", req });
-    await notify(user.id, { icon: "alert", title: "Two-factor authentication disabled", subtitle: "If this wasn't you, contact security immediately." });
+    await sessions.revokeAllForUser(userId, "MFA_DISABLED", { exceptSessionId: sessionId });
+    await audit({ adminUserId: userId, action: "MFA_DISABLED", targetId: userId, targetType: "admin_user", req });
+    await notify(userId, { icon: "alert", title: "Two-factor authentication disabled", subtitle: "If this wasn't you, contact security immediately." });
     return { disabled: true };
   }
 
@@ -239,7 +241,7 @@ function createMfaService({ client, sessions, audit = async () => {}, notify = a
     if (text.length < 10 || text.length > 500) throw authError(400, "MFA_RESET_REASON_REQUIRED", "Give a reason (10-500 characters)");
     const target = await loadUser(targetUserId);
     if (target.tier === "SUPER" && actorRow.tier !== "SUPER") throw authError(403, "MFA_RESET_FORBIDDEN", "Only a SUPER administrator can reset a SUPER account");
-    const wasEnrolled = core.isMfaEnrolled(target);
+    const wasEnrolled = await isEnrolled(target.id);
     await clearEnrollment(target.id);
     const revoked = await sessions.revokeAllForUser(target.id, "MFA_ADMIN_RESET", { actorId: actorRow.id });
     await audit({ adminUserId: actorRow.id, action: "MFA_ADMIN_RESET", targetId: target.id, targetType: "admin_user", metadata: { reason: text, wasEnrolled, sessionsRevoked: revoked }, req });
@@ -271,14 +273,14 @@ function createMfaService({ client, sessions, audit = async () => {}, notify = a
     if (bumped.count !== 1) throw authError(401, "MFA_CHALLENGE_INVALID", "Sign in again");
     const user = await loadUser(challenge.adminUserId);
     if (user.status !== "ACTIVE" && user.status !== "PENDING") throw authError(403, "AUTH_ACCOUNT_INACTIVE", "Account is not active");
-    const method = await verifyFactor(user, { code, recoveryCode, context: { kind: "login", req } });
+    const method = await verifyFactor(user.id, { code, recoveryCode, context: { kind: "login", req } });
     const consumed = await client.adminMfaChallenge.updateMany({ where: { id: challenge.id, consumedAt: null }, data: { consumedAt: now() } });
     if (consumed.count !== 1) throw authError(401, "MFA_CHALLENGE_INVALID", "Sign in again");
     await audit({ adminUserId: user.id, action: "MFA_VERIFIED", targetId: user.id, targetType: "admin_user", metadata: { method, context: "login" }, req });
     return { user, authMethod: `${challenge.authMethod}+MFA`, method };
   }
 
-  return Object.freeze({ status, startEnrollment, activate, stepUp, regenerateRecoveryCodes, disable, adminReset, createChallenge, completeChallenge, verifyFactor, isEnrolled: core.isMfaEnrolled });
+  return Object.freeze({ status, startEnrollment, activate, stepUp, regenerateRecoveryCodes, disable, adminReset, createChallenge, completeChallenge, verifyFactor, isEnrolled });
 }
 
 module.exports = { createMfaService, canResetOthersMfa, CHALLENGE_TTL_MS };

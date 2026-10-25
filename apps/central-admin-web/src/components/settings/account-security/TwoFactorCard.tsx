@@ -67,7 +67,7 @@ export default function TwoFactorCard() {
     try {
       setStatus(await accountSecurity.mfaStatus());
     } catch (err) {
-      setError(errorMessage(err, "Could not load two-factor status."));
+      setError(errorCode(err) === "AUTH_SCHEMA_NOT_READY" ? "Not available on this server yet. Contact the platform team." : errorMessage(err, "Could not load two-factor status."));
     }
   }, []);
 

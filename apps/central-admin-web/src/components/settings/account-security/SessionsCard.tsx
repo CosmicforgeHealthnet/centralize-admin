@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useAuthStore } from "@/stores/auth.store";
-import { accountSecurity, errorMessage, type ActiveSession } from "@/lib/account-security.service";
+import { accountSecurity, errorCode, errorMessage, type ActiveSession } from "@/lib/account-security.service";
 
 function describe(session: ActiveSession) {
   const agent = session.userAgent || "Unknown device";
@@ -20,7 +20,7 @@ export default function SessionsCard() {
     try {
       setSessions(await accountSecurity.listSessions());
     } catch (err) {
-      setError(errorMessage(err, "Could not load sessions."));
+      setError(errorCode(err) === "AUTH_SCHEMA_NOT_READY" ? "Not available on this server yet. Contact the platform team." : errorMessage(err, "Could not load sessions."));
     }
   }, []);
 

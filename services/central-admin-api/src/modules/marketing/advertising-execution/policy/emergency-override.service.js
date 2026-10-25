@@ -56,8 +56,16 @@ function createEmergencyOverrideService({ client = prisma, events, now = () => n
   async function create({ actor, input, correlationId = null }) {
     if (!actor?.id || actor.tier !== "SUPER") throw executionError("APPROVAL_NOT_ELIGIBLE", { reasonCode: "SUPER_EMERGENCY_OPERATOR_REQUIRED" });
     // Verified enrollment (from the DB, not the token) AND a fresh step-up on this session.
-    const currentActor = await client.adminUser.findUnique({ where: { id: actor.id }, select: { id: true, tier: true, status: true, mfaEnrolledAt: true, mfaSecretEncrypted: true } });
-    if (!currentActor || currentActor.status !== "ACTIVE" || currentActor.tier !== "SUPER" || !isMfaEnrolled(currentActor)) throw executionError("APPROVAL_NOT_ELIGIBLE", { reasonCode: "CURRENT_MFA_CAPABLE_STATUS_REQUIRED" });
+    const currentActor = await client.adminUser.findUnique({ where: { id: actor.id }, select: { id: true, tier: true, status: true } });
+    if (!currentActor || currentActor.status !== "ACTIVE" || currentActor.tier !== "SUPER") throw executionError("APPROVAL_NOT_ELIGIBLE", { reasonCode: "CURRENT_MFA_CAPABLE_STATUS_REQUIRED" });
+    let enrollment;
+    try {
+      enrollment = await client.adminMfaEnrollment.findUnique({ where: { adminUserId: actor.id }, select: { adminUserId: true, enrolledAt: true, secretEncrypted: true } });
+    } catch {
+      // Session/MFA migration not applied: verified MFA cannot exist yet. Fail closed.
+      throw executionError("APPROVAL_NOT_ELIGIBLE", { reasonCode: "VERIFIED_MFA_UNAVAILABLE" });
+    }
+    if (!isMfaEnrolled(enrollment)) throw executionError("APPROVAL_NOT_ELIGIBLE", { reasonCode: "CURRENT_MFA_CAPABLE_STATUS_REQUIRED" });
     if (!hasFreshVerifiedMfa(actor, { now: now().getTime() })) throw executionError("APPROVAL_NOT_ELIGIBLE", { reasonCode: "FRESH_MFA_STEP_UP_REQUIRED" });
     const startsAt = now(); const expiresAt = new Date(input.expiresAt);
     if (!Number.isFinite(expiresAt.getTime()) || expiresAt <= startsAt || expiresAt.getTime() - startsAt.getTime() > MAXIMUM_DURATION_MS) throw executionError("INVALID_EXECUTION_PLAN", { field: "body.expiresAt", reasonCode: "OVERRIDE_EXPIRY_MUST_BE_WITHIN_TWO_HOURS" });

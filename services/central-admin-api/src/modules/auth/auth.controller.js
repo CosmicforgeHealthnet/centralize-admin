@@ -2,7 +2,6 @@ const authService = require("./auth.service");
 const ApiResponse = require("../../shared/utils/ApiResponse");
 const asyncHandler = require("../../shared/utils/asyncHandler");
 
-const { loadSessionConfig } = require("../../shared/auth/session.config");
 const {
   setSessionCookies,
   clearSessionCookies,
@@ -12,7 +11,7 @@ const {
 } = require("../../shared/auth/cookies");
 const { assertTrustedOrigin } = require("../../shared/middlewares/auth.middleware");
 const { mfaService } = require("./mfa.instance");
-const { sessionService } = require("../../shared/auth");
+const { sessionService, getAuthRuntime } = require("../../shared/auth");
 
 const REFRESH_TOKEN_COOKIE = "refreshToken";
 
@@ -34,8 +33,9 @@ function sessionSummary(result, config) {
 // legacy: body token + legacy refresh cookie (unchanged contract)
 // dual:   body token + httpOnly cookies + CSRF token
 // cookie: httpOnly cookies + CSRF token, no token in the body
-function deliverSession(res, result, config = loadSessionConfig()) {
-  const body = { session: sessionSummary(result, config) };
+function deliverSession(res, result, config) {
+  // Schema not migrated: exact pre-release response (no session summary).
+  const body = result.session ? { session: sessionSummary(result, config) } : {};
   if (config.mode === "legacy") {
     res.cookie(REFRESH_TOKEN_COOKIE, result.refreshToken, legacyRefreshOptions());
     res.cookie("isLoggedIn", "true", legacyHintOptions());
@@ -62,7 +62,8 @@ const login = asyncHandler(async (req, res) => {
     return ApiResponse.success(res, 200, "Two-factor authentication required", mfaRequiredBody(result));
   }
 
-  const body = deliverSession(res, result);
+  const { config } = await getAuthRuntime();
+  const body = deliverSession(res, result, config);
   return ApiResponse.success(res, 200, "Login successful", {
     ...body,
     mustChangePassword: result.mustChangePassword,
@@ -71,7 +72,7 @@ const login = asyncHandler(async (req, res) => {
 });
 
 const loginMfa = asyncHandler(async (req, res) => {
-  const config = loadSessionConfig();
+  const { config } = await getAuthRuntime();
   const challengeToken = req.body?.challengeToken || req.cookies?.[config.cookie.mfaChallengeName];
   const result = await authService.completeMfaLogin({
     challengeToken,
@@ -90,8 +91,8 @@ const loginMfa = asyncHandler(async (req, res) => {
 });
 
 const googleCallback = asyncHandler(async (req, res) => {
-  const config = loadSessionConfig();
   const result = await authService.googleLogin({ user: req.user, ...clientMeta(req) });
+  const { config } = await getAuthRuntime();
   const frontendURL = process.env.CORS_ORIGINS.split(",")[0].trim();
 
   if (result.mfaRequired) {
@@ -112,7 +113,7 @@ const googleCallback = asyncHandler(async (req, res) => {
 });
 
 const refreshToken = asyncHandler(async (req, res) => {
-  const config = loadSessionConfig();
+  const { config } = await getAuthRuntime();
   const sessionCookie = config.cookiesEnabled ? req.cookies?.[config.cookie.refreshName] : null;
   const token = sessionCookie || req.cookies?.[REFRESH_TOKEN_COOKIE];
 
@@ -127,7 +128,7 @@ const refreshToken = asyncHandler(async (req, res) => {
 });
 
 const logout = asyncHandler(async (req, res) => {
-  const config = loadSessionConfig();
+  const { config } = await getAuthRuntime();
   const token = (config.cookiesEnabled && req.cookies?.[config.cookie.refreshName]) || req.cookies?.[REFRESH_TOKEN_COOKIE];
   if (config.cookiesEnabled && (token || req.cookies?.[config.cookie.accessName])) assertTrustedOrigin(req);
 
@@ -151,18 +152,19 @@ const logout = asyncHandler(async (req, res) => {
 
 const logoutAll = asyncHandler(async (req, res) => {
   const count = await authService.logoutAll({ adminUserId: req.adminUser.id, req });
-  clearSessionCookies(res);
+  clearSessionCookies(res, (await getAuthRuntime()).config);
   return ApiResponse.success(res, 200, "Signed out of all sessions", { sessionsRevoked: count });
 });
 
 const getSession = asyncHandler(async (req, res) => {
-  const config = loadSessionConfig();
-  const mfa = await mfaService.status(req.adminUser.id);
+  const { ready, config } = await getAuthRuntime();
+  const mfa = ready ? await mfaService.status(req.adminUser.id) : { enrolled: false, recoveryCodesRemaining: 0 };
   const data = {
     user: req.adminUser,
     mode: config.mode,
+    schemaReady: ready,
     session: req.authSession,
-    mfa: { enrolled: mfa.enrolled, recoveryCodesRemaining: mfa.recoveryCodesRemaining },
+    mfa: { available: ready, enrolled: mfa.enrolled, recoveryCodesRemaining: mfa.recoveryCodesRemaining },
   };
   if (req.authSession?.id && config.cookiesEnabled) {
     const session = await require("../../shared/config/database").prisma.adminSession.findUnique({ where: { id: req.authSession.id } });
@@ -178,7 +180,7 @@ const listSessions = asyncHandler(async (req, res) => {
 
 const revokeSession = asyncHandler(async (req, res) => {
   await authService.revokeOwnSession({ adminUserId: req.adminUser.id, sessionId: req.params.sessionId, req });
-  if (req.params.sessionId === req.authSession?.id) clearSessionCookies(res);
+  if (req.params.sessionId === req.authSession?.id) clearSessionCookies(res, (await getAuthRuntime()).config);
   return ApiResponse.success(res, 200, "Session revoked");
 });
 
@@ -192,7 +194,7 @@ const changePassword = asyncHandler(async (req, res) => {
     req,
   });
 
-  clearSessionCookies(res);
+  clearSessionCookies(res, (await getAuthRuntime()).config);
 
   return ApiResponse.success(
     res,

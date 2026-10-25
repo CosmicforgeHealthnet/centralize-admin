@@ -59,13 +59,15 @@ test("MFA secrets are AES-256-GCM encrypted, bound to the user, rotatable and fa
 
 test("only verified enrollments count; twoFactorEnabled alone never does", () => {
   const env = { AUTH_MFA_ENCRYPTION_KEYS: `k1:${key()}` };
-  assert.equal(core.isMfaEnrolled({ twoFactorEnabled: true, twoFactorSecret: "JBSWY3DPEHPK3PXP" }), false);
-  assert.equal(core.resolveTotpSecret({ id: "u", twoFactorEnabled: true, twoFactorSecret: "JBSWY3DPEHPK3PXP" }, { env }), null);
-  assert.ok(core.resolveTotpSecret({ id: "u", twoFactorEnabled: true, twoFactorSecret: "JBSWY3DPEHPK3PXP" }, { env, allowLegacyPlaintext: true }), "explicit opt-in for staged migrations only");
+  const legacyUser = { id: "u", twoFactorEnabled: true, twoFactorSecret: "JBSWY3DPEHPK3PXP" };
+  assert.equal(core.isMfaEnrolled(null), false);
+  assert.equal(core.isMfaEnrolled({ adminUserId: "u", enrolledAt: null, secretEncrypted: "x" }), false, "pending is not enrolled");
+  assert.equal(core.resolveTotpSecret({ enrollment: null, user: legacyUser }, { env }), null);
+  assert.ok(core.resolveTotpSecret({ enrollment: null, user: legacyUser }, { env, allowLegacyPlaintext: true }), "explicit opt-in for staged migrations only");
   const secret = core.generateSecret();
-  const user = { id: "u", mfaEnrolledAt: new Date(), mfaSecretEncrypted: core.encryptSecret(secret, "u", env) };
-  assert.equal(core.isMfaEnrolled(user), true);
-  assert.ok(core.resolveTotpSecret(user, { env }).equals(secret));
+  const enrollment = { adminUserId: "u", enrolledAt: new Date(), secretEncrypted: core.encryptSecret(secret, "u", env) };
+  assert.equal(core.isMfaEnrolled(enrollment), true);
+  assert.ok(core.resolveTotpSecret({ enrollment }, { env }).equals(secret));
 });
 
 test("recovery codes are random, normalised and salted-hashed", () => {
@@ -100,6 +102,11 @@ test("session configuration: safe defaults, cookie prefixes and SameSite rules",
   const withDomain = loadSessionConfig({ AUTH_SESSION_MODE: "cookie", NODE_ENV: "production", AUTH_COOKIE_SAMESITE: "lax", AUTH_COOKIE_DOMAIN: ".cosmiforgegroup.cloud" });
   assert.equal(withDomain.cookie.accessName, "__Secure-cf_at", "__Host- cannot carry a Domain");
   assert.equal(loadSessionConfig({ AUTH_SESSION_MODE: "dual", AUTH_ACCESS_TOKEN_TTL_SECONDS: "5" }).accessTokenTtlSeconds, 60, "TTL is clamped");
+  const degraded = loadSessionConfig({ AUTH_SESSION_MODE: "cookie", NODE_ENV: "production" }, { schemaReady: false });
+  assert.equal(degraded.mode, "legacy", "dual/cookie fall back to legacy until the schema is migrated");
+  assert.equal(degraded.degradedFrom, "cookie");
+  assert.equal(degraded.cookiesEnabled || degraded.sessionsEnabled, false);
+  assert.equal(degraded.accessTokenTtlSeconds, 8 * 3600);
 });
 
 test("CSRF tokens are per-session, derived and constant-time verified", () => {
@@ -125,4 +132,28 @@ test("fresh step-up evidence: session-bound, enrolled, at most 5 minutes old", (
   assert.equal(hasFreshVerifiedMfa({ mfa: { ...mfa, verifiedAt: new Date(now + 60_000).toISOString() } }, { now }), false, "future timestamps are rejected");
   assert.equal(hasRecentMfa({ id: "s1", mfaVerifiedAt: new Date(now - 1000) }, 5 * 60_000, now), true);
   assert.equal(hasRecentMfa({ id: null, mfaVerifiedAt: new Date(now - 1000) }, 5 * 60_000, now), false, "legacy tokens without a session never qualify");
+});
+
+test("schema readiness: cached once ready, rechecked while missing, fails safe on errors", async () => {
+  const { createSchemaReadiness, AUTH_TABLES } = require("../src/shared/auth/schema-readiness");
+  let present = false;
+  let calls = 0;
+  let clock = 0;
+  const client = { $queryRawUnsafe: async (sql) => { calls += 1; assert.ok(AUTH_TABLES.every((t) => sql.includes(`'public.${t}'`))); return [Object.fromEntries(AUTH_TABLES.map((_, i) => [`t${i}`, present]))]; } };
+  const warnings = [];
+  const probe = createSchemaReadiness({ client, logger: { warn: (m) => warnings.push(m), info: () => {} }, recheckMs: 1000, now: () => clock });
+  assert.equal(await probe.isReady(), false);
+  assert.equal(await probe.isReady(), false);
+  assert.equal(calls, 1, "a negative result is cached for recheckMs");
+  assert.equal(warnings.length, 1, "warns loudly once");
+  present = true;
+  clock = 1500;
+  assert.equal(await probe.isReady(), true, "picks up the migration without a restart");
+  present = false;
+  assert.equal(await probe.isReady(), true, "ready is sticky for the process");
+  assert.equal(calls, 2);
+  const broken = createSchemaReadiness({ client: { $queryRawUnsafe: async () => { throw new Error("db down"); } } });
+  assert.equal(await broken.isReady(), false);
+  const partial = createSchemaReadiness({ client: { $queryRawUnsafe: async () => [{ t0: true, t1: true }] } });
+  assert.equal(await partial.isReady(), false, "every table must exist");
 });

@@ -26,9 +26,11 @@ function flag(value, fallback) {
   return ["1", "true", "yes", "on"].includes(String(value).trim().toLowerCase());
 }
 
-function loadSessionConfig(env = process.env) {
+// `schemaReady: false` forces legacy (the session/MFA tables are missing).
+function loadSessionConfig(env = process.env, { schemaReady = true } = {}) {
   const requested = String(env.AUTH_SESSION_MODE || "legacy").trim().toLowerCase();
-  const mode = MODES.includes(requested) ? requested : "legacy";
+  const configured = MODES.includes(requested) ? requested : "legacy";
+  const mode = schemaReady ? configured : "legacy";
   const production = env.NODE_ENV === "production";
   const sameSiteRaw = String(env.AUTH_COOKIE_SAMESITE || (production ? "none" : "lax")).trim().toLowerCase();
   const sameSite = ["none", "lax", "strict"].includes(sameSiteRaw) ? sameSiteRaw : "lax";
@@ -41,6 +43,9 @@ function loadSessionConfig(env = process.env) {
   return Object.freeze({
     mode,
     requestedMode: requested,
+    schemaReady,
+    sessionsEnabled: schemaReady,
+    degradedFrom: !schemaReady && configured !== "legacy" ? configured : null,
     cookiesEnabled: mode !== "legacy",
     bodyTokenEnabled: mode !== "cookie",
     bearerAccepted: mode !== "cookie",

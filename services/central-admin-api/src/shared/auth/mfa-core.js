@@ -4,8 +4,8 @@
 // Deliberately free of HTTP and Prisma model knowledge beyond the AdminUser
 // columns it documents, so other modules (e.g. Mail step-up) can adopt it.
 //
-// Verified MFA = adminUser.mfaEnrolledAt != null AND mfaSecretEncrypted != null.
-// `twoFactorEnabled` alone is NEVER treated as MFA evidence.
+// Verified MFA = an admin_mfa_enrollments row with enrolledAt AND
+// secretEncrypted. `admin_users.twoFactorEnabled` alone is NEVER MFA evidence.
 
 const crypto = require("node:crypto");
 
@@ -140,15 +140,15 @@ function needsRewrap(envelope, env = process.env) {
   return ring.available && String(envelope || "").split(":")[1] !== ring.activeId;
 }
 
-function isMfaEnrolled(user) {
-  return Boolean(user && user.mfaEnrolledAt && user.mfaSecretEncrypted);
+function isMfaEnrolled(enrollment) {
+  return Boolean(enrollment && enrollment.enrolledAt && enrollment.secretEncrypted);
 }
 
-// Resolve the TOTP secret for a user. Only verified enrollments count.
-// `allowLegacyPlaintext` exists solely for a staged migration of callers that
-// previously read the plaintext `twoFactorSecret` column; it defaults to off.
-function resolveTotpSecret(user, { env = process.env, allowLegacyPlaintext = false } = {}) {
-  if (isMfaEnrolled(user)) return decryptSecret(user.mfaSecretEncrypted, user.id, env);
+// Resolve the TOTP secret from a verified enrollment row. `allowLegacyPlaintext`
+// exists solely for a staged migration of callers that previously read the
+// plaintext `admin_users.twoFactorSecret`; it defaults to off.
+function resolveTotpSecret({ enrollment, user }, { env = process.env, allowLegacyPlaintext = false } = {}) {
+  if (isMfaEnrolled(enrollment)) return decryptSecret(enrollment.secretEncrypted, enrollment.adminUserId, env);
   if (allowLegacyPlaintext && user?.twoFactorEnabled && user?.twoFactorSecret) return decodeBase32(user.twoFactorSecret);
   return null;
 }

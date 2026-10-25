@@ -2,10 +2,9 @@ const { verifyAccessToken } = require("../utils/jwt.util");
 const { prisma } = require("../config/database");
 const ApiError = require("../utils/ApiError");
 const asyncHandler = require("../utils/asyncHandler");
-const { loadSessionConfig } = require("../auth/session.config");
 const { verifyCsrfToken } = require("../auth/session.service");
+const { isMfaEnrolled } = require("../auth/mfa-core");
 const { createOriginPolicy } = require("../config/cors-origins");
-const { createAuditLog } = require("./audit.middleware");
 
 // FIX #11: Centralise the change-password path so it doesn't silently break
 // if the route prefix changes. Update this constant if the route moves.
@@ -61,11 +60,14 @@ function extractCredential(req, config) {
   return null;
 }
 
-function buildAuthenticate({ client = prisma, sessions = null, env = process.env } = {}) {
-  const sessionService = () => sessions || require("../auth").sessionService;
+function buildAuthenticate({ client = prisma, sessions = null, runtime = null, env = process.env } = {}) {
+  const auth = () => require("../auth");
+  const sessionService = () => sessions || auth().sessionService;
+  const getRuntime = () => (runtime ? runtime() : auth().getAuthRuntime(env));
 
   return asyncHandler(async (req, res, next) => {
-    const config = loadSessionConfig(env);
+    // Before the session/MFA migration, config is forced to legacy.
+    const { ready, config } = await getRuntime();
     const credential = extractCredential(req, config);
     if (!credential) throw new ApiError(401, "No token provided");
     if (credential.source === "bearer" && !config.bearerAccepted) {
@@ -86,6 +88,9 @@ function buildAuthenticate({ client = prisma, sessions = null, env = process.env
     // log everyone out; cookie mode never accepts them.
     let session = null;
     if (decoded.sid) {
+      // A session-bound token while the schema is missing (e.g. after a
+      // rollback) cannot be validated: refuse it.
+      if (!ready) throw authError(401, "AUTH_SESSION_INVALID", "Session is not valid");
       session = await sessionService().validateAccess(decoded);
     } else if (credential.source === "cookie" || config.mode === "cookie") {
       throw authError(401, "AUTH_SESSION_INVALID", "Session is not valid");
@@ -94,21 +99,18 @@ function buildAuthenticate({ client = prisma, sessions = null, env = process.env
     if (credential.source === "cookie" && !SAFE_METHODS.has(req.method)) {
       assertTrustedOrigin(req, env);
       if (!verifyCsrfToken(session, req.get("x-csrf-token"), env)) {
-        await createAuditLog({ adminUserId: decoded.sub, action: "CSRF_REJECTED", targetId: session.id, targetType: "admin_session", metadata: { method: req.method, path: req.originalUrl?.split("?")[0] }, req });
+        await auth().recordAuthEvent({ adminUserId: decoded.sub, action: "CSRF_REJECTED", targetId: session.id, targetType: "admin_session", metadata: { method: req.method, path: req.originalUrl?.split("?")[0] }, req });
         throw authError(403, "AUTH_CSRF_INVALID", "Missing or invalid CSRF token");
       }
     }
 
     // Verify user still exists and is active
-    const row = await client.adminUser.findUnique({
+    const adminUser = await client.adminUser.findUnique({
       where: { id: decoded.sub },
-      select: { ...ADMIN_USER_SELECT, mfaEnrolledAt: true, mfaSecretEncrypted: true },
+      select: ADMIN_USER_SELECT,
     });
-    // Keep req.adminUser exactly as before; MFA facts go on req.authSession.
-    const { mfaEnrolledAt, mfaSecretEncrypted, ...adminUser } = row || {};
-    const mfaEnrolled = Boolean(mfaEnrolledAt && mfaSecretEncrypted);
 
-    if (!row) throw new ApiError(401, "User no longer exists");
+    if (!adminUser) throw new ApiError(401, "User no longer exists");
     if (adminUser.status === "INACTIVE")
       throw new ApiError(403, "Account deactivated");
     if (adminUser.status === "LOCKED") throw new ApiError(403, "Account locked");
@@ -135,6 +137,11 @@ function buildAuthenticate({ client = prisma, sessions = null, env = process.env
       throw new ApiError(403, "You must change your password before continuing");
     }
 
+    // MFA facts go on req.authSession; req.adminUser keeps its exact shape.
+    const mfaEnrolled = session
+      ? isMfaEnrolled(await client.adminMfaEnrollment.findUnique({ where: { adminUserId: adminUser.id }, select: { adminUserId: true, enrolledAt: true, secretEncrypted: true } }))
+      : false;
+
     req.adminUser = adminUser;
     req.authSession = session
       ? { id: session.id, mfaVerifiedAt: session.mfaVerifiedAt, mfaEnrolled, authMethod: session.authMethod, source: credential.source, mode: config.mode }
@@ -152,6 +159,13 @@ function hasRecentMfa(authSession, maxAgeMs, now = Date.now()) {
   return Boolean(authSession?.id && at && now - at <= maxAgeMs && at <= now + 5000);
 }
 
+// Session/MFA endpoints answer 503 until the migration is applied.
+const requireAuthSchema = asyncHandler(async (_req, _res, next) => {
+  const { ready } = await require("../auth").getAuthRuntime();
+  if (!ready) throw authError(503, "AUTH_SCHEMA_NOT_READY", "Sessions and two-factor authentication are not available yet");
+  next();
+});
+
 function requireRecentMfa(maxAgeMs = 5 * 60 * 1000) {
   return (req, _res, next) => {
     if (hasRecentMfa(req.authSession, maxAgeMs)) return next();
@@ -159,4 +173,4 @@ function requireRecentMfa(maxAgeMs = 5 * 60 * 1000) {
   };
 }
 
-module.exports = { authenticate, buildAuthenticate, requireRecentMfa, hasRecentMfa, assertTrustedOrigin };
+module.exports = { authenticate, buildAuthenticate, requireAuthSchema, requireRecentMfa, hasRecentMfa, assertTrustedOrigin };

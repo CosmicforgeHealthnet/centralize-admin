@@ -92,7 +92,8 @@ async function seedUser(key, data = {}) {
 const sessionOf = (token) => jwt.decode(token)?.sid;
 const codeFor = (secretBase32, offsetSteps = 0) => core.totpAt(core.decodeBase32(secretBase32), core.currentStep() + offsetSteps);
 // Test-only: forget the replay watermark so the next code in the same 30 s window is usable.
-const allowNextCode = (userId) => prisma.adminUser.update({ where: { id: userId }, data: { mfaLastUsedStep: null } });
+const allowNextCode = (userId) => prisma.adminMfaEnrollment.update({ where: { adminUserId: userId }, data: { lastUsedStep: null } });
+const resetLock = (userId) => prisma.adminMfaEnrollment.update({ where: { adminUserId: userId }, data: { failedAttempts: 0, lockedUntil: null } });
 
 test("HQ sessions and MFA on real PostgreSQL", { timeout: 240000 }, async (t) => {
   const app = createApp({ env: process.env });
@@ -154,7 +155,7 @@ test("HQ sessions and MFA on real PostgreSQL", { timeout: 240000 }, async (t) =>
       assert.equal(session.revokeReason, "REFRESH_TOKEN_REUSE");
       assert.equal((await a.request("POST", "/api/auth/refresh-token")).status, 401, "the current refresh token of the family is dead too");
       assert.equal((await a.request("GET", "/api/auth/me", { bearer: res.body.data.accessToken })).code, "AUTH_SESSION_REVOKED", "access tokens of the family stop working at once");
-      assert.ok(await prisma.auditLog.count({ where: { action: "REFRESH_TOKEN_REUSE_DETECTED", targetId: sid } }));
+      assert.ok(await prisma.adminAuthEvent.count({ where: { action: "REFRESH_TOKEN_REUSE_DETECTED", targetId: sid } }));
     });
 
     await t.test("dual mode: httpOnly cookies + CSRF, body token and Bearer still accepted", async () => {
@@ -187,7 +188,7 @@ test("HQ sessions and MFA on real PostgreSQL", { timeout: 240000 }, async (t) =>
       assert.equal((await probe({ origin: null, headers: { referer: `${ORIGIN}/dashboard` } })).status, 400, "Referer from the frontend is accepted");
       assert.equal((await probe({})).status, 400, "valid CSRF + Origin reaches the handler");
       assert.equal((await probe({ csrf: null, cookies: false, bearer: res.body.data.accessToken, origin: null })).status, 400, "Bearer requests are exempt from CSRF");
-      assert.ok(await prisma.auditLog.count({ where: { action: "CSRF_REJECTED", adminUserId: users.bob.id } }));
+      assert.ok(await prisma.adminAuthEvent.count({ where: { action: "CSRF_REJECTED", adminUserId: users.bob.id } }));
 
       const refreshed = await a.request("POST", "/api/auth/refresh-token");
       assert.equal(refreshed.status, 200, refreshed.text);
@@ -327,23 +328,26 @@ test("HQ sessions and MFA on real PostgreSQL", { timeout: 240000 }, async (t) =>
       assert.equal(enroll.status, 200, enroll.text);
       aliceSecret = enroll.body.data.secret;
       assert.match(enroll.body.data.otpauthUri, /^otpauth:\/\/totp\//);
-      const row = await prisma.adminUser.findUnique({ where: { id: users.alice.id } });
-      assert.equal(row.mfaEnrolledAt, null, "not active before verification");
-      assert.ok(row.mfaPendingSecretEncrypted.startsWith("cfmfa1:"));
+      const row = await prisma.adminMfaEnrollment.findUnique({ where: { adminUserId: users.alice.id } });
+      assert.equal(row.enrolledAt, null, "not active before verification");
+      assert.ok(row.pendingSecretEncrypted.startsWith("cfmfa1:"));
       assert.ok(!JSON.stringify(row).includes(aliceSecret), "secret never stored in plaintext");
+      assert.ok(!JSON.stringify(await prisma.adminUser.findUnique({ where: { id: users.alice.id } })).includes(aliceSecret));
       assert.equal((await a.request("POST", "/api/auth/mfa/activate", { body: { code: "000000" } })).code, "MFA_CODE_INVALID");
 
       const activated = await a.request("POST", "/api/auth/mfa/activate", { body: { code: codeFor(aliceSecret) } });
       assert.equal(activated.status, 200, activated.text);
       aliceRecovery = activated.body.data.recoveryCodes;
       assert.equal(aliceRecovery.length, 10);
-      const after = await prisma.adminUser.findUnique({ where: { id: users.alice.id } });
-      assert.ok(after.mfaEnrolledAt && after.mfaSecretEncrypted && after.twoFactorEnabled);
-      assert.equal(after.twoFactorSecret, null);
+      const after = await prisma.adminMfaEnrollment.findUnique({ where: { adminUserId: users.alice.id } });
+      assert.ok(after.enrolledAt && after.secretEncrypted);
+      const userAfter = await prisma.adminUser.findUnique({ where: { id: users.alice.id } });
+      assert.equal(userAfter.twoFactorEnabled, true, "compatibility flag kept in sync");
+      assert.equal(userAfter.twoFactorSecret, null);
       const stored = await prisma.adminMfaRecoveryCode.findMany({ where: { adminUserId: users.alice.id } });
       assert.equal(stored.length, 10);
       for (const code of aliceRecovery) assert.ok(!JSON.stringify(stored).includes(code.replace("-", "")) && !JSON.stringify(stored).includes(code), "recovery codes stored hashed only");
-      assert.ok(await prisma.auditLog.count({ where: { action: "MFA_ENROLLED", adminUserId: users.alice.id } }));
+      assert.ok(await prisma.adminAuthEvent.count({ where: { action: "MFA_ENROLLED", adminUserId: users.alice.id } }));
     });
 
     await t.test("MFA login challenge: no session before the second factor, replay and reuse refused", async () => {
@@ -357,7 +361,7 @@ test("HQ sessions and MFA on real PostgreSQL", { timeout: 240000 }, async (t) =>
       const challengeToken = first.body.data.challengeToken;
       assert.equal((await a.request("POST", "/api/auth/login/mfa", { body: { challengeToken, code: "123456" } })).code, "MFA_CODE_INVALID");
       // The activation code's time-step was already used: replay is refused.
-      const lastStep = (await prisma.adminUser.findUnique({ where: { id: users.alice.id } })).mfaLastUsedStep;
+      const lastStep = (await prisma.adminMfaEnrollment.findUnique({ where: { adminUserId: users.alice.id } })).lastUsedStep;
       const replay = core.totpAt(core.decodeBase32(aliceSecret), lastStep);
       assert.equal((await a.request("POST", "/api/auth/login/mfa", { body: { challengeToken, code: replay } })).code, "MFA_CODE_INVALID", "TOTP replay refused");
 
@@ -376,10 +380,10 @@ test("HQ sessions and MFA on real PostgreSQL", { timeout: 240000 }, async (t) =>
 
       const third = await login(agent(base), users.alice);
       for (let i = 0; i < 4; i += 1) await a.request("POST", "/api/auth/login/mfa", { body: { challengeToken: third.body.data.challengeToken, code: "000001" } });
-      await prisma.adminUser.update({ where: { id: users.alice.id }, data: { mfaFailedAttempts: 0, mfaLockedUntil: null } });
+      await resetLock(users.alice.id);
       await a.request("POST", "/api/auth/login/mfa", { body: { challengeToken: third.body.data.challengeToken, code: "000002" } });
       await allowNextCode(users.alice.id);
-      await prisma.adminUser.update({ where: { id: users.alice.id }, data: { mfaFailedAttempts: 0, mfaLockedUntil: null } });
+      await resetLock(users.alice.id);
       assert.equal((await a.request("POST", "/api/auth/login/mfa", { body: { challengeToken: third.body.data.challengeToken, code: codeFor(aliceSecret) } })).code, "MFA_CHALLENGE_INVALID", "challenge dies after 5 attempts");
     });
 
@@ -392,16 +396,16 @@ test("HQ sessions and MFA on real PostgreSQL", { timeout: 240000 }, async (t) =>
       const again = await login(agent(base), users.alice);
       assert.equal((await a.request("POST", "/api/auth/login/mfa", { body: { challengeToken: again.body.data.challengeToken, recoveryCode: aliceRecovery[0] } })).code, "MFA_CODE_INVALID", "recovery code is single use");
       assert.equal((await prisma.adminMfaRecoveryCode.count({ where: { adminUserId: users.alice.id, usedAt: null } })), 9);
-      assert.ok(await prisma.auditLog.count({ where: { action: "MFA_RECOVERY_CODE_USED", adminUserId: users.alice.id } }));
+      assert.ok(await prisma.adminAuthEvent.count({ where: { action: "MFA_RECOVERY_CODE_USED", adminUserId: users.alice.id } }));
 
       a.state.csrf = used.body.data.csrfToken;
-      await prisma.adminUser.update({ where: { id: users.alice.id }, data: { mfaFailedAttempts: 0, mfaLockedUntil: null } });
+      await resetLock(users.alice.id);
       for (let i = 0; i < 5; i += 1) await a.request("POST", "/api/auth/mfa/step-up", { body: { code: "999999" } });
       const locked = await a.request("POST", "/api/auth/mfa/step-up", { body: { code: codeFor(aliceSecret, 1) } });
       assert.equal(locked.status, 429);
       assert.equal(locked.code, "MFA_LOCKED");
-      assert.ok(await prisma.auditLog.count({ where: { action: "MFA_LOCKED", adminUserId: users.alice.id } }));
-      await prisma.adminUser.update({ where: { id: users.alice.id }, data: { mfaFailedAttempts: 0, mfaLockedUntil: null } });
+      assert.ok(await prisma.adminAuthEvent.count({ where: { action: "MFA_LOCKED", adminUserId: users.alice.id } }));
+      await resetLock(users.alice.id);
     });
 
     await t.test("privileged actions require a fresh step-up on the current session", async () => {
@@ -461,10 +465,9 @@ test("HQ sessions and MFA on real PostgreSQL", { timeout: 240000 }, async (t) =>
       assert.equal(reset.status, 200, reset.text);
       assert.equal(reset.body.data.wasEnrolled, true);
       assert.equal((await target.request("GET", "/api/auth/me")).status, 401, "target's sessions are revoked");
-      const row = await prisma.adminUser.findUnique({ where: { id: users.alice.id } });
-      assert.equal(row.mfaEnrolledAt, null);
+      assert.equal(await prisma.adminMfaEnrollment.count({ where: { adminUserId: users.alice.id } }), 0);
       assert.equal(await prisma.adminMfaRecoveryCode.count({ where: { adminUserId: users.alice.id } }), 0);
-      const audit = await prisma.auditLog.findFirst({ where: { action: "MFA_ADMIN_RESET", targetId: users.alice.id } });
+      const audit = await prisma.adminAuthEvent.findFirst({ where: { action: "MFA_ADMIN_RESET", targetId: users.alice.id } });
       assert.equal(audit.adminUserId, users.hr.id);
       assert.ok(await prisma.notification.count({ where: { adminUserId: users.alice.id, title: "Two-factor authentication was reset" } }));
       assert.equal((await login(agent(base), users.alice)).body.data.mfaRequired, undefined, "after reset the user signs in with password only and must re-enroll");
@@ -475,8 +478,8 @@ test("HQ sessions and MFA on real PostgreSQL", { timeout: 240000 }, async (t) =>
       const a = agent(base);
       const res = await login(a, users.hr);
       await allowNextCode(users.hr.id);
-      const hrRow = await prisma.adminUser.findUnique({ where: { id: users.hr.id } });
-      const hrSecret = core.encodeBase32(core.decryptSecret(hrRow.mfaSecretEncrypted, users.hr.id));
+      const hrRow = await prisma.adminMfaEnrollment.findUnique({ where: { adminUserId: users.hr.id } });
+      const hrSecret = core.encodeBase32(core.decryptSecret(hrRow.secretEncrypted, users.hr.id));
       const done = await a.request("POST", "/api/auth/login/mfa", { body: { challengeToken: res.body.data.challengeToken, code: codeFor(hrSecret) } });
       a.state.csrf = done.body.data.csrfToken;
       const other = agent(base);
@@ -489,7 +492,7 @@ test("HQ sessions and MFA on real PostgreSQL", { timeout: 240000 }, async (t) =>
       assert.equal(disabled.status, 200, disabled.text);
       assert.equal((await other.request("GET", "/api/auth/me")).status, 401, "other sessions end");
       assert.equal((await a.request("GET", "/api/auth/me")).status, 200, "the current session survives");
-      assert.ok(await prisma.auditLog.count({ where: { action: "MFA_DISABLED", adminUserId: users.hr.id } }));
+      assert.ok(await prisma.adminAuthEvent.count({ where: { action: "MFA_DISABLED", adminUserId: users.hr.id } }));
     });
 
     await t.test("Google sign-in never puts a token in the URL outside legacy mode", async () => {

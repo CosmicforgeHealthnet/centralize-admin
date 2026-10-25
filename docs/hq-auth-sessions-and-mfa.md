@@ -4,21 +4,78 @@ Scope: the Centralized Admin (HQ) login used by every module (Admin, HR, Support
 Marketing, Social Operations and, once PR #13 merges, Mail). This branch is based
 on `staging` and does **not** contain the Mail module; see "Mail integration" below.
 
-Nothing here changes behaviour until an operator sets `AUTH_SESSION_MODE`
-and `AUTH_MFA_ENCRYPTION_KEYS`. The default `legacy` mode keeps the
-existing login contract.
+Nothing here changes behaviour until the migration is applied **and** an
+operator opts in (`AUTH_MFA_ENCRYPTION_KEYS`, `AUTH_SESSION_MODE`). The code is
+**deploy-safe before the migration**: see section 0.
+
+## 0. Deployment order (code first, migration later)
+
+Merging to `staging` auto-deploys the API, and manual migrations are applied
+separately, later. This release is built for that order.
+
+- **The migration only adds new tables** (`admin_sessions`,
+  `admin_session_refresh_tokens`, `admin_mfa_enrollments`,
+  `admin_mfa_recovery_codes`, `admin_mfa_challenges`, `admin_auth_events`).
+- **No existing table, column or enum changes.** The `AdminUser` and
+  `RefreshToken` models gain relation fields only, which add no columns, so
+  default-select reads such as login's `adminUser.findUnique({ where: { email } })`
+  keep working against an unmigrated database.
+- **No `AuditAction` values are added.** Session and MFA events go to
+  `admin_auth_events`. Existing audit actions (`LOGIN`, `LOGOUT`,
+  `TOKEN_REFRESHED`, `PASSWORD_CHANGED`) are written exactly as before.
+- **A schema-readiness probe** (`src/shared/auth/schema-readiness.js`) checks all
+  six tables with `to_regclass` on first use.
+  - `true` is cached for the process.
+  - `false` is re-checked every 30 s, so applying the migration takes effect
+    without a restart.
+- **While the schema is not ready, behaviour is exactly the pre-release one:**
+  - login issues an 8 h JWT without a session id and a UUID refresh token in
+    `admin_refresh_tokens`;
+  - refresh, logout, change-password and the HR password reset run the original
+    code paths;
+  - there is no MFA challenge, even for users with the legacy `twoFactorEnabled`
+    flag;
+  - session and MFA endpoints answer `503 AUTH_SCHEMA_NOT_READY`;
+  - `AUTH_SESSION_MODE=dual|cookie` is downgraded to `legacy` with a loud log
+    warning (no crash);
+  - emergency overrides fail closed with `VERIFIED_MFA_UNAVAILABLE`.
+- **After the migration:**
+  - sessions start being tracked (still the `legacy` contract unless the mode is
+    changed);
+  - the first refresh of a pre-migration refresh token upgrades it into a session;
+  - pre-migration Bearer tokens keep working until they expire in
+    `legacy`/`dual` mode.
+
+Proof:
+
+- `tests/auth-premigration-compat.test.js` runs the real app with the **new**
+  generated client against a database without the new tables. The same 8 subtests
+  pass against a database pushed straight from the `origin/staging` schema.
+  It covers:
+  - the login response shape;
+  - the legacy cookies with no session cookies, although `AUTH_SESSION_MODE=cookie`
+    is set;
+  - the 8 h token without `sid`;
+  - `/me`, `/api/profile/me`, `/api/hrm/attendance` and `/api/marketing/campaigns`;
+  - legacy refresh rotation;
+  - the 503s;
+  - the emergency override failing closed;
+  - logout and change-password;
+  - that no new tables are touched.
+- It then applies the migration in place and shows a pre-migration refresh token
+  upgrading into a tracked session.
 
 ## 1. What changed
 
 | Area | Before | After |
 | --- | --- | --- |
 | Access credential | 8 h JWT in the response body, stored by the frontend in `localStorage` and a JS-set `accessToken` cookie | `legacy`: unchanged. `dual`/`cookie`: 15 min JWT in an **httpOnly** cookie; nothing is persisted in browser storage |
-| Session state | None server-side (JWT valid until expiry) | `admin_sessions` row per login; every request checks it is live, so logout, revocation, password change and deactivation take effect **immediately** |
-| Refresh | UUID rotated, no reuse detection | 256-bit random token, SHA-256 stored, rotated per use, linked to its session. Reusing a rotated token outside a 10 s race window **revokes the whole session** |
+| Session state | None server-side (JWT valid until expiry) | `admin_sessions` row per login (after migration); every request checks it is live, so logout, revocation, password change and deactivation take effect **immediately** |
+| Refresh | UUID rotated in `admin_refresh_tokens`, no reuse detection | 256-bit random token in `admin_session_refresh_tokens`, SHA-256 stored, rotated per use, linked to its session. Reusing a rotated token outside a 10 s race window **revokes the whole session**. Pre-migration tokens are upgraded on first refresh |
 | CSRF | n/a (Bearer only) | Cookie-authenticated unsafe requests need `X-CSRF-Token` (HMAC of session id + nonce) **and** a trusted `Origin`/`Referer` |
 | Session lifetime | 7 d refresh, no idle limit | Idle 12 h, absolute 7 d (configurable), max 10 concurrent sessions per user (oldest revoked) |
 | Google sign-in | Token in the redirect URL `?token=` | `legacy`: unchanged. `dual`/`cookie`: cookies + `?session=1`, no token in the URL |
-| MFA | `twoFactorEnabled` flag, plaintext `twoFactorSecret`, no enrollment | Full lifecycle: password re-auth, encrypted secret, verify-before-activate, login challenge, replay guard, lockout, recovery codes, step-up, disable, admin reset, audit |
+| MFA | `twoFactorEnabled` flag, plaintext `twoFactorSecret`, no enrollment | Full lifecycle in `admin_mfa_enrollments`: password re-auth, encrypted secret, verify-before-activate, login challenge, replay guard, lockout, recovery codes, step-up, disable, admin reset, events in `admin_auth_events` |
 | Privileged actions | Advertising-execution emergency overrides trusted `twoFactorEnabled === true` | Require verified enrollment **and** a step-up on the current session within 5 min |
 
 ## 2. Session modes and rollout
@@ -47,8 +104,9 @@ The frontend follows the mode the API reports in each login/refresh response:
 
 Rollout, one step per approved change:
 
-1. Deploy with `AUTH_SESSION_MODE=legacy` (default). Run the migration first
-   (section 7). Behaviour is unchanged; sessions start being tracked.
+1. Deploy the code (any order relative to the migration; section 0). Apply the
+   migration (section 7) under the Admin DB owner's approval. Behaviour stays the
+   `legacy` contract; sessions start being tracked.
 2. Set `AUTH_MFA_ENCRYPTION_KEYS` from the secret manager. MFA enrollment becomes
    available under **Settings > Account security**.
 3. Set `AUTH_SESSION_MODE=dual` plus the cookie settings in section 3. Check
@@ -104,8 +162,9 @@ CSRF defence works in layers:
 
 ## 4. MFA lifecycle
 
-- **Verified MFA** means `mfaEnrolledAt` is set **and** `mfaSecretEncrypted` is
-  present. `twoFactorEnabled` is kept in sync for compatibility only and is
+- **Verified MFA** means an `admin_mfa_enrollments` row with `enrolled_at` set
+  **and** an encrypted secret (a CHECK constraint enforces the pair).
+  `admin_users.twoFactorEnabled` is kept in sync for compatibility only and is
   never accepted as evidence on its own. Users with the legacy flag and a
   plaintext secret are treated as not enrolled.
 - **Enroll** (`POST /api/auth/mfa/enroll {password}`):
@@ -117,8 +176,8 @@ CSRF defence works in layers:
   - without a key the request fails closed with 503.
 - **Activate** (`POST /mfa/activate {code}`):
   - activates only after a valid TOTP;
-  - deletes the plaintext column and issues 10 recovery codes, shown once and stored as
-    salted SHA-256 hashes;
+  - clears any legacy plaintext `twoFactorSecret` and issues 10 recovery codes, shown
+    once and stored as salted SHA-256 hashes;
   - marks the current session MFA-verified.
 - **Login:** a verified user gets
   `{ mfaRequired, challengeToken, challengeExpiresAt }` and **no session**.
@@ -131,7 +190,7 @@ CSRF defence works in layers:
 
   For Google sign-in the challenge travels in an httpOnly cookie, not the URL.
 - **Replay guard:** each TOTP time-step is accepted at most once per user. This is
-  enforced atomically with `mfa_last_used_step`.
+  enforced atomically with `admin_mfa_enrollments.last_used_step`.
 - **Lockout:** after 5 consecutive failures MFA is locked for 15 minutes. The routes are
   also behind the existing `authLimiter`.
 - **Step-up:** `POST /api/auth/mfa/step-up {code | recoveryCode}` stamps
@@ -150,7 +209,7 @@ CSRF defence works in layers:
   - Self-reset is refused, and only SUPER can reset a SUPER account.
   - The reset clears the enrollment and revokes all of the target's sessions.
   - It is audited (with the reason) and the target is notified.
-- **Audit actions:**
+- **Auth events** (table `admin_auth_events`, not `AuditAction`):
   - sessions: `SESSION_CREATED`, `SESSION_REVOKED`, `SESSIONS_REVOKED_ALL`,
     `REFRESH_TOKEN_REUSE_DETECTED`, `CSRF_REJECTED`;
   - MFA: `MFA_ENROLLMENT_STARTED`, `MFA_ENROLLED`, `MFA_CHALLENGE_ISSUED`, `MFA_VERIFIED`,
@@ -205,6 +264,8 @@ Errors use the standard envelope with a `code`:
   after PR #13) keeps working in all modes.
 - Existing users without MFA log in exactly as today. Existing refresh
   cookies (pre-release rows) upgrade into a tracked session on first refresh.
+- `admin_users` and `admin_refresh_tokens` are not altered; the new client reads
+  them identically before and after the migration (section 0).
 - Changes that affect existing behaviour:
   - Password change now ends every session immediately. Before, other devices kept their
     8 h tokens.
@@ -215,12 +276,14 @@ Errors use the standard envelope with a `code`:
     verified enrollment plus a fresh step-up. Operators must enroll before using them.
 - **Mail (PR #13) integration point.**
   - PR #13's `authz/step-up.service.js` still reads `twoFactorEnabled` + plaintext
-    `twoFactorSecret`. A user who enrolls through this flow has an encrypted secret and
-    `twoFactorSecret = null`, so Mail step-up keeps returning `MAIL_MFA_NOT_ENROLLED`
-    until it adopts the shared core.
-  - Whichever PR merges second should switch Mail step-up to
-    `resolveTotpSecret(user)` and `matchTotp()` from `src/shared/auth/mfa-core.js`, keep
-    its own single-use `MailStepUpVerification` table, and use `isMfaEnrolled()`.
+    `twoFactorSecret`. A user who enrolls through this flow has an encrypted secret in
+    `admin_mfa_enrollments` and `twoFactorSecret = null`, so Mail step-up keeps
+    returning `MAIL_MFA_NOT_ENROLLED` until it adopts the shared core.
+  - Whichever PR merges second should switch Mail step-up to load the enrollment row,
+    then use `resolveTotpSecret({ enrollment })` and `matchTotp()` from
+    `src/shared/auth/mfa-core.js`. It should keep its own single-use
+    `MailStepUpVerification` table, use `isMfaEnrolled(enrollment)`, and treat a
+    missing table as "not enrolled" (fail closed).
   - This is a small, mechanical change inside the Mail module, which imports only
     `shared/*`.
 - **Migration numbering:** this migration is manifest order 27, and PR #13's Mail migration
@@ -230,16 +293,16 @@ Errors use the standard envelope with a `code`:
 
 ## 7. Database
 
-Migration `prisma/manual-migrations/20261025_add_admin_sessions_mfa.sql` (manifest order 27) is additive only:
+Migration `prisma/manual-migrations/20261025_add_admin_sessions_mfa.sql` (manifest
+order 27) is **new tables only**:
 
-- tables `admin_sessions`, `admin_mfa_recovery_codes` and `admin_mfa_challenges`, with
-  FKs that cascade on user delete;
-- nullable `session_id` / `rotated_at` columns on `admin_refresh_tokens`;
-- nullable or defaulted `mfa_*` columns on `admin_users`;
-- 16 new `AuditAction` values;
-- CHECK constraints on the session mode, the expiry order and the challenge attempts.
+- `admin_sessions`, `admin_session_refresh_tokens`, `admin_mfa_enrollments`,
+  `admin_mfa_recovery_codes`, `admin_mfa_challenges`, `admin_auth_events`;
+- foreign keys from the new tables to `admin_users`;
+- CHECK constraints on the session mode, the expiry order, the challenge attempts and
+  verified-enrollment consistency.
 
-No existing rows are rewritten.
+No existing table, column, index or enum is altered.
 
 Verification:
 
@@ -248,12 +311,13 @@ Verification:
 
 Rollback: `docs/sql/hq-auth-sessions-mfa-rollback.sql`.
 
-- It drops the new tables and columns and removes the ledger row.
-- Verified on a staging-schema database: the only remaining difference is the 16 enum
-  values, which PostgreSQL cannot drop and which are harmless.
-- It deletes all MFA enrollments, so users re-enroll.
-- Take a `pg_dump` first, and apply only under the Admin DB owner's approval, following
-  the existing manual-migration runbook pattern.
+- It drops the six tables and removes the ledger row.
+- Verified round trip: staging schema, then migration, then rollback. `migrate diff`
+  against the staging schema says "No difference detected": **no residue**.
+- Order: set `AUTH_SESSION_MODE=legacy`, roll back, then **restart** the API (readiness
+  is cached as ready per process).
+- It deletes all sessions and MFA enrollments, so users sign in and re-enroll.
+- Take a `pg_dump` first, and apply only under the Admin DB owner's approval.
 
 ## 8. Threat model (summary)
 
