@@ -132,6 +132,11 @@
       "order": 26,
       "file": "20260801_advertising_execution_sections25_28_remediation.sql",
       "sha256": "b9f0493629ccf4f8b340f8cd1dab2be7c0987419c47c4853b2f73ef115d7b5e6"
+    },
+    {
+      "order": 27,
+      "file": "20261025_add_admin_sessions_mfa.sql",
+      "sha256": "ab8bfb6060a9909bc69fa15386558ba2bd7daf4c49d75b444d375fb25dfb5d18"
     }
   ]
 }

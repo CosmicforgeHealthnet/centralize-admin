@@ -464,6 +464,21 @@ export type AdminManualMigrationLedger = $Result.DefaultSelection<Prisma.$AdminM
  */
 export type RefreshToken = $Result.DefaultSelection<Prisma.$RefreshTokenPayload>
 /**
+ * Model AdminSession
+ * 
+ */
+export type AdminSession = $Result.DefaultSelection<Prisma.$AdminSessionPayload>
+/**
+ * Model AdminMfaRecoveryCode
+ * 
+ */
+export type AdminMfaRecoveryCode = $Result.DefaultSelection<Prisma.$AdminMfaRecoveryCodePayload>
+/**
+ * Model AdminMfaChallenge
+ * 
+ */
+export type AdminMfaChallenge = $Result.DefaultSelection<Prisma.$AdminMfaChallengePayload>
+/**
  * Model AuditLog
  * 
  */
@@ -725,7 +740,23 @@ export const AuditAction: {
   EXECUTION_COMPENSATION_CREATED: 'EXECUTION_COMPENSATION_CREATED',
   EXECUTION_OVERRIDE_USED: 'EXECUTION_OVERRIDE_USED',
   EXECUTION_DRIFT_ACKNOWLEDGED: 'EXECUTION_DRIFT_ACKNOWLEDGED',
-  EXECUTION_OPERATION_RETRY_REVIEWED: 'EXECUTION_OPERATION_RETRY_REVIEWED'
+  EXECUTION_OPERATION_RETRY_REVIEWED: 'EXECUTION_OPERATION_RETRY_REVIEWED',
+  SESSION_CREATED: 'SESSION_CREATED',
+  SESSION_REVOKED: 'SESSION_REVOKED',
+  SESSIONS_REVOKED_ALL: 'SESSIONS_REVOKED_ALL',
+  REFRESH_TOKEN_REUSE_DETECTED: 'REFRESH_TOKEN_REUSE_DETECTED',
+  CSRF_REJECTED: 'CSRF_REJECTED',
+  MFA_ENROLLMENT_STARTED: 'MFA_ENROLLMENT_STARTED',
+  MFA_ENROLLED: 'MFA_ENROLLED',
+  MFA_CHALLENGE_ISSUED: 'MFA_CHALLENGE_ISSUED',
+  MFA_VERIFIED: 'MFA_VERIFIED',
+  MFA_FAILED: 'MFA_FAILED',
+  MFA_LOCKED: 'MFA_LOCKED',
+  MFA_RECOVERY_CODE_USED: 'MFA_RECOVERY_CODE_USED',
+  MFA_RECOVERY_CODES_REGENERATED: 'MFA_RECOVERY_CODES_REGENERATED',
+  MFA_DISABLED: 'MFA_DISABLED',
+  MFA_ADMIN_RESET: 'MFA_ADMIN_RESET',
+  MFA_STEP_UP: 'MFA_STEP_UP'
 };
 
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]
@@ -2107,7 +2138,7 @@ export class PrismaClient<
    * Read more in our [docs](https://pris.ly/d/client).
    */
 
-  constructor(optionsArg ?: Prisma.Subset<ClientOptions, Prisma.PrismaClientOptions>);
+  constructor(optionsArg ?: Prisma.PrismaClientConstructorArgs<ClientOptions>);
   $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;
 
   /**
@@ -3089,6 +3120,36 @@ export class PrismaClient<
   get refreshToken(): Prisma.RefreshTokenDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.adminSession`: Exposes CRUD operations for the **AdminSession** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AdminSessions
+    * const adminSessions = await prisma.adminSession.findMany()
+    * ```
+    */
+  get adminSession(): Prisma.AdminSessionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.adminMfaRecoveryCode`: Exposes CRUD operations for the **AdminMfaRecoveryCode** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AdminMfaRecoveryCodes
+    * const adminMfaRecoveryCodes = await prisma.adminMfaRecoveryCode.findMany()
+    * ```
+    */
+  get adminMfaRecoveryCode(): Prisma.AdminMfaRecoveryCodeDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.adminMfaChallenge`: Exposes CRUD operations for the **AdminMfaChallenge** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AdminMfaChallenges
+    * const adminMfaChallenges = await prisma.adminMfaChallenge.findMany()
+    * ```
+    */
+  get adminMfaChallenge(): Prisma.AdminMfaChallengeDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.auditLog`: Exposes CRUD operations for the **AuditLog** model.
     * Example usage:
     * ```ts
@@ -3387,8 +3448,8 @@ export namespace Prisma {
   export import Exact = $Public.Exact
 
   /**
-   * Prisma Client JS version: 7.8.0
-   * Query Engine version: 3c6e192761c0362d496ed980de936e2f3cebcd3a
+   * Prisma Client JS version: 7.10.1
+   * Query Engine version: d1b3f377ca835d73fd50954a5e22128b9ebdd6b8
    */
   export type PrismaVersion = {
     client: string
@@ -3523,6 +3584,19 @@ export namespace Prisma {
   };
 
   /**
+   * Resolved type of the argument passed to the `PrismaClient` constructor.
+   *
+   * When called without a narrower options type (the common case), this resolves
+   * to `PrismaClientOptions` directly, which produces a clear TypeScript error
+   * message (`not assignable to parameter of type 'PrismaClientOptions'`) when
+   * the argument is missing or incomplete. When the user supplies a narrower
+   * options type (e.g. via a literal), it falls back to `Subset` to keep
+   * filtering out unknown properties.
+   */
+  export type PrismaClientConstructorArgs<Options extends PrismaClientOptions> =
+    [PrismaClientOptions] extends [Options] ? PrismaClientOptions : Subset<Options, PrismaClientOptions>;
+
+  /**
    * SelectSubset
    * @desc From `T` pick properties that exist in `U`. Simple version of Intersection.
    * Additionally, it validates, if both select and include are present. If the case, it errors.
@@ -3554,7 +3628,7 @@ export namespace Prisma {
   type XOR<T, U> =
     T extends object ?
     U extends object ?
-      (Without<T, U> & U) | (Without<U, T> & T)
+      ((Without<T, U> & U) | (Without<U, T> & T)) & object
     : U : T
 
 
@@ -3861,6 +3935,9 @@ export namespace Prisma {
     SocialOperationsSetting: 'SocialOperationsSetting',
     AdminManualMigrationLedger: 'AdminManualMigrationLedger',
     RefreshToken: 'RefreshToken',
+    AdminSession: 'AdminSession',
+    AdminMfaRecoveryCode: 'AdminMfaRecoveryCode',
+    AdminMfaChallenge: 'AdminMfaChallenge',
     AuditLog: 'AuditLog',
     AdminSectionGrant: 'AdminSectionGrant',
     AdminSocialLink: 'AdminSocialLink',
@@ -3901,7 +3978,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "adminUser" | "marketing_campaigns" | "marketing_campaign_performance" | "marketing_campaign_timeline" | "marketing_campaign_team_members" | "marketing_content_items" | "marketing_content_monthly_performance" | "marketing_notification_events" | "marketing_email_templates" | "marketing_social_accounts" | "marketing_social_posts" | "marketing_social_analytics_snapshots" | "marketing_promotions" | "marketing_banners" | "marketing_analytics_snapshots" | "marketing_ad_platform_connections" | "marketing_ad_insights_raw" | "marketing_performance_snapshots" | "marketing_oauth_states" | "marketing_attributions" | "marketing_funnel_events" | "marketing_identity_links" | "marketing_attribution_decisions" | "marketing_intelligence_settings" | "marketing_intelligence_evaluation_runs" | "marketing_creative_assets" | "marketing_creative_performance_snapshots" | "marketing_creative_score_snapshots" | "marketing_recommendations" | "marketing_alerts" | "marketing_experiments" | "marketing_sync_locks" | "marketingExecutionPlan" | "marketingExecutionPlanItem" | "marketingExecutionApproval" | "marketingExecutionApprovalEvent" | "marketingExecutionRun" | "marketingExecutionJob" | "marketingProviderOperation" | "marketingProviderOperationAttempt" | "marketingExecutionStateSnapshot" | "marketingExecutionValidationIssue" | "marketingExecutionReconciliation" | "marketingExecutionPolicy" | "marketingCreativePublication" | "marketingCreativeMediaValidationEvidence" | "marketingCreativePublicationReviewEvent" | "marketingTargetingDiscovery" | "marketingExecutionAccountLock" | "marketingExecutionDeadLetterReview" | "marketingExecutionPolicyHistory" | "marketingExecutionValidationPacket" | "marketingExecutionDriftAcknowledgment" | "marketingExecutionRetryReview" | "marketingExecutionEmergencyOverride" | "marketingExecutionReconciliationJob" | "marketingExecutionCompensationLink" | "socialAccountConnection" | "socialPublishingIdentity" | "socialOAuthState" | "socialPost" | "socialPostRevision" | "socialPostTarget" | "socialPostApproval" | "socialPublication" | "socialPublicationAttempt" | "socialPublishingJob" | "socialMediaAsset" | "socialPostMedia" | "socialContact" | "socialConversation" | "socialMessage" | "socialTag" | "socialConversationTag" | "socialProviderContent" | "socialComment" | "socialEngagementEvent" | "socialEscalation" | "socialWebhookSubscription" | "socialWebhookEvent" | "socialIdentityMetricSnapshot" | "socialProviderContentMetricSnapshot" | "socialIdentitySyncState" | "socialActionJob" | "socialActionAttempt" | "socialInternalNote" | "socialSavedReply" | "socialOperationsSetting" | "adminManualMigrationLedger" | "refreshToken" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event"
+      modelProps: "adminUser" | "marketing_campaigns" | "marketing_campaign_performance" | "marketing_campaign_timeline" | "marketing_campaign_team_members" | "marketing_content_items" | "marketing_content_monthly_performance" | "marketing_notification_events" | "marketing_email_templates" | "marketing_social_accounts" | "marketing_social_posts" | "marketing_social_analytics_snapshots" | "marketing_promotions" | "marketing_banners" | "marketing_analytics_snapshots" | "marketing_ad_platform_connections" | "marketing_ad_insights_raw" | "marketing_performance_snapshots" | "marketing_oauth_states" | "marketing_attributions" | "marketing_funnel_events" | "marketing_identity_links" | "marketing_attribution_decisions" | "marketing_intelligence_settings" | "marketing_intelligence_evaluation_runs" | "marketing_creative_assets" | "marketing_creative_performance_snapshots" | "marketing_creative_score_snapshots" | "marketing_recommendations" | "marketing_alerts" | "marketing_experiments" | "marketing_sync_locks" | "marketingExecutionPlan" | "marketingExecutionPlanItem" | "marketingExecutionApproval" | "marketingExecutionApprovalEvent" | "marketingExecutionRun" | "marketingExecutionJob" | "marketingProviderOperation" | "marketingProviderOperationAttempt" | "marketingExecutionStateSnapshot" | "marketingExecutionValidationIssue" | "marketingExecutionReconciliation" | "marketingExecutionPolicy" | "marketingCreativePublication" | "marketingCreativeMediaValidationEvidence" | "marketingCreativePublicationReviewEvent" | "marketingTargetingDiscovery" | "marketingExecutionAccountLock" | "marketingExecutionDeadLetterReview" | "marketingExecutionPolicyHistory" | "marketingExecutionValidationPacket" | "marketingExecutionDriftAcknowledgment" | "marketingExecutionRetryReview" | "marketingExecutionEmergencyOverride" | "marketingExecutionReconciliationJob" | "marketingExecutionCompensationLink" | "socialAccountConnection" | "socialPublishingIdentity" | "socialOAuthState" | "socialPost" | "socialPostRevision" | "socialPostTarget" | "socialPostApproval" | "socialPublication" | "socialPublicationAttempt" | "socialPublishingJob" | "socialMediaAsset" | "socialPostMedia" | "socialContact" | "socialConversation" | "socialMessage" | "socialTag" | "socialConversationTag" | "socialProviderContent" | "socialComment" | "socialEngagementEvent" | "socialEscalation" | "socialWebhookSubscription" | "socialWebhookEvent" | "socialIdentityMetricSnapshot" | "socialProviderContentMetricSnapshot" | "socialIdentitySyncState" | "socialActionJob" | "socialActionAttempt" | "socialInternalNote" | "socialSavedReply" | "socialOperationsSetting" | "adminManualMigrationLedger" | "refreshToken" | "adminSession" | "adminMfaRecoveryCode" | "adminMfaChallenge" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -10565,6 +10642,228 @@ export namespace Prisma {
           }
         }
       }
+      AdminSession: {
+        payload: Prisma.$AdminSessionPayload<ExtArgs>
+        fields: Prisma.AdminSessionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AdminSessionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AdminSessionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload>
+          }
+          findFirst: {
+            args: Prisma.AdminSessionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AdminSessionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload>
+          }
+          findMany: {
+            args: Prisma.AdminSessionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload>[]
+          }
+          create: {
+            args: Prisma.AdminSessionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload>
+          }
+          createMany: {
+            args: Prisma.AdminSessionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AdminSessionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload>[]
+          }
+          delete: {
+            args: Prisma.AdminSessionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload>
+          }
+          update: {
+            args: Prisma.AdminSessionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload>
+          }
+          deleteMany: {
+            args: Prisma.AdminSessionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AdminSessionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AdminSessionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload>[]
+          }
+          upsert: {
+            args: Prisma.AdminSessionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminSessionPayload>
+          }
+          aggregate: {
+            args: Prisma.AdminSessionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAdminSession>
+          }
+          groupBy: {
+            args: Prisma.AdminSessionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AdminSessionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AdminSessionCountArgs<ExtArgs>
+            result: $Utils.Optional<AdminSessionCountAggregateOutputType> | number
+          }
+        }
+      }
+      AdminMfaRecoveryCode: {
+        payload: Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>
+        fields: Prisma.AdminMfaRecoveryCodeFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AdminMfaRecoveryCodeFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AdminMfaRecoveryCodeFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload>
+          }
+          findFirst: {
+            args: Prisma.AdminMfaRecoveryCodeFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AdminMfaRecoveryCodeFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload>
+          }
+          findMany: {
+            args: Prisma.AdminMfaRecoveryCodeFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload>[]
+          }
+          create: {
+            args: Prisma.AdminMfaRecoveryCodeCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload>
+          }
+          createMany: {
+            args: Prisma.AdminMfaRecoveryCodeCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AdminMfaRecoveryCodeCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload>[]
+          }
+          delete: {
+            args: Prisma.AdminMfaRecoveryCodeDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload>
+          }
+          update: {
+            args: Prisma.AdminMfaRecoveryCodeUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload>
+          }
+          deleteMany: {
+            args: Prisma.AdminMfaRecoveryCodeDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AdminMfaRecoveryCodeUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AdminMfaRecoveryCodeUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload>[]
+          }
+          upsert: {
+            args: Prisma.AdminMfaRecoveryCodeUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaRecoveryCodePayload>
+          }
+          aggregate: {
+            args: Prisma.AdminMfaRecoveryCodeAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAdminMfaRecoveryCode>
+          }
+          groupBy: {
+            args: Prisma.AdminMfaRecoveryCodeGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AdminMfaRecoveryCodeGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AdminMfaRecoveryCodeCountArgs<ExtArgs>
+            result: $Utils.Optional<AdminMfaRecoveryCodeCountAggregateOutputType> | number
+          }
+        }
+      }
+      AdminMfaChallenge: {
+        payload: Prisma.$AdminMfaChallengePayload<ExtArgs>
+        fields: Prisma.AdminMfaChallengeFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AdminMfaChallengeFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AdminMfaChallengeFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload>
+          }
+          findFirst: {
+            args: Prisma.AdminMfaChallengeFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AdminMfaChallengeFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload>
+          }
+          findMany: {
+            args: Prisma.AdminMfaChallengeFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload>[]
+          }
+          create: {
+            args: Prisma.AdminMfaChallengeCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload>
+          }
+          createMany: {
+            args: Prisma.AdminMfaChallengeCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AdminMfaChallengeCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload>[]
+          }
+          delete: {
+            args: Prisma.AdminMfaChallengeDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload>
+          }
+          update: {
+            args: Prisma.AdminMfaChallengeUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload>
+          }
+          deleteMany: {
+            args: Prisma.AdminMfaChallengeDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AdminMfaChallengeUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AdminMfaChallengeUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload>[]
+          }
+          upsert: {
+            args: Prisma.AdminMfaChallengeUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminMfaChallengePayload>
+          }
+          aggregate: {
+            args: Prisma.AdminMfaChallengeAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAdminMfaChallenge>
+          }
+          groupBy: {
+            args: Prisma.AdminMfaChallengeGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AdminMfaChallengeGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AdminMfaChallengeCountArgs<ExtArgs>
+            result: $Utils.Optional<AdminMfaChallengeCountAggregateOutputType> | number
+          }
+        }
+      }
       AuditLog: {
         payload: Prisma.$AuditLogPayload<ExtArgs>
         fields: Prisma.AuditLogFieldRefs
@@ -12483,11 +12782,26 @@ export namespace Prisma {
       isolationLevel?: Prisma.TransactionIsolationLevel
     }
     /**
-     * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`
+     * A driver adapter that PrismaClient uses to connect to your database, such as the ones provided by `@prisma/adapter-pg`, `@prisma/adapter-libsql`, `@prisma/adapter-planetscale`, etc.
+     * 
+     * A driver adapter is **required** unless you connect to your database through Prisma Accelerate (in which case use `accelerateUrl` instead).
+     * 
+     * Learn more: https://pris.ly/d/driver-adapters
+     * 
+     * @example
+     * ```ts
+     * import { PrismaPg } from '@prisma/adapter-pg'
+     * import { PrismaClient } from './generated/prisma/client'
+     * 
+     * const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
+     * const prisma = new PrismaClient({ adapter })
+     * ```
      */
     adapter?: runtime.SqlDriverAdapterFactory
     /**
-     * Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.
+     * The Prisma Accelerate connection URL. Use this option to connect to your database through Prisma Accelerate instead of using a driver adapter to connect directly.
+     * 
+     * Learn more: https://pris.ly/d/accelerate
      */
     accelerateUrl?: string
     /**
@@ -12613,6 +12927,9 @@ export namespace Prisma {
     socialOperationsSetting?: SocialOperationsSettingOmit
     adminManualMigrationLedger?: AdminManualMigrationLedgerOmit
     refreshToken?: RefreshTokenOmit
+    adminSession?: AdminSessionOmit
+    adminMfaRecoveryCode?: AdminMfaRecoveryCodeOmit
+    adminMfaChallenge?: AdminMfaChallengeOmit
     auditLog?: AuditLogOmit
     adminSectionGrant?: AdminSectionGrantOmit
     adminSocialLink?: AdminSocialLinkOmit
@@ -12718,6 +13035,9 @@ export namespace Prisma {
    */
 
   export type AdminUserCountOutputType = {
+    sessions: number
+    mfaRecoveryCodes: number
+    mfaChallenges: number
     refreshTokens: number
     auditLogs: number
     socialLinks: number
@@ -12787,6 +13107,9 @@ export namespace Prisma {
   }
 
   export type AdminUserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    sessions?: boolean | AdminUserCountOutputTypeCountSessionsArgs
+    mfaRecoveryCodes?: boolean | AdminUserCountOutputTypeCountMfaRecoveryCodesArgs
+    mfaChallenges?: boolean | AdminUserCountOutputTypeCountMfaChallengesArgs
     refreshTokens?: boolean | AdminUserCountOutputTypeCountRefreshTokensArgs
     auditLogs?: boolean | AdminUserCountOutputTypeCountAuditLogsArgs
     socialLinks?: boolean | AdminUserCountOutputTypeCountSocialLinksArgs
@@ -12864,6 +13187,27 @@ export namespace Prisma {
      * Select specific fields to fetch from the AdminUserCountOutputType
      */
     select?: AdminUserCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * AdminUserCountOutputType without action
+   */
+  export type AdminUserCountOutputTypeCountSessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminSessionWhereInput
+  }
+
+  /**
+   * AdminUserCountOutputType without action
+   */
+  export type AdminUserCountOutputTypeCountMfaRecoveryCodesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminMfaRecoveryCodeWhereInput
+  }
+
+  /**
+   * AdminUserCountOutputType without action
+   */
+  export type AdminUserCountOutputTypeCountMfaChallengesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminMfaChallengeWhereInput
   }
 
   /**
@@ -14885,6 +15229,37 @@ export namespace Prisma {
 
 
   /**
+   * Count Type AdminSessionCountOutputType
+   */
+
+  export type AdminSessionCountOutputType = {
+    refreshTokens: number
+  }
+
+  export type AdminSessionCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    refreshTokens?: boolean | AdminSessionCountOutputTypeCountRefreshTokensArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * AdminSessionCountOutputType without action
+   */
+  export type AdminSessionCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSessionCountOutputType
+     */
+    select?: AdminSessionCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * AdminSessionCountOutputType without action
+   */
+  export type AdminSessionCountOutputTypeCountRefreshTokensArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RefreshTokenWhereInput
+  }
+
+
+  /**
    * Count Type TeamCountOutputType
    */
 
@@ -15173,6 +15548,8 @@ export namespace Prisma {
 
   export type AdminUserAvgAggregateOutputType = {
     failedLoginAttempts: number | null
+    mfaLastUsedStep: number | null
+    mfaFailedAttempts: number | null
     salary: Decimal | null
     bonus: Decimal | null
     equity: Decimal | null
@@ -15180,6 +15557,8 @@ export namespace Prisma {
 
   export type AdminUserSumAggregateOutputType = {
     failedLoginAttempts: number | null
+    mfaLastUsedStep: number | null
+    mfaFailedAttempts: number | null
     salary: Decimal | null
     bonus: Decimal | null
     equity: Decimal | null
@@ -15210,6 +15589,13 @@ export namespace Prisma {
     createdBy: string | null
     twoFactorEnabled: boolean | null
     twoFactorSecret: string | null
+    mfaEnrolledAt: Date | null
+    mfaSecretEncrypted: string | null
+    mfaPendingSecretEncrypted: string | null
+    mfaPendingExpiresAt: Date | null
+    mfaLastUsedStep: number | null
+    mfaFailedAttempts: number | null
+    mfaLockedUntil: Date | null
     avatarUrl: string | null
     avatarCloudinaryId: string | null
     preferredName: string | null
@@ -15261,6 +15647,13 @@ export namespace Prisma {
     createdBy: string | null
     twoFactorEnabled: boolean | null
     twoFactorSecret: string | null
+    mfaEnrolledAt: Date | null
+    mfaSecretEncrypted: string | null
+    mfaPendingSecretEncrypted: string | null
+    mfaPendingExpiresAt: Date | null
+    mfaLastUsedStep: number | null
+    mfaFailedAttempts: number | null
+    mfaLockedUntil: Date | null
     avatarUrl: string | null
     avatarCloudinaryId: string | null
     preferredName: string | null
@@ -15312,6 +15705,13 @@ export namespace Prisma {
     createdBy: number
     twoFactorEnabled: number
     twoFactorSecret: number
+    mfaEnrolledAt: number
+    mfaSecretEncrypted: number
+    mfaPendingSecretEncrypted: number
+    mfaPendingExpiresAt: number
+    mfaLastUsedStep: number
+    mfaFailedAttempts: number
+    mfaLockedUntil: number
     avatarUrl: number
     avatarCloudinaryId: number
     preferredName: number
@@ -15342,6 +15742,8 @@ export namespace Prisma {
 
   export type AdminUserAvgAggregateInputType = {
     failedLoginAttempts?: true
+    mfaLastUsedStep?: true
+    mfaFailedAttempts?: true
     salary?: true
     bonus?: true
     equity?: true
@@ -15349,6 +15751,8 @@ export namespace Prisma {
 
   export type AdminUserSumAggregateInputType = {
     failedLoginAttempts?: true
+    mfaLastUsedStep?: true
+    mfaFailedAttempts?: true
     salary?: true
     bonus?: true
     equity?: true
@@ -15379,6 +15783,13 @@ export namespace Prisma {
     createdBy?: true
     twoFactorEnabled?: true
     twoFactorSecret?: true
+    mfaEnrolledAt?: true
+    mfaSecretEncrypted?: true
+    mfaPendingSecretEncrypted?: true
+    mfaPendingExpiresAt?: true
+    mfaLastUsedStep?: true
+    mfaFailedAttempts?: true
+    mfaLockedUntil?: true
     avatarUrl?: true
     avatarCloudinaryId?: true
     preferredName?: true
@@ -15430,6 +15841,13 @@ export namespace Prisma {
     createdBy?: true
     twoFactorEnabled?: true
     twoFactorSecret?: true
+    mfaEnrolledAt?: true
+    mfaSecretEncrypted?: true
+    mfaPendingSecretEncrypted?: true
+    mfaPendingExpiresAt?: true
+    mfaLastUsedStep?: true
+    mfaFailedAttempts?: true
+    mfaLockedUntil?: true
     avatarUrl?: true
     avatarCloudinaryId?: true
     preferredName?: true
@@ -15481,6 +15899,13 @@ export namespace Prisma {
     createdBy?: true
     twoFactorEnabled?: true
     twoFactorSecret?: true
+    mfaEnrolledAt?: true
+    mfaSecretEncrypted?: true
+    mfaPendingSecretEncrypted?: true
+    mfaPendingExpiresAt?: true
+    mfaLastUsedStep?: true
+    mfaFailedAttempts?: true
+    mfaLockedUntil?: true
     avatarUrl?: true
     avatarCloudinaryId?: true
     preferredName?: true
@@ -15619,6 +16044,13 @@ export namespace Prisma {
     createdBy: string | null
     twoFactorEnabled: boolean
     twoFactorSecret: string | null
+    mfaEnrolledAt: Date | null
+    mfaSecretEncrypted: string | null
+    mfaPendingSecretEncrypted: string | null
+    mfaPendingExpiresAt: Date | null
+    mfaLastUsedStep: number | null
+    mfaFailedAttempts: number
+    mfaLockedUntil: Date | null
     avatarUrl: string | null
     avatarCloudinaryId: string | null
     preferredName: string | null
@@ -15689,6 +16121,13 @@ export namespace Prisma {
     createdBy?: boolean
     twoFactorEnabled?: boolean
     twoFactorSecret?: boolean
+    mfaEnrolledAt?: boolean
+    mfaSecretEncrypted?: boolean
+    mfaPendingSecretEncrypted?: boolean
+    mfaPendingExpiresAt?: boolean
+    mfaLastUsedStep?: boolean
+    mfaFailedAttempts?: boolean
+    mfaLockedUntil?: boolean
     avatarUrl?: boolean
     avatarCloudinaryId?: boolean
     preferredName?: boolean
@@ -15713,6 +16152,9 @@ export namespace Prisma {
     salary?: boolean
     bonus?: boolean
     equity?: boolean
+    sessions?: boolean | AdminUser$sessionsArgs<ExtArgs>
+    mfaRecoveryCodes?: boolean | AdminUser$mfaRecoveryCodesArgs<ExtArgs>
+    mfaChallenges?: boolean | AdminUser$mfaChallengesArgs<ExtArgs>
     refreshTokens?: boolean | AdminUser$refreshTokensArgs<ExtArgs>
     auditLogs?: boolean | AdminUser$auditLogsArgs<ExtArgs>
     socialLinks?: boolean | AdminUser$socialLinksArgs<ExtArgs>
@@ -15807,6 +16249,13 @@ export namespace Prisma {
     createdBy?: boolean
     twoFactorEnabled?: boolean
     twoFactorSecret?: boolean
+    mfaEnrolledAt?: boolean
+    mfaSecretEncrypted?: boolean
+    mfaPendingSecretEncrypted?: boolean
+    mfaPendingExpiresAt?: boolean
+    mfaLastUsedStep?: boolean
+    mfaFailedAttempts?: boolean
+    mfaLockedUntil?: boolean
     avatarUrl?: boolean
     avatarCloudinaryId?: boolean
     preferredName?: boolean
@@ -15858,6 +16307,13 @@ export namespace Prisma {
     createdBy?: boolean
     twoFactorEnabled?: boolean
     twoFactorSecret?: boolean
+    mfaEnrolledAt?: boolean
+    mfaSecretEncrypted?: boolean
+    mfaPendingSecretEncrypted?: boolean
+    mfaPendingExpiresAt?: boolean
+    mfaLastUsedStep?: boolean
+    mfaFailedAttempts?: boolean
+    mfaLockedUntil?: boolean
     avatarUrl?: boolean
     avatarCloudinaryId?: boolean
     preferredName?: boolean
@@ -15909,6 +16365,13 @@ export namespace Prisma {
     createdBy?: boolean
     twoFactorEnabled?: boolean
     twoFactorSecret?: boolean
+    mfaEnrolledAt?: boolean
+    mfaSecretEncrypted?: boolean
+    mfaPendingSecretEncrypted?: boolean
+    mfaPendingExpiresAt?: boolean
+    mfaLastUsedStep?: boolean
+    mfaFailedAttempts?: boolean
+    mfaLockedUntil?: boolean
     avatarUrl?: boolean
     avatarCloudinaryId?: boolean
     preferredName?: boolean
@@ -15935,8 +16398,11 @@ export namespace Prisma {
     equity?: boolean
   }
 
-  export type AdminUserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "password" | "name" | "position" | "department" | "tier" | "status" | "isTeamLead" | "failedLoginAttempts" | "googleId" | "mainAppUserId" | "lockedUntil" | "lastLoginAt" | "lastLoginIp" | "mustChangePassword" | "passwordResetToken" | "passwordResetExpires" | "passwordChangedAt" | "createdAt" | "updatedAt" | "createdBy" | "twoFactorEnabled" | "twoFactorSecret" | "avatarUrl" | "avatarCloudinaryId" | "preferredName" | "birthday" | "nationality" | "gender" | "maritalStatus" | "workPhone" | "homePhone" | "personalPhone" | "fax" | "address" | "state" | "country" | "emergencyName" | "emergencyPhone" | "emergencyEmail" | "emergencyRelation" | "employmentType" | "employmentCategory" | "location" | "salary" | "bonus" | "equity", ExtArgs["result"]["adminUser"]>
+  export type AdminUserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "password" | "name" | "position" | "department" | "tier" | "status" | "isTeamLead" | "failedLoginAttempts" | "googleId" | "mainAppUserId" | "lockedUntil" | "lastLoginAt" | "lastLoginIp" | "mustChangePassword" | "passwordResetToken" | "passwordResetExpires" | "passwordChangedAt" | "createdAt" | "updatedAt" | "createdBy" | "twoFactorEnabled" | "twoFactorSecret" | "mfaEnrolledAt" | "mfaSecretEncrypted" | "mfaPendingSecretEncrypted" | "mfaPendingExpiresAt" | "mfaLastUsedStep" | "mfaFailedAttempts" | "mfaLockedUntil" | "avatarUrl" | "avatarCloudinaryId" | "preferredName" | "birthday" | "nationality" | "gender" | "maritalStatus" | "workPhone" | "homePhone" | "personalPhone" | "fax" | "address" | "state" | "country" | "emergencyName" | "emergencyPhone" | "emergencyEmail" | "emergencyRelation" | "employmentType" | "employmentCategory" | "location" | "salary" | "bonus" | "equity", ExtArgs["result"]["adminUser"]>
   export type AdminUserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    sessions?: boolean | AdminUser$sessionsArgs<ExtArgs>
+    mfaRecoveryCodes?: boolean | AdminUser$mfaRecoveryCodesArgs<ExtArgs>
+    mfaChallenges?: boolean | AdminUser$mfaChallengesArgs<ExtArgs>
     refreshTokens?: boolean | AdminUser$refreshTokensArgs<ExtArgs>
     auditLogs?: boolean | AdminUser$auditLogsArgs<ExtArgs>
     socialLinks?: boolean | AdminUser$socialLinksArgs<ExtArgs>
@@ -16011,6 +16477,9 @@ export namespace Prisma {
   export type $AdminUserPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "AdminUser"
     objects: {
+      sessions: Prisma.$AdminSessionPayload<ExtArgs>[]
+      mfaRecoveryCodes: Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>[]
+      mfaChallenges: Prisma.$AdminMfaChallengePayload<ExtArgs>[]
       refreshTokens: Prisma.$RefreshTokenPayload<ExtArgs>[]
       auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
       socialLinks: Prisma.$AdminSocialLinkPayload<ExtArgs>[]
@@ -16103,6 +16572,13 @@ export namespace Prisma {
       createdBy: string | null
       twoFactorEnabled: boolean
       twoFactorSecret: string | null
+      mfaEnrolledAt: Date | null
+      mfaSecretEncrypted: string | null
+      mfaPendingSecretEncrypted: string | null
+      mfaPendingExpiresAt: Date | null
+      mfaLastUsedStep: number | null
+      mfaFailedAttempts: number
+      mfaLockedUntil: Date | null
       avatarUrl: string | null
       avatarCloudinaryId: string | null
       preferredName: string | null
@@ -16521,6 +16997,9 @@ export namespace Prisma {
    */
   export interface Prisma__AdminUserClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    sessions<T extends AdminUser$sessionsArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    mfaRecoveryCodes<T extends AdminUser$mfaRecoveryCodesArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$mfaRecoveryCodesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    mfaChallenges<T extends AdminUser$mfaChallengesArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$mfaChallengesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     refreshTokens<T extends AdminUser$refreshTokensArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$refreshTokensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RefreshTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     auditLogs<T extends AdminUser$auditLogsArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     socialLinks<T extends AdminUser$socialLinksArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$socialLinksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminSocialLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -16640,6 +17119,13 @@ export namespace Prisma {
     readonly createdBy: FieldRef<"AdminUser", 'String'>
     readonly twoFactorEnabled: FieldRef<"AdminUser", 'Boolean'>
     readonly twoFactorSecret: FieldRef<"AdminUser", 'String'>
+    readonly mfaEnrolledAt: FieldRef<"AdminUser", 'DateTime'>
+    readonly mfaSecretEncrypted: FieldRef<"AdminUser", 'String'>
+    readonly mfaPendingSecretEncrypted: FieldRef<"AdminUser", 'String'>
+    readonly mfaPendingExpiresAt: FieldRef<"AdminUser", 'DateTime'>
+    readonly mfaLastUsedStep: FieldRef<"AdminUser", 'Int'>
+    readonly mfaFailedAttempts: FieldRef<"AdminUser", 'Int'>
+    readonly mfaLockedUntil: FieldRef<"AdminUser", 'DateTime'>
     readonly avatarUrl: FieldRef<"AdminUser", 'String'>
     readonly avatarCloudinaryId: FieldRef<"AdminUser", 'String'>
     readonly preferredName: FieldRef<"AdminUser", 'String'>
@@ -17054,6 +17540,78 @@ export namespace Prisma {
      * Limit how many AdminUsers to delete.
      */
     limit?: number
+  }
+
+  /**
+   * AdminUser.sessions
+   */
+  export type AdminUser$sessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    where?: AdminSessionWhereInput
+    orderBy?: AdminSessionOrderByWithRelationInput | AdminSessionOrderByWithRelationInput[]
+    cursor?: AdminSessionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AdminSessionScalarFieldEnum | AdminSessionScalarFieldEnum[]
+  }
+
+  /**
+   * AdminUser.mfaRecoveryCodes
+   */
+  export type AdminUser$mfaRecoveryCodesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+    where?: AdminMfaRecoveryCodeWhereInput
+    orderBy?: AdminMfaRecoveryCodeOrderByWithRelationInput | AdminMfaRecoveryCodeOrderByWithRelationInput[]
+    cursor?: AdminMfaRecoveryCodeWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AdminMfaRecoveryCodeScalarFieldEnum | AdminMfaRecoveryCodeScalarFieldEnum[]
+  }
+
+  /**
+   * AdminUser.mfaChallenges
+   */
+  export type AdminUser$mfaChallengesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+    where?: AdminMfaChallengeWhereInput
+    orderBy?: AdminMfaChallengeOrderByWithRelationInput | AdminMfaChallengeOrderByWithRelationInput[]
+    cursor?: AdminMfaChallengeWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AdminMfaChallengeScalarFieldEnum | AdminMfaChallengeScalarFieldEnum[]
   }
 
   /**
@@ -128130,6 +128688,8 @@ export namespace Prisma {
     ipAddress: string | null
     userAgent: string | null
     createdAt: Date | null
+    sessionId: string | null
+    rotatedAt: Date | null
   }
 
   export type RefreshTokenMaxAggregateOutputType = {
@@ -128141,6 +128701,8 @@ export namespace Prisma {
     ipAddress: string | null
     userAgent: string | null
     createdAt: Date | null
+    sessionId: string | null
+    rotatedAt: Date | null
   }
 
   export type RefreshTokenCountAggregateOutputType = {
@@ -128152,6 +128714,8 @@ export namespace Prisma {
     ipAddress: number
     userAgent: number
     createdAt: number
+    sessionId: number
+    rotatedAt: number
     _all: number
   }
 
@@ -128165,6 +128729,8 @@ export namespace Prisma {
     ipAddress?: true
     userAgent?: true
     createdAt?: true
+    sessionId?: true
+    rotatedAt?: true
   }
 
   export type RefreshTokenMaxAggregateInputType = {
@@ -128176,6 +128742,8 @@ export namespace Prisma {
     ipAddress?: true
     userAgent?: true
     createdAt?: true
+    sessionId?: true
+    rotatedAt?: true
   }
 
   export type RefreshTokenCountAggregateInputType = {
@@ -128187,6 +128755,8 @@ export namespace Prisma {
     ipAddress?: true
     userAgent?: true
     createdAt?: true
+    sessionId?: true
+    rotatedAt?: true
     _all?: true
   }
 
@@ -128271,6 +128841,8 @@ export namespace Prisma {
     ipAddress: string | null
     userAgent: string | null
     createdAt: Date
+    sessionId: string | null
+    rotatedAt: Date | null
     _count: RefreshTokenCountAggregateOutputType | null
     _min: RefreshTokenMinAggregateOutputType | null
     _max: RefreshTokenMaxAggregateOutputType | null
@@ -128299,7 +128871,10 @@ export namespace Prisma {
     ipAddress?: boolean
     userAgent?: boolean
     createdAt?: boolean
+    sessionId?: boolean
+    rotatedAt?: boolean
     adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+    session?: boolean | RefreshToken$sessionArgs<ExtArgs>
   }, ExtArgs["result"]["refreshToken"]>
 
   export type RefreshTokenSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -128311,7 +128886,10 @@ export namespace Prisma {
     ipAddress?: boolean
     userAgent?: boolean
     createdAt?: boolean
+    sessionId?: boolean
+    rotatedAt?: boolean
     adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+    session?: boolean | RefreshToken$sessionArgs<ExtArgs>
   }, ExtArgs["result"]["refreshToken"]>
 
   export type RefreshTokenSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -128323,7 +128901,10 @@ export namespace Prisma {
     ipAddress?: boolean
     userAgent?: boolean
     createdAt?: boolean
+    sessionId?: boolean
+    rotatedAt?: boolean
     adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+    session?: boolean | RefreshToken$sessionArgs<ExtArgs>
   }, ExtArgs["result"]["refreshToken"]>
 
   export type RefreshTokenSelectScalar = {
@@ -128335,23 +128916,29 @@ export namespace Prisma {
     ipAddress?: boolean
     userAgent?: boolean
     createdAt?: boolean
+    sessionId?: boolean
+    rotatedAt?: boolean
   }
 
-  export type RefreshTokenOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "token" | "adminUserId" | "expiresAt" | "isRevoked" | "ipAddress" | "userAgent" | "createdAt", ExtArgs["result"]["refreshToken"]>
+  export type RefreshTokenOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "token" | "adminUserId" | "expiresAt" | "isRevoked" | "ipAddress" | "userAgent" | "createdAt" | "sessionId" | "rotatedAt", ExtArgs["result"]["refreshToken"]>
   export type RefreshTokenInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+    session?: boolean | RefreshToken$sessionArgs<ExtArgs>
   }
   export type RefreshTokenIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+    session?: boolean | RefreshToken$sessionArgs<ExtArgs>
   }
   export type RefreshTokenIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+    session?: boolean | RefreshToken$sessionArgs<ExtArgs>
   }
 
   export type $RefreshTokenPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "RefreshToken"
     objects: {
       adminUser: Prisma.$AdminUserPayload<ExtArgs>
+      session: Prisma.$AdminSessionPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -128362,6 +128949,8 @@ export namespace Prisma {
       ipAddress: string | null
       userAgent: string | null
       createdAt: Date
+      sessionId: string | null
+      rotatedAt: Date | null
     }, ExtArgs["result"]["refreshToken"]>
     composites: {}
   }
@@ -128757,6 +129346,7 @@ export namespace Prisma {
   export interface Prisma__RefreshTokenClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     adminUser<T extends AdminUserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AdminUserDefaultArgs<ExtArgs>>): Prisma__AdminUserClient<$Result.GetResult<Prisma.$AdminUserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    session<T extends RefreshToken$sessionArgs<ExtArgs> = {}>(args?: Subset<T, RefreshToken$sessionArgs<ExtArgs>>): Prisma__AdminSessionClient<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -128794,6 +129384,8 @@ export namespace Prisma {
     readonly ipAddress: FieldRef<"RefreshToken", 'String'>
     readonly userAgent: FieldRef<"RefreshToken", 'String'>
     readonly createdAt: FieldRef<"RefreshToken", 'DateTime'>
+    readonly sessionId: FieldRef<"RefreshToken", 'String'>
+    readonly rotatedAt: FieldRef<"RefreshToken", 'DateTime'>
   }
     
 
@@ -129195,6 +129787,25 @@ export namespace Prisma {
   }
 
   /**
+   * RefreshToken.session
+   */
+  export type RefreshToken$sessionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    where?: AdminSessionWhereInput
+  }
+
+  /**
    * RefreshToken without action
    */
   export type RefreshTokenDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -129210,6 +129821,3454 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: RefreshTokenInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AdminSession
+   */
+
+  export type AggregateAdminSession = {
+    _count: AdminSessionCountAggregateOutputType | null
+    _min: AdminSessionMinAggregateOutputType | null
+    _max: AdminSessionMaxAggregateOutputType | null
+  }
+
+  export type AdminSessionMinAggregateOutputType = {
+    id: string | null
+    adminUserId: string | null
+    mode: string | null
+    authMethod: string | null
+    csrfNonce: string | null
+    createdAt: Date | null
+    lastSeenAt: Date | null
+    idleExpiresAt: Date | null
+    absoluteExpiresAt: Date | null
+    mfaVerifiedAt: Date | null
+    revokedAt: Date | null
+    revokeReason: string | null
+    ipAddress: string | null
+    userAgent: string | null
+  }
+
+  export type AdminSessionMaxAggregateOutputType = {
+    id: string | null
+    adminUserId: string | null
+    mode: string | null
+    authMethod: string | null
+    csrfNonce: string | null
+    createdAt: Date | null
+    lastSeenAt: Date | null
+    idleExpiresAt: Date | null
+    absoluteExpiresAt: Date | null
+    mfaVerifiedAt: Date | null
+    revokedAt: Date | null
+    revokeReason: string | null
+    ipAddress: string | null
+    userAgent: string | null
+  }
+
+  export type AdminSessionCountAggregateOutputType = {
+    id: number
+    adminUserId: number
+    mode: number
+    authMethod: number
+    csrfNonce: number
+    createdAt: number
+    lastSeenAt: number
+    idleExpiresAt: number
+    absoluteExpiresAt: number
+    mfaVerifiedAt: number
+    revokedAt: number
+    revokeReason: number
+    ipAddress: number
+    userAgent: number
+    _all: number
+  }
+
+
+  export type AdminSessionMinAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    mode?: true
+    authMethod?: true
+    csrfNonce?: true
+    createdAt?: true
+    lastSeenAt?: true
+    idleExpiresAt?: true
+    absoluteExpiresAt?: true
+    mfaVerifiedAt?: true
+    revokedAt?: true
+    revokeReason?: true
+    ipAddress?: true
+    userAgent?: true
+  }
+
+  export type AdminSessionMaxAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    mode?: true
+    authMethod?: true
+    csrfNonce?: true
+    createdAt?: true
+    lastSeenAt?: true
+    idleExpiresAt?: true
+    absoluteExpiresAt?: true
+    mfaVerifiedAt?: true
+    revokedAt?: true
+    revokeReason?: true
+    ipAddress?: true
+    userAgent?: true
+  }
+
+  export type AdminSessionCountAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    mode?: true
+    authMethod?: true
+    csrfNonce?: true
+    createdAt?: true
+    lastSeenAt?: true
+    idleExpiresAt?: true
+    absoluteExpiresAt?: true
+    mfaVerifiedAt?: true
+    revokedAt?: true
+    revokeReason?: true
+    ipAddress?: true
+    userAgent?: true
+    _all?: true
+  }
+
+  export type AdminSessionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminSession to aggregate.
+     */
+    where?: AdminSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminSessions to fetch.
+     */
+    orderBy?: AdminSessionOrderByWithRelationInput | AdminSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AdminSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AdminSessions
+    **/
+    _count?: true | AdminSessionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AdminSessionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AdminSessionMaxAggregateInputType
+  }
+
+  export type GetAdminSessionAggregateType<T extends AdminSessionAggregateArgs> = {
+        [P in keyof T & keyof AggregateAdminSession]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAdminSession[P]>
+      : GetScalarType<T[P], AggregateAdminSession[P]>
+  }
+
+
+
+
+  export type AdminSessionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminSessionWhereInput
+    orderBy?: AdminSessionOrderByWithAggregationInput | AdminSessionOrderByWithAggregationInput[]
+    by: AdminSessionScalarFieldEnum[] | AdminSessionScalarFieldEnum
+    having?: AdminSessionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AdminSessionCountAggregateInputType | true
+    _min?: AdminSessionMinAggregateInputType
+    _max?: AdminSessionMaxAggregateInputType
+  }
+
+  export type AdminSessionGroupByOutputType = {
+    id: string
+    adminUserId: string
+    mode: string
+    authMethod: string
+    csrfNonce: string
+    createdAt: Date
+    lastSeenAt: Date
+    idleExpiresAt: Date
+    absoluteExpiresAt: Date
+    mfaVerifiedAt: Date | null
+    revokedAt: Date | null
+    revokeReason: string | null
+    ipAddress: string | null
+    userAgent: string | null
+    _count: AdminSessionCountAggregateOutputType | null
+    _min: AdminSessionMinAggregateOutputType | null
+    _max: AdminSessionMaxAggregateOutputType | null
+  }
+
+  type GetAdminSessionGroupByPayload<T extends AdminSessionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AdminSessionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AdminSessionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AdminSessionGroupByOutputType[P]>
+            : GetScalarType<T[P], AdminSessionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AdminSessionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    mode?: boolean
+    authMethod?: boolean
+    csrfNonce?: boolean
+    createdAt?: boolean
+    lastSeenAt?: boolean
+    idleExpiresAt?: boolean
+    absoluteExpiresAt?: boolean
+    mfaVerifiedAt?: boolean
+    revokedAt?: boolean
+    revokeReason?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+    refreshTokens?: boolean | AdminSession$refreshTokensArgs<ExtArgs>
+    _count?: boolean | AdminSessionCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminSession"]>
+
+  export type AdminSessionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    mode?: boolean
+    authMethod?: boolean
+    csrfNonce?: boolean
+    createdAt?: boolean
+    lastSeenAt?: boolean
+    idleExpiresAt?: boolean
+    absoluteExpiresAt?: boolean
+    mfaVerifiedAt?: boolean
+    revokedAt?: boolean
+    revokeReason?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminSession"]>
+
+  export type AdminSessionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    mode?: boolean
+    authMethod?: boolean
+    csrfNonce?: boolean
+    createdAt?: boolean
+    lastSeenAt?: boolean
+    idleExpiresAt?: boolean
+    absoluteExpiresAt?: boolean
+    mfaVerifiedAt?: boolean
+    revokedAt?: boolean
+    revokeReason?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminSession"]>
+
+  export type AdminSessionSelectScalar = {
+    id?: boolean
+    adminUserId?: boolean
+    mode?: boolean
+    authMethod?: boolean
+    csrfNonce?: boolean
+    createdAt?: boolean
+    lastSeenAt?: boolean
+    idleExpiresAt?: boolean
+    absoluteExpiresAt?: boolean
+    mfaVerifiedAt?: boolean
+    revokedAt?: boolean
+    revokeReason?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+  }
+
+  export type AdminSessionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "adminUserId" | "mode" | "authMethod" | "csrfNonce" | "createdAt" | "lastSeenAt" | "idleExpiresAt" | "absoluteExpiresAt" | "mfaVerifiedAt" | "revokedAt" | "revokeReason" | "ipAddress" | "userAgent", ExtArgs["result"]["adminSession"]>
+  export type AdminSessionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+    refreshTokens?: boolean | AdminSession$refreshTokensArgs<ExtArgs>
+    _count?: boolean | AdminSessionCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type AdminSessionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+  export type AdminSessionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+
+  export type $AdminSessionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AdminSession"
+    objects: {
+      adminUser: Prisma.$AdminUserPayload<ExtArgs>
+      refreshTokens: Prisma.$RefreshTokenPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      adminUserId: string
+      mode: string
+      authMethod: string
+      csrfNonce: string
+      createdAt: Date
+      lastSeenAt: Date
+      idleExpiresAt: Date
+      absoluteExpiresAt: Date
+      mfaVerifiedAt: Date | null
+      revokedAt: Date | null
+      revokeReason: string | null
+      ipAddress: string | null
+      userAgent: string | null
+    }, ExtArgs["result"]["adminSession"]>
+    composites: {}
+  }
+
+  type AdminSessionGetPayload<S extends boolean | null | undefined | AdminSessionDefaultArgs> = $Result.GetResult<Prisma.$AdminSessionPayload, S>
+
+  type AdminSessionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AdminSessionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AdminSessionCountAggregateInputType | true
+    }
+
+  export interface AdminSessionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AdminSession'], meta: { name: 'AdminSession' } }
+    /**
+     * Find zero or one AdminSession that matches the filter.
+     * @param {AdminSessionFindUniqueArgs} args - Arguments to find a AdminSession
+     * @example
+     * // Get one AdminSession
+     * const adminSession = await prisma.adminSession.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AdminSessionFindUniqueArgs>(args: SelectSubset<T, AdminSessionFindUniqueArgs<ExtArgs>>): Prisma__AdminSessionClient<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AdminSession that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AdminSessionFindUniqueOrThrowArgs} args - Arguments to find a AdminSession
+     * @example
+     * // Get one AdminSession
+     * const adminSession = await prisma.adminSession.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AdminSessionFindUniqueOrThrowArgs>(args: SelectSubset<T, AdminSessionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AdminSessionClient<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminSession that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionFindFirstArgs} args - Arguments to find a AdminSession
+     * @example
+     * // Get one AdminSession
+     * const adminSession = await prisma.adminSession.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AdminSessionFindFirstArgs>(args?: SelectSubset<T, AdminSessionFindFirstArgs<ExtArgs>>): Prisma__AdminSessionClient<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminSession that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionFindFirstOrThrowArgs} args - Arguments to find a AdminSession
+     * @example
+     * // Get one AdminSession
+     * const adminSession = await prisma.adminSession.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AdminSessionFindFirstOrThrowArgs>(args?: SelectSubset<T, AdminSessionFindFirstOrThrowArgs<ExtArgs>>): Prisma__AdminSessionClient<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AdminSessions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AdminSessions
+     * const adminSessions = await prisma.adminSession.findMany()
+     * 
+     * // Get first 10 AdminSessions
+     * const adminSessions = await prisma.adminSession.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const adminSessionWithIdOnly = await prisma.adminSession.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AdminSessionFindManyArgs>(args?: SelectSubset<T, AdminSessionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AdminSession.
+     * @param {AdminSessionCreateArgs} args - Arguments to create a AdminSession.
+     * @example
+     * // Create one AdminSession
+     * const AdminSession = await prisma.adminSession.create({
+     *   data: {
+     *     // ... data to create a AdminSession
+     *   }
+     * })
+     * 
+     */
+    create<T extends AdminSessionCreateArgs>(args: SelectSubset<T, AdminSessionCreateArgs<ExtArgs>>): Prisma__AdminSessionClient<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AdminSessions.
+     * @param {AdminSessionCreateManyArgs} args - Arguments to create many AdminSessions.
+     * @example
+     * // Create many AdminSessions
+     * const adminSession = await prisma.adminSession.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AdminSessionCreateManyArgs>(args?: SelectSubset<T, AdminSessionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AdminSessions and returns the data saved in the database.
+     * @param {AdminSessionCreateManyAndReturnArgs} args - Arguments to create many AdminSessions.
+     * @example
+     * // Create many AdminSessions
+     * const adminSession = await prisma.adminSession.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AdminSessions and only return the `id`
+     * const adminSessionWithIdOnly = await prisma.adminSession.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AdminSessionCreateManyAndReturnArgs>(args?: SelectSubset<T, AdminSessionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AdminSession.
+     * @param {AdminSessionDeleteArgs} args - Arguments to delete one AdminSession.
+     * @example
+     * // Delete one AdminSession
+     * const AdminSession = await prisma.adminSession.delete({
+     *   where: {
+     *     // ... filter to delete one AdminSession
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AdminSessionDeleteArgs>(args: SelectSubset<T, AdminSessionDeleteArgs<ExtArgs>>): Prisma__AdminSessionClient<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AdminSession.
+     * @param {AdminSessionUpdateArgs} args - Arguments to update one AdminSession.
+     * @example
+     * // Update one AdminSession
+     * const adminSession = await prisma.adminSession.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AdminSessionUpdateArgs>(args: SelectSubset<T, AdminSessionUpdateArgs<ExtArgs>>): Prisma__AdminSessionClient<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AdminSessions.
+     * @param {AdminSessionDeleteManyArgs} args - Arguments to filter AdminSessions to delete.
+     * @example
+     * // Delete a few AdminSessions
+     * const { count } = await prisma.adminSession.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AdminSessionDeleteManyArgs>(args?: SelectSubset<T, AdminSessionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminSessions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AdminSessions
+     * const adminSession = await prisma.adminSession.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AdminSessionUpdateManyArgs>(args: SelectSubset<T, AdminSessionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminSessions and returns the data updated in the database.
+     * @param {AdminSessionUpdateManyAndReturnArgs} args - Arguments to update many AdminSessions.
+     * @example
+     * // Update many AdminSessions
+     * const adminSession = await prisma.adminSession.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more AdminSessions and only return the `id`
+     * const adminSessionWithIdOnly = await prisma.adminSession.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AdminSessionUpdateManyAndReturnArgs>(args: SelectSubset<T, AdminSessionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AdminSession.
+     * @param {AdminSessionUpsertArgs} args - Arguments to update or create a AdminSession.
+     * @example
+     * // Update or create a AdminSession
+     * const adminSession = await prisma.adminSession.upsert({
+     *   create: {
+     *     // ... data to create a AdminSession
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AdminSession we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AdminSessionUpsertArgs>(args: SelectSubset<T, AdminSessionUpsertArgs<ExtArgs>>): Prisma__AdminSessionClient<$Result.GetResult<Prisma.$AdminSessionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AdminSessions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionCountArgs} args - Arguments to filter AdminSessions to count.
+     * @example
+     * // Count the number of AdminSessions
+     * const count = await prisma.adminSession.count({
+     *   where: {
+     *     // ... the filter for the AdminSessions we want to count
+     *   }
+     * })
+    **/
+    count<T extends AdminSessionCountArgs>(
+      args?: Subset<T, AdminSessionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AdminSessionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AdminSession.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AdminSessionAggregateArgs>(args: Subset<T, AdminSessionAggregateArgs>): Prisma.PrismaPromise<GetAdminSessionAggregateType<T>>
+
+    /**
+     * Group by AdminSession.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminSessionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AdminSessionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AdminSessionGroupByArgs['orderBy'] }
+        : { orderBy?: AdminSessionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AdminSessionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAdminSessionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AdminSession model
+   */
+  readonly fields: AdminSessionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AdminSession.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AdminSessionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    adminUser<T extends AdminUserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AdminUserDefaultArgs<ExtArgs>>): Prisma__AdminUserClient<$Result.GetResult<Prisma.$AdminUserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    refreshTokens<T extends AdminSession$refreshTokensArgs<ExtArgs> = {}>(args?: Subset<T, AdminSession$refreshTokensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RefreshTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AdminSession model
+   */
+  interface AdminSessionFieldRefs {
+    readonly id: FieldRef<"AdminSession", 'String'>
+    readonly adminUserId: FieldRef<"AdminSession", 'String'>
+    readonly mode: FieldRef<"AdminSession", 'String'>
+    readonly authMethod: FieldRef<"AdminSession", 'String'>
+    readonly csrfNonce: FieldRef<"AdminSession", 'String'>
+    readonly createdAt: FieldRef<"AdminSession", 'DateTime'>
+    readonly lastSeenAt: FieldRef<"AdminSession", 'DateTime'>
+    readonly idleExpiresAt: FieldRef<"AdminSession", 'DateTime'>
+    readonly absoluteExpiresAt: FieldRef<"AdminSession", 'DateTime'>
+    readonly mfaVerifiedAt: FieldRef<"AdminSession", 'DateTime'>
+    readonly revokedAt: FieldRef<"AdminSession", 'DateTime'>
+    readonly revokeReason: FieldRef<"AdminSession", 'String'>
+    readonly ipAddress: FieldRef<"AdminSession", 'String'>
+    readonly userAgent: FieldRef<"AdminSession", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AdminSession findUnique
+   */
+  export type AdminSessionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminSession to fetch.
+     */
+    where: AdminSessionWhereUniqueInput
+  }
+
+  /**
+   * AdminSession findUniqueOrThrow
+   */
+  export type AdminSessionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminSession to fetch.
+     */
+    where: AdminSessionWhereUniqueInput
+  }
+
+  /**
+   * AdminSession findFirst
+   */
+  export type AdminSessionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminSession to fetch.
+     */
+    where?: AdminSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminSessions to fetch.
+     */
+    orderBy?: AdminSessionOrderByWithRelationInput | AdminSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminSessions.
+     */
+    cursor?: AdminSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminSessions.
+     */
+    distinct?: AdminSessionScalarFieldEnum | AdminSessionScalarFieldEnum[]
+  }
+
+  /**
+   * AdminSession findFirstOrThrow
+   */
+  export type AdminSessionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminSession to fetch.
+     */
+    where?: AdminSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminSessions to fetch.
+     */
+    orderBy?: AdminSessionOrderByWithRelationInput | AdminSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminSessions.
+     */
+    cursor?: AdminSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminSessions.
+     */
+    distinct?: AdminSessionScalarFieldEnum | AdminSessionScalarFieldEnum[]
+  }
+
+  /**
+   * AdminSession findMany
+   */
+  export type AdminSessionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminSessions to fetch.
+     */
+    where?: AdminSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminSessions to fetch.
+     */
+    orderBy?: AdminSessionOrderByWithRelationInput | AdminSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AdminSessions.
+     */
+    cursor?: AdminSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminSessions.
+     */
+    distinct?: AdminSessionScalarFieldEnum | AdminSessionScalarFieldEnum[]
+  }
+
+  /**
+   * AdminSession create
+   */
+  export type AdminSessionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AdminSession.
+     */
+    data: XOR<AdminSessionCreateInput, AdminSessionUncheckedCreateInput>
+  }
+
+  /**
+   * AdminSession createMany
+   */
+  export type AdminSessionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AdminSessions.
+     */
+    data: AdminSessionCreateManyInput | AdminSessionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AdminSession createManyAndReturn
+   */
+  export type AdminSessionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * The data used to create many AdminSessions.
+     */
+    data: AdminSessionCreateManyInput | AdminSessionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdminSession update
+   */
+  export type AdminSessionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AdminSession.
+     */
+    data: XOR<AdminSessionUpdateInput, AdminSessionUncheckedUpdateInput>
+    /**
+     * Choose, which AdminSession to update.
+     */
+    where: AdminSessionWhereUniqueInput
+  }
+
+  /**
+   * AdminSession updateMany
+   */
+  export type AdminSessionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AdminSessions.
+     */
+    data: XOR<AdminSessionUpdateManyMutationInput, AdminSessionUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminSessions to update
+     */
+    where?: AdminSessionWhereInput
+    /**
+     * Limit how many AdminSessions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminSession updateManyAndReturn
+   */
+  export type AdminSessionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * The data used to update AdminSessions.
+     */
+    data: XOR<AdminSessionUpdateManyMutationInput, AdminSessionUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminSessions to update
+     */
+    where?: AdminSessionWhereInput
+    /**
+     * Limit how many AdminSessions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdminSession upsert
+   */
+  export type AdminSessionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AdminSession to update in case it exists.
+     */
+    where: AdminSessionWhereUniqueInput
+    /**
+     * In case the AdminSession found by the `where` argument doesn't exist, create a new AdminSession with this data.
+     */
+    create: XOR<AdminSessionCreateInput, AdminSessionUncheckedCreateInput>
+    /**
+     * In case the AdminSession was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AdminSessionUpdateInput, AdminSessionUncheckedUpdateInput>
+  }
+
+  /**
+   * AdminSession delete
+   */
+  export type AdminSessionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+    /**
+     * Filter which AdminSession to delete.
+     */
+    where: AdminSessionWhereUniqueInput
+  }
+
+  /**
+   * AdminSession deleteMany
+   */
+  export type AdminSessionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminSessions to delete
+     */
+    where?: AdminSessionWhereInput
+    /**
+     * Limit how many AdminSessions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminSession.refreshTokens
+   */
+  export type AdminSession$refreshTokensArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RefreshToken
+     */
+    select?: RefreshTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RefreshToken
+     */
+    omit?: RefreshTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RefreshTokenInclude<ExtArgs> | null
+    where?: RefreshTokenWhereInput
+    orderBy?: RefreshTokenOrderByWithRelationInput | RefreshTokenOrderByWithRelationInput[]
+    cursor?: RefreshTokenWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: RefreshTokenScalarFieldEnum | RefreshTokenScalarFieldEnum[]
+  }
+
+  /**
+   * AdminSession without action
+   */
+  export type AdminSessionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminSession
+     */
+    select?: AdminSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminSession
+     */
+    omit?: AdminSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminSessionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AdminMfaRecoveryCode
+   */
+
+  export type AggregateAdminMfaRecoveryCode = {
+    _count: AdminMfaRecoveryCodeCountAggregateOutputType | null
+    _min: AdminMfaRecoveryCodeMinAggregateOutputType | null
+    _max: AdminMfaRecoveryCodeMaxAggregateOutputType | null
+  }
+
+  export type AdminMfaRecoveryCodeMinAggregateOutputType = {
+    id: string | null
+    adminUserId: string | null
+    salt: string | null
+    codeHash: string | null
+    createdAt: Date | null
+    usedAt: Date | null
+  }
+
+  export type AdminMfaRecoveryCodeMaxAggregateOutputType = {
+    id: string | null
+    adminUserId: string | null
+    salt: string | null
+    codeHash: string | null
+    createdAt: Date | null
+    usedAt: Date | null
+  }
+
+  export type AdminMfaRecoveryCodeCountAggregateOutputType = {
+    id: number
+    adminUserId: number
+    salt: number
+    codeHash: number
+    createdAt: number
+    usedAt: number
+    _all: number
+  }
+
+
+  export type AdminMfaRecoveryCodeMinAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    salt?: true
+    codeHash?: true
+    createdAt?: true
+    usedAt?: true
+  }
+
+  export type AdminMfaRecoveryCodeMaxAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    salt?: true
+    codeHash?: true
+    createdAt?: true
+    usedAt?: true
+  }
+
+  export type AdminMfaRecoveryCodeCountAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    salt?: true
+    codeHash?: true
+    createdAt?: true
+    usedAt?: true
+    _all?: true
+  }
+
+  export type AdminMfaRecoveryCodeAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminMfaRecoveryCode to aggregate.
+     */
+    where?: AdminMfaRecoveryCodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminMfaRecoveryCodes to fetch.
+     */
+    orderBy?: AdminMfaRecoveryCodeOrderByWithRelationInput | AdminMfaRecoveryCodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AdminMfaRecoveryCodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminMfaRecoveryCodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminMfaRecoveryCodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AdminMfaRecoveryCodes
+    **/
+    _count?: true | AdminMfaRecoveryCodeCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AdminMfaRecoveryCodeMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AdminMfaRecoveryCodeMaxAggregateInputType
+  }
+
+  export type GetAdminMfaRecoveryCodeAggregateType<T extends AdminMfaRecoveryCodeAggregateArgs> = {
+        [P in keyof T & keyof AggregateAdminMfaRecoveryCode]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAdminMfaRecoveryCode[P]>
+      : GetScalarType<T[P], AggregateAdminMfaRecoveryCode[P]>
+  }
+
+
+
+
+  export type AdminMfaRecoveryCodeGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminMfaRecoveryCodeWhereInput
+    orderBy?: AdminMfaRecoveryCodeOrderByWithAggregationInput | AdminMfaRecoveryCodeOrderByWithAggregationInput[]
+    by: AdminMfaRecoveryCodeScalarFieldEnum[] | AdminMfaRecoveryCodeScalarFieldEnum
+    having?: AdminMfaRecoveryCodeScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AdminMfaRecoveryCodeCountAggregateInputType | true
+    _min?: AdminMfaRecoveryCodeMinAggregateInputType
+    _max?: AdminMfaRecoveryCodeMaxAggregateInputType
+  }
+
+  export type AdminMfaRecoveryCodeGroupByOutputType = {
+    id: string
+    adminUserId: string
+    salt: string
+    codeHash: string
+    createdAt: Date
+    usedAt: Date | null
+    _count: AdminMfaRecoveryCodeCountAggregateOutputType | null
+    _min: AdminMfaRecoveryCodeMinAggregateOutputType | null
+    _max: AdminMfaRecoveryCodeMaxAggregateOutputType | null
+  }
+
+  type GetAdminMfaRecoveryCodeGroupByPayload<T extends AdminMfaRecoveryCodeGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AdminMfaRecoveryCodeGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AdminMfaRecoveryCodeGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AdminMfaRecoveryCodeGroupByOutputType[P]>
+            : GetScalarType<T[P], AdminMfaRecoveryCodeGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AdminMfaRecoveryCodeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    salt?: boolean
+    codeHash?: boolean
+    createdAt?: boolean
+    usedAt?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminMfaRecoveryCode"]>
+
+  export type AdminMfaRecoveryCodeSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    salt?: boolean
+    codeHash?: boolean
+    createdAt?: boolean
+    usedAt?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminMfaRecoveryCode"]>
+
+  export type AdminMfaRecoveryCodeSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    salt?: boolean
+    codeHash?: boolean
+    createdAt?: boolean
+    usedAt?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminMfaRecoveryCode"]>
+
+  export type AdminMfaRecoveryCodeSelectScalar = {
+    id?: boolean
+    adminUserId?: boolean
+    salt?: boolean
+    codeHash?: boolean
+    createdAt?: boolean
+    usedAt?: boolean
+  }
+
+  export type AdminMfaRecoveryCodeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "adminUserId" | "salt" | "codeHash" | "createdAt" | "usedAt", ExtArgs["result"]["adminMfaRecoveryCode"]>
+  export type AdminMfaRecoveryCodeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+  export type AdminMfaRecoveryCodeIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+  export type AdminMfaRecoveryCodeIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+
+  export type $AdminMfaRecoveryCodePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AdminMfaRecoveryCode"
+    objects: {
+      adminUser: Prisma.$AdminUserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      adminUserId: string
+      salt: string
+      codeHash: string
+      createdAt: Date
+      usedAt: Date | null
+    }, ExtArgs["result"]["adminMfaRecoveryCode"]>
+    composites: {}
+  }
+
+  type AdminMfaRecoveryCodeGetPayload<S extends boolean | null | undefined | AdminMfaRecoveryCodeDefaultArgs> = $Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload, S>
+
+  type AdminMfaRecoveryCodeCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AdminMfaRecoveryCodeFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AdminMfaRecoveryCodeCountAggregateInputType | true
+    }
+
+  export interface AdminMfaRecoveryCodeDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AdminMfaRecoveryCode'], meta: { name: 'AdminMfaRecoveryCode' } }
+    /**
+     * Find zero or one AdminMfaRecoveryCode that matches the filter.
+     * @param {AdminMfaRecoveryCodeFindUniqueArgs} args - Arguments to find a AdminMfaRecoveryCode
+     * @example
+     * // Get one AdminMfaRecoveryCode
+     * const adminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AdminMfaRecoveryCodeFindUniqueArgs>(args: SelectSubset<T, AdminMfaRecoveryCodeFindUniqueArgs<ExtArgs>>): Prisma__AdminMfaRecoveryCodeClient<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AdminMfaRecoveryCode that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AdminMfaRecoveryCodeFindUniqueOrThrowArgs} args - Arguments to find a AdminMfaRecoveryCode
+     * @example
+     * // Get one AdminMfaRecoveryCode
+     * const adminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AdminMfaRecoveryCodeFindUniqueOrThrowArgs>(args: SelectSubset<T, AdminMfaRecoveryCodeFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AdminMfaRecoveryCodeClient<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminMfaRecoveryCode that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaRecoveryCodeFindFirstArgs} args - Arguments to find a AdminMfaRecoveryCode
+     * @example
+     * // Get one AdminMfaRecoveryCode
+     * const adminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AdminMfaRecoveryCodeFindFirstArgs>(args?: SelectSubset<T, AdminMfaRecoveryCodeFindFirstArgs<ExtArgs>>): Prisma__AdminMfaRecoveryCodeClient<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminMfaRecoveryCode that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaRecoveryCodeFindFirstOrThrowArgs} args - Arguments to find a AdminMfaRecoveryCode
+     * @example
+     * // Get one AdminMfaRecoveryCode
+     * const adminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AdminMfaRecoveryCodeFindFirstOrThrowArgs>(args?: SelectSubset<T, AdminMfaRecoveryCodeFindFirstOrThrowArgs<ExtArgs>>): Prisma__AdminMfaRecoveryCodeClient<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AdminMfaRecoveryCodes that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaRecoveryCodeFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AdminMfaRecoveryCodes
+     * const adminMfaRecoveryCodes = await prisma.adminMfaRecoveryCode.findMany()
+     * 
+     * // Get first 10 AdminMfaRecoveryCodes
+     * const adminMfaRecoveryCodes = await prisma.adminMfaRecoveryCode.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const adminMfaRecoveryCodeWithIdOnly = await prisma.adminMfaRecoveryCode.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AdminMfaRecoveryCodeFindManyArgs>(args?: SelectSubset<T, AdminMfaRecoveryCodeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AdminMfaRecoveryCode.
+     * @param {AdminMfaRecoveryCodeCreateArgs} args - Arguments to create a AdminMfaRecoveryCode.
+     * @example
+     * // Create one AdminMfaRecoveryCode
+     * const AdminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.create({
+     *   data: {
+     *     // ... data to create a AdminMfaRecoveryCode
+     *   }
+     * })
+     * 
+     */
+    create<T extends AdminMfaRecoveryCodeCreateArgs>(args: SelectSubset<T, AdminMfaRecoveryCodeCreateArgs<ExtArgs>>): Prisma__AdminMfaRecoveryCodeClient<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AdminMfaRecoveryCodes.
+     * @param {AdminMfaRecoveryCodeCreateManyArgs} args - Arguments to create many AdminMfaRecoveryCodes.
+     * @example
+     * // Create many AdminMfaRecoveryCodes
+     * const adminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AdminMfaRecoveryCodeCreateManyArgs>(args?: SelectSubset<T, AdminMfaRecoveryCodeCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AdminMfaRecoveryCodes and returns the data saved in the database.
+     * @param {AdminMfaRecoveryCodeCreateManyAndReturnArgs} args - Arguments to create many AdminMfaRecoveryCodes.
+     * @example
+     * // Create many AdminMfaRecoveryCodes
+     * const adminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AdminMfaRecoveryCodes and only return the `id`
+     * const adminMfaRecoveryCodeWithIdOnly = await prisma.adminMfaRecoveryCode.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AdminMfaRecoveryCodeCreateManyAndReturnArgs>(args?: SelectSubset<T, AdminMfaRecoveryCodeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AdminMfaRecoveryCode.
+     * @param {AdminMfaRecoveryCodeDeleteArgs} args - Arguments to delete one AdminMfaRecoveryCode.
+     * @example
+     * // Delete one AdminMfaRecoveryCode
+     * const AdminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.delete({
+     *   where: {
+     *     // ... filter to delete one AdminMfaRecoveryCode
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AdminMfaRecoveryCodeDeleteArgs>(args: SelectSubset<T, AdminMfaRecoveryCodeDeleteArgs<ExtArgs>>): Prisma__AdminMfaRecoveryCodeClient<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AdminMfaRecoveryCode.
+     * @param {AdminMfaRecoveryCodeUpdateArgs} args - Arguments to update one AdminMfaRecoveryCode.
+     * @example
+     * // Update one AdminMfaRecoveryCode
+     * const adminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AdminMfaRecoveryCodeUpdateArgs>(args: SelectSubset<T, AdminMfaRecoveryCodeUpdateArgs<ExtArgs>>): Prisma__AdminMfaRecoveryCodeClient<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AdminMfaRecoveryCodes.
+     * @param {AdminMfaRecoveryCodeDeleteManyArgs} args - Arguments to filter AdminMfaRecoveryCodes to delete.
+     * @example
+     * // Delete a few AdminMfaRecoveryCodes
+     * const { count } = await prisma.adminMfaRecoveryCode.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AdminMfaRecoveryCodeDeleteManyArgs>(args?: SelectSubset<T, AdminMfaRecoveryCodeDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminMfaRecoveryCodes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaRecoveryCodeUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AdminMfaRecoveryCodes
+     * const adminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AdminMfaRecoveryCodeUpdateManyArgs>(args: SelectSubset<T, AdminMfaRecoveryCodeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminMfaRecoveryCodes and returns the data updated in the database.
+     * @param {AdminMfaRecoveryCodeUpdateManyAndReturnArgs} args - Arguments to update many AdminMfaRecoveryCodes.
+     * @example
+     * // Update many AdminMfaRecoveryCodes
+     * const adminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more AdminMfaRecoveryCodes and only return the `id`
+     * const adminMfaRecoveryCodeWithIdOnly = await prisma.adminMfaRecoveryCode.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AdminMfaRecoveryCodeUpdateManyAndReturnArgs>(args: SelectSubset<T, AdminMfaRecoveryCodeUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AdminMfaRecoveryCode.
+     * @param {AdminMfaRecoveryCodeUpsertArgs} args - Arguments to update or create a AdminMfaRecoveryCode.
+     * @example
+     * // Update or create a AdminMfaRecoveryCode
+     * const adminMfaRecoveryCode = await prisma.adminMfaRecoveryCode.upsert({
+     *   create: {
+     *     // ... data to create a AdminMfaRecoveryCode
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AdminMfaRecoveryCode we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AdminMfaRecoveryCodeUpsertArgs>(args: SelectSubset<T, AdminMfaRecoveryCodeUpsertArgs<ExtArgs>>): Prisma__AdminMfaRecoveryCodeClient<$Result.GetResult<Prisma.$AdminMfaRecoveryCodePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AdminMfaRecoveryCodes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaRecoveryCodeCountArgs} args - Arguments to filter AdminMfaRecoveryCodes to count.
+     * @example
+     * // Count the number of AdminMfaRecoveryCodes
+     * const count = await prisma.adminMfaRecoveryCode.count({
+     *   where: {
+     *     // ... the filter for the AdminMfaRecoveryCodes we want to count
+     *   }
+     * })
+    **/
+    count<T extends AdminMfaRecoveryCodeCountArgs>(
+      args?: Subset<T, AdminMfaRecoveryCodeCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AdminMfaRecoveryCodeCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AdminMfaRecoveryCode.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaRecoveryCodeAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AdminMfaRecoveryCodeAggregateArgs>(args: Subset<T, AdminMfaRecoveryCodeAggregateArgs>): Prisma.PrismaPromise<GetAdminMfaRecoveryCodeAggregateType<T>>
+
+    /**
+     * Group by AdminMfaRecoveryCode.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaRecoveryCodeGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AdminMfaRecoveryCodeGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AdminMfaRecoveryCodeGroupByArgs['orderBy'] }
+        : { orderBy?: AdminMfaRecoveryCodeGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AdminMfaRecoveryCodeGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAdminMfaRecoveryCodeGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AdminMfaRecoveryCode model
+   */
+  readonly fields: AdminMfaRecoveryCodeFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AdminMfaRecoveryCode.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AdminMfaRecoveryCodeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    adminUser<T extends AdminUserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AdminUserDefaultArgs<ExtArgs>>): Prisma__AdminUserClient<$Result.GetResult<Prisma.$AdminUserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AdminMfaRecoveryCode model
+   */
+  interface AdminMfaRecoveryCodeFieldRefs {
+    readonly id: FieldRef<"AdminMfaRecoveryCode", 'String'>
+    readonly adminUserId: FieldRef<"AdminMfaRecoveryCode", 'String'>
+    readonly salt: FieldRef<"AdminMfaRecoveryCode", 'String'>
+    readonly codeHash: FieldRef<"AdminMfaRecoveryCode", 'String'>
+    readonly createdAt: FieldRef<"AdminMfaRecoveryCode", 'DateTime'>
+    readonly usedAt: FieldRef<"AdminMfaRecoveryCode", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AdminMfaRecoveryCode findUnique
+   */
+  export type AdminMfaRecoveryCodeFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaRecoveryCode to fetch.
+     */
+    where: AdminMfaRecoveryCodeWhereUniqueInput
+  }
+
+  /**
+   * AdminMfaRecoveryCode findUniqueOrThrow
+   */
+  export type AdminMfaRecoveryCodeFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaRecoveryCode to fetch.
+     */
+    where: AdminMfaRecoveryCodeWhereUniqueInput
+  }
+
+  /**
+   * AdminMfaRecoveryCode findFirst
+   */
+  export type AdminMfaRecoveryCodeFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaRecoveryCode to fetch.
+     */
+    where?: AdminMfaRecoveryCodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminMfaRecoveryCodes to fetch.
+     */
+    orderBy?: AdminMfaRecoveryCodeOrderByWithRelationInput | AdminMfaRecoveryCodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminMfaRecoveryCodes.
+     */
+    cursor?: AdminMfaRecoveryCodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminMfaRecoveryCodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminMfaRecoveryCodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminMfaRecoveryCodes.
+     */
+    distinct?: AdminMfaRecoveryCodeScalarFieldEnum | AdminMfaRecoveryCodeScalarFieldEnum[]
+  }
+
+  /**
+   * AdminMfaRecoveryCode findFirstOrThrow
+   */
+  export type AdminMfaRecoveryCodeFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaRecoveryCode to fetch.
+     */
+    where?: AdminMfaRecoveryCodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminMfaRecoveryCodes to fetch.
+     */
+    orderBy?: AdminMfaRecoveryCodeOrderByWithRelationInput | AdminMfaRecoveryCodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminMfaRecoveryCodes.
+     */
+    cursor?: AdminMfaRecoveryCodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminMfaRecoveryCodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminMfaRecoveryCodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminMfaRecoveryCodes.
+     */
+    distinct?: AdminMfaRecoveryCodeScalarFieldEnum | AdminMfaRecoveryCodeScalarFieldEnum[]
+  }
+
+  /**
+   * AdminMfaRecoveryCode findMany
+   */
+  export type AdminMfaRecoveryCodeFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaRecoveryCodes to fetch.
+     */
+    where?: AdminMfaRecoveryCodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminMfaRecoveryCodes to fetch.
+     */
+    orderBy?: AdminMfaRecoveryCodeOrderByWithRelationInput | AdminMfaRecoveryCodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AdminMfaRecoveryCodes.
+     */
+    cursor?: AdminMfaRecoveryCodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminMfaRecoveryCodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminMfaRecoveryCodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminMfaRecoveryCodes.
+     */
+    distinct?: AdminMfaRecoveryCodeScalarFieldEnum | AdminMfaRecoveryCodeScalarFieldEnum[]
+  }
+
+  /**
+   * AdminMfaRecoveryCode create
+   */
+  export type AdminMfaRecoveryCodeCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AdminMfaRecoveryCode.
+     */
+    data: XOR<AdminMfaRecoveryCodeCreateInput, AdminMfaRecoveryCodeUncheckedCreateInput>
+  }
+
+  /**
+   * AdminMfaRecoveryCode createMany
+   */
+  export type AdminMfaRecoveryCodeCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AdminMfaRecoveryCodes.
+     */
+    data: AdminMfaRecoveryCodeCreateManyInput | AdminMfaRecoveryCodeCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AdminMfaRecoveryCode createManyAndReturn
+   */
+  export type AdminMfaRecoveryCodeCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * The data used to create many AdminMfaRecoveryCodes.
+     */
+    data: AdminMfaRecoveryCodeCreateManyInput | AdminMfaRecoveryCodeCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdminMfaRecoveryCode update
+   */
+  export type AdminMfaRecoveryCodeUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AdminMfaRecoveryCode.
+     */
+    data: XOR<AdminMfaRecoveryCodeUpdateInput, AdminMfaRecoveryCodeUncheckedUpdateInput>
+    /**
+     * Choose, which AdminMfaRecoveryCode to update.
+     */
+    where: AdminMfaRecoveryCodeWhereUniqueInput
+  }
+
+  /**
+   * AdminMfaRecoveryCode updateMany
+   */
+  export type AdminMfaRecoveryCodeUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AdminMfaRecoveryCodes.
+     */
+    data: XOR<AdminMfaRecoveryCodeUpdateManyMutationInput, AdminMfaRecoveryCodeUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminMfaRecoveryCodes to update
+     */
+    where?: AdminMfaRecoveryCodeWhereInput
+    /**
+     * Limit how many AdminMfaRecoveryCodes to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminMfaRecoveryCode updateManyAndReturn
+   */
+  export type AdminMfaRecoveryCodeUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * The data used to update AdminMfaRecoveryCodes.
+     */
+    data: XOR<AdminMfaRecoveryCodeUpdateManyMutationInput, AdminMfaRecoveryCodeUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminMfaRecoveryCodes to update
+     */
+    where?: AdminMfaRecoveryCodeWhereInput
+    /**
+     * Limit how many AdminMfaRecoveryCodes to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdminMfaRecoveryCode upsert
+   */
+  export type AdminMfaRecoveryCodeUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AdminMfaRecoveryCode to update in case it exists.
+     */
+    where: AdminMfaRecoveryCodeWhereUniqueInput
+    /**
+     * In case the AdminMfaRecoveryCode found by the `where` argument doesn't exist, create a new AdminMfaRecoveryCode with this data.
+     */
+    create: XOR<AdminMfaRecoveryCodeCreateInput, AdminMfaRecoveryCodeUncheckedCreateInput>
+    /**
+     * In case the AdminMfaRecoveryCode was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AdminMfaRecoveryCodeUpdateInput, AdminMfaRecoveryCodeUncheckedUpdateInput>
+  }
+
+  /**
+   * AdminMfaRecoveryCode delete
+   */
+  export type AdminMfaRecoveryCodeDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+    /**
+     * Filter which AdminMfaRecoveryCode to delete.
+     */
+    where: AdminMfaRecoveryCodeWhereUniqueInput
+  }
+
+  /**
+   * AdminMfaRecoveryCode deleteMany
+   */
+  export type AdminMfaRecoveryCodeDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminMfaRecoveryCodes to delete
+     */
+    where?: AdminMfaRecoveryCodeWhereInput
+    /**
+     * Limit how many AdminMfaRecoveryCodes to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminMfaRecoveryCode without action
+   */
+  export type AdminMfaRecoveryCodeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaRecoveryCode
+     */
+    select?: AdminMfaRecoveryCodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaRecoveryCode
+     */
+    omit?: AdminMfaRecoveryCodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaRecoveryCodeInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AdminMfaChallenge
+   */
+
+  export type AggregateAdminMfaChallenge = {
+    _count: AdminMfaChallengeCountAggregateOutputType | null
+    _avg: AdminMfaChallengeAvgAggregateOutputType | null
+    _sum: AdminMfaChallengeSumAggregateOutputType | null
+    _min: AdminMfaChallengeMinAggregateOutputType | null
+    _max: AdminMfaChallengeMaxAggregateOutputType | null
+  }
+
+  export type AdminMfaChallengeAvgAggregateOutputType = {
+    attempts: number | null
+  }
+
+  export type AdminMfaChallengeSumAggregateOutputType = {
+    attempts: number | null
+  }
+
+  export type AdminMfaChallengeMinAggregateOutputType = {
+    id: string | null
+    adminUserId: string | null
+    tokenHash: string | null
+    authMethod: string | null
+    attempts: number | null
+    expiresAt: Date | null
+    consumedAt: Date | null
+    createdAt: Date | null
+    ipAddress: string | null
+    userAgent: string | null
+  }
+
+  export type AdminMfaChallengeMaxAggregateOutputType = {
+    id: string | null
+    adminUserId: string | null
+    tokenHash: string | null
+    authMethod: string | null
+    attempts: number | null
+    expiresAt: Date | null
+    consumedAt: Date | null
+    createdAt: Date | null
+    ipAddress: string | null
+    userAgent: string | null
+  }
+
+  export type AdminMfaChallengeCountAggregateOutputType = {
+    id: number
+    adminUserId: number
+    tokenHash: number
+    authMethod: number
+    attempts: number
+    expiresAt: number
+    consumedAt: number
+    createdAt: number
+    ipAddress: number
+    userAgent: number
+    _all: number
+  }
+
+
+  export type AdminMfaChallengeAvgAggregateInputType = {
+    attempts?: true
+  }
+
+  export type AdminMfaChallengeSumAggregateInputType = {
+    attempts?: true
+  }
+
+  export type AdminMfaChallengeMinAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    tokenHash?: true
+    authMethod?: true
+    attempts?: true
+    expiresAt?: true
+    consumedAt?: true
+    createdAt?: true
+    ipAddress?: true
+    userAgent?: true
+  }
+
+  export type AdminMfaChallengeMaxAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    tokenHash?: true
+    authMethod?: true
+    attempts?: true
+    expiresAt?: true
+    consumedAt?: true
+    createdAt?: true
+    ipAddress?: true
+    userAgent?: true
+  }
+
+  export type AdminMfaChallengeCountAggregateInputType = {
+    id?: true
+    adminUserId?: true
+    tokenHash?: true
+    authMethod?: true
+    attempts?: true
+    expiresAt?: true
+    consumedAt?: true
+    createdAt?: true
+    ipAddress?: true
+    userAgent?: true
+    _all?: true
+  }
+
+  export type AdminMfaChallengeAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminMfaChallenge to aggregate.
+     */
+    where?: AdminMfaChallengeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminMfaChallenges to fetch.
+     */
+    orderBy?: AdminMfaChallengeOrderByWithRelationInput | AdminMfaChallengeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AdminMfaChallengeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminMfaChallenges from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminMfaChallenges.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AdminMfaChallenges
+    **/
+    _count?: true | AdminMfaChallengeCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: AdminMfaChallengeAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: AdminMfaChallengeSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AdminMfaChallengeMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AdminMfaChallengeMaxAggregateInputType
+  }
+
+  export type GetAdminMfaChallengeAggregateType<T extends AdminMfaChallengeAggregateArgs> = {
+        [P in keyof T & keyof AggregateAdminMfaChallenge]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAdminMfaChallenge[P]>
+      : GetScalarType<T[P], AggregateAdminMfaChallenge[P]>
+  }
+
+
+
+
+  export type AdminMfaChallengeGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminMfaChallengeWhereInput
+    orderBy?: AdminMfaChallengeOrderByWithAggregationInput | AdminMfaChallengeOrderByWithAggregationInput[]
+    by: AdminMfaChallengeScalarFieldEnum[] | AdminMfaChallengeScalarFieldEnum
+    having?: AdminMfaChallengeScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AdminMfaChallengeCountAggregateInputType | true
+    _avg?: AdminMfaChallengeAvgAggregateInputType
+    _sum?: AdminMfaChallengeSumAggregateInputType
+    _min?: AdminMfaChallengeMinAggregateInputType
+    _max?: AdminMfaChallengeMaxAggregateInputType
+  }
+
+  export type AdminMfaChallengeGroupByOutputType = {
+    id: string
+    adminUserId: string
+    tokenHash: string
+    authMethod: string
+    attempts: number
+    expiresAt: Date
+    consumedAt: Date | null
+    createdAt: Date
+    ipAddress: string | null
+    userAgent: string | null
+    _count: AdminMfaChallengeCountAggregateOutputType | null
+    _avg: AdminMfaChallengeAvgAggregateOutputType | null
+    _sum: AdminMfaChallengeSumAggregateOutputType | null
+    _min: AdminMfaChallengeMinAggregateOutputType | null
+    _max: AdminMfaChallengeMaxAggregateOutputType | null
+  }
+
+  type GetAdminMfaChallengeGroupByPayload<T extends AdminMfaChallengeGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AdminMfaChallengeGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AdminMfaChallengeGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AdminMfaChallengeGroupByOutputType[P]>
+            : GetScalarType<T[P], AdminMfaChallengeGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AdminMfaChallengeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    tokenHash?: boolean
+    authMethod?: boolean
+    attempts?: boolean
+    expiresAt?: boolean
+    consumedAt?: boolean
+    createdAt?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminMfaChallenge"]>
+
+  export type AdminMfaChallengeSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    tokenHash?: boolean
+    authMethod?: boolean
+    attempts?: boolean
+    expiresAt?: boolean
+    consumedAt?: boolean
+    createdAt?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminMfaChallenge"]>
+
+  export type AdminMfaChallengeSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    adminUserId?: boolean
+    tokenHash?: boolean
+    authMethod?: boolean
+    attempts?: boolean
+    expiresAt?: boolean
+    consumedAt?: boolean
+    createdAt?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["adminMfaChallenge"]>
+
+  export type AdminMfaChallengeSelectScalar = {
+    id?: boolean
+    adminUserId?: boolean
+    tokenHash?: boolean
+    authMethod?: boolean
+    attempts?: boolean
+    expiresAt?: boolean
+    consumedAt?: boolean
+    createdAt?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+  }
+
+  export type AdminMfaChallengeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "adminUserId" | "tokenHash" | "authMethod" | "attempts" | "expiresAt" | "consumedAt" | "createdAt" | "ipAddress" | "userAgent", ExtArgs["result"]["adminMfaChallenge"]>
+  export type AdminMfaChallengeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+  export type AdminMfaChallengeIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+  export type AdminMfaChallengeIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+  }
+
+  export type $AdminMfaChallengePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AdminMfaChallenge"
+    objects: {
+      adminUser: Prisma.$AdminUserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      adminUserId: string
+      tokenHash: string
+      authMethod: string
+      attempts: number
+      expiresAt: Date
+      consumedAt: Date | null
+      createdAt: Date
+      ipAddress: string | null
+      userAgent: string | null
+    }, ExtArgs["result"]["adminMfaChallenge"]>
+    composites: {}
+  }
+
+  type AdminMfaChallengeGetPayload<S extends boolean | null | undefined | AdminMfaChallengeDefaultArgs> = $Result.GetResult<Prisma.$AdminMfaChallengePayload, S>
+
+  type AdminMfaChallengeCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AdminMfaChallengeFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AdminMfaChallengeCountAggregateInputType | true
+    }
+
+  export interface AdminMfaChallengeDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AdminMfaChallenge'], meta: { name: 'AdminMfaChallenge' } }
+    /**
+     * Find zero or one AdminMfaChallenge that matches the filter.
+     * @param {AdminMfaChallengeFindUniqueArgs} args - Arguments to find a AdminMfaChallenge
+     * @example
+     * // Get one AdminMfaChallenge
+     * const adminMfaChallenge = await prisma.adminMfaChallenge.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AdminMfaChallengeFindUniqueArgs>(args: SelectSubset<T, AdminMfaChallengeFindUniqueArgs<ExtArgs>>): Prisma__AdminMfaChallengeClient<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AdminMfaChallenge that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AdminMfaChallengeFindUniqueOrThrowArgs} args - Arguments to find a AdminMfaChallenge
+     * @example
+     * // Get one AdminMfaChallenge
+     * const adminMfaChallenge = await prisma.adminMfaChallenge.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AdminMfaChallengeFindUniqueOrThrowArgs>(args: SelectSubset<T, AdminMfaChallengeFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AdminMfaChallengeClient<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminMfaChallenge that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaChallengeFindFirstArgs} args - Arguments to find a AdminMfaChallenge
+     * @example
+     * // Get one AdminMfaChallenge
+     * const adminMfaChallenge = await prisma.adminMfaChallenge.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AdminMfaChallengeFindFirstArgs>(args?: SelectSubset<T, AdminMfaChallengeFindFirstArgs<ExtArgs>>): Prisma__AdminMfaChallengeClient<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminMfaChallenge that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaChallengeFindFirstOrThrowArgs} args - Arguments to find a AdminMfaChallenge
+     * @example
+     * // Get one AdminMfaChallenge
+     * const adminMfaChallenge = await prisma.adminMfaChallenge.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AdminMfaChallengeFindFirstOrThrowArgs>(args?: SelectSubset<T, AdminMfaChallengeFindFirstOrThrowArgs<ExtArgs>>): Prisma__AdminMfaChallengeClient<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AdminMfaChallenges that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaChallengeFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AdminMfaChallenges
+     * const adminMfaChallenges = await prisma.adminMfaChallenge.findMany()
+     * 
+     * // Get first 10 AdminMfaChallenges
+     * const adminMfaChallenges = await prisma.adminMfaChallenge.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const adminMfaChallengeWithIdOnly = await prisma.adminMfaChallenge.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AdminMfaChallengeFindManyArgs>(args?: SelectSubset<T, AdminMfaChallengeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AdminMfaChallenge.
+     * @param {AdminMfaChallengeCreateArgs} args - Arguments to create a AdminMfaChallenge.
+     * @example
+     * // Create one AdminMfaChallenge
+     * const AdminMfaChallenge = await prisma.adminMfaChallenge.create({
+     *   data: {
+     *     // ... data to create a AdminMfaChallenge
+     *   }
+     * })
+     * 
+     */
+    create<T extends AdminMfaChallengeCreateArgs>(args: SelectSubset<T, AdminMfaChallengeCreateArgs<ExtArgs>>): Prisma__AdminMfaChallengeClient<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AdminMfaChallenges.
+     * @param {AdminMfaChallengeCreateManyArgs} args - Arguments to create many AdminMfaChallenges.
+     * @example
+     * // Create many AdminMfaChallenges
+     * const adminMfaChallenge = await prisma.adminMfaChallenge.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AdminMfaChallengeCreateManyArgs>(args?: SelectSubset<T, AdminMfaChallengeCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AdminMfaChallenges and returns the data saved in the database.
+     * @param {AdminMfaChallengeCreateManyAndReturnArgs} args - Arguments to create many AdminMfaChallenges.
+     * @example
+     * // Create many AdminMfaChallenges
+     * const adminMfaChallenge = await prisma.adminMfaChallenge.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AdminMfaChallenges and only return the `id`
+     * const adminMfaChallengeWithIdOnly = await prisma.adminMfaChallenge.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AdminMfaChallengeCreateManyAndReturnArgs>(args?: SelectSubset<T, AdminMfaChallengeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AdminMfaChallenge.
+     * @param {AdminMfaChallengeDeleteArgs} args - Arguments to delete one AdminMfaChallenge.
+     * @example
+     * // Delete one AdminMfaChallenge
+     * const AdminMfaChallenge = await prisma.adminMfaChallenge.delete({
+     *   where: {
+     *     // ... filter to delete one AdminMfaChallenge
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AdminMfaChallengeDeleteArgs>(args: SelectSubset<T, AdminMfaChallengeDeleteArgs<ExtArgs>>): Prisma__AdminMfaChallengeClient<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AdminMfaChallenge.
+     * @param {AdminMfaChallengeUpdateArgs} args - Arguments to update one AdminMfaChallenge.
+     * @example
+     * // Update one AdminMfaChallenge
+     * const adminMfaChallenge = await prisma.adminMfaChallenge.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AdminMfaChallengeUpdateArgs>(args: SelectSubset<T, AdminMfaChallengeUpdateArgs<ExtArgs>>): Prisma__AdminMfaChallengeClient<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AdminMfaChallenges.
+     * @param {AdminMfaChallengeDeleteManyArgs} args - Arguments to filter AdminMfaChallenges to delete.
+     * @example
+     * // Delete a few AdminMfaChallenges
+     * const { count } = await prisma.adminMfaChallenge.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AdminMfaChallengeDeleteManyArgs>(args?: SelectSubset<T, AdminMfaChallengeDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminMfaChallenges.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaChallengeUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AdminMfaChallenges
+     * const adminMfaChallenge = await prisma.adminMfaChallenge.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AdminMfaChallengeUpdateManyArgs>(args: SelectSubset<T, AdminMfaChallengeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminMfaChallenges and returns the data updated in the database.
+     * @param {AdminMfaChallengeUpdateManyAndReturnArgs} args - Arguments to update many AdminMfaChallenges.
+     * @example
+     * // Update many AdminMfaChallenges
+     * const adminMfaChallenge = await prisma.adminMfaChallenge.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more AdminMfaChallenges and only return the `id`
+     * const adminMfaChallengeWithIdOnly = await prisma.adminMfaChallenge.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AdminMfaChallengeUpdateManyAndReturnArgs>(args: SelectSubset<T, AdminMfaChallengeUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AdminMfaChallenge.
+     * @param {AdminMfaChallengeUpsertArgs} args - Arguments to update or create a AdminMfaChallenge.
+     * @example
+     * // Update or create a AdminMfaChallenge
+     * const adminMfaChallenge = await prisma.adminMfaChallenge.upsert({
+     *   create: {
+     *     // ... data to create a AdminMfaChallenge
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AdminMfaChallenge we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AdminMfaChallengeUpsertArgs>(args: SelectSubset<T, AdminMfaChallengeUpsertArgs<ExtArgs>>): Prisma__AdminMfaChallengeClient<$Result.GetResult<Prisma.$AdminMfaChallengePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AdminMfaChallenges.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaChallengeCountArgs} args - Arguments to filter AdminMfaChallenges to count.
+     * @example
+     * // Count the number of AdminMfaChallenges
+     * const count = await prisma.adminMfaChallenge.count({
+     *   where: {
+     *     // ... the filter for the AdminMfaChallenges we want to count
+     *   }
+     * })
+    **/
+    count<T extends AdminMfaChallengeCountArgs>(
+      args?: Subset<T, AdminMfaChallengeCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AdminMfaChallengeCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AdminMfaChallenge.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaChallengeAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AdminMfaChallengeAggregateArgs>(args: Subset<T, AdminMfaChallengeAggregateArgs>): Prisma.PrismaPromise<GetAdminMfaChallengeAggregateType<T>>
+
+    /**
+     * Group by AdminMfaChallenge.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminMfaChallengeGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AdminMfaChallengeGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AdminMfaChallengeGroupByArgs['orderBy'] }
+        : { orderBy?: AdminMfaChallengeGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AdminMfaChallengeGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAdminMfaChallengeGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AdminMfaChallenge model
+   */
+  readonly fields: AdminMfaChallengeFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AdminMfaChallenge.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AdminMfaChallengeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    adminUser<T extends AdminUserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AdminUserDefaultArgs<ExtArgs>>): Prisma__AdminUserClient<$Result.GetResult<Prisma.$AdminUserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AdminMfaChallenge model
+   */
+  interface AdminMfaChallengeFieldRefs {
+    readonly id: FieldRef<"AdminMfaChallenge", 'String'>
+    readonly adminUserId: FieldRef<"AdminMfaChallenge", 'String'>
+    readonly tokenHash: FieldRef<"AdminMfaChallenge", 'String'>
+    readonly authMethod: FieldRef<"AdminMfaChallenge", 'String'>
+    readonly attempts: FieldRef<"AdminMfaChallenge", 'Int'>
+    readonly expiresAt: FieldRef<"AdminMfaChallenge", 'DateTime'>
+    readonly consumedAt: FieldRef<"AdminMfaChallenge", 'DateTime'>
+    readonly createdAt: FieldRef<"AdminMfaChallenge", 'DateTime'>
+    readonly ipAddress: FieldRef<"AdminMfaChallenge", 'String'>
+    readonly userAgent: FieldRef<"AdminMfaChallenge", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AdminMfaChallenge findUnique
+   */
+  export type AdminMfaChallengeFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaChallenge to fetch.
+     */
+    where: AdminMfaChallengeWhereUniqueInput
+  }
+
+  /**
+   * AdminMfaChallenge findUniqueOrThrow
+   */
+  export type AdminMfaChallengeFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaChallenge to fetch.
+     */
+    where: AdminMfaChallengeWhereUniqueInput
+  }
+
+  /**
+   * AdminMfaChallenge findFirst
+   */
+  export type AdminMfaChallengeFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaChallenge to fetch.
+     */
+    where?: AdminMfaChallengeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminMfaChallenges to fetch.
+     */
+    orderBy?: AdminMfaChallengeOrderByWithRelationInput | AdminMfaChallengeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminMfaChallenges.
+     */
+    cursor?: AdminMfaChallengeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminMfaChallenges from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminMfaChallenges.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminMfaChallenges.
+     */
+    distinct?: AdminMfaChallengeScalarFieldEnum | AdminMfaChallengeScalarFieldEnum[]
+  }
+
+  /**
+   * AdminMfaChallenge findFirstOrThrow
+   */
+  export type AdminMfaChallengeFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaChallenge to fetch.
+     */
+    where?: AdminMfaChallengeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminMfaChallenges to fetch.
+     */
+    orderBy?: AdminMfaChallengeOrderByWithRelationInput | AdminMfaChallengeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminMfaChallenges.
+     */
+    cursor?: AdminMfaChallengeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminMfaChallenges from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminMfaChallenges.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminMfaChallenges.
+     */
+    distinct?: AdminMfaChallengeScalarFieldEnum | AdminMfaChallengeScalarFieldEnum[]
+  }
+
+  /**
+   * AdminMfaChallenge findMany
+   */
+  export type AdminMfaChallengeFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+    /**
+     * Filter, which AdminMfaChallenges to fetch.
+     */
+    where?: AdminMfaChallengeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminMfaChallenges to fetch.
+     */
+    orderBy?: AdminMfaChallengeOrderByWithRelationInput | AdminMfaChallengeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AdminMfaChallenges.
+     */
+    cursor?: AdminMfaChallengeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminMfaChallenges from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminMfaChallenges.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminMfaChallenges.
+     */
+    distinct?: AdminMfaChallengeScalarFieldEnum | AdminMfaChallengeScalarFieldEnum[]
+  }
+
+  /**
+   * AdminMfaChallenge create
+   */
+  export type AdminMfaChallengeCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AdminMfaChallenge.
+     */
+    data: XOR<AdminMfaChallengeCreateInput, AdminMfaChallengeUncheckedCreateInput>
+  }
+
+  /**
+   * AdminMfaChallenge createMany
+   */
+  export type AdminMfaChallengeCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AdminMfaChallenges.
+     */
+    data: AdminMfaChallengeCreateManyInput | AdminMfaChallengeCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AdminMfaChallenge createManyAndReturn
+   */
+  export type AdminMfaChallengeCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * The data used to create many AdminMfaChallenges.
+     */
+    data: AdminMfaChallengeCreateManyInput | AdminMfaChallengeCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdminMfaChallenge update
+   */
+  export type AdminMfaChallengeUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AdminMfaChallenge.
+     */
+    data: XOR<AdminMfaChallengeUpdateInput, AdminMfaChallengeUncheckedUpdateInput>
+    /**
+     * Choose, which AdminMfaChallenge to update.
+     */
+    where: AdminMfaChallengeWhereUniqueInput
+  }
+
+  /**
+   * AdminMfaChallenge updateMany
+   */
+  export type AdminMfaChallengeUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AdminMfaChallenges.
+     */
+    data: XOR<AdminMfaChallengeUpdateManyMutationInput, AdminMfaChallengeUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminMfaChallenges to update
+     */
+    where?: AdminMfaChallengeWhereInput
+    /**
+     * Limit how many AdminMfaChallenges to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminMfaChallenge updateManyAndReturn
+   */
+  export type AdminMfaChallengeUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * The data used to update AdminMfaChallenges.
+     */
+    data: XOR<AdminMfaChallengeUpdateManyMutationInput, AdminMfaChallengeUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminMfaChallenges to update
+     */
+    where?: AdminMfaChallengeWhereInput
+    /**
+     * Limit how many AdminMfaChallenges to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdminMfaChallenge upsert
+   */
+  export type AdminMfaChallengeUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AdminMfaChallenge to update in case it exists.
+     */
+    where: AdminMfaChallengeWhereUniqueInput
+    /**
+     * In case the AdminMfaChallenge found by the `where` argument doesn't exist, create a new AdminMfaChallenge with this data.
+     */
+    create: XOR<AdminMfaChallengeCreateInput, AdminMfaChallengeUncheckedCreateInput>
+    /**
+     * In case the AdminMfaChallenge was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AdminMfaChallengeUpdateInput, AdminMfaChallengeUncheckedUpdateInput>
+  }
+
+  /**
+   * AdminMfaChallenge delete
+   */
+  export type AdminMfaChallengeDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
+    /**
+     * Filter which AdminMfaChallenge to delete.
+     */
+    where: AdminMfaChallengeWhereUniqueInput
+  }
+
+  /**
+   * AdminMfaChallenge deleteMany
+   */
+  export type AdminMfaChallengeDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminMfaChallenges to delete
+     */
+    where?: AdminMfaChallengeWhereInput
+    /**
+     * Limit how many AdminMfaChallenges to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminMfaChallenge without action
+   */
+  export type AdminMfaChallengeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminMfaChallenge
+     */
+    select?: AdminMfaChallengeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminMfaChallenge
+     */
+    omit?: AdminMfaChallengeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdminMfaChallengeInclude<ExtArgs> | null
   }
 
 
@@ -158066,6 +162125,13 @@ export namespace Prisma {
     createdBy: 'createdBy',
     twoFactorEnabled: 'twoFactorEnabled',
     twoFactorSecret: 'twoFactorSecret',
+    mfaEnrolledAt: 'mfaEnrolledAt',
+    mfaSecretEncrypted: 'mfaSecretEncrypted',
+    mfaPendingSecretEncrypted: 'mfaPendingSecretEncrypted',
+    mfaPendingExpiresAt: 'mfaPendingExpiresAt',
+    mfaLastUsedStep: 'mfaLastUsedStep',
+    mfaFailedAttempts: 'mfaFailedAttempts',
+    mfaLockedUntil: 'mfaLockedUntil',
     avatarUrl: 'avatarUrl',
     avatarCloudinaryId: 'avatarCloudinaryId',
     preferredName: 'preferredName',
@@ -159872,10 +163938,60 @@ export namespace Prisma {
     isRevoked: 'isRevoked',
     ipAddress: 'ipAddress',
     userAgent: 'userAgent',
-    createdAt: 'createdAt'
+    createdAt: 'createdAt',
+    sessionId: 'sessionId',
+    rotatedAt: 'rotatedAt'
   };
 
   export type RefreshTokenScalarFieldEnum = (typeof RefreshTokenScalarFieldEnum)[keyof typeof RefreshTokenScalarFieldEnum]
+
+
+  export const AdminSessionScalarFieldEnum: {
+    id: 'id',
+    adminUserId: 'adminUserId',
+    mode: 'mode',
+    authMethod: 'authMethod',
+    csrfNonce: 'csrfNonce',
+    createdAt: 'createdAt',
+    lastSeenAt: 'lastSeenAt',
+    idleExpiresAt: 'idleExpiresAt',
+    absoluteExpiresAt: 'absoluteExpiresAt',
+    mfaVerifiedAt: 'mfaVerifiedAt',
+    revokedAt: 'revokedAt',
+    revokeReason: 'revokeReason',
+    ipAddress: 'ipAddress',
+    userAgent: 'userAgent'
+  };
+
+  export type AdminSessionScalarFieldEnum = (typeof AdminSessionScalarFieldEnum)[keyof typeof AdminSessionScalarFieldEnum]
+
+
+  export const AdminMfaRecoveryCodeScalarFieldEnum: {
+    id: 'id',
+    adminUserId: 'adminUserId',
+    salt: 'salt',
+    codeHash: 'codeHash',
+    createdAt: 'createdAt',
+    usedAt: 'usedAt'
+  };
+
+  export type AdminMfaRecoveryCodeScalarFieldEnum = (typeof AdminMfaRecoveryCodeScalarFieldEnum)[keyof typeof AdminMfaRecoveryCodeScalarFieldEnum]
+
+
+  export const AdminMfaChallengeScalarFieldEnum: {
+    id: 'id',
+    adminUserId: 'adminUserId',
+    tokenHash: 'tokenHash',
+    authMethod: 'authMethod',
+    attempts: 'attempts',
+    expiresAt: 'expiresAt',
+    consumedAt: 'consumedAt',
+    createdAt: 'createdAt',
+    ipAddress: 'ipAddress',
+    userAgent: 'userAgent'
+  };
+
+  export type AdminMfaChallengeScalarFieldEnum = (typeof AdminMfaChallengeScalarFieldEnum)[keyof typeof AdminMfaChallengeScalarFieldEnum]
 
 
   export const AuditLogScalarFieldEnum: {
@@ -161740,6 +165856,13 @@ export namespace Prisma {
     createdBy?: StringNullableFilter<"AdminUser"> | string | null
     twoFactorEnabled?: BoolFilter<"AdminUser"> | boolean
     twoFactorSecret?: StringNullableFilter<"AdminUser"> | string | null
+    mfaEnrolledAt?: DateTimeNullableFilter<"AdminUser"> | Date | string | null
+    mfaSecretEncrypted?: StringNullableFilter<"AdminUser"> | string | null
+    mfaPendingSecretEncrypted?: StringNullableFilter<"AdminUser"> | string | null
+    mfaPendingExpiresAt?: DateTimeNullableFilter<"AdminUser"> | Date | string | null
+    mfaLastUsedStep?: IntNullableFilter<"AdminUser"> | number | null
+    mfaFailedAttempts?: IntFilter<"AdminUser"> | number
+    mfaLockedUntil?: DateTimeNullableFilter<"AdminUser"> | Date | string | null
     avatarUrl?: StringNullableFilter<"AdminUser"> | string | null
     avatarCloudinaryId?: StringNullableFilter<"AdminUser"> | string | null
     preferredName?: StringNullableFilter<"AdminUser"> | string | null
@@ -161764,6 +165887,9 @@ export namespace Prisma {
     salary?: DecimalNullableFilter<"AdminUser"> | Decimal | DecimalJsLike | number | string | null
     bonus?: DecimalNullableFilter<"AdminUser"> | Decimal | DecimalJsLike | number | string | null
     equity?: DecimalNullableFilter<"AdminUser"> | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionListRelationFilter
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeListRelationFilter
+    mfaChallenges?: AdminMfaChallengeListRelationFilter
     refreshTokens?: RefreshTokenListRelationFilter
     auditLogs?: AuditLogListRelationFilter
     socialLinks?: AdminSocialLinkListRelationFilter
@@ -161857,6 +165983,13 @@ export namespace Prisma {
     createdBy?: SortOrderInput | SortOrder
     twoFactorEnabled?: SortOrder
     twoFactorSecret?: SortOrderInput | SortOrder
+    mfaEnrolledAt?: SortOrderInput | SortOrder
+    mfaSecretEncrypted?: SortOrderInput | SortOrder
+    mfaPendingSecretEncrypted?: SortOrderInput | SortOrder
+    mfaPendingExpiresAt?: SortOrderInput | SortOrder
+    mfaLastUsedStep?: SortOrderInput | SortOrder
+    mfaFailedAttempts?: SortOrder
+    mfaLockedUntil?: SortOrderInput | SortOrder
     avatarUrl?: SortOrderInput | SortOrder
     avatarCloudinaryId?: SortOrderInput | SortOrder
     preferredName?: SortOrderInput | SortOrder
@@ -161881,6 +166014,9 @@ export namespace Prisma {
     salary?: SortOrderInput | SortOrder
     bonus?: SortOrderInput | SortOrder
     equity?: SortOrderInput | SortOrder
+    sessions?: AdminSessionOrderByRelationAggregateInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeOrderByRelationAggregateInput
+    mfaChallenges?: AdminMfaChallengeOrderByRelationAggregateInput
     refreshTokens?: RefreshTokenOrderByRelationAggregateInput
     auditLogs?: AuditLogOrderByRelationAggregateInput
     socialLinks?: AdminSocialLinkOrderByRelationAggregateInput
@@ -161977,6 +166113,13 @@ export namespace Prisma {
     createdBy?: StringNullableFilter<"AdminUser"> | string | null
     twoFactorEnabled?: BoolFilter<"AdminUser"> | boolean
     twoFactorSecret?: StringNullableFilter<"AdminUser"> | string | null
+    mfaEnrolledAt?: DateTimeNullableFilter<"AdminUser"> | Date | string | null
+    mfaSecretEncrypted?: StringNullableFilter<"AdminUser"> | string | null
+    mfaPendingSecretEncrypted?: StringNullableFilter<"AdminUser"> | string | null
+    mfaPendingExpiresAt?: DateTimeNullableFilter<"AdminUser"> | Date | string | null
+    mfaLastUsedStep?: IntNullableFilter<"AdminUser"> | number | null
+    mfaFailedAttempts?: IntFilter<"AdminUser"> | number
+    mfaLockedUntil?: DateTimeNullableFilter<"AdminUser"> | Date | string | null
     avatarUrl?: StringNullableFilter<"AdminUser"> | string | null
     avatarCloudinaryId?: StringNullableFilter<"AdminUser"> | string | null
     preferredName?: StringNullableFilter<"AdminUser"> | string | null
@@ -162001,6 +166144,9 @@ export namespace Prisma {
     salary?: DecimalNullableFilter<"AdminUser"> | Decimal | DecimalJsLike | number | string | null
     bonus?: DecimalNullableFilter<"AdminUser"> | Decimal | DecimalJsLike | number | string | null
     equity?: DecimalNullableFilter<"AdminUser"> | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionListRelationFilter
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeListRelationFilter
+    mfaChallenges?: AdminMfaChallengeListRelationFilter
     refreshTokens?: RefreshTokenListRelationFilter
     auditLogs?: AuditLogListRelationFilter
     socialLinks?: AdminSocialLinkListRelationFilter
@@ -162094,6 +166240,13 @@ export namespace Prisma {
     createdBy?: SortOrderInput | SortOrder
     twoFactorEnabled?: SortOrder
     twoFactorSecret?: SortOrderInput | SortOrder
+    mfaEnrolledAt?: SortOrderInput | SortOrder
+    mfaSecretEncrypted?: SortOrderInput | SortOrder
+    mfaPendingSecretEncrypted?: SortOrderInput | SortOrder
+    mfaPendingExpiresAt?: SortOrderInput | SortOrder
+    mfaLastUsedStep?: SortOrderInput | SortOrder
+    mfaFailedAttempts?: SortOrder
+    mfaLockedUntil?: SortOrderInput | SortOrder
     avatarUrl?: SortOrderInput | SortOrder
     avatarCloudinaryId?: SortOrderInput | SortOrder
     preferredName?: SortOrderInput | SortOrder
@@ -162153,6 +166306,13 @@ export namespace Prisma {
     createdBy?: StringNullableWithAggregatesFilter<"AdminUser"> | string | null
     twoFactorEnabled?: BoolWithAggregatesFilter<"AdminUser"> | boolean
     twoFactorSecret?: StringNullableWithAggregatesFilter<"AdminUser"> | string | null
+    mfaEnrolledAt?: DateTimeNullableWithAggregatesFilter<"AdminUser"> | Date | string | null
+    mfaSecretEncrypted?: StringNullableWithAggregatesFilter<"AdminUser"> | string | null
+    mfaPendingSecretEncrypted?: StringNullableWithAggregatesFilter<"AdminUser"> | string | null
+    mfaPendingExpiresAt?: DateTimeNullableWithAggregatesFilter<"AdminUser"> | Date | string | null
+    mfaLastUsedStep?: IntNullableWithAggregatesFilter<"AdminUser"> | number | null
+    mfaFailedAttempts?: IntWithAggregatesFilter<"AdminUser"> | number
+    mfaLockedUntil?: DateTimeNullableWithAggregatesFilter<"AdminUser"> | Date | string | null
     avatarUrl?: StringNullableWithAggregatesFilter<"AdminUser"> | string | null
     avatarCloudinaryId?: StringNullableWithAggregatesFilter<"AdminUser"> | string | null
     preferredName?: StringNullableWithAggregatesFilter<"AdminUser"> | string | null
@@ -171672,7 +175832,10 @@ export namespace Prisma {
     ipAddress?: StringNullableFilter<"RefreshToken"> | string | null
     userAgent?: StringNullableFilter<"RefreshToken"> | string | null
     createdAt?: DateTimeFilter<"RefreshToken"> | Date | string
+    sessionId?: UuidNullableFilter<"RefreshToken"> | string | null
+    rotatedAt?: DateTimeNullableFilter<"RefreshToken"> | Date | string | null
     adminUser?: XOR<AdminUserScalarRelationFilter, AdminUserWhereInput>
+    session?: XOR<AdminSessionNullableScalarRelationFilter, AdminSessionWhereInput> | null
   }
 
   export type RefreshTokenOrderByWithRelationInput = {
@@ -171684,7 +175847,10 @@ export namespace Prisma {
     ipAddress?: SortOrderInput | SortOrder
     userAgent?: SortOrderInput | SortOrder
     createdAt?: SortOrder
+    sessionId?: SortOrderInput | SortOrder
+    rotatedAt?: SortOrderInput | SortOrder
     adminUser?: AdminUserOrderByWithRelationInput
+    session?: AdminSessionOrderByWithRelationInput
   }
 
   export type RefreshTokenWhereUniqueInput = Prisma.AtLeast<{
@@ -171699,7 +175865,10 @@ export namespace Prisma {
     ipAddress?: StringNullableFilter<"RefreshToken"> | string | null
     userAgent?: StringNullableFilter<"RefreshToken"> | string | null
     createdAt?: DateTimeFilter<"RefreshToken"> | Date | string
+    sessionId?: UuidNullableFilter<"RefreshToken"> | string | null
+    rotatedAt?: DateTimeNullableFilter<"RefreshToken"> | Date | string | null
     adminUser?: XOR<AdminUserScalarRelationFilter, AdminUserWhereInput>
+    session?: XOR<AdminSessionNullableScalarRelationFilter, AdminSessionWhereInput> | null
   }, "id" | "token">
 
   export type RefreshTokenOrderByWithAggregationInput = {
@@ -171711,6 +175880,8 @@ export namespace Prisma {
     ipAddress?: SortOrderInput | SortOrder
     userAgent?: SortOrderInput | SortOrder
     createdAt?: SortOrder
+    sessionId?: SortOrderInput | SortOrder
+    rotatedAt?: SortOrderInput | SortOrder
     _count?: RefreshTokenCountOrderByAggregateInput
     _max?: RefreshTokenMaxOrderByAggregateInput
     _min?: RefreshTokenMinOrderByAggregateInput
@@ -171728,6 +175899,253 @@ export namespace Prisma {
     ipAddress?: StringNullableWithAggregatesFilter<"RefreshToken"> | string | null
     userAgent?: StringNullableWithAggregatesFilter<"RefreshToken"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"RefreshToken"> | Date | string
+    sessionId?: UuidNullableWithAggregatesFilter<"RefreshToken"> | string | null
+    rotatedAt?: DateTimeNullableWithAggregatesFilter<"RefreshToken"> | Date | string | null
+  }
+
+  export type AdminSessionWhereInput = {
+    AND?: AdminSessionWhereInput | AdminSessionWhereInput[]
+    OR?: AdminSessionWhereInput[]
+    NOT?: AdminSessionWhereInput | AdminSessionWhereInput[]
+    id?: UuidFilter<"AdminSession"> | string
+    adminUserId?: StringFilter<"AdminSession"> | string
+    mode?: StringFilter<"AdminSession"> | string
+    authMethod?: StringFilter<"AdminSession"> | string
+    csrfNonce?: StringFilter<"AdminSession"> | string
+    createdAt?: DateTimeFilter<"AdminSession"> | Date | string
+    lastSeenAt?: DateTimeFilter<"AdminSession"> | Date | string
+    idleExpiresAt?: DateTimeFilter<"AdminSession"> | Date | string
+    absoluteExpiresAt?: DateTimeFilter<"AdminSession"> | Date | string
+    mfaVerifiedAt?: DateTimeNullableFilter<"AdminSession"> | Date | string | null
+    revokedAt?: DateTimeNullableFilter<"AdminSession"> | Date | string | null
+    revokeReason?: StringNullableFilter<"AdminSession"> | string | null
+    ipAddress?: StringNullableFilter<"AdminSession"> | string | null
+    userAgent?: StringNullableFilter<"AdminSession"> | string | null
+    adminUser?: XOR<AdminUserScalarRelationFilter, AdminUserWhereInput>
+    refreshTokens?: RefreshTokenListRelationFilter
+  }
+
+  export type AdminSessionOrderByWithRelationInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    mode?: SortOrder
+    authMethod?: SortOrder
+    csrfNonce?: SortOrder
+    createdAt?: SortOrder
+    lastSeenAt?: SortOrder
+    idleExpiresAt?: SortOrder
+    absoluteExpiresAt?: SortOrder
+    mfaVerifiedAt?: SortOrderInput | SortOrder
+    revokedAt?: SortOrderInput | SortOrder
+    revokeReason?: SortOrderInput | SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    adminUser?: AdminUserOrderByWithRelationInput
+    refreshTokens?: RefreshTokenOrderByRelationAggregateInput
+  }
+
+  export type AdminSessionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: AdminSessionWhereInput | AdminSessionWhereInput[]
+    OR?: AdminSessionWhereInput[]
+    NOT?: AdminSessionWhereInput | AdminSessionWhereInput[]
+    adminUserId?: StringFilter<"AdminSession"> | string
+    mode?: StringFilter<"AdminSession"> | string
+    authMethod?: StringFilter<"AdminSession"> | string
+    csrfNonce?: StringFilter<"AdminSession"> | string
+    createdAt?: DateTimeFilter<"AdminSession"> | Date | string
+    lastSeenAt?: DateTimeFilter<"AdminSession"> | Date | string
+    idleExpiresAt?: DateTimeFilter<"AdminSession"> | Date | string
+    absoluteExpiresAt?: DateTimeFilter<"AdminSession"> | Date | string
+    mfaVerifiedAt?: DateTimeNullableFilter<"AdminSession"> | Date | string | null
+    revokedAt?: DateTimeNullableFilter<"AdminSession"> | Date | string | null
+    revokeReason?: StringNullableFilter<"AdminSession"> | string | null
+    ipAddress?: StringNullableFilter<"AdminSession"> | string | null
+    userAgent?: StringNullableFilter<"AdminSession"> | string | null
+    adminUser?: XOR<AdminUserScalarRelationFilter, AdminUserWhereInput>
+    refreshTokens?: RefreshTokenListRelationFilter
+  }, "id">
+
+  export type AdminSessionOrderByWithAggregationInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    mode?: SortOrder
+    authMethod?: SortOrder
+    csrfNonce?: SortOrder
+    createdAt?: SortOrder
+    lastSeenAt?: SortOrder
+    idleExpiresAt?: SortOrder
+    absoluteExpiresAt?: SortOrder
+    mfaVerifiedAt?: SortOrderInput | SortOrder
+    revokedAt?: SortOrderInput | SortOrder
+    revokeReason?: SortOrderInput | SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    _count?: AdminSessionCountOrderByAggregateInput
+    _max?: AdminSessionMaxOrderByAggregateInput
+    _min?: AdminSessionMinOrderByAggregateInput
+  }
+
+  export type AdminSessionScalarWhereWithAggregatesInput = {
+    AND?: AdminSessionScalarWhereWithAggregatesInput | AdminSessionScalarWhereWithAggregatesInput[]
+    OR?: AdminSessionScalarWhereWithAggregatesInput[]
+    NOT?: AdminSessionScalarWhereWithAggregatesInput | AdminSessionScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"AdminSession"> | string
+    adminUserId?: StringWithAggregatesFilter<"AdminSession"> | string
+    mode?: StringWithAggregatesFilter<"AdminSession"> | string
+    authMethod?: StringWithAggregatesFilter<"AdminSession"> | string
+    csrfNonce?: StringWithAggregatesFilter<"AdminSession"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"AdminSession"> | Date | string
+    lastSeenAt?: DateTimeWithAggregatesFilter<"AdminSession"> | Date | string
+    idleExpiresAt?: DateTimeWithAggregatesFilter<"AdminSession"> | Date | string
+    absoluteExpiresAt?: DateTimeWithAggregatesFilter<"AdminSession"> | Date | string
+    mfaVerifiedAt?: DateTimeNullableWithAggregatesFilter<"AdminSession"> | Date | string | null
+    revokedAt?: DateTimeNullableWithAggregatesFilter<"AdminSession"> | Date | string | null
+    revokeReason?: StringNullableWithAggregatesFilter<"AdminSession"> | string | null
+    ipAddress?: StringNullableWithAggregatesFilter<"AdminSession"> | string | null
+    userAgent?: StringNullableWithAggregatesFilter<"AdminSession"> | string | null
+  }
+
+  export type AdminMfaRecoveryCodeWhereInput = {
+    AND?: AdminMfaRecoveryCodeWhereInput | AdminMfaRecoveryCodeWhereInput[]
+    OR?: AdminMfaRecoveryCodeWhereInput[]
+    NOT?: AdminMfaRecoveryCodeWhereInput | AdminMfaRecoveryCodeWhereInput[]
+    id?: UuidFilter<"AdminMfaRecoveryCode"> | string
+    adminUserId?: StringFilter<"AdminMfaRecoveryCode"> | string
+    salt?: StringFilter<"AdminMfaRecoveryCode"> | string
+    codeHash?: StringFilter<"AdminMfaRecoveryCode"> | string
+    createdAt?: DateTimeFilter<"AdminMfaRecoveryCode"> | Date | string
+    usedAt?: DateTimeNullableFilter<"AdminMfaRecoveryCode"> | Date | string | null
+    adminUser?: XOR<AdminUserScalarRelationFilter, AdminUserWhereInput>
+  }
+
+  export type AdminMfaRecoveryCodeOrderByWithRelationInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    salt?: SortOrder
+    codeHash?: SortOrder
+    createdAt?: SortOrder
+    usedAt?: SortOrderInput | SortOrder
+    adminUser?: AdminUserOrderByWithRelationInput
+  }
+
+  export type AdminMfaRecoveryCodeWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: AdminMfaRecoveryCodeWhereInput | AdminMfaRecoveryCodeWhereInput[]
+    OR?: AdminMfaRecoveryCodeWhereInput[]
+    NOT?: AdminMfaRecoveryCodeWhereInput | AdminMfaRecoveryCodeWhereInput[]
+    adminUserId?: StringFilter<"AdminMfaRecoveryCode"> | string
+    salt?: StringFilter<"AdminMfaRecoveryCode"> | string
+    codeHash?: StringFilter<"AdminMfaRecoveryCode"> | string
+    createdAt?: DateTimeFilter<"AdminMfaRecoveryCode"> | Date | string
+    usedAt?: DateTimeNullableFilter<"AdminMfaRecoveryCode"> | Date | string | null
+    adminUser?: XOR<AdminUserScalarRelationFilter, AdminUserWhereInput>
+  }, "id">
+
+  export type AdminMfaRecoveryCodeOrderByWithAggregationInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    salt?: SortOrder
+    codeHash?: SortOrder
+    createdAt?: SortOrder
+    usedAt?: SortOrderInput | SortOrder
+    _count?: AdminMfaRecoveryCodeCountOrderByAggregateInput
+    _max?: AdminMfaRecoveryCodeMaxOrderByAggregateInput
+    _min?: AdminMfaRecoveryCodeMinOrderByAggregateInput
+  }
+
+  export type AdminMfaRecoveryCodeScalarWhereWithAggregatesInput = {
+    AND?: AdminMfaRecoveryCodeScalarWhereWithAggregatesInput | AdminMfaRecoveryCodeScalarWhereWithAggregatesInput[]
+    OR?: AdminMfaRecoveryCodeScalarWhereWithAggregatesInput[]
+    NOT?: AdminMfaRecoveryCodeScalarWhereWithAggregatesInput | AdminMfaRecoveryCodeScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"AdminMfaRecoveryCode"> | string
+    adminUserId?: StringWithAggregatesFilter<"AdminMfaRecoveryCode"> | string
+    salt?: StringWithAggregatesFilter<"AdminMfaRecoveryCode"> | string
+    codeHash?: StringWithAggregatesFilter<"AdminMfaRecoveryCode"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"AdminMfaRecoveryCode"> | Date | string
+    usedAt?: DateTimeNullableWithAggregatesFilter<"AdminMfaRecoveryCode"> | Date | string | null
+  }
+
+  export type AdminMfaChallengeWhereInput = {
+    AND?: AdminMfaChallengeWhereInput | AdminMfaChallengeWhereInput[]
+    OR?: AdminMfaChallengeWhereInput[]
+    NOT?: AdminMfaChallengeWhereInput | AdminMfaChallengeWhereInput[]
+    id?: UuidFilter<"AdminMfaChallenge"> | string
+    adminUserId?: StringFilter<"AdminMfaChallenge"> | string
+    tokenHash?: StringFilter<"AdminMfaChallenge"> | string
+    authMethod?: StringFilter<"AdminMfaChallenge"> | string
+    attempts?: IntFilter<"AdminMfaChallenge"> | number
+    expiresAt?: DateTimeFilter<"AdminMfaChallenge"> | Date | string
+    consumedAt?: DateTimeNullableFilter<"AdminMfaChallenge"> | Date | string | null
+    createdAt?: DateTimeFilter<"AdminMfaChallenge"> | Date | string
+    ipAddress?: StringNullableFilter<"AdminMfaChallenge"> | string | null
+    userAgent?: StringNullableFilter<"AdminMfaChallenge"> | string | null
+    adminUser?: XOR<AdminUserScalarRelationFilter, AdminUserWhereInput>
+  }
+
+  export type AdminMfaChallengeOrderByWithRelationInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    tokenHash?: SortOrder
+    authMethod?: SortOrder
+    attempts?: SortOrder
+    expiresAt?: SortOrder
+    consumedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    adminUser?: AdminUserOrderByWithRelationInput
+  }
+
+  export type AdminMfaChallengeWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    tokenHash?: string
+    AND?: AdminMfaChallengeWhereInput | AdminMfaChallengeWhereInput[]
+    OR?: AdminMfaChallengeWhereInput[]
+    NOT?: AdminMfaChallengeWhereInput | AdminMfaChallengeWhereInput[]
+    adminUserId?: StringFilter<"AdminMfaChallenge"> | string
+    authMethod?: StringFilter<"AdminMfaChallenge"> | string
+    attempts?: IntFilter<"AdminMfaChallenge"> | number
+    expiresAt?: DateTimeFilter<"AdminMfaChallenge"> | Date | string
+    consumedAt?: DateTimeNullableFilter<"AdminMfaChallenge"> | Date | string | null
+    createdAt?: DateTimeFilter<"AdminMfaChallenge"> | Date | string
+    ipAddress?: StringNullableFilter<"AdminMfaChallenge"> | string | null
+    userAgent?: StringNullableFilter<"AdminMfaChallenge"> | string | null
+    adminUser?: XOR<AdminUserScalarRelationFilter, AdminUserWhereInput>
+  }, "id" | "tokenHash">
+
+  export type AdminMfaChallengeOrderByWithAggregationInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    tokenHash?: SortOrder
+    authMethod?: SortOrder
+    attempts?: SortOrder
+    expiresAt?: SortOrder
+    consumedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    _count?: AdminMfaChallengeCountOrderByAggregateInput
+    _avg?: AdminMfaChallengeAvgOrderByAggregateInput
+    _max?: AdminMfaChallengeMaxOrderByAggregateInput
+    _min?: AdminMfaChallengeMinOrderByAggregateInput
+    _sum?: AdminMfaChallengeSumOrderByAggregateInput
+  }
+
+  export type AdminMfaChallengeScalarWhereWithAggregatesInput = {
+    AND?: AdminMfaChallengeScalarWhereWithAggregatesInput | AdminMfaChallengeScalarWhereWithAggregatesInput[]
+    OR?: AdminMfaChallengeScalarWhereWithAggregatesInput[]
+    NOT?: AdminMfaChallengeScalarWhereWithAggregatesInput | AdminMfaChallengeScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"AdminMfaChallenge"> | string
+    adminUserId?: StringWithAggregatesFilter<"AdminMfaChallenge"> | string
+    tokenHash?: StringWithAggregatesFilter<"AdminMfaChallenge"> | string
+    authMethod?: StringWithAggregatesFilter<"AdminMfaChallenge"> | string
+    attempts?: IntWithAggregatesFilter<"AdminMfaChallenge"> | number
+    expiresAt?: DateTimeWithAggregatesFilter<"AdminMfaChallenge"> | Date | string
+    consumedAt?: DateTimeNullableWithAggregatesFilter<"AdminMfaChallenge"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"AdminMfaChallenge"> | Date | string
+    ipAddress?: StringNullableWithAggregatesFilter<"AdminMfaChallenge"> | string | null
+    userAgent?: StringNullableWithAggregatesFilter<"AdminMfaChallenge"> | string | null
   }
 
   export type AuditLogWhereInput = {
@@ -173756,6 +178174,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -173780,6 +178205,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -173873,6 +178301,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -173897,6 +178332,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -173990,6 +178428,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -174014,6 +178459,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -174107,6 +178555,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -174131,6 +178586,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -174224,6 +178682,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -174275,6 +178740,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -174326,6 +178798,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -185157,7 +189636,9 @@ export namespace Prisma {
     ipAddress?: string | null
     userAgent?: string | null
     createdAt?: Date | string
+    rotatedAt?: Date | string | null
     adminUser: AdminUserCreateNestedOneWithoutRefreshTokensInput
+    session?: AdminSessionCreateNestedOneWithoutRefreshTokensInput
   }
 
   export type RefreshTokenUncheckedCreateInput = {
@@ -185169,6 +189650,8 @@ export namespace Prisma {
     ipAddress?: string | null
     userAgent?: string | null
     createdAt?: Date | string
+    sessionId?: string | null
+    rotatedAt?: Date | string | null
   }
 
   export type RefreshTokenUpdateInput = {
@@ -185179,7 +189662,9 @@ export namespace Prisma {
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     userAgent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     adminUser?: AdminUserUpdateOneRequiredWithoutRefreshTokensNestedInput
+    session?: AdminSessionUpdateOneWithoutRefreshTokensNestedInput
   }
 
   export type RefreshTokenUncheckedUpdateInput = {
@@ -185191,6 +189676,8 @@ export namespace Prisma {
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     userAgent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    rotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type RefreshTokenCreateManyInput = {
@@ -185202,6 +189689,8 @@ export namespace Prisma {
     ipAddress?: string | null
     userAgent?: string | null
     createdAt?: Date | string
+    sessionId?: string | null
+    rotatedAt?: Date | string | null
   }
 
   export type RefreshTokenUpdateManyMutationInput = {
@@ -185212,6 +189701,7 @@ export namespace Prisma {
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     userAgent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type RefreshTokenUncheckedUpdateManyInput = {
@@ -185223,6 +189713,282 @@ export namespace Prisma {
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     userAgent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    rotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminSessionCreateInput = {
+    id?: string
+    mode: string
+    authMethod: string
+    csrfNonce: string
+    createdAt?: Date | string
+    lastSeenAt?: Date | string
+    idleExpiresAt: Date | string
+    absoluteExpiresAt: Date | string
+    mfaVerifiedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    revokeReason?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+    adminUser: AdminUserCreateNestedOneWithoutSessionsInput
+    refreshTokens?: RefreshTokenCreateNestedManyWithoutSessionInput
+  }
+
+  export type AdminSessionUncheckedCreateInput = {
+    id?: string
+    adminUserId: string
+    mode: string
+    authMethod: string
+    csrfNonce: string
+    createdAt?: Date | string
+    lastSeenAt?: Date | string
+    idleExpiresAt: Date | string
+    absoluteExpiresAt: Date | string
+    mfaVerifiedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    revokeReason?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+    refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutSessionInput
+  }
+
+  export type AdminSessionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    csrfNonce?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idleExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    absoluteExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    adminUser?: AdminUserUpdateOneRequiredWithoutSessionsNestedInput
+    refreshTokens?: RefreshTokenUpdateManyWithoutSessionNestedInput
+  }
+
+  export type AdminSessionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    csrfNonce?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idleExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    absoluteExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutSessionNestedInput
+  }
+
+  export type AdminSessionCreateManyInput = {
+    id?: string
+    adminUserId: string
+    mode: string
+    authMethod: string
+    csrfNonce: string
+    createdAt?: Date | string
+    lastSeenAt?: Date | string
+    idleExpiresAt: Date | string
+    absoluteExpiresAt: Date | string
+    mfaVerifiedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    revokeReason?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type AdminSessionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    csrfNonce?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idleExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    absoluteExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminSessionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    csrfNonce?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idleExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    absoluteExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminMfaRecoveryCodeCreateInput = {
+    id?: string
+    salt: string
+    codeHash: string
+    createdAt?: Date | string
+    usedAt?: Date | string | null
+    adminUser: AdminUserCreateNestedOneWithoutMfaRecoveryCodesInput
+  }
+
+  export type AdminMfaRecoveryCodeUncheckedCreateInput = {
+    id?: string
+    adminUserId: string
+    salt: string
+    codeHash: string
+    createdAt?: Date | string
+    usedAt?: Date | string | null
+  }
+
+  export type AdminMfaRecoveryCodeUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adminUser?: AdminUserUpdateOneRequiredWithoutMfaRecoveryCodesNestedInput
+  }
+
+  export type AdminMfaRecoveryCodeUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminMfaRecoveryCodeCreateManyInput = {
+    id?: string
+    adminUserId: string
+    salt: string
+    codeHash: string
+    createdAt?: Date | string
+    usedAt?: Date | string | null
+  }
+
+  export type AdminMfaRecoveryCodeUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminMfaRecoveryCodeUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminMfaChallengeCreateInput = {
+    id?: string
+    tokenHash: string
+    authMethod: string
+    attempts?: number
+    expiresAt: Date | string
+    consumedAt?: Date | string | null
+    createdAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+    adminUser: AdminUserCreateNestedOneWithoutMfaChallengesInput
+  }
+
+  export type AdminMfaChallengeUncheckedCreateInput = {
+    id?: string
+    adminUserId: string
+    tokenHash: string
+    authMethod: string
+    attempts?: number
+    expiresAt: Date | string
+    consumedAt?: Date | string | null
+    createdAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type AdminMfaChallengeUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    adminUser?: AdminUserUpdateOneRequiredWithoutMfaChallengesNestedInput
+  }
+
+  export type AdminMfaChallengeUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminMfaChallengeCreateManyInput = {
+    id?: string
+    adminUserId: string
+    tokenHash: string
+    authMethod: string
+    attempts?: number
+    expiresAt: Date | string
+    consumedAt?: Date | string | null
+    createdAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type AdminMfaChallengeUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminMfaChallengeUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type AuditLogCreateInput = {
@@ -187505,6 +192271,17 @@ export namespace Prisma {
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string
   }
 
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
   export type DecimalNullableFilter<$PrismaModel = never> = {
     equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
     in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
@@ -187514,6 +192291,24 @@ export namespace Prisma {
     gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     not?: NestedDecimalNullableFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
+  }
+
+  export type AdminSessionListRelationFilter = {
+    every?: AdminSessionWhereInput
+    some?: AdminSessionWhereInput
+    none?: AdminSessionWhereInput
+  }
+
+  export type AdminMfaRecoveryCodeListRelationFilter = {
+    every?: AdminMfaRecoveryCodeWhereInput
+    some?: AdminMfaRecoveryCodeWhereInput
+    none?: AdminMfaRecoveryCodeWhereInput
+  }
+
+  export type AdminMfaChallengeListRelationFilter = {
+    every?: AdminMfaChallengeWhereInput
+    some?: AdminMfaChallengeWhereInput
+    none?: AdminMfaChallengeWhereInput
   }
 
   export type RefreshTokenListRelationFilter = {
@@ -187851,6 +192646,18 @@ export namespace Prisma {
     nulls?: NullsOrder
   }
 
+  export type AdminSessionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AdminMfaRecoveryCodeOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AdminMfaChallengeOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type RefreshTokenOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -188096,6 +192903,13 @@ export namespace Prisma {
     createdBy?: SortOrder
     twoFactorEnabled?: SortOrder
     twoFactorSecret?: SortOrder
+    mfaEnrolledAt?: SortOrder
+    mfaSecretEncrypted?: SortOrder
+    mfaPendingSecretEncrypted?: SortOrder
+    mfaPendingExpiresAt?: SortOrder
+    mfaLastUsedStep?: SortOrder
+    mfaFailedAttempts?: SortOrder
+    mfaLockedUntil?: SortOrder
     avatarUrl?: SortOrder
     avatarCloudinaryId?: SortOrder
     preferredName?: SortOrder
@@ -188124,6 +192938,8 @@ export namespace Prisma {
 
   export type AdminUserAvgOrderByAggregateInput = {
     failedLoginAttempts?: SortOrder
+    mfaLastUsedStep?: SortOrder
+    mfaFailedAttempts?: SortOrder
     salary?: SortOrder
     bonus?: SortOrder
     equity?: SortOrder
@@ -188154,6 +192970,13 @@ export namespace Prisma {
     createdBy?: SortOrder
     twoFactorEnabled?: SortOrder
     twoFactorSecret?: SortOrder
+    mfaEnrolledAt?: SortOrder
+    mfaSecretEncrypted?: SortOrder
+    mfaPendingSecretEncrypted?: SortOrder
+    mfaPendingExpiresAt?: SortOrder
+    mfaLastUsedStep?: SortOrder
+    mfaFailedAttempts?: SortOrder
+    mfaLockedUntil?: SortOrder
     avatarUrl?: SortOrder
     avatarCloudinaryId?: SortOrder
     preferredName?: SortOrder
@@ -188205,6 +193028,13 @@ export namespace Prisma {
     createdBy?: SortOrder
     twoFactorEnabled?: SortOrder
     twoFactorSecret?: SortOrder
+    mfaEnrolledAt?: SortOrder
+    mfaSecretEncrypted?: SortOrder
+    mfaPendingSecretEncrypted?: SortOrder
+    mfaPendingExpiresAt?: SortOrder
+    mfaLastUsedStep?: SortOrder
+    mfaFailedAttempts?: SortOrder
+    mfaLockedUntil?: SortOrder
     avatarUrl?: SortOrder
     avatarCloudinaryId?: SortOrder
     preferredName?: SortOrder
@@ -188233,6 +193063,8 @@ export namespace Prisma {
 
   export type AdminUserSumOrderByAggregateInput = {
     failedLoginAttempts?: SortOrder
+    mfaLastUsedStep?: SortOrder
+    mfaFailedAttempts?: SortOrder
     salary?: SortOrder
     bonus?: SortOrder
     equity?: SortOrder
@@ -188354,6 +193186,22 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedDateTimeFilter<$PrismaModel>
     _max?: NestedDateTimeFilter<$PrismaModel>
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type DecimalNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -189886,17 +194734,6 @@ export namespace Prisma {
     not?: NestedEnummarketing_attribution_model_enumNullableFilter<$PrismaModel> | $Enums.marketing_attribution_model_enum | null
   }
 
-  export type IntNullableFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
-  }
-
   export type Marketing_attribution_decisionsNullableScalarRelationFilter = {
     is?: marketing_attribution_decisionsWhereInput | null
     isNot?: marketing_attribution_decisionsWhereInput | null
@@ -190032,22 +194869,6 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedEnummarketing_attribution_model_enumNullableFilter<$PrismaModel>
     _max?: NestedEnummarketing_attribution_model_enumNullableFilter<$PrismaModel>
-  }
-
-  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedIntNullableFilter<$PrismaModel>
-    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type marketing_identity_linksCountOrderByAggregateInput = {
@@ -195773,6 +200594,11 @@ export namespace Prisma {
     appliedAt?: SortOrder
   }
 
+  export type AdminSessionNullableScalarRelationFilter = {
+    is?: AdminSessionWhereInput | null
+    isNot?: AdminSessionWhereInput | null
+  }
+
   export type RefreshTokenCountOrderByAggregateInput = {
     id?: SortOrder
     token?: SortOrder
@@ -195782,6 +200608,8 @@ export namespace Prisma {
     ipAddress?: SortOrder
     userAgent?: SortOrder
     createdAt?: SortOrder
+    sessionId?: SortOrder
+    rotatedAt?: SortOrder
   }
 
   export type RefreshTokenMaxOrderByAggregateInput = {
@@ -195793,6 +200621,8 @@ export namespace Prisma {
     ipAddress?: SortOrder
     userAgent?: SortOrder
     createdAt?: SortOrder
+    sessionId?: SortOrder
+    rotatedAt?: SortOrder
   }
 
   export type RefreshTokenMinOrderByAggregateInput = {
@@ -195804,6 +200634,133 @@ export namespace Prisma {
     ipAddress?: SortOrder
     userAgent?: SortOrder
     createdAt?: SortOrder
+    sessionId?: SortOrder
+    rotatedAt?: SortOrder
+  }
+
+  export type AdminSessionCountOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    mode?: SortOrder
+    authMethod?: SortOrder
+    csrfNonce?: SortOrder
+    createdAt?: SortOrder
+    lastSeenAt?: SortOrder
+    idleExpiresAt?: SortOrder
+    absoluteExpiresAt?: SortOrder
+    mfaVerifiedAt?: SortOrder
+    revokedAt?: SortOrder
+    revokeReason?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+  }
+
+  export type AdminSessionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    mode?: SortOrder
+    authMethod?: SortOrder
+    csrfNonce?: SortOrder
+    createdAt?: SortOrder
+    lastSeenAt?: SortOrder
+    idleExpiresAt?: SortOrder
+    absoluteExpiresAt?: SortOrder
+    mfaVerifiedAt?: SortOrder
+    revokedAt?: SortOrder
+    revokeReason?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+  }
+
+  export type AdminSessionMinOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    mode?: SortOrder
+    authMethod?: SortOrder
+    csrfNonce?: SortOrder
+    createdAt?: SortOrder
+    lastSeenAt?: SortOrder
+    idleExpiresAt?: SortOrder
+    absoluteExpiresAt?: SortOrder
+    mfaVerifiedAt?: SortOrder
+    revokedAt?: SortOrder
+    revokeReason?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+  }
+
+  export type AdminMfaRecoveryCodeCountOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    salt?: SortOrder
+    codeHash?: SortOrder
+    createdAt?: SortOrder
+    usedAt?: SortOrder
+  }
+
+  export type AdminMfaRecoveryCodeMaxOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    salt?: SortOrder
+    codeHash?: SortOrder
+    createdAt?: SortOrder
+    usedAt?: SortOrder
+  }
+
+  export type AdminMfaRecoveryCodeMinOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    salt?: SortOrder
+    codeHash?: SortOrder
+    createdAt?: SortOrder
+    usedAt?: SortOrder
+  }
+
+  export type AdminMfaChallengeCountOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    tokenHash?: SortOrder
+    authMethod?: SortOrder
+    attempts?: SortOrder
+    expiresAt?: SortOrder
+    consumedAt?: SortOrder
+    createdAt?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+  }
+
+  export type AdminMfaChallengeAvgOrderByAggregateInput = {
+    attempts?: SortOrder
+  }
+
+  export type AdminMfaChallengeMaxOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    tokenHash?: SortOrder
+    authMethod?: SortOrder
+    attempts?: SortOrder
+    expiresAt?: SortOrder
+    consumedAt?: SortOrder
+    createdAt?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+  }
+
+  export type AdminMfaChallengeMinOrderByAggregateInput = {
+    id?: SortOrder
+    adminUserId?: SortOrder
+    tokenHash?: SortOrder
+    authMethod?: SortOrder
+    attempts?: SortOrder
+    expiresAt?: SortOrder
+    consumedAt?: SortOrder
+    createdAt?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+  }
+
+  export type AdminMfaChallengeSumOrderByAggregateInput = {
+    attempts?: SortOrder
   }
 
   export type EnumAuditActionFilter<$PrismaModel = never> = {
@@ -197100,6 +202057,27 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type AdminSessionCreateNestedManyWithoutAdminUserInput = {
+    create?: XOR<AdminSessionCreateWithoutAdminUserInput, AdminSessionUncheckedCreateWithoutAdminUserInput> | AdminSessionCreateWithoutAdminUserInput[] | AdminSessionUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminSessionCreateOrConnectWithoutAdminUserInput | AdminSessionCreateOrConnectWithoutAdminUserInput[]
+    createMany?: AdminSessionCreateManyAdminUserInputEnvelope
+    connect?: AdminSessionWhereUniqueInput | AdminSessionWhereUniqueInput[]
+  }
+
+  export type AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput = {
+    create?: XOR<AdminMfaRecoveryCodeCreateWithoutAdminUserInput, AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput> | AdminMfaRecoveryCodeCreateWithoutAdminUserInput[] | AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminMfaRecoveryCodeCreateOrConnectWithoutAdminUserInput | AdminMfaRecoveryCodeCreateOrConnectWithoutAdminUserInput[]
+    createMany?: AdminMfaRecoveryCodeCreateManyAdminUserInputEnvelope
+    connect?: AdminMfaRecoveryCodeWhereUniqueInput | AdminMfaRecoveryCodeWhereUniqueInput[]
+  }
+
+  export type AdminMfaChallengeCreateNestedManyWithoutAdminUserInput = {
+    create?: XOR<AdminMfaChallengeCreateWithoutAdminUserInput, AdminMfaChallengeUncheckedCreateWithoutAdminUserInput> | AdminMfaChallengeCreateWithoutAdminUserInput[] | AdminMfaChallengeUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminMfaChallengeCreateOrConnectWithoutAdminUserInput | AdminMfaChallengeCreateOrConnectWithoutAdminUserInput[]
+    createMany?: AdminMfaChallengeCreateManyAdminUserInputEnvelope
+    connect?: AdminMfaChallengeWhereUniqueInput | AdminMfaChallengeWhereUniqueInput[]
+  }
+
   export type RefreshTokenCreateNestedManyWithoutAdminUserInput = {
     create?: XOR<RefreshTokenCreateWithoutAdminUserInput, RefreshTokenUncheckedCreateWithoutAdminUserInput> | RefreshTokenCreateWithoutAdminUserInput[] | RefreshTokenUncheckedCreateWithoutAdminUserInput[]
     connectOrCreate?: RefreshTokenCreateOrConnectWithoutAdminUserInput | RefreshTokenCreateOrConnectWithoutAdminUserInput[]
@@ -197560,6 +202538,27 @@ export namespace Prisma {
     connectOrCreate?: InvoiceCreateOrConnectWithoutAdminUserInput | InvoiceCreateOrConnectWithoutAdminUserInput[]
     createMany?: InvoiceCreateManyAdminUserInputEnvelope
     connect?: InvoiceWhereUniqueInput | InvoiceWhereUniqueInput[]
+  }
+
+  export type AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput = {
+    create?: XOR<AdminSessionCreateWithoutAdminUserInput, AdminSessionUncheckedCreateWithoutAdminUserInput> | AdminSessionCreateWithoutAdminUserInput[] | AdminSessionUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminSessionCreateOrConnectWithoutAdminUserInput | AdminSessionCreateOrConnectWithoutAdminUserInput[]
+    createMany?: AdminSessionCreateManyAdminUserInputEnvelope
+    connect?: AdminSessionWhereUniqueInput | AdminSessionWhereUniqueInput[]
+  }
+
+  export type AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput = {
+    create?: XOR<AdminMfaRecoveryCodeCreateWithoutAdminUserInput, AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput> | AdminMfaRecoveryCodeCreateWithoutAdminUserInput[] | AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminMfaRecoveryCodeCreateOrConnectWithoutAdminUserInput | AdminMfaRecoveryCodeCreateOrConnectWithoutAdminUserInput[]
+    createMany?: AdminMfaRecoveryCodeCreateManyAdminUserInputEnvelope
+    connect?: AdminMfaRecoveryCodeWhereUniqueInput | AdminMfaRecoveryCodeWhereUniqueInput[]
+  }
+
+  export type AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput = {
+    create?: XOR<AdminMfaChallengeCreateWithoutAdminUserInput, AdminMfaChallengeUncheckedCreateWithoutAdminUserInput> | AdminMfaChallengeCreateWithoutAdminUserInput[] | AdminMfaChallengeUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminMfaChallengeCreateOrConnectWithoutAdminUserInput | AdminMfaChallengeCreateOrConnectWithoutAdminUserInput[]
+    createMany?: AdminMfaChallengeCreateManyAdminUserInputEnvelope
+    connect?: AdminMfaChallengeWhereUniqueInput | AdminMfaChallengeWhereUniqueInput[]
   }
 
   export type RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput = {
@@ -198064,12 +203063,62 @@ export namespace Prisma {
     set?: Date | string
   }
 
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
   export type NullableDecimalFieldUpdateOperationsInput = {
     set?: Decimal | DecimalJsLike | number | string | null
     increment?: Decimal | DecimalJsLike | number | string
     decrement?: Decimal | DecimalJsLike | number | string
     multiply?: Decimal | DecimalJsLike | number | string
     divide?: Decimal | DecimalJsLike | number | string
+  }
+
+  export type AdminSessionUpdateManyWithoutAdminUserNestedInput = {
+    create?: XOR<AdminSessionCreateWithoutAdminUserInput, AdminSessionUncheckedCreateWithoutAdminUserInput> | AdminSessionCreateWithoutAdminUserInput[] | AdminSessionUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminSessionCreateOrConnectWithoutAdminUserInput | AdminSessionCreateOrConnectWithoutAdminUserInput[]
+    upsert?: AdminSessionUpsertWithWhereUniqueWithoutAdminUserInput | AdminSessionUpsertWithWhereUniqueWithoutAdminUserInput[]
+    createMany?: AdminSessionCreateManyAdminUserInputEnvelope
+    set?: AdminSessionWhereUniqueInput | AdminSessionWhereUniqueInput[]
+    disconnect?: AdminSessionWhereUniqueInput | AdminSessionWhereUniqueInput[]
+    delete?: AdminSessionWhereUniqueInput | AdminSessionWhereUniqueInput[]
+    connect?: AdminSessionWhereUniqueInput | AdminSessionWhereUniqueInput[]
+    update?: AdminSessionUpdateWithWhereUniqueWithoutAdminUserInput | AdminSessionUpdateWithWhereUniqueWithoutAdminUserInput[]
+    updateMany?: AdminSessionUpdateManyWithWhereWithoutAdminUserInput | AdminSessionUpdateManyWithWhereWithoutAdminUserInput[]
+    deleteMany?: AdminSessionScalarWhereInput | AdminSessionScalarWhereInput[]
+  }
+
+  export type AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput = {
+    create?: XOR<AdminMfaRecoveryCodeCreateWithoutAdminUserInput, AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput> | AdminMfaRecoveryCodeCreateWithoutAdminUserInput[] | AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminMfaRecoveryCodeCreateOrConnectWithoutAdminUserInput | AdminMfaRecoveryCodeCreateOrConnectWithoutAdminUserInput[]
+    upsert?: AdminMfaRecoveryCodeUpsertWithWhereUniqueWithoutAdminUserInput | AdminMfaRecoveryCodeUpsertWithWhereUniqueWithoutAdminUserInput[]
+    createMany?: AdminMfaRecoveryCodeCreateManyAdminUserInputEnvelope
+    set?: AdminMfaRecoveryCodeWhereUniqueInput | AdminMfaRecoveryCodeWhereUniqueInput[]
+    disconnect?: AdminMfaRecoveryCodeWhereUniqueInput | AdminMfaRecoveryCodeWhereUniqueInput[]
+    delete?: AdminMfaRecoveryCodeWhereUniqueInput | AdminMfaRecoveryCodeWhereUniqueInput[]
+    connect?: AdminMfaRecoveryCodeWhereUniqueInput | AdminMfaRecoveryCodeWhereUniqueInput[]
+    update?: AdminMfaRecoveryCodeUpdateWithWhereUniqueWithoutAdminUserInput | AdminMfaRecoveryCodeUpdateWithWhereUniqueWithoutAdminUserInput[]
+    updateMany?: AdminMfaRecoveryCodeUpdateManyWithWhereWithoutAdminUserInput | AdminMfaRecoveryCodeUpdateManyWithWhereWithoutAdminUserInput[]
+    deleteMany?: AdminMfaRecoveryCodeScalarWhereInput | AdminMfaRecoveryCodeScalarWhereInput[]
+  }
+
+  export type AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput = {
+    create?: XOR<AdminMfaChallengeCreateWithoutAdminUserInput, AdminMfaChallengeUncheckedCreateWithoutAdminUserInput> | AdminMfaChallengeCreateWithoutAdminUserInput[] | AdminMfaChallengeUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminMfaChallengeCreateOrConnectWithoutAdminUserInput | AdminMfaChallengeCreateOrConnectWithoutAdminUserInput[]
+    upsert?: AdminMfaChallengeUpsertWithWhereUniqueWithoutAdminUserInput | AdminMfaChallengeUpsertWithWhereUniqueWithoutAdminUserInput[]
+    createMany?: AdminMfaChallengeCreateManyAdminUserInputEnvelope
+    set?: AdminMfaChallengeWhereUniqueInput | AdminMfaChallengeWhereUniqueInput[]
+    disconnect?: AdminMfaChallengeWhereUniqueInput | AdminMfaChallengeWhereUniqueInput[]
+    delete?: AdminMfaChallengeWhereUniqueInput | AdminMfaChallengeWhereUniqueInput[]
+    connect?: AdminMfaChallengeWhereUniqueInput | AdminMfaChallengeWhereUniqueInput[]
+    update?: AdminMfaChallengeUpdateWithWhereUniqueWithoutAdminUserInput | AdminMfaChallengeUpdateWithWhereUniqueWithoutAdminUserInput[]
+    updateMany?: AdminMfaChallengeUpdateManyWithWhereWithoutAdminUserInput | AdminMfaChallengeUpdateManyWithWhereWithoutAdminUserInput[]
+    deleteMany?: AdminMfaChallengeScalarWhereInput | AdminMfaChallengeScalarWhereInput[]
   }
 
   export type RefreshTokenUpdateManyWithoutAdminUserNestedInput = {
@@ -198994,6 +204043,48 @@ export namespace Prisma {
     update?: InvoiceUpdateWithWhereUniqueWithoutAdminUserInput | InvoiceUpdateWithWhereUniqueWithoutAdminUserInput[]
     updateMany?: InvoiceUpdateManyWithWhereWithoutAdminUserInput | InvoiceUpdateManyWithWhereWithoutAdminUserInput[]
     deleteMany?: InvoiceScalarWhereInput | InvoiceScalarWhereInput[]
+  }
+
+  export type AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput = {
+    create?: XOR<AdminSessionCreateWithoutAdminUserInput, AdminSessionUncheckedCreateWithoutAdminUserInput> | AdminSessionCreateWithoutAdminUserInput[] | AdminSessionUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminSessionCreateOrConnectWithoutAdminUserInput | AdminSessionCreateOrConnectWithoutAdminUserInput[]
+    upsert?: AdminSessionUpsertWithWhereUniqueWithoutAdminUserInput | AdminSessionUpsertWithWhereUniqueWithoutAdminUserInput[]
+    createMany?: AdminSessionCreateManyAdminUserInputEnvelope
+    set?: AdminSessionWhereUniqueInput | AdminSessionWhereUniqueInput[]
+    disconnect?: AdminSessionWhereUniqueInput | AdminSessionWhereUniqueInput[]
+    delete?: AdminSessionWhereUniqueInput | AdminSessionWhereUniqueInput[]
+    connect?: AdminSessionWhereUniqueInput | AdminSessionWhereUniqueInput[]
+    update?: AdminSessionUpdateWithWhereUniqueWithoutAdminUserInput | AdminSessionUpdateWithWhereUniqueWithoutAdminUserInput[]
+    updateMany?: AdminSessionUpdateManyWithWhereWithoutAdminUserInput | AdminSessionUpdateManyWithWhereWithoutAdminUserInput[]
+    deleteMany?: AdminSessionScalarWhereInput | AdminSessionScalarWhereInput[]
+  }
+
+  export type AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput = {
+    create?: XOR<AdminMfaRecoveryCodeCreateWithoutAdminUserInput, AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput> | AdminMfaRecoveryCodeCreateWithoutAdminUserInput[] | AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminMfaRecoveryCodeCreateOrConnectWithoutAdminUserInput | AdminMfaRecoveryCodeCreateOrConnectWithoutAdminUserInput[]
+    upsert?: AdminMfaRecoveryCodeUpsertWithWhereUniqueWithoutAdminUserInput | AdminMfaRecoveryCodeUpsertWithWhereUniqueWithoutAdminUserInput[]
+    createMany?: AdminMfaRecoveryCodeCreateManyAdminUserInputEnvelope
+    set?: AdminMfaRecoveryCodeWhereUniqueInput | AdminMfaRecoveryCodeWhereUniqueInput[]
+    disconnect?: AdminMfaRecoveryCodeWhereUniqueInput | AdminMfaRecoveryCodeWhereUniqueInput[]
+    delete?: AdminMfaRecoveryCodeWhereUniqueInput | AdminMfaRecoveryCodeWhereUniqueInput[]
+    connect?: AdminMfaRecoveryCodeWhereUniqueInput | AdminMfaRecoveryCodeWhereUniqueInput[]
+    update?: AdminMfaRecoveryCodeUpdateWithWhereUniqueWithoutAdminUserInput | AdminMfaRecoveryCodeUpdateWithWhereUniqueWithoutAdminUserInput[]
+    updateMany?: AdminMfaRecoveryCodeUpdateManyWithWhereWithoutAdminUserInput | AdminMfaRecoveryCodeUpdateManyWithWhereWithoutAdminUserInput[]
+    deleteMany?: AdminMfaRecoveryCodeScalarWhereInput | AdminMfaRecoveryCodeScalarWhereInput[]
+  }
+
+  export type AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput = {
+    create?: XOR<AdminMfaChallengeCreateWithoutAdminUserInput, AdminMfaChallengeUncheckedCreateWithoutAdminUserInput> | AdminMfaChallengeCreateWithoutAdminUserInput[] | AdminMfaChallengeUncheckedCreateWithoutAdminUserInput[]
+    connectOrCreate?: AdminMfaChallengeCreateOrConnectWithoutAdminUserInput | AdminMfaChallengeCreateOrConnectWithoutAdminUserInput[]
+    upsert?: AdminMfaChallengeUpsertWithWhereUniqueWithoutAdminUserInput | AdminMfaChallengeUpsertWithWhereUniqueWithoutAdminUserInput[]
+    createMany?: AdminMfaChallengeCreateManyAdminUserInputEnvelope
+    set?: AdminMfaChallengeWhereUniqueInput | AdminMfaChallengeWhereUniqueInput[]
+    disconnect?: AdminMfaChallengeWhereUniqueInput | AdminMfaChallengeWhereUniqueInput[]
+    delete?: AdminMfaChallengeWhereUniqueInput | AdminMfaChallengeWhereUniqueInput[]
+    connect?: AdminMfaChallengeWhereUniqueInput | AdminMfaChallengeWhereUniqueInput[]
+    update?: AdminMfaChallengeUpdateWithWhereUniqueWithoutAdminUserInput | AdminMfaChallengeUpdateWithWhereUniqueWithoutAdminUserInput[]
+    updateMany?: AdminMfaChallengeUpdateManyWithWhereWithoutAdminUserInput | AdminMfaChallengeUpdateManyWithWhereWithoutAdminUserInput[]
+    deleteMany?: AdminMfaChallengeScalarWhereInput | AdminMfaChallengeScalarWhereInput[]
   }
 
   export type RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput = {
@@ -201156,14 +206247,6 @@ export namespace Prisma {
 
   export type NullableEnummarketing_attribution_model_enumFieldUpdateOperationsInput = {
     set?: $Enums.marketing_attribution_model_enum | null
-  }
-
-  export type NullableIntFieldUpdateOperationsInput = {
-    set?: number | null
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type marketing_attribution_decisionsUpdateOneWithoutConversionEventNestedInput = {
@@ -206786,12 +211869,112 @@ export namespace Prisma {
     connect?: AdminUserWhereUniqueInput
   }
 
+  export type AdminSessionCreateNestedOneWithoutRefreshTokensInput = {
+    create?: XOR<AdminSessionCreateWithoutRefreshTokensInput, AdminSessionUncheckedCreateWithoutRefreshTokensInput>
+    connectOrCreate?: AdminSessionCreateOrConnectWithoutRefreshTokensInput
+    connect?: AdminSessionWhereUniqueInput
+  }
+
   export type AdminUserUpdateOneRequiredWithoutRefreshTokensNestedInput = {
     create?: XOR<AdminUserCreateWithoutRefreshTokensInput, AdminUserUncheckedCreateWithoutRefreshTokensInput>
     connectOrCreate?: AdminUserCreateOrConnectWithoutRefreshTokensInput
     upsert?: AdminUserUpsertWithoutRefreshTokensInput
     connect?: AdminUserWhereUniqueInput
     update?: XOR<XOR<AdminUserUpdateToOneWithWhereWithoutRefreshTokensInput, AdminUserUpdateWithoutRefreshTokensInput>, AdminUserUncheckedUpdateWithoutRefreshTokensInput>
+  }
+
+  export type AdminSessionUpdateOneWithoutRefreshTokensNestedInput = {
+    create?: XOR<AdminSessionCreateWithoutRefreshTokensInput, AdminSessionUncheckedCreateWithoutRefreshTokensInput>
+    connectOrCreate?: AdminSessionCreateOrConnectWithoutRefreshTokensInput
+    upsert?: AdminSessionUpsertWithoutRefreshTokensInput
+    disconnect?: AdminSessionWhereInput | boolean
+    delete?: AdminSessionWhereInput | boolean
+    connect?: AdminSessionWhereUniqueInput
+    update?: XOR<XOR<AdminSessionUpdateToOneWithWhereWithoutRefreshTokensInput, AdminSessionUpdateWithoutRefreshTokensInput>, AdminSessionUncheckedUpdateWithoutRefreshTokensInput>
+  }
+
+  export type AdminUserCreateNestedOneWithoutSessionsInput = {
+    create?: XOR<AdminUserCreateWithoutSessionsInput, AdminUserUncheckedCreateWithoutSessionsInput>
+    connectOrCreate?: AdminUserCreateOrConnectWithoutSessionsInput
+    connect?: AdminUserWhereUniqueInput
+  }
+
+  export type RefreshTokenCreateNestedManyWithoutSessionInput = {
+    create?: XOR<RefreshTokenCreateWithoutSessionInput, RefreshTokenUncheckedCreateWithoutSessionInput> | RefreshTokenCreateWithoutSessionInput[] | RefreshTokenUncheckedCreateWithoutSessionInput[]
+    connectOrCreate?: RefreshTokenCreateOrConnectWithoutSessionInput | RefreshTokenCreateOrConnectWithoutSessionInput[]
+    createMany?: RefreshTokenCreateManySessionInputEnvelope
+    connect?: RefreshTokenWhereUniqueInput | RefreshTokenWhereUniqueInput[]
+  }
+
+  export type RefreshTokenUncheckedCreateNestedManyWithoutSessionInput = {
+    create?: XOR<RefreshTokenCreateWithoutSessionInput, RefreshTokenUncheckedCreateWithoutSessionInput> | RefreshTokenCreateWithoutSessionInput[] | RefreshTokenUncheckedCreateWithoutSessionInput[]
+    connectOrCreate?: RefreshTokenCreateOrConnectWithoutSessionInput | RefreshTokenCreateOrConnectWithoutSessionInput[]
+    createMany?: RefreshTokenCreateManySessionInputEnvelope
+    connect?: RefreshTokenWhereUniqueInput | RefreshTokenWhereUniqueInput[]
+  }
+
+  export type AdminUserUpdateOneRequiredWithoutSessionsNestedInput = {
+    create?: XOR<AdminUserCreateWithoutSessionsInput, AdminUserUncheckedCreateWithoutSessionsInput>
+    connectOrCreate?: AdminUserCreateOrConnectWithoutSessionsInput
+    upsert?: AdminUserUpsertWithoutSessionsInput
+    connect?: AdminUserWhereUniqueInput
+    update?: XOR<XOR<AdminUserUpdateToOneWithWhereWithoutSessionsInput, AdminUserUpdateWithoutSessionsInput>, AdminUserUncheckedUpdateWithoutSessionsInput>
+  }
+
+  export type RefreshTokenUpdateManyWithoutSessionNestedInput = {
+    create?: XOR<RefreshTokenCreateWithoutSessionInput, RefreshTokenUncheckedCreateWithoutSessionInput> | RefreshTokenCreateWithoutSessionInput[] | RefreshTokenUncheckedCreateWithoutSessionInput[]
+    connectOrCreate?: RefreshTokenCreateOrConnectWithoutSessionInput | RefreshTokenCreateOrConnectWithoutSessionInput[]
+    upsert?: RefreshTokenUpsertWithWhereUniqueWithoutSessionInput | RefreshTokenUpsertWithWhereUniqueWithoutSessionInput[]
+    createMany?: RefreshTokenCreateManySessionInputEnvelope
+    set?: RefreshTokenWhereUniqueInput | RefreshTokenWhereUniqueInput[]
+    disconnect?: RefreshTokenWhereUniqueInput | RefreshTokenWhereUniqueInput[]
+    delete?: RefreshTokenWhereUniqueInput | RefreshTokenWhereUniqueInput[]
+    connect?: RefreshTokenWhereUniqueInput | RefreshTokenWhereUniqueInput[]
+    update?: RefreshTokenUpdateWithWhereUniqueWithoutSessionInput | RefreshTokenUpdateWithWhereUniqueWithoutSessionInput[]
+    updateMany?: RefreshTokenUpdateManyWithWhereWithoutSessionInput | RefreshTokenUpdateManyWithWhereWithoutSessionInput[]
+    deleteMany?: RefreshTokenScalarWhereInput | RefreshTokenScalarWhereInput[]
+  }
+
+  export type RefreshTokenUncheckedUpdateManyWithoutSessionNestedInput = {
+    create?: XOR<RefreshTokenCreateWithoutSessionInput, RefreshTokenUncheckedCreateWithoutSessionInput> | RefreshTokenCreateWithoutSessionInput[] | RefreshTokenUncheckedCreateWithoutSessionInput[]
+    connectOrCreate?: RefreshTokenCreateOrConnectWithoutSessionInput | RefreshTokenCreateOrConnectWithoutSessionInput[]
+    upsert?: RefreshTokenUpsertWithWhereUniqueWithoutSessionInput | RefreshTokenUpsertWithWhereUniqueWithoutSessionInput[]
+    createMany?: RefreshTokenCreateManySessionInputEnvelope
+    set?: RefreshTokenWhereUniqueInput | RefreshTokenWhereUniqueInput[]
+    disconnect?: RefreshTokenWhereUniqueInput | RefreshTokenWhereUniqueInput[]
+    delete?: RefreshTokenWhereUniqueInput | RefreshTokenWhereUniqueInput[]
+    connect?: RefreshTokenWhereUniqueInput | RefreshTokenWhereUniqueInput[]
+    update?: RefreshTokenUpdateWithWhereUniqueWithoutSessionInput | RefreshTokenUpdateWithWhereUniqueWithoutSessionInput[]
+    updateMany?: RefreshTokenUpdateManyWithWhereWithoutSessionInput | RefreshTokenUpdateManyWithWhereWithoutSessionInput[]
+    deleteMany?: RefreshTokenScalarWhereInput | RefreshTokenScalarWhereInput[]
+  }
+
+  export type AdminUserCreateNestedOneWithoutMfaRecoveryCodesInput = {
+    create?: XOR<AdminUserCreateWithoutMfaRecoveryCodesInput, AdminUserUncheckedCreateWithoutMfaRecoveryCodesInput>
+    connectOrCreate?: AdminUserCreateOrConnectWithoutMfaRecoveryCodesInput
+    connect?: AdminUserWhereUniqueInput
+  }
+
+  export type AdminUserUpdateOneRequiredWithoutMfaRecoveryCodesNestedInput = {
+    create?: XOR<AdminUserCreateWithoutMfaRecoveryCodesInput, AdminUserUncheckedCreateWithoutMfaRecoveryCodesInput>
+    connectOrCreate?: AdminUserCreateOrConnectWithoutMfaRecoveryCodesInput
+    upsert?: AdminUserUpsertWithoutMfaRecoveryCodesInput
+    connect?: AdminUserWhereUniqueInput
+    update?: XOR<XOR<AdminUserUpdateToOneWithWhereWithoutMfaRecoveryCodesInput, AdminUserUpdateWithoutMfaRecoveryCodesInput>, AdminUserUncheckedUpdateWithoutMfaRecoveryCodesInput>
+  }
+
+  export type AdminUserCreateNestedOneWithoutMfaChallengesInput = {
+    create?: XOR<AdminUserCreateWithoutMfaChallengesInput, AdminUserUncheckedCreateWithoutMfaChallengesInput>
+    connectOrCreate?: AdminUserCreateOrConnectWithoutMfaChallengesInput
+    connect?: AdminUserWhereUniqueInput
+  }
+
+  export type AdminUserUpdateOneRequiredWithoutMfaChallengesNestedInput = {
+    create?: XOR<AdminUserCreateWithoutMfaChallengesInput, AdminUserUncheckedCreateWithoutMfaChallengesInput>
+    connectOrCreate?: AdminUserCreateOrConnectWithoutMfaChallengesInput
+    upsert?: AdminUserUpsertWithoutMfaChallengesInput
+    connect?: AdminUserWhereUniqueInput
+    update?: XOR<XOR<AdminUserUpdateToOneWithWhereWithoutMfaChallengesInput, AdminUserUpdateWithoutMfaChallengesInput>, AdminUserUncheckedUpdateWithoutMfaChallengesInput>
   }
 
   export type AdminUserCreateNestedOneWithoutAuditLogsInput = {
@@ -207921,6 +213104,17 @@ export namespace Prisma {
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string
   }
 
+  export type NestedIntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
   export type NestedDecimalNullableFilter<$PrismaModel = never> = {
     equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
     in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
@@ -207964,17 +213158,6 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedStringNullableFilter<$PrismaModel>
     _max?: NestedStringNullableFilter<$PrismaModel>
-  }
-
-  export type NestedIntNullableFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
   export type NestedEnumDepartmentNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -208068,6 +213251,33 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedDateTimeFilter<$PrismaModel>
     _max?: NestedDateTimeFilter<$PrismaModel>
+  }
+
+  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
+  export type NestedFloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
   export type NestedDecimalNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -208395,33 +213605,6 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedEnummarketing_attribution_model_enumNullableFilter<$PrismaModel>
     _max?: NestedEnummarketing_attribution_model_enumNullableFilter<$PrismaModel>
-  }
-
-  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedIntNullableFilter<$PrismaModel>
-    _max?: NestedIntNullableFilter<$PrismaModel>
-  }
-
-  export type NestedFloatNullableFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
   export type NestedEnummarketing_attribution_model_enumFilter<$PrismaModel = never> = {
@@ -209884,6 +215067,110 @@ export namespace Prisma {
     _max?: NestedEnumApplicantStageFilter<$PrismaModel>
   }
 
+  export type AdminSessionCreateWithoutAdminUserInput = {
+    id?: string
+    mode: string
+    authMethod: string
+    csrfNonce: string
+    createdAt?: Date | string
+    lastSeenAt?: Date | string
+    idleExpiresAt: Date | string
+    absoluteExpiresAt: Date | string
+    mfaVerifiedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    revokeReason?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+    refreshTokens?: RefreshTokenCreateNestedManyWithoutSessionInput
+  }
+
+  export type AdminSessionUncheckedCreateWithoutAdminUserInput = {
+    id?: string
+    mode: string
+    authMethod: string
+    csrfNonce: string
+    createdAt?: Date | string
+    lastSeenAt?: Date | string
+    idleExpiresAt: Date | string
+    absoluteExpiresAt: Date | string
+    mfaVerifiedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    revokeReason?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+    refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutSessionInput
+  }
+
+  export type AdminSessionCreateOrConnectWithoutAdminUserInput = {
+    where: AdminSessionWhereUniqueInput
+    create: XOR<AdminSessionCreateWithoutAdminUserInput, AdminSessionUncheckedCreateWithoutAdminUserInput>
+  }
+
+  export type AdminSessionCreateManyAdminUserInputEnvelope = {
+    data: AdminSessionCreateManyAdminUserInput | AdminSessionCreateManyAdminUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AdminMfaRecoveryCodeCreateWithoutAdminUserInput = {
+    id?: string
+    salt: string
+    codeHash: string
+    createdAt?: Date | string
+    usedAt?: Date | string | null
+  }
+
+  export type AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput = {
+    id?: string
+    salt: string
+    codeHash: string
+    createdAt?: Date | string
+    usedAt?: Date | string | null
+  }
+
+  export type AdminMfaRecoveryCodeCreateOrConnectWithoutAdminUserInput = {
+    where: AdminMfaRecoveryCodeWhereUniqueInput
+    create: XOR<AdminMfaRecoveryCodeCreateWithoutAdminUserInput, AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput>
+  }
+
+  export type AdminMfaRecoveryCodeCreateManyAdminUserInputEnvelope = {
+    data: AdminMfaRecoveryCodeCreateManyAdminUserInput | AdminMfaRecoveryCodeCreateManyAdminUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AdminMfaChallengeCreateWithoutAdminUserInput = {
+    id?: string
+    tokenHash: string
+    authMethod: string
+    attempts?: number
+    expiresAt: Date | string
+    consumedAt?: Date | string | null
+    createdAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type AdminMfaChallengeUncheckedCreateWithoutAdminUserInput = {
+    id?: string
+    tokenHash: string
+    authMethod: string
+    attempts?: number
+    expiresAt: Date | string
+    consumedAt?: Date | string | null
+    createdAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type AdminMfaChallengeCreateOrConnectWithoutAdminUserInput = {
+    where: AdminMfaChallengeWhereUniqueInput
+    create: XOR<AdminMfaChallengeCreateWithoutAdminUserInput, AdminMfaChallengeUncheckedCreateWithoutAdminUserInput>
+  }
+
+  export type AdminMfaChallengeCreateManyAdminUserInputEnvelope = {
+    data: AdminMfaChallengeCreateManyAdminUserInput | AdminMfaChallengeCreateManyAdminUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type RefreshTokenCreateWithoutAdminUserInput = {
     id?: string
     token: string
@@ -209892,6 +215179,8 @@ export namespace Prisma {
     ipAddress?: string | null
     userAgent?: string | null
     createdAt?: Date | string
+    rotatedAt?: Date | string | null
+    session?: AdminSessionCreateNestedOneWithoutRefreshTokensInput
   }
 
   export type RefreshTokenUncheckedCreateWithoutAdminUserInput = {
@@ -209902,6 +215191,8 @@ export namespace Prisma {
     ipAddress?: string | null
     userAgent?: string | null
     createdAt?: Date | string
+    sessionId?: string | null
+    rotatedAt?: Date | string | null
   }
 
   export type RefreshTokenCreateOrConnectWithoutAdminUserInput = {
@@ -212816,6 +218107,102 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type AdminSessionUpsertWithWhereUniqueWithoutAdminUserInput = {
+    where: AdminSessionWhereUniqueInput
+    update: XOR<AdminSessionUpdateWithoutAdminUserInput, AdminSessionUncheckedUpdateWithoutAdminUserInput>
+    create: XOR<AdminSessionCreateWithoutAdminUserInput, AdminSessionUncheckedCreateWithoutAdminUserInput>
+  }
+
+  export type AdminSessionUpdateWithWhereUniqueWithoutAdminUserInput = {
+    where: AdminSessionWhereUniqueInput
+    data: XOR<AdminSessionUpdateWithoutAdminUserInput, AdminSessionUncheckedUpdateWithoutAdminUserInput>
+  }
+
+  export type AdminSessionUpdateManyWithWhereWithoutAdminUserInput = {
+    where: AdminSessionScalarWhereInput
+    data: XOR<AdminSessionUpdateManyMutationInput, AdminSessionUncheckedUpdateManyWithoutAdminUserInput>
+  }
+
+  export type AdminSessionScalarWhereInput = {
+    AND?: AdminSessionScalarWhereInput | AdminSessionScalarWhereInput[]
+    OR?: AdminSessionScalarWhereInput[]
+    NOT?: AdminSessionScalarWhereInput | AdminSessionScalarWhereInput[]
+    id?: UuidFilter<"AdminSession"> | string
+    adminUserId?: StringFilter<"AdminSession"> | string
+    mode?: StringFilter<"AdminSession"> | string
+    authMethod?: StringFilter<"AdminSession"> | string
+    csrfNonce?: StringFilter<"AdminSession"> | string
+    createdAt?: DateTimeFilter<"AdminSession"> | Date | string
+    lastSeenAt?: DateTimeFilter<"AdminSession"> | Date | string
+    idleExpiresAt?: DateTimeFilter<"AdminSession"> | Date | string
+    absoluteExpiresAt?: DateTimeFilter<"AdminSession"> | Date | string
+    mfaVerifiedAt?: DateTimeNullableFilter<"AdminSession"> | Date | string | null
+    revokedAt?: DateTimeNullableFilter<"AdminSession"> | Date | string | null
+    revokeReason?: StringNullableFilter<"AdminSession"> | string | null
+    ipAddress?: StringNullableFilter<"AdminSession"> | string | null
+    userAgent?: StringNullableFilter<"AdminSession"> | string | null
+  }
+
+  export type AdminMfaRecoveryCodeUpsertWithWhereUniqueWithoutAdminUserInput = {
+    where: AdminMfaRecoveryCodeWhereUniqueInput
+    update: XOR<AdminMfaRecoveryCodeUpdateWithoutAdminUserInput, AdminMfaRecoveryCodeUncheckedUpdateWithoutAdminUserInput>
+    create: XOR<AdminMfaRecoveryCodeCreateWithoutAdminUserInput, AdminMfaRecoveryCodeUncheckedCreateWithoutAdminUserInput>
+  }
+
+  export type AdminMfaRecoveryCodeUpdateWithWhereUniqueWithoutAdminUserInput = {
+    where: AdminMfaRecoveryCodeWhereUniqueInput
+    data: XOR<AdminMfaRecoveryCodeUpdateWithoutAdminUserInput, AdminMfaRecoveryCodeUncheckedUpdateWithoutAdminUserInput>
+  }
+
+  export type AdminMfaRecoveryCodeUpdateManyWithWhereWithoutAdminUserInput = {
+    where: AdminMfaRecoveryCodeScalarWhereInput
+    data: XOR<AdminMfaRecoveryCodeUpdateManyMutationInput, AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserInput>
+  }
+
+  export type AdminMfaRecoveryCodeScalarWhereInput = {
+    AND?: AdminMfaRecoveryCodeScalarWhereInput | AdminMfaRecoveryCodeScalarWhereInput[]
+    OR?: AdminMfaRecoveryCodeScalarWhereInput[]
+    NOT?: AdminMfaRecoveryCodeScalarWhereInput | AdminMfaRecoveryCodeScalarWhereInput[]
+    id?: UuidFilter<"AdminMfaRecoveryCode"> | string
+    adminUserId?: StringFilter<"AdminMfaRecoveryCode"> | string
+    salt?: StringFilter<"AdminMfaRecoveryCode"> | string
+    codeHash?: StringFilter<"AdminMfaRecoveryCode"> | string
+    createdAt?: DateTimeFilter<"AdminMfaRecoveryCode"> | Date | string
+    usedAt?: DateTimeNullableFilter<"AdminMfaRecoveryCode"> | Date | string | null
+  }
+
+  export type AdminMfaChallengeUpsertWithWhereUniqueWithoutAdminUserInput = {
+    where: AdminMfaChallengeWhereUniqueInput
+    update: XOR<AdminMfaChallengeUpdateWithoutAdminUserInput, AdminMfaChallengeUncheckedUpdateWithoutAdminUserInput>
+    create: XOR<AdminMfaChallengeCreateWithoutAdminUserInput, AdminMfaChallengeUncheckedCreateWithoutAdminUserInput>
+  }
+
+  export type AdminMfaChallengeUpdateWithWhereUniqueWithoutAdminUserInput = {
+    where: AdminMfaChallengeWhereUniqueInput
+    data: XOR<AdminMfaChallengeUpdateWithoutAdminUserInput, AdminMfaChallengeUncheckedUpdateWithoutAdminUserInput>
+  }
+
+  export type AdminMfaChallengeUpdateManyWithWhereWithoutAdminUserInput = {
+    where: AdminMfaChallengeScalarWhereInput
+    data: XOR<AdminMfaChallengeUpdateManyMutationInput, AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserInput>
+  }
+
+  export type AdminMfaChallengeScalarWhereInput = {
+    AND?: AdminMfaChallengeScalarWhereInput | AdminMfaChallengeScalarWhereInput[]
+    OR?: AdminMfaChallengeScalarWhereInput[]
+    NOT?: AdminMfaChallengeScalarWhereInput | AdminMfaChallengeScalarWhereInput[]
+    id?: UuidFilter<"AdminMfaChallenge"> | string
+    adminUserId?: StringFilter<"AdminMfaChallenge"> | string
+    tokenHash?: StringFilter<"AdminMfaChallenge"> | string
+    authMethod?: StringFilter<"AdminMfaChallenge"> | string
+    attempts?: IntFilter<"AdminMfaChallenge"> | number
+    expiresAt?: DateTimeFilter<"AdminMfaChallenge"> | Date | string
+    consumedAt?: DateTimeNullableFilter<"AdminMfaChallenge"> | Date | string | null
+    createdAt?: DateTimeFilter<"AdminMfaChallenge"> | Date | string
+    ipAddress?: StringNullableFilter<"AdminMfaChallenge"> | string | null
+    userAgent?: StringNullableFilter<"AdminMfaChallenge"> | string | null
+  }
+
   export type RefreshTokenUpsertWithWhereUniqueWithoutAdminUserInput = {
     where: RefreshTokenWhereUniqueInput
     update: XOR<RefreshTokenUpdateWithoutAdminUserInput, RefreshTokenUncheckedUpdateWithoutAdminUserInput>
@@ -212844,6 +218231,8 @@ export namespace Prisma {
     ipAddress?: StringNullableFilter<"RefreshToken"> | string | null
     userAgent?: StringNullableFilter<"RefreshToken"> | string | null
     createdAt?: DateTimeFilter<"RefreshToken"> | Date | string
+    sessionId?: UuidNullableFilter<"RefreshToken"> | string | null
+    rotatedAt?: DateTimeNullableFilter<"RefreshToken"> | Date | string | null
   }
 
   export type AuditLogUpsertWithWhereUniqueWithoutAdminUserInput = {
@@ -215424,6 +220813,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -215448,6 +220844,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -215540,6 +220939,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -215564,6 +220970,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -215725,6 +221134,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -215749,6 +221165,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -215841,6 +221260,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -215865,6 +221291,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -215957,6 +221386,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -215981,6 +221417,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -216073,6 +221512,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -216097,6 +221543,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -216233,6 +221682,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -216257,6 +221713,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -216349,6 +221808,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -216373,6 +221839,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -219374,6 +224843,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -219398,6 +224874,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -219490,6 +224969,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -219514,6 +225000,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -219721,6 +225210,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -219745,6 +225241,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -219837,6 +225336,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -219861,6 +225367,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -220046,6 +225555,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -220070,6 +225586,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -220162,6 +225681,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -220186,6 +225712,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -220393,6 +225922,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -220417,6 +225953,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -220509,6 +226048,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -220533,6 +226079,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -222037,6 +227586,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -222061,6 +227617,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -222153,6 +227712,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -222177,6 +227743,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -222274,6 +227843,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -222298,6 +227874,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -222390,6 +227969,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -222414,6 +228000,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -222728,6 +228317,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -222752,6 +228348,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -222844,6 +228443,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -222868,6 +228474,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -222971,6 +228580,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -222995,6 +228611,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -223087,6 +228706,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -223111,6 +228737,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -223426,6 +229055,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -223450,6 +229086,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -223542,6 +229181,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -223566,6 +229212,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -223663,6 +229312,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -223687,6 +229343,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -223779,6 +229438,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -223803,6 +229469,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -224114,6 +229783,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -224138,6 +229814,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -224230,6 +229909,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -224254,6 +229940,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -224357,6 +230046,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -224381,6 +230077,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -224473,6 +230172,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -224497,6 +230203,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -224713,6 +230422,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -224737,6 +230453,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -224829,6 +230548,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -224853,6 +230579,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -225060,6 +230789,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -225084,6 +230820,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -225176,6 +230915,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -225200,6 +230946,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -225460,6 +231209,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -225484,6 +231240,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -225576,6 +231335,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -225600,6 +231366,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -225697,6 +231466,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -225721,6 +231497,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -225813,6 +231592,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -225837,6 +231623,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -226543,6 +232332,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -226567,6 +232363,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -226659,6 +232458,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -226683,6 +232489,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -226786,6 +232595,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -226810,6 +232626,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -226902,6 +232721,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -226926,6 +232752,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -227593,6 +233422,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -227617,6 +233453,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -227709,6 +233548,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -227733,6 +233579,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -227940,6 +233789,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -227964,6 +233820,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -228056,6 +233915,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -228080,6 +233946,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -229074,6 +234943,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -229098,6 +234974,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -229190,6 +235069,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -229214,6 +235100,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -229539,6 +235428,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -229563,6 +235459,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -229655,6 +235554,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -229679,6 +235585,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -231332,6 +237241,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -231356,6 +237272,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -231448,6 +237367,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -231472,6 +237398,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -231569,6 +237498,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -231593,6 +237529,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -231685,6 +237624,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -231709,6 +237655,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -231968,6 +237917,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -231992,6 +237948,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -232084,6 +238043,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -232108,6 +238074,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -232211,6 +238180,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -232235,6 +238211,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -232327,6 +238306,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -232351,6 +238337,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -232625,6 +238614,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -232649,6 +238645,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -232741,6 +238740,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -232765,6 +238771,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -233133,6 +239142,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -233157,6 +239173,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -233249,6 +239268,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -233273,6 +239299,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -234307,6 +240336,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -234331,6 +240367,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -234423,6 +240462,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -234447,6 +240493,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -234624,6 +240673,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -234648,6 +240704,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -234740,6 +240799,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -234764,6 +240830,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -234893,6 +240962,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -234917,6 +240993,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -235009,6 +241088,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -235033,6 +241119,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -235184,6 +241273,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -235208,6 +241304,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -235300,6 +241399,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -235324,6 +241430,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -235483,6 +241592,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -235507,6 +241623,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -235599,6 +241718,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -235623,6 +241749,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -235804,6 +241933,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -235828,6 +241964,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -235920,6 +242059,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -235944,6 +242090,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -236071,6 +242220,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -236095,6 +242251,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -236187,6 +242346,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -236211,6 +242377,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -236360,6 +242529,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -236384,6 +242560,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -236476,6 +242655,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -236500,6 +242686,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -236645,6 +242834,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -236669,6 +242865,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -236761,6 +242960,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -236785,6 +242991,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -237015,6 +243224,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -237039,6 +243255,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -237131,6 +243350,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -237155,6 +243381,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -237316,6 +243545,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -237340,6 +243576,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -237432,6 +243671,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -237456,6 +243702,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -237553,6 +243802,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -237577,6 +243833,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -237669,6 +243928,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -237693,6 +243959,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -238061,6 +244330,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -238085,6 +244361,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -238177,6 +244456,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -238201,6 +244487,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -238304,6 +244593,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -238328,6 +244624,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -238420,6 +244719,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -238444,6 +244750,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -239541,6 +245850,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -239565,6 +245881,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -239657,6 +245976,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -239681,6 +246007,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -240200,6 +246529,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -240224,6 +246560,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -240316,6 +246655,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -240340,6 +246686,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -240432,6 +246781,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -240456,6 +246812,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -240548,6 +246907,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -240572,6 +246938,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -240770,6 +247139,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -240794,6 +247170,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -240886,6 +247265,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -240910,6 +247296,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -241890,6 +248279,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -241914,6 +248310,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -242006,6 +248405,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -242030,6 +248436,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -242138,6 +248547,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -242162,6 +248578,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -242254,6 +248673,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -242278,6 +248704,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -242417,6 +248846,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -242441,6 +248877,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -242533,6 +248972,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -242557,6 +249003,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -242836,6 +249285,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -242860,6 +249316,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -242952,6 +249411,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -242976,6 +249442,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -243149,6 +249618,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -243173,6 +249649,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -243265,6 +249744,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -243289,6 +249775,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -243470,6 +249959,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -243494,6 +249990,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -243586,6 +250085,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -243610,6 +250116,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -244181,6 +250690,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -244205,6 +250721,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -244297,6 +250816,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -244321,6 +250847,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -244418,6 +250947,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -244442,6 +250978,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -244534,6 +251073,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -244558,6 +251104,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -244791,6 +251340,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -244815,6 +251371,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -244907,6 +251466,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -244931,6 +251497,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -245034,6 +251603,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -245058,6 +251634,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -245150,6 +251729,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -245174,6 +251760,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -245311,6 +251900,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -245335,6 +251931,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -245427,6 +252026,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -245451,6 +252057,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -245548,6 +252157,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -245572,6 +252188,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -245664,6 +252283,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -245688,6 +252314,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -246021,6 +252650,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -246045,6 +252681,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -246137,6 +252776,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -246161,6 +252807,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -246264,6 +252913,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -246288,6 +252944,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -246380,6 +253039,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -246404,6 +253070,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -246837,6 +253506,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -246861,6 +253537,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -246953,6 +253632,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -246977,6 +253663,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -247189,6 +253878,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -247213,6 +253909,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -247305,6 +254004,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -247329,6 +254035,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -247706,6 +254415,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -247730,6 +254446,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -247822,6 +254541,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -247846,6 +254572,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -248153,6 +254882,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -248177,6 +254913,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -248269,6 +255008,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -248293,6 +255039,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -248511,6 +255260,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -248535,6 +255291,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -248627,6 +255386,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -248651,6 +255417,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -248748,6 +255517,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -248772,6 +255548,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -248864,6 +255643,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -248888,6 +255674,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -249182,6 +255971,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -249206,6 +256002,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -249298,6 +256097,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -249322,6 +256128,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -249425,6 +256234,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -249449,6 +256265,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -249541,6 +256360,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -249565,6 +256391,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -249746,6 +256575,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -249770,6 +256606,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -249862,6 +256701,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -249886,6 +256732,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -250119,6 +256968,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -250143,6 +256999,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -250235,6 +257094,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -250259,6 +257125,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -250481,6 +257350,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -250505,6 +257381,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -250597,6 +257476,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -250621,6 +257507,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -250817,6 +257706,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -250841,6 +257737,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -250933,6 +257832,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -250957,6 +257863,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -251796,6 +258705,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -251820,6 +258736,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -251912,6 +258831,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -251936,6 +258862,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -252033,6 +258962,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -252057,6 +258993,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -252149,6 +259088,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -252173,6 +259119,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -252593,6 +259542,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -252617,6 +259573,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -252709,6 +259668,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -252733,6 +259699,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -252836,6 +259805,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -252860,6 +259836,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -252952,6 +259931,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -252976,6 +259962,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -253196,6 +260185,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -253220,6 +260216,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -253312,6 +260311,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -253336,6 +260342,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -253479,6 +260488,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -253503,6 +260519,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -253595,6 +260614,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -253619,6 +260645,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -255025,6 +262054,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -255049,6 +262085,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -255141,6 +262180,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -255165,6 +262211,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -255273,6 +262322,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -255297,6 +262353,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -255389,6 +262448,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -255413,6 +262479,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -255505,6 +262574,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -255529,6 +262605,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -255621,6 +262700,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -255645,6 +262731,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -255753,6 +262842,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -255777,6 +262873,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -255869,6 +262968,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -255893,6 +262999,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -255985,6 +263094,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -256009,6 +263125,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -256101,6 +263220,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -256125,6 +263251,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -256233,6 +263362,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -256257,6 +263393,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -256349,6 +263488,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -256373,6 +263519,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -256465,6 +263614,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -256489,6 +263645,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
     educations?: AdminEducationCreateNestedManyWithoutAdminUserInput
@@ -256581,6 +263740,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -256605,6 +263771,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
     educations?: AdminEducationUncheckedCreateNestedManyWithoutAdminUserInput
@@ -256677,6 +263846,45 @@ export namespace Prisma {
     create: XOR<AdminUserCreateWithoutRefreshTokensInput, AdminUserUncheckedCreateWithoutRefreshTokensInput>
   }
 
+  export type AdminSessionCreateWithoutRefreshTokensInput = {
+    id?: string
+    mode: string
+    authMethod: string
+    csrfNonce: string
+    createdAt?: Date | string
+    lastSeenAt?: Date | string
+    idleExpiresAt: Date | string
+    absoluteExpiresAt: Date | string
+    mfaVerifiedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    revokeReason?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+    adminUser: AdminUserCreateNestedOneWithoutSessionsInput
+  }
+
+  export type AdminSessionUncheckedCreateWithoutRefreshTokensInput = {
+    id?: string
+    adminUserId: string
+    mode: string
+    authMethod: string
+    csrfNonce: string
+    createdAt?: Date | string
+    lastSeenAt?: Date | string
+    idleExpiresAt: Date | string
+    absoluteExpiresAt: Date | string
+    mfaVerifiedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    revokeReason?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type AdminSessionCreateOrConnectWithoutRefreshTokensInput = {
+    where: AdminSessionWhereUniqueInput
+    create: XOR<AdminSessionCreateWithoutRefreshTokensInput, AdminSessionUncheckedCreateWithoutRefreshTokensInput>
+  }
+
   export type AdminUserUpsertWithoutRefreshTokensInput = {
     update: XOR<AdminUserUpdateWithoutRefreshTokensInput, AdminUserUncheckedUpdateWithoutRefreshTokensInput>
     create: XOR<AdminUserCreateWithoutRefreshTokensInput, AdminUserUncheckedCreateWithoutRefreshTokensInput>
@@ -256713,6 +263921,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -256737,6 +263952,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
     educations?: AdminEducationUpdateManyWithoutAdminUserNestedInput
@@ -256829,6 +264047,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -256853,6 +264078,1664 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
+    educations?: AdminEducationUncheckedUpdateManyWithoutAdminUserNestedInput
+    documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
+    performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
+    reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUncheckedUpdateManyWithoutValidatedByNestedInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUncheckedUpdateManyWithoutAcknowledgedByNestedInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUncheckedUpdateManyWithoutReviewedByNestedInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUncheckedUpdateManyWithoutCancellationRequestedByNestedInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUncheckedUpdateManyWithoutRequestedByNestedInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUncheckedUpdateManyWithoutApprovedByNestedInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUncheckedUpdateManyWithoutAdminUserNestedInput
+    marketingContentItems?: marketing_content_itemsUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialAccountConnections?: SocialAccountConnectionUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialOAuthStates?: SocialOAuthStateUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialPostsCreated?: SocialPostUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialPostRevisionsCreated?: SocialPostRevisionUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialApprovalsSubmitted?: SocialPostApprovalUncheckedUpdateManyWithoutSubmittedByNestedInput
+    socialApprovalsDecided?: SocialPostApprovalUncheckedUpdateManyWithoutDecidedByNestedInput
+    socialPublicationsRequested?: SocialPublicationUncheckedUpdateManyWithoutRequestedByNestedInput
+    socialPublicationsApproved?: SocialPublicationUncheckedUpdateManyWithoutApprovedByNestedInput
+    socialMediaAssets?: SocialMediaAssetUncheckedUpdateManyWithoutOwnerNestedInput
+    socialContactsLinked?: SocialContactUncheckedUpdateManyWithoutLinkedByNestedInput
+    socialConversationsAssigned?: SocialConversationUncheckedUpdateManyWithoutAssigneeNestedInput
+    socialConversationAssignments?: SocialConversationUncheckedUpdateManyWithoutAssignedByNestedInput
+    socialMessagesSent?: SocialMessageUncheckedUpdateManyWithoutSentByAdminNestedInput
+    socialConversationTagsAdded?: SocialConversationTagUncheckedUpdateManyWithoutTaggedByNestedInput
+    socialCommentsAssigned?: SocialCommentUncheckedUpdateManyWithoutAssigneeNestedInput
+    socialCommentsSent?: SocialCommentUncheckedUpdateManyWithoutSentByAdminNestedInput
+    socialEscalationsConfirmed?: SocialEscalationUncheckedUpdateManyWithoutConfirmedByNestedInput
+    socialInternalNotesAuthored?: SocialInternalNoteUncheckedUpdateManyWithoutAuthorNestedInput
+    socialSavedRepliesCreated?: SocialSavedReplyUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialSettingsUpdated?: SocialOperationsSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUncheckedUpdateManyWithoutAcceptedByAdminNestedInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUncheckedUpdateManyWithoutDismissedByAdminNestedInput
+    marketingAlertsResolved?: marketing_alertsUncheckedUpdateManyWithoutResolvedByAdminNestedInput
+    marketingAlertsAcknowledged?: marketing_alertsUncheckedUpdateManyWithoutAcknowledgedByAdminNestedInput
+    marketingExperimentsCreated?: marketing_experimentsUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUncheckedUpdateManyWithoutRequestedByAdminNestedInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUncheckedUpdateManyWithoutApproverNestedInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUncheckedUpdateManyWithoutReviewerNestedInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUncheckedUpdateManyWithoutAuthoredByAdminNestedInput
+    teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
+    projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
+    assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
+    createdTasks?: TaskUncheckedUpdateManyWithoutAssignerNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutAdminUserNestedInput
+    attendanceLogs?: AttendanceLogUncheckedUpdateManyWithoutAdminUserNestedInput
+    leaveRequests?: LeaveRequestUncheckedUpdateManyWithoutAdminUserNestedInput
+    reviewedLeaveRequests?: LeaveRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutAdminUserNestedInput
+    payrollRecords?: PayrollRecordUncheckedUpdateManyWithoutAdminUserNestedInput
+    payslips?: PayslipUncheckedUpdateManyWithoutAdminUserNestedInput
+    deductions?: DeductionUncheckedUpdateManyWithoutAdminUserNestedInput
+    receipts?: ReceiptUncheckedUpdateManyWithoutAdminUserNestedInput
+    invoices?: InvoiceUncheckedUpdateManyWithoutAdminUserNestedInput
+  }
+
+  export type AdminSessionUpsertWithoutRefreshTokensInput = {
+    update: XOR<AdminSessionUpdateWithoutRefreshTokensInput, AdminSessionUncheckedUpdateWithoutRefreshTokensInput>
+    create: XOR<AdminSessionCreateWithoutRefreshTokensInput, AdminSessionUncheckedCreateWithoutRefreshTokensInput>
+    where?: AdminSessionWhereInput
+  }
+
+  export type AdminSessionUpdateToOneWithWhereWithoutRefreshTokensInput = {
+    where?: AdminSessionWhereInput
+    data: XOR<AdminSessionUpdateWithoutRefreshTokensInput, AdminSessionUncheckedUpdateWithoutRefreshTokensInput>
+  }
+
+  export type AdminSessionUpdateWithoutRefreshTokensInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    csrfNonce?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idleExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    absoluteExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    adminUser?: AdminUserUpdateOneRequiredWithoutSessionsNestedInput
+  }
+
+  export type AdminSessionUncheckedUpdateWithoutRefreshTokensInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    csrfNonce?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idleExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    absoluteExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminUserCreateWithoutSessionsInput = {
+    id?: string
+    email: string
+    password: string
+    name: string
+    position?: string | null
+    department?: $Enums.Department | null
+    tier?: $Enums.AdminTier
+    status?: $Enums.AdminStatus
+    isTeamLead?: boolean
+    failedLoginAttempts?: number
+    googleId?: string | null
+    mainAppUserId?: string | null
+    lockedUntil?: Date | string | null
+    lastLoginAt?: Date | string | null
+    lastLoginIp?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
+    avatarUrl?: string | null
+    avatarCloudinaryId?: string | null
+    preferredName?: string | null
+    birthday?: Date | string | null
+    nationality?: string | null
+    gender?: string | null
+    maritalStatus?: string | null
+    workPhone?: string | null
+    homePhone?: string | null
+    personalPhone?: string | null
+    fax?: string | null
+    address?: string | null
+    state?: string | null
+    country?: string | null
+    emergencyName?: string | null
+    emergencyPhone?: string | null
+    emergencyEmail?: string | null
+    emergencyRelation?: string | null
+    employmentType?: string | null
+    employmentCategory?: string | null
+    location?: string | null
+    salary?: Decimal | DecimalJsLike | number | string | null
+    bonus?: Decimal | DecimalJsLike | number | string | null
+    equity?: Decimal | DecimalJsLike | number | string | null
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
+    socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
+    educations?: AdminEducationCreateNestedManyWithoutAdminUserInput
+    documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
+    performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
+    reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryCreateNestedManyWithoutChangedByInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketCreateNestedManyWithoutValidatedByInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentCreateNestedManyWithoutAcknowledgedByInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewCreateNestedManyWithoutReviewedByInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobCreateNestedManyWithoutCancellationRequestedByInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideCreateNestedManyWithoutRequestedByInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideCreateNestedManyWithoutApprovedByInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersCreateNestedManyWithoutAdminUserInput
+    marketingContentItems?: marketing_content_itemsCreateNestedManyWithoutAdminUserInput
+    socialAccountConnections?: SocialAccountConnectionCreateNestedManyWithoutCreatedByInput
+    socialOAuthStates?: SocialOAuthStateCreateNestedManyWithoutAdminUserInput
+    socialPostsCreated?: SocialPostCreateNestedManyWithoutCreatedByInput
+    socialPostRevisionsCreated?: SocialPostRevisionCreateNestedManyWithoutCreatedByInput
+    socialApprovalsSubmitted?: SocialPostApprovalCreateNestedManyWithoutSubmittedByInput
+    socialApprovalsDecided?: SocialPostApprovalCreateNestedManyWithoutDecidedByInput
+    socialPublicationsRequested?: SocialPublicationCreateNestedManyWithoutRequestedByInput
+    socialPublicationsApproved?: SocialPublicationCreateNestedManyWithoutApprovedByInput
+    socialMediaAssets?: SocialMediaAssetCreateNestedManyWithoutOwnerInput
+    socialContactsLinked?: SocialContactCreateNestedManyWithoutLinkedByInput
+    socialConversationsAssigned?: SocialConversationCreateNestedManyWithoutAssigneeInput
+    socialConversationAssignments?: SocialConversationCreateNestedManyWithoutAssignedByInput
+    socialMessagesSent?: SocialMessageCreateNestedManyWithoutSentByAdminInput
+    socialConversationTagsAdded?: SocialConversationTagCreateNestedManyWithoutTaggedByInput
+    socialCommentsAssigned?: SocialCommentCreateNestedManyWithoutAssigneeInput
+    socialCommentsSent?: SocialCommentCreateNestedManyWithoutSentByAdminInput
+    socialEscalationsConfirmed?: SocialEscalationCreateNestedManyWithoutConfirmedByInput
+    socialInternalNotesAuthored?: SocialInternalNoteCreateNestedManyWithoutAuthorInput
+    socialSavedRepliesCreated?: SocialSavedReplyCreateNestedManyWithoutCreatedByInput
+    socialSettingsUpdated?: SocialOperationsSettingCreateNestedManyWithoutUpdatedByInput
+    marketingRecommendationsAccepted?: marketing_recommendationsCreateNestedManyWithoutAcceptedByAdminInput
+    marketingRecommendationsDismissed?: marketing_recommendationsCreateNestedManyWithoutDismissedByAdminInput
+    marketingAlertsResolved?: marketing_alertsCreateNestedManyWithoutResolvedByAdminInput
+    marketingAlertsAcknowledged?: marketing_alertsCreateNestedManyWithoutAcknowledgedByAdminInput
+    marketingExperimentsCreated?: marketing_experimentsCreateNestedManyWithoutCreatedByAdminInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsCreateNestedManyWithoutRequestedByAdminInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalCreateNestedManyWithoutApproverInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyCreateNestedManyWithoutUpdatedByAdminInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationCreateNestedManyWithoutCreatedByAdminInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewCreateNestedManyWithoutReviewerInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkCreateNestedManyWithoutAuthoredByAdminInput
+    teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
+    projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
+    assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
+    createdTasks?: TaskCreateNestedManyWithoutAssignerInput
+    notifications?: NotificationCreateNestedManyWithoutAdminUserInput
+    attendanceLogs?: AttendanceLogCreateNestedManyWithoutAdminUserInput
+    leaveRequests?: LeaveRequestCreateNestedManyWithoutAdminUserInput
+    reviewedLeaveRequests?: LeaveRequestCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceCreateNestedManyWithoutAdminUserInput
+    payrollRecords?: PayrollRecordCreateNestedManyWithoutAdminUserInput
+    payslips?: PayslipCreateNestedManyWithoutAdminUserInput
+    deductions?: DeductionCreateNestedManyWithoutAdminUserInput
+    receipts?: ReceiptCreateNestedManyWithoutAdminUserInput
+    invoices?: InvoiceCreateNestedManyWithoutAdminUserInput
+  }
+
+  export type AdminUserUncheckedCreateWithoutSessionsInput = {
+    id?: string
+    email: string
+    password: string
+    name: string
+    position?: string | null
+    department?: $Enums.Department | null
+    tier?: $Enums.AdminTier
+    status?: $Enums.AdminStatus
+    isTeamLead?: boolean
+    failedLoginAttempts?: number
+    googleId?: string | null
+    mainAppUserId?: string | null
+    lockedUntil?: Date | string | null
+    lastLoginAt?: Date | string | null
+    lastLoginIp?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
+    avatarUrl?: string | null
+    avatarCloudinaryId?: string | null
+    preferredName?: string | null
+    birthday?: Date | string | null
+    nationality?: string | null
+    gender?: string | null
+    maritalStatus?: string | null
+    workPhone?: string | null
+    homePhone?: string | null
+    personalPhone?: string | null
+    fax?: string | null
+    address?: string | null
+    state?: string | null
+    country?: string | null
+    emergencyName?: string | null
+    emergencyPhone?: string | null
+    emergencyEmail?: string | null
+    emergencyRelation?: string | null
+    employmentType?: string | null
+    employmentCategory?: string | null
+    location?: string | null
+    salary?: Decimal | DecimalJsLike | number | string | null
+    bonus?: Decimal | DecimalJsLike | number | string | null
+    equity?: Decimal | DecimalJsLike | number | string | null
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
+    socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
+    educations?: AdminEducationUncheckedCreateNestedManyWithoutAdminUserInput
+    documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
+    performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
+    reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUncheckedCreateNestedManyWithoutChangedByInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUncheckedCreateNestedManyWithoutValidatedByInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUncheckedCreateNestedManyWithoutAcknowledgedByInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUncheckedCreateNestedManyWithoutReviewedByInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUncheckedCreateNestedManyWithoutCancellationRequestedByInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUncheckedCreateNestedManyWithoutRequestedByInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUncheckedCreateNestedManyWithoutApprovedByInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUncheckedCreateNestedManyWithoutAdminUserInput
+    marketingContentItems?: marketing_content_itemsUncheckedCreateNestedManyWithoutAdminUserInput
+    socialAccountConnections?: SocialAccountConnectionUncheckedCreateNestedManyWithoutCreatedByInput
+    socialOAuthStates?: SocialOAuthStateUncheckedCreateNestedManyWithoutAdminUserInput
+    socialPostsCreated?: SocialPostUncheckedCreateNestedManyWithoutCreatedByInput
+    socialPostRevisionsCreated?: SocialPostRevisionUncheckedCreateNestedManyWithoutCreatedByInput
+    socialApprovalsSubmitted?: SocialPostApprovalUncheckedCreateNestedManyWithoutSubmittedByInput
+    socialApprovalsDecided?: SocialPostApprovalUncheckedCreateNestedManyWithoutDecidedByInput
+    socialPublicationsRequested?: SocialPublicationUncheckedCreateNestedManyWithoutRequestedByInput
+    socialPublicationsApproved?: SocialPublicationUncheckedCreateNestedManyWithoutApprovedByInput
+    socialMediaAssets?: SocialMediaAssetUncheckedCreateNestedManyWithoutOwnerInput
+    socialContactsLinked?: SocialContactUncheckedCreateNestedManyWithoutLinkedByInput
+    socialConversationsAssigned?: SocialConversationUncheckedCreateNestedManyWithoutAssigneeInput
+    socialConversationAssignments?: SocialConversationUncheckedCreateNestedManyWithoutAssignedByInput
+    socialMessagesSent?: SocialMessageUncheckedCreateNestedManyWithoutSentByAdminInput
+    socialConversationTagsAdded?: SocialConversationTagUncheckedCreateNestedManyWithoutTaggedByInput
+    socialCommentsAssigned?: SocialCommentUncheckedCreateNestedManyWithoutAssigneeInput
+    socialCommentsSent?: SocialCommentUncheckedCreateNestedManyWithoutSentByAdminInput
+    socialEscalationsConfirmed?: SocialEscalationUncheckedCreateNestedManyWithoutConfirmedByInput
+    socialInternalNotesAuthored?: SocialInternalNoteUncheckedCreateNestedManyWithoutAuthorInput
+    socialSavedRepliesCreated?: SocialSavedReplyUncheckedCreateNestedManyWithoutCreatedByInput
+    socialSettingsUpdated?: SocialOperationsSettingUncheckedCreateNestedManyWithoutUpdatedByInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUncheckedCreateNestedManyWithoutAcceptedByAdminInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUncheckedCreateNestedManyWithoutDismissedByAdminInput
+    marketingAlertsResolved?: marketing_alertsUncheckedCreateNestedManyWithoutResolvedByAdminInput
+    marketingAlertsAcknowledged?: marketing_alertsUncheckedCreateNestedManyWithoutAcknowledgedByAdminInput
+    marketingExperimentsCreated?: marketing_experimentsUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUncheckedCreateNestedManyWithoutRequestedByAdminInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUncheckedCreateNestedManyWithoutApproverInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUncheckedCreateNestedManyWithoutReviewerInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUncheckedCreateNestedManyWithoutAuthoredByAdminInput
+    teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
+    projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
+    assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
+    createdTasks?: TaskUncheckedCreateNestedManyWithoutAssignerInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutAdminUserInput
+    attendanceLogs?: AttendanceLogUncheckedCreateNestedManyWithoutAdminUserInput
+    leaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutAdminUserInput
+    reviewedLeaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutAdminUserInput
+    payrollRecords?: PayrollRecordUncheckedCreateNestedManyWithoutAdminUserInput
+    payslips?: PayslipUncheckedCreateNestedManyWithoutAdminUserInput
+    deductions?: DeductionUncheckedCreateNestedManyWithoutAdminUserInput
+    receipts?: ReceiptUncheckedCreateNestedManyWithoutAdminUserInput
+    invoices?: InvoiceUncheckedCreateNestedManyWithoutAdminUserInput
+  }
+
+  export type AdminUserCreateOrConnectWithoutSessionsInput = {
+    where: AdminUserWhereUniqueInput
+    create: XOR<AdminUserCreateWithoutSessionsInput, AdminUserUncheckedCreateWithoutSessionsInput>
+  }
+
+  export type RefreshTokenCreateWithoutSessionInput = {
+    id?: string
+    token: string
+    expiresAt: Date | string
+    isRevoked?: boolean
+    ipAddress?: string | null
+    userAgent?: string | null
+    createdAt?: Date | string
+    rotatedAt?: Date | string | null
+    adminUser: AdminUserCreateNestedOneWithoutRefreshTokensInput
+  }
+
+  export type RefreshTokenUncheckedCreateWithoutSessionInput = {
+    id?: string
+    token: string
+    adminUserId: string
+    expiresAt: Date | string
+    isRevoked?: boolean
+    ipAddress?: string | null
+    userAgent?: string | null
+    createdAt?: Date | string
+    rotatedAt?: Date | string | null
+  }
+
+  export type RefreshTokenCreateOrConnectWithoutSessionInput = {
+    where: RefreshTokenWhereUniqueInput
+    create: XOR<RefreshTokenCreateWithoutSessionInput, RefreshTokenUncheckedCreateWithoutSessionInput>
+  }
+
+  export type RefreshTokenCreateManySessionInputEnvelope = {
+    data: RefreshTokenCreateManySessionInput | RefreshTokenCreateManySessionInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AdminUserUpsertWithoutSessionsInput = {
+    update: XOR<AdminUserUpdateWithoutSessionsInput, AdminUserUncheckedUpdateWithoutSessionsInput>
+    create: XOR<AdminUserCreateWithoutSessionsInput, AdminUserUncheckedCreateWithoutSessionsInput>
+    where?: AdminUserWhereInput
+  }
+
+  export type AdminUserUpdateToOneWithWhereWithoutSessionsInput = {
+    where?: AdminUserWhereInput
+    data: XOR<AdminUserUpdateWithoutSessionsInput, AdminUserUncheckedUpdateWithoutSessionsInput>
+  }
+
+  export type AdminUserUpdateWithoutSessionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    position?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: NullableEnumDepartmentFieldUpdateOperationsInput | $Enums.Department | null
+    tier?: EnumAdminTierFieldUpdateOperationsInput | $Enums.AdminTier
+    status?: EnumAdminStatusFieldUpdateOperationsInput | $Enums.AdminStatus
+    isTeamLead?: BoolFieldUpdateOperationsInput | boolean
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    mainAppUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginIp?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
+    preferredName?: NullableStringFieldUpdateOperationsInput | string | null
+    birthday?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nationality?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    maritalStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    homePhone?: NullableStringFieldUpdateOperationsInput | string | null
+    personalPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    fax?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyName?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyRelation?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentType?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
+    socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
+    educations?: AdminEducationUpdateManyWithoutAdminUserNestedInput
+    documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
+    performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
+    reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUpdateManyWithoutChangedByNestedInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUpdateManyWithoutValidatedByNestedInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUpdateManyWithoutAcknowledgedByNestedInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUpdateManyWithoutReviewedByNestedInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUpdateManyWithoutCancellationRequestedByNestedInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUpdateManyWithoutRequestedByNestedInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUpdateManyWithoutApprovedByNestedInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUpdateManyWithoutAdminUserNestedInput
+    marketingContentItems?: marketing_content_itemsUpdateManyWithoutAdminUserNestedInput
+    socialAccountConnections?: SocialAccountConnectionUpdateManyWithoutCreatedByNestedInput
+    socialOAuthStates?: SocialOAuthStateUpdateManyWithoutAdminUserNestedInput
+    socialPostsCreated?: SocialPostUpdateManyWithoutCreatedByNestedInput
+    socialPostRevisionsCreated?: SocialPostRevisionUpdateManyWithoutCreatedByNestedInput
+    socialApprovalsSubmitted?: SocialPostApprovalUpdateManyWithoutSubmittedByNestedInput
+    socialApprovalsDecided?: SocialPostApprovalUpdateManyWithoutDecidedByNestedInput
+    socialPublicationsRequested?: SocialPublicationUpdateManyWithoutRequestedByNestedInput
+    socialPublicationsApproved?: SocialPublicationUpdateManyWithoutApprovedByNestedInput
+    socialMediaAssets?: SocialMediaAssetUpdateManyWithoutOwnerNestedInput
+    socialContactsLinked?: SocialContactUpdateManyWithoutLinkedByNestedInput
+    socialConversationsAssigned?: SocialConversationUpdateManyWithoutAssigneeNestedInput
+    socialConversationAssignments?: SocialConversationUpdateManyWithoutAssignedByNestedInput
+    socialMessagesSent?: SocialMessageUpdateManyWithoutSentByAdminNestedInput
+    socialConversationTagsAdded?: SocialConversationTagUpdateManyWithoutTaggedByNestedInput
+    socialCommentsAssigned?: SocialCommentUpdateManyWithoutAssigneeNestedInput
+    socialCommentsSent?: SocialCommentUpdateManyWithoutSentByAdminNestedInput
+    socialEscalationsConfirmed?: SocialEscalationUpdateManyWithoutConfirmedByNestedInput
+    socialInternalNotesAuthored?: SocialInternalNoteUpdateManyWithoutAuthorNestedInput
+    socialSavedRepliesCreated?: SocialSavedReplyUpdateManyWithoutCreatedByNestedInput
+    socialSettingsUpdated?: SocialOperationsSettingUpdateManyWithoutUpdatedByNestedInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUpdateManyWithoutAcceptedByAdminNestedInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUpdateManyWithoutDismissedByAdminNestedInput
+    marketingAlertsResolved?: marketing_alertsUpdateManyWithoutResolvedByAdminNestedInput
+    marketingAlertsAcknowledged?: marketing_alertsUpdateManyWithoutAcknowledgedByAdminNestedInput
+    marketingExperimentsCreated?: marketing_experimentsUpdateManyWithoutCreatedByAdminNestedInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUpdateManyWithoutRequestedByAdminNestedInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUpdateManyWithoutApproverNestedInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUpdateManyWithoutCreatedByAdminNestedInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUpdateManyWithoutReviewerNestedInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUpdateManyWithoutAuthoredByAdminNestedInput
+    teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
+    projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
+    assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
+    createdTasks?: TaskUpdateManyWithoutAssignerNestedInput
+    notifications?: NotificationUpdateManyWithoutAdminUserNestedInput
+    attendanceLogs?: AttendanceLogUpdateManyWithoutAdminUserNestedInput
+    leaveRequests?: LeaveRequestUpdateManyWithoutAdminUserNestedInput
+    reviewedLeaveRequests?: LeaveRequestUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUpdateManyWithoutAdminUserNestedInput
+    payrollRecords?: PayrollRecordUpdateManyWithoutAdminUserNestedInput
+    payslips?: PayslipUpdateManyWithoutAdminUserNestedInput
+    deductions?: DeductionUpdateManyWithoutAdminUserNestedInput
+    receipts?: ReceiptUpdateManyWithoutAdminUserNestedInput
+    invoices?: InvoiceUpdateManyWithoutAdminUserNestedInput
+  }
+
+  export type AdminUserUncheckedUpdateWithoutSessionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    position?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: NullableEnumDepartmentFieldUpdateOperationsInput | $Enums.Department | null
+    tier?: EnumAdminTierFieldUpdateOperationsInput | $Enums.AdminTier
+    status?: EnumAdminStatusFieldUpdateOperationsInput | $Enums.AdminStatus
+    isTeamLead?: BoolFieldUpdateOperationsInput | boolean
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    mainAppUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginIp?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
+    preferredName?: NullableStringFieldUpdateOperationsInput | string | null
+    birthday?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nationality?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    maritalStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    homePhone?: NullableStringFieldUpdateOperationsInput | string | null
+    personalPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    fax?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyName?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyRelation?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentType?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
+    educations?: AdminEducationUncheckedUpdateManyWithoutAdminUserNestedInput
+    documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
+    performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
+    reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUncheckedUpdateManyWithoutValidatedByNestedInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUncheckedUpdateManyWithoutAcknowledgedByNestedInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUncheckedUpdateManyWithoutReviewedByNestedInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUncheckedUpdateManyWithoutCancellationRequestedByNestedInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUncheckedUpdateManyWithoutRequestedByNestedInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUncheckedUpdateManyWithoutApprovedByNestedInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUncheckedUpdateManyWithoutAdminUserNestedInput
+    marketingContentItems?: marketing_content_itemsUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialAccountConnections?: SocialAccountConnectionUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialOAuthStates?: SocialOAuthStateUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialPostsCreated?: SocialPostUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialPostRevisionsCreated?: SocialPostRevisionUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialApprovalsSubmitted?: SocialPostApprovalUncheckedUpdateManyWithoutSubmittedByNestedInput
+    socialApprovalsDecided?: SocialPostApprovalUncheckedUpdateManyWithoutDecidedByNestedInput
+    socialPublicationsRequested?: SocialPublicationUncheckedUpdateManyWithoutRequestedByNestedInput
+    socialPublicationsApproved?: SocialPublicationUncheckedUpdateManyWithoutApprovedByNestedInput
+    socialMediaAssets?: SocialMediaAssetUncheckedUpdateManyWithoutOwnerNestedInput
+    socialContactsLinked?: SocialContactUncheckedUpdateManyWithoutLinkedByNestedInput
+    socialConversationsAssigned?: SocialConversationUncheckedUpdateManyWithoutAssigneeNestedInput
+    socialConversationAssignments?: SocialConversationUncheckedUpdateManyWithoutAssignedByNestedInput
+    socialMessagesSent?: SocialMessageUncheckedUpdateManyWithoutSentByAdminNestedInput
+    socialConversationTagsAdded?: SocialConversationTagUncheckedUpdateManyWithoutTaggedByNestedInput
+    socialCommentsAssigned?: SocialCommentUncheckedUpdateManyWithoutAssigneeNestedInput
+    socialCommentsSent?: SocialCommentUncheckedUpdateManyWithoutSentByAdminNestedInput
+    socialEscalationsConfirmed?: SocialEscalationUncheckedUpdateManyWithoutConfirmedByNestedInput
+    socialInternalNotesAuthored?: SocialInternalNoteUncheckedUpdateManyWithoutAuthorNestedInput
+    socialSavedRepliesCreated?: SocialSavedReplyUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialSettingsUpdated?: SocialOperationsSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUncheckedUpdateManyWithoutAcceptedByAdminNestedInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUncheckedUpdateManyWithoutDismissedByAdminNestedInput
+    marketingAlertsResolved?: marketing_alertsUncheckedUpdateManyWithoutResolvedByAdminNestedInput
+    marketingAlertsAcknowledged?: marketing_alertsUncheckedUpdateManyWithoutAcknowledgedByAdminNestedInput
+    marketingExperimentsCreated?: marketing_experimentsUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUncheckedUpdateManyWithoutRequestedByAdminNestedInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUncheckedUpdateManyWithoutApproverNestedInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUncheckedUpdateManyWithoutReviewerNestedInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUncheckedUpdateManyWithoutAuthoredByAdminNestedInput
+    teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
+    projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
+    assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
+    createdTasks?: TaskUncheckedUpdateManyWithoutAssignerNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutAdminUserNestedInput
+    attendanceLogs?: AttendanceLogUncheckedUpdateManyWithoutAdminUserNestedInput
+    leaveRequests?: LeaveRequestUncheckedUpdateManyWithoutAdminUserNestedInput
+    reviewedLeaveRequests?: LeaveRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutAdminUserNestedInput
+    payrollRecords?: PayrollRecordUncheckedUpdateManyWithoutAdminUserNestedInput
+    payslips?: PayslipUncheckedUpdateManyWithoutAdminUserNestedInput
+    deductions?: DeductionUncheckedUpdateManyWithoutAdminUserNestedInput
+    receipts?: ReceiptUncheckedUpdateManyWithoutAdminUserNestedInput
+    invoices?: InvoiceUncheckedUpdateManyWithoutAdminUserNestedInput
+  }
+
+  export type RefreshTokenUpsertWithWhereUniqueWithoutSessionInput = {
+    where: RefreshTokenWhereUniqueInput
+    update: XOR<RefreshTokenUpdateWithoutSessionInput, RefreshTokenUncheckedUpdateWithoutSessionInput>
+    create: XOR<RefreshTokenCreateWithoutSessionInput, RefreshTokenUncheckedCreateWithoutSessionInput>
+  }
+
+  export type RefreshTokenUpdateWithWhereUniqueWithoutSessionInput = {
+    where: RefreshTokenWhereUniqueInput
+    data: XOR<RefreshTokenUpdateWithoutSessionInput, RefreshTokenUncheckedUpdateWithoutSessionInput>
+  }
+
+  export type RefreshTokenUpdateManyWithWhereWithoutSessionInput = {
+    where: RefreshTokenScalarWhereInput
+    data: XOR<RefreshTokenUpdateManyMutationInput, RefreshTokenUncheckedUpdateManyWithoutSessionInput>
+  }
+
+  export type AdminUserCreateWithoutMfaRecoveryCodesInput = {
+    id?: string
+    email: string
+    password: string
+    name: string
+    position?: string | null
+    department?: $Enums.Department | null
+    tier?: $Enums.AdminTier
+    status?: $Enums.AdminStatus
+    isTeamLead?: boolean
+    failedLoginAttempts?: number
+    googleId?: string | null
+    mainAppUserId?: string | null
+    lockedUntil?: Date | string | null
+    lastLoginAt?: Date | string | null
+    lastLoginIp?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
+    avatarUrl?: string | null
+    avatarCloudinaryId?: string | null
+    preferredName?: string | null
+    birthday?: Date | string | null
+    nationality?: string | null
+    gender?: string | null
+    maritalStatus?: string | null
+    workPhone?: string | null
+    homePhone?: string | null
+    personalPhone?: string | null
+    fax?: string | null
+    address?: string | null
+    state?: string | null
+    country?: string | null
+    emergencyName?: string | null
+    emergencyPhone?: string | null
+    emergencyEmail?: string | null
+    emergencyRelation?: string | null
+    employmentType?: string | null
+    employmentCategory?: string | null
+    location?: string | null
+    salary?: Decimal | DecimalJsLike | number | string | null
+    bonus?: Decimal | DecimalJsLike | number | string | null
+    equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
+    socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
+    educations?: AdminEducationCreateNestedManyWithoutAdminUserInput
+    documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
+    performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
+    reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryCreateNestedManyWithoutChangedByInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketCreateNestedManyWithoutValidatedByInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentCreateNestedManyWithoutAcknowledgedByInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewCreateNestedManyWithoutReviewedByInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobCreateNestedManyWithoutCancellationRequestedByInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideCreateNestedManyWithoutRequestedByInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideCreateNestedManyWithoutApprovedByInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersCreateNestedManyWithoutAdminUserInput
+    marketingContentItems?: marketing_content_itemsCreateNestedManyWithoutAdminUserInput
+    socialAccountConnections?: SocialAccountConnectionCreateNestedManyWithoutCreatedByInput
+    socialOAuthStates?: SocialOAuthStateCreateNestedManyWithoutAdminUserInput
+    socialPostsCreated?: SocialPostCreateNestedManyWithoutCreatedByInput
+    socialPostRevisionsCreated?: SocialPostRevisionCreateNestedManyWithoutCreatedByInput
+    socialApprovalsSubmitted?: SocialPostApprovalCreateNestedManyWithoutSubmittedByInput
+    socialApprovalsDecided?: SocialPostApprovalCreateNestedManyWithoutDecidedByInput
+    socialPublicationsRequested?: SocialPublicationCreateNestedManyWithoutRequestedByInput
+    socialPublicationsApproved?: SocialPublicationCreateNestedManyWithoutApprovedByInput
+    socialMediaAssets?: SocialMediaAssetCreateNestedManyWithoutOwnerInput
+    socialContactsLinked?: SocialContactCreateNestedManyWithoutLinkedByInput
+    socialConversationsAssigned?: SocialConversationCreateNestedManyWithoutAssigneeInput
+    socialConversationAssignments?: SocialConversationCreateNestedManyWithoutAssignedByInput
+    socialMessagesSent?: SocialMessageCreateNestedManyWithoutSentByAdminInput
+    socialConversationTagsAdded?: SocialConversationTagCreateNestedManyWithoutTaggedByInput
+    socialCommentsAssigned?: SocialCommentCreateNestedManyWithoutAssigneeInput
+    socialCommentsSent?: SocialCommentCreateNestedManyWithoutSentByAdminInput
+    socialEscalationsConfirmed?: SocialEscalationCreateNestedManyWithoutConfirmedByInput
+    socialInternalNotesAuthored?: SocialInternalNoteCreateNestedManyWithoutAuthorInput
+    socialSavedRepliesCreated?: SocialSavedReplyCreateNestedManyWithoutCreatedByInput
+    socialSettingsUpdated?: SocialOperationsSettingCreateNestedManyWithoutUpdatedByInput
+    marketingRecommendationsAccepted?: marketing_recommendationsCreateNestedManyWithoutAcceptedByAdminInput
+    marketingRecommendationsDismissed?: marketing_recommendationsCreateNestedManyWithoutDismissedByAdminInput
+    marketingAlertsResolved?: marketing_alertsCreateNestedManyWithoutResolvedByAdminInput
+    marketingAlertsAcknowledged?: marketing_alertsCreateNestedManyWithoutAcknowledgedByAdminInput
+    marketingExperimentsCreated?: marketing_experimentsCreateNestedManyWithoutCreatedByAdminInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsCreateNestedManyWithoutRequestedByAdminInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalCreateNestedManyWithoutApproverInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyCreateNestedManyWithoutUpdatedByAdminInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationCreateNestedManyWithoutCreatedByAdminInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewCreateNestedManyWithoutReviewerInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkCreateNestedManyWithoutAuthoredByAdminInput
+    teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
+    projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
+    assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
+    createdTasks?: TaskCreateNestedManyWithoutAssignerInput
+    notifications?: NotificationCreateNestedManyWithoutAdminUserInput
+    attendanceLogs?: AttendanceLogCreateNestedManyWithoutAdminUserInput
+    leaveRequests?: LeaveRequestCreateNestedManyWithoutAdminUserInput
+    reviewedLeaveRequests?: LeaveRequestCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceCreateNestedManyWithoutAdminUserInput
+    payrollRecords?: PayrollRecordCreateNestedManyWithoutAdminUserInput
+    payslips?: PayslipCreateNestedManyWithoutAdminUserInput
+    deductions?: DeductionCreateNestedManyWithoutAdminUserInput
+    receipts?: ReceiptCreateNestedManyWithoutAdminUserInput
+    invoices?: InvoiceCreateNestedManyWithoutAdminUserInput
+  }
+
+  export type AdminUserUncheckedCreateWithoutMfaRecoveryCodesInput = {
+    id?: string
+    email: string
+    password: string
+    name: string
+    position?: string | null
+    department?: $Enums.Department | null
+    tier?: $Enums.AdminTier
+    status?: $Enums.AdminStatus
+    isTeamLead?: boolean
+    failedLoginAttempts?: number
+    googleId?: string | null
+    mainAppUserId?: string | null
+    lockedUntil?: Date | string | null
+    lastLoginAt?: Date | string | null
+    lastLoginIp?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
+    avatarUrl?: string | null
+    avatarCloudinaryId?: string | null
+    preferredName?: string | null
+    birthday?: Date | string | null
+    nationality?: string | null
+    gender?: string | null
+    maritalStatus?: string | null
+    workPhone?: string | null
+    homePhone?: string | null
+    personalPhone?: string | null
+    fax?: string | null
+    address?: string | null
+    state?: string | null
+    country?: string | null
+    emergencyName?: string | null
+    emergencyPhone?: string | null
+    emergencyEmail?: string | null
+    emergencyRelation?: string | null
+    employmentType?: string | null
+    employmentCategory?: string | null
+    location?: string | null
+    salary?: Decimal | DecimalJsLike | number | string | null
+    bonus?: Decimal | DecimalJsLike | number | string | null
+    equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
+    socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
+    educations?: AdminEducationUncheckedCreateNestedManyWithoutAdminUserInput
+    documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
+    performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
+    reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUncheckedCreateNestedManyWithoutChangedByInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUncheckedCreateNestedManyWithoutValidatedByInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUncheckedCreateNestedManyWithoutAcknowledgedByInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUncheckedCreateNestedManyWithoutReviewedByInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUncheckedCreateNestedManyWithoutCancellationRequestedByInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUncheckedCreateNestedManyWithoutRequestedByInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUncheckedCreateNestedManyWithoutApprovedByInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUncheckedCreateNestedManyWithoutAdminUserInput
+    marketingContentItems?: marketing_content_itemsUncheckedCreateNestedManyWithoutAdminUserInput
+    socialAccountConnections?: SocialAccountConnectionUncheckedCreateNestedManyWithoutCreatedByInput
+    socialOAuthStates?: SocialOAuthStateUncheckedCreateNestedManyWithoutAdminUserInput
+    socialPostsCreated?: SocialPostUncheckedCreateNestedManyWithoutCreatedByInput
+    socialPostRevisionsCreated?: SocialPostRevisionUncheckedCreateNestedManyWithoutCreatedByInput
+    socialApprovalsSubmitted?: SocialPostApprovalUncheckedCreateNestedManyWithoutSubmittedByInput
+    socialApprovalsDecided?: SocialPostApprovalUncheckedCreateNestedManyWithoutDecidedByInput
+    socialPublicationsRequested?: SocialPublicationUncheckedCreateNestedManyWithoutRequestedByInput
+    socialPublicationsApproved?: SocialPublicationUncheckedCreateNestedManyWithoutApprovedByInput
+    socialMediaAssets?: SocialMediaAssetUncheckedCreateNestedManyWithoutOwnerInput
+    socialContactsLinked?: SocialContactUncheckedCreateNestedManyWithoutLinkedByInput
+    socialConversationsAssigned?: SocialConversationUncheckedCreateNestedManyWithoutAssigneeInput
+    socialConversationAssignments?: SocialConversationUncheckedCreateNestedManyWithoutAssignedByInput
+    socialMessagesSent?: SocialMessageUncheckedCreateNestedManyWithoutSentByAdminInput
+    socialConversationTagsAdded?: SocialConversationTagUncheckedCreateNestedManyWithoutTaggedByInput
+    socialCommentsAssigned?: SocialCommentUncheckedCreateNestedManyWithoutAssigneeInput
+    socialCommentsSent?: SocialCommentUncheckedCreateNestedManyWithoutSentByAdminInput
+    socialEscalationsConfirmed?: SocialEscalationUncheckedCreateNestedManyWithoutConfirmedByInput
+    socialInternalNotesAuthored?: SocialInternalNoteUncheckedCreateNestedManyWithoutAuthorInput
+    socialSavedRepliesCreated?: SocialSavedReplyUncheckedCreateNestedManyWithoutCreatedByInput
+    socialSettingsUpdated?: SocialOperationsSettingUncheckedCreateNestedManyWithoutUpdatedByInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUncheckedCreateNestedManyWithoutAcceptedByAdminInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUncheckedCreateNestedManyWithoutDismissedByAdminInput
+    marketingAlertsResolved?: marketing_alertsUncheckedCreateNestedManyWithoutResolvedByAdminInput
+    marketingAlertsAcknowledged?: marketing_alertsUncheckedCreateNestedManyWithoutAcknowledgedByAdminInput
+    marketingExperimentsCreated?: marketing_experimentsUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUncheckedCreateNestedManyWithoutRequestedByAdminInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUncheckedCreateNestedManyWithoutApproverInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUncheckedCreateNestedManyWithoutReviewerInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUncheckedCreateNestedManyWithoutAuthoredByAdminInput
+    teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
+    projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
+    assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
+    createdTasks?: TaskUncheckedCreateNestedManyWithoutAssignerInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutAdminUserInput
+    attendanceLogs?: AttendanceLogUncheckedCreateNestedManyWithoutAdminUserInput
+    leaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutAdminUserInput
+    reviewedLeaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutAdminUserInput
+    payrollRecords?: PayrollRecordUncheckedCreateNestedManyWithoutAdminUserInput
+    payslips?: PayslipUncheckedCreateNestedManyWithoutAdminUserInput
+    deductions?: DeductionUncheckedCreateNestedManyWithoutAdminUserInput
+    receipts?: ReceiptUncheckedCreateNestedManyWithoutAdminUserInput
+    invoices?: InvoiceUncheckedCreateNestedManyWithoutAdminUserInput
+  }
+
+  export type AdminUserCreateOrConnectWithoutMfaRecoveryCodesInput = {
+    where: AdminUserWhereUniqueInput
+    create: XOR<AdminUserCreateWithoutMfaRecoveryCodesInput, AdminUserUncheckedCreateWithoutMfaRecoveryCodesInput>
+  }
+
+  export type AdminUserUpsertWithoutMfaRecoveryCodesInput = {
+    update: XOR<AdminUserUpdateWithoutMfaRecoveryCodesInput, AdminUserUncheckedUpdateWithoutMfaRecoveryCodesInput>
+    create: XOR<AdminUserCreateWithoutMfaRecoveryCodesInput, AdminUserUncheckedCreateWithoutMfaRecoveryCodesInput>
+    where?: AdminUserWhereInput
+  }
+
+  export type AdminUserUpdateToOneWithWhereWithoutMfaRecoveryCodesInput = {
+    where?: AdminUserWhereInput
+    data: XOR<AdminUserUpdateWithoutMfaRecoveryCodesInput, AdminUserUncheckedUpdateWithoutMfaRecoveryCodesInput>
+  }
+
+  export type AdminUserUpdateWithoutMfaRecoveryCodesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    position?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: NullableEnumDepartmentFieldUpdateOperationsInput | $Enums.Department | null
+    tier?: EnumAdminTierFieldUpdateOperationsInput | $Enums.AdminTier
+    status?: EnumAdminStatusFieldUpdateOperationsInput | $Enums.AdminStatus
+    isTeamLead?: BoolFieldUpdateOperationsInput | boolean
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    mainAppUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginIp?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
+    preferredName?: NullableStringFieldUpdateOperationsInput | string | null
+    birthday?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nationality?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    maritalStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    homePhone?: NullableStringFieldUpdateOperationsInput | string | null
+    personalPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    fax?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyName?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyRelation?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentType?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
+    socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
+    educations?: AdminEducationUpdateManyWithoutAdminUserNestedInput
+    documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
+    performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
+    reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUpdateManyWithoutChangedByNestedInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUpdateManyWithoutValidatedByNestedInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUpdateManyWithoutAcknowledgedByNestedInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUpdateManyWithoutReviewedByNestedInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUpdateManyWithoutCancellationRequestedByNestedInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUpdateManyWithoutRequestedByNestedInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUpdateManyWithoutApprovedByNestedInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUpdateManyWithoutAdminUserNestedInput
+    marketingContentItems?: marketing_content_itemsUpdateManyWithoutAdminUserNestedInput
+    socialAccountConnections?: SocialAccountConnectionUpdateManyWithoutCreatedByNestedInput
+    socialOAuthStates?: SocialOAuthStateUpdateManyWithoutAdminUserNestedInput
+    socialPostsCreated?: SocialPostUpdateManyWithoutCreatedByNestedInput
+    socialPostRevisionsCreated?: SocialPostRevisionUpdateManyWithoutCreatedByNestedInput
+    socialApprovalsSubmitted?: SocialPostApprovalUpdateManyWithoutSubmittedByNestedInput
+    socialApprovalsDecided?: SocialPostApprovalUpdateManyWithoutDecidedByNestedInput
+    socialPublicationsRequested?: SocialPublicationUpdateManyWithoutRequestedByNestedInput
+    socialPublicationsApproved?: SocialPublicationUpdateManyWithoutApprovedByNestedInput
+    socialMediaAssets?: SocialMediaAssetUpdateManyWithoutOwnerNestedInput
+    socialContactsLinked?: SocialContactUpdateManyWithoutLinkedByNestedInput
+    socialConversationsAssigned?: SocialConversationUpdateManyWithoutAssigneeNestedInput
+    socialConversationAssignments?: SocialConversationUpdateManyWithoutAssignedByNestedInput
+    socialMessagesSent?: SocialMessageUpdateManyWithoutSentByAdminNestedInput
+    socialConversationTagsAdded?: SocialConversationTagUpdateManyWithoutTaggedByNestedInput
+    socialCommentsAssigned?: SocialCommentUpdateManyWithoutAssigneeNestedInput
+    socialCommentsSent?: SocialCommentUpdateManyWithoutSentByAdminNestedInput
+    socialEscalationsConfirmed?: SocialEscalationUpdateManyWithoutConfirmedByNestedInput
+    socialInternalNotesAuthored?: SocialInternalNoteUpdateManyWithoutAuthorNestedInput
+    socialSavedRepliesCreated?: SocialSavedReplyUpdateManyWithoutCreatedByNestedInput
+    socialSettingsUpdated?: SocialOperationsSettingUpdateManyWithoutUpdatedByNestedInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUpdateManyWithoutAcceptedByAdminNestedInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUpdateManyWithoutDismissedByAdminNestedInput
+    marketingAlertsResolved?: marketing_alertsUpdateManyWithoutResolvedByAdminNestedInput
+    marketingAlertsAcknowledged?: marketing_alertsUpdateManyWithoutAcknowledgedByAdminNestedInput
+    marketingExperimentsCreated?: marketing_experimentsUpdateManyWithoutCreatedByAdminNestedInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUpdateManyWithoutRequestedByAdminNestedInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUpdateManyWithoutApproverNestedInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUpdateManyWithoutCreatedByAdminNestedInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUpdateManyWithoutReviewerNestedInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUpdateManyWithoutAuthoredByAdminNestedInput
+    teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
+    projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
+    assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
+    createdTasks?: TaskUpdateManyWithoutAssignerNestedInput
+    notifications?: NotificationUpdateManyWithoutAdminUserNestedInput
+    attendanceLogs?: AttendanceLogUpdateManyWithoutAdminUserNestedInput
+    leaveRequests?: LeaveRequestUpdateManyWithoutAdminUserNestedInput
+    reviewedLeaveRequests?: LeaveRequestUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUpdateManyWithoutAdminUserNestedInput
+    payrollRecords?: PayrollRecordUpdateManyWithoutAdminUserNestedInput
+    payslips?: PayslipUpdateManyWithoutAdminUserNestedInput
+    deductions?: DeductionUpdateManyWithoutAdminUserNestedInput
+    receipts?: ReceiptUpdateManyWithoutAdminUserNestedInput
+    invoices?: InvoiceUpdateManyWithoutAdminUserNestedInput
+  }
+
+  export type AdminUserUncheckedUpdateWithoutMfaRecoveryCodesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    position?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: NullableEnumDepartmentFieldUpdateOperationsInput | $Enums.Department | null
+    tier?: EnumAdminTierFieldUpdateOperationsInput | $Enums.AdminTier
+    status?: EnumAdminStatusFieldUpdateOperationsInput | $Enums.AdminStatus
+    isTeamLead?: BoolFieldUpdateOperationsInput | boolean
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    mainAppUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginIp?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
+    preferredName?: NullableStringFieldUpdateOperationsInput | string | null
+    birthday?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nationality?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    maritalStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    homePhone?: NullableStringFieldUpdateOperationsInput | string | null
+    personalPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    fax?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyName?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyRelation?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentType?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
+    educations?: AdminEducationUncheckedUpdateManyWithoutAdminUserNestedInput
+    documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
+    performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
+    reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUncheckedUpdateManyWithoutValidatedByNestedInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUncheckedUpdateManyWithoutAcknowledgedByNestedInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUncheckedUpdateManyWithoutReviewedByNestedInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUncheckedUpdateManyWithoutCancellationRequestedByNestedInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUncheckedUpdateManyWithoutRequestedByNestedInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUncheckedUpdateManyWithoutApprovedByNestedInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUncheckedUpdateManyWithoutAdminUserNestedInput
+    marketingContentItems?: marketing_content_itemsUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialAccountConnections?: SocialAccountConnectionUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialOAuthStates?: SocialOAuthStateUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialPostsCreated?: SocialPostUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialPostRevisionsCreated?: SocialPostRevisionUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialApprovalsSubmitted?: SocialPostApprovalUncheckedUpdateManyWithoutSubmittedByNestedInput
+    socialApprovalsDecided?: SocialPostApprovalUncheckedUpdateManyWithoutDecidedByNestedInput
+    socialPublicationsRequested?: SocialPublicationUncheckedUpdateManyWithoutRequestedByNestedInput
+    socialPublicationsApproved?: SocialPublicationUncheckedUpdateManyWithoutApprovedByNestedInput
+    socialMediaAssets?: SocialMediaAssetUncheckedUpdateManyWithoutOwnerNestedInput
+    socialContactsLinked?: SocialContactUncheckedUpdateManyWithoutLinkedByNestedInput
+    socialConversationsAssigned?: SocialConversationUncheckedUpdateManyWithoutAssigneeNestedInput
+    socialConversationAssignments?: SocialConversationUncheckedUpdateManyWithoutAssignedByNestedInput
+    socialMessagesSent?: SocialMessageUncheckedUpdateManyWithoutSentByAdminNestedInput
+    socialConversationTagsAdded?: SocialConversationTagUncheckedUpdateManyWithoutTaggedByNestedInput
+    socialCommentsAssigned?: SocialCommentUncheckedUpdateManyWithoutAssigneeNestedInput
+    socialCommentsSent?: SocialCommentUncheckedUpdateManyWithoutSentByAdminNestedInput
+    socialEscalationsConfirmed?: SocialEscalationUncheckedUpdateManyWithoutConfirmedByNestedInput
+    socialInternalNotesAuthored?: SocialInternalNoteUncheckedUpdateManyWithoutAuthorNestedInput
+    socialSavedRepliesCreated?: SocialSavedReplyUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialSettingsUpdated?: SocialOperationsSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUncheckedUpdateManyWithoutAcceptedByAdminNestedInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUncheckedUpdateManyWithoutDismissedByAdminNestedInput
+    marketingAlertsResolved?: marketing_alertsUncheckedUpdateManyWithoutResolvedByAdminNestedInput
+    marketingAlertsAcknowledged?: marketing_alertsUncheckedUpdateManyWithoutAcknowledgedByAdminNestedInput
+    marketingExperimentsCreated?: marketing_experimentsUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUncheckedUpdateManyWithoutRequestedByAdminNestedInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUncheckedUpdateManyWithoutApproverNestedInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUncheckedUpdateManyWithoutReviewerNestedInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUncheckedUpdateManyWithoutAuthoredByAdminNestedInput
+    teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
+    projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
+    assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
+    createdTasks?: TaskUncheckedUpdateManyWithoutAssignerNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutAdminUserNestedInput
+    attendanceLogs?: AttendanceLogUncheckedUpdateManyWithoutAdminUserNestedInput
+    leaveRequests?: LeaveRequestUncheckedUpdateManyWithoutAdminUserNestedInput
+    reviewedLeaveRequests?: LeaveRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutAdminUserNestedInput
+    payrollRecords?: PayrollRecordUncheckedUpdateManyWithoutAdminUserNestedInput
+    payslips?: PayslipUncheckedUpdateManyWithoutAdminUserNestedInput
+    deductions?: DeductionUncheckedUpdateManyWithoutAdminUserNestedInput
+    receipts?: ReceiptUncheckedUpdateManyWithoutAdminUserNestedInput
+    invoices?: InvoiceUncheckedUpdateManyWithoutAdminUserNestedInput
+  }
+
+  export type AdminUserCreateWithoutMfaChallengesInput = {
+    id?: string
+    email: string
+    password: string
+    name: string
+    position?: string | null
+    department?: $Enums.Department | null
+    tier?: $Enums.AdminTier
+    status?: $Enums.AdminStatus
+    isTeamLead?: boolean
+    failedLoginAttempts?: number
+    googleId?: string | null
+    mainAppUserId?: string | null
+    lockedUntil?: Date | string | null
+    lastLoginAt?: Date | string | null
+    lastLoginIp?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
+    avatarUrl?: string | null
+    avatarCloudinaryId?: string | null
+    preferredName?: string | null
+    birthday?: Date | string | null
+    nationality?: string | null
+    gender?: string | null
+    maritalStatus?: string | null
+    workPhone?: string | null
+    homePhone?: string | null
+    personalPhone?: string | null
+    fax?: string | null
+    address?: string | null
+    state?: string | null
+    country?: string | null
+    emergencyName?: string | null
+    emergencyPhone?: string | null
+    emergencyEmail?: string | null
+    emergencyRelation?: string | null
+    employmentType?: string | null
+    employmentCategory?: string | null
+    location?: string | null
+    salary?: Decimal | DecimalJsLike | number | string | null
+    bonus?: Decimal | DecimalJsLike | number | string | null
+    equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
+    socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
+    educations?: AdminEducationCreateNestedManyWithoutAdminUserInput
+    documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
+    performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
+    reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryCreateNestedManyWithoutChangedByInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketCreateNestedManyWithoutValidatedByInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentCreateNestedManyWithoutAcknowledgedByInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewCreateNestedManyWithoutReviewedByInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobCreateNestedManyWithoutCancellationRequestedByInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideCreateNestedManyWithoutRequestedByInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideCreateNestedManyWithoutApprovedByInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersCreateNestedManyWithoutAdminUserInput
+    marketingContentItems?: marketing_content_itemsCreateNestedManyWithoutAdminUserInput
+    socialAccountConnections?: SocialAccountConnectionCreateNestedManyWithoutCreatedByInput
+    socialOAuthStates?: SocialOAuthStateCreateNestedManyWithoutAdminUserInput
+    socialPostsCreated?: SocialPostCreateNestedManyWithoutCreatedByInput
+    socialPostRevisionsCreated?: SocialPostRevisionCreateNestedManyWithoutCreatedByInput
+    socialApprovalsSubmitted?: SocialPostApprovalCreateNestedManyWithoutSubmittedByInput
+    socialApprovalsDecided?: SocialPostApprovalCreateNestedManyWithoutDecidedByInput
+    socialPublicationsRequested?: SocialPublicationCreateNestedManyWithoutRequestedByInput
+    socialPublicationsApproved?: SocialPublicationCreateNestedManyWithoutApprovedByInput
+    socialMediaAssets?: SocialMediaAssetCreateNestedManyWithoutOwnerInput
+    socialContactsLinked?: SocialContactCreateNestedManyWithoutLinkedByInput
+    socialConversationsAssigned?: SocialConversationCreateNestedManyWithoutAssigneeInput
+    socialConversationAssignments?: SocialConversationCreateNestedManyWithoutAssignedByInput
+    socialMessagesSent?: SocialMessageCreateNestedManyWithoutSentByAdminInput
+    socialConversationTagsAdded?: SocialConversationTagCreateNestedManyWithoutTaggedByInput
+    socialCommentsAssigned?: SocialCommentCreateNestedManyWithoutAssigneeInput
+    socialCommentsSent?: SocialCommentCreateNestedManyWithoutSentByAdminInput
+    socialEscalationsConfirmed?: SocialEscalationCreateNestedManyWithoutConfirmedByInput
+    socialInternalNotesAuthored?: SocialInternalNoteCreateNestedManyWithoutAuthorInput
+    socialSavedRepliesCreated?: SocialSavedReplyCreateNestedManyWithoutCreatedByInput
+    socialSettingsUpdated?: SocialOperationsSettingCreateNestedManyWithoutUpdatedByInput
+    marketingRecommendationsAccepted?: marketing_recommendationsCreateNestedManyWithoutAcceptedByAdminInput
+    marketingRecommendationsDismissed?: marketing_recommendationsCreateNestedManyWithoutDismissedByAdminInput
+    marketingAlertsResolved?: marketing_alertsCreateNestedManyWithoutResolvedByAdminInput
+    marketingAlertsAcknowledged?: marketing_alertsCreateNestedManyWithoutAcknowledgedByAdminInput
+    marketingExperimentsCreated?: marketing_experimentsCreateNestedManyWithoutCreatedByAdminInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsCreateNestedManyWithoutRequestedByAdminInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalCreateNestedManyWithoutApproverInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyCreateNestedManyWithoutUpdatedByAdminInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationCreateNestedManyWithoutCreatedByAdminInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewCreateNestedManyWithoutReviewerInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkCreateNestedManyWithoutAuthoredByAdminInput
+    teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
+    projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
+    assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
+    createdTasks?: TaskCreateNestedManyWithoutAssignerInput
+    notifications?: NotificationCreateNestedManyWithoutAdminUserInput
+    attendanceLogs?: AttendanceLogCreateNestedManyWithoutAdminUserInput
+    leaveRequests?: LeaveRequestCreateNestedManyWithoutAdminUserInput
+    reviewedLeaveRequests?: LeaveRequestCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceCreateNestedManyWithoutAdminUserInput
+    payrollRecords?: PayrollRecordCreateNestedManyWithoutAdminUserInput
+    payslips?: PayslipCreateNestedManyWithoutAdminUserInput
+    deductions?: DeductionCreateNestedManyWithoutAdminUserInput
+    receipts?: ReceiptCreateNestedManyWithoutAdminUserInput
+    invoices?: InvoiceCreateNestedManyWithoutAdminUserInput
+  }
+
+  export type AdminUserUncheckedCreateWithoutMfaChallengesInput = {
+    id?: string
+    email: string
+    password: string
+    name: string
+    position?: string | null
+    department?: $Enums.Department | null
+    tier?: $Enums.AdminTier
+    status?: $Enums.AdminStatus
+    isTeamLead?: boolean
+    failedLoginAttempts?: number
+    googleId?: string | null
+    mainAppUserId?: string | null
+    lockedUntil?: Date | string | null
+    lastLoginAt?: Date | string | null
+    lastLoginIp?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
+    avatarUrl?: string | null
+    avatarCloudinaryId?: string | null
+    preferredName?: string | null
+    birthday?: Date | string | null
+    nationality?: string | null
+    gender?: string | null
+    maritalStatus?: string | null
+    workPhone?: string | null
+    homePhone?: string | null
+    personalPhone?: string | null
+    fax?: string | null
+    address?: string | null
+    state?: string | null
+    country?: string | null
+    emergencyName?: string | null
+    emergencyPhone?: string | null
+    emergencyEmail?: string | null
+    emergencyRelation?: string | null
+    employmentType?: string | null
+    employmentCategory?: string | null
+    location?: string | null
+    salary?: Decimal | DecimalJsLike | number | string | null
+    bonus?: Decimal | DecimalJsLike | number | string | null
+    equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
+    socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
+    educations?: AdminEducationUncheckedCreateNestedManyWithoutAdminUserInput
+    documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
+    performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
+    reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUncheckedCreateNestedManyWithoutChangedByInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUncheckedCreateNestedManyWithoutValidatedByInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUncheckedCreateNestedManyWithoutAcknowledgedByInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUncheckedCreateNestedManyWithoutReviewedByInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUncheckedCreateNestedManyWithoutCancellationRequestedByInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUncheckedCreateNestedManyWithoutRequestedByInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUncheckedCreateNestedManyWithoutApprovedByInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUncheckedCreateNestedManyWithoutAdminUserInput
+    marketingContentItems?: marketing_content_itemsUncheckedCreateNestedManyWithoutAdminUserInput
+    socialAccountConnections?: SocialAccountConnectionUncheckedCreateNestedManyWithoutCreatedByInput
+    socialOAuthStates?: SocialOAuthStateUncheckedCreateNestedManyWithoutAdminUserInput
+    socialPostsCreated?: SocialPostUncheckedCreateNestedManyWithoutCreatedByInput
+    socialPostRevisionsCreated?: SocialPostRevisionUncheckedCreateNestedManyWithoutCreatedByInput
+    socialApprovalsSubmitted?: SocialPostApprovalUncheckedCreateNestedManyWithoutSubmittedByInput
+    socialApprovalsDecided?: SocialPostApprovalUncheckedCreateNestedManyWithoutDecidedByInput
+    socialPublicationsRequested?: SocialPublicationUncheckedCreateNestedManyWithoutRequestedByInput
+    socialPublicationsApproved?: SocialPublicationUncheckedCreateNestedManyWithoutApprovedByInput
+    socialMediaAssets?: SocialMediaAssetUncheckedCreateNestedManyWithoutOwnerInput
+    socialContactsLinked?: SocialContactUncheckedCreateNestedManyWithoutLinkedByInput
+    socialConversationsAssigned?: SocialConversationUncheckedCreateNestedManyWithoutAssigneeInput
+    socialConversationAssignments?: SocialConversationUncheckedCreateNestedManyWithoutAssignedByInput
+    socialMessagesSent?: SocialMessageUncheckedCreateNestedManyWithoutSentByAdminInput
+    socialConversationTagsAdded?: SocialConversationTagUncheckedCreateNestedManyWithoutTaggedByInput
+    socialCommentsAssigned?: SocialCommentUncheckedCreateNestedManyWithoutAssigneeInput
+    socialCommentsSent?: SocialCommentUncheckedCreateNestedManyWithoutSentByAdminInput
+    socialEscalationsConfirmed?: SocialEscalationUncheckedCreateNestedManyWithoutConfirmedByInput
+    socialInternalNotesAuthored?: SocialInternalNoteUncheckedCreateNestedManyWithoutAuthorInput
+    socialSavedRepliesCreated?: SocialSavedReplyUncheckedCreateNestedManyWithoutCreatedByInput
+    socialSettingsUpdated?: SocialOperationsSettingUncheckedCreateNestedManyWithoutUpdatedByInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUncheckedCreateNestedManyWithoutAcceptedByAdminInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUncheckedCreateNestedManyWithoutDismissedByAdminInput
+    marketingAlertsResolved?: marketing_alertsUncheckedCreateNestedManyWithoutResolvedByAdminInput
+    marketingAlertsAcknowledged?: marketing_alertsUncheckedCreateNestedManyWithoutAcknowledgedByAdminInput
+    marketingExperimentsCreated?: marketing_experimentsUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUncheckedCreateNestedManyWithoutRequestedByAdminInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUncheckedCreateNestedManyWithoutApproverInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUncheckedCreateNestedManyWithoutReviewerInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUncheckedCreateNestedManyWithoutAuthoredByAdminInput
+    teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
+    projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
+    assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
+    createdTasks?: TaskUncheckedCreateNestedManyWithoutAssignerInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutAdminUserInput
+    attendanceLogs?: AttendanceLogUncheckedCreateNestedManyWithoutAdminUserInput
+    leaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutAdminUserInput
+    reviewedLeaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutAdminUserInput
+    payrollRecords?: PayrollRecordUncheckedCreateNestedManyWithoutAdminUserInput
+    payslips?: PayslipUncheckedCreateNestedManyWithoutAdminUserInput
+    deductions?: DeductionUncheckedCreateNestedManyWithoutAdminUserInput
+    receipts?: ReceiptUncheckedCreateNestedManyWithoutAdminUserInput
+    invoices?: InvoiceUncheckedCreateNestedManyWithoutAdminUserInput
+  }
+
+  export type AdminUserCreateOrConnectWithoutMfaChallengesInput = {
+    where: AdminUserWhereUniqueInput
+    create: XOR<AdminUserCreateWithoutMfaChallengesInput, AdminUserUncheckedCreateWithoutMfaChallengesInput>
+  }
+
+  export type AdminUserUpsertWithoutMfaChallengesInput = {
+    update: XOR<AdminUserUpdateWithoutMfaChallengesInput, AdminUserUncheckedUpdateWithoutMfaChallengesInput>
+    create: XOR<AdminUserCreateWithoutMfaChallengesInput, AdminUserUncheckedCreateWithoutMfaChallengesInput>
+    where?: AdminUserWhereInput
+  }
+
+  export type AdminUserUpdateToOneWithWhereWithoutMfaChallengesInput = {
+    where?: AdminUserWhereInput
+    data: XOR<AdminUserUpdateWithoutMfaChallengesInput, AdminUserUncheckedUpdateWithoutMfaChallengesInput>
+  }
+
+  export type AdminUserUpdateWithoutMfaChallengesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    position?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: NullableEnumDepartmentFieldUpdateOperationsInput | $Enums.Department | null
+    tier?: EnumAdminTierFieldUpdateOperationsInput | $Enums.AdminTier
+    status?: EnumAdminStatusFieldUpdateOperationsInput | $Enums.AdminStatus
+    isTeamLead?: BoolFieldUpdateOperationsInput | boolean
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    mainAppUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginIp?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
+    preferredName?: NullableStringFieldUpdateOperationsInput | string | null
+    birthday?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nationality?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    maritalStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    homePhone?: NullableStringFieldUpdateOperationsInput | string | null
+    personalPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    fax?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyName?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyRelation?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentType?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
+    socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
+    educations?: AdminEducationUpdateManyWithoutAdminUserNestedInput
+    documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
+    performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
+    reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUpdateManyWithoutChangedByNestedInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUpdateManyWithoutValidatedByNestedInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUpdateManyWithoutAcknowledgedByNestedInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUpdateManyWithoutReviewedByNestedInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUpdateManyWithoutCancellationRequestedByNestedInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUpdateManyWithoutRequestedByNestedInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUpdateManyWithoutApprovedByNestedInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUpdateManyWithoutAdminUserNestedInput
+    marketingContentItems?: marketing_content_itemsUpdateManyWithoutAdminUserNestedInput
+    socialAccountConnections?: SocialAccountConnectionUpdateManyWithoutCreatedByNestedInput
+    socialOAuthStates?: SocialOAuthStateUpdateManyWithoutAdminUserNestedInput
+    socialPostsCreated?: SocialPostUpdateManyWithoutCreatedByNestedInput
+    socialPostRevisionsCreated?: SocialPostRevisionUpdateManyWithoutCreatedByNestedInput
+    socialApprovalsSubmitted?: SocialPostApprovalUpdateManyWithoutSubmittedByNestedInput
+    socialApprovalsDecided?: SocialPostApprovalUpdateManyWithoutDecidedByNestedInput
+    socialPublicationsRequested?: SocialPublicationUpdateManyWithoutRequestedByNestedInput
+    socialPublicationsApproved?: SocialPublicationUpdateManyWithoutApprovedByNestedInput
+    socialMediaAssets?: SocialMediaAssetUpdateManyWithoutOwnerNestedInput
+    socialContactsLinked?: SocialContactUpdateManyWithoutLinkedByNestedInput
+    socialConversationsAssigned?: SocialConversationUpdateManyWithoutAssigneeNestedInput
+    socialConversationAssignments?: SocialConversationUpdateManyWithoutAssignedByNestedInput
+    socialMessagesSent?: SocialMessageUpdateManyWithoutSentByAdminNestedInput
+    socialConversationTagsAdded?: SocialConversationTagUpdateManyWithoutTaggedByNestedInput
+    socialCommentsAssigned?: SocialCommentUpdateManyWithoutAssigneeNestedInput
+    socialCommentsSent?: SocialCommentUpdateManyWithoutSentByAdminNestedInput
+    socialEscalationsConfirmed?: SocialEscalationUpdateManyWithoutConfirmedByNestedInput
+    socialInternalNotesAuthored?: SocialInternalNoteUpdateManyWithoutAuthorNestedInput
+    socialSavedRepliesCreated?: SocialSavedReplyUpdateManyWithoutCreatedByNestedInput
+    socialSettingsUpdated?: SocialOperationsSettingUpdateManyWithoutUpdatedByNestedInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUpdateManyWithoutAcceptedByAdminNestedInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUpdateManyWithoutDismissedByAdminNestedInput
+    marketingAlertsResolved?: marketing_alertsUpdateManyWithoutResolvedByAdminNestedInput
+    marketingAlertsAcknowledged?: marketing_alertsUpdateManyWithoutAcknowledgedByAdminNestedInput
+    marketingExperimentsCreated?: marketing_experimentsUpdateManyWithoutCreatedByAdminNestedInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUpdateManyWithoutRequestedByAdminNestedInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUpdateManyWithoutApproverNestedInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUpdateManyWithoutCreatedByAdminNestedInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUpdateManyWithoutReviewerNestedInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUpdateManyWithoutAuthoredByAdminNestedInput
+    teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
+    projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
+    assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
+    createdTasks?: TaskUpdateManyWithoutAssignerNestedInput
+    notifications?: NotificationUpdateManyWithoutAdminUserNestedInput
+    attendanceLogs?: AttendanceLogUpdateManyWithoutAdminUserNestedInput
+    leaveRequests?: LeaveRequestUpdateManyWithoutAdminUserNestedInput
+    reviewedLeaveRequests?: LeaveRequestUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUpdateManyWithoutAdminUserNestedInput
+    payrollRecords?: PayrollRecordUpdateManyWithoutAdminUserNestedInput
+    payslips?: PayslipUpdateManyWithoutAdminUserNestedInput
+    deductions?: DeductionUpdateManyWithoutAdminUserNestedInput
+    receipts?: ReceiptUpdateManyWithoutAdminUserNestedInput
+    invoices?: InvoiceUpdateManyWithoutAdminUserNestedInput
+  }
+
+  export type AdminUserUncheckedUpdateWithoutMfaChallengesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    position?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: NullableEnumDepartmentFieldUpdateOperationsInput | $Enums.Department | null
+    tier?: EnumAdminTierFieldUpdateOperationsInput | $Enums.AdminTier
+    status?: EnumAdminStatusFieldUpdateOperationsInput | $Enums.AdminStatus
+    isTeamLead?: BoolFieldUpdateOperationsInput | boolean
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    mainAppUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginIp?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
+    preferredName?: NullableStringFieldUpdateOperationsInput | string | null
+    birthday?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nationality?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    maritalStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    homePhone?: NullableStringFieldUpdateOperationsInput | string | null
+    personalPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    fax?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyName?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyRelation?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentType?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
     educations?: AdminEducationUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -256945,6 +265828,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -256969,6 +265859,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
     educations?: AdminEducationCreateNestedManyWithoutAdminUserInput
@@ -257061,6 +265954,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -257085,6 +265985,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
     educations?: AdminEducationUncheckedCreateNestedManyWithoutAdminUserInput
@@ -257193,6 +266096,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -257217,6 +266127,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
     educations?: AdminEducationUpdateManyWithoutAdminUserNestedInput
@@ -257309,6 +266222,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -257333,6 +266253,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
     educations?: AdminEducationUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -257425,6 +266348,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -257449,6 +266379,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -257541,6 +266474,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -257565,6 +266505,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -257673,6 +266616,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -257697,6 +266647,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -257789,6 +266742,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -257813,6 +266773,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -257905,6 +266868,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -257929,6 +266899,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     educations?: AdminEducationCreateNestedManyWithoutAdminUserInput
@@ -258021,6 +266994,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -258045,6 +267025,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     educations?: AdminEducationUncheckedCreateNestedManyWithoutAdminUserInput
@@ -258153,6 +267136,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -258177,6 +267167,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     educations?: AdminEducationUpdateManyWithoutAdminUserNestedInput
@@ -258269,6 +267262,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -258293,6 +267293,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     educations?: AdminEducationUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -258385,6 +267388,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -258409,6 +267419,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -258501,6 +267514,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -258525,6 +267545,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -258633,6 +267656,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -258657,6 +267687,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -258749,6 +267782,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -258773,6 +267813,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -258865,6 +267908,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -258889,6 +267939,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -258981,6 +268034,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -259005,6 +268065,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -259113,6 +268176,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -259137,6 +268207,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -259229,6 +268302,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -259253,6 +268333,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -259345,6 +268428,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -259369,6 +268459,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -259461,6 +268554,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -259485,6 +268585,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -259593,6 +268696,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -259617,6 +268727,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -259709,6 +268822,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -259733,6 +268853,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -259825,6 +268948,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -259849,6 +268979,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -259941,6 +269074,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -259965,6 +269105,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -260073,6 +269216,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -260097,6 +269247,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -260189,6 +269342,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -260213,6 +269373,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -260440,6 +269603,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -260464,6 +269634,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -260556,6 +269729,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -260580,6 +269760,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -260719,6 +269902,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -260743,6 +269933,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -260835,6 +270028,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -260859,6 +270059,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -261134,6 +270337,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -261158,6 +270368,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -261250,6 +270463,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -261274,6 +270494,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -261421,6 +270644,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -261445,6 +270675,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -261537,6 +270770,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -261561,6 +270801,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -261686,6 +270929,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -261710,6 +270960,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -261802,6 +271055,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -261826,6 +271086,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -261923,6 +271186,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -261947,6 +271217,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -262039,6 +271312,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -262063,6 +271343,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -262332,6 +271615,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -262356,6 +271646,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -262448,6 +271741,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -262472,6 +271772,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -262575,6 +271878,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -262599,6 +271909,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -262691,6 +272004,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -262715,6 +272035,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -262839,6 +272162,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -262863,6 +272193,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -262955,6 +272288,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -262979,6 +272319,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -263087,6 +272430,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -263111,6 +272461,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -263203,6 +272556,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -263227,6 +272587,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -263319,6 +272682,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -263343,6 +272713,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -263435,6 +272808,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -263459,6 +272839,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -263556,6 +272939,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -263580,6 +272970,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -263672,6 +273065,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -263696,6 +273096,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -263804,6 +273207,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -263828,6 +273238,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -263920,6 +273333,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -263944,6 +273364,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -264047,6 +273470,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -264071,6 +273501,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -264163,6 +273596,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -264187,6 +273627,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -264279,6 +273722,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -264303,6 +273753,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -264395,6 +273848,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -264419,6 +273879,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -264527,6 +273990,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -264551,6 +274021,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -264643,6 +274116,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -264667,6 +274147,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -264759,6 +274242,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -264783,6 +274273,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -264875,6 +274368,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -264899,6 +274399,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -265077,6 +274580,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -265101,6 +274611,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -265193,6 +274706,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -265217,6 +274737,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -265325,6 +274848,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -265349,6 +274879,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -265441,6 +274974,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -265465,6 +275005,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -265715,6 +275258,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -265739,6 +275289,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -265831,6 +275384,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -265855,6 +275415,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -266011,6 +275574,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -266035,6 +275605,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -266127,6 +275700,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -266151,6 +275731,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -266310,6 +275893,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -266334,6 +275924,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -266426,6 +276019,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -266450,6 +276050,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -266599,6 +276202,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -266623,6 +276233,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -266715,6 +276328,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -266739,6 +276359,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -266898,6 +276521,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -266922,6 +276552,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -267014,6 +276647,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -267038,6 +276678,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -267187,6 +276830,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -267211,6 +276861,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -267303,6 +276956,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -267327,6 +276987,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -267486,6 +277149,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -267510,6 +277180,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -267602,6 +277275,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -267626,6 +277306,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -267775,6 +277458,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -267799,6 +277489,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
@@ -267891,6 +277584,13 @@ export namespace Prisma {
     createdBy?: string | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    mfaEnrolledAt?: Date | string | null
+    mfaSecretEncrypted?: string | null
+    mfaPendingSecretEncrypted?: string | null
+    mfaPendingExpiresAt?: Date | string | null
+    mfaLastUsedStep?: number | null
+    mfaFailedAttempts?: number
+    mfaLockedUntil?: Date | string | null
     avatarUrl?: string | null
     avatarCloudinaryId?: string | null
     preferredName?: string | null
@@ -267915,6 +277615,9 @@ export namespace Prisma {
     salary?: Decimal | DecimalJsLike | number | string | null
     bonus?: Decimal | DecimalJsLike | number | string | null
     equity?: Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
     socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
@@ -268074,6 +277777,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -268098,6 +277808,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
@@ -268190,6 +277903,13 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaEnrolledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingSecretEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaPendingExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    mfaLastUsedStep?: NullableIntFieldUpdateOperationsInput | number | null
+    mfaFailedAttempts?: IntFieldUpdateOperationsInput | number
+    mfaLockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
     preferredName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -268214,6 +277934,9 @@ export namespace Prisma {
     salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
     socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
@@ -268642,6 +278365,42 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type AdminSessionCreateManyAdminUserInput = {
+    id?: string
+    mode: string
+    authMethod: string
+    csrfNonce: string
+    createdAt?: Date | string
+    lastSeenAt?: Date | string
+    idleExpiresAt: Date | string
+    absoluteExpiresAt: Date | string
+    mfaVerifiedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    revokeReason?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type AdminMfaRecoveryCodeCreateManyAdminUserInput = {
+    id?: string
+    salt: string
+    codeHash: string
+    createdAt?: Date | string
+    usedAt?: Date | string | null
+  }
+
+  export type AdminMfaChallengeCreateManyAdminUserInput = {
+    id?: string
+    tokenHash: string
+    authMethod: string
+    attempts?: number
+    expiresAt: Date | string
+    consumedAt?: Date | string | null
+    createdAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
   export type RefreshTokenCreateManyAdminUserInput = {
     id?: string
     token: string
@@ -268650,6 +278409,8 @@ export namespace Prisma {
     ipAddress?: string | null
     userAgent?: string | null
     createdAt?: Date | string
+    sessionId?: string | null
+    rotatedAt?: Date | string | null
   }
 
   export type AuditLogCreateManyAdminUserInput = {
@@ -269714,6 +279475,116 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type AdminSessionUpdateWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    csrfNonce?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idleExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    absoluteExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    refreshTokens?: RefreshTokenUpdateManyWithoutSessionNestedInput
+  }
+
+  export type AdminSessionUncheckedUpdateWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    csrfNonce?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idleExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    absoluteExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutSessionNestedInput
+  }
+
+  export type AdminSessionUncheckedUpdateManyWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    csrfNonce?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idleExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    absoluteExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminMfaRecoveryCodeUpdateWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminMfaRecoveryCodeUncheckedUpdateWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminMfaChallengeUpdateWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminMfaChallengeUncheckedUpdateWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    authMethod?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
   export type RefreshTokenUpdateWithoutAdminUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
@@ -269722,6 +279593,8 @@ export namespace Prisma {
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     userAgent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    session?: AdminSessionUpdateOneWithoutRefreshTokensNestedInput
   }
 
   export type RefreshTokenUncheckedUpdateWithoutAdminUserInput = {
@@ -269732,6 +279605,8 @@ export namespace Prisma {
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     userAgent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    rotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type RefreshTokenUncheckedUpdateManyWithoutAdminUserInput = {
@@ -269742,6 +279617,8 @@ export namespace Prisma {
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     userAgent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    rotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type AuditLogUpdateWithoutAdminUserInput = {
@@ -280448,6 +290325,54 @@ export namespace Prisma {
     providerRequestId?: NullableStringFieldUpdateOperationsInput | string | null
     responseMetaJson?: NullableJsonNullValueInput | InputJsonValue
     retryAfter?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type RefreshTokenCreateManySessionInput = {
+    id?: string
+    token: string
+    adminUserId: string
+    expiresAt: Date | string
+    isRevoked?: boolean
+    ipAddress?: string | null
+    userAgent?: string | null
+    createdAt?: Date | string
+    rotatedAt?: Date | string | null
+  }
+
+  export type RefreshTokenUpdateWithoutSessionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isRevoked?: BoolFieldUpdateOperationsInput | boolean
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adminUser?: AdminUserUpdateOneRequiredWithoutRefreshTokensNestedInput
+  }
+
+  export type RefreshTokenUncheckedUpdateWithoutSessionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isRevoked?: BoolFieldUpdateOperationsInput | boolean
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type RefreshTokenUncheckedUpdateManyWithoutSessionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isRevoked?: BoolFieldUpdateOperationsInput | boolean
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type TeamMemberCreateManyTeamInput = {

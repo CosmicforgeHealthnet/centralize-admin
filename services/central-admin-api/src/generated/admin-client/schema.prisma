@@ -132,6 +132,22 @@ enum AuditAction {
   EXECUTION_OVERRIDE_USED
   EXECUTION_DRIFT_ACKNOWLEDGED
   EXECUTION_OPERATION_RETRY_REVIEWED
+  SESSION_CREATED
+  SESSION_REVOKED
+  SESSIONS_REVOKED_ALL
+  REFRESH_TOKEN_REUSE_DETECTED
+  CSRF_REJECTED
+  MFA_ENROLLMENT_STARTED
+  MFA_ENROLLED
+  MFA_CHALLENGE_ISSUED
+  MFA_VERIFIED
+  MFA_FAILED
+  MFA_LOCKED
+  MFA_RECOVERY_CODE_USED
+  MFA_RECOVERY_CODES_REGENERATED
+  MFA_DISABLED
+  MFA_ADMIN_RESET
+  MFA_STEP_UP
 }
 
 enum ProjectStatus {
@@ -876,8 +892,20 @@ model AdminUser {
   createdBy            String?
 
   //  2FA
-  twoFactorEnabled Boolean @default(false)
-  twoFactorSecret  String?
+  // twoFactorEnabled is kept in sync for compatibility only. Verified MFA is
+  // mfaEnrolledAt != null with an encrypted secret (see src/shared/auth/mfa-core.js).
+  twoFactorEnabled          Boolean                @default(false)
+  twoFactorSecret           String?
+  mfaEnrolledAt             DateTime?              @map("mfa_enrolled_at")
+  mfaSecretEncrypted        String?                @map("mfa_secret_encrypted")
+  mfaPendingSecretEncrypted String?                @map("mfa_pending_secret_encrypted")
+  mfaPendingExpiresAt       DateTime?              @map("mfa_pending_expires_at")
+  mfaLastUsedStep           Int?                   @map("mfa_last_used_step")
+  mfaFailedAttempts         Int                    @default(0) @map("mfa_failed_attempts")
+  mfaLockedUntil            DateTime?              @map("mfa_locked_until")
+  sessions                  AdminSession[]
+  mfaRecoveryCodes          AdminMfaRecoveryCode[]
+  mfaChallenges             AdminMfaChallenge[]
 
   //  Avatar
   avatarUrl          String?
@@ -3206,17 +3234,78 @@ model AdminManualMigrationLedger {
 // -----------------------------------------------------------------------------
 
 model RefreshToken {
-  id          String    @id @default(uuid())
-  token       String    @unique
+  id          String        @id @default(uuid())
+  token       String        @unique
   adminUserId String
-  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  adminUser   AdminUser     @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
   expiresAt   DateTime
-  isRevoked   Boolean   @default(false)
+  isRevoked   Boolean       @default(false)
   ipAddress   String?
   userAgent   String?
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime      @default(now())
+  // Session family + rotation evidence for reuse detection (null on pre-session rows).
+  sessionId   String?       @map("session_id") @db.Uuid
+  session     AdminSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  rotatedAt   DateTime?     @map("rotated_at")
 
+  @@index([sessionId], map: "IDX_admin_refresh_tokens_session")
   @@map("admin_refresh_tokens")
+}
+
+// Server-side HQ login session. Access JWTs carry `sid`; every authenticated
+// request checks that the session is live. Never created from client input.
+model AdminSession {
+  id                String         @id @default(uuid()) @db.Uuid
+  adminUserId       String         @map("admin_user_id")
+  adminUser         AdminUser      @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  mode              String         @db.VarChar(16)
+  authMethod        String         @map("auth_method") @db.VarChar(32)
+  csrfNonce         String         @map("csrf_nonce") @db.VarChar(64)
+  createdAt         DateTime       @default(now()) @map("created_at")
+  lastSeenAt        DateTime       @default(now()) @map("last_seen_at")
+  idleExpiresAt     DateTime       @map("idle_expires_at")
+  absoluteExpiresAt DateTime       @map("absolute_expires_at")
+  mfaVerifiedAt     DateTime?      @map("mfa_verified_at")
+  revokedAt         DateTime?      @map("revoked_at")
+  revokeReason      String?        @map("revoke_reason") @db.VarChar(64)
+  ipAddress         String?        @map("ip_address") @db.VarChar(64)
+  userAgent         String?        @map("user_agent") @db.VarChar(512)
+  refreshTokens     RefreshToken[]
+
+  @@index([adminUserId, revokedAt], map: "IDX_admin_sessions_user_active")
+  @@map("admin_sessions")
+}
+
+model AdminMfaRecoveryCode {
+  id          String    @id @default(uuid()) @db.Uuid
+  adminUserId String    @map("admin_user_id")
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  salt        String    @db.VarChar(64)
+  codeHash    String    @map("code_hash") @db.Char(64)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  usedAt      DateTime? @map("used_at")
+
+  @@index([adminUserId], map: "IDX_admin_mfa_recovery_codes_user")
+  @@map("admin_mfa_recovery_codes")
+}
+
+// Second login step: proves the password (or Google) step succeeded. Single use,
+// short-lived, attempt-limited. Only a hash of the challenge token is stored.
+model AdminMfaChallenge {
+  id          String    @id @default(uuid()) @db.Uuid
+  adminUserId String    @map("admin_user_id")
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  tokenHash   String    @unique(map: "UQ_admin_mfa_challenges_token") @map("token_hash") @db.Char(64)
+  authMethod  String    @map("auth_method") @db.VarChar(32)
+  attempts    Int       @default(0)
+  expiresAt   DateTime  @map("expires_at")
+  consumedAt  DateTime? @map("consumed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  ipAddress   String?   @map("ip_address") @db.VarChar(64)
+  userAgent   String?   @map("user_agent") @db.VarChar(512)
+
+  @@index([adminUserId], map: "IDX_admin_mfa_challenges_user")
+  @@map("admin_mfa_challenges")
 }
 
 // -----------------------------------------------------------------------------
