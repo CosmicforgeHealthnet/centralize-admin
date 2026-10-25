@@ -17,7 +17,7 @@ function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
 }
 
-function createConfirmationService({ client, config, audit, jobs, encryption, marketingProviders, clock = () => new Date() }) {
+function createConfirmationService({ client, config, audit, jobs, encryption, marketingProviders, runtime = null, usage = null, clock = () => new Date() }) {
   // Hook used by the marketing service inside the consent transaction.
   async function onConfirmationRequired(tx, { organizationId, contact, consent, token }) {
     if (!config.confirmationEmailsEnabled) return { queued: false, reason: "CONFIRMATION_EMAILS_DISABLED" };
@@ -40,6 +40,9 @@ function createConfirmationService({ client, config, audit, jobs, encryption, ma
     const token = encryption.decrypt(Buffer.from(String(sealedToken), "base64"), PURPOSE).toString("utf8");
     if (crypto.createHash("sha256").update(token).digest("hex") !== consent.confirmationTokenHash) return { skipped: "TOKEN_SUPERSEDED" };
     if (!config.confirmationEmailsEnabled || config.emergencyStop.marketing) return { defer: { seconds: 900, code: "CONFIRMATION_EMAILS_HALTED" } };
+    const runtimeHalt = runtime ? await runtime.haltReason("MARKETING_CONFIRMATION", { organizationId }) : null;
+    if (runtimeHalt) return { defer: { seconds: 900, code: runtimeHalt } };
+    if (usage && !(await usage.check(organizationId, "MARKETING_CONFIRMATION", 1)).allowed) return { defer: { seconds: 3600, code: "MAIL_QUOTA_HARD_LIMIT" } };
     const [organization, contact, settings] = await Promise.all([
       client.mailOrganization.findUnique({ where: { id: organizationId } }),
       client.marketingContact.findUnique({ where: { id: contactId } }),
@@ -68,6 +71,7 @@ function createConfirmationService({ client, config, audit, jobs, encryption, ma
         headers: {},
         attachments: [],
       });
+      if (usage) await usage.record(null, { organizationId, purpose: "MARKETING_CONFIRMATION", accepted: 1, providerRequests: 1 }).catch(() => {});
       await audit.record({ action: "MARKETING_CONFIRMATION_EMAIL_HANDED_TO_PROVIDER", targetType: "marketing_contact", targetId: contact.id, organizationId, metadata: { topic: consent.topic } });
       return { providerMessageId: result.providerMessageId };
     } catch (error) {

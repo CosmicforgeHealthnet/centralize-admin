@@ -22,7 +22,7 @@ class PipelineError extends Error {
   }
 }
 
-function createInboundProcessor({ client, config, adapter, store, scanner, audit, notifications, clock = () => new Date() }) {
+function createInboundProcessor({ client, config, adapter, store, scanner, audit, notifications, usage = null, clock = () => new Date() }) {
   async function resolveRecipients(addresses) {
     const normalized = [...new Set(addresses.map(normalizeAddress).filter(Boolean))];
     if (!normalized.length) return { local: [], unknown: [] };
@@ -151,6 +151,7 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
             },
           });
         }
+        if (usage) await usage.record(tx, { organizationId: mailbox.organizationId, purpose: "INBOUND", received: 1, bytes: created.message.sizeBytes || 0 });
         await audit.record({ action: "MAIL_INBOUND_DELIVERED", targetType: "message", targetId: created.message.id, mailboxId: mailbox.id, metadata: { attachments: storedAttachments.length, quarantined: created.message.status === "QUARANTINED" } }, {}, tx);
         return created;
       });

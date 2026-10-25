@@ -863,6 +863,26 @@ export type MailProductIntegrationEvent = $Result.DefaultSelection<Prisma.$MailP
  * 
  */
 export type MailProductDeliveryEvent = $Result.DefaultSelection<Prisma.$MailProductDeliveryEventPayload>
+/**
+ * Model MailRetentionRun
+ * 
+ */
+export type MailRetentionRun = $Result.DefaultSelection<Prisma.$MailRetentionRunPayload>
+/**
+ * Model MailUsageDaily
+ * 
+ */
+export type MailUsageDaily = $Result.DefaultSelection<Prisma.$MailUsageDailyPayload>
+/**
+ * Model MailQuotaLimit
+ * 
+ */
+export type MailQuotaLimit = $Result.DefaultSelection<Prisma.$MailQuotaLimitPayload>
+/**
+ * Model MailOpsAlert
+ * 
+ */
+export type MailOpsAlert = $Result.DefaultSelection<Prisma.$MailOpsAlertPayload>
 
 /**
  * Enums
@@ -2424,6 +2444,25 @@ export const MailProductIntegrationStatus: {
 
 export type MailProductIntegrationStatus = (typeof MailProductIntegrationStatus)[keyof typeof MailProductIntegrationStatus]
 
+
+export const MailRetentionRunMode: {
+  DRY_RUN: 'DRY_RUN',
+  EXECUTE: 'EXECUTE'
+};
+
+export type MailRetentionRunMode = (typeof MailRetentionRunMode)[keyof typeof MailRetentionRunMode]
+
+
+export const MailRetentionRunStatus: {
+  QUEUED: 'QUEUED',
+  RUNNING: 'RUNNING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+};
+
+export type MailRetentionRunStatus = (typeof MailRetentionRunStatus)[keyof typeof MailRetentionRunStatus]
+
 }
 
 export type AdminTier = $Enums.AdminTier
@@ -2953,6 +2992,14 @@ export const MarketingTriggerEventStatus: typeof $Enums.MarketingTriggerEventSta
 export type MailProductIntegrationStatus = $Enums.MailProductIntegrationStatus
 
 export const MailProductIntegrationStatus: typeof $Enums.MailProductIntegrationStatus
+
+export type MailRetentionRunMode = $Enums.MailRetentionRunMode
+
+export const MailRetentionRunMode: typeof $Enums.MailRetentionRunMode
+
+export type MailRetentionRunStatus = $Enums.MailRetentionRunStatus
+
+export const MailRetentionRunStatus: typeof $Enums.MailRetentionRunStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -4774,6 +4821,46 @@ export class PrismaClient<
     * ```
     */
   get mailProductDeliveryEvent(): Prisma.MailProductDeliveryEventDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mailRetentionRun`: Exposes CRUD operations for the **MailRetentionRun** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MailRetentionRuns
+    * const mailRetentionRuns = await prisma.mailRetentionRun.findMany()
+    * ```
+    */
+  get mailRetentionRun(): Prisma.MailRetentionRunDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mailUsageDaily`: Exposes CRUD operations for the **MailUsageDaily** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MailUsageDailies
+    * const mailUsageDailies = await prisma.mailUsageDaily.findMany()
+    * ```
+    */
+  get mailUsageDaily(): Prisma.MailUsageDailyDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mailQuotaLimit`: Exposes CRUD operations for the **MailQuotaLimit** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MailQuotaLimits
+    * const mailQuotaLimits = await prisma.mailQuotaLimit.findMany()
+    * ```
+    */
+  get mailQuotaLimit(): Prisma.MailQuotaLimitDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mailOpsAlert`: Exposes CRUD operations for the **MailOpsAlert** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MailOpsAlerts
+    * const mailOpsAlerts = await prisma.mailOpsAlert.findMany()
+    * ```
+    */
+  get mailOpsAlert(): Prisma.MailOpsAlertDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -5390,7 +5477,11 @@ export namespace Prisma {
     MailProductIntegration: 'MailProductIntegration',
     MailProductSenderAuthorization: 'MailProductSenderAuthorization',
     MailProductIntegrationEvent: 'MailProductIntegrationEvent',
-    MailProductDeliveryEvent: 'MailProductDeliveryEvent'
+    MailProductDeliveryEvent: 'MailProductDeliveryEvent',
+    MailRetentionRun: 'MailRetentionRun',
+    MailUsageDaily: 'MailUsageDaily',
+    MailQuotaLimit: 'MailQuotaLimit',
+    MailOpsAlert: 'MailOpsAlert'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -5406,7 +5497,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "adminUser" | "marketing_campaigns" | "marketing_campaign_performance" | "marketing_campaign_timeline" | "marketing_campaign_team_members" | "marketing_content_items" | "marketing_content_monthly_performance" | "marketing_notification_events" | "marketing_email_templates" | "marketing_social_accounts" | "marketing_social_posts" | "marketing_social_analytics_snapshots" | "marketing_promotions" | "marketing_banners" | "marketing_analytics_snapshots" | "marketing_ad_platform_connections" | "marketing_ad_insights_raw" | "marketing_performance_snapshots" | "marketing_oauth_states" | "marketing_attributions" | "marketing_funnel_events" | "marketing_identity_links" | "marketing_attribution_decisions" | "marketing_intelligence_settings" | "marketing_intelligence_evaluation_runs" | "marketing_creative_assets" | "marketing_creative_performance_snapshots" | "marketing_creative_score_snapshots" | "marketing_recommendations" | "marketing_alerts" | "marketing_experiments" | "marketing_sync_locks" | "marketingExecutionPlan" | "marketingExecutionPlanItem" | "marketingExecutionApproval" | "marketingExecutionApprovalEvent" | "marketingExecutionRun" | "marketingExecutionJob" | "marketingProviderOperation" | "marketingProviderOperationAttempt" | "marketingExecutionStateSnapshot" | "marketingExecutionValidationIssue" | "marketingExecutionReconciliation" | "marketingExecutionPolicy" | "marketingCreativePublication" | "marketingCreativeMediaValidationEvidence" | "marketingCreativePublicationReviewEvent" | "marketingTargetingDiscovery" | "marketingExecutionAccountLock" | "marketingExecutionDeadLetterReview" | "marketingExecutionPolicyHistory" | "marketingExecutionValidationPacket" | "marketingExecutionDriftAcknowledgment" | "marketingExecutionRetryReview" | "marketingExecutionEmergencyOverride" | "marketingExecutionReconciliationJob" | "marketingExecutionCompensationLink" | "socialAccountConnection" | "socialPublishingIdentity" | "socialOAuthState" | "socialPost" | "socialPostRevision" | "socialPostTarget" | "socialPostApproval" | "socialPublication" | "socialPublicationAttempt" | "socialPublishingJob" | "socialMediaAsset" | "socialPostMedia" | "socialContact" | "socialConversation" | "socialMessage" | "socialTag" | "socialConversationTag" | "socialProviderContent" | "socialComment" | "socialEngagementEvent" | "socialEscalation" | "socialWebhookSubscription" | "socialWebhookEvent" | "socialIdentityMetricSnapshot" | "socialProviderContentMetricSnapshot" | "socialIdentitySyncState" | "socialActionJob" | "socialActionAttempt" | "socialInternalNote" | "socialSavedReply" | "socialOperationsSetting" | "adminManualMigrationLedger" | "adminSession" | "adminSessionRefreshToken" | "adminMfaEnrollment" | "adminMfaRecoveryCode" | "adminMfaChallenge" | "adminAuthEvent" | "refreshToken" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event" | "mailOrganization" | "mailDomain" | "mailMailbox" | "mailAddress" | "mailMembership" | "mailSenderGrant" | "mailProvisionRequest" | "mailThread" | "mailMessage" | "mailMessageRecipient" | "mailUserThreadState" | "mailDraft" | "mailLabel" | "mailThreadLabel" | "mailRule" | "mailAttachment" | "mailInternalNote" | "mailOutboxJob" | "mailWebhookEvent" | "mailDeliveryEvent" | "mailAuditEvent" | "mailRetentionPolicy" | "mailLegalHold" | "mailStepUpVerification" | "mailBreakGlassRequest" | "marketingContact" | "marketingConsent" | "marketingSuppression" | "marketingAudience" | "marketingAudienceContact" | "marketingSegment" | "marketingEmailTemplate" | "marketingTemplateVersion" | "marketingEmailCampaign" | "marketingCampaignSnapshot" | "marketingCampaignApproval" | "marketingBrandSettings" | "marketingCampaignApprovedContact" | "marketingBroadcastDispatch" | "marketingBroadcastRecipient" | "marketingAutomation" | "marketingAutomationVersion" | "marketingAutomationEnrollment" | "marketingAutomationStepRun" | "marketingTriggerEvent" | "mailProductIntegration" | "mailProductSenderAuthorization" | "mailProductIntegrationEvent" | "mailProductDeliveryEvent"
+      modelProps: "adminUser" | "marketing_campaigns" | "marketing_campaign_performance" | "marketing_campaign_timeline" | "marketing_campaign_team_members" | "marketing_content_items" | "marketing_content_monthly_performance" | "marketing_notification_events" | "marketing_email_templates" | "marketing_social_accounts" | "marketing_social_posts" | "marketing_social_analytics_snapshots" | "marketing_promotions" | "marketing_banners" | "marketing_analytics_snapshots" | "marketing_ad_platform_connections" | "marketing_ad_insights_raw" | "marketing_performance_snapshots" | "marketing_oauth_states" | "marketing_attributions" | "marketing_funnel_events" | "marketing_identity_links" | "marketing_attribution_decisions" | "marketing_intelligence_settings" | "marketing_intelligence_evaluation_runs" | "marketing_creative_assets" | "marketing_creative_performance_snapshots" | "marketing_creative_score_snapshots" | "marketing_recommendations" | "marketing_alerts" | "marketing_experiments" | "marketing_sync_locks" | "marketingExecutionPlan" | "marketingExecutionPlanItem" | "marketingExecutionApproval" | "marketingExecutionApprovalEvent" | "marketingExecutionRun" | "marketingExecutionJob" | "marketingProviderOperation" | "marketingProviderOperationAttempt" | "marketingExecutionStateSnapshot" | "marketingExecutionValidationIssue" | "marketingExecutionReconciliation" | "marketingExecutionPolicy" | "marketingCreativePublication" | "marketingCreativeMediaValidationEvidence" | "marketingCreativePublicationReviewEvent" | "marketingTargetingDiscovery" | "marketingExecutionAccountLock" | "marketingExecutionDeadLetterReview" | "marketingExecutionPolicyHistory" | "marketingExecutionValidationPacket" | "marketingExecutionDriftAcknowledgment" | "marketingExecutionRetryReview" | "marketingExecutionEmergencyOverride" | "marketingExecutionReconciliationJob" | "marketingExecutionCompensationLink" | "socialAccountConnection" | "socialPublishingIdentity" | "socialOAuthState" | "socialPost" | "socialPostRevision" | "socialPostTarget" | "socialPostApproval" | "socialPublication" | "socialPublicationAttempt" | "socialPublishingJob" | "socialMediaAsset" | "socialPostMedia" | "socialContact" | "socialConversation" | "socialMessage" | "socialTag" | "socialConversationTag" | "socialProviderContent" | "socialComment" | "socialEngagementEvent" | "socialEscalation" | "socialWebhookSubscription" | "socialWebhookEvent" | "socialIdentityMetricSnapshot" | "socialProviderContentMetricSnapshot" | "socialIdentitySyncState" | "socialActionJob" | "socialActionAttempt" | "socialInternalNote" | "socialSavedReply" | "socialOperationsSetting" | "adminManualMigrationLedger" | "adminSession" | "adminSessionRefreshToken" | "adminMfaEnrollment" | "adminMfaRecoveryCode" | "adminMfaChallenge" | "adminAuthEvent" | "refreshToken" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event" | "mailOrganization" | "mailDomain" | "mailMailbox" | "mailAddress" | "mailMembership" | "mailSenderGrant" | "mailProvisionRequest" | "mailThread" | "mailMessage" | "mailMessageRecipient" | "mailUserThreadState" | "mailDraft" | "mailLabel" | "mailThreadLabel" | "mailRule" | "mailAttachment" | "mailInternalNote" | "mailOutboxJob" | "mailWebhookEvent" | "mailDeliveryEvent" | "mailAuditEvent" | "mailRetentionPolicy" | "mailLegalHold" | "mailStepUpVerification" | "mailBreakGlassRequest" | "marketingContact" | "marketingConsent" | "marketingSuppression" | "marketingAudience" | "marketingAudienceContact" | "marketingSegment" | "marketingEmailTemplate" | "marketingTemplateVersion" | "marketingEmailCampaign" | "marketingCampaignSnapshot" | "marketingCampaignApproval" | "marketingBrandSettings" | "marketingCampaignApprovedContact" | "marketingBroadcastDispatch" | "marketingBroadcastRecipient" | "marketingAutomation" | "marketingAutomationVersion" | "marketingAutomationEnrollment" | "marketingAutomationStepRun" | "marketingTriggerEvent" | "mailProductIntegration" | "mailProductSenderAuthorization" | "mailProductIntegrationEvent" | "mailProductDeliveryEvent" | "mailRetentionRun" | "mailUsageDaily" | "mailQuotaLimit" | "mailOpsAlert"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -17990,6 +18081,302 @@ export namespace Prisma {
           }
         }
       }
+      MailRetentionRun: {
+        payload: Prisma.$MailRetentionRunPayload<ExtArgs>
+        fields: Prisma.MailRetentionRunFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MailRetentionRunFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRetentionRunPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MailRetentionRunFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRetentionRunPayload>
+          }
+          findFirst: {
+            args: Prisma.MailRetentionRunFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRetentionRunPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MailRetentionRunFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRetentionRunPayload>
+          }
+          findMany: {
+            args: Prisma.MailRetentionRunFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRetentionRunPayload>[]
+          }
+          create: {
+            args: Prisma.MailRetentionRunCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRetentionRunPayload>
+          }
+          createMany: {
+            args: Prisma.MailRetentionRunCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MailRetentionRunCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRetentionRunPayload>[]
+          }
+          delete: {
+            args: Prisma.MailRetentionRunDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRetentionRunPayload>
+          }
+          update: {
+            args: Prisma.MailRetentionRunUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRetentionRunPayload>
+          }
+          deleteMany: {
+            args: Prisma.MailRetentionRunDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MailRetentionRunUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MailRetentionRunUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRetentionRunPayload>[]
+          }
+          upsert: {
+            args: Prisma.MailRetentionRunUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailRetentionRunPayload>
+          }
+          aggregate: {
+            args: Prisma.MailRetentionRunAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMailRetentionRun>
+          }
+          groupBy: {
+            args: Prisma.MailRetentionRunGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MailRetentionRunGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MailRetentionRunCountArgs<ExtArgs>
+            result: $Utils.Optional<MailRetentionRunCountAggregateOutputType> | number
+          }
+        }
+      }
+      MailUsageDaily: {
+        payload: Prisma.$MailUsageDailyPayload<ExtArgs>
+        fields: Prisma.MailUsageDailyFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MailUsageDailyFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUsageDailyPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MailUsageDailyFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUsageDailyPayload>
+          }
+          findFirst: {
+            args: Prisma.MailUsageDailyFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUsageDailyPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MailUsageDailyFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUsageDailyPayload>
+          }
+          findMany: {
+            args: Prisma.MailUsageDailyFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUsageDailyPayload>[]
+          }
+          create: {
+            args: Prisma.MailUsageDailyCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUsageDailyPayload>
+          }
+          createMany: {
+            args: Prisma.MailUsageDailyCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MailUsageDailyCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUsageDailyPayload>[]
+          }
+          delete: {
+            args: Prisma.MailUsageDailyDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUsageDailyPayload>
+          }
+          update: {
+            args: Prisma.MailUsageDailyUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUsageDailyPayload>
+          }
+          deleteMany: {
+            args: Prisma.MailUsageDailyDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MailUsageDailyUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MailUsageDailyUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUsageDailyPayload>[]
+          }
+          upsert: {
+            args: Prisma.MailUsageDailyUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUsageDailyPayload>
+          }
+          aggregate: {
+            args: Prisma.MailUsageDailyAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMailUsageDaily>
+          }
+          groupBy: {
+            args: Prisma.MailUsageDailyGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MailUsageDailyGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MailUsageDailyCountArgs<ExtArgs>
+            result: $Utils.Optional<MailUsageDailyCountAggregateOutputType> | number
+          }
+        }
+      }
+      MailQuotaLimit: {
+        payload: Prisma.$MailQuotaLimitPayload<ExtArgs>
+        fields: Prisma.MailQuotaLimitFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MailQuotaLimitFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailQuotaLimitPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MailQuotaLimitFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailQuotaLimitPayload>
+          }
+          findFirst: {
+            args: Prisma.MailQuotaLimitFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailQuotaLimitPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MailQuotaLimitFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailQuotaLimitPayload>
+          }
+          findMany: {
+            args: Prisma.MailQuotaLimitFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailQuotaLimitPayload>[]
+          }
+          create: {
+            args: Prisma.MailQuotaLimitCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailQuotaLimitPayload>
+          }
+          createMany: {
+            args: Prisma.MailQuotaLimitCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MailQuotaLimitCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailQuotaLimitPayload>[]
+          }
+          delete: {
+            args: Prisma.MailQuotaLimitDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailQuotaLimitPayload>
+          }
+          update: {
+            args: Prisma.MailQuotaLimitUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailQuotaLimitPayload>
+          }
+          deleteMany: {
+            args: Prisma.MailQuotaLimitDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MailQuotaLimitUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MailQuotaLimitUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailQuotaLimitPayload>[]
+          }
+          upsert: {
+            args: Prisma.MailQuotaLimitUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailQuotaLimitPayload>
+          }
+          aggregate: {
+            args: Prisma.MailQuotaLimitAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMailQuotaLimit>
+          }
+          groupBy: {
+            args: Prisma.MailQuotaLimitGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MailQuotaLimitGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MailQuotaLimitCountArgs<ExtArgs>
+            result: $Utils.Optional<MailQuotaLimitCountAggregateOutputType> | number
+          }
+        }
+      }
+      MailOpsAlert: {
+        payload: Prisma.$MailOpsAlertPayload<ExtArgs>
+        fields: Prisma.MailOpsAlertFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MailOpsAlertFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailOpsAlertPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MailOpsAlertFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailOpsAlertPayload>
+          }
+          findFirst: {
+            args: Prisma.MailOpsAlertFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailOpsAlertPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MailOpsAlertFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailOpsAlertPayload>
+          }
+          findMany: {
+            args: Prisma.MailOpsAlertFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailOpsAlertPayload>[]
+          }
+          create: {
+            args: Prisma.MailOpsAlertCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailOpsAlertPayload>
+          }
+          createMany: {
+            args: Prisma.MailOpsAlertCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MailOpsAlertCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailOpsAlertPayload>[]
+          }
+          delete: {
+            args: Prisma.MailOpsAlertDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailOpsAlertPayload>
+          }
+          update: {
+            args: Prisma.MailOpsAlertUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailOpsAlertPayload>
+          }
+          deleteMany: {
+            args: Prisma.MailOpsAlertDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MailOpsAlertUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MailOpsAlertUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailOpsAlertPayload>[]
+          }
+          upsert: {
+            args: Prisma.MailOpsAlertUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailOpsAlertPayload>
+          }
+          aggregate: {
+            args: Prisma.MailOpsAlertAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMailOpsAlert>
+          }
+          groupBy: {
+            args: Prisma.MailOpsAlertGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MailOpsAlertGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MailOpsAlertCountArgs<ExtArgs>
+            result: $Utils.Optional<MailOpsAlertCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -18283,6 +18670,10 @@ export namespace Prisma {
     mailProductSenderAuthorization?: MailProductSenderAuthorizationOmit
     mailProductIntegrationEvent?: MailProductIntegrationEventOmit
     mailProductDeliveryEvent?: MailProductDeliveryEventOmit
+    mailRetentionRun?: MailRetentionRunOmit
+    mailUsageDaily?: MailUsageDailyOmit
+    mailQuotaLimit?: MailQuotaLimitOmit
+    mailOpsAlert?: MailOpsAlertOmit
   }
 
   /* Types for Logging */
@@ -231886,6 +232277,4471 @@ export namespace Prisma {
 
 
   /**
+   * Model MailRetentionRun
+   */
+
+  export type AggregateMailRetentionRun = {
+    _count: MailRetentionRunCountAggregateOutputType | null
+    _min: MailRetentionRunMinAggregateOutputType | null
+    _max: MailRetentionRunMaxAggregateOutputType | null
+  }
+
+  export type MailRetentionRunMinAggregateOutputType = {
+    id: string | null
+    organizationId: string | null
+    policyId: string | null
+    category: string | null
+    action: string | null
+    mode: $Enums.MailRetentionRunMode | null
+    status: $Enums.MailRetentionRunStatus | null
+    cutoff: Date | null
+    dryRunId: string | null
+    requestedBy: string | null
+    errorCode: string | null
+    startedAt: Date | null
+    completedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MailRetentionRunMaxAggregateOutputType = {
+    id: string | null
+    organizationId: string | null
+    policyId: string | null
+    category: string | null
+    action: string | null
+    mode: $Enums.MailRetentionRunMode | null
+    status: $Enums.MailRetentionRunStatus | null
+    cutoff: Date | null
+    dryRunId: string | null
+    requestedBy: string | null
+    errorCode: string | null
+    startedAt: Date | null
+    completedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MailRetentionRunCountAggregateOutputType = {
+    id: number
+    organizationId: number
+    policyId: number
+    category: number
+    action: number
+    mode: number
+    status: number
+    cutoff: number
+    dryRunId: number
+    requestedBy: number
+    counts: number
+    cursor: number
+    errorCode: number
+    startedAt: number
+    completedAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MailRetentionRunMinAggregateInputType = {
+    id?: true
+    organizationId?: true
+    policyId?: true
+    category?: true
+    action?: true
+    mode?: true
+    status?: true
+    cutoff?: true
+    dryRunId?: true
+    requestedBy?: true
+    errorCode?: true
+    startedAt?: true
+    completedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MailRetentionRunMaxAggregateInputType = {
+    id?: true
+    organizationId?: true
+    policyId?: true
+    category?: true
+    action?: true
+    mode?: true
+    status?: true
+    cutoff?: true
+    dryRunId?: true
+    requestedBy?: true
+    errorCode?: true
+    startedAt?: true
+    completedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MailRetentionRunCountAggregateInputType = {
+    id?: true
+    organizationId?: true
+    policyId?: true
+    category?: true
+    action?: true
+    mode?: true
+    status?: true
+    cutoff?: true
+    dryRunId?: true
+    requestedBy?: true
+    counts?: true
+    cursor?: true
+    errorCode?: true
+    startedAt?: true
+    completedAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MailRetentionRunAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailRetentionRun to aggregate.
+     */
+    where?: MailRetentionRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailRetentionRuns to fetch.
+     */
+    orderBy?: MailRetentionRunOrderByWithRelationInput | MailRetentionRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MailRetentionRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailRetentionRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailRetentionRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MailRetentionRuns
+    **/
+    _count?: true | MailRetentionRunCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MailRetentionRunMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MailRetentionRunMaxAggregateInputType
+  }
+
+  export type GetMailRetentionRunAggregateType<T extends MailRetentionRunAggregateArgs> = {
+        [P in keyof T & keyof AggregateMailRetentionRun]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMailRetentionRun[P]>
+      : GetScalarType<T[P], AggregateMailRetentionRun[P]>
+  }
+
+
+
+
+  export type MailRetentionRunGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailRetentionRunWhereInput
+    orderBy?: MailRetentionRunOrderByWithAggregationInput | MailRetentionRunOrderByWithAggregationInput[]
+    by: MailRetentionRunScalarFieldEnum[] | MailRetentionRunScalarFieldEnum
+    having?: MailRetentionRunScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MailRetentionRunCountAggregateInputType | true
+    _min?: MailRetentionRunMinAggregateInputType
+    _max?: MailRetentionRunMaxAggregateInputType
+  }
+
+  export type MailRetentionRunGroupByOutputType = {
+    id: string
+    organizationId: string | null
+    policyId: string | null
+    category: string
+    action: string
+    mode: $Enums.MailRetentionRunMode
+    status: $Enums.MailRetentionRunStatus
+    cutoff: Date
+    dryRunId: string | null
+    requestedBy: string
+    counts: JsonValue
+    cursor: JsonValue | null
+    errorCode: string | null
+    startedAt: Date | null
+    completedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: MailRetentionRunCountAggregateOutputType | null
+    _min: MailRetentionRunMinAggregateOutputType | null
+    _max: MailRetentionRunMaxAggregateOutputType | null
+  }
+
+  type GetMailRetentionRunGroupByPayload<T extends MailRetentionRunGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MailRetentionRunGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MailRetentionRunGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MailRetentionRunGroupByOutputType[P]>
+            : GetScalarType<T[P], MailRetentionRunGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MailRetentionRunSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    policyId?: boolean
+    category?: boolean
+    action?: boolean
+    mode?: boolean
+    status?: boolean
+    cutoff?: boolean
+    dryRunId?: boolean
+    requestedBy?: boolean
+    counts?: boolean
+    cursor?: boolean
+    errorCode?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["mailRetentionRun"]>
+
+  export type MailRetentionRunSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    policyId?: boolean
+    category?: boolean
+    action?: boolean
+    mode?: boolean
+    status?: boolean
+    cutoff?: boolean
+    dryRunId?: boolean
+    requestedBy?: boolean
+    counts?: boolean
+    cursor?: boolean
+    errorCode?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["mailRetentionRun"]>
+
+  export type MailRetentionRunSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    policyId?: boolean
+    category?: boolean
+    action?: boolean
+    mode?: boolean
+    status?: boolean
+    cutoff?: boolean
+    dryRunId?: boolean
+    requestedBy?: boolean
+    counts?: boolean
+    cursor?: boolean
+    errorCode?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["mailRetentionRun"]>
+
+  export type MailRetentionRunSelectScalar = {
+    id?: boolean
+    organizationId?: boolean
+    policyId?: boolean
+    category?: boolean
+    action?: boolean
+    mode?: boolean
+    status?: boolean
+    cutoff?: boolean
+    dryRunId?: boolean
+    requestedBy?: boolean
+    counts?: boolean
+    cursor?: boolean
+    errorCode?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type MailRetentionRunOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "policyId" | "category" | "action" | "mode" | "status" | "cutoff" | "dryRunId" | "requestedBy" | "counts" | "cursor" | "errorCode" | "startedAt" | "completedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["mailRetentionRun"]>
+
+  export type $MailRetentionRunPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MailRetentionRun"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      organizationId: string | null
+      policyId: string | null
+      category: string
+      action: string
+      mode: $Enums.MailRetentionRunMode
+      status: $Enums.MailRetentionRunStatus
+      cutoff: Date
+      dryRunId: string | null
+      requestedBy: string
+      counts: Prisma.JsonValue
+      cursor: Prisma.JsonValue | null
+      errorCode: string | null
+      startedAt: Date | null
+      completedAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["mailRetentionRun"]>
+    composites: {}
+  }
+
+  type MailRetentionRunGetPayload<S extends boolean | null | undefined | MailRetentionRunDefaultArgs> = $Result.GetResult<Prisma.$MailRetentionRunPayload, S>
+
+  type MailRetentionRunCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MailRetentionRunFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MailRetentionRunCountAggregateInputType | true
+    }
+
+  export interface MailRetentionRunDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MailRetentionRun'], meta: { name: 'MailRetentionRun' } }
+    /**
+     * Find zero or one MailRetentionRun that matches the filter.
+     * @param {MailRetentionRunFindUniqueArgs} args - Arguments to find a MailRetentionRun
+     * @example
+     * // Get one MailRetentionRun
+     * const mailRetentionRun = await prisma.mailRetentionRun.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MailRetentionRunFindUniqueArgs>(args: SelectSubset<T, MailRetentionRunFindUniqueArgs<ExtArgs>>): Prisma__MailRetentionRunClient<$Result.GetResult<Prisma.$MailRetentionRunPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MailRetentionRun that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MailRetentionRunFindUniqueOrThrowArgs} args - Arguments to find a MailRetentionRun
+     * @example
+     * // Get one MailRetentionRun
+     * const mailRetentionRun = await prisma.mailRetentionRun.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MailRetentionRunFindUniqueOrThrowArgs>(args: SelectSubset<T, MailRetentionRunFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MailRetentionRunClient<$Result.GetResult<Prisma.$MailRetentionRunPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailRetentionRun that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRetentionRunFindFirstArgs} args - Arguments to find a MailRetentionRun
+     * @example
+     * // Get one MailRetentionRun
+     * const mailRetentionRun = await prisma.mailRetentionRun.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MailRetentionRunFindFirstArgs>(args?: SelectSubset<T, MailRetentionRunFindFirstArgs<ExtArgs>>): Prisma__MailRetentionRunClient<$Result.GetResult<Prisma.$MailRetentionRunPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailRetentionRun that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRetentionRunFindFirstOrThrowArgs} args - Arguments to find a MailRetentionRun
+     * @example
+     * // Get one MailRetentionRun
+     * const mailRetentionRun = await prisma.mailRetentionRun.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MailRetentionRunFindFirstOrThrowArgs>(args?: SelectSubset<T, MailRetentionRunFindFirstOrThrowArgs<ExtArgs>>): Prisma__MailRetentionRunClient<$Result.GetResult<Prisma.$MailRetentionRunPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MailRetentionRuns that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRetentionRunFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MailRetentionRuns
+     * const mailRetentionRuns = await prisma.mailRetentionRun.findMany()
+     * 
+     * // Get first 10 MailRetentionRuns
+     * const mailRetentionRuns = await prisma.mailRetentionRun.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const mailRetentionRunWithIdOnly = await prisma.mailRetentionRun.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MailRetentionRunFindManyArgs>(args?: SelectSubset<T, MailRetentionRunFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailRetentionRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MailRetentionRun.
+     * @param {MailRetentionRunCreateArgs} args - Arguments to create a MailRetentionRun.
+     * @example
+     * // Create one MailRetentionRun
+     * const MailRetentionRun = await prisma.mailRetentionRun.create({
+     *   data: {
+     *     // ... data to create a MailRetentionRun
+     *   }
+     * })
+     * 
+     */
+    create<T extends MailRetentionRunCreateArgs>(args: SelectSubset<T, MailRetentionRunCreateArgs<ExtArgs>>): Prisma__MailRetentionRunClient<$Result.GetResult<Prisma.$MailRetentionRunPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MailRetentionRuns.
+     * @param {MailRetentionRunCreateManyArgs} args - Arguments to create many MailRetentionRuns.
+     * @example
+     * // Create many MailRetentionRuns
+     * const mailRetentionRun = await prisma.mailRetentionRun.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MailRetentionRunCreateManyArgs>(args?: SelectSubset<T, MailRetentionRunCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MailRetentionRuns and returns the data saved in the database.
+     * @param {MailRetentionRunCreateManyAndReturnArgs} args - Arguments to create many MailRetentionRuns.
+     * @example
+     * // Create many MailRetentionRuns
+     * const mailRetentionRun = await prisma.mailRetentionRun.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MailRetentionRuns and only return the `id`
+     * const mailRetentionRunWithIdOnly = await prisma.mailRetentionRun.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MailRetentionRunCreateManyAndReturnArgs>(args?: SelectSubset<T, MailRetentionRunCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailRetentionRunPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MailRetentionRun.
+     * @param {MailRetentionRunDeleteArgs} args - Arguments to delete one MailRetentionRun.
+     * @example
+     * // Delete one MailRetentionRun
+     * const MailRetentionRun = await prisma.mailRetentionRun.delete({
+     *   where: {
+     *     // ... filter to delete one MailRetentionRun
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MailRetentionRunDeleteArgs>(args: SelectSubset<T, MailRetentionRunDeleteArgs<ExtArgs>>): Prisma__MailRetentionRunClient<$Result.GetResult<Prisma.$MailRetentionRunPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MailRetentionRun.
+     * @param {MailRetentionRunUpdateArgs} args - Arguments to update one MailRetentionRun.
+     * @example
+     * // Update one MailRetentionRun
+     * const mailRetentionRun = await prisma.mailRetentionRun.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MailRetentionRunUpdateArgs>(args: SelectSubset<T, MailRetentionRunUpdateArgs<ExtArgs>>): Prisma__MailRetentionRunClient<$Result.GetResult<Prisma.$MailRetentionRunPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MailRetentionRuns.
+     * @param {MailRetentionRunDeleteManyArgs} args - Arguments to filter MailRetentionRuns to delete.
+     * @example
+     * // Delete a few MailRetentionRuns
+     * const { count } = await prisma.mailRetentionRun.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MailRetentionRunDeleteManyArgs>(args?: SelectSubset<T, MailRetentionRunDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailRetentionRuns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRetentionRunUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MailRetentionRuns
+     * const mailRetentionRun = await prisma.mailRetentionRun.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MailRetentionRunUpdateManyArgs>(args: SelectSubset<T, MailRetentionRunUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailRetentionRuns and returns the data updated in the database.
+     * @param {MailRetentionRunUpdateManyAndReturnArgs} args - Arguments to update many MailRetentionRuns.
+     * @example
+     * // Update many MailRetentionRuns
+     * const mailRetentionRun = await prisma.mailRetentionRun.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MailRetentionRuns and only return the `id`
+     * const mailRetentionRunWithIdOnly = await prisma.mailRetentionRun.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MailRetentionRunUpdateManyAndReturnArgs>(args: SelectSubset<T, MailRetentionRunUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailRetentionRunPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MailRetentionRun.
+     * @param {MailRetentionRunUpsertArgs} args - Arguments to update or create a MailRetentionRun.
+     * @example
+     * // Update or create a MailRetentionRun
+     * const mailRetentionRun = await prisma.mailRetentionRun.upsert({
+     *   create: {
+     *     // ... data to create a MailRetentionRun
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MailRetentionRun we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MailRetentionRunUpsertArgs>(args: SelectSubset<T, MailRetentionRunUpsertArgs<ExtArgs>>): Prisma__MailRetentionRunClient<$Result.GetResult<Prisma.$MailRetentionRunPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MailRetentionRuns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRetentionRunCountArgs} args - Arguments to filter MailRetentionRuns to count.
+     * @example
+     * // Count the number of MailRetentionRuns
+     * const count = await prisma.mailRetentionRun.count({
+     *   where: {
+     *     // ... the filter for the MailRetentionRuns we want to count
+     *   }
+     * })
+    **/
+    count<T extends MailRetentionRunCountArgs>(
+      args?: Subset<T, MailRetentionRunCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MailRetentionRunCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MailRetentionRun.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRetentionRunAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MailRetentionRunAggregateArgs>(args: Subset<T, MailRetentionRunAggregateArgs>): Prisma.PrismaPromise<GetMailRetentionRunAggregateType<T>>
+
+    /**
+     * Group by MailRetentionRun.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailRetentionRunGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MailRetentionRunGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MailRetentionRunGroupByArgs['orderBy'] }
+        : { orderBy?: MailRetentionRunGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MailRetentionRunGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMailRetentionRunGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MailRetentionRun model
+   */
+  readonly fields: MailRetentionRunFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MailRetentionRun.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MailRetentionRunClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MailRetentionRun model
+   */
+  interface MailRetentionRunFieldRefs {
+    readonly id: FieldRef<"MailRetentionRun", 'String'>
+    readonly organizationId: FieldRef<"MailRetentionRun", 'String'>
+    readonly policyId: FieldRef<"MailRetentionRun", 'String'>
+    readonly category: FieldRef<"MailRetentionRun", 'String'>
+    readonly action: FieldRef<"MailRetentionRun", 'String'>
+    readonly mode: FieldRef<"MailRetentionRun", 'MailRetentionRunMode'>
+    readonly status: FieldRef<"MailRetentionRun", 'MailRetentionRunStatus'>
+    readonly cutoff: FieldRef<"MailRetentionRun", 'DateTime'>
+    readonly dryRunId: FieldRef<"MailRetentionRun", 'String'>
+    readonly requestedBy: FieldRef<"MailRetentionRun", 'String'>
+    readonly counts: FieldRef<"MailRetentionRun", 'Json'>
+    readonly cursor: FieldRef<"MailRetentionRun", 'Json'>
+    readonly errorCode: FieldRef<"MailRetentionRun", 'String'>
+    readonly startedAt: FieldRef<"MailRetentionRun", 'DateTime'>
+    readonly completedAt: FieldRef<"MailRetentionRun", 'DateTime'>
+    readonly createdAt: FieldRef<"MailRetentionRun", 'DateTime'>
+    readonly updatedAt: FieldRef<"MailRetentionRun", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MailRetentionRun findUnique
+   */
+  export type MailRetentionRunFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRetentionRun
+     */
+    select?: MailRetentionRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRetentionRun
+     */
+    omit?: MailRetentionRunOmit<ExtArgs> | null
+    /**
+     * Filter, which MailRetentionRun to fetch.
+     */
+    where: MailRetentionRunWhereUniqueInput
+  }
+
+  /**
+   * MailRetentionRun findUniqueOrThrow
+   */
+  export type MailRetentionRunFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRetentionRun
+     */
+    select?: MailRetentionRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRetentionRun
+     */
+    omit?: MailRetentionRunOmit<ExtArgs> | null
+    /**
+     * Filter, which MailRetentionRun to fetch.
+     */
+    where: MailRetentionRunWhereUniqueInput
+  }
+
+  /**
+   * MailRetentionRun findFirst
+   */
+  export type MailRetentionRunFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRetentionRun
+     */
+    select?: MailRetentionRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRetentionRun
+     */
+    omit?: MailRetentionRunOmit<ExtArgs> | null
+    /**
+     * Filter, which MailRetentionRun to fetch.
+     */
+    where?: MailRetentionRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailRetentionRuns to fetch.
+     */
+    orderBy?: MailRetentionRunOrderByWithRelationInput | MailRetentionRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailRetentionRuns.
+     */
+    cursor?: MailRetentionRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailRetentionRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailRetentionRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailRetentionRuns.
+     */
+    distinct?: MailRetentionRunScalarFieldEnum | MailRetentionRunScalarFieldEnum[]
+  }
+
+  /**
+   * MailRetentionRun findFirstOrThrow
+   */
+  export type MailRetentionRunFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRetentionRun
+     */
+    select?: MailRetentionRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRetentionRun
+     */
+    omit?: MailRetentionRunOmit<ExtArgs> | null
+    /**
+     * Filter, which MailRetentionRun to fetch.
+     */
+    where?: MailRetentionRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailRetentionRuns to fetch.
+     */
+    orderBy?: MailRetentionRunOrderByWithRelationInput | MailRetentionRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailRetentionRuns.
+     */
+    cursor?: MailRetentionRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailRetentionRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailRetentionRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailRetentionRuns.
+     */
+    distinct?: MailRetentionRunScalarFieldEnum | MailRetentionRunScalarFieldEnum[]
+  }
+
+  /**
+   * MailRetentionRun findMany
+   */
+  export type MailRetentionRunFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRetentionRun
+     */
+    select?: MailRetentionRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRetentionRun
+     */
+    omit?: MailRetentionRunOmit<ExtArgs> | null
+    /**
+     * Filter, which MailRetentionRuns to fetch.
+     */
+    where?: MailRetentionRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailRetentionRuns to fetch.
+     */
+    orderBy?: MailRetentionRunOrderByWithRelationInput | MailRetentionRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MailRetentionRuns.
+     */
+    cursor?: MailRetentionRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailRetentionRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailRetentionRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailRetentionRuns.
+     */
+    distinct?: MailRetentionRunScalarFieldEnum | MailRetentionRunScalarFieldEnum[]
+  }
+
+  /**
+   * MailRetentionRun create
+   */
+  export type MailRetentionRunCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRetentionRun
+     */
+    select?: MailRetentionRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRetentionRun
+     */
+    omit?: MailRetentionRunOmit<ExtArgs> | null
+    /**
+     * The data needed to create a MailRetentionRun.
+     */
+    data: XOR<MailRetentionRunCreateInput, MailRetentionRunUncheckedCreateInput>
+  }
+
+  /**
+   * MailRetentionRun createMany
+   */
+  export type MailRetentionRunCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MailRetentionRuns.
+     */
+    data: MailRetentionRunCreateManyInput | MailRetentionRunCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailRetentionRun createManyAndReturn
+   */
+  export type MailRetentionRunCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRetentionRun
+     */
+    select?: MailRetentionRunSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRetentionRun
+     */
+    omit?: MailRetentionRunOmit<ExtArgs> | null
+    /**
+     * The data used to create many MailRetentionRuns.
+     */
+    data: MailRetentionRunCreateManyInput | MailRetentionRunCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailRetentionRun update
+   */
+  export type MailRetentionRunUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRetentionRun
+     */
+    select?: MailRetentionRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRetentionRun
+     */
+    omit?: MailRetentionRunOmit<ExtArgs> | null
+    /**
+     * The data needed to update a MailRetentionRun.
+     */
+    data: XOR<MailRetentionRunUpdateInput, MailRetentionRunUncheckedUpdateInput>
+    /**
+     * Choose, which MailRetentionRun to update.
+     */
+    where: MailRetentionRunWhereUniqueInput
+  }
+
+  /**
+   * MailRetentionRun updateMany
+   */
+  export type MailRetentionRunUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MailRetentionRuns.
+     */
+    data: XOR<MailRetentionRunUpdateManyMutationInput, MailRetentionRunUncheckedUpdateManyInput>
+    /**
+     * Filter which MailRetentionRuns to update
+     */
+    where?: MailRetentionRunWhereInput
+    /**
+     * Limit how many MailRetentionRuns to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailRetentionRun updateManyAndReturn
+   */
+  export type MailRetentionRunUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRetentionRun
+     */
+    select?: MailRetentionRunSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRetentionRun
+     */
+    omit?: MailRetentionRunOmit<ExtArgs> | null
+    /**
+     * The data used to update MailRetentionRuns.
+     */
+    data: XOR<MailRetentionRunUpdateManyMutationInput, MailRetentionRunUncheckedUpdateManyInput>
+    /**
+     * Filter which MailRetentionRuns to update
+     */
+    where?: MailRetentionRunWhereInput
+    /**
+     * Limit how many MailRetentionRuns to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailRetentionRun upsert
+   */
+  export type MailRetentionRunUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRetentionRun
+     */
+    select?: MailRetentionRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRetentionRun
+     */
+    omit?: MailRetentionRunOmit<ExtArgs> | null
+    /**
+     * The filter to search for the MailRetentionRun to update in case it exists.
+     */
+    where: MailRetentionRunWhereUniqueInput
+    /**
+     * In case the MailRetentionRun found by the `where` argument doesn't exist, create a new MailRetentionRun with this data.
+     */
+    create: XOR<MailRetentionRunCreateInput, MailRetentionRunUncheckedCreateInput>
+    /**
+     * In case the MailRetentionRun was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MailRetentionRunUpdateInput, MailRetentionRunUncheckedUpdateInput>
+  }
+
+  /**
+   * MailRetentionRun delete
+   */
+  export type MailRetentionRunDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRetentionRun
+     */
+    select?: MailRetentionRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRetentionRun
+     */
+    omit?: MailRetentionRunOmit<ExtArgs> | null
+    /**
+     * Filter which MailRetentionRun to delete.
+     */
+    where: MailRetentionRunWhereUniqueInput
+  }
+
+  /**
+   * MailRetentionRun deleteMany
+   */
+  export type MailRetentionRunDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailRetentionRuns to delete
+     */
+    where?: MailRetentionRunWhereInput
+    /**
+     * Limit how many MailRetentionRuns to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailRetentionRun without action
+   */
+  export type MailRetentionRunDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailRetentionRun
+     */
+    select?: MailRetentionRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailRetentionRun
+     */
+    omit?: MailRetentionRunOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MailUsageDaily
+   */
+
+  export type AggregateMailUsageDaily = {
+    _count: MailUsageDailyCountAggregateOutputType | null
+    _avg: MailUsageDailyAvgAggregateOutputType | null
+    _sum: MailUsageDailySumAggregateOutputType | null
+    _min: MailUsageDailyMinAggregateOutputType | null
+    _max: MailUsageDailyMaxAggregateOutputType | null
+  }
+
+  export type MailUsageDailyAvgAggregateOutputType = {
+    accepted: number | null
+    rejected: number | null
+    received: number | null
+    providerRequests: number | null
+    bytes: number | null
+  }
+
+  export type MailUsageDailySumAggregateOutputType = {
+    accepted: number | null
+    rejected: number | null
+    received: number | null
+    providerRequests: number | null
+    bytes: bigint | null
+  }
+
+  export type MailUsageDailyMinAggregateOutputType = {
+    organizationId: string | null
+    purpose: string | null
+    day: Date | null
+    accepted: number | null
+    rejected: number | null
+    received: number | null
+    providerRequests: number | null
+    bytes: bigint | null
+    updatedAt: Date | null
+  }
+
+  export type MailUsageDailyMaxAggregateOutputType = {
+    organizationId: string | null
+    purpose: string | null
+    day: Date | null
+    accepted: number | null
+    rejected: number | null
+    received: number | null
+    providerRequests: number | null
+    bytes: bigint | null
+    updatedAt: Date | null
+  }
+
+  export type MailUsageDailyCountAggregateOutputType = {
+    organizationId: number
+    purpose: number
+    day: number
+    accepted: number
+    rejected: number
+    received: number
+    providerRequests: number
+    bytes: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MailUsageDailyAvgAggregateInputType = {
+    accepted?: true
+    rejected?: true
+    received?: true
+    providerRequests?: true
+    bytes?: true
+  }
+
+  export type MailUsageDailySumAggregateInputType = {
+    accepted?: true
+    rejected?: true
+    received?: true
+    providerRequests?: true
+    bytes?: true
+  }
+
+  export type MailUsageDailyMinAggregateInputType = {
+    organizationId?: true
+    purpose?: true
+    day?: true
+    accepted?: true
+    rejected?: true
+    received?: true
+    providerRequests?: true
+    bytes?: true
+    updatedAt?: true
+  }
+
+  export type MailUsageDailyMaxAggregateInputType = {
+    organizationId?: true
+    purpose?: true
+    day?: true
+    accepted?: true
+    rejected?: true
+    received?: true
+    providerRequests?: true
+    bytes?: true
+    updatedAt?: true
+  }
+
+  export type MailUsageDailyCountAggregateInputType = {
+    organizationId?: true
+    purpose?: true
+    day?: true
+    accepted?: true
+    rejected?: true
+    received?: true
+    providerRequests?: true
+    bytes?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MailUsageDailyAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailUsageDaily to aggregate.
+     */
+    where?: MailUsageDailyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailUsageDailies to fetch.
+     */
+    orderBy?: MailUsageDailyOrderByWithRelationInput | MailUsageDailyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MailUsageDailyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailUsageDailies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailUsageDailies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MailUsageDailies
+    **/
+    _count?: true | MailUsageDailyCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MailUsageDailyAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MailUsageDailySumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MailUsageDailyMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MailUsageDailyMaxAggregateInputType
+  }
+
+  export type GetMailUsageDailyAggregateType<T extends MailUsageDailyAggregateArgs> = {
+        [P in keyof T & keyof AggregateMailUsageDaily]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMailUsageDaily[P]>
+      : GetScalarType<T[P], AggregateMailUsageDaily[P]>
+  }
+
+
+
+
+  export type MailUsageDailyGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailUsageDailyWhereInput
+    orderBy?: MailUsageDailyOrderByWithAggregationInput | MailUsageDailyOrderByWithAggregationInput[]
+    by: MailUsageDailyScalarFieldEnum[] | MailUsageDailyScalarFieldEnum
+    having?: MailUsageDailyScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MailUsageDailyCountAggregateInputType | true
+    _avg?: MailUsageDailyAvgAggregateInputType
+    _sum?: MailUsageDailySumAggregateInputType
+    _min?: MailUsageDailyMinAggregateInputType
+    _max?: MailUsageDailyMaxAggregateInputType
+  }
+
+  export type MailUsageDailyGroupByOutputType = {
+    organizationId: string
+    purpose: string
+    day: Date
+    accepted: number
+    rejected: number
+    received: number
+    providerRequests: number
+    bytes: bigint
+    updatedAt: Date
+    _count: MailUsageDailyCountAggregateOutputType | null
+    _avg: MailUsageDailyAvgAggregateOutputType | null
+    _sum: MailUsageDailySumAggregateOutputType | null
+    _min: MailUsageDailyMinAggregateOutputType | null
+    _max: MailUsageDailyMaxAggregateOutputType | null
+  }
+
+  type GetMailUsageDailyGroupByPayload<T extends MailUsageDailyGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MailUsageDailyGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MailUsageDailyGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MailUsageDailyGroupByOutputType[P]>
+            : GetScalarType<T[P], MailUsageDailyGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MailUsageDailySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    organizationId?: boolean
+    purpose?: boolean
+    day?: boolean
+    accepted?: boolean
+    rejected?: boolean
+    received?: boolean
+    providerRequests?: boolean
+    bytes?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["mailUsageDaily"]>
+
+  export type MailUsageDailySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    organizationId?: boolean
+    purpose?: boolean
+    day?: boolean
+    accepted?: boolean
+    rejected?: boolean
+    received?: boolean
+    providerRequests?: boolean
+    bytes?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["mailUsageDaily"]>
+
+  export type MailUsageDailySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    organizationId?: boolean
+    purpose?: boolean
+    day?: boolean
+    accepted?: boolean
+    rejected?: boolean
+    received?: boolean
+    providerRequests?: boolean
+    bytes?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["mailUsageDaily"]>
+
+  export type MailUsageDailySelectScalar = {
+    organizationId?: boolean
+    purpose?: boolean
+    day?: boolean
+    accepted?: boolean
+    rejected?: boolean
+    received?: boolean
+    providerRequests?: boolean
+    bytes?: boolean
+    updatedAt?: boolean
+  }
+
+  export type MailUsageDailyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"organizationId" | "purpose" | "day" | "accepted" | "rejected" | "received" | "providerRequests" | "bytes" | "updatedAt", ExtArgs["result"]["mailUsageDaily"]>
+
+  export type $MailUsageDailyPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MailUsageDaily"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      organizationId: string
+      purpose: string
+      day: Date
+      accepted: number
+      rejected: number
+      received: number
+      providerRequests: number
+      bytes: bigint
+      updatedAt: Date
+    }, ExtArgs["result"]["mailUsageDaily"]>
+    composites: {}
+  }
+
+  type MailUsageDailyGetPayload<S extends boolean | null | undefined | MailUsageDailyDefaultArgs> = $Result.GetResult<Prisma.$MailUsageDailyPayload, S>
+
+  type MailUsageDailyCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MailUsageDailyFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MailUsageDailyCountAggregateInputType | true
+    }
+
+  export interface MailUsageDailyDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MailUsageDaily'], meta: { name: 'MailUsageDaily' } }
+    /**
+     * Find zero or one MailUsageDaily that matches the filter.
+     * @param {MailUsageDailyFindUniqueArgs} args - Arguments to find a MailUsageDaily
+     * @example
+     * // Get one MailUsageDaily
+     * const mailUsageDaily = await prisma.mailUsageDaily.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MailUsageDailyFindUniqueArgs>(args: SelectSubset<T, MailUsageDailyFindUniqueArgs<ExtArgs>>): Prisma__MailUsageDailyClient<$Result.GetResult<Prisma.$MailUsageDailyPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MailUsageDaily that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MailUsageDailyFindUniqueOrThrowArgs} args - Arguments to find a MailUsageDaily
+     * @example
+     * // Get one MailUsageDaily
+     * const mailUsageDaily = await prisma.mailUsageDaily.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MailUsageDailyFindUniqueOrThrowArgs>(args: SelectSubset<T, MailUsageDailyFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MailUsageDailyClient<$Result.GetResult<Prisma.$MailUsageDailyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailUsageDaily that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailUsageDailyFindFirstArgs} args - Arguments to find a MailUsageDaily
+     * @example
+     * // Get one MailUsageDaily
+     * const mailUsageDaily = await prisma.mailUsageDaily.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MailUsageDailyFindFirstArgs>(args?: SelectSubset<T, MailUsageDailyFindFirstArgs<ExtArgs>>): Prisma__MailUsageDailyClient<$Result.GetResult<Prisma.$MailUsageDailyPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailUsageDaily that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailUsageDailyFindFirstOrThrowArgs} args - Arguments to find a MailUsageDaily
+     * @example
+     * // Get one MailUsageDaily
+     * const mailUsageDaily = await prisma.mailUsageDaily.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MailUsageDailyFindFirstOrThrowArgs>(args?: SelectSubset<T, MailUsageDailyFindFirstOrThrowArgs<ExtArgs>>): Prisma__MailUsageDailyClient<$Result.GetResult<Prisma.$MailUsageDailyPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MailUsageDailies that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailUsageDailyFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MailUsageDailies
+     * const mailUsageDailies = await prisma.mailUsageDaily.findMany()
+     * 
+     * // Get first 10 MailUsageDailies
+     * const mailUsageDailies = await prisma.mailUsageDaily.findMany({ take: 10 })
+     * 
+     * // Only select the `organizationId`
+     * const mailUsageDailyWithOrganizationIdOnly = await prisma.mailUsageDaily.findMany({ select: { organizationId: true } })
+     * 
+     */
+    findMany<T extends MailUsageDailyFindManyArgs>(args?: SelectSubset<T, MailUsageDailyFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailUsageDailyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MailUsageDaily.
+     * @param {MailUsageDailyCreateArgs} args - Arguments to create a MailUsageDaily.
+     * @example
+     * // Create one MailUsageDaily
+     * const MailUsageDaily = await prisma.mailUsageDaily.create({
+     *   data: {
+     *     // ... data to create a MailUsageDaily
+     *   }
+     * })
+     * 
+     */
+    create<T extends MailUsageDailyCreateArgs>(args: SelectSubset<T, MailUsageDailyCreateArgs<ExtArgs>>): Prisma__MailUsageDailyClient<$Result.GetResult<Prisma.$MailUsageDailyPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MailUsageDailies.
+     * @param {MailUsageDailyCreateManyArgs} args - Arguments to create many MailUsageDailies.
+     * @example
+     * // Create many MailUsageDailies
+     * const mailUsageDaily = await prisma.mailUsageDaily.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MailUsageDailyCreateManyArgs>(args?: SelectSubset<T, MailUsageDailyCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MailUsageDailies and returns the data saved in the database.
+     * @param {MailUsageDailyCreateManyAndReturnArgs} args - Arguments to create many MailUsageDailies.
+     * @example
+     * // Create many MailUsageDailies
+     * const mailUsageDaily = await prisma.mailUsageDaily.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MailUsageDailies and only return the `organizationId`
+     * const mailUsageDailyWithOrganizationIdOnly = await prisma.mailUsageDaily.createManyAndReturn({
+     *   select: { organizationId: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MailUsageDailyCreateManyAndReturnArgs>(args?: SelectSubset<T, MailUsageDailyCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailUsageDailyPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MailUsageDaily.
+     * @param {MailUsageDailyDeleteArgs} args - Arguments to delete one MailUsageDaily.
+     * @example
+     * // Delete one MailUsageDaily
+     * const MailUsageDaily = await prisma.mailUsageDaily.delete({
+     *   where: {
+     *     // ... filter to delete one MailUsageDaily
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MailUsageDailyDeleteArgs>(args: SelectSubset<T, MailUsageDailyDeleteArgs<ExtArgs>>): Prisma__MailUsageDailyClient<$Result.GetResult<Prisma.$MailUsageDailyPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MailUsageDaily.
+     * @param {MailUsageDailyUpdateArgs} args - Arguments to update one MailUsageDaily.
+     * @example
+     * // Update one MailUsageDaily
+     * const mailUsageDaily = await prisma.mailUsageDaily.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MailUsageDailyUpdateArgs>(args: SelectSubset<T, MailUsageDailyUpdateArgs<ExtArgs>>): Prisma__MailUsageDailyClient<$Result.GetResult<Prisma.$MailUsageDailyPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MailUsageDailies.
+     * @param {MailUsageDailyDeleteManyArgs} args - Arguments to filter MailUsageDailies to delete.
+     * @example
+     * // Delete a few MailUsageDailies
+     * const { count } = await prisma.mailUsageDaily.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MailUsageDailyDeleteManyArgs>(args?: SelectSubset<T, MailUsageDailyDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailUsageDailies.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailUsageDailyUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MailUsageDailies
+     * const mailUsageDaily = await prisma.mailUsageDaily.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MailUsageDailyUpdateManyArgs>(args: SelectSubset<T, MailUsageDailyUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailUsageDailies and returns the data updated in the database.
+     * @param {MailUsageDailyUpdateManyAndReturnArgs} args - Arguments to update many MailUsageDailies.
+     * @example
+     * // Update many MailUsageDailies
+     * const mailUsageDaily = await prisma.mailUsageDaily.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MailUsageDailies and only return the `organizationId`
+     * const mailUsageDailyWithOrganizationIdOnly = await prisma.mailUsageDaily.updateManyAndReturn({
+     *   select: { organizationId: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MailUsageDailyUpdateManyAndReturnArgs>(args: SelectSubset<T, MailUsageDailyUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailUsageDailyPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MailUsageDaily.
+     * @param {MailUsageDailyUpsertArgs} args - Arguments to update or create a MailUsageDaily.
+     * @example
+     * // Update or create a MailUsageDaily
+     * const mailUsageDaily = await prisma.mailUsageDaily.upsert({
+     *   create: {
+     *     // ... data to create a MailUsageDaily
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MailUsageDaily we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MailUsageDailyUpsertArgs>(args: SelectSubset<T, MailUsageDailyUpsertArgs<ExtArgs>>): Prisma__MailUsageDailyClient<$Result.GetResult<Prisma.$MailUsageDailyPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MailUsageDailies.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailUsageDailyCountArgs} args - Arguments to filter MailUsageDailies to count.
+     * @example
+     * // Count the number of MailUsageDailies
+     * const count = await prisma.mailUsageDaily.count({
+     *   where: {
+     *     // ... the filter for the MailUsageDailies we want to count
+     *   }
+     * })
+    **/
+    count<T extends MailUsageDailyCountArgs>(
+      args?: Subset<T, MailUsageDailyCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MailUsageDailyCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MailUsageDaily.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailUsageDailyAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MailUsageDailyAggregateArgs>(args: Subset<T, MailUsageDailyAggregateArgs>): Prisma.PrismaPromise<GetMailUsageDailyAggregateType<T>>
+
+    /**
+     * Group by MailUsageDaily.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailUsageDailyGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MailUsageDailyGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MailUsageDailyGroupByArgs['orderBy'] }
+        : { orderBy?: MailUsageDailyGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MailUsageDailyGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMailUsageDailyGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MailUsageDaily model
+   */
+  readonly fields: MailUsageDailyFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MailUsageDaily.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MailUsageDailyClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MailUsageDaily model
+   */
+  interface MailUsageDailyFieldRefs {
+    readonly organizationId: FieldRef<"MailUsageDaily", 'String'>
+    readonly purpose: FieldRef<"MailUsageDaily", 'String'>
+    readonly day: FieldRef<"MailUsageDaily", 'DateTime'>
+    readonly accepted: FieldRef<"MailUsageDaily", 'Int'>
+    readonly rejected: FieldRef<"MailUsageDaily", 'Int'>
+    readonly received: FieldRef<"MailUsageDaily", 'Int'>
+    readonly providerRequests: FieldRef<"MailUsageDaily", 'Int'>
+    readonly bytes: FieldRef<"MailUsageDaily", 'BigInt'>
+    readonly updatedAt: FieldRef<"MailUsageDaily", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MailUsageDaily findUnique
+   */
+  export type MailUsageDailyFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUsageDaily
+     */
+    select?: MailUsageDailySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUsageDaily
+     */
+    omit?: MailUsageDailyOmit<ExtArgs> | null
+    /**
+     * Filter, which MailUsageDaily to fetch.
+     */
+    where: MailUsageDailyWhereUniqueInput
+  }
+
+  /**
+   * MailUsageDaily findUniqueOrThrow
+   */
+  export type MailUsageDailyFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUsageDaily
+     */
+    select?: MailUsageDailySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUsageDaily
+     */
+    omit?: MailUsageDailyOmit<ExtArgs> | null
+    /**
+     * Filter, which MailUsageDaily to fetch.
+     */
+    where: MailUsageDailyWhereUniqueInput
+  }
+
+  /**
+   * MailUsageDaily findFirst
+   */
+  export type MailUsageDailyFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUsageDaily
+     */
+    select?: MailUsageDailySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUsageDaily
+     */
+    omit?: MailUsageDailyOmit<ExtArgs> | null
+    /**
+     * Filter, which MailUsageDaily to fetch.
+     */
+    where?: MailUsageDailyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailUsageDailies to fetch.
+     */
+    orderBy?: MailUsageDailyOrderByWithRelationInput | MailUsageDailyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailUsageDailies.
+     */
+    cursor?: MailUsageDailyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailUsageDailies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailUsageDailies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailUsageDailies.
+     */
+    distinct?: MailUsageDailyScalarFieldEnum | MailUsageDailyScalarFieldEnum[]
+  }
+
+  /**
+   * MailUsageDaily findFirstOrThrow
+   */
+  export type MailUsageDailyFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUsageDaily
+     */
+    select?: MailUsageDailySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUsageDaily
+     */
+    omit?: MailUsageDailyOmit<ExtArgs> | null
+    /**
+     * Filter, which MailUsageDaily to fetch.
+     */
+    where?: MailUsageDailyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailUsageDailies to fetch.
+     */
+    orderBy?: MailUsageDailyOrderByWithRelationInput | MailUsageDailyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailUsageDailies.
+     */
+    cursor?: MailUsageDailyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailUsageDailies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailUsageDailies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailUsageDailies.
+     */
+    distinct?: MailUsageDailyScalarFieldEnum | MailUsageDailyScalarFieldEnum[]
+  }
+
+  /**
+   * MailUsageDaily findMany
+   */
+  export type MailUsageDailyFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUsageDaily
+     */
+    select?: MailUsageDailySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUsageDaily
+     */
+    omit?: MailUsageDailyOmit<ExtArgs> | null
+    /**
+     * Filter, which MailUsageDailies to fetch.
+     */
+    where?: MailUsageDailyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailUsageDailies to fetch.
+     */
+    orderBy?: MailUsageDailyOrderByWithRelationInput | MailUsageDailyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MailUsageDailies.
+     */
+    cursor?: MailUsageDailyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailUsageDailies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailUsageDailies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailUsageDailies.
+     */
+    distinct?: MailUsageDailyScalarFieldEnum | MailUsageDailyScalarFieldEnum[]
+  }
+
+  /**
+   * MailUsageDaily create
+   */
+  export type MailUsageDailyCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUsageDaily
+     */
+    select?: MailUsageDailySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUsageDaily
+     */
+    omit?: MailUsageDailyOmit<ExtArgs> | null
+    /**
+     * The data needed to create a MailUsageDaily.
+     */
+    data: XOR<MailUsageDailyCreateInput, MailUsageDailyUncheckedCreateInput>
+  }
+
+  /**
+   * MailUsageDaily createMany
+   */
+  export type MailUsageDailyCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MailUsageDailies.
+     */
+    data: MailUsageDailyCreateManyInput | MailUsageDailyCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailUsageDaily createManyAndReturn
+   */
+  export type MailUsageDailyCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUsageDaily
+     */
+    select?: MailUsageDailySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUsageDaily
+     */
+    omit?: MailUsageDailyOmit<ExtArgs> | null
+    /**
+     * The data used to create many MailUsageDailies.
+     */
+    data: MailUsageDailyCreateManyInput | MailUsageDailyCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailUsageDaily update
+   */
+  export type MailUsageDailyUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUsageDaily
+     */
+    select?: MailUsageDailySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUsageDaily
+     */
+    omit?: MailUsageDailyOmit<ExtArgs> | null
+    /**
+     * The data needed to update a MailUsageDaily.
+     */
+    data: XOR<MailUsageDailyUpdateInput, MailUsageDailyUncheckedUpdateInput>
+    /**
+     * Choose, which MailUsageDaily to update.
+     */
+    where: MailUsageDailyWhereUniqueInput
+  }
+
+  /**
+   * MailUsageDaily updateMany
+   */
+  export type MailUsageDailyUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MailUsageDailies.
+     */
+    data: XOR<MailUsageDailyUpdateManyMutationInput, MailUsageDailyUncheckedUpdateManyInput>
+    /**
+     * Filter which MailUsageDailies to update
+     */
+    where?: MailUsageDailyWhereInput
+    /**
+     * Limit how many MailUsageDailies to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailUsageDaily updateManyAndReturn
+   */
+  export type MailUsageDailyUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUsageDaily
+     */
+    select?: MailUsageDailySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUsageDaily
+     */
+    omit?: MailUsageDailyOmit<ExtArgs> | null
+    /**
+     * The data used to update MailUsageDailies.
+     */
+    data: XOR<MailUsageDailyUpdateManyMutationInput, MailUsageDailyUncheckedUpdateManyInput>
+    /**
+     * Filter which MailUsageDailies to update
+     */
+    where?: MailUsageDailyWhereInput
+    /**
+     * Limit how many MailUsageDailies to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailUsageDaily upsert
+   */
+  export type MailUsageDailyUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUsageDaily
+     */
+    select?: MailUsageDailySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUsageDaily
+     */
+    omit?: MailUsageDailyOmit<ExtArgs> | null
+    /**
+     * The filter to search for the MailUsageDaily to update in case it exists.
+     */
+    where: MailUsageDailyWhereUniqueInput
+    /**
+     * In case the MailUsageDaily found by the `where` argument doesn't exist, create a new MailUsageDaily with this data.
+     */
+    create: XOR<MailUsageDailyCreateInput, MailUsageDailyUncheckedCreateInput>
+    /**
+     * In case the MailUsageDaily was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MailUsageDailyUpdateInput, MailUsageDailyUncheckedUpdateInput>
+  }
+
+  /**
+   * MailUsageDaily delete
+   */
+  export type MailUsageDailyDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUsageDaily
+     */
+    select?: MailUsageDailySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUsageDaily
+     */
+    omit?: MailUsageDailyOmit<ExtArgs> | null
+    /**
+     * Filter which MailUsageDaily to delete.
+     */
+    where: MailUsageDailyWhereUniqueInput
+  }
+
+  /**
+   * MailUsageDaily deleteMany
+   */
+  export type MailUsageDailyDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailUsageDailies to delete
+     */
+    where?: MailUsageDailyWhereInput
+    /**
+     * Limit how many MailUsageDailies to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailUsageDaily without action
+   */
+  export type MailUsageDailyDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUsageDaily
+     */
+    select?: MailUsageDailySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUsageDaily
+     */
+    omit?: MailUsageDailyOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MailQuotaLimit
+   */
+
+  export type AggregateMailQuotaLimit = {
+    _count: MailQuotaLimitCountAggregateOutputType | null
+    _avg: MailQuotaLimitAvgAggregateOutputType | null
+    _sum: MailQuotaLimitSumAggregateOutputType | null
+    _min: MailQuotaLimitMinAggregateOutputType | null
+    _max: MailQuotaLimitMaxAggregateOutputType | null
+  }
+
+  export type MailQuotaLimitAvgAggregateOutputType = {
+    dailySoftLimit: number | null
+    dailyHardLimit: number | null
+    monthlyHardLimit: number | null
+  }
+
+  export type MailQuotaLimitSumAggregateOutputType = {
+    dailySoftLimit: number | null
+    dailyHardLimit: number | null
+    monthlyHardLimit: number | null
+  }
+
+  export type MailQuotaLimitMinAggregateOutputType = {
+    id: string | null
+    organizationId: string | null
+    purpose: string | null
+    dailySoftLimit: number | null
+    dailyHardLimit: number | null
+    monthlyHardLimit: number | null
+    updatedBy: string | null
+    updatedAt: Date | null
+  }
+
+  export type MailQuotaLimitMaxAggregateOutputType = {
+    id: string | null
+    organizationId: string | null
+    purpose: string | null
+    dailySoftLimit: number | null
+    dailyHardLimit: number | null
+    monthlyHardLimit: number | null
+    updatedBy: string | null
+    updatedAt: Date | null
+  }
+
+  export type MailQuotaLimitCountAggregateOutputType = {
+    id: number
+    organizationId: number
+    purpose: number
+    dailySoftLimit: number
+    dailyHardLimit: number
+    monthlyHardLimit: number
+    updatedBy: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MailQuotaLimitAvgAggregateInputType = {
+    dailySoftLimit?: true
+    dailyHardLimit?: true
+    monthlyHardLimit?: true
+  }
+
+  export type MailQuotaLimitSumAggregateInputType = {
+    dailySoftLimit?: true
+    dailyHardLimit?: true
+    monthlyHardLimit?: true
+  }
+
+  export type MailQuotaLimitMinAggregateInputType = {
+    id?: true
+    organizationId?: true
+    purpose?: true
+    dailySoftLimit?: true
+    dailyHardLimit?: true
+    monthlyHardLimit?: true
+    updatedBy?: true
+    updatedAt?: true
+  }
+
+  export type MailQuotaLimitMaxAggregateInputType = {
+    id?: true
+    organizationId?: true
+    purpose?: true
+    dailySoftLimit?: true
+    dailyHardLimit?: true
+    monthlyHardLimit?: true
+    updatedBy?: true
+    updatedAt?: true
+  }
+
+  export type MailQuotaLimitCountAggregateInputType = {
+    id?: true
+    organizationId?: true
+    purpose?: true
+    dailySoftLimit?: true
+    dailyHardLimit?: true
+    monthlyHardLimit?: true
+    updatedBy?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MailQuotaLimitAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailQuotaLimit to aggregate.
+     */
+    where?: MailQuotaLimitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailQuotaLimits to fetch.
+     */
+    orderBy?: MailQuotaLimitOrderByWithRelationInput | MailQuotaLimitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MailQuotaLimitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailQuotaLimits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailQuotaLimits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MailQuotaLimits
+    **/
+    _count?: true | MailQuotaLimitCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MailQuotaLimitAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MailQuotaLimitSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MailQuotaLimitMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MailQuotaLimitMaxAggregateInputType
+  }
+
+  export type GetMailQuotaLimitAggregateType<T extends MailQuotaLimitAggregateArgs> = {
+        [P in keyof T & keyof AggregateMailQuotaLimit]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMailQuotaLimit[P]>
+      : GetScalarType<T[P], AggregateMailQuotaLimit[P]>
+  }
+
+
+
+
+  export type MailQuotaLimitGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailQuotaLimitWhereInput
+    orderBy?: MailQuotaLimitOrderByWithAggregationInput | MailQuotaLimitOrderByWithAggregationInput[]
+    by: MailQuotaLimitScalarFieldEnum[] | MailQuotaLimitScalarFieldEnum
+    having?: MailQuotaLimitScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MailQuotaLimitCountAggregateInputType | true
+    _avg?: MailQuotaLimitAvgAggregateInputType
+    _sum?: MailQuotaLimitSumAggregateInputType
+    _min?: MailQuotaLimitMinAggregateInputType
+    _max?: MailQuotaLimitMaxAggregateInputType
+  }
+
+  export type MailQuotaLimitGroupByOutputType = {
+    id: string
+    organizationId: string
+    purpose: string
+    dailySoftLimit: number | null
+    dailyHardLimit: number | null
+    monthlyHardLimit: number | null
+    updatedBy: string
+    updatedAt: Date
+    _count: MailQuotaLimitCountAggregateOutputType | null
+    _avg: MailQuotaLimitAvgAggregateOutputType | null
+    _sum: MailQuotaLimitSumAggregateOutputType | null
+    _min: MailQuotaLimitMinAggregateOutputType | null
+    _max: MailQuotaLimitMaxAggregateOutputType | null
+  }
+
+  type GetMailQuotaLimitGroupByPayload<T extends MailQuotaLimitGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MailQuotaLimitGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MailQuotaLimitGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MailQuotaLimitGroupByOutputType[P]>
+            : GetScalarType<T[P], MailQuotaLimitGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MailQuotaLimitSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    purpose?: boolean
+    dailySoftLimit?: boolean
+    dailyHardLimit?: boolean
+    monthlyHardLimit?: boolean
+    updatedBy?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["mailQuotaLimit"]>
+
+  export type MailQuotaLimitSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    purpose?: boolean
+    dailySoftLimit?: boolean
+    dailyHardLimit?: boolean
+    monthlyHardLimit?: boolean
+    updatedBy?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["mailQuotaLimit"]>
+
+  export type MailQuotaLimitSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    purpose?: boolean
+    dailySoftLimit?: boolean
+    dailyHardLimit?: boolean
+    monthlyHardLimit?: boolean
+    updatedBy?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["mailQuotaLimit"]>
+
+  export type MailQuotaLimitSelectScalar = {
+    id?: boolean
+    organizationId?: boolean
+    purpose?: boolean
+    dailySoftLimit?: boolean
+    dailyHardLimit?: boolean
+    monthlyHardLimit?: boolean
+    updatedBy?: boolean
+    updatedAt?: boolean
+  }
+
+  export type MailQuotaLimitOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "purpose" | "dailySoftLimit" | "dailyHardLimit" | "monthlyHardLimit" | "updatedBy" | "updatedAt", ExtArgs["result"]["mailQuotaLimit"]>
+
+  export type $MailQuotaLimitPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MailQuotaLimit"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      organizationId: string
+      purpose: string
+      dailySoftLimit: number | null
+      dailyHardLimit: number | null
+      monthlyHardLimit: number | null
+      updatedBy: string
+      updatedAt: Date
+    }, ExtArgs["result"]["mailQuotaLimit"]>
+    composites: {}
+  }
+
+  type MailQuotaLimitGetPayload<S extends boolean | null | undefined | MailQuotaLimitDefaultArgs> = $Result.GetResult<Prisma.$MailQuotaLimitPayload, S>
+
+  type MailQuotaLimitCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MailQuotaLimitFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MailQuotaLimitCountAggregateInputType | true
+    }
+
+  export interface MailQuotaLimitDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MailQuotaLimit'], meta: { name: 'MailQuotaLimit' } }
+    /**
+     * Find zero or one MailQuotaLimit that matches the filter.
+     * @param {MailQuotaLimitFindUniqueArgs} args - Arguments to find a MailQuotaLimit
+     * @example
+     * // Get one MailQuotaLimit
+     * const mailQuotaLimit = await prisma.mailQuotaLimit.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MailQuotaLimitFindUniqueArgs>(args: SelectSubset<T, MailQuotaLimitFindUniqueArgs<ExtArgs>>): Prisma__MailQuotaLimitClient<$Result.GetResult<Prisma.$MailQuotaLimitPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MailQuotaLimit that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MailQuotaLimitFindUniqueOrThrowArgs} args - Arguments to find a MailQuotaLimit
+     * @example
+     * // Get one MailQuotaLimit
+     * const mailQuotaLimit = await prisma.mailQuotaLimit.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MailQuotaLimitFindUniqueOrThrowArgs>(args: SelectSubset<T, MailQuotaLimitFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MailQuotaLimitClient<$Result.GetResult<Prisma.$MailQuotaLimitPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailQuotaLimit that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailQuotaLimitFindFirstArgs} args - Arguments to find a MailQuotaLimit
+     * @example
+     * // Get one MailQuotaLimit
+     * const mailQuotaLimit = await prisma.mailQuotaLimit.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MailQuotaLimitFindFirstArgs>(args?: SelectSubset<T, MailQuotaLimitFindFirstArgs<ExtArgs>>): Prisma__MailQuotaLimitClient<$Result.GetResult<Prisma.$MailQuotaLimitPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailQuotaLimit that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailQuotaLimitFindFirstOrThrowArgs} args - Arguments to find a MailQuotaLimit
+     * @example
+     * // Get one MailQuotaLimit
+     * const mailQuotaLimit = await prisma.mailQuotaLimit.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MailQuotaLimitFindFirstOrThrowArgs>(args?: SelectSubset<T, MailQuotaLimitFindFirstOrThrowArgs<ExtArgs>>): Prisma__MailQuotaLimitClient<$Result.GetResult<Prisma.$MailQuotaLimitPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MailQuotaLimits that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailQuotaLimitFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MailQuotaLimits
+     * const mailQuotaLimits = await prisma.mailQuotaLimit.findMany()
+     * 
+     * // Get first 10 MailQuotaLimits
+     * const mailQuotaLimits = await prisma.mailQuotaLimit.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const mailQuotaLimitWithIdOnly = await prisma.mailQuotaLimit.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MailQuotaLimitFindManyArgs>(args?: SelectSubset<T, MailQuotaLimitFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailQuotaLimitPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MailQuotaLimit.
+     * @param {MailQuotaLimitCreateArgs} args - Arguments to create a MailQuotaLimit.
+     * @example
+     * // Create one MailQuotaLimit
+     * const MailQuotaLimit = await prisma.mailQuotaLimit.create({
+     *   data: {
+     *     // ... data to create a MailQuotaLimit
+     *   }
+     * })
+     * 
+     */
+    create<T extends MailQuotaLimitCreateArgs>(args: SelectSubset<T, MailQuotaLimitCreateArgs<ExtArgs>>): Prisma__MailQuotaLimitClient<$Result.GetResult<Prisma.$MailQuotaLimitPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MailQuotaLimits.
+     * @param {MailQuotaLimitCreateManyArgs} args - Arguments to create many MailQuotaLimits.
+     * @example
+     * // Create many MailQuotaLimits
+     * const mailQuotaLimit = await prisma.mailQuotaLimit.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MailQuotaLimitCreateManyArgs>(args?: SelectSubset<T, MailQuotaLimitCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MailQuotaLimits and returns the data saved in the database.
+     * @param {MailQuotaLimitCreateManyAndReturnArgs} args - Arguments to create many MailQuotaLimits.
+     * @example
+     * // Create many MailQuotaLimits
+     * const mailQuotaLimit = await prisma.mailQuotaLimit.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MailQuotaLimits and only return the `id`
+     * const mailQuotaLimitWithIdOnly = await prisma.mailQuotaLimit.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MailQuotaLimitCreateManyAndReturnArgs>(args?: SelectSubset<T, MailQuotaLimitCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailQuotaLimitPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MailQuotaLimit.
+     * @param {MailQuotaLimitDeleteArgs} args - Arguments to delete one MailQuotaLimit.
+     * @example
+     * // Delete one MailQuotaLimit
+     * const MailQuotaLimit = await prisma.mailQuotaLimit.delete({
+     *   where: {
+     *     // ... filter to delete one MailQuotaLimit
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MailQuotaLimitDeleteArgs>(args: SelectSubset<T, MailQuotaLimitDeleteArgs<ExtArgs>>): Prisma__MailQuotaLimitClient<$Result.GetResult<Prisma.$MailQuotaLimitPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MailQuotaLimit.
+     * @param {MailQuotaLimitUpdateArgs} args - Arguments to update one MailQuotaLimit.
+     * @example
+     * // Update one MailQuotaLimit
+     * const mailQuotaLimit = await prisma.mailQuotaLimit.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MailQuotaLimitUpdateArgs>(args: SelectSubset<T, MailQuotaLimitUpdateArgs<ExtArgs>>): Prisma__MailQuotaLimitClient<$Result.GetResult<Prisma.$MailQuotaLimitPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MailQuotaLimits.
+     * @param {MailQuotaLimitDeleteManyArgs} args - Arguments to filter MailQuotaLimits to delete.
+     * @example
+     * // Delete a few MailQuotaLimits
+     * const { count } = await prisma.mailQuotaLimit.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MailQuotaLimitDeleteManyArgs>(args?: SelectSubset<T, MailQuotaLimitDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailQuotaLimits.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailQuotaLimitUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MailQuotaLimits
+     * const mailQuotaLimit = await prisma.mailQuotaLimit.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MailQuotaLimitUpdateManyArgs>(args: SelectSubset<T, MailQuotaLimitUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailQuotaLimits and returns the data updated in the database.
+     * @param {MailQuotaLimitUpdateManyAndReturnArgs} args - Arguments to update many MailQuotaLimits.
+     * @example
+     * // Update many MailQuotaLimits
+     * const mailQuotaLimit = await prisma.mailQuotaLimit.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MailQuotaLimits and only return the `id`
+     * const mailQuotaLimitWithIdOnly = await prisma.mailQuotaLimit.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MailQuotaLimitUpdateManyAndReturnArgs>(args: SelectSubset<T, MailQuotaLimitUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailQuotaLimitPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MailQuotaLimit.
+     * @param {MailQuotaLimitUpsertArgs} args - Arguments to update or create a MailQuotaLimit.
+     * @example
+     * // Update or create a MailQuotaLimit
+     * const mailQuotaLimit = await prisma.mailQuotaLimit.upsert({
+     *   create: {
+     *     // ... data to create a MailQuotaLimit
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MailQuotaLimit we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MailQuotaLimitUpsertArgs>(args: SelectSubset<T, MailQuotaLimitUpsertArgs<ExtArgs>>): Prisma__MailQuotaLimitClient<$Result.GetResult<Prisma.$MailQuotaLimitPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MailQuotaLimits.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailQuotaLimitCountArgs} args - Arguments to filter MailQuotaLimits to count.
+     * @example
+     * // Count the number of MailQuotaLimits
+     * const count = await prisma.mailQuotaLimit.count({
+     *   where: {
+     *     // ... the filter for the MailQuotaLimits we want to count
+     *   }
+     * })
+    **/
+    count<T extends MailQuotaLimitCountArgs>(
+      args?: Subset<T, MailQuotaLimitCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MailQuotaLimitCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MailQuotaLimit.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailQuotaLimitAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MailQuotaLimitAggregateArgs>(args: Subset<T, MailQuotaLimitAggregateArgs>): Prisma.PrismaPromise<GetMailQuotaLimitAggregateType<T>>
+
+    /**
+     * Group by MailQuotaLimit.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailQuotaLimitGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MailQuotaLimitGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MailQuotaLimitGroupByArgs['orderBy'] }
+        : { orderBy?: MailQuotaLimitGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MailQuotaLimitGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMailQuotaLimitGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MailQuotaLimit model
+   */
+  readonly fields: MailQuotaLimitFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MailQuotaLimit.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MailQuotaLimitClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MailQuotaLimit model
+   */
+  interface MailQuotaLimitFieldRefs {
+    readonly id: FieldRef<"MailQuotaLimit", 'String'>
+    readonly organizationId: FieldRef<"MailQuotaLimit", 'String'>
+    readonly purpose: FieldRef<"MailQuotaLimit", 'String'>
+    readonly dailySoftLimit: FieldRef<"MailQuotaLimit", 'Int'>
+    readonly dailyHardLimit: FieldRef<"MailQuotaLimit", 'Int'>
+    readonly monthlyHardLimit: FieldRef<"MailQuotaLimit", 'Int'>
+    readonly updatedBy: FieldRef<"MailQuotaLimit", 'String'>
+    readonly updatedAt: FieldRef<"MailQuotaLimit", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MailQuotaLimit findUnique
+   */
+  export type MailQuotaLimitFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailQuotaLimit
+     */
+    select?: MailQuotaLimitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailQuotaLimit
+     */
+    omit?: MailQuotaLimitOmit<ExtArgs> | null
+    /**
+     * Filter, which MailQuotaLimit to fetch.
+     */
+    where: MailQuotaLimitWhereUniqueInput
+  }
+
+  /**
+   * MailQuotaLimit findUniqueOrThrow
+   */
+  export type MailQuotaLimitFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailQuotaLimit
+     */
+    select?: MailQuotaLimitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailQuotaLimit
+     */
+    omit?: MailQuotaLimitOmit<ExtArgs> | null
+    /**
+     * Filter, which MailQuotaLimit to fetch.
+     */
+    where: MailQuotaLimitWhereUniqueInput
+  }
+
+  /**
+   * MailQuotaLimit findFirst
+   */
+  export type MailQuotaLimitFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailQuotaLimit
+     */
+    select?: MailQuotaLimitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailQuotaLimit
+     */
+    omit?: MailQuotaLimitOmit<ExtArgs> | null
+    /**
+     * Filter, which MailQuotaLimit to fetch.
+     */
+    where?: MailQuotaLimitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailQuotaLimits to fetch.
+     */
+    orderBy?: MailQuotaLimitOrderByWithRelationInput | MailQuotaLimitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailQuotaLimits.
+     */
+    cursor?: MailQuotaLimitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailQuotaLimits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailQuotaLimits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailQuotaLimits.
+     */
+    distinct?: MailQuotaLimitScalarFieldEnum | MailQuotaLimitScalarFieldEnum[]
+  }
+
+  /**
+   * MailQuotaLimit findFirstOrThrow
+   */
+  export type MailQuotaLimitFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailQuotaLimit
+     */
+    select?: MailQuotaLimitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailQuotaLimit
+     */
+    omit?: MailQuotaLimitOmit<ExtArgs> | null
+    /**
+     * Filter, which MailQuotaLimit to fetch.
+     */
+    where?: MailQuotaLimitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailQuotaLimits to fetch.
+     */
+    orderBy?: MailQuotaLimitOrderByWithRelationInput | MailQuotaLimitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailQuotaLimits.
+     */
+    cursor?: MailQuotaLimitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailQuotaLimits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailQuotaLimits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailQuotaLimits.
+     */
+    distinct?: MailQuotaLimitScalarFieldEnum | MailQuotaLimitScalarFieldEnum[]
+  }
+
+  /**
+   * MailQuotaLimit findMany
+   */
+  export type MailQuotaLimitFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailQuotaLimit
+     */
+    select?: MailQuotaLimitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailQuotaLimit
+     */
+    omit?: MailQuotaLimitOmit<ExtArgs> | null
+    /**
+     * Filter, which MailQuotaLimits to fetch.
+     */
+    where?: MailQuotaLimitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailQuotaLimits to fetch.
+     */
+    orderBy?: MailQuotaLimitOrderByWithRelationInput | MailQuotaLimitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MailQuotaLimits.
+     */
+    cursor?: MailQuotaLimitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailQuotaLimits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailQuotaLimits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailQuotaLimits.
+     */
+    distinct?: MailQuotaLimitScalarFieldEnum | MailQuotaLimitScalarFieldEnum[]
+  }
+
+  /**
+   * MailQuotaLimit create
+   */
+  export type MailQuotaLimitCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailQuotaLimit
+     */
+    select?: MailQuotaLimitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailQuotaLimit
+     */
+    omit?: MailQuotaLimitOmit<ExtArgs> | null
+    /**
+     * The data needed to create a MailQuotaLimit.
+     */
+    data: XOR<MailQuotaLimitCreateInput, MailQuotaLimitUncheckedCreateInput>
+  }
+
+  /**
+   * MailQuotaLimit createMany
+   */
+  export type MailQuotaLimitCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MailQuotaLimits.
+     */
+    data: MailQuotaLimitCreateManyInput | MailQuotaLimitCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailQuotaLimit createManyAndReturn
+   */
+  export type MailQuotaLimitCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailQuotaLimit
+     */
+    select?: MailQuotaLimitSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailQuotaLimit
+     */
+    omit?: MailQuotaLimitOmit<ExtArgs> | null
+    /**
+     * The data used to create many MailQuotaLimits.
+     */
+    data: MailQuotaLimitCreateManyInput | MailQuotaLimitCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailQuotaLimit update
+   */
+  export type MailQuotaLimitUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailQuotaLimit
+     */
+    select?: MailQuotaLimitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailQuotaLimit
+     */
+    omit?: MailQuotaLimitOmit<ExtArgs> | null
+    /**
+     * The data needed to update a MailQuotaLimit.
+     */
+    data: XOR<MailQuotaLimitUpdateInput, MailQuotaLimitUncheckedUpdateInput>
+    /**
+     * Choose, which MailQuotaLimit to update.
+     */
+    where: MailQuotaLimitWhereUniqueInput
+  }
+
+  /**
+   * MailQuotaLimit updateMany
+   */
+  export type MailQuotaLimitUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MailQuotaLimits.
+     */
+    data: XOR<MailQuotaLimitUpdateManyMutationInput, MailQuotaLimitUncheckedUpdateManyInput>
+    /**
+     * Filter which MailQuotaLimits to update
+     */
+    where?: MailQuotaLimitWhereInput
+    /**
+     * Limit how many MailQuotaLimits to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailQuotaLimit updateManyAndReturn
+   */
+  export type MailQuotaLimitUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailQuotaLimit
+     */
+    select?: MailQuotaLimitSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailQuotaLimit
+     */
+    omit?: MailQuotaLimitOmit<ExtArgs> | null
+    /**
+     * The data used to update MailQuotaLimits.
+     */
+    data: XOR<MailQuotaLimitUpdateManyMutationInput, MailQuotaLimitUncheckedUpdateManyInput>
+    /**
+     * Filter which MailQuotaLimits to update
+     */
+    where?: MailQuotaLimitWhereInput
+    /**
+     * Limit how many MailQuotaLimits to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailQuotaLimit upsert
+   */
+  export type MailQuotaLimitUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailQuotaLimit
+     */
+    select?: MailQuotaLimitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailQuotaLimit
+     */
+    omit?: MailQuotaLimitOmit<ExtArgs> | null
+    /**
+     * The filter to search for the MailQuotaLimit to update in case it exists.
+     */
+    where: MailQuotaLimitWhereUniqueInput
+    /**
+     * In case the MailQuotaLimit found by the `where` argument doesn't exist, create a new MailQuotaLimit with this data.
+     */
+    create: XOR<MailQuotaLimitCreateInput, MailQuotaLimitUncheckedCreateInput>
+    /**
+     * In case the MailQuotaLimit was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MailQuotaLimitUpdateInput, MailQuotaLimitUncheckedUpdateInput>
+  }
+
+  /**
+   * MailQuotaLimit delete
+   */
+  export type MailQuotaLimitDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailQuotaLimit
+     */
+    select?: MailQuotaLimitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailQuotaLimit
+     */
+    omit?: MailQuotaLimitOmit<ExtArgs> | null
+    /**
+     * Filter which MailQuotaLimit to delete.
+     */
+    where: MailQuotaLimitWhereUniqueInput
+  }
+
+  /**
+   * MailQuotaLimit deleteMany
+   */
+  export type MailQuotaLimitDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailQuotaLimits to delete
+     */
+    where?: MailQuotaLimitWhereInput
+    /**
+     * Limit how many MailQuotaLimits to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailQuotaLimit without action
+   */
+  export type MailQuotaLimitDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailQuotaLimit
+     */
+    select?: MailQuotaLimitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailQuotaLimit
+     */
+    omit?: MailQuotaLimitOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MailOpsAlert
+   */
+
+  export type AggregateMailOpsAlert = {
+    _count: MailOpsAlertCountAggregateOutputType | null
+    _avg: MailOpsAlertAvgAggregateOutputType | null
+    _sum: MailOpsAlertSumAggregateOutputType | null
+    _min: MailOpsAlertMinAggregateOutputType | null
+    _max: MailOpsAlertMaxAggregateOutputType | null
+  }
+
+  export type MailOpsAlertAvgAggregateOutputType = {
+    occurrences: number | null
+  }
+
+  export type MailOpsAlertSumAggregateOutputType = {
+    occurrences: number | null
+  }
+
+  export type MailOpsAlertMinAggregateOutputType = {
+    id: string | null
+    code: string | null
+    severity: string | null
+    organizationId: string | null
+    fingerprint: string | null
+    occurrences: number | null
+    firstSeenAt: Date | null
+    lastSeenAt: Date | null
+    notifiedAt: Date | null
+    acknowledgedAt: Date | null
+    acknowledgedBy: string | null
+    resolvedAt: Date | null
+  }
+
+  export type MailOpsAlertMaxAggregateOutputType = {
+    id: string | null
+    code: string | null
+    severity: string | null
+    organizationId: string | null
+    fingerprint: string | null
+    occurrences: number | null
+    firstSeenAt: Date | null
+    lastSeenAt: Date | null
+    notifiedAt: Date | null
+    acknowledgedAt: Date | null
+    acknowledgedBy: string | null
+    resolvedAt: Date | null
+  }
+
+  export type MailOpsAlertCountAggregateOutputType = {
+    id: number
+    code: number
+    severity: number
+    organizationId: number
+    fingerprint: number
+    detail: number
+    occurrences: number
+    firstSeenAt: number
+    lastSeenAt: number
+    notifiedAt: number
+    acknowledgedAt: number
+    acknowledgedBy: number
+    resolvedAt: number
+    _all: number
+  }
+
+
+  export type MailOpsAlertAvgAggregateInputType = {
+    occurrences?: true
+  }
+
+  export type MailOpsAlertSumAggregateInputType = {
+    occurrences?: true
+  }
+
+  export type MailOpsAlertMinAggregateInputType = {
+    id?: true
+    code?: true
+    severity?: true
+    organizationId?: true
+    fingerprint?: true
+    occurrences?: true
+    firstSeenAt?: true
+    lastSeenAt?: true
+    notifiedAt?: true
+    acknowledgedAt?: true
+    acknowledgedBy?: true
+    resolvedAt?: true
+  }
+
+  export type MailOpsAlertMaxAggregateInputType = {
+    id?: true
+    code?: true
+    severity?: true
+    organizationId?: true
+    fingerprint?: true
+    occurrences?: true
+    firstSeenAt?: true
+    lastSeenAt?: true
+    notifiedAt?: true
+    acknowledgedAt?: true
+    acknowledgedBy?: true
+    resolvedAt?: true
+  }
+
+  export type MailOpsAlertCountAggregateInputType = {
+    id?: true
+    code?: true
+    severity?: true
+    organizationId?: true
+    fingerprint?: true
+    detail?: true
+    occurrences?: true
+    firstSeenAt?: true
+    lastSeenAt?: true
+    notifiedAt?: true
+    acknowledgedAt?: true
+    acknowledgedBy?: true
+    resolvedAt?: true
+    _all?: true
+  }
+
+  export type MailOpsAlertAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailOpsAlert to aggregate.
+     */
+    where?: MailOpsAlertWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailOpsAlerts to fetch.
+     */
+    orderBy?: MailOpsAlertOrderByWithRelationInput | MailOpsAlertOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MailOpsAlertWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailOpsAlerts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailOpsAlerts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MailOpsAlerts
+    **/
+    _count?: true | MailOpsAlertCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MailOpsAlertAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MailOpsAlertSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MailOpsAlertMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MailOpsAlertMaxAggregateInputType
+  }
+
+  export type GetMailOpsAlertAggregateType<T extends MailOpsAlertAggregateArgs> = {
+        [P in keyof T & keyof AggregateMailOpsAlert]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMailOpsAlert[P]>
+      : GetScalarType<T[P], AggregateMailOpsAlert[P]>
+  }
+
+
+
+
+  export type MailOpsAlertGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailOpsAlertWhereInput
+    orderBy?: MailOpsAlertOrderByWithAggregationInput | MailOpsAlertOrderByWithAggregationInput[]
+    by: MailOpsAlertScalarFieldEnum[] | MailOpsAlertScalarFieldEnum
+    having?: MailOpsAlertScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MailOpsAlertCountAggregateInputType | true
+    _avg?: MailOpsAlertAvgAggregateInputType
+    _sum?: MailOpsAlertSumAggregateInputType
+    _min?: MailOpsAlertMinAggregateInputType
+    _max?: MailOpsAlertMaxAggregateInputType
+  }
+
+  export type MailOpsAlertGroupByOutputType = {
+    id: string
+    code: string
+    severity: string
+    organizationId: string | null
+    fingerprint: string
+    detail: JsonValue | null
+    occurrences: number
+    firstSeenAt: Date
+    lastSeenAt: Date
+    notifiedAt: Date | null
+    acknowledgedAt: Date | null
+    acknowledgedBy: string | null
+    resolvedAt: Date | null
+    _count: MailOpsAlertCountAggregateOutputType | null
+    _avg: MailOpsAlertAvgAggregateOutputType | null
+    _sum: MailOpsAlertSumAggregateOutputType | null
+    _min: MailOpsAlertMinAggregateOutputType | null
+    _max: MailOpsAlertMaxAggregateOutputType | null
+  }
+
+  type GetMailOpsAlertGroupByPayload<T extends MailOpsAlertGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MailOpsAlertGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MailOpsAlertGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MailOpsAlertGroupByOutputType[P]>
+            : GetScalarType<T[P], MailOpsAlertGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MailOpsAlertSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    severity?: boolean
+    organizationId?: boolean
+    fingerprint?: boolean
+    detail?: boolean
+    occurrences?: boolean
+    firstSeenAt?: boolean
+    lastSeenAt?: boolean
+    notifiedAt?: boolean
+    acknowledgedAt?: boolean
+    acknowledgedBy?: boolean
+    resolvedAt?: boolean
+  }, ExtArgs["result"]["mailOpsAlert"]>
+
+  export type MailOpsAlertSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    severity?: boolean
+    organizationId?: boolean
+    fingerprint?: boolean
+    detail?: boolean
+    occurrences?: boolean
+    firstSeenAt?: boolean
+    lastSeenAt?: boolean
+    notifiedAt?: boolean
+    acknowledgedAt?: boolean
+    acknowledgedBy?: boolean
+    resolvedAt?: boolean
+  }, ExtArgs["result"]["mailOpsAlert"]>
+
+  export type MailOpsAlertSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    severity?: boolean
+    organizationId?: boolean
+    fingerprint?: boolean
+    detail?: boolean
+    occurrences?: boolean
+    firstSeenAt?: boolean
+    lastSeenAt?: boolean
+    notifiedAt?: boolean
+    acknowledgedAt?: boolean
+    acknowledgedBy?: boolean
+    resolvedAt?: boolean
+  }, ExtArgs["result"]["mailOpsAlert"]>
+
+  export type MailOpsAlertSelectScalar = {
+    id?: boolean
+    code?: boolean
+    severity?: boolean
+    organizationId?: boolean
+    fingerprint?: boolean
+    detail?: boolean
+    occurrences?: boolean
+    firstSeenAt?: boolean
+    lastSeenAt?: boolean
+    notifiedAt?: boolean
+    acknowledgedAt?: boolean
+    acknowledgedBy?: boolean
+    resolvedAt?: boolean
+  }
+
+  export type MailOpsAlertOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "code" | "severity" | "organizationId" | "fingerprint" | "detail" | "occurrences" | "firstSeenAt" | "lastSeenAt" | "notifiedAt" | "acknowledgedAt" | "acknowledgedBy" | "resolvedAt", ExtArgs["result"]["mailOpsAlert"]>
+
+  export type $MailOpsAlertPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MailOpsAlert"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      code: string
+      severity: string
+      organizationId: string | null
+      fingerprint: string
+      detail: Prisma.JsonValue | null
+      occurrences: number
+      firstSeenAt: Date
+      lastSeenAt: Date
+      notifiedAt: Date | null
+      acknowledgedAt: Date | null
+      acknowledgedBy: string | null
+      resolvedAt: Date | null
+    }, ExtArgs["result"]["mailOpsAlert"]>
+    composites: {}
+  }
+
+  type MailOpsAlertGetPayload<S extends boolean | null | undefined | MailOpsAlertDefaultArgs> = $Result.GetResult<Prisma.$MailOpsAlertPayload, S>
+
+  type MailOpsAlertCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MailOpsAlertFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MailOpsAlertCountAggregateInputType | true
+    }
+
+  export interface MailOpsAlertDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MailOpsAlert'], meta: { name: 'MailOpsAlert' } }
+    /**
+     * Find zero or one MailOpsAlert that matches the filter.
+     * @param {MailOpsAlertFindUniqueArgs} args - Arguments to find a MailOpsAlert
+     * @example
+     * // Get one MailOpsAlert
+     * const mailOpsAlert = await prisma.mailOpsAlert.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MailOpsAlertFindUniqueArgs>(args: SelectSubset<T, MailOpsAlertFindUniqueArgs<ExtArgs>>): Prisma__MailOpsAlertClient<$Result.GetResult<Prisma.$MailOpsAlertPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MailOpsAlert that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MailOpsAlertFindUniqueOrThrowArgs} args - Arguments to find a MailOpsAlert
+     * @example
+     * // Get one MailOpsAlert
+     * const mailOpsAlert = await prisma.mailOpsAlert.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MailOpsAlertFindUniqueOrThrowArgs>(args: SelectSubset<T, MailOpsAlertFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MailOpsAlertClient<$Result.GetResult<Prisma.$MailOpsAlertPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailOpsAlert that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailOpsAlertFindFirstArgs} args - Arguments to find a MailOpsAlert
+     * @example
+     * // Get one MailOpsAlert
+     * const mailOpsAlert = await prisma.mailOpsAlert.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MailOpsAlertFindFirstArgs>(args?: SelectSubset<T, MailOpsAlertFindFirstArgs<ExtArgs>>): Prisma__MailOpsAlertClient<$Result.GetResult<Prisma.$MailOpsAlertPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailOpsAlert that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailOpsAlertFindFirstOrThrowArgs} args - Arguments to find a MailOpsAlert
+     * @example
+     * // Get one MailOpsAlert
+     * const mailOpsAlert = await prisma.mailOpsAlert.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MailOpsAlertFindFirstOrThrowArgs>(args?: SelectSubset<T, MailOpsAlertFindFirstOrThrowArgs<ExtArgs>>): Prisma__MailOpsAlertClient<$Result.GetResult<Prisma.$MailOpsAlertPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MailOpsAlerts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailOpsAlertFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MailOpsAlerts
+     * const mailOpsAlerts = await prisma.mailOpsAlert.findMany()
+     * 
+     * // Get first 10 MailOpsAlerts
+     * const mailOpsAlerts = await prisma.mailOpsAlert.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const mailOpsAlertWithIdOnly = await prisma.mailOpsAlert.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MailOpsAlertFindManyArgs>(args?: SelectSubset<T, MailOpsAlertFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailOpsAlertPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MailOpsAlert.
+     * @param {MailOpsAlertCreateArgs} args - Arguments to create a MailOpsAlert.
+     * @example
+     * // Create one MailOpsAlert
+     * const MailOpsAlert = await prisma.mailOpsAlert.create({
+     *   data: {
+     *     // ... data to create a MailOpsAlert
+     *   }
+     * })
+     * 
+     */
+    create<T extends MailOpsAlertCreateArgs>(args: SelectSubset<T, MailOpsAlertCreateArgs<ExtArgs>>): Prisma__MailOpsAlertClient<$Result.GetResult<Prisma.$MailOpsAlertPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MailOpsAlerts.
+     * @param {MailOpsAlertCreateManyArgs} args - Arguments to create many MailOpsAlerts.
+     * @example
+     * // Create many MailOpsAlerts
+     * const mailOpsAlert = await prisma.mailOpsAlert.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MailOpsAlertCreateManyArgs>(args?: SelectSubset<T, MailOpsAlertCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MailOpsAlerts and returns the data saved in the database.
+     * @param {MailOpsAlertCreateManyAndReturnArgs} args - Arguments to create many MailOpsAlerts.
+     * @example
+     * // Create many MailOpsAlerts
+     * const mailOpsAlert = await prisma.mailOpsAlert.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MailOpsAlerts and only return the `id`
+     * const mailOpsAlertWithIdOnly = await prisma.mailOpsAlert.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MailOpsAlertCreateManyAndReturnArgs>(args?: SelectSubset<T, MailOpsAlertCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailOpsAlertPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MailOpsAlert.
+     * @param {MailOpsAlertDeleteArgs} args - Arguments to delete one MailOpsAlert.
+     * @example
+     * // Delete one MailOpsAlert
+     * const MailOpsAlert = await prisma.mailOpsAlert.delete({
+     *   where: {
+     *     // ... filter to delete one MailOpsAlert
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MailOpsAlertDeleteArgs>(args: SelectSubset<T, MailOpsAlertDeleteArgs<ExtArgs>>): Prisma__MailOpsAlertClient<$Result.GetResult<Prisma.$MailOpsAlertPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MailOpsAlert.
+     * @param {MailOpsAlertUpdateArgs} args - Arguments to update one MailOpsAlert.
+     * @example
+     * // Update one MailOpsAlert
+     * const mailOpsAlert = await prisma.mailOpsAlert.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MailOpsAlertUpdateArgs>(args: SelectSubset<T, MailOpsAlertUpdateArgs<ExtArgs>>): Prisma__MailOpsAlertClient<$Result.GetResult<Prisma.$MailOpsAlertPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MailOpsAlerts.
+     * @param {MailOpsAlertDeleteManyArgs} args - Arguments to filter MailOpsAlerts to delete.
+     * @example
+     * // Delete a few MailOpsAlerts
+     * const { count } = await prisma.mailOpsAlert.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MailOpsAlertDeleteManyArgs>(args?: SelectSubset<T, MailOpsAlertDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailOpsAlerts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailOpsAlertUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MailOpsAlerts
+     * const mailOpsAlert = await prisma.mailOpsAlert.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MailOpsAlertUpdateManyArgs>(args: SelectSubset<T, MailOpsAlertUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailOpsAlerts and returns the data updated in the database.
+     * @param {MailOpsAlertUpdateManyAndReturnArgs} args - Arguments to update many MailOpsAlerts.
+     * @example
+     * // Update many MailOpsAlerts
+     * const mailOpsAlert = await prisma.mailOpsAlert.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MailOpsAlerts and only return the `id`
+     * const mailOpsAlertWithIdOnly = await prisma.mailOpsAlert.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MailOpsAlertUpdateManyAndReturnArgs>(args: SelectSubset<T, MailOpsAlertUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailOpsAlertPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MailOpsAlert.
+     * @param {MailOpsAlertUpsertArgs} args - Arguments to update or create a MailOpsAlert.
+     * @example
+     * // Update or create a MailOpsAlert
+     * const mailOpsAlert = await prisma.mailOpsAlert.upsert({
+     *   create: {
+     *     // ... data to create a MailOpsAlert
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MailOpsAlert we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MailOpsAlertUpsertArgs>(args: SelectSubset<T, MailOpsAlertUpsertArgs<ExtArgs>>): Prisma__MailOpsAlertClient<$Result.GetResult<Prisma.$MailOpsAlertPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MailOpsAlerts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailOpsAlertCountArgs} args - Arguments to filter MailOpsAlerts to count.
+     * @example
+     * // Count the number of MailOpsAlerts
+     * const count = await prisma.mailOpsAlert.count({
+     *   where: {
+     *     // ... the filter for the MailOpsAlerts we want to count
+     *   }
+     * })
+    **/
+    count<T extends MailOpsAlertCountArgs>(
+      args?: Subset<T, MailOpsAlertCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MailOpsAlertCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MailOpsAlert.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailOpsAlertAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MailOpsAlertAggregateArgs>(args: Subset<T, MailOpsAlertAggregateArgs>): Prisma.PrismaPromise<GetMailOpsAlertAggregateType<T>>
+
+    /**
+     * Group by MailOpsAlert.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailOpsAlertGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MailOpsAlertGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MailOpsAlertGroupByArgs['orderBy'] }
+        : { orderBy?: MailOpsAlertGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MailOpsAlertGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMailOpsAlertGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MailOpsAlert model
+   */
+  readonly fields: MailOpsAlertFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MailOpsAlert.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MailOpsAlertClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MailOpsAlert model
+   */
+  interface MailOpsAlertFieldRefs {
+    readonly id: FieldRef<"MailOpsAlert", 'String'>
+    readonly code: FieldRef<"MailOpsAlert", 'String'>
+    readonly severity: FieldRef<"MailOpsAlert", 'String'>
+    readonly organizationId: FieldRef<"MailOpsAlert", 'String'>
+    readonly fingerprint: FieldRef<"MailOpsAlert", 'String'>
+    readonly detail: FieldRef<"MailOpsAlert", 'Json'>
+    readonly occurrences: FieldRef<"MailOpsAlert", 'Int'>
+    readonly firstSeenAt: FieldRef<"MailOpsAlert", 'DateTime'>
+    readonly lastSeenAt: FieldRef<"MailOpsAlert", 'DateTime'>
+    readonly notifiedAt: FieldRef<"MailOpsAlert", 'DateTime'>
+    readonly acknowledgedAt: FieldRef<"MailOpsAlert", 'DateTime'>
+    readonly acknowledgedBy: FieldRef<"MailOpsAlert", 'String'>
+    readonly resolvedAt: FieldRef<"MailOpsAlert", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MailOpsAlert findUnique
+   */
+  export type MailOpsAlertFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailOpsAlert
+     */
+    select?: MailOpsAlertSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailOpsAlert
+     */
+    omit?: MailOpsAlertOmit<ExtArgs> | null
+    /**
+     * Filter, which MailOpsAlert to fetch.
+     */
+    where: MailOpsAlertWhereUniqueInput
+  }
+
+  /**
+   * MailOpsAlert findUniqueOrThrow
+   */
+  export type MailOpsAlertFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailOpsAlert
+     */
+    select?: MailOpsAlertSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailOpsAlert
+     */
+    omit?: MailOpsAlertOmit<ExtArgs> | null
+    /**
+     * Filter, which MailOpsAlert to fetch.
+     */
+    where: MailOpsAlertWhereUniqueInput
+  }
+
+  /**
+   * MailOpsAlert findFirst
+   */
+  export type MailOpsAlertFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailOpsAlert
+     */
+    select?: MailOpsAlertSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailOpsAlert
+     */
+    omit?: MailOpsAlertOmit<ExtArgs> | null
+    /**
+     * Filter, which MailOpsAlert to fetch.
+     */
+    where?: MailOpsAlertWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailOpsAlerts to fetch.
+     */
+    orderBy?: MailOpsAlertOrderByWithRelationInput | MailOpsAlertOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailOpsAlerts.
+     */
+    cursor?: MailOpsAlertWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailOpsAlerts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailOpsAlerts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailOpsAlerts.
+     */
+    distinct?: MailOpsAlertScalarFieldEnum | MailOpsAlertScalarFieldEnum[]
+  }
+
+  /**
+   * MailOpsAlert findFirstOrThrow
+   */
+  export type MailOpsAlertFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailOpsAlert
+     */
+    select?: MailOpsAlertSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailOpsAlert
+     */
+    omit?: MailOpsAlertOmit<ExtArgs> | null
+    /**
+     * Filter, which MailOpsAlert to fetch.
+     */
+    where?: MailOpsAlertWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailOpsAlerts to fetch.
+     */
+    orderBy?: MailOpsAlertOrderByWithRelationInput | MailOpsAlertOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailOpsAlerts.
+     */
+    cursor?: MailOpsAlertWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailOpsAlerts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailOpsAlerts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailOpsAlerts.
+     */
+    distinct?: MailOpsAlertScalarFieldEnum | MailOpsAlertScalarFieldEnum[]
+  }
+
+  /**
+   * MailOpsAlert findMany
+   */
+  export type MailOpsAlertFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailOpsAlert
+     */
+    select?: MailOpsAlertSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailOpsAlert
+     */
+    omit?: MailOpsAlertOmit<ExtArgs> | null
+    /**
+     * Filter, which MailOpsAlerts to fetch.
+     */
+    where?: MailOpsAlertWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailOpsAlerts to fetch.
+     */
+    orderBy?: MailOpsAlertOrderByWithRelationInput | MailOpsAlertOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MailOpsAlerts.
+     */
+    cursor?: MailOpsAlertWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailOpsAlerts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailOpsAlerts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailOpsAlerts.
+     */
+    distinct?: MailOpsAlertScalarFieldEnum | MailOpsAlertScalarFieldEnum[]
+  }
+
+  /**
+   * MailOpsAlert create
+   */
+  export type MailOpsAlertCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailOpsAlert
+     */
+    select?: MailOpsAlertSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailOpsAlert
+     */
+    omit?: MailOpsAlertOmit<ExtArgs> | null
+    /**
+     * The data needed to create a MailOpsAlert.
+     */
+    data: XOR<MailOpsAlertCreateInput, MailOpsAlertUncheckedCreateInput>
+  }
+
+  /**
+   * MailOpsAlert createMany
+   */
+  export type MailOpsAlertCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MailOpsAlerts.
+     */
+    data: MailOpsAlertCreateManyInput | MailOpsAlertCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailOpsAlert createManyAndReturn
+   */
+  export type MailOpsAlertCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailOpsAlert
+     */
+    select?: MailOpsAlertSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailOpsAlert
+     */
+    omit?: MailOpsAlertOmit<ExtArgs> | null
+    /**
+     * The data used to create many MailOpsAlerts.
+     */
+    data: MailOpsAlertCreateManyInput | MailOpsAlertCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailOpsAlert update
+   */
+  export type MailOpsAlertUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailOpsAlert
+     */
+    select?: MailOpsAlertSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailOpsAlert
+     */
+    omit?: MailOpsAlertOmit<ExtArgs> | null
+    /**
+     * The data needed to update a MailOpsAlert.
+     */
+    data: XOR<MailOpsAlertUpdateInput, MailOpsAlertUncheckedUpdateInput>
+    /**
+     * Choose, which MailOpsAlert to update.
+     */
+    where: MailOpsAlertWhereUniqueInput
+  }
+
+  /**
+   * MailOpsAlert updateMany
+   */
+  export type MailOpsAlertUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MailOpsAlerts.
+     */
+    data: XOR<MailOpsAlertUpdateManyMutationInput, MailOpsAlertUncheckedUpdateManyInput>
+    /**
+     * Filter which MailOpsAlerts to update
+     */
+    where?: MailOpsAlertWhereInput
+    /**
+     * Limit how many MailOpsAlerts to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailOpsAlert updateManyAndReturn
+   */
+  export type MailOpsAlertUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailOpsAlert
+     */
+    select?: MailOpsAlertSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailOpsAlert
+     */
+    omit?: MailOpsAlertOmit<ExtArgs> | null
+    /**
+     * The data used to update MailOpsAlerts.
+     */
+    data: XOR<MailOpsAlertUpdateManyMutationInput, MailOpsAlertUncheckedUpdateManyInput>
+    /**
+     * Filter which MailOpsAlerts to update
+     */
+    where?: MailOpsAlertWhereInput
+    /**
+     * Limit how many MailOpsAlerts to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailOpsAlert upsert
+   */
+  export type MailOpsAlertUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailOpsAlert
+     */
+    select?: MailOpsAlertSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailOpsAlert
+     */
+    omit?: MailOpsAlertOmit<ExtArgs> | null
+    /**
+     * The filter to search for the MailOpsAlert to update in case it exists.
+     */
+    where: MailOpsAlertWhereUniqueInput
+    /**
+     * In case the MailOpsAlert found by the `where` argument doesn't exist, create a new MailOpsAlert with this data.
+     */
+    create: XOR<MailOpsAlertCreateInput, MailOpsAlertUncheckedCreateInput>
+    /**
+     * In case the MailOpsAlert was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MailOpsAlertUpdateInput, MailOpsAlertUncheckedUpdateInput>
+  }
+
+  /**
+   * MailOpsAlert delete
+   */
+  export type MailOpsAlertDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailOpsAlert
+     */
+    select?: MailOpsAlertSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailOpsAlert
+     */
+    omit?: MailOpsAlertOmit<ExtArgs> | null
+    /**
+     * Filter which MailOpsAlert to delete.
+     */
+    where: MailOpsAlertWhereUniqueInput
+  }
+
+  /**
+   * MailOpsAlert deleteMany
+   */
+  export type MailOpsAlertDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailOpsAlerts to delete
+     */
+    where?: MailOpsAlertWhereInput
+    /**
+     * Limit how many MailOpsAlerts to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailOpsAlert without action
+   */
+  export type MailOpsAlertDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailOpsAlert
+     */
+    select?: MailOpsAlertSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailOpsAlert
+     */
+    omit?: MailOpsAlertOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -235153,6 +240009,77 @@ export namespace Prisma {
   export type MailProductDeliveryEventScalarFieldEnum = (typeof MailProductDeliveryEventScalarFieldEnum)[keyof typeof MailProductDeliveryEventScalarFieldEnum]
 
 
+  export const MailRetentionRunScalarFieldEnum: {
+    id: 'id',
+    organizationId: 'organizationId',
+    policyId: 'policyId',
+    category: 'category',
+    action: 'action',
+    mode: 'mode',
+    status: 'status',
+    cutoff: 'cutoff',
+    dryRunId: 'dryRunId',
+    requestedBy: 'requestedBy',
+    counts: 'counts',
+    cursor: 'cursor',
+    errorCode: 'errorCode',
+    startedAt: 'startedAt',
+    completedAt: 'completedAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MailRetentionRunScalarFieldEnum = (typeof MailRetentionRunScalarFieldEnum)[keyof typeof MailRetentionRunScalarFieldEnum]
+
+
+  export const MailUsageDailyScalarFieldEnum: {
+    organizationId: 'organizationId',
+    purpose: 'purpose',
+    day: 'day',
+    accepted: 'accepted',
+    rejected: 'rejected',
+    received: 'received',
+    providerRequests: 'providerRequests',
+    bytes: 'bytes',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MailUsageDailyScalarFieldEnum = (typeof MailUsageDailyScalarFieldEnum)[keyof typeof MailUsageDailyScalarFieldEnum]
+
+
+  export const MailQuotaLimitScalarFieldEnum: {
+    id: 'id',
+    organizationId: 'organizationId',
+    purpose: 'purpose',
+    dailySoftLimit: 'dailySoftLimit',
+    dailyHardLimit: 'dailyHardLimit',
+    monthlyHardLimit: 'monthlyHardLimit',
+    updatedBy: 'updatedBy',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MailQuotaLimitScalarFieldEnum = (typeof MailQuotaLimitScalarFieldEnum)[keyof typeof MailQuotaLimitScalarFieldEnum]
+
+
+  export const MailOpsAlertScalarFieldEnum: {
+    id: 'id',
+    code: 'code',
+    severity: 'severity',
+    organizationId: 'organizationId',
+    fingerprint: 'fingerprint',
+    detail: 'detail',
+    occurrences: 'occurrences',
+    firstSeenAt: 'firstSeenAt',
+    lastSeenAt: 'lastSeenAt',
+    notifiedAt: 'notifiedAt',
+    acknowledgedAt: 'acknowledgedAt',
+    acknowledgedBy: 'acknowledgedBy',
+    resolvedAt: 'resolvedAt'
+  };
+
+  export type MailOpsAlertScalarFieldEnum = (typeof MailOpsAlertScalarFieldEnum)[keyof typeof MailOpsAlertScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -237156,6 +242083,34 @@ export namespace Prisma {
    * Reference to a field of type 'MailProductIntegrationStatus[]'
    */
   export type ListEnumMailProductIntegrationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MailProductIntegrationStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'MailRetentionRunMode'
+   */
+  export type EnumMailRetentionRunModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MailRetentionRunMode'>
+    
+
+
+  /**
+   * Reference to a field of type 'MailRetentionRunMode[]'
+   */
+  export type ListEnumMailRetentionRunModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MailRetentionRunMode[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'MailRetentionRunStatus'
+   */
+  export type EnumMailRetentionRunStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MailRetentionRunStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'MailRetentionRunStatus[]'
+   */
+  export type ListEnumMailRetentionRunStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MailRetentionRunStatus[]'>
     
 
 
@@ -254705,6 +259660,357 @@ export namespace Prisma {
     status?: StringWithAggregatesFilter<"MailProductDeliveryEvent"> | string
     occurredAt?: DateTimeWithAggregatesFilter<"MailProductDeliveryEvent"> | Date | string
     createdAt?: DateTimeWithAggregatesFilter<"MailProductDeliveryEvent"> | Date | string
+  }
+
+  export type MailRetentionRunWhereInput = {
+    AND?: MailRetentionRunWhereInput | MailRetentionRunWhereInput[]
+    OR?: MailRetentionRunWhereInput[]
+    NOT?: MailRetentionRunWhereInput | MailRetentionRunWhereInput[]
+    id?: UuidFilter<"MailRetentionRun"> | string
+    organizationId?: UuidNullableFilter<"MailRetentionRun"> | string | null
+    policyId?: UuidNullableFilter<"MailRetentionRun"> | string | null
+    category?: StringFilter<"MailRetentionRun"> | string
+    action?: StringFilter<"MailRetentionRun"> | string
+    mode?: EnumMailRetentionRunModeFilter<"MailRetentionRun"> | $Enums.MailRetentionRunMode
+    status?: EnumMailRetentionRunStatusFilter<"MailRetentionRun"> | $Enums.MailRetentionRunStatus
+    cutoff?: DateTimeFilter<"MailRetentionRun"> | Date | string
+    dryRunId?: UuidNullableFilter<"MailRetentionRun"> | string | null
+    requestedBy?: StringFilter<"MailRetentionRun"> | string
+    counts?: JsonFilter<"MailRetentionRun">
+    cursor?: JsonNullableFilter<"MailRetentionRun">
+    errorCode?: StringNullableFilter<"MailRetentionRun"> | string | null
+    startedAt?: DateTimeNullableFilter<"MailRetentionRun"> | Date | string | null
+    completedAt?: DateTimeNullableFilter<"MailRetentionRun"> | Date | string | null
+    createdAt?: DateTimeFilter<"MailRetentionRun"> | Date | string
+    updatedAt?: DateTimeFilter<"MailRetentionRun"> | Date | string
+  }
+
+  export type MailRetentionRunOrderByWithRelationInput = {
+    id?: SortOrder
+    organizationId?: SortOrderInput | SortOrder
+    policyId?: SortOrderInput | SortOrder
+    category?: SortOrder
+    action?: SortOrder
+    mode?: SortOrder
+    status?: SortOrder
+    cutoff?: SortOrder
+    dryRunId?: SortOrderInput | SortOrder
+    requestedBy?: SortOrder
+    counts?: SortOrder
+    cursor?: SortOrderInput | SortOrder
+    errorCode?: SortOrderInput | SortOrder
+    startedAt?: SortOrderInput | SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MailRetentionRunWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    dryRunId?: string
+    AND?: MailRetentionRunWhereInput | MailRetentionRunWhereInput[]
+    OR?: MailRetentionRunWhereInput[]
+    NOT?: MailRetentionRunWhereInput | MailRetentionRunWhereInput[]
+    organizationId?: UuidNullableFilter<"MailRetentionRun"> | string | null
+    policyId?: UuidNullableFilter<"MailRetentionRun"> | string | null
+    category?: StringFilter<"MailRetentionRun"> | string
+    action?: StringFilter<"MailRetentionRun"> | string
+    mode?: EnumMailRetentionRunModeFilter<"MailRetentionRun"> | $Enums.MailRetentionRunMode
+    status?: EnumMailRetentionRunStatusFilter<"MailRetentionRun"> | $Enums.MailRetentionRunStatus
+    cutoff?: DateTimeFilter<"MailRetentionRun"> | Date | string
+    requestedBy?: StringFilter<"MailRetentionRun"> | string
+    counts?: JsonFilter<"MailRetentionRun">
+    cursor?: JsonNullableFilter<"MailRetentionRun">
+    errorCode?: StringNullableFilter<"MailRetentionRun"> | string | null
+    startedAt?: DateTimeNullableFilter<"MailRetentionRun"> | Date | string | null
+    completedAt?: DateTimeNullableFilter<"MailRetentionRun"> | Date | string | null
+    createdAt?: DateTimeFilter<"MailRetentionRun"> | Date | string
+    updatedAt?: DateTimeFilter<"MailRetentionRun"> | Date | string
+  }, "id" | "dryRunId">
+
+  export type MailRetentionRunOrderByWithAggregationInput = {
+    id?: SortOrder
+    organizationId?: SortOrderInput | SortOrder
+    policyId?: SortOrderInput | SortOrder
+    category?: SortOrder
+    action?: SortOrder
+    mode?: SortOrder
+    status?: SortOrder
+    cutoff?: SortOrder
+    dryRunId?: SortOrderInput | SortOrder
+    requestedBy?: SortOrder
+    counts?: SortOrder
+    cursor?: SortOrderInput | SortOrder
+    errorCode?: SortOrderInput | SortOrder
+    startedAt?: SortOrderInput | SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MailRetentionRunCountOrderByAggregateInput
+    _max?: MailRetentionRunMaxOrderByAggregateInput
+    _min?: MailRetentionRunMinOrderByAggregateInput
+  }
+
+  export type MailRetentionRunScalarWhereWithAggregatesInput = {
+    AND?: MailRetentionRunScalarWhereWithAggregatesInput | MailRetentionRunScalarWhereWithAggregatesInput[]
+    OR?: MailRetentionRunScalarWhereWithAggregatesInput[]
+    NOT?: MailRetentionRunScalarWhereWithAggregatesInput | MailRetentionRunScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MailRetentionRun"> | string
+    organizationId?: UuidNullableWithAggregatesFilter<"MailRetentionRun"> | string | null
+    policyId?: UuidNullableWithAggregatesFilter<"MailRetentionRun"> | string | null
+    category?: StringWithAggregatesFilter<"MailRetentionRun"> | string
+    action?: StringWithAggregatesFilter<"MailRetentionRun"> | string
+    mode?: EnumMailRetentionRunModeWithAggregatesFilter<"MailRetentionRun"> | $Enums.MailRetentionRunMode
+    status?: EnumMailRetentionRunStatusWithAggregatesFilter<"MailRetentionRun"> | $Enums.MailRetentionRunStatus
+    cutoff?: DateTimeWithAggregatesFilter<"MailRetentionRun"> | Date | string
+    dryRunId?: UuidNullableWithAggregatesFilter<"MailRetentionRun"> | string | null
+    requestedBy?: StringWithAggregatesFilter<"MailRetentionRun"> | string
+    counts?: JsonWithAggregatesFilter<"MailRetentionRun">
+    cursor?: JsonNullableWithAggregatesFilter<"MailRetentionRun">
+    errorCode?: StringNullableWithAggregatesFilter<"MailRetentionRun"> | string | null
+    startedAt?: DateTimeNullableWithAggregatesFilter<"MailRetentionRun"> | Date | string | null
+    completedAt?: DateTimeNullableWithAggregatesFilter<"MailRetentionRun"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"MailRetentionRun"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MailRetentionRun"> | Date | string
+  }
+
+  export type MailUsageDailyWhereInput = {
+    AND?: MailUsageDailyWhereInput | MailUsageDailyWhereInput[]
+    OR?: MailUsageDailyWhereInput[]
+    NOT?: MailUsageDailyWhereInput | MailUsageDailyWhereInput[]
+    organizationId?: UuidFilter<"MailUsageDaily"> | string
+    purpose?: StringFilter<"MailUsageDaily"> | string
+    day?: DateTimeFilter<"MailUsageDaily"> | Date | string
+    accepted?: IntFilter<"MailUsageDaily"> | number
+    rejected?: IntFilter<"MailUsageDaily"> | number
+    received?: IntFilter<"MailUsageDaily"> | number
+    providerRequests?: IntFilter<"MailUsageDaily"> | number
+    bytes?: BigIntFilter<"MailUsageDaily"> | bigint | number
+    updatedAt?: DateTimeFilter<"MailUsageDaily"> | Date | string
+  }
+
+  export type MailUsageDailyOrderByWithRelationInput = {
+    organizationId?: SortOrder
+    purpose?: SortOrder
+    day?: SortOrder
+    accepted?: SortOrder
+    rejected?: SortOrder
+    received?: SortOrder
+    providerRequests?: SortOrder
+    bytes?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MailUsageDailyWhereUniqueInput = Prisma.AtLeast<{
+    organizationId_purpose_day?: MailUsageDailyOrganizationIdPurposeDayCompoundUniqueInput
+    AND?: MailUsageDailyWhereInput | MailUsageDailyWhereInput[]
+    OR?: MailUsageDailyWhereInput[]
+    NOT?: MailUsageDailyWhereInput | MailUsageDailyWhereInput[]
+    organizationId?: UuidFilter<"MailUsageDaily"> | string
+    purpose?: StringFilter<"MailUsageDaily"> | string
+    day?: DateTimeFilter<"MailUsageDaily"> | Date | string
+    accepted?: IntFilter<"MailUsageDaily"> | number
+    rejected?: IntFilter<"MailUsageDaily"> | number
+    received?: IntFilter<"MailUsageDaily"> | number
+    providerRequests?: IntFilter<"MailUsageDaily"> | number
+    bytes?: BigIntFilter<"MailUsageDaily"> | bigint | number
+    updatedAt?: DateTimeFilter<"MailUsageDaily"> | Date | string
+  }, "organizationId_purpose_day">
+
+  export type MailUsageDailyOrderByWithAggregationInput = {
+    organizationId?: SortOrder
+    purpose?: SortOrder
+    day?: SortOrder
+    accepted?: SortOrder
+    rejected?: SortOrder
+    received?: SortOrder
+    providerRequests?: SortOrder
+    bytes?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MailUsageDailyCountOrderByAggregateInput
+    _avg?: MailUsageDailyAvgOrderByAggregateInput
+    _max?: MailUsageDailyMaxOrderByAggregateInput
+    _min?: MailUsageDailyMinOrderByAggregateInput
+    _sum?: MailUsageDailySumOrderByAggregateInput
+  }
+
+  export type MailUsageDailyScalarWhereWithAggregatesInput = {
+    AND?: MailUsageDailyScalarWhereWithAggregatesInput | MailUsageDailyScalarWhereWithAggregatesInput[]
+    OR?: MailUsageDailyScalarWhereWithAggregatesInput[]
+    NOT?: MailUsageDailyScalarWhereWithAggregatesInput | MailUsageDailyScalarWhereWithAggregatesInput[]
+    organizationId?: UuidWithAggregatesFilter<"MailUsageDaily"> | string
+    purpose?: StringWithAggregatesFilter<"MailUsageDaily"> | string
+    day?: DateTimeWithAggregatesFilter<"MailUsageDaily"> | Date | string
+    accepted?: IntWithAggregatesFilter<"MailUsageDaily"> | number
+    rejected?: IntWithAggregatesFilter<"MailUsageDaily"> | number
+    received?: IntWithAggregatesFilter<"MailUsageDaily"> | number
+    providerRequests?: IntWithAggregatesFilter<"MailUsageDaily"> | number
+    bytes?: BigIntWithAggregatesFilter<"MailUsageDaily"> | bigint | number
+    updatedAt?: DateTimeWithAggregatesFilter<"MailUsageDaily"> | Date | string
+  }
+
+  export type MailQuotaLimitWhereInput = {
+    AND?: MailQuotaLimitWhereInput | MailQuotaLimitWhereInput[]
+    OR?: MailQuotaLimitWhereInput[]
+    NOT?: MailQuotaLimitWhereInput | MailQuotaLimitWhereInput[]
+    id?: UuidFilter<"MailQuotaLimit"> | string
+    organizationId?: UuidFilter<"MailQuotaLimit"> | string
+    purpose?: StringFilter<"MailQuotaLimit"> | string
+    dailySoftLimit?: IntNullableFilter<"MailQuotaLimit"> | number | null
+    dailyHardLimit?: IntNullableFilter<"MailQuotaLimit"> | number | null
+    monthlyHardLimit?: IntNullableFilter<"MailQuotaLimit"> | number | null
+    updatedBy?: StringFilter<"MailQuotaLimit"> | string
+    updatedAt?: DateTimeFilter<"MailQuotaLimit"> | Date | string
+  }
+
+  export type MailQuotaLimitOrderByWithRelationInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    purpose?: SortOrder
+    dailySoftLimit?: SortOrderInput | SortOrder
+    dailyHardLimit?: SortOrderInput | SortOrder
+    monthlyHardLimit?: SortOrderInput | SortOrder
+    updatedBy?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MailQuotaLimitWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    organizationId_purpose?: MailQuotaLimitOrganizationIdPurposeCompoundUniqueInput
+    AND?: MailQuotaLimitWhereInput | MailQuotaLimitWhereInput[]
+    OR?: MailQuotaLimitWhereInput[]
+    NOT?: MailQuotaLimitWhereInput | MailQuotaLimitWhereInput[]
+    organizationId?: UuidFilter<"MailQuotaLimit"> | string
+    purpose?: StringFilter<"MailQuotaLimit"> | string
+    dailySoftLimit?: IntNullableFilter<"MailQuotaLimit"> | number | null
+    dailyHardLimit?: IntNullableFilter<"MailQuotaLimit"> | number | null
+    monthlyHardLimit?: IntNullableFilter<"MailQuotaLimit"> | number | null
+    updatedBy?: StringFilter<"MailQuotaLimit"> | string
+    updatedAt?: DateTimeFilter<"MailQuotaLimit"> | Date | string
+  }, "id" | "organizationId_purpose">
+
+  export type MailQuotaLimitOrderByWithAggregationInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    purpose?: SortOrder
+    dailySoftLimit?: SortOrderInput | SortOrder
+    dailyHardLimit?: SortOrderInput | SortOrder
+    monthlyHardLimit?: SortOrderInput | SortOrder
+    updatedBy?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MailQuotaLimitCountOrderByAggregateInput
+    _avg?: MailQuotaLimitAvgOrderByAggregateInput
+    _max?: MailQuotaLimitMaxOrderByAggregateInput
+    _min?: MailQuotaLimitMinOrderByAggregateInput
+    _sum?: MailQuotaLimitSumOrderByAggregateInput
+  }
+
+  export type MailQuotaLimitScalarWhereWithAggregatesInput = {
+    AND?: MailQuotaLimitScalarWhereWithAggregatesInput | MailQuotaLimitScalarWhereWithAggregatesInput[]
+    OR?: MailQuotaLimitScalarWhereWithAggregatesInput[]
+    NOT?: MailQuotaLimitScalarWhereWithAggregatesInput | MailQuotaLimitScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MailQuotaLimit"> | string
+    organizationId?: UuidWithAggregatesFilter<"MailQuotaLimit"> | string
+    purpose?: StringWithAggregatesFilter<"MailQuotaLimit"> | string
+    dailySoftLimit?: IntNullableWithAggregatesFilter<"MailQuotaLimit"> | number | null
+    dailyHardLimit?: IntNullableWithAggregatesFilter<"MailQuotaLimit"> | number | null
+    monthlyHardLimit?: IntNullableWithAggregatesFilter<"MailQuotaLimit"> | number | null
+    updatedBy?: StringWithAggregatesFilter<"MailQuotaLimit"> | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MailQuotaLimit"> | Date | string
+  }
+
+  export type MailOpsAlertWhereInput = {
+    AND?: MailOpsAlertWhereInput | MailOpsAlertWhereInput[]
+    OR?: MailOpsAlertWhereInput[]
+    NOT?: MailOpsAlertWhereInput | MailOpsAlertWhereInput[]
+    id?: UuidFilter<"MailOpsAlert"> | string
+    code?: StringFilter<"MailOpsAlert"> | string
+    severity?: StringFilter<"MailOpsAlert"> | string
+    organizationId?: UuidNullableFilter<"MailOpsAlert"> | string | null
+    fingerprint?: StringFilter<"MailOpsAlert"> | string
+    detail?: JsonNullableFilter<"MailOpsAlert">
+    occurrences?: IntFilter<"MailOpsAlert"> | number
+    firstSeenAt?: DateTimeFilter<"MailOpsAlert"> | Date | string
+    lastSeenAt?: DateTimeFilter<"MailOpsAlert"> | Date | string
+    notifiedAt?: DateTimeNullableFilter<"MailOpsAlert"> | Date | string | null
+    acknowledgedAt?: DateTimeNullableFilter<"MailOpsAlert"> | Date | string | null
+    acknowledgedBy?: StringNullableFilter<"MailOpsAlert"> | string | null
+    resolvedAt?: DateTimeNullableFilter<"MailOpsAlert"> | Date | string | null
+  }
+
+  export type MailOpsAlertOrderByWithRelationInput = {
+    id?: SortOrder
+    code?: SortOrder
+    severity?: SortOrder
+    organizationId?: SortOrderInput | SortOrder
+    fingerprint?: SortOrder
+    detail?: SortOrderInput | SortOrder
+    occurrences?: SortOrder
+    firstSeenAt?: SortOrder
+    lastSeenAt?: SortOrder
+    notifiedAt?: SortOrderInput | SortOrder
+    acknowledgedAt?: SortOrderInput | SortOrder
+    acknowledgedBy?: SortOrderInput | SortOrder
+    resolvedAt?: SortOrderInput | SortOrder
+  }
+
+  export type MailOpsAlertWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: MailOpsAlertWhereInput | MailOpsAlertWhereInput[]
+    OR?: MailOpsAlertWhereInput[]
+    NOT?: MailOpsAlertWhereInput | MailOpsAlertWhereInput[]
+    code?: StringFilter<"MailOpsAlert"> | string
+    severity?: StringFilter<"MailOpsAlert"> | string
+    organizationId?: UuidNullableFilter<"MailOpsAlert"> | string | null
+    fingerprint?: StringFilter<"MailOpsAlert"> | string
+    detail?: JsonNullableFilter<"MailOpsAlert">
+    occurrences?: IntFilter<"MailOpsAlert"> | number
+    firstSeenAt?: DateTimeFilter<"MailOpsAlert"> | Date | string
+    lastSeenAt?: DateTimeFilter<"MailOpsAlert"> | Date | string
+    notifiedAt?: DateTimeNullableFilter<"MailOpsAlert"> | Date | string | null
+    acknowledgedAt?: DateTimeNullableFilter<"MailOpsAlert"> | Date | string | null
+    acknowledgedBy?: StringNullableFilter<"MailOpsAlert"> | string | null
+    resolvedAt?: DateTimeNullableFilter<"MailOpsAlert"> | Date | string | null
+  }, "id">
+
+  export type MailOpsAlertOrderByWithAggregationInput = {
+    id?: SortOrder
+    code?: SortOrder
+    severity?: SortOrder
+    organizationId?: SortOrderInput | SortOrder
+    fingerprint?: SortOrder
+    detail?: SortOrderInput | SortOrder
+    occurrences?: SortOrder
+    firstSeenAt?: SortOrder
+    lastSeenAt?: SortOrder
+    notifiedAt?: SortOrderInput | SortOrder
+    acknowledgedAt?: SortOrderInput | SortOrder
+    acknowledgedBy?: SortOrderInput | SortOrder
+    resolvedAt?: SortOrderInput | SortOrder
+    _count?: MailOpsAlertCountOrderByAggregateInput
+    _avg?: MailOpsAlertAvgOrderByAggregateInput
+    _max?: MailOpsAlertMaxOrderByAggregateInput
+    _min?: MailOpsAlertMinOrderByAggregateInput
+    _sum?: MailOpsAlertSumOrderByAggregateInput
+  }
+
+  export type MailOpsAlertScalarWhereWithAggregatesInput = {
+    AND?: MailOpsAlertScalarWhereWithAggregatesInput | MailOpsAlertScalarWhereWithAggregatesInput[]
+    OR?: MailOpsAlertScalarWhereWithAggregatesInput[]
+    NOT?: MailOpsAlertScalarWhereWithAggregatesInput | MailOpsAlertScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MailOpsAlert"> | string
+    code?: StringWithAggregatesFilter<"MailOpsAlert"> | string
+    severity?: StringWithAggregatesFilter<"MailOpsAlert"> | string
+    organizationId?: UuidNullableWithAggregatesFilter<"MailOpsAlert"> | string | null
+    fingerprint?: StringWithAggregatesFilter<"MailOpsAlert"> | string
+    detail?: JsonNullableWithAggregatesFilter<"MailOpsAlert">
+    occurrences?: IntWithAggregatesFilter<"MailOpsAlert"> | number
+    firstSeenAt?: DateTimeWithAggregatesFilter<"MailOpsAlert"> | Date | string
+    lastSeenAt?: DateTimeWithAggregatesFilter<"MailOpsAlert"> | Date | string
+    notifiedAt?: DateTimeNullableWithAggregatesFilter<"MailOpsAlert"> | Date | string | null
+    acknowledgedAt?: DateTimeNullableWithAggregatesFilter<"MailOpsAlert"> | Date | string | null
+    acknowledgedBy?: StringNullableWithAggregatesFilter<"MailOpsAlert"> | string | null
+    resolvedAt?: DateTimeNullableWithAggregatesFilter<"MailOpsAlert"> | Date | string | null
   }
 
   export type AdminUserCreateInput = {
@@ -274683,6 +279989,419 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type MailRetentionRunCreateInput = {
+    id?: string
+    organizationId?: string | null
+    policyId?: string | null
+    category: string
+    action: string
+    mode: $Enums.MailRetentionRunMode
+    status?: $Enums.MailRetentionRunStatus
+    cutoff: Date | string
+    dryRunId?: string | null
+    requestedBy: string
+    counts?: JsonNullValueInput | InputJsonValue
+    cursor?: NullableJsonNullValueInput | InputJsonValue
+    errorCode?: string | null
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+    createdAt: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MailRetentionRunUncheckedCreateInput = {
+    id?: string
+    organizationId?: string | null
+    policyId?: string | null
+    category: string
+    action: string
+    mode: $Enums.MailRetentionRunMode
+    status?: $Enums.MailRetentionRunStatus
+    cutoff: Date | string
+    dryRunId?: string | null
+    requestedBy: string
+    counts?: JsonNullValueInput | InputJsonValue
+    cursor?: NullableJsonNullValueInput | InputJsonValue
+    errorCode?: string | null
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+    createdAt: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MailRetentionRunUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    policyId?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    mode?: EnumMailRetentionRunModeFieldUpdateOperationsInput | $Enums.MailRetentionRunMode
+    status?: EnumMailRetentionRunStatusFieldUpdateOperationsInput | $Enums.MailRetentionRunStatus
+    cutoff?: DateTimeFieldUpdateOperationsInput | Date | string
+    dryRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedBy?: StringFieldUpdateOperationsInput | string
+    counts?: JsonNullValueInput | InputJsonValue
+    cursor?: NullableJsonNullValueInput | InputJsonValue
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailRetentionRunUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    policyId?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    mode?: EnumMailRetentionRunModeFieldUpdateOperationsInput | $Enums.MailRetentionRunMode
+    status?: EnumMailRetentionRunStatusFieldUpdateOperationsInput | $Enums.MailRetentionRunStatus
+    cutoff?: DateTimeFieldUpdateOperationsInput | Date | string
+    dryRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedBy?: StringFieldUpdateOperationsInput | string
+    counts?: JsonNullValueInput | InputJsonValue
+    cursor?: NullableJsonNullValueInput | InputJsonValue
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailRetentionRunCreateManyInput = {
+    id?: string
+    organizationId?: string | null
+    policyId?: string | null
+    category: string
+    action: string
+    mode: $Enums.MailRetentionRunMode
+    status?: $Enums.MailRetentionRunStatus
+    cutoff: Date | string
+    dryRunId?: string | null
+    requestedBy: string
+    counts?: JsonNullValueInput | InputJsonValue
+    cursor?: NullableJsonNullValueInput | InputJsonValue
+    errorCode?: string | null
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+    createdAt: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MailRetentionRunUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    policyId?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    mode?: EnumMailRetentionRunModeFieldUpdateOperationsInput | $Enums.MailRetentionRunMode
+    status?: EnumMailRetentionRunStatusFieldUpdateOperationsInput | $Enums.MailRetentionRunStatus
+    cutoff?: DateTimeFieldUpdateOperationsInput | Date | string
+    dryRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedBy?: StringFieldUpdateOperationsInput | string
+    counts?: JsonNullValueInput | InputJsonValue
+    cursor?: NullableJsonNullValueInput | InputJsonValue
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailRetentionRunUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    policyId?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    mode?: EnumMailRetentionRunModeFieldUpdateOperationsInput | $Enums.MailRetentionRunMode
+    status?: EnumMailRetentionRunStatusFieldUpdateOperationsInput | $Enums.MailRetentionRunStatus
+    cutoff?: DateTimeFieldUpdateOperationsInput | Date | string
+    dryRunId?: NullableStringFieldUpdateOperationsInput | string | null
+    requestedBy?: StringFieldUpdateOperationsInput | string
+    counts?: JsonNullValueInput | InputJsonValue
+    cursor?: NullableJsonNullValueInput | InputJsonValue
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailUsageDailyCreateInput = {
+    organizationId: string
+    purpose: string
+    day: Date | string
+    accepted?: number
+    rejected?: number
+    received?: number
+    providerRequests?: number
+    bytes?: bigint | number
+    updatedAt?: Date | string
+  }
+
+  export type MailUsageDailyUncheckedCreateInput = {
+    organizationId: string
+    purpose: string
+    day: Date | string
+    accepted?: number
+    rejected?: number
+    received?: number
+    providerRequests?: number
+    bytes?: bigint | number
+    updatedAt?: Date | string
+  }
+
+  export type MailUsageDailyUpdateInput = {
+    organizationId?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    day?: DateTimeFieldUpdateOperationsInput | Date | string
+    accepted?: IntFieldUpdateOperationsInput | number
+    rejected?: IntFieldUpdateOperationsInput | number
+    received?: IntFieldUpdateOperationsInput | number
+    providerRequests?: IntFieldUpdateOperationsInput | number
+    bytes?: BigIntFieldUpdateOperationsInput | bigint | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailUsageDailyUncheckedUpdateInput = {
+    organizationId?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    day?: DateTimeFieldUpdateOperationsInput | Date | string
+    accepted?: IntFieldUpdateOperationsInput | number
+    rejected?: IntFieldUpdateOperationsInput | number
+    received?: IntFieldUpdateOperationsInput | number
+    providerRequests?: IntFieldUpdateOperationsInput | number
+    bytes?: BigIntFieldUpdateOperationsInput | bigint | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailUsageDailyCreateManyInput = {
+    organizationId: string
+    purpose: string
+    day: Date | string
+    accepted?: number
+    rejected?: number
+    received?: number
+    providerRequests?: number
+    bytes?: bigint | number
+    updatedAt?: Date | string
+  }
+
+  export type MailUsageDailyUpdateManyMutationInput = {
+    organizationId?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    day?: DateTimeFieldUpdateOperationsInput | Date | string
+    accepted?: IntFieldUpdateOperationsInput | number
+    rejected?: IntFieldUpdateOperationsInput | number
+    received?: IntFieldUpdateOperationsInput | number
+    providerRequests?: IntFieldUpdateOperationsInput | number
+    bytes?: BigIntFieldUpdateOperationsInput | bigint | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailUsageDailyUncheckedUpdateManyInput = {
+    organizationId?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    day?: DateTimeFieldUpdateOperationsInput | Date | string
+    accepted?: IntFieldUpdateOperationsInput | number
+    rejected?: IntFieldUpdateOperationsInput | number
+    received?: IntFieldUpdateOperationsInput | number
+    providerRequests?: IntFieldUpdateOperationsInput | number
+    bytes?: BigIntFieldUpdateOperationsInput | bigint | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailQuotaLimitCreateInput = {
+    id?: string
+    organizationId: string
+    purpose: string
+    dailySoftLimit?: number | null
+    dailyHardLimit?: number | null
+    monthlyHardLimit?: number | null
+    updatedBy: string
+    updatedAt?: Date | string
+  }
+
+  export type MailQuotaLimitUncheckedCreateInput = {
+    id?: string
+    organizationId: string
+    purpose: string
+    dailySoftLimit?: number | null
+    dailyHardLimit?: number | null
+    monthlyHardLimit?: number | null
+    updatedBy: string
+    updatedAt?: Date | string
+  }
+
+  export type MailQuotaLimitUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    dailySoftLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    dailyHardLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyHardLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailQuotaLimitUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    dailySoftLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    dailyHardLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyHardLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailQuotaLimitCreateManyInput = {
+    id?: string
+    organizationId: string
+    purpose: string
+    dailySoftLimit?: number | null
+    dailyHardLimit?: number | null
+    monthlyHardLimit?: number | null
+    updatedBy: string
+    updatedAt?: Date | string
+  }
+
+  export type MailQuotaLimitUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    dailySoftLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    dailyHardLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyHardLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailQuotaLimitUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    dailySoftLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    dailyHardLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyHardLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailOpsAlertCreateInput = {
+    id?: string
+    code: string
+    severity: string
+    organizationId?: string | null
+    fingerprint: string
+    detail?: NullableJsonNullValueInput | InputJsonValue
+    occurrences?: number
+    firstSeenAt: Date | string
+    lastSeenAt: Date | string
+    notifiedAt?: Date | string | null
+    acknowledgedAt?: Date | string | null
+    acknowledgedBy?: string | null
+    resolvedAt?: Date | string | null
+  }
+
+  export type MailOpsAlertUncheckedCreateInput = {
+    id?: string
+    code: string
+    severity: string
+    organizationId?: string | null
+    fingerprint: string
+    detail?: NullableJsonNullValueInput | InputJsonValue
+    occurrences?: number
+    firstSeenAt: Date | string
+    lastSeenAt: Date | string
+    notifiedAt?: Date | string | null
+    acknowledgedAt?: Date | string | null
+    acknowledgedBy?: string | null
+    resolvedAt?: Date | string | null
+  }
+
+  export type MailOpsAlertUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    fingerprint?: StringFieldUpdateOperationsInput | string
+    detail?: NullableJsonNullValueInput | InputJsonValue
+    occurrences?: IntFieldUpdateOperationsInput | number
+    firstSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acknowledgedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acknowledgedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type MailOpsAlertUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    fingerprint?: StringFieldUpdateOperationsInput | string
+    detail?: NullableJsonNullValueInput | InputJsonValue
+    occurrences?: IntFieldUpdateOperationsInput | number
+    firstSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acknowledgedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acknowledgedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type MailOpsAlertCreateManyInput = {
+    id?: string
+    code: string
+    severity: string
+    organizationId?: string | null
+    fingerprint: string
+    detail?: NullableJsonNullValueInput | InputJsonValue
+    occurrences?: number
+    firstSeenAt: Date | string
+    lastSeenAt: Date | string
+    notifiedAt?: Date | string | null
+    acknowledgedAt?: Date | string | null
+    acknowledgedBy?: string | null
+    resolvedAt?: Date | string | null
+  }
+
+  export type MailOpsAlertUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    fingerprint?: StringFieldUpdateOperationsInput | string
+    detail?: NullableJsonNullValueInput | InputJsonValue
+    occurrences?: IntFieldUpdateOperationsInput | number
+    firstSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acknowledgedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acknowledgedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type MailOpsAlertUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    fingerprint?: StringFieldUpdateOperationsInput | string
+    detail?: NullableJsonNullValueInput | InputJsonValue
+    occurrences?: IntFieldUpdateOperationsInput | number
+    firstSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeenAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acknowledgedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acknowledgedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -288554,6 +294273,258 @@ export namespace Prisma {
     status?: SortOrder
     occurredAt?: SortOrder
     createdAt?: SortOrder
+  }
+
+  export type EnumMailRetentionRunModeFilter<$PrismaModel = never> = {
+    equals?: $Enums.MailRetentionRunMode | EnumMailRetentionRunModeFieldRefInput<$PrismaModel>
+    in?: $Enums.MailRetentionRunMode[] | ListEnumMailRetentionRunModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MailRetentionRunMode[] | ListEnumMailRetentionRunModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumMailRetentionRunModeFilter<$PrismaModel> | $Enums.MailRetentionRunMode
+  }
+
+  export type EnumMailRetentionRunStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MailRetentionRunStatus | EnumMailRetentionRunStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MailRetentionRunStatus[] | ListEnumMailRetentionRunStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MailRetentionRunStatus[] | ListEnumMailRetentionRunStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMailRetentionRunStatusFilter<$PrismaModel> | $Enums.MailRetentionRunStatus
+  }
+
+  export type MailRetentionRunCountOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    policyId?: SortOrder
+    category?: SortOrder
+    action?: SortOrder
+    mode?: SortOrder
+    status?: SortOrder
+    cutoff?: SortOrder
+    dryRunId?: SortOrder
+    requestedBy?: SortOrder
+    counts?: SortOrder
+    cursor?: SortOrder
+    errorCode?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MailRetentionRunMaxOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    policyId?: SortOrder
+    category?: SortOrder
+    action?: SortOrder
+    mode?: SortOrder
+    status?: SortOrder
+    cutoff?: SortOrder
+    dryRunId?: SortOrder
+    requestedBy?: SortOrder
+    errorCode?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MailRetentionRunMinOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    policyId?: SortOrder
+    category?: SortOrder
+    action?: SortOrder
+    mode?: SortOrder
+    status?: SortOrder
+    cutoff?: SortOrder
+    dryRunId?: SortOrder
+    requestedBy?: SortOrder
+    errorCode?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumMailRetentionRunModeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MailRetentionRunMode | EnumMailRetentionRunModeFieldRefInput<$PrismaModel>
+    in?: $Enums.MailRetentionRunMode[] | ListEnumMailRetentionRunModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MailRetentionRunMode[] | ListEnumMailRetentionRunModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumMailRetentionRunModeWithAggregatesFilter<$PrismaModel> | $Enums.MailRetentionRunMode
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMailRetentionRunModeFilter<$PrismaModel>
+    _max?: NestedEnumMailRetentionRunModeFilter<$PrismaModel>
+  }
+
+  export type EnumMailRetentionRunStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MailRetentionRunStatus | EnumMailRetentionRunStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MailRetentionRunStatus[] | ListEnumMailRetentionRunStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MailRetentionRunStatus[] | ListEnumMailRetentionRunStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMailRetentionRunStatusWithAggregatesFilter<$PrismaModel> | $Enums.MailRetentionRunStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMailRetentionRunStatusFilter<$PrismaModel>
+    _max?: NestedEnumMailRetentionRunStatusFilter<$PrismaModel>
+  }
+
+  export type MailUsageDailyOrganizationIdPurposeDayCompoundUniqueInput = {
+    organizationId: string
+    purpose: string
+    day: Date | string
+  }
+
+  export type MailUsageDailyCountOrderByAggregateInput = {
+    organizationId?: SortOrder
+    purpose?: SortOrder
+    day?: SortOrder
+    accepted?: SortOrder
+    rejected?: SortOrder
+    received?: SortOrder
+    providerRequests?: SortOrder
+    bytes?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MailUsageDailyAvgOrderByAggregateInput = {
+    accepted?: SortOrder
+    rejected?: SortOrder
+    received?: SortOrder
+    providerRequests?: SortOrder
+    bytes?: SortOrder
+  }
+
+  export type MailUsageDailyMaxOrderByAggregateInput = {
+    organizationId?: SortOrder
+    purpose?: SortOrder
+    day?: SortOrder
+    accepted?: SortOrder
+    rejected?: SortOrder
+    received?: SortOrder
+    providerRequests?: SortOrder
+    bytes?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MailUsageDailyMinOrderByAggregateInput = {
+    organizationId?: SortOrder
+    purpose?: SortOrder
+    day?: SortOrder
+    accepted?: SortOrder
+    rejected?: SortOrder
+    received?: SortOrder
+    providerRequests?: SortOrder
+    bytes?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MailUsageDailySumOrderByAggregateInput = {
+    accepted?: SortOrder
+    rejected?: SortOrder
+    received?: SortOrder
+    providerRequests?: SortOrder
+    bytes?: SortOrder
+  }
+
+  export type MailQuotaLimitOrganizationIdPurposeCompoundUniqueInput = {
+    organizationId: string
+    purpose: string
+  }
+
+  export type MailQuotaLimitCountOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    purpose?: SortOrder
+    dailySoftLimit?: SortOrder
+    dailyHardLimit?: SortOrder
+    monthlyHardLimit?: SortOrder
+    updatedBy?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MailQuotaLimitAvgOrderByAggregateInput = {
+    dailySoftLimit?: SortOrder
+    dailyHardLimit?: SortOrder
+    monthlyHardLimit?: SortOrder
+  }
+
+  export type MailQuotaLimitMaxOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    purpose?: SortOrder
+    dailySoftLimit?: SortOrder
+    dailyHardLimit?: SortOrder
+    monthlyHardLimit?: SortOrder
+    updatedBy?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MailQuotaLimitMinOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    purpose?: SortOrder
+    dailySoftLimit?: SortOrder
+    dailyHardLimit?: SortOrder
+    monthlyHardLimit?: SortOrder
+    updatedBy?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MailQuotaLimitSumOrderByAggregateInput = {
+    dailySoftLimit?: SortOrder
+    dailyHardLimit?: SortOrder
+    monthlyHardLimit?: SortOrder
+  }
+
+  export type MailOpsAlertCountOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    severity?: SortOrder
+    organizationId?: SortOrder
+    fingerprint?: SortOrder
+    detail?: SortOrder
+    occurrences?: SortOrder
+    firstSeenAt?: SortOrder
+    lastSeenAt?: SortOrder
+    notifiedAt?: SortOrder
+    acknowledgedAt?: SortOrder
+    acknowledgedBy?: SortOrder
+    resolvedAt?: SortOrder
+  }
+
+  export type MailOpsAlertAvgOrderByAggregateInput = {
+    occurrences?: SortOrder
+  }
+
+  export type MailOpsAlertMaxOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    severity?: SortOrder
+    organizationId?: SortOrder
+    fingerprint?: SortOrder
+    occurrences?: SortOrder
+    firstSeenAt?: SortOrder
+    lastSeenAt?: SortOrder
+    notifiedAt?: SortOrder
+    acknowledgedAt?: SortOrder
+    acknowledgedBy?: SortOrder
+    resolvedAt?: SortOrder
+  }
+
+  export type MailOpsAlertMinOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    severity?: SortOrder
+    organizationId?: SortOrder
+    fingerprint?: SortOrder
+    occurrences?: SortOrder
+    firstSeenAt?: SortOrder
+    lastSeenAt?: SortOrder
+    notifiedAt?: SortOrder
+    acknowledgedAt?: SortOrder
+    acknowledgedBy?: SortOrder
+    resolvedAt?: SortOrder
+  }
+
+  export type MailOpsAlertSumOrderByAggregateInput = {
+    occurrences?: SortOrder
   }
 
   export type AdminSessionCreateNestedManyWithoutAdminUserInput = {
@@ -303647,6 +309618,14 @@ export namespace Prisma {
     update?: XOR<XOR<MailProductIntegrationUpdateToOneWithWhereWithoutDeliveryEventsInput, MailProductIntegrationUpdateWithoutDeliveryEventsInput>, MailProductIntegrationUncheckedUpdateWithoutDeliveryEventsInput>
   }
 
+  export type EnumMailRetentionRunModeFieldUpdateOperationsInput = {
+    set?: $Enums.MailRetentionRunMode
+  }
+
+  export type EnumMailRetentionRunStatusFieldUpdateOperationsInput = {
+    set?: $Enums.MailRetentionRunStatus
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -306392,6 +312371,40 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumMailProductIntegrationStatusFilter<$PrismaModel>
     _max?: NestedEnumMailProductIntegrationStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumMailRetentionRunModeFilter<$PrismaModel = never> = {
+    equals?: $Enums.MailRetentionRunMode | EnumMailRetentionRunModeFieldRefInput<$PrismaModel>
+    in?: $Enums.MailRetentionRunMode[] | ListEnumMailRetentionRunModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MailRetentionRunMode[] | ListEnumMailRetentionRunModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumMailRetentionRunModeFilter<$PrismaModel> | $Enums.MailRetentionRunMode
+  }
+
+  export type NestedEnumMailRetentionRunStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MailRetentionRunStatus | EnumMailRetentionRunStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MailRetentionRunStatus[] | ListEnumMailRetentionRunStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MailRetentionRunStatus[] | ListEnumMailRetentionRunStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMailRetentionRunStatusFilter<$PrismaModel> | $Enums.MailRetentionRunStatus
+  }
+
+  export type NestedEnumMailRetentionRunModeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MailRetentionRunMode | EnumMailRetentionRunModeFieldRefInput<$PrismaModel>
+    in?: $Enums.MailRetentionRunMode[] | ListEnumMailRetentionRunModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MailRetentionRunMode[] | ListEnumMailRetentionRunModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumMailRetentionRunModeWithAggregatesFilter<$PrismaModel> | $Enums.MailRetentionRunMode
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMailRetentionRunModeFilter<$PrismaModel>
+    _max?: NestedEnumMailRetentionRunModeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumMailRetentionRunStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MailRetentionRunStatus | EnumMailRetentionRunStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MailRetentionRunStatus[] | ListEnumMailRetentionRunStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MailRetentionRunStatus[] | ListEnumMailRetentionRunStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMailRetentionRunStatusWithAggregatesFilter<$PrismaModel> | $Enums.MailRetentionRunStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMailRetentionRunStatusFilter<$PrismaModel>
+    _max?: NestedEnumMailRetentionRunStatusFilter<$PrismaModel>
   }
 
   export type AdminSessionCreateWithoutAdminUserInput = {

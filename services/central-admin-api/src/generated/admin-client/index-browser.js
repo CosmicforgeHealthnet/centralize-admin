@@ -2864,6 +2864,65 @@ exports.Prisma.MailProductDeliveryEventScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.MailRetentionRunScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  policyId: 'policyId',
+  category: 'category',
+  action: 'action',
+  mode: 'mode',
+  status: 'status',
+  cutoff: 'cutoff',
+  dryRunId: 'dryRunId',
+  requestedBy: 'requestedBy',
+  counts: 'counts',
+  cursor: 'cursor',
+  errorCode: 'errorCode',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MailUsageDailyScalarFieldEnum = {
+  organizationId: 'organizationId',
+  purpose: 'purpose',
+  day: 'day',
+  accepted: 'accepted',
+  rejected: 'rejected',
+  received: 'received',
+  providerRequests: 'providerRequests',
+  bytes: 'bytes',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MailQuotaLimitScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  purpose: 'purpose',
+  dailySoftLimit: 'dailySoftLimit',
+  dailyHardLimit: 'dailyHardLimit',
+  monthlyHardLimit: 'monthlyHardLimit',
+  updatedBy: 'updatedBy',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MailOpsAlertScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  severity: 'severity',
+  organizationId: 'organizationId',
+  fingerprint: 'fingerprint',
+  detail: 'detail',
+  occurrences: 'occurrences',
+  firstSeenAt: 'firstSeenAt',
+  lastSeenAt: 'lastSeenAt',
+  notifiedAt: 'notifiedAt',
+  acknowledgedAt: 'acknowledgedAt',
+  acknowledgedBy: 'acknowledgedBy',
+  resolvedAt: 'resolvedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -4054,6 +4113,19 @@ exports.MailProductIntegrationStatus = exports.$Enums.MailProductIntegrationStat
   SUSPENDED: 'SUSPENDED'
 };
 
+exports.MailRetentionRunMode = exports.$Enums.MailRetentionRunMode = {
+  DRY_RUN: 'DRY_RUN',
+  EXECUTE: 'EXECUTE'
+};
+
+exports.MailRetentionRunStatus = exports.$Enums.MailRetentionRunStatus = {
+  QUEUED: 'QUEUED',
+  RUNNING: 'RUNNING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+};
+
 exports.Prisma.ModelName = {
   AdminUser: 'AdminUser',
   marketing_campaigns: 'marketing_campaigns',
@@ -4224,7 +4296,11 @@ exports.Prisma.ModelName = {
   MailProductIntegration: 'MailProductIntegration',
   MailProductSenderAuthorization: 'MailProductSenderAuthorization',
   MailProductIntegrationEvent: 'MailProductIntegrationEvent',
-  MailProductDeliveryEvent: 'MailProductDeliveryEvent'
+  MailProductDeliveryEvent: 'MailProductDeliveryEvent',
+  MailRetentionRun: 'MailRetentionRun',
+  MailUsageDaily: 'MailUsageDaily',
+  MailQuotaLimit: 'MailQuotaLimit',
+  MailOpsAlert: 'MailOpsAlert'
 };
 
 /**

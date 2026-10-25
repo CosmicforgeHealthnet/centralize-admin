@@ -54,7 +54,7 @@ function dispatchError(code, message, { retryable = false, retryAfterSeconds = n
   return Object.assign(new Error(message || code), { code, retryable, retryAfterSeconds });
 }
 
-function createBroadcastProcessor({ client, config, audit, jobs, marketingProviders, eligibility, notifications, clock = () => new Date(), logger = null }) {
+function createBroadcastProcessor({ client, config, audit, jobs, marketingProviders, eligibility, notifications, runtime = null, usage = null, clock = () => new Date(), logger = null }) {
   const now = () => clock();
 
   async function brandSettings(organizationId) {
@@ -267,7 +267,8 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
   async function markAccepted(dispatch, providerStatus) {
     await client.$transaction(async (tx) => {
       await setStatus(dispatch, "SENDING", { providerStatus }, tx);
-      await tx.marketingBroadcastRecipient.updateMany({ where: { dispatchId: dispatch.id, status: "SYNCED" }, data: { status: "PROVIDER_ACCEPTED", acceptedAt: now() } });
+      const accepted = await tx.marketingBroadcastRecipient.updateMany({ where: { dispatchId: dispatch.id, status: "SYNCED" }, data: { status: "PROVIDER_ACCEPTED", acceptedAt: now() } });
+      if (usage) await usage.record(tx, { organizationId: dispatch.organizationId, purpose: "MARKETING_BROADCAST", accepted: accepted.count, providerRequests: 1 });
       await audit.record({ action: "MARKETING_BROADCAST_HANDED_TO_PROVIDER", targetType: "marketing_broadcast", targetId: dispatch.id, organizationId: dispatch.organizationId, metadata: { providerStatus, recipients: dispatch.recipientCount } }, {}, tx);
       await jobs.enqueue(tx, { queue: "MARKETING", kind: "BROADCAST_RECONCILE", idempotencyKey: `broadcast-reconcile:${dispatch.id}`, payload: { dispatchId: dispatch.id, organizationId: dispatch.organizationId }, maxAttempts: 20, nextAttemptAt: new Date(now().getTime() + config.broadcast.reconcileIntervalSeconds * 1000) });
     });
@@ -359,7 +360,7 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
     if (TERMINAL.has(dispatch.status) || dispatch.status === "SENDING") return { skipped: dispatch.status };
     if (dispatch.cancelRequestedAt && !dispatch.providerSendAttemptAt) return cancelBeforeSend(dispatch, provider);
     if (dispatch.status === "PAUSED") return { defer: { seconds: 300, code: "DISPATCH_PAUSED" } };
-    const halted = haltReason(settings);
+    const halted = haltReason(settings) || (runtime ? await runtime.haltReason("MARKETING_BROADCAST", { organizationId: dispatch.organizationId }) : null);
     if (halted) {
       await client.marketingBroadcastDispatch.update({ where: { id: dispatch.id }, data: { lastErrorCode: halted } });
       return { defer: { seconds: 300, code: halted } };
@@ -380,6 +381,14 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
       if (!sendable) {
         await cleanupProviderDraft(dispatch, provider);
         return fail(dispatch, "NO_ELIGIBLE_RECIPIENTS", "Every recipient withdrew or failed before the send");
+      }
+      // M9: brand hard limits are checked against the final recipient count.
+      if (usage) {
+        const quota = await usage.check(dispatch.organizationId, "MARKETING_BROADCAST", sendable);
+        if (!quota.allowed) {
+          await cleanupProviderDraft(dispatch, provider);
+          return fail(dispatch, "MAIL_QUOTA_HARD_LIMIT", `Brand ${quota.period} limit of ${quota.limit} would be exceeded`);
+        }
       }
       // Final cancellation / halt check immediately before the provider send.
       const fresh = await client.marketingBroadcastDispatch.findUnique({ where: { id: dispatch.id } });

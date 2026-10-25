@@ -34,6 +34,11 @@ const { createConfirmationService } = require("./marketing/confirmation.service"
 const { createMarketingEventsProcessor } = require("./marketing/marketing-events.processor");
 const { createPublicPreferencesService } = require("./marketing/public-preferences.service");
 const { createIntegrationService } = require("./integrations/integration.service");
+const { createRuntimeControls } = require("./ops/runtime-controls");
+const { createUsageService } = require("./ops/usage.service");
+const { createRetentionService } = require("./ops/retention.service");
+const { createRetentionProcessor } = require("./ops/retention.processor");
+const { createOpsMonitor } = require("./ops/ops-monitor.service");
 
 async function unwrapKeyring({ config, encryption, logger, kmsClient }) {
   const { resolveMailKeyring, createAwsKmsClient } = require("./security/kms-keyring");
@@ -77,13 +82,16 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const stepUp = createStepUpService({ client, config, clock, audit, mfa, authSchema, env, logger });
   const breakGlass = createBreakGlassService({ client, stepUp, audit, clock });
   const mailbox = createMailboxService({ client, config, store, audit });
+  // M9: kill switch and usage/quota accounting shared by every send path.
+  const runtime = createRuntimeControls({ config });
+  const usage = createUsageService({ client, audit, env, clock });
   const providerReady = () => resolvedAdapter.name !== "unconfigured";
-  const compose = createComposeService({ client, config, store, encryption: resolvedEncryption, scanner: resolvedScanner, jobs, audit, notifications, providerReady, clock });
+  const compose = createComposeService({ client, config, store, encryption: resolvedEncryption, scanner: resolvedScanner, jobs, audit, notifications, providerReady, runtime, usage, clock });
   const admin = createMailAdminService({ client, config, adapter: resolvedAdapter, audit, notifications, clock });
   const support = createSupportService({ client, mailboxService: mailbox, audit, notifications, encryption: resolvedEncryption, clock });
   // M7: per-brand marketing provider accounts, broadcasts and automation.
   const marketingProviders = createMarketingProviderResolver({ config, env, adapter: marketingAdapter, adapters: marketingAdapters });
-  const confirmation = createConfirmationService({ client, config, audit, jobs, encryption: resolvedEncryption, marketingProviders, clock });
+  const confirmation = createConfirmationService({ client, config, audit, jobs, encryption: resolvedEncryption, marketingProviders, runtime, usage, clock });
   const marketing = createMarketingService({ client, config, audit, stepUp, clock, hooks: { onConfirmationRequired: confirmation.onConfirmationRequired } });
   const broadcasts = createBroadcastService({ client, config, audit, jobs, stepUp, env, clock });
   const automations = createAutomationService({ client, config, audit, stepUp, clock });
@@ -91,12 +99,17 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const integrations = createIntegrationService({ client, config, audit, stepUp, automations, notifications, env, clock, logger });
   const attachmentReview = createAttachmentReviewService({ client, config, store, scanner: resolvedScanner, audit });
 
-  const inbound = createInboundProcessor({ client, config, adapter: resolvedAdapter, store, scanner: resolvedScanner, audit, notifications, clock });
-  const outbound = createOutboundProcessor({ client, config, adapter: resolvedAdapter, store, audit, notifications, clock });
+  const inbound = createInboundProcessor({ client, config, adapter: resolvedAdapter, store, scanner: resolvedScanner, audit, notifications, usage, clock });
+  const outbound = createOutboundProcessor({ client, config, adapter: resolvedAdapter, store, audit, notifications, runtime, usage, clock });
   const marketingEvents = createMarketingEventsProcessor({ client, audit, clock });
   const deliveryEvents = createDeliveryEventProcessor({ client, audit, notifications, marketingEvents });
-  const broadcastProcessor = createBroadcastProcessor({ client, config, audit, jobs, marketingProviders, eligibility: marketing.eligibleContacts, notifications, clock, logger });
-  const automationProcessor = createAutomationProcessor({ client, config, audit, jobs, marketingProviders, eligibility: marketing.eligibleContacts, clock, logger });
+  const broadcastProcessor = createBroadcastProcessor({ client, config, audit, jobs, marketingProviders, eligibility: marketing.eligibleContacts, notifications, runtime, usage, clock, logger });
+  const automationProcessor = createAutomationProcessor({ client, config, audit, jobs, marketingProviders, eligibility: marketing.eligibleContacts, runtime, usage, clock, logger });
+
+  const retention = createRetentionService({ client, config, audit, jobs, stepUp, clock });
+  const retentionProcessor = createRetentionProcessor({ client, config, audit, storage, clock, logger });
+  // `health` is a hoisted function declaration below.
+  const ops = createOpsMonitor({ client, config, notifications, health: () => health(), runtime, clock, logger });
 
   function createWorker(options = {}) {
     return createMailWorker({
@@ -112,16 +125,25 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
         AUTOMATION_TICK: automationProcessor.processTick,
         AUTOMATION_STEP: automationProcessor.processStep,
         MARKETING_CONFIRMATION_EMAIL: confirmation.process,
+        RETENTION_RUN: retentionProcessor.processRun,
+        OPS_EVALUATE: ops.processEvaluate,
       },
-      onDeadLetter: { SEND_MESSAGE: outbound.onDeadLetter, BROADCAST_DISPATCH: broadcastProcessor.onDeadLetter, BROADCAST_RECONCILE: broadcastProcessor.onDeadLetter, AUTOMATION_STEP: automationProcessor.onDeadLetter },
+      onDeadLetter: { SEND_MESSAGE: outbound.onDeadLetter, BROADCAST_DISPATCH: broadcastProcessor.onDeadLetter, BROADCAST_RECONCILE: broadcastProcessor.onDeadLetter, AUTOMATION_STEP: automationProcessor.onDeadLetter, RETENTION_RUN: retentionProcessor.onDeadLetter },
       // A MARKETING worker schedules one automation tick per minute bucket;
       // the idempotency key makes concurrent workers enqueue it once.
       beforeTick: async ({ queues }) => {
-        if (!queues.includes("MARKETING") || !config.automationEnabled) return;
-        const bucket = Math.floor(clock().getTime() / 60000);
-        await jobs.enqueue(null, { queue: "MARKETING", kind: "AUTOMATION_TICK", idempotencyKey: `automation-tick:${bucket}`, maxAttempts: 2 }).catch((error) => {
+        const once = (spec) => jobs.enqueue(null, spec).catch((error) => {
           if (error?.code !== "P2002") throw error;
         });
+        if (queues.includes("MARKETING") && config.automationEnabled) {
+          const bucket = Math.floor(clock().getTime() / 60000);
+          await once({ queue: "MARKETING", kind: "AUTOMATION_TICK", idempotencyKey: `automation-tick:${bucket}`, maxAttempts: 2 });
+        }
+        // M9: one ops evaluation per interval bucket across all EVENTS workers.
+        if (queues.includes("EVENTS") && config.ops.alertsEnabled) {
+          const bucket = Math.floor(clock().getTime() / (config.ops.evaluateIntervalSeconds * 1000));
+          await once({ queue: "EVENTS", kind: "OPS_EVALUATE", idempotencyKey: `ops-evaluate:${bucket}`, maxAttempts: 2 });
+        }
       },
       ...options,
     });
@@ -154,8 +176,9 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
     audit,
     store,
     jobs,
-    services: { mailbox, compose, admin, support, marketing, stepUp, breakGlass, attachmentReview, broadcasts, automations, publicPreferences, confirmation, integrations },
-    processors: { inbound, outbound, deliveryEvents, marketingEvents, broadcasts: broadcastProcessor, automations: automationProcessor },
+    services: { mailbox, compose, admin, support, marketing, stepUp, breakGlass, attachmentReview, broadcasts, automations, publicPreferences, confirmation, integrations, usage, retention, ops },
+    runtime,
+    processors: { inbound, outbound, deliveryEvents, marketingEvents, broadcasts: broadcastProcessor, automations: automationProcessor, retention: retentionProcessor },
     marketingProviders,
     webhookHandler: createResendWebhookHandler({ client, config, jobs, audit, logger, clock: () => clock().getTime(), env }),
     brandWebhookHandler: createResendWebhookHandler({ client, config, jobs, audit, logger, clock: () => clock().getTime(), env, brandMode: true }),
