@@ -49,11 +49,22 @@ function createMailJobRepository({ client, clock = () => new Date(), random = Ma
     return client.mailOutboxJob.findMany({ where: { id: { in: rows.map((row) => row.id) } } });
   }
 
+  // The provider event behind a job is marked once its job settles, so the
+  // webhook backlog, processing lag and webhook retention reflect reality.
+  async function settleWebhookEvent(job, status, code = null) {
+    if (!job.webhookEventId) return;
+    await client.mailWebhookEvent.updateMany({
+      where: { id: job.webhookEventId, status: "RECEIVED" },
+      data: { status, processedAt: clock(), ...(code ? { lastError: String(code).slice(0, 500) } : {}) },
+    });
+  }
+
   async function complete(job, { providerRequestId = null } = {}) {
     const result = await client.mailOutboxJob.updateMany({
       where: { id: job.id, leaseOwner: job.leaseOwner, status: "LEASED" },
       data: { status: "SUCCEEDED", completedAt: clock(), leaseOwner: null, leaseExpiresAt: null, providerRequestId, lastErrorCode: null, lastErrorMessage: null },
     });
+    if (result.count === 1) await settleWebhookEvent(job, "PROCESSED");
     return result.count === 1;
   }
 
@@ -73,6 +84,7 @@ function createMailJobRepository({ client, clock = () => new Date(), random = Ma
         completedAt: status === "FAILED" || status === "DEAD_LETTER" ? clock() : null,
       },
     });
+    if (result.count === 1 && (status === "FAILED" || status === "DEAD_LETTER")) await settleWebhookEvent(job, "FAILED", code || "UNKNOWN");
     return { updated: result.count === 1, status };
   }
 
@@ -90,6 +102,7 @@ function createMailJobRepository({ client, clock = () => new Date(), random = Ma
         where: { id: job.id, status: "LEASED", leaseOwner: job.leaseOwner, leaseExpiresAt: { lt: now } },
         data: { status, leaseOwner: null, leaseExpiresAt: null, nextAttemptAt: now, lastErrorCode: "LEASE_EXPIRED", completedAt: exhausted ? now : null },
       });
+      if (result.count === 1 && exhausted) await settleWebhookEvent(job, "FAILED", "LEASE_EXPIRED");
       if (result.count === 1) recovered.push({ job: { ...job, status }, status });
     }
     return recovered;
