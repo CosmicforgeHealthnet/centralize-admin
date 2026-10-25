@@ -34,6 +34,14 @@ class PipelineError extends Error {
   }
 }
 
+// Unique violation on the per-mailbox RFC Message-ID index.
+function isConcurrentDuplicate(error) {
+  if (error?.code !== "P2002") return false;
+  const target = error.meta?.target;
+  const fields = Array.isArray(target) ? target.join(",") : String(target || error.message || "");
+  return /rfc_message_id|rfcMessageId/.test(fields);
+}
+
 function createInboundProcessor({ client, config, adapter, store, scanner, audit, notifications, usage = null, archive = null, forwarding = null, campaignReplies = null, senderAuth = loadSenderAuthPolicy({}), clock = () => new Date(), logger = null }) {
   async function ownDomains() {
     const rows = await client.mailDomain.findMany({ select: { domain: true } });
@@ -146,6 +154,9 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
           continue;
         }
       }
+      // A concurrent worker processing the same email can win the race past
+      // createMessage's duplicate check; the (mailbox_id, rfc_message_id)
+      // unique index then rejects this copy, which is a duplicate, not a failure.
       const outcome = await client.$transaction(async (tx) => {
         const created = await store.createMessage(tx, mailbox, {
           direction: "INBOUND",
@@ -208,6 +219,9 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
         if (usage) await usage.record(tx, { organizationId: mailbox.organizationId, purpose: "INBOUND", received: 1, bytes: created.message.sizeBytes || 0 });
         await audit.record({ action: "MAIL_INBOUND_DELIVERED", targetType: "message", targetId: created.message.id, mailboxId: mailbox.id, metadata: { attachments: storedAttachments.length, quarantined: created.message.status === "QUARANTINED", authVerdict: assessment.verdict } }, {}, tx);
         return { ...created, attachmentRows };
+      }).catch((error) => {
+        if (isConcurrentDuplicate(error)) return { duplicate: true };
+        throw error;
       });
       if (!outcome.duplicate) {
         delivered += 1;
