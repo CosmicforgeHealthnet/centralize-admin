@@ -66,6 +66,9 @@ async function seedUsers(client) {
   return ids;
 }
 
+let harnessKeys = "";
+const baseEnvKeys = () => harnessKeys;
+
 function createHarness(client, { storageBackend } = {}) {
   let offsetMs = 0;
   const clock = () => new Date(Date.now() + offsetMs);
@@ -79,6 +82,7 @@ function createHarness(client, { storageBackend } = {}) {
     MAIL_SEARCH_INDEX_BODIES: "true",
   };
   const config = loadMailConfig(baseEnv);
+  harnessKeys = baseEnv.MAIL_ENCRYPTION_KEYS;
   // MAIL_TEST_STORAGE=s3 runs the whole suite against the S3 backend (fake S3
   // on 127.0.0.1) instead of memory; `backend.objects` exposes raw stored bytes.
   const backend = storageBackend || memoryBackend();
@@ -1085,6 +1089,68 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       assert.ok(after.body.data.approvals.some((approval) => approval.decision === "INVALIDATED"));
       assert.equal(await client.mailOutboxJob.count({ where: { kind: { notIn: ["SEND_MESSAGE", "PROCESS_INBOUND", "PROCESS_DELIVERY_EVENT"] } } }), 0, "no marketing dispatch jobs exist in M6");
       await assert.rejects(harness.adapter.sendBroadcast({}), (error) => error.code === "BROADCAST_NOT_ENABLED");
+    });
+
+    await t.test("Key rotation: dry run changes nothing; apply rewraps every envelope (resumable, audited); old key can then be retired", async () => {
+      const { rotateMailEncryption, COLUMNS, OBJECT_SOURCES } = require("../src/modules/mail/security/key-rotation");
+      const { createEncryptedStore } = require("../src/modules/mail/storage/mail-storage");
+      const { createMailEncryption, parseKeyring } = require("../src/modules/mail/security/mail-encryption.service");
+      const v1 = parseKeyring(baseEnvKeys(), "v1").keys.get("v1").toString("base64");
+      const v2 = crypto.randomBytes(32).toString("base64");
+      const rotating = createMailEncryption({ keys: `v1:${v1},v2:${v2}`, activeKey: "v2" });
+      const store = createEncryptedStore({ encryption: rotating, backend: harness.backend });
+      const run = (options) => rotateMailEncryption({ client, storage: store, encryption: rotating, audit: harness.mail.audit, operator: ids.mailAdmin, logger: { info() {} }, ...options });
+      const envelopes = async () => {
+        const found = [];
+        for (const source of COLUMNS) {
+          for (const row of await client.$queryRawUnsafe(`SELECT "${source.column}" AS value FROM "${source.table}" WHERE "${source.column}" IS NOT NULL`)) found.push({ ...source, envelope: Buffer.from(row.value) });
+        }
+        return found;
+      };
+      const objectKeys = async () => {
+        const keys = new Set();
+        for (const source of OBJECT_SOURCES) for (const row of await client.$queryRawUnsafe(`SELECT DISTINCT "${source.column}" AS key FROM "${source.table}" WHERE "${source.column}" IS NOT NULL`)) keys.add(`${source.purpose}|${row.key}`);
+        return [...keys];
+      };
+      const before = await envelopes();
+      assert.ok(before.length > 10 && before.every((entry) => rotating.envelopeKeyVersion(entry.envelope) === "v1"));
+      assert.ok(new Set(before.map((entry) => entry.purpose)).size === 3, "drafts, snippets and notes are all covered");
+
+      const dry = await run({ dryRun: true });
+      assert.ok(dry.remaining > 0);
+      assert.deepEqual((await envelopes()).map((entry) => entry.envelope.toString("base64")), before.map((entry) => entry.envelope.toString("base64")), "dry run writes nothing");
+
+      const partial = await run({ dryRun: false, limit: 5, batchSize: 3 });
+      assert.equal(partial.stoppedAtLimit, true);
+      assert.ok(partial.remaining > 0);
+      const finished = await run({ dryRun: false, batchSize: 7 });
+      assert.equal(finished.failed, 0);
+      assert.equal(finished.remaining, 0, "resumed run completes");
+      const again = await run({ dryRun: false });
+      assert.equal(Object.values({ ...again.columns, ...again.objects }).reduce((sum, counts) => sum + counts.rotated, 0), 0, "idempotent");
+
+      // Everything now decrypts with v2 alone, and no longer with v1 alone.
+      const v2Only = createMailEncryption({ keys: `v2:${v2}`, activeKey: "v2" });
+      const v1Only = createMailEncryption({ keys: `v1:${v1}`, activeKey: "v1" });
+      for (const entry of await envelopes()) {
+        assert.doesNotThrow(() => v2Only.decrypt(entry.envelope, entry.purpose), `${entry.table}.${entry.column}`);
+        assert.throws(() => v1Only.decrypt(entry.envelope, entry.purpose));
+      }
+      const v2Store = createEncryptedStore({ encryption: v2Only, backend: harness.backend });
+      const keys = await objectKeys();
+      assert.ok(keys.length > 3);
+      for (const entry of keys) {
+        const [purpose, key] = entry.split("|");
+        assert.equal(await v2Store.keyVersionOf(key), "v2");
+        await assert.doesNotReject(v2Store.get(key, { purpose }));
+      }
+      const audits = await client.mailAuditEvent.findMany({ where: { targetType: "keyring" }, orderBy: { createdAt: "asc" } });
+      assert.ok(audits.some((event) => event.action === "MAIL_KEY_ROTATION_DRY_RUN_COMPLETED"));
+      assert.ok(audits.filter((event) => event.action === "MAIL_KEY_ROTATION_COMPLETED").length >= 3);
+      assert.ok(audits.every((event) => event.actorAdminUserId === ids.mailAdmin));
+      for (const event of audits) assert.ok(!JSON.stringify(event.metadata).includes(v2) && !JSON.stringify(event.metadata).includes(v1), "audit never contains keys");
+      // The original (v1-only) app instance can no longer read rotated content.
+      harness.mail.encryption.load({ keys: new Map([["v1", Buffer.from(v1, "base64")], ["v2", Buffer.from(v2, "base64")]]), active: "v2" });
     });
 
     await t.test("Flags: Mail disabled returns honest 503s", async () => {

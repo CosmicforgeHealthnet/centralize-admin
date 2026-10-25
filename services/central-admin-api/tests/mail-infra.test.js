@@ -303,3 +303,36 @@ test("clamd: every failure mode quarantines (fail closed)", async (t) => {
   const throwing = { name: "broken", available: true, async scan() { throw new Error("boom"); } };
   assert.equal((await quarantined(throwing)).scanStatus, "SCAN_FAILED");
 });
+
+test("operator scripts: data-key generation prints only the wrapped key; rotation args are strict", async (t) => {
+  const kms = await startFakeKms({ keyIds: ["alias/cosmicforge-mail-staging"] });
+  t.after(() => kms.close());
+  const writes = { out: "", err: "" };
+  const env = {
+    MAIL_DEPLOYMENT_ENV: "development",
+    MAIL_KMS_ENDPOINT: kms.endpoint,
+    MAIL_KMS_REGION: kms.region,
+    MAIL_KMS_KEY_ID: "alias/cosmicforge-mail-staging",
+    MAIL_KMS_ACCESS_KEY_ID: kms.credentials.accessKeyId,
+    MAIL_KMS_SECRET_ACCESS_KEY: kms.credentials.secretAccessKey,
+    MAIL_ENCRYPTION_KEYS: "",
+  };
+  const io = { env, out: (text) => { writes.out += text; }, err: (text) => { writes.err += text; } };
+  const { main } = require("../scripts/mail/generate-data-key");
+  assert.equal(await main(["--version=v7"], io), 0);
+  const line = writes.out.trim();
+  assert.match(line, /^v7:kms:[A-Za-z0-9+/=]+$/);
+  // The printed entry is a usable keyring entry for this environment only.
+  const client = createAwsKmsClient({ region: kms.region, endpoint: kms.endpoint, keyId: "alias/cosmicforge-mail-staging", credentials: kms.credentials });
+  const keyring = await resolveMailKeyring({ provider: "aws-kms", keys: line, environment: "development", kmsClient: client });
+  assert.equal(keyring.keys.get("v7").length, 32);
+  assert.ok(!writes.out.includes(keyring.keys.get("v7").toString("base64")) && !writes.err.includes(keyring.keys.get("v7").toString("base64")), "plaintext data key is never printed");
+  env.MAIL_ENCRYPTION_KEYS = line;
+  await assert.rejects(main(["--version=v7"], io), /already exists/);
+  await assert.rejects(main(["--version=bad version"], io), /--version/);
+
+  const { parseArgs } = require("../scripts/mail/rotate-encryption");
+  assert.deepEqual(parseArgs([]), { apply: false, skipObjects: false, batchSize: 200, limit: Infinity, operator: null });
+  assert.deepEqual(parseArgs(["--apply", "--skip-objects", "--batch-size=50", "--limit=10", "--operator=abc"]), { apply: true, skipObjects: true, batchSize: 50, limit: 10, operator: "abc" });
+  assert.throws(() => parseArgs(["--force"]), /Unknown argument/);
+});
