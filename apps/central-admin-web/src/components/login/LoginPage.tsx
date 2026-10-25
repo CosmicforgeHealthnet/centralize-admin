@@ -9,12 +9,13 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LoginCarousel } from "@/components/login/LoginCarousel";
 import { useAuthStore } from "@/stores/auth.store";
+import MfaCodeForm from "@/components/auth/MfaCodeForm";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const googleError = searchParams.get("error");
-  const { login, isLoading, error, clearError } = useAuthStore();
+  const { login, completeMfa, cancelMfa, mfaChallenge, isLoading, error, clearError } = useAuthStore();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,12 +43,37 @@ function LoginForm() {
 
     clearError();
     await login(email, password);
+    redirectIfSignedIn();
+  };
 
+  const redirectIfSignedIn = () => {
     const state = useAuthStore.getState();
-    if (!state.error) {
+    if (!state.error && !state.mfaChallenge && state.user) {
       router.push(state.mustChangePassword ? "/change-password" : "/dashboard");
     }
   };
+
+  if (mfaChallenge) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center px-4">
+        <div className="w-full max-w-[420px] bg-card rounded-xl border border-border p-6">
+          <MfaCodeForm
+            busy={isLoading}
+            error={error}
+            submitLabel="Sign in"
+            onSubmit={async (input) => {
+              await completeMfa(input);
+              redirectIfSignedIn();
+            }}
+            onCancel={() => {
+              cancelMfa();
+              setPassword("");
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col lg:flex-row">

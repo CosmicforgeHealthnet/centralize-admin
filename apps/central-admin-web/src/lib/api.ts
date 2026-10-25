@@ -1,4 +1,12 @@
 import axios from "axios";
+import {
+  applySessionPayload,
+  clearSessionState,
+  getBearerToken,
+  getCsrfToken,
+  getMode,
+  setCsrfToken,
+} from "./auth-session";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000",
@@ -6,10 +14,32 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Attach access token on every request
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("accessToken");
+const UNSAFE_METHODS = new Set(["post", "put", "patch", "delete"]);
+let csrfFetch: Promise<void> | null = null;
+
+// After a reload the CSRF token is gone from memory; fetch it once.
+async function ensureCsrfToken() {
+  if (getCsrfToken() || getMode() === "legacy") return;
+  csrfFetch ??= api
+    .get("/api/auth/session")
+    .then((res) => setCsrfToken(res.data?.data?.csrfToken))
+    .catch(() => undefined)
+    .finally(() => {
+      csrfFetch = null;
+    });
+  await csrfFetch;
+}
+
+// Attach credentials on every request
+api.interceptors.request.use(async (config) => {
+  const token = getBearerToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  const method = (config.method || "get").toLowerCase();
+  if (getMode() !== "legacy" && UNSAFE_METHODS.has(method)) {
+    if (!config.url?.includes("/api/auth/session")) await ensureCsrfToken();
+    const csrf = getCsrfToken();
+    if (csrf) config.headers["X-CSRF-Token"] = csrf;
+  }
   return config;
 });
 
@@ -25,6 +55,7 @@ const flushQueue = (error: unknown, token: string | null = null) => {
 // Auth endpoints that should NEVER trigger a token refresh
 const AUTH_ENDPOINTS = [
   "/api/auth/login",
+  "/api/auth/login/mfa",
   "/api/auth/refresh-token",
   "/api/auth/google",
 ];
@@ -43,13 +74,19 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    // Another tab refreshed at the same moment; the browser already has the new cookie.
+    if (error.response?.data?.code === "AUTH_REFRESH_RACE" && !original._raceRetry) {
+      original._raceRetry = true;
+      return api(original);
+    }
+
     // Only attempt refresh on 401s that haven't already been retried
     if (error.response?.status === 401 && !original._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         }).then((token) => {
-          original.headers.Authorization = `Bearer ${token}`;
+          if (token) original.headers.Authorization = `Bearer ${token}`;
           return api(original);
         });
       }
@@ -59,17 +96,17 @@ api.interceptors.response.use(
 
       try {
         const res = await api.post("/api/auth/refresh-token");
-        const newToken = res.data.data.accessToken;
-        localStorage.setItem("accessToken", newToken);
-        // Set cookie for middleware
-        document.cookie = `accessToken=${newToken}; path=/; max-age=${8 * 60 * 60}; secure; samesite=strict`;
+        const data = res.data.data;
+        // Keep the current tab's cookie/bearer choice across refreshes.
+        const mode = applySessionPayload(data, { cookieWorks: !getBearerToken() || getMode() === "legacy" });
+        const newToken = mode === "legacy" ? data.accessToken : getBearerToken();
         flushQueue(null, newToken);
-        original.headers.Authorization = `Bearer ${newToken}`;
+        if (newToken) original.headers.Authorization = `Bearer ${newToken}`;
+        else delete original.headers.Authorization;
         return api(original);
       } catch (err) {
         flushQueue(err);
-        localStorage.removeItem("accessToken");
-        document.cookie = "accessToken=; path=/; max-age=0";
+        clearSessionState();
         window.location.href = "/";
         return Promise.reject(err);
       } finally {

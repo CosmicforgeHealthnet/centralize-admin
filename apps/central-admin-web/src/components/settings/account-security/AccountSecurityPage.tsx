@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useAuthStore } from "@/stores/auth.store";
+import TwoFactorCard from "./TwoFactorCard";
+import SessionsCard from "./SessionsCard";
 
 /* ─── Change Password ─────────────────────────────────────── */
 function ChangePasswordCard() {
@@ -286,6 +288,8 @@ export default function AccountSecurityPage() {
   return (
     <div className="flex flex-col gap-5">
       <ChangePasswordCard />
+      <TwoFactorCard />
+      <SessionsCard />
       <ResetPasswordCard />
       <DeleteAccountCard />
     </div>
