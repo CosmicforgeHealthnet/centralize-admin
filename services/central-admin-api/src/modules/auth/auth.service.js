@@ -3,10 +3,8 @@ const {
   hashPassword,
   comparePassword,
 } = require("../../shared/utils/password.util");
-const {
-  generateAccessToken,
-  generateRefreshToken,
-} = require("../../shared/utils/jwt.util");
+const { sessionService } = require("../../shared/auth");
+const { mfaService } = require("./mfa.instance");
 const { createAuditLog } = require("../../shared/middlewares/audit.middleware");
 const { sendEmail } = require("../../shared/utils/email.util");
 const ApiError = require("../../shared/utils/ApiError");
@@ -15,7 +13,6 @@ const notificationService = require("../notifications/notifications.service");
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_DURATION_MINUTES = 30;
-const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const PASSWORD_RESET_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 const hashToken = (token) =>
@@ -124,44 +121,49 @@ class AuthService {
       },
     });
 
-    const accessToken = generateAccessToken({
-      sub: user.id,
-      email: user.email,
-      tier: user.tier,
-      name: user.name,
-      isTeamLead: user.isTeamLead,
-    });
+    // Verified MFA users get a second step; no session exists until it passes.
+    if (mfaService.isEnrolled(user)) {
+      const challenge = await mfaService.createChallenge(user, { authMethod: "PASSWORD", ipAddress, userAgent });
+      return { mfaRequired: true, ...challenge };
+    }
 
-    const refreshToken = generateRefreshToken();
+    return this._startSession({ user, authMethod: "PASSWORD", ipAddress, userAgent, mfaVerified: false });
+  }
 
-    await prisma.refreshToken.create({
-      data: {
-        token: hashToken(refreshToken),
-        adminUserId: user.id,
-        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
-        ipAddress,
-        userAgent,
-      },
-    });
+  // Second login step (password or Google, then TOTP / recovery code).
+  async completeMfaLogin({ challengeToken, code, recoveryCode, ipAddress, userAgent, req }) {
+    const { user, authMethod } = await mfaService.completeChallenge({ challengeToken, code, recoveryCode, req });
+    return this._startSession({ user, authMethod, ipAddress, userAgent, mfaVerified: true });
+  }
+
+  // Always mints a NEW server-side session (session-fixation safe).
+  async _startSession({ user, authMethod, ipAddress, userAgent, mfaVerified }) {
+    const created = await sessionService.createSession(user, { authMethod, ipAddress, userAgent, mfaVerified });
 
     await createAuditLog({
       adminUserId: user.id,
       action: "LOGIN",
-      metadata: { ipAddress },
+      metadata: { ipAddress, method: authMethod, sessionId: created.session.id },
       req: { ip: ipAddress, headers: { "user-agent": userAgent } },
     });
 
     await notificationService.createNotification({
       adminUserId: user.id,
       icon: "bell",
-      title: "New Login Detected",
-      subtitle: `You logged in from IP: ${ipAddress || "Unknown location"}`,
+      title: authMethod.startsWith("GOOGLE") ? "Google Login" : "New Login Detected",
+      subtitle: authMethod.startsWith("GOOGLE")
+        ? `You logged in using Google from IP: ${ipAddress || "Unknown location"}`
+        : `You logged in from IP: ${ipAddress || "Unknown location"}`,
     });
 
     return {
-      accessToken,
-      refreshToken,
-      mustChangePassword: user.mustChangePassword,
+      accessToken: created.accessToken,
+      refreshToken: created.refreshToken,
+      csrfToken: created.csrfToken,
+      accessTtlSeconds: created.accessTtlSeconds,
+      refreshTtlMs: created.refreshTtlMs,
+      session: created.session,
+      mustChangePassword: authMethod.startsWith("GOOGLE") ? false : user.mustChangePassword,
       user: {
         id: user.id,
         name: user.name,
@@ -174,78 +176,54 @@ class AuthService {
   }
 
   // ─────────────────────────────────────────────────────────────
-  // REFRESH TOKEN
+  // REFRESH TOKEN (rotation + reuse detection, see session.service)
   // ─────────────────────────────────────────────────────────────
   async refreshToken({ token, ipAddress, userAgent }) {
-    const stored = await prisma.refreshToken.findUnique({
-      where: { token: hashToken(token) },
-      include: { adminUser: true },
-    });
-
-    if (!stored || stored.isRevoked || stored.expiresAt < new Date()) {
-      throw new ApiError(401, "Invalid or expired refresh token");
-    }
-
-    if (stored.adminUser.status !== "ACTIVE") {
-      throw new ApiError(403, "Account is not active");
-    }
-
-    await prisma.refreshToken.update({
-      where: { id: stored.id },
-      data: { isRevoked: true },
-    });
-
-    const newAccessToken = generateAccessToken({
-      sub: stored.adminUser.id,
-      email: stored.adminUser.email,
-      tier: stored.adminUser.tier,
-      name: stored.adminUser.name,
-      isTeamLead: stored.adminUser.isTeamLead,
-    });
-
-    const newRefreshToken = generateRefreshToken();
-
-    await prisma.refreshToken.create({
-      data: {
-        token: hashToken(newRefreshToken),
-        adminUserId: stored.adminUser.id,
-        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
-        ipAddress,
-        userAgent,
-      },
-    });
+    const result = await sessionService.rotateRefresh(token, { ipAddress, userAgent });
 
     await createAuditLog({
-      adminUserId: stored.adminUser.id,
+      adminUserId: result.user.id,
       action: "TOKEN_REFRESHED",
+      metadata: { sessionId: result.session.id },
       req: { ip: ipAddress, headers: { "user-agent": userAgent } },
     });
 
-    return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+    return result;
   }
 
   // ─────────────────────────────────────────────────────────────
   // LOGOUT
   // ─────────────────────────────────────────────────────────────
-  async logout({ refreshToken, req }) {
+  async logout({ refreshToken, sessionId, req }) {
+    let adminUserId = null;
     if (refreshToken) {
-      const stored = await prisma.refreshToken.findUnique({
-        where: { token: hashToken(refreshToken) },
-      });
-
-      if (stored) {
-        await prisma.refreshToken.update({
-          where: { id: stored.id },
-          data: { isRevoked: true },
-        });
-
-        await createAuditLog({
-          adminUserId: stored.adminUserId,
-          action: "LOGOUT",
-          req,
-        });
-      }
+      const stored = await sessionService.revokeByRefreshToken(refreshToken, "LOGOUT");
+      adminUserId = stored?.adminUserId || null;
     }
+    if (sessionId) {
+      await sessionService.revokeSession(sessionId, "LOGOUT");
+    }
+    if (adminUserId || sessionId) {
+      await createAuditLog({ adminUserId, action: "LOGOUT", metadata: { sessionId: sessionId || null }, req });
+    }
+  }
+
+  async logoutAll({ adminUserId, req }) {
+    const count = await sessionService.revokeAllForUser(adminUserId, "LOGOUT_ALL");
+    await createAuditLog({ adminUserId, action: "LOGOUT", metadata: { scope: "all", sessions: count }, req });
+    return count;
+  }
+
+  async listSessions({ adminUserId, currentSessionId }) {
+    const rows = await sessionService.listActive(adminUserId);
+    return rows.map((row) => ({ ...row, current: row.id === currentSessionId }));
+  }
+
+  async revokeOwnSession({ adminUserId, sessionId, req }) {
+    const sessions = await sessionService.listActive(adminUserId);
+    if (!sessions.some((row) => row.id === sessionId)) throw new ApiError(404, "Session not found");
+    await sessionService.revokeSession(sessionId, "USER_REVOKED", { actorId: adminUserId });
+    await createAuditLog({ adminUserId, action: "SESSION_REVOKED", targetId: sessionId, targetType: "admin_session", req });
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -280,10 +258,7 @@ class AuthService {
       },
     });
 
-    await prisma.refreshToken.updateMany({
-      where: { adminUserId },
-      data: { isRevoked: true },
-    });
+    await sessionService.revokeAllForUser(adminUserId, "PASSWORD_CHANGED");
 
     await createAuditLog({
       adminUserId,
@@ -315,53 +290,13 @@ class AuthService {
       },
     });
 
-    const accessToken = generateAccessToken({
-      sub: user.id,
-      email: user.email,
-      tier: user.tier,
-      name: user.name,
-      isTeamLead: user.isTeamLead,
-    });
+    const fresh = await prisma.adminUser.findUnique({ where: { id: user.id } });
+    if (mfaService.isEnrolled(fresh)) {
+      const challenge = await mfaService.createChallenge(fresh, { authMethod: "GOOGLE", ipAddress, userAgent });
+      return { mfaRequired: true, ...challenge };
+    }
 
-    const refreshToken = generateRefreshToken();
-
-    await prisma.refreshToken.create({
-      data: {
-        token: hashToken(refreshToken),
-        adminUserId: user.id,
-        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
-        ipAddress,
-        userAgent,
-      },
-    });
-
-    await createAuditLog({
-      adminUserId: user.id,
-      action: "LOGIN",
-      metadata: { ipAddress, method: "GOOGLE" },
-      req: { ip: ipAddress, headers: { "user-agent": userAgent } },
-    });
-
-    await notificationService.createNotification({
-      adminUserId: user.id,
-      icon: "bell",
-      title: "Google Login",
-      subtitle: `You logged in using Google from IP: ${ipAddress || "Unknown location"}`,
-    });
-
-    return {
-      accessToken,
-      refreshToken,
-      mustChangePassword: false,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        tier: user.tier,
-        department: user.department,
-        isTeamLead: user.isTeamLead,
-      },
-    };
+    return this._startSession({ user: fresh, authMethod: "GOOGLE", ipAddress, userAgent, mfaVerified: false });
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -481,10 +416,7 @@ class AuthService {
       },
     });
 
-    await prisma.refreshToken.updateMany({
-      where: { adminUserId: user.id },
-      data: { isRevoked: true },
-    });
+    await sessionService.revokeAllForUser(user.id, "PASSWORD_RESET_APPROVED", { actorId: approvedBy });
 
     await sendEmail({
       to: user.email,
