@@ -122,3 +122,23 @@ Enable in this order, one flag per change, each with its own approval:
 
 Production MX/DNS, `marketing@karryam.com`, existing SMTP/Gmail/cPanel senders and
 HealthNet clinical email are explicitly out of scope.
+
+## Addendum: migrations 28-33 (Stage A, M7-M10)
+
+Apply in manifest order, after 27, in the same approved change window and only after a verified backup.
+`npm run db:admin:prepare` applies pending files in order and records each in `social_manual_migrations`;
+it refuses a file whose checksum differs from `manifest.json`. All files are additive. Rollback:
+`docs/sql/cosmicforge-mail-m7-m10-rollback.sql` (rehearsed by `npm run mail:rollback:drill`).
+
+| Order | File | sha256 (manifest) |
+|---|---|---|
+| 27 | `20261024_add_cosmicforge_mail_m1_m6.sql` | `a3b7d61f61fb815affb4f617481d878472d099ed48db43d60f2e52e9022ec9f0` |
+| 28 | `20261025_add_admin_sessions_mfa.sql` | `e8d1b5537677367aed24c2a09191bb95568cde2ad14d6b4d62c6fa083adbf883` |
+| 29 | `20261026_mail_step_up_session_binding.sql` | `5bfc3b52d1eb6d4dd957d139045f1bddecb00f818c2d856997c30be8cdf56fbf` |
+| 30 | `20261027_mail_m7_broadcasts_automation.sql` | `88c17ea2ca3f835f2eeb5ee4213da76a0751ccd373cedc20238f51a36232e65f` |
+| 31 | `20261028_mail_m8_product_integration.sql` | `c526d300c48ed6e406b6cd4ea6532e32f738c81ebdd4fa1da68bcddb11abff94` |
+| 32 | `20261029_mail_m9_operations.sql` | `a3bf88806a0a74bc2d06ddce972fa56f6cf2c0c6580270e9d4bf91c402686447` |
+| 33 | `20261030_mail_m10_rollout.sql` | `1bc07e19b8fe54837c0b2c5ff1199c7dc2841bfa4e5be37fdeb9f305ab7a1753` |
+
+Pre-checks: `npm run db:replay:verify` (drift none) and `npm run mail:rollback:drill` on a disposable copy.
+Post-checks: every file present in the ledger; `npm run db:schema:assert`; Mail flags unchanged (all OFF).
