@@ -29,6 +29,7 @@ const DEFAULT_MESSAGES = {
   MAIL_QUOTA_EXCEEDED: "Sending quota exceeded.",
   MAIL_RATE_LIMITED: "Too many requests.",
   MAIL_STORAGE_UNAVAILABLE: "Private mail storage is unavailable.",
+  MAIL_SCHEMA_NOT_READY: "CosmicForge Mail is not ready: its database migrations have not been applied.",
   MAIL_PROVIDER_UNAVAILABLE: "The mail provider is unavailable.",
   MAIL_WEBHOOK_SIGNATURE_INVALID: "Webhook signature verification failed.",
   MAIL_PREFLIGHT_FAILED: "Campaign preflight checks failed.",
@@ -37,6 +38,7 @@ const DEFAULT_MESSAGES = {
   MAIL_LEGAL_HOLD: "Content is under legal hold.",
   MAIL_BROADCAST_DISABLED: "Broadcast dispatch is not enabled.",
   MAIL_AUTOMATION_DISABLED: "Marketing automation is not enabled.",
+  MAIL_TEST_SEND_DISABLED: "Campaign test sends are not enabled.",
   MAIL_EMERGENCY_STOP: "Sending is stopped by an emergency stop.",
   MAIL_APPROVAL_EXPIRED: "The approval has expired. Submit the campaign for review again.",
   MAIL_UNSUBSCRIBE_NOT_CONFIGURED: "Unsubscribe links are not configured.",
@@ -51,6 +53,7 @@ const DEFAULT_STATUS = {
   MAIL_RECEIVING_DISABLED: 503,
   MAIL_MARKETING_DISABLED: 503,
   MAIL_STORAGE_UNAVAILABLE: 503,
+  MAIL_SCHEMA_NOT_READY: 503,
   MAIL_PROVIDER_UNAVAILABLE: 503,
   MAIL_FORBIDDEN: 403,
   MAIL_IDENTITY_INACTIVE: 403,
@@ -77,6 +80,7 @@ const DEFAULT_STATUS = {
   MAIL_QUOTA_HARD_LIMIT: 429,
   MAIL_BROADCAST_DISABLED: 503,
   MAIL_AUTOMATION_DISABLED: 503,
+  MAIL_TEST_SEND_DISABLED: 503,
   MAIL_EMERGENCY_STOP: 503,
   MAIL_UNSUBSCRIBE_NOT_CONFIGURED: 503,
   MAIL_APPROVAL_EXPIRED: 409,
@@ -85,7 +89,7 @@ const DEFAULT_STATUS = {
   MAIL_RATE_LIMITED: 429,
 };
 
-const RETRYABLE = new Set(["MAIL_STORAGE_UNAVAILABLE", "MAIL_PROVIDER_UNAVAILABLE", "MAIL_RATE_LIMITED"]);
+const RETRYABLE = new Set(["MAIL_SCHEMA_NOT_READY", "MAIL_STORAGE_UNAVAILABLE", "MAIL_PROVIDER_UNAVAILABLE", "MAIL_RATE_LIMITED"]);
 
 function mailError(code, details = {}, message) {
   const status = details.status || DEFAULT_STATUS[code] || 400;

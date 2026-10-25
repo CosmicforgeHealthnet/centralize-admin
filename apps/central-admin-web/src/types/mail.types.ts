@@ -71,6 +71,8 @@ export interface MailEntitlements {
   identityActive: boolean;
   mailboxes: MailboxSummary[];
   canManageDomains: boolean;
+  /** Read-only Mail administration (domains, mailboxes, audits). */
+  canViewAdministration?: boolean;
   canProvision: boolean;
   canApproveProvisioning: boolean;
   canManageSharedMembership: boolean;

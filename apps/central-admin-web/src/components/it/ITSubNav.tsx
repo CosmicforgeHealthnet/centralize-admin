@@ -17,7 +17,8 @@ export type ITSection =
   | "alerts"
   | "flags"
   | "health"
-  | "env-configs";
+  | "env-configs"
+  | "mail-admin";
 
 const opsItems: { label: string; value: ITSection }[] = [
   { label: "Overview",        value: "overview" },
@@ -40,6 +41,7 @@ const infraItems: { label: string; value: ITSection }[] = [
   { label: "Feature Flags",    value: "flags" },
   { label: "Health History",   value: "health" },
   { label: "Env Configs",      value: "env-configs" },
+  { label: "Mail Administration", value: "mail-admin" },
 ];
 
 function NavItem({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {

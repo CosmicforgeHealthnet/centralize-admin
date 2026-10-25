@@ -10,6 +10,7 @@ const policy = require("../authz/mail.policy");
 const { normalizeDomain, normalizeLocalPart, normalizeAddress, cleanDisplayName } = require("../security/address.util");
 const { sanitizeEmailHtml } = require("../security/html-sanitizer");
 const { iso } = require("./serializers");
+const { MailWebhookStatus, MailDeliveryEventType, MailJobStatus, MailJobQueue } = require("../../../generated/admin-client");
 
 const ROLES = new Set(["OWNER", "MANAGER", "MEMBER", "READER"]);
 
@@ -316,6 +317,17 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
     return row;
   }
 
+  async function listSenderGrants(user, { mailboxId } = {}) {
+    await admin(user, "VIEW");
+    const rows = await client.mailSenderGrant.findMany({
+      where: { revokedAt: null, ...(policy.isUuid(mailboxId) ? { mailboxId } : {}) },
+      include: { address: { select: { id: true, address: true, kind: true } }, mailbox: { select: { id: true, name: true } }, adminUser: { select: { id: true, name: true, email: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 500,
+    });
+    return rows.map((row) => ({ id: row.id, mailbox: row.mailbox, address: row.address, member: row.adminUser, grantedBy: row.grantedBy, expiresAt: iso(row.expiresAt), createdAt: iso(row.createdAt) }));
+  }
+
   async function revokeSender(user, grantId, context) {
     await admin(user);
     const grant = policy.isUuid(grantId) ? await client.mailSenderGrant.findUnique({ where: { id: grantId } }) : null;
@@ -369,7 +381,12 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
     const organization = policy.isUuid(input.organizationId) ? await client.mailOrganization.findUnique({ where: { id: input.organizationId } }) : null;
     if (!organization) throw mailError("MAIL_VALIDATION_FAILED", { field: "organizationId" });
     const isAdmin = await policy.canAdministerMail(client, user, "EDIT");
-    const subjectAdminUserId = type === "PERSONAL_MAILBOX" ? (isAdmin && input.subjectAdminUserId ? String(input.subjectAdminUserId) : user.id) : input.subjectAdminUserId ? String(input.subjectAdminUserId) : null;
+    const onBehalf = input.subjectAdminUserId && String(input.subjectAdminUserId) !== user.id && (await policy.canRequestProvisioningForOthers(client, user));
+    const subjectAdminUserId = type === "PERSONAL_MAILBOX" ? (onBehalf ? String(input.subjectAdminUserId) : user.id) : input.subjectAdminUserId ? String(input.subjectAdminUserId) : null;
+    if (onBehalf) {
+      const subject = await client.adminUser.findUnique({ where: { id: subjectAdminUserId }, select: { id: true, status: true } });
+      if (!subject || ["INACTIVE", "LOCKED"].includes(subject.status)) throw mailError("MAIL_VALIDATION_FAILED", { field: "subjectAdminUserId" });
+    }
     if ((type === "ALIAS" || type === "SENDER_GRANT") && policy.isUuid(input.mailboxId)) {
       const access = await policy.resolveMailboxAccess(client, user, input.mailboxId);
       if (!access && !isAdmin) throw mailError("MAIL_NOT_FOUND", { resource: "mailbox" });
@@ -470,10 +487,80 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
     return row;
   }
 
+  // --------------------------------------------- operations views (§5.8/§9)
+  // Redacted by construction: no message content, no webhook payloads, no
+  // recipient local parts. Mail administrators only (VIEW).
+  const take = (limit) => Math.min(Math.max(Number(limit) || 50, 1), 200);
+  // Enum filters are validated, so a bad query value is a 400, not a Prisma 500.
+  const enumFilter = (field, values, value) => {
+    if (!Object.values(values).includes(String(value))) throw mailError("MAIL_VALIDATION_FAILED", { field });
+    return String(value);
+  };
+  const before = (value) => {
+    const at = value ? new Date(value) : null;
+    return at && !Number.isNaN(at.getTime()) ? at : null;
+  };
+
+  async function listAuditEvents(user, { mailboxId, organizationId, action, targetType, targetId, outcome, before: cursor, limit } = {}) {
+    await admin(user, "VIEW");
+    const at = before(cursor);
+    const rows = await client.mailAuditEvent.findMany({
+      where: {
+        ...(policy.isUuid(mailboxId) ? { mailboxId } : {}),
+        ...(policy.isUuid(organizationId) ? { organizationId } : {}),
+        ...(action ? { action: String(action).slice(0, 80) } : {}),
+        ...(targetType ? { targetType: String(targetType).slice(0, 64) } : {}),
+        ...(targetId ? { targetId: String(targetId).slice(0, 128) } : {}),
+        ...(outcome ? { outcome: String(outcome).slice(0, 16) } : {}),
+        ...(at ? { createdAt: { lt: at } } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+      take: take(limit),
+    });
+    return rows.map((row) => ({ id: row.id, actorAdminUserId: row.actorAdminUserId, action: row.action, targetType: row.targetType, targetId: row.targetId, mailboxId: row.mailboxId, organizationId: row.organizationId, outcome: row.outcome, metadata: row.metadata, requestId: row.requestId, createdAt: iso(row.createdAt) }));
+  }
+
+  async function listWebhookEvents(user, { status, eventType, before: cursor, limit } = {}) {
+    await admin(user, "VIEW");
+    const at = before(cursor);
+    const rows = await client.mailWebhookEvent.findMany({
+      where: { ...(status ? { status: enumFilter("status", MailWebhookStatus, status) } : {}), ...(eventType ? { eventType: String(eventType).slice(0, 64) } : {}), ...(at ? { receivedAt: { lt: at } } : {}) },
+      orderBy: { receivedAt: "desc" },
+      take: take(limit),
+      select: { id: true, provider: true, providerEventId: true, eventType: true, status: true, signatureVerified: true, receivedAt: true, processedAt: true, lastError: true },
+    });
+    return rows.map((row) => ({ ...row, receivedAt: iso(row.receivedAt), processedAt: iso(row.processedAt), lagSeconds: row.processedAt ? Math.round((row.processedAt - row.receivedAt) / 1000) : null }));
+  }
+
+  async function listDeliveryEvents(user, { eventType, before: cursor, limit } = {}) {
+    await admin(user, "VIEW");
+    const at = before(cursor);
+    const rows = await client.mailDeliveryEvent.findMany({
+      where: { ...(eventType ? { eventType: enumFilter("eventType", MailDeliveryEventType, eventType) } : {}), ...(at ? { occurredAt: { lt: at } } : {}) },
+      orderBy: { occurredAt: "desc" },
+      take: take(limit),
+      select: { id: true, messageId: true, providerMessageId: true, recipient: true, eventType: true, occurredAt: true, createdAt: true },
+    });
+    // Recipients are reduced to their domain: enough for deliverability work.
+    return rows.map(({ recipient, ...row }) => ({ ...row, recipientDomain: recipient ? String(recipient).split("@")[1] || null : null, occurredAt: iso(row.occurredAt), createdAt: iso(row.createdAt) }));
+  }
+
+  async function listJobs(user, { status, queue, kind, limit } = {}) {
+    await admin(user, "VIEW");
+    const rows = await client.mailOutboxJob.findMany({
+      where: { ...(status ? { status: enumFilter("status", MailJobStatus, status) } : {}), ...(queue ? { queue: enumFilter("queue", MailJobQueue, queue) } : {}), ...(kind ? { kind: String(kind).slice(0, 64) } : {}) },
+      orderBy: { updatedAt: "desc" },
+      take: take(limit),
+      select: { id: true, queue: true, kind: true, status: true, attemptCount: true, maxAttempts: true, nextAttemptAt: true, lastErrorCode: true, messageId: true, completedAt: true, createdAt: true, updatedAt: true },
+    });
+    return rows.map((row) => ({ ...row, nextAttemptAt: iso(row.nextAttemptAt), completedAt: iso(row.completedAt), createdAt: iso(row.createdAt), updatedAt: iso(row.updatedAt) }));
+  }
+
   return {
+    listAuditEvents, listWebhookEvents, listDeliveryEvents, listJobs,
     listOrganizations, createOrganization, listDomains, createDomain, verifyDomain,
     listAddresses, createAddress, updateAddressStatus, listMailboxes, createMailbox, setMailboxStatus,
-    staffDirectory, listMembers, addMember, revokeMember, updateMailboxSettings, grantSender, revokeSender, offboardUser,
+    staffDirectory, listMembers, addMember, revokeMember, updateMailboxSettings, listSenderGrants, grantSender, revokeSender, offboardUser,
     listProvisionRequests, createProvisionRequest, decideProvisionRequest,
     listLegalHolds, createLegalHold, releaseLegalHold, listRetentionPolicies, createRetentionPolicy,
   };

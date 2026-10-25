@@ -21,6 +21,7 @@ import AlertsTable from "@/components/it/AlertsTable";
 import FeatureFlagsTable from "@/components/it/FeatureFlagsTable";
 import HealthHistoryTable from "@/components/it/HealthHistoryTable";
 import EnvConfigsTable from "@/components/it/EnvConfigsTable";
+import MailAdministration from "@/components/it/MailAdministration";
 
 export default function ITPage() {
   const [activeSection, setActiveSection] = useState<ITSection>("overview");
@@ -65,7 +66,8 @@ export default function ITPage() {
         {activeSection === "alerts" && <AlertsTable />}
         {activeSection === "flags" && <FeatureFlagsTable />}
         {activeSection === "health" && <HealthHistoryTable />}
-        {activeSection === "env-configs" && <EnvConfigsTable />} 
+        {activeSection === "env-configs" && <EnvConfigsTable />}
+        {activeSection === "mail-admin" && <MailAdministration />}
       </div>
     </div>
   );

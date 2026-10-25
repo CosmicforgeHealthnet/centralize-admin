@@ -31,8 +31,10 @@ const { createBroadcastProcessor } = require("./marketing/broadcast.processor");
 const { createAutomationService } = require("./marketing/automation/automation.service");
 const { createAutomationProcessor } = require("./marketing/automation/automation.processor");
 const { createConfirmationService } = require("./marketing/confirmation.service");
+const { createTestSendService } = require("./marketing/test-send.service");
 const { createMarketingEventsProcessor } = require("./marketing/marketing-events.processor");
 const { createPublicPreferencesService } = require("./marketing/public-preferences.service");
+const { createMailSchemaReadiness } = require("./schema-readiness");
 
 async function unwrapKeyring({ config, encryption, logger, kmsClient }) {
   const { resolveMailKeyring, createAwsKmsClient } = require("./security/kms-keyring");
@@ -61,6 +63,7 @@ async function unwrapKeyring({ config, encryption, logger, kmsClient }) {
 
 function createMailApplication({ client, env = process.env, config = loadMailConfig(env), adapter, storageBackend, scanner, encryption, kmsClient, mfa, authSchema, marketingAdapter, marketingAdapters, logger = console, clock = () => new Date() } = {}) {
   if (!client) client = require("../../shared/config/database").prisma;
+  const schema = createMailSchemaReadiness({ client, logger });
   const useKms = !encryption && config.kms?.provider === "aws-kms";
   const resolvedEncryption = encryption || createMailEncryption(useKms ? { deferred: true } : config.encryption);
   // KMS-wrapped data keys are unwrapped once, asynchronously. Until then (or if
@@ -83,6 +86,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   // M7: per-brand marketing provider accounts, broadcasts and automation.
   const marketingProviders = createMarketingProviderResolver({ config, env, adapter: marketingAdapter, adapters: marketingAdapters });
   const confirmation = createConfirmationService({ client, config, audit, jobs, encryption: resolvedEncryption, marketingProviders, clock });
+  const testSends = createTestSendService({ client, config, audit, jobs, marketingProviders, clock });
   const marketing = createMarketingService({ client, config, audit, stepUp, clock, hooks: { onConfirmationRequired: confirmation.onConfirmationRequired } });
   const broadcasts = createBroadcastService({ client, config, audit, jobs, stepUp, env, clock });
   const automations = createAutomationService({ client, config, audit, stepUp, clock });
@@ -110,6 +114,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
         AUTOMATION_TICK: automationProcessor.processTick,
         AUTOMATION_STEP: automationProcessor.processStep,
         MARKETING_CONFIRMATION_EMAIL: confirmation.process,
+        MARKETING_TEST_SEND: testSends.process,
       },
       onDeadLetter: { SEND_MESSAGE: outbound.onDeadLetter, BROADCAST_DISPATCH: broadcastProcessor.onDeadLetter, BROADCAST_RECONCILE: broadcastProcessor.onDeadLetter, AUTOMATION_STEP: automationProcessor.onDeadLetter },
       // A MARKETING worker schedules one automation tick per minute bucket;
@@ -121,6 +126,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
           if (error?.code !== "P2002") throw error;
         });
       },
+      schemaReady: schema.isReady,
       ...options,
     });
   }
@@ -152,13 +158,26 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
     audit,
     store,
     jobs,
-    services: { mailbox, compose, admin, support, marketing, stepUp, breakGlass, attachmentReview, broadcasts, automations, publicPreferences, confirmation },
+    services: { mailbox, compose, admin, support, marketing, stepUp, breakGlass, attachmentReview, broadcasts, automations, publicPreferences, confirmation, testSends },
     processors: { inbound, outbound, deliveryEvents, marketingEvents, broadcasts: broadcastProcessor, automations: automationProcessor },
     marketingProviders,
-    webhookHandler: createResendWebhookHandler({ client, config, jobs, audit, logger, clock: () => clock().getTime(), env }),
-    brandWebhookHandler: createResendWebhookHandler({ client, config, jobs, audit, logger, clock: () => clock().getTime(), env, brandMode: true }),
+    webhookHandler: createResendWebhookHandler({ client, config, jobs, audit, logger, clock: () => clock().getTime(), env, schemaReady: schema.isReady }),
+    brandWebhookHandler: createResendWebhookHandler({ client, config, jobs, audit, logger, clock: () => clock().getTime(), env, brandMode: true, schemaReady: schema.isReady }),
     createWorker,
     health,
+    schema,
+    // Public readiness (booleans only; never secrets or migration names).
+    readiness: async () => {
+      if (!config.enabled) return { ready: true, enabled: false, checks: {} };
+      const schemaState = await schema.check();
+      const checks = {
+        schema: schemaState.ready,
+        encryption: Boolean(resolvedEncryption.available),
+        storage: Boolean(storage.available),
+        infrastructure: infrastructureViolations(config).length === 0,
+      };
+      return { ready: Object.values(checks).every(Boolean), enabled: true, checks };
+    },
     ready: () => keyringReady,
   };
 }

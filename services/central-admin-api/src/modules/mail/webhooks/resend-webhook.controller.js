@@ -41,14 +41,17 @@ function storedPayload(payload, providerEmailId, brandOrganizationId) {
   };
 }
 
-function createResendWebhookHandler({ client, config, jobs, audit, logger, clock = () => Date.now(), env = process.env, brandMode = false }) {
+function createResendWebhookHandler({ client, config, jobs, audit, logger, clock = () => Date.now(), env = process.env, brandMode = false, schemaReady = null }) {
+  // Each target carries its current secret and, during a rotation grace
+  // period, the previous one (spec §19.3).
   async function resolveTarget(req) {
-    if (!brandMode) return { secret: config.resend.webhookSecret, organizationId: null };
+    if (!brandMode) return { secret: [config.resend.webhookSecret, config.resend.previousWebhookSecret].filter(Boolean), organizationId: null };
     const slug = String(req.params?.slug || "").toLowerCase();
     if (!SLUG.test(slug)) return null;
     const organization = await client.mailOrganization.findUnique({ where: { slug } }).catch(() => null);
     if (!organization || organization.status !== "ACTIVE") return null;
-    return { secret: String(env[brandSecretName(slug)] || ""), organizationId: organization.id };
+    const name = brandSecretName(slug);
+    return { secret: [env[name], env[`${name}_PREVIOUS`]].filter(Boolean).map(String), organizationId: organization.id };
   }
 
   return async function handleResendWebhook(req, res) {
@@ -56,6 +59,8 @@ function createResendWebhookHandler({ client, config, jobs, audit, logger, clock
       return res.status(503).json({ success: false, code: "MAIL_DISABLED", message: "Mail webhooks are not enabled" });
     }
     if (brandMode && !config.marketingEnabled) return res.status(503).json({ success: false, code: "MAIL_MARKETING_DISABLED", message: "Marketing webhooks are not enabled" });
+    // Not acknowledged until the schema exists: the provider retries later.
+    if (schemaReady && !(await schemaReady())) return res.status(503).json({ success: false, code: "MAIL_SCHEMA_NOT_READY", message: "Mail is not ready" });
     const target = await resolveTarget(req);
     // Unknown brand looks exactly like a bad signature (no enumeration).
     if (!target) return res.status(401).json({ success: false, code: "MAIL_WEBHOOK_SIGNATURE_INVALID", message: "Webhook rejected" });
