@@ -1,4 +1,4 @@
-import { test, expect, signIn, defaultMocks, entitlements, gotoWithEntitlements, ok, fail, REVIEWER, type E2EUser, type MockApi } from "./fixtures";
+import { test, expect, signIn, defaultMocks, entitlements, gotoWithEntitlements, attachScreenshot, ok, fail, REVIEWER, type E2EUser, type MockApi } from "./fixtures";
 
 // Final gap 4: automation test mode (read-only) and replay / recovery with a
 // dry run, explicit acknowledgement for unknown outcomes and MFA step-up.
@@ -62,7 +62,7 @@ function mocks(api: MockApi, user: E2EUser) {
 const PAGE = "/dashboard/marketing/email-marketing/automation";
 
 test.describe("Automation test mode and replay / recovery", () => {
-  test("test mode shows the path with DST-correct local times and creates nothing", async ({ page, api }) => {
+  test("test mode shows the path with DST-correct local times and creates nothing", async ({ page, api }, testInfo) => {
     await signIn(page, REVIEWER);
     mocks(api, REVIEWER);
     api.on("POST", `${MK}/org-cf/automations/${AUTO}/versions/ver-1/test`, ok(TEST_RESULT));
@@ -75,6 +75,7 @@ test.describe("Automation test mode and replay / recovery", () => {
     await expect(panel.getByText("2026-03-08T03:30:00-04:00")).toBeVisible();
     await expect(panel.getByText(/shifted forward 60 min/)).toBeVisible();
     await expect(panel.getByText("Subject:")).toBeVisible();
+    await attachScreenshot(page, testInfo, "marketing-automation-test-mode");
     const body = api.callsTo("POST", `${MK}/org-cf/automations/${AUTO}/versions/ver-1/test`)[0].body as Record<string, unknown>;
     expect(body).toMatchObject({ contact: { email: "test.reader@example.com", timezone: "America/New_York", consentStatus: "GRANTED" } });
     expect(api.callsTo("POST", `${MK}/org-cf/automations/${AUTO}/replays`)).toHaveLength(0);

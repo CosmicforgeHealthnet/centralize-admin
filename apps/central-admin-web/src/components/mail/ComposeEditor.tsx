@@ -170,6 +170,23 @@ export default function ComposeEditor({
     }
   }, [draft, conflict, collect]);
 
+  const close = async () => {
+    if (!draft || (saveState !== "dirty" && saveState !== "saving" && saveState !== "error")) {
+      onClose();
+      return;
+    }
+    if (conflict) {
+      setError("Resolve the draft conflict before closing so your edits are not lost.");
+      return;
+    }
+    try {
+      await save();
+      onClose();
+    } catch {
+      setError("Your changes could not be saved. Keep this window open and retry before leaving.");
+    }
+  };
+
   const markDirty = useCallback(() => setSaveState("dirty"), []);
 
   // Debounced autosave.
@@ -353,17 +370,17 @@ export default function ComposeEditor({
 
   return (
     <div
-      className={`flex flex-col rounded-lg border border-border bg-card ${inline ? "" : "shadow-sm"}`}
+      className="flex min-w-0 flex-col rounded-xl border border-border bg-card shadow-sm"
       onKeyDown={onKeyDown}
       aria-label="Compose message"
       role="form"
     >
-      <div className="flex items-center gap-2 border-b border-border px-3 py-2">
-        <h2 className="text-[13px] font-semibold text-foreground">
+      <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+        <h2 className="text-base font-semibold text-foreground">
           {mode === "REPLY" ? "Reply" : mode === "REPLY_ALL" ? "Reply all" : mode === "FORWARD" ? "Forward" : "New message"}
         </h2>
-        <span className="ml-auto text-[11px] text-muted-foreground" aria-live="polite">{saveLabel}</span>
-        <button type="button" onClick={onClose} aria-label="Close compose" className="rounded p-1 text-muted-foreground hover:bg-muted">
+        <span className="ml-auto text-xs text-muted-foreground" role="status" aria-live="polite">{saveLabel}</span>
+        <button type="button" onClick={close} aria-label="Close compose" className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -381,7 +398,7 @@ export default function ComposeEditor({
       )}
 
       <div className="flex flex-col px-3">
-        <div className="flex items-center gap-2 border-b border-border py-1.5">
+        <div className="flex min-w-0 items-center gap-2 border-b border-border py-1.5">
           <label htmlFor="compose-from" className="w-10 shrink-0 text-[12px] text-muted-foreground">From</label>
           {identities.length === 0 ? (
             <span className="text-[12px] text-red-600">No approved sender identity for this mailbox.</span>
@@ -393,7 +410,7 @@ export default function ComposeEditor({
                 setSenderAddressId(e.target.value);
                 markDirty();
               }}
-              className="flex-1 bg-transparent text-[12px] outline-none"
+              className="min-w-0 w-full flex-1 truncate bg-transparent text-sm outline-none"
             >
               {identities.map((s) => (
                 <option key={s.addressId} value={s.addressId}>
@@ -404,19 +421,19 @@ export default function ComposeEditor({
             </select>
           )}
           {!showCc && (
-            <button type="button" onClick={() => setShowCc(true)} className="text-[11px] font-semibold text-primary">
+            <button type="button" onClick={() => setShowCc(true)} className="min-h-9 shrink-0 px-1 text-xs font-semibold text-primary focus-visible:outline-2 focus-visible:outline-primary">
               Cc/Bcc
             </button>
           )}
         </div>
         {identities.length > 1 && (
-          <div className="flex items-center gap-2 border-b border-border py-1.5">
+          <div className="flex min-w-0 items-center gap-2 border-b border-border py-1.5">
             <label htmlFor="compose-reply-to" className="w-14 shrink-0 text-[12px] text-muted-foreground">Reply-To</label>
             <select
               id="compose-reply-to"
               value={replyToAddressId}
               onChange={(e) => setReplyToAddressId(e.target.value)}
-              className="flex-1 bg-transparent text-[12px] outline-none"
+              className="min-w-0 w-full flex-1 truncate bg-transparent text-sm outline-none"
             >
               <option value="">Same as From</option>
               {identities
@@ -429,14 +446,14 @@ export default function ComposeEditor({
             </select>
           </div>
         )}
-        <ContactPicker label="To" value={to} onChange={(v) => { setTo(v); markDirty(); }} autoFocus={mode === "NEW" || mode === "FORWARD"} />
+        <ContactPicker label="To" value={to} onChange={(v) => { setTo(v); markDirty(); }} autoFocus={mode === "NEW" || mode === "FORWARD" || mode === "REPLY" || mode === "REPLY_ALL"} />
         {showCc && (
           <>
             <ContactPicker label="Cc" value={cc} onChange={(v) => { setCc(v); markDirty(); }} />
             <ContactPicker label="Bcc" value={bcc} onChange={(v) => { setBcc(v); markDirty(); }} />
           </>
         )}
-        <div className="flex items-center gap-2 border-b border-border py-1.5">
+        <div className="flex min-w-0 items-center gap-2 border-b border-border py-1.5">
           <label htmlFor="compose-subject" className="w-10 shrink-0 text-[12px] text-muted-foreground">Subject</label>
           <input
             id="compose-subject"
@@ -446,12 +463,12 @@ export default function ComposeEditor({
               setSubject(e.target.value);
               markDirty();
             }}
-            className="flex-1 bg-transparent text-[12px] outline-none"
+            className="min-w-0 w-full flex-1 bg-transparent text-sm outline-none"
           />
         </div>
       </div>
 
-      <div className="flex items-center gap-1 border-b border-border px-3 py-1" role="toolbar" aria-label="Formatting">
+      <div className="flex flex-wrap items-center gap-1 border-b border-border px-3 py-1.5" role="toolbar" aria-label="Formatting">
         {[
           { cmd: "bold", icon: Bold, label: "Bold" },
           { cmd: "italic", icon: Italic, label: "Italic" },
@@ -459,11 +476,11 @@ export default function ComposeEditor({
           { cmd: "insertUnorderedList", icon: List, label: "Bulleted list" },
           { cmd: "insertOrderedList", icon: ListOrdered, label: "Numbered list" },
         ].map(({ cmd, icon: Icon, label }) => (
-          <button key={cmd} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => exec(cmd)} aria-label={label} title={label} className="rounded p-1.5 text-muted-foreground hover:bg-muted">
+          <button key={cmd} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => exec(cmd)} aria-label={label} title={label} className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary">
             <Icon className="h-3.5 w-3.5" />
           </button>
         ))}
-        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={insertLink} aria-label="Insert link" title="Insert link" className="rounded p-1.5 text-muted-foreground hover:bg-muted">
+        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={insertLink} aria-label="Insert link" title="Insert link" className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary">
           <Link2 className="h-3.5 w-3.5" />
         </button>
       </div>
@@ -481,7 +498,7 @@ export default function ComposeEditor({
           e.preventDefault();
           document.execCommand("insertText", false, e.clipboardData.getData("text/plain"));
         }}
-        className={`overflow-y-auto px-3 py-2 text-[13px] text-foreground outline-none ${inline ? "min-h-[140px] max-h-[320px]" : "min-h-[260px] max-h-[55vh]"}`}
+        className={`min-w-0 overflow-y-auto px-4 py-3 text-sm leading-6 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/30 ${inline ? "min-h-[180px] max-h-[320px]" : "min-h-[260px] max-h-[55vh]"}`}
       />
 
       <div className="flex flex-col gap-2 px-3 pb-2">
@@ -489,13 +506,14 @@ export default function ComposeEditor({
         {error && <p role="alert" className="text-[12px] text-red-600">{error}</p>}
       </div>
 
-      <div className="flex items-center gap-2 border-t border-border px-3 py-2">
+      <div className="sticky bottom-0 z-10 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-border bg-card px-3 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
         <button
           type="button"
           onClick={send}
           disabled={sending || !canSend || !!conflict}
+          aria-busy={sending}
           title={canSend ? "Send (Ctrl+Enter)" : "You cannot send from this mailbox"}
-          className="flex items-center gap-2 rounded-md bg-primary px-4 py-1.5 text-[12px] font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          className="flex min-h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50"
         >
           {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
           {sending ? "Queueing…" : "Send"}
@@ -505,11 +523,11 @@ export default function ComposeEditor({
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="flex items-center gap-1 rounded-md px-2 py-1.5 text-[12px] text-muted-foreground hover:bg-muted disabled:opacity-50"
+          className="flex min-h-10 shrink-0 items-center gap-2 rounded-md px-2 text-sm text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50"
         >
           {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Paperclip className="h-3.5 w-3.5" />} Attach
         </button>
-        <button type="button" onClick={discard} className="ml-auto flex items-center gap-1 rounded-md px-2 py-1.5 text-[12px] text-muted-foreground hover:bg-muted">
+        <button type="button" onClick={discard} className="ml-auto flex min-h-10 shrink-0 items-center gap-2 rounded-md px-2 text-sm text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary">
           <Trash2 className="h-3.5 w-3.5" /> Discard
         </button>
       </div>

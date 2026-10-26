@@ -11,8 +11,8 @@ import PermissionBoundary from "@/components/mail/PermissionBoundary";
 import { mailKeys, usePreferences } from "@/components/mail/hooks";
 import { classifyMailError, updatePreferences, type MailPreferences as Prefs, type MailPreferencesInput } from "@/lib/mail.service";
 
-const card = "rounded-lg border border-border bg-card p-4";
-const input = "w-full rounded-md border border-border bg-card px-3 py-2 text-[12px] outline-none focus:border-primary";
+const card = "rounded-xl border border-border bg-card p-5 shadow-sm";
+const input = "min-h-11 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20";
 
 function optionLabel(option: Prefs["senderOptions"][number]) {
   const who = option.displayName ? `${option.displayName} <${option.address}>` : option.address;
@@ -49,15 +49,15 @@ export default function MailPreferences() {
   const disabled = !data?.available || save.isPending;
   return (
     <section className={card} aria-labelledby="prefs-h">
-      <h2 id="prefs-h" className="mb-1 text-[13px] font-semibold">Preferences</h2>
-      <p className="mb-2 text-[11px] text-muted-foreground">These apply to you in every mailbox.</p>
+      <h2 id="prefs-h" className="mb-1 text-base font-semibold">Preferences</h2>
+      <p className="mb-4 text-sm text-muted-foreground">These apply to you in every mailbox.</p>
       <PermissionBoundary isLoading={prefs.isLoading} error={prefs.error} compact>
         {data && !data.available && (
           <p role="status" className="mb-2 text-[11px] text-muted-foreground">Preferences are not available yet. The defaults below are in effect.</p>
         )}
         <div className="flex flex-col gap-3">
           <div>
-            <label htmlFor="pref-sender" className="text-[11px] text-muted-foreground">Default sender</label>
+            <label htmlFor="pref-sender" className="text-sm font-medium text-foreground">Default sender</label>
             <select
               id="pref-sender"
               aria-describedby="pref-sender-help"
@@ -71,7 +71,7 @@ export default function MailPreferences() {
                 <option key={option.addressId} value={option.addressId}>{optionLabel(option)}</option>
               ))}
             </select>
-            <p id="pref-sender-help" className="mt-1 text-[11px] text-muted-foreground">
+            <p id="pref-sender-help" className="mt-1.5 text-xs leading-5 text-muted-foreground">
               {data?.senderOptions.length
                 ? "Pre-selected when you write from the mailbox that owns this address. You can still change it on each email."
                 : "You have no approved sender addresses."}
@@ -88,8 +88,8 @@ export default function MailPreferences() {
               onChange={(e) => save.mutate({ notificationsEnabled: e.target.checked })}
             />
             <div>
-              <label htmlFor="pref-notifications" className="text-[12px]">Notify me about new email</label>
-              <p id="pref-notifications-help" className="text-[11px] text-muted-foreground">
+              <label htmlFor="pref-notifications" className="text-sm font-medium">Notify me about new email</label>
+              <p id="pref-notifications-help" className="text-xs leading-5 text-muted-foreground">
                 In-app notifications when email arrives in your mailboxes. Delivery failures and security notices are always sent.
               </p>
             </div>

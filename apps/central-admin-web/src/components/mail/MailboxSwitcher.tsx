@@ -6,9 +6,11 @@ import type { MailboxSummary } from "@/types/mail.types";
 export default function MailboxSwitcher({
   mailboxes,
   currentId,
+  onSwitch,
 }: {
   mailboxes: MailboxSummary[];
   currentId: string;
+  onSwitch?: () => void;
 }) {
   const router = useRouter();
   if (mailboxes.length === 0) return null;
@@ -20,7 +22,7 @@ export default function MailboxSwitcher({
       <select
         id="mailbox-switcher"
         value={currentId}
-        onChange={(e) => router.push(`/dashboard/mail/${e.target.value}`)}
+        onChange={(e) => { router.push(`/dashboard/mail/${e.target.value}`); onSwitch?.(); }}
         className="w-full rounded-md border border-border bg-card px-2 py-1.5 text-[12px] text-foreground focus:border-primary outline-none"
       >
         {mailboxes.map((mb) => (

@@ -39,6 +39,7 @@ export default function MailSidebar({
   labelId,
   queueActive,
   sendingEnabled,
+  onMailboxChange,
 }: {
   mailboxes: MailboxSummary[];
   mailbox: MailboxSummary;
@@ -46,6 +47,7 @@ export default function MailSidebar({
   labelId?: string;
   queueActive?: boolean;
   sendingEnabled: boolean;
+  onMailboxChange?: () => void;
 }) {
   const labels = useLabels(mailbox.id);
   const canCompose = mailbox.canSend && mailbox.status === "ACTIVE";
@@ -53,7 +55,7 @@ export default function MailSidebar({
 
   return (
     <nav aria-label="Mail folders" className="flex flex-col gap-4 p-3">
-      <MailboxSwitcher mailboxes={mailboxes} currentId={mailbox.id} />
+      <MailboxSwitcher mailboxes={mailboxes} currentId={mailbox.id} onSwitch={onMailboxChange} />
       {canCompose ? (
         <Link
           href={`/dashboard/mail/compose?mailboxId=${mailbox.id}`}

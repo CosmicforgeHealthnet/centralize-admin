@@ -1,4 +1,4 @@
-import { test, expect, signIn, defaultMocks, entitlements, gotoWithEntitlements, ok, ALICE, REVIEWER, type E2EUser, type MockApi } from "./fixtures";
+import { test, expect, signIn, defaultMocks, entitlements, gotoWithEntitlements, attachScreenshot, ok, ALICE, REVIEWER, type E2EUser, type MockApi } from "./fixtures";
 
 // Final gaps 1 + 7: template classification badge + change control (step-up)
 // and the template QA panel (desktop / mobile / dark / plain text previews and
@@ -108,7 +108,7 @@ test.describe("Template classification and QA", () => {
     expect(puts[0].body).toMatchObject({ classification: "TRANSACTIONAL", reason: "Receipts are service mail", stepUpId: "su-1" });
   });
 
-  test("the QA panel shows desktop, mobile, dark and plain-text previews with four check states", async ({ page, api }) => {
+  test("the QA panel shows desktop, mobile, dark and plain-text previews with four check states", async ({ page, api }, testInfo) => {
     await signIn(page, ALICE);
     mocks(api, ALICE, { canAuthor: true, canApprove: false });
     await gotoWithEntitlements(page, PAGE);
@@ -122,8 +122,10 @@ test.describe("Template classification and QA", () => {
     // Blocked checks are listed first.
     await expect(checks.locator("li").first()).toContainText("links_safe");
     await expect(page.frameLocator('iframe[title="QA preview (desktop)"]').getByText("Receipt desktop")).toBeVisible();
+    await attachScreenshot(page, testInfo, "marketing-template-qa-desktop");
     await report.getByRole("tab", { name: "Mobile" }).click();
     await expect(page.frameLocator('iframe[title="QA preview (mobile)"]').getByText("Receipt mobile")).toBeVisible();
+    await attachScreenshot(page, testInfo, "marketing-template-qa-mobile");
     await report.getByRole("tab", { name: "Dark mode" }).click();
     await expect(page.frameLocator('iframe[title="QA preview (dark)"]').getByText("Receipt dark")).toBeVisible();
     await expect(report.getByText(/Simulated forced dark mode/)).toBeVisible();

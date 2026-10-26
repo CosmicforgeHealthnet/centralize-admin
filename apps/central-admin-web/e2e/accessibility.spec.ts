@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { test, expect, signIn, defaultMocks, entitlements, gotoWithEntitlements, mailbox, thread, ok, SUPER_USER, ALICE } from "./fixtures";
+import { test, expect, signIn, defaultMocks, entitlements, gotoWithEntitlements, attachScreenshot, mailbox, thread, ok, SUPER_USER, ALICE } from "./fixtures";
 
 // M9: automated WCAG 2.1 A/AA checks (axe-core) on the main Mail and
 // Marketing surfaces, with the API mocked. Serious/critical violations fail.
@@ -56,7 +56,7 @@ test.describe("Accessibility (axe)", () => {
     await audit(page, "integrations");
   });
 
-  test("IT mail administration", async ({ page, api }) => {
+  test("IT mail administration", async ({ page, api }, testInfo) => {
     const admin = { ...SUPER_USER, id: "u-it", tier: "ADMIN" };
     await signIn(page, admin);
     defaultMocks(api, admin, entitlements({ mailboxes: [], canManageDomains: true, canViewAdministration: true, canProvision: true }));
@@ -70,9 +70,11 @@ test.describe("Accessibility (axe)", () => {
     await page.goto("/dashboard/it");
     await page.getByRole("button", { name: "Mail Administration" }).first().click();
     await expect(page.getByRole("cell", { name: "cosmicforge.example" })).toBeVisible();
+    await attachScreenshot(page, testInfo, "it-mail-administration-domains");
     await audit(page, "IT mail administration (domains)");
     await page.getByRole("tab", { name: "Audit & events" }).click();
     await expect(page.getByRole("heading", { name: "Jobs and dead letters" })).toBeVisible();
+    await attachScreenshot(page, testInfo, "it-mail-administration-audit");
     await audit(page, "IT mail administration (audit)");
   });
 });

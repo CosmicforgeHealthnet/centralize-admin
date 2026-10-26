@@ -10,6 +10,12 @@ import { useNotificationStore } from "@/stores/notification.store";
 
 const breadcrumbs: Record<string, { parent: string; current: string }> = {
   "/dashboard": { parent: "", current: "Dashboard" },
+  "/dashboard/mail": { parent: "Workspace", current: "Mail" },
+  "/dashboard/mail/compose": { parent: "Mail", current: "Compose" },
+  "/dashboard/mail/settings": { parent: "Mail", current: "Settings" },
+  "/dashboard/mail/operations": { parent: "Mail", current: "Operations" },
+  "/dashboard/mail/integrations": { parent: "Mail", current: "Integrations" },
+  "/dashboard/mail/rollout": { parent: "Mail", current: "Rollout" },
   "/dashboard/help": { parent: "Support", current: "Overview" },
   "/dashboard/help/tickets": { parent: "Support", current: "Tickets" },
   "/dashboard/help/live-chat": { parent: "Support / Live Chat", current: "Active Conversations" },
@@ -19,6 +25,7 @@ const breadcrumbs: Record<string, { parent: string; current: string }> = {
   "/dashboard/it": { parent: "I.T", current: "Overview" },
   "/dashboard/finance": { parent: "Finance", current: "Overview" },
   "/dashboard/marketing": { parent: "Marketing", current: "Overview" },
+  "/dashboard/marketing/email-marketing": { parent: "Marketing", current: "Email Marketing" },
   "/dashboard/analytics": { parent: "Analytics", current: "Overview" },
   "/dashboard/settings": { parent: "Settings", current: "Account Security" },
   "/dashboard/settings?tab=Account+Security": { parent: "Settings", current: "Account Security" },
@@ -42,6 +49,12 @@ const getCrumb = (pathname: string, search: string) => {
   if (breadcrumbs[pathname]) return breadcrumbs[pathname];
   if (pathname.startsWith("/dashboard/help/tickets/"))
     return { parent: "Support / Tickets", current: "Active Conversations" };
+  if (pathname.startsWith("/dashboard/mail/") && pathname.includes("/thread/"))
+    return { parent: "Mail", current: "Conversation" };
+  if (pathname.startsWith("/dashboard/mail/"))
+    return { parent: "Mail", current: "Mailbox" };
+  if (pathname.startsWith("/dashboard/marketing/email-marketing/"))
+    return { parent: "Marketing / Email Marketing", current: pathname.split("/").at(-1)?.replaceAll("-", " ") ?? "Overview" };
   return { parent: "", current: "Dashboard" };
 };
 
@@ -54,6 +67,8 @@ const getGreeting = () => {
 
 const parentSegmentHref = (segment: string): string => {
   const map: Record<string, string> = {
+    "Mail": "/dashboard/mail",
+    "Email Marketing": "/dashboard/marketing/email-marketing",
     "Support": "/dashboard/help",
     "Live Chat": "/dashboard/help/live-chat",
     "Email Support": "/dashboard/help/email",

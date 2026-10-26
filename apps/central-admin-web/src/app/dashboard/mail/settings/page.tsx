@@ -22,9 +22,9 @@ import {
 } from "@/lib/mail.service";
 import type { MailboxSummary, MembershipRole, StaffDirectoryEntry } from "@/types/mail.types";
 
-const card = "rounded-lg border border-border bg-card p-4";
-const input = "w-full rounded-md border border-border bg-card px-3 py-2 text-[12px] outline-none focus:border-primary";
-const btn = "rounded-md bg-primary px-3 py-1.5 text-[12px] font-semibold text-primary-foreground disabled:opacity-50";
+const card = "rounded-xl border border-border bg-card p-5 shadow-sm";
+const input = "min-h-11 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20";
+const btn = "min-h-10 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50";
 
 function Signature({ mailbox }: { mailbox: MailboxSummary }) {
   const qc = useQueryClient();
@@ -47,7 +47,7 @@ function Signature({ mailbox }: { mailbox: MailboxSummary }) {
   const canEdit = mailbox.type === "PERSONAL" ? mailbox.role === "OWNER" : mailbox.role === "OWNER" || mailbox.role === "MANAGER";
   return (
     <section className={card} aria-labelledby="sig-h">
-      <h2 id="sig-h" className="mb-2 text-[13px] font-semibold">Signature</h2>
+      <h2 id="sig-h" className="mb-2 text-base font-semibold">Signature</h2>
       <PermissionBoundary isLoading={detail.isLoading} error={detail.error} compact>
         <label htmlFor="sig" className="sr-only">Signature</label>
         <textarea id="sig" rows={4} value={value} disabled={!canEdit} onChange={(e) => setValue(e.target.value)} className={input} placeholder="Signature (basic HTML is sanitized by the server)" />
@@ -88,7 +88,7 @@ function Labels({ mailbox }: { mailbox: MailboxSummary }) {
   });
   return (
     <section className={card} aria-labelledby="labels-h">
-      <h2 id="labels-h" className="mb-2 text-[13px] font-semibold">Labels</h2>
+      <h2 id="labels-h" className="mb-2 text-base font-semibold">Labels</h2>
       <PermissionBoundary isLoading={labels.isLoading} error={labels.error} compact>
         <ul className="mb-2 flex flex-wrap gap-1">
           {(labels.data ?? []).length === 0 && <li className="text-[12px] text-muted-foreground">No labels.</li>}
@@ -135,7 +135,7 @@ function Members({ mailbox }: { mailbox: MailboxSummary }) {
   if (mailbox.type !== "SHARED") return null;
   return (
     <section className={card} aria-labelledby="members-h">
-      <h2 id="members-h" className="mb-2 text-[13px] font-semibold">Shared mailbox members</h2>
+      <h2 id="members-h" className="mb-2 text-base font-semibold">Shared mailbox members</h2>
       {!canManage ? (
         <p className="text-[12px] text-muted-foreground">Only mailbox owners and managers can view or change membership.</p>
       ) : (
@@ -209,7 +209,7 @@ function Provisioning({ organizationId }: { organizationId?: string }) {
   });
   return (
     <section className={card} aria-labelledby="prov-h">
-      <h2 id="prov-h" className="mb-2 text-[13px] font-semibold">Address &amp; mailbox requests</h2>
+      <h2 id="prov-h" className="mb-2 text-base font-semibold">Address &amp; mailbox requests</h2>
       <form className="grid grid-cols-1 gap-2 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); if (justification.trim()) submit.mutate(); }}>
         <label className="text-[11px] text-muted-foreground">Request type
           <select value={type} onChange={(e) => setType(e.target.value)} className={input}>
@@ -254,15 +254,15 @@ function SettingsInner() {
   const mailbox = mailboxes.find((m) => m.id === selectedId);
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4">
-      <div className="flex items-center gap-2">
+    <div className="mx-auto flex max-w-3xl flex-col gap-5">
+      <div className="flex flex-wrap items-center gap-2">
         <Link href={mailbox ? `/dashboard/mail/${mailbox.id}` : "/dashboard/mail"} aria-label="Back to mail" className="rounded p-1.5 hover:bg-muted">
           <ArrowLeft className="h-4 w-4" />
         </Link>
-        <h1 className="text-[15px] font-semibold">Mail settings</h1>
-        <Link href="/dashboard/mail/operations" className="ml-auto text-[12px] font-semibold text-primary hover:underline">Operations</Link>
-        <Link href="/dashboard/mail/rollout" className="text-[12px] font-semibold text-primary hover:underline">Rollout</Link>
-        <Link href="/dashboard/mail/integrations" className="text-[12px] font-semibold text-primary hover:underline">Product integrations</Link>
+        <h1 className="text-xl font-semibold tracking-tight">Mail settings</h1>
+        <Link href="/dashboard/mail/operations" className="ml-auto rounded-md px-2 py-2 text-sm font-medium text-primary hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-primary">Operations</Link>
+        <Link href="/dashboard/mail/rollout" className="rounded-md px-2 py-2 text-sm font-medium text-primary hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-primary">Rollout</Link>
+        <Link href="/dashboard/mail/integrations" className="rounded-md px-2 py-2 text-sm font-medium text-primary hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-primary">Integrations</Link>
       </div>
       <PermissionBoundary isLoading={ent.isLoading} error={ent.error} retry={() => ent.refetch()}>
         <MailPreferences />

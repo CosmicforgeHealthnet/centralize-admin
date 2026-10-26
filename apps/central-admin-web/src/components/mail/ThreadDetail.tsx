@@ -110,7 +110,7 @@ export default function ThreadDetail({
   }, [compose, canReply, last, backHref]);
 
   const blockedCount = messages.reduce((n, m) => n + (m.remoteImagesBlocked || 0), 0);
-  const actionBtn = "rounded p-1.5 text-muted-foreground hover:bg-muted disabled:opacity-40";
+  const actionBtn = "flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-40";
 
   return (
     <PermissionBoundary
@@ -201,11 +201,11 @@ export default function ThreadDetail({
             </div>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto p-3">
-            <h1 className="mb-1 text-[16px] font-semibold text-foreground">{thread.subject || "(no subject)"}</h1>
-            <div className="mb-3 flex flex-wrap gap-1">
+          <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+            <h1 className="mb-2 break-words text-xl font-semibold tracking-tight text-foreground">{thread.subject || "(no subject)"}</h1>
+            <div className="mb-4 flex flex-wrap gap-1.5">
               {thread.labels.map((l) => (
-                <span key={l.id} className="rounded border border-border px-1.5 text-[10px] text-muted-foreground">{l.name}</span>
+                <span key={l.id} className="rounded-full border border-border px-2.5 py-0.5 text-xs text-muted-foreground">{l.name}</span>
               ))}
             </div>
             {notice && <p role="alert" className="mb-2 text-[12px] text-red-600">{notice}</p>}
@@ -247,7 +247,7 @@ export default function ThreadDetail({
             ) : (
               canReply &&
               last && (
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-5 flex flex-wrap gap-2">
                   {[
                     { mode: "REPLY" as const, icon: Reply, label: "Reply (r)" },
                     { mode: "REPLY_ALL" as const, icon: ReplyAll, label: "Reply all" },
@@ -257,7 +257,7 @@ export default function ThreadDetail({
                       key={mode}
                       type="button"
                       onClick={() => setCompose({ mode, messageId: last.id })}
-                      className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[12px] font-semibold hover:bg-muted"
+                      className="flex min-h-10 items-center gap-2 rounded-md border border-border px-3 text-sm font-medium transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                     >
                       <Icon className="h-3.5 w-3.5" /> {label}
                     </button>

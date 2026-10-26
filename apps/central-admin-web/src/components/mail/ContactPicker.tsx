@@ -92,15 +92,15 @@ export default function ContactPicker({
 
   return (
     <div className="relative">
-      <div className="flex flex-wrap items-center gap-1 border-b border-border px-1 py-1.5" onClick={() => inputRef.current?.focus()}>
-        <label htmlFor={id} className="w-10 shrink-0 text-[12px] text-muted-foreground">
+      <div className="flex min-w-0 flex-wrap items-center gap-1 border-b border-border px-1 py-1.5" onClick={() => inputRef.current?.focus()}>
+        <label htmlFor={id} className="w-10 shrink-0 text-xs text-muted-foreground">
           {label}
         </label>
         {value.map((p) => (
-          <span key={p.address} className="flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px]">
-            {partyLabel(p)}
+          <span key={p.address} className="flex max-w-full min-w-0 items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs">
+            <span className="min-w-0 break-all">{partyLabel(p)}</span>
             {!disabled && (
-              <button type="button" aria-label={`Remove ${p.address}`} onClick={() => onChange(value.filter((v) => v.address !== p.address))}>
+              <button type="button" aria-label={`Remove ${p.address}`} onClick={() => onChange(value.filter((v) => v.address !== p.address))} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full hover:bg-background focus-visible:outline-2 focus-visible:outline-primary">
                 <X className="h-3 w-3" />
               </button>
             )}
@@ -120,7 +120,7 @@ export default function ContactPicker({
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={activeIndex >= 0 ? `${listId}-${activeIndex}` : undefined}
-          className="min-w-[120px] flex-1 bg-transparent text-[12px] outline-none"
+          className="min-w-[120px] max-w-full flex-1 bg-transparent text-sm outline-none"
         />
       </div>
       {invalid && <p role="alert" className="px-1 pt-0.5 text-[11px] text-red-600">{invalid}</p>}

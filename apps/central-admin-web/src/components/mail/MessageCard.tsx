@@ -109,30 +109,30 @@ export default function MessageCard({
   }, [expanded, queued, message.id]);
 
   return (
-    <article className="rounded-lg border border-border bg-card" aria-label={`Message from ${partyLabel(message.from)}`}>
+    <article className="rounded-xl border border-border bg-card shadow-sm" aria-label={`Message from ${partyLabel(message.from)}`}>
       <button
         type="button"
         onClick={() => setExpanded((e) => !e)}
         aria-expanded={expanded}
-        className="flex w-full items-start gap-2 px-4 py-3 text-left"
+        className="flex min-h-14 w-full items-start gap-3 px-4 py-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       >
         {expanded ? <ChevronDown className="mt-0.5 h-4 w-4 text-muted-foreground" /> : <ChevronRight className="mt-0.5 h-4 w-4 text-muted-foreground" />}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[13px] font-semibold text-foreground">{partyLabel(message.from)}</span>
+            <span className="text-sm font-semibold text-foreground">{partyLabel(message.from)}</span>
             {message.sentBy && outbound && (
-              <span className="text-[11px] text-muted-foreground">sent by {message.sentBy.name}</span>
+              <span className="text-xs text-muted-foreground">sent by {message.sentBy.name}</span>
             )}
             {(outbound || message.status === "QUARANTINED") && (
-              <span className={`rounded border px-1.5 text-[10px] ${statusTone(message.status)}`}>{messageStatusLabel(message)}</span>
+              <span className={`rounded-full border px-2 py-0.5 text-xs ${statusTone(message.status)}`}>{messageStatusLabel(message)}</span>
             )}
-            <span className="ml-auto text-[11px] text-muted-foreground">{formatFullDate(when)}</span>
+            <span className="ml-auto text-xs text-muted-foreground">{formatFullDate(when)}</span>
           </div>
-          {!expanded && <p className="truncate text-[11px] text-muted-foreground">{(message.text ?? "").slice(0, 160)}</p>}
+          {!expanded && <p className="truncate text-xs text-muted-foreground">{(message.text ?? "").slice(0, 160)}</p>}
         </div>
       </button>
       {expanded && (
-        <div className="flex flex-col gap-3 px-4 pb-4">
+        <div className="flex flex-col gap-4 px-4 pb-5 sm:px-5">
           <div>
             <RecipientLine label="To" recipients={to} />
             <RecipientLine label="Cc" recipients={cc} />

@@ -1,4 +1,4 @@
-import { test as base, expect, type Page, type Request, type Route } from "@playwright/test";
+import { test as base, expect, type Page, type Request, type Route, type TestInfo } from "@playwright/test";
 
 export const API_ORIGIN = "http://localhost:4999";
 
@@ -288,6 +288,15 @@ export async function noHorizontalScroll(page: Page) {
     innerWidth: window.innerWidth,
   }));
   expect(scrollWidth, "no horizontal page scroll").toBeLessThanOrEqual(innerWidth + 1);
+}
+
+/** Save deterministic, synthetic UI evidence as a Playwright artifact. */
+export async function attachScreenshot(page: Page, testInfo: TestInfo, name: string) {
+  const path = testInfo.outputPath(`${name}-${testInfo.project.name}.png`);
+  // Capture the actual viewport: full-page stitching relocates sticky dashboard
+  // navigation into the middle of long-page screenshots and misrepresents UX.
+  await page.screenshot({ path, animations: "disabled" });
+  await testInfo.attach(`${name}-${testInfo.project.name}`, { path, contentType: "image/png" });
 }
 
 /** Navigate and wait until the entitlement response has been delivered, so

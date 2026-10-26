@@ -78,7 +78,7 @@ export default function EmailMarketingShell({
           )}
           {orgs.length === 1 && org && <span className="ml-auto text-[12px] text-muted-foreground">Brand: {org.name}</span>}
         </div>
-        <nav aria-label="Email marketing sections" className="mt-3 flex gap-1 overflow-x-auto">
+        <nav aria-label="Email marketing sections" className="mt-3 flex gap-x-1" style={{ flexWrap: "wrap" }}>
           {TABS.map((t) => {
             const target = `${ROOT}${t.href}`;
             const active = t.href === "" ? pathname === ROOT : pathname.startsWith(target);
