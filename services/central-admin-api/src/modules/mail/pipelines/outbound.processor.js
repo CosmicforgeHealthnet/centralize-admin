@@ -2,18 +2,33 @@
 
 // Outbound dispatch (job kind SEND_MESSAGE).
 //
-// Recipient selection:
-// - Only recipients still PENDING (i.e. external) are ever given to the
-//   provider. Recipients delivered locally at queue time (INTERNAL_DELIVERED)
-//   are never sent again, whatever their To/CC/BCC type.
+// Recipient selection (spec 11.8, MAIL_MIXED_RECIPIENT_MODE; full reasoning
+// in docs/cosmicforge-mail-mixed-recipients.md):
+// - Internal recipients always get exactly one local copy at queue time
+//   (INTERNAL_DELIVERED, compose.service.js). That status is never changed
+//   by dispatch or by provider events.
 // - Resend builds the visible To/Cc headers from its to/cc fields and has no
-//   documented way to set them independently, so the provider envelope and
-//   visible headers are the same: external recipients see only the external
-//   To/Cc recipients. Internal recipients keep the full header set on their
-//   own local copies (documented limitation).
-// - Resend requires `to`. With no external To, external CC are promoted to
-//   `to`; with only external BCC, each BCC recipient gets an individual
-//   request (`to` = that recipient) so BCC recipients never see each other.
+//   documented way to separate the SMTP envelope from the header recipients:
+//   every address in to/cc/bcc is also delivered to.
+// - "external-only" (default until the receiving cutover is approved): only
+//   PENDING (external) recipients are given to the provider, so external
+//   recipients see only the external To/Cc (Reply-All misses internal
+//   people). Resend requires `to`: with no external To, external CC are
+//   promoted to `to`; with only external BCC, each BCC recipient gets an
+//   individual request (`to` = that recipient).
+// - "full-headers": the request carries the complete visible To and Cc
+//   (internal + external, original types) and external BCC in `bcc`, so every
+//   recipient sees the same To/Cc (RFC 5322 3.6.3) and no Bcc header. The
+//   provider therefore also delivers to internal addresses via our MX: those
+//   echoes are dropped by the inbound pipeline using the signed
+//   X-CosmicForge-Origin header (security/origin-header.js) and Message-ID /
+//   provider Message-ID aliases. Internal BCC are never given to the provider.
+//   With no visible To, Cc are promoted to `to` (Resend requires it); with no
+//   visible To/Cc, each external BCC gets an individual request as above.
+//   Before the receiving cutover this mode would deliver a duplicate copy to
+//   the legacy mail system: it stays off until approved.
+// - The plan (including the mode and the origin header value) is persisted at
+//   the first attempt, so a later mode/key change never alters a payload.
 //
 // Durability / idempotency:
 // - The batch plan is persisted on the job at the first attempt and is never
@@ -40,23 +55,41 @@
 //   provider (FAILED, reason recorded). Mail already accepted cannot be recalled.
 
 const { MailProviderError } = require("../adapters/mail-provider.contract");
+const { quotaDeferSeconds } = require("../ops/provider-quota.service");
 const { PipelineError } = require("./inbound.processor");
 const policy = require("../authz/mail.policy");
 const { externalSendBlockReason, SEND_BLOCK_REASONS } = require("../authz/sending-gate");
 const { purposeForMailbox } = require("../ops/runtime-controls");
-const { aggregateMessageStatus, createDeliveryEventApplier } = require("./delivery-event.processor");
+const { aggregateMessageStatus, createDeliveryEventApplier, recordProviderMessageId } = require("./delivery-event.processor");
+const { originHeaderFromConfig, ORIGIN_HEADER } = require("../security/origin-header");
 
 function party(recipient) {
   return { address: recipient.address, name: recipient.name };
 }
 
-// Deterministic batch plan built only from PENDING (external) recipients.
-function buildDeliveryPlan(recipients) {
+// Deterministic batch plan. external-only: built only from PENDING
+// (external) recipients. full-headers: visible To/Cc of every status
+// (internal rows stay INTERNAL_DELIVERED; status updates only ever touch
+// PENDING rows) plus external BCC; internal BCC never reach the provider.
+function buildDeliveryPlan(recipients, { mode = "external-only", origin = null } = {}) {
   const pending = recipients.filter((recipient) => recipient.status === "PENDING");
+  const ids = (list) => list.map((recipient) => recipient.id);
+  if (mode === "full-headers" && origin && pending.length) {
+    const visible = recipients.filter((recipient) => recipient.type !== "BCC" && (recipient.status === "PENDING" || recipient.status === "INTERNAL_DELIVERED"));
+    const to = visible.filter((recipient) => recipient.type === "TO");
+    const cc = visible.filter((recipient) => recipient.type === "CC");
+    const bcc = pending.filter((recipient) => recipient.type === "BCC");
+    const internal = ids(visible.filter((recipient) => recipient.status === "INTERNAL_DELIVERED"));
+    // The origin header is only needed when the provider will echo to us.
+    const meta = { fullHeaders: true, internal, ...(internal.length ? { origin } : {}) };
+    if (to.length) return [{ to: ids(to), cc: ids(cc), bcc: ids(bcc), ...meta }];
+    if (cc.length) return [{ to: ids(cc), cc: [], bcc: ids(bcc), promotedCc: true, ...meta }];
+    // No visible To/Cc at all: individual BCC requests, as in external-only.
+    return bcc.map((recipient) => ({ to: [recipient.id], cc: [], bcc: [], individualBcc: true, fullHeaders: true, internal: [] }));
+  }
   const to = pending.filter((recipient) => recipient.type === "TO");
   const cc = pending.filter((recipient) => recipient.type === "CC");
   const bcc = pending.filter((recipient) => recipient.type === "BCC");
-  const ids = (list) => list.map((recipient) => recipient.id);
   if (to.length) return [{ to: ids(to), cc: ids(cc), bcc: ids(bcc) }];
   if (cc.length) return [{ to: ids(cc), cc: [], bcc: ids(bcc), promotedCc: true }];
   return bcc.map((recipient) => ({ to: [recipient.id], cc: [], bcc: [], individualBcc: true }));
@@ -89,9 +122,13 @@ class DispatchBlockedError extends Error {
   }
 }
 
-function createOutboundProcessor({ client, config, adapter, store, audit, notifications, runtime = null, usage = null, forwarding = null, clock = () => new Date() }) {
+function createOutboundProcessor({ client, config, adapter, store, audit, notifications, runtime = null, usage = null, forwarding = null, features = null, clock = () => new Date() }) {
   const windowMs = (config.reconciliation?.idempotencyWindowHours || 23) * 3600 * 1000;
-  const deliveryEvents = createDeliveryEventApplier({ client, audit, notifications });
+  const deliveryEvents = createDeliveryEventApplier({ client, audit, notifications, features });
+  const originHeader = originHeaderFromConfig(config);
+  // GAP 8: config validation already refused full-headers without a key;
+  // a missing key here (defensive) falls back to external-only.
+  const fullHeaders = config.mixedRecipients?.mode === "full-headers" && originHeader.available;
 
   async function assertStillAuthorized(message) {
     if (!message.sentByAdminUserId || !message.senderAddressId) throw new DispatchBlockedError("SENDER_UNKNOWN");
@@ -143,7 +180,7 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
     let plan = job.payload?.plan;
     if (!Array.isArray(plan)) {
       if (!message.recipients.some((recipient) => recipient.status === "PENDING")) return { skipped: true, status: message.status };
-      plan = buildDeliveryPlan(message.recipients);
+      plan = buildDeliveryPlan(message.recipients, fullHeaders ? { mode: "full-headers", origin: originHeader.sign(message.id) } : {});
       await savePlan(job, plan);
     }
     if (!plan.length) {
@@ -224,7 +261,7 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
         subject: message.subject,
         html: body.html,
         text: body.text,
-        headers,
+        headers: batch.origin ? { ...headers, [ORIGIN_HEADER]: batch.origin } : headers,
         attachments,
       };
       let result;
@@ -256,6 +293,19 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
           if (error.kind === "NOT_CONFIGURED") throw new PipelineError(error.code, error.message, { retryable: false });
           continue;
         }
+        // Provider quota exhausted (429 daily/monthly_quota_exceeded): a
+        // definitive refusal. Hold the job until the quota resets instead of
+        // burning retries every hour; accepted batches stay recorded.
+        const quotaWait = quotaDeferSeconds(error, clock());
+        if (quotaWait) {
+          batch.inFlight = false;
+          // Nothing was sent: unless an earlier attempt was ambiguous, the
+          // idempotency window starts again with the next real attempt (the
+          // reset can be up to 24h away).
+          if (!batch.ambiguous) delete batch.firstAttemptAt;
+          await savePlan(job, plan);
+          return { defer: { seconds: quotaWait, code: "PROVIDER_QUOTA_EXHAUSTED" } };
+        }
         if (possiblyAccepted(error)) batch.ambiguous = true;
         batch.inFlight = false;
         await savePlan(job, plan);
@@ -270,12 +320,19 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
       await client.$transaction(async (tx) => {
         await tx.mailOutboxJob.update({ where: { id: job.id }, data: { payload: { ...(job.payload || {}), plan } } });
         await tx.mailMessageRecipient.updateMany({ where: { id: { in: recipientIds }, status: "PENDING" }, data: { status: "PROVIDER_ACCEPTED", providerMessageId: result.providerMessageId, lastEventAt: clock() } });
+        // full-headers: internal rows the provider was also given keep
+        // INTERNAL_DELIVERED; the provider id only lets delivery events know
+        // the request had more than one recipient (never changes status).
+        if (batch.internal?.length) await tx.mailMessageRecipient.updateMany({ where: { id: { in: batch.internal }, status: "INTERNAL_DELIVERED" }, data: { providerMessageId: result.providerMessageId } });
         await tx.mailMessage.update({ where: { id: message.id }, data: { providerMessageId: message.providerMessageId || result.providerMessageId, sentAt: message.sentAt || clock() } });
         await audit.record({ actorAdminUserId: message.sentByAdminUserId, action: "MAIL_PROVIDER_ACCEPTED", targetType: "message", targetId: message.id, mailboxId: message.mailboxId, metadata: { batch: index, recipients: recipientIds.length } }, {}, tx);
         if (usage) await usage.record(tx, { organizationId: message.mailbox?.organizationId, purpose, accepted: recipientIds.length, providerRequests: 1, bytes: message.sizeBytes });
       });
       message.providerMessageId = message.providerMessageId || result.providerMessageId;
       message.sentAt = message.sentAt || clock();
+      // Provider-assigned Message-ID, when the send response carries one
+      // (Resend's POST /emails documents only `id`; webhooks carry it).
+      if (result.rfcMessageId) await recordProviderMessageId({ client, features, messageId: message.id, rfcMessageId: message.rfcMessageId, providerRfcMessageId: result.rfcMessageId });
       // Events that arrived before this acceptance committed were stored
       // unmatched; apply them now (idempotent). Failure here never re-sends.
       await deliveryEvents.reapplyUnmatched(result.providerMessageId).catch(() => {});

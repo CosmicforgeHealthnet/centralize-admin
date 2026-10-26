@@ -38,6 +38,9 @@ function storedPayload(payload, providerEmailId, brandOrganizationId) {
       from: data.from ? String(data.from).slice(0, 320) : null,
       created_at: data.created_at || null,
       ...(data.broadcast_id ? { broadcast_id: String(data.broadcast_id).slice(0, 128) } : {}),
+      // GAP 8: the provider's own RFC Message-ID (Resend may replace ours);
+      // stored as an alias for threading and echo dedup. Email events only.
+      ...(!isContact && data.message_id ? { message_id: String(data.message_id).slice(0, 998) } : {}),
       bounce: data.bounce ? { type: String(data.bounce.type || "").slice(0, 64), message: String(data.bounce.message || "").slice(0, 300) } : undefined,
       // contact.updated: only the identifiers and the subscription flag.
       ...(isContact ? { contact_id: String(data.id || "").slice(0, 128), email: data.email ? String(data.email).slice(0, 320) : null, unsubscribed: data.unsubscribed === true } : {}),

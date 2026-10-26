@@ -19,12 +19,23 @@
 // 7. thread by RFC identifiers, apply rules, Support SLA, mark unread,
 //    index for body search (keyed, opt-in), notify members
 // 8. after commit: approved forwarding and campaign reply attribution
+//
+// Provider echoes (GAP 8, MAIL_MIXED_RECIPIENT_MODE=full-headers): the
+// provider is given internal To/Cc too and delivers them back to us via MX.
+// Internal recipients already hold their single local copy, so for each
+// target mailbox that already holds the referenced message the echo is
+// dropped (no new copy) and MAIL_INBOUND_PROVIDER_ECHO_DEDUPED is audited.
+// The echo is recognised by the signed X-CosmicForge-Origin header (HMAC
+// verified in constant time; forged/invalid = normal mail) or by Message-ID
+// (ours, or the provider's alias of ours). The From must be the original
+// sender. Mailboxes without a copy still get the mail normally.
 
 const { normalizeAddress } = require("../security/address.util");
 const { normalizeMessageId } = require("../security/header-safety");
 const { evaluateAttachment } = require("../scanning/attachment-scanner");
 const { applyRules } = require("../services/mail-rules");
 const { assessSenderAuthentication, authResultsRecord, loadSenderAuthPolicy } = require("../security/sender-auth");
+const { originHeaderFromConfig } = require("../security/origin-header");
 
 class PipelineError extends Error {
   constructor(code, message, { retryable = true } = {}) {
@@ -43,6 +54,43 @@ function isConcurrentDuplicate(error) {
 }
 
 function createInboundProcessor({ client, config, adapter, store, scanner, audit, notifications, usage = null, archive = null, forwarding = null, campaignReplies = null, senderAuth = loadSenderAuthPolicy({}), clock = () => new Date(), logger = null }) {
+  // Verification works in every mode, so echoes of mail sent before a switch
+  // back to external-only are still recognised.
+  const origin = originHeaderFromConfig(config);
+
+  // GAP 8: which target mailboxes received this inbound as a provider echo
+  // of a message we sent (and already delivered locally)?
+  async function providerEchoes({ inbound, rfcMessageId, local, job, providerEmailId }) {
+    let source = null;
+    let via = null;
+    const presented = origin.extract(inbound.originalHeaders);
+    if (presented) {
+      const messageId = origin.verify(presented);
+      const found = messageId ? await client.mailMessage.findUnique({ where: { id: messageId }, select: { id: true, rfcMessageId: true, fromAddress: true, direction: true } }) : null;
+      if (found && found.direction === "OUTBOUND") {
+        source = found;
+        via = "origin-header";
+      } else {
+        // Forged, stale-key or unknown: never suppresses delivery.
+        await audit.record({ action: "MAIL_INBOUND_ORIGIN_HEADER_INVALID", targetType: "webhook_event", targetId: job.webhookEventId, outcome: "DENIED", metadata: { reason: messageId ? "MESSAGE_NOT_FOUND" : "SIGNATURE_INVALID", providerEmailId, senderDomain: inbound.from.address.split("@")[1] } });
+      }
+    }
+    if (!source && store.findOwnOutbound) {
+      const own = await store.findOwnOutbound(client, rfcMessageId);
+      if (own) {
+        source = own;
+        via = own.via;
+      }
+    }
+    if (!source || normalizeAddress(source.fromAddress) !== normalizeAddress(inbound.from.address)) return new Map();
+    const internallyDelivered = await client.mailMessageRecipient.count({ where: { messageId: source.id, status: "INTERNAL_DELIVERED" } });
+    if (!internallyDelivered) return new Map();
+    const copies = await client.mailMessage.findMany({ where: { mailboxId: { in: local.map((target) => target.mailboxId) }, rfcMessageId: source.rfcMessageId }, select: { mailboxId: true } });
+    const echoes = new Map();
+    for (const copy of copies) echoes.set(copy.mailboxId, { sourceId: source.id, via });
+    return echoes;
+  }
+
   async function ownDomains() {
     const rows = await client.mailDomain.findMany({ select: { domain: true } });
     return new Set(rows.map((row) => row.domain.toLowerCase()));
@@ -87,7 +135,9 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
     // Every address the email was delivered for (To, Cc, Bcc/envelope).
     // Only our own domains are considered; BCC data never becomes visible.
     const envelope = [...(job.payload?.to || []), ...(inbound.to || []).map((party) => party.address), ...(inbound.cc || []).map((party) => party.address), ...(inbound.envelopeRecipients || [])];
-    const { local, unknown } = await resolveRecipients(envelope, domains);
+    const resolved = await resolveRecipients(envelope, domains);
+    const { unknown } = resolved;
+    let { local } = resolved;
     if (unknown.length) {
       await audit.record({
         action: config.unknownRecipientPolicy === "quarantine" ? "MAIL_INBOUND_UNKNOWN_RECIPIENT_QUARANTINED" : "MAIL_INBOUND_UNKNOWN_RECIPIENT_REJECTED",
@@ -109,6 +159,15 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
     }
 
     const rfcMessageId = normalizeMessageId(inbound.rfcMessageId) || `<resend-${providerEmailId.replace(/[^A-Za-z0-9_-]/g, "")}@inbound.cosmicforge.invalid>`;
+    // Provider echoes of our own mixed-recipient sends: no second copy.
+    const echoes = await providerEchoes({ inbound, rfcMessageId, local, job, providerEmailId });
+    if (echoes.size) {
+      for (const [mailboxId, echo] of echoes) {
+        await audit.record({ action: "MAIL_INBOUND_PROVIDER_ECHO_DEDUPED", targetType: "message", targetId: echo.sourceId, mailboxId, metadata: { via: echo.via, providerEmailId } });
+      }
+      local = local.filter((target) => !echoes.has(target.mailboxId));
+      if (!local.length) return { delivered: 0, unknown: unknown.length, duplicate: true, echo: echoes.size };
+    }
     // Replays (webhook retry, reconciliation) of an email every mailbox
     // already has: nothing to store. Checked before any object is written.
     const existingCopies = await client.mailMessage.count({ where: { mailboxId: { in: local.map((target) => target.mailboxId) }, rfcMessageId } });
@@ -136,6 +195,10 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
   }
 
   async function discardUnreferenced(keys) {
+    // Gap 5: through the durable deletion queue when attached (migration 37);
+    // the inline cleanup below otherwise.
+    const queued = store.discardObjects ? await store.discardObjects(keys, { purpose: "INBOUND", reason: "INBOUND_ORPHAN_CLEANUP", sourceType: "inbound" }) : null;
+    if (queued) return queued.removed;
     let removed = 0;
     for (const key of keys) {
       try {

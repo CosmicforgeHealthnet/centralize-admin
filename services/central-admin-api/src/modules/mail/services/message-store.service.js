@@ -3,6 +3,10 @@
 // Message persistence and RFC 5322 threading. Threads are mailbox scoped and
 // matched only through Message-ID / In-Reply-To / References inside the same
 // mailbox. Subjects are never used alone to merge conversations.
+// GAP 8: the provider may replace our Message-ID; its alias (stored in
+// mail_message_provider_ids, migration 37) is accepted wherever our own
+// rfcMessageId is (In-Reply-To / References resolution, provider echo
+// dedup). Before migration 37 alias lookups are skipped.
 
 const crypto = require("crypto");
 const { normalizeSubject, sanitizeSubject, normalizeMessageId } = require("../security/header-safety");
@@ -26,7 +30,7 @@ function buildMetadataSearchText({ subject, from, recipients = [] }) {
   return parts.join(" ").replace(/\s+/g, " ").trim();
 }
 
-function createMessageStore({ client, storage, config, encryption }) {
+function createMessageStore({ client, storage, config, encryption, features = null }) {
   // Optional keyed blind index for body search (attached by the application).
   let searchIndex = null;
   function useSearchIndex(index) {
@@ -75,19 +79,79 @@ function createMessageStore({ client, storage, config, encryption }) {
     return storage.remove(key);
   }
 
-  // Finds the mailbox thread referenced by In-Reply-To/References. Deleted
-  // threads are never reused: a reply to one starts a new, visible thread.
-  async function findThreadForReferences(tx, mailboxId, { inReplyTo, references = [] }) {
-    const ids = [...new Set([inReplyTo, ...references].map(normalizeMessageId).filter(Boolean))];
-    if (!ids.length) return null;
+  // Gap 5: durable deletion queue (ops/storage-deletion.service.js), attached
+  // by the application. discardObjects() enqueues unreferenced keys in their
+  // own transaction and settles them now; failures stay queued for the
+  // worker. Returns null when no deletion service is attached (callers keep
+  // their inline cleanup). Never throws.
+  let storageDeletions = null;
+  function useStorageDeletions(service) {
+    storageDeletions = service;
+  }
+
+  async function discardObjects(keys, meta = {}) {
+    if (!storageDeletions) return null;
+    try {
+      const plan = await client.$transaction(async (tx) => storageDeletions.enqueue(tx, keys, { purpose: "OBJECT", ...meta }));
+      return await storageDeletions.settle(plan);
+    } catch {
+      // Could not enqueue: fall back to the inline, reference-checked removal.
+      return storageDeletions.settle({ mode: "inline", keys: [...new Set((keys || []).filter(Boolean))] }).catch(() => ({ removed: 0, failed: (keys || []).length, shared: 0, held: 0, queued: 0 }));
+    }
+  }
+
+  async function aliasesReady() {
+    if (!features?.finalGap) return false;
+    try {
+      return Boolean(await features.finalGap.isReady());
+    } catch {
+      return false;
+    }
+  }
+
+  // Our rfcMessageIds for provider-assigned Message-ID aliases (gated: the
+  // table query only runs once migration 37 is known to exist, so it can
+  // never abort the caller's transaction).
+  async function rfcIdsForAliases(db, ids) {
+    if (!ids.length || !(await aliasesReady())) return [];
+    const rows = await db.mailMessageProviderId.findMany({ where: { providerRfcMessageId: { in: ids } }, select: { message: { select: { rfcMessageId: true } } }, take: 50 });
+    return [...new Set(rows.map((row) => row.message.rfcMessageId))].filter((id) => !ids.includes(id));
+  }
+
+  async function matchThread(tx, mailboxId, ids) {
     const match = await tx.mailMessage.findFirst({
       where: { mailboxId, rfcMessageId: { in: ids }, thread: { deletedAt: null } },
       orderBy: { createdAt: "desc" },
       select: { threadId: true },
     });
     if (match) return tx.mailThread.findUnique({ where: { id: match.threadId } });
-    const root = await tx.mailThread.findFirst({ where: { mailboxId, rootRfcMessageId: { in: ids }, deletedAt: null } });
-    return root || null;
+    return tx.mailThread.findFirst({ where: { mailboxId, rootRfcMessageId: { in: ids }, deletedAt: null } });
+  }
+
+  // Finds the mailbox thread referenced by In-Reply-To/References (our
+  // Message-ID or the provider's alias of it). Deleted threads are never
+  // reused: a reply to one starts a new, visible thread.
+  async function findThreadForReferences(tx, mailboxId, { inReplyTo, references = [] }) {
+    const ids = [...new Set([inReplyTo, ...references].map(normalizeMessageId).filter(Boolean))];
+    if (!ids.length) return null;
+    const direct = await matchThread(tx, mailboxId, ids);
+    if (direct) return direct;
+    const aliased = await rfcIdsForAliases(tx, ids);
+    if (!aliased.length) return null;
+    return (await matchThread(tx, mailboxId, aliased)) || null;
+  }
+
+  // GAP 8 echo dedup: the OUTBOUND message we sent with this Message-ID
+  // (ours, or the provider's alias of ours). Returns null otherwise.
+  async function findOwnOutbound(db, rfcMessageId) {
+    const id = normalizeMessageId(rfcMessageId);
+    if (!id) return null;
+    const select = { id: true, rfcMessageId: true, fromAddress: true, mailboxId: true };
+    const own = await db.mailMessage.findFirst({ where: { rfcMessageId: id, direction: "OUTBOUND" }, select });
+    if (own) return { ...own, via: "message-id" };
+    if (!(await aliasesReady())) return null;
+    const alias = await db.mailMessageProviderId.findFirst({ where: { providerRfcMessageId: id }, select: { message: { select: { ...select, direction: true } } } });
+    return alias?.message?.direction === "OUTBOUND" ? { id: alias.message.id, rfcMessageId: alias.message.rfcMessageId, fromAddress: alias.message.fromAddress, mailboxId: alias.message.mailboxId, via: "provider-alias" } : null;
   }
 
   async function resolveThread(tx, mailbox, { threadId, rfcMessageId, inReplyTo, references, subject, at }) {
@@ -189,7 +253,7 @@ function createMessageStore({ client, storage, config, encryption }) {
     return { message, thread, duplicate: false };
   }
 
-  return { useSearchIndex, encryptSnippet, decryptSnippet, storeBody, readBody, storeAttachmentContent, readAttachmentContent, removeObject, createMessage, resolveThread, findThreadForReferences, generateMessageId, BODY_PURPOSE, ATTACHMENT_PURPOSE };
+  return { useSearchIndex, encryptSnippet, decryptSnippet, storeBody, readBody, storeAttachmentContent, readAttachmentContent, removeObject, useStorageDeletions, discardObjects, createMessage, resolveThread, findThreadForReferences, findOwnOutbound, generateMessageId, BODY_PURPOSE, ATTACHMENT_PURPOSE };
 }
 
 module.exports = { createMessageStore, generateMessageId, buildMetadataSearchText, SNIPPET_PURPOSE };

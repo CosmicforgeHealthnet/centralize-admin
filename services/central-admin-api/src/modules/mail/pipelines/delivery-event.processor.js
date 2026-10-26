@@ -18,8 +18,21 @@
 // - Events that arrive before acceptance commits are stored unmatched and are
 //   re-applied once the batch's provider id is known (reapplyUnmatched).
 // - Open/click tracking events are never recorded for mailbox mail.
+// - Internal recipients (INTERNAL_DELIVERED, one local copy at queue time)
+//   never change status from provider evidence. In MAIL_MIXED_RECIPIENT_MODE
+//   =full-headers the provider is also given internal To/Cc and delivers to
+//   our MX; an event naming only internal addresses is recorded for ops
+//   (message_id null, detail.internalRecipient) and changes nothing, so an
+//   internal recipient is never "Delivered to receiving server" nor FAILED.
+//   Status derivation ignores internal rows, so a partial provider failure
+//   is judged on external recipients only.
+// - The provider's own Message-ID (`message_id` in email webhooks) is stored
+//   as an alias (mail_message_provider_ids, migration 37) when it differs
+//   from ours, for threading and echo dedup. Before migration 37 it is not
+//   stored and everything else works unchanged.
 
 const { normalizeAddress } = require("../security/address.util");
+const { normalizeMessageId } = require("../security/header-safety");
 
 const EVENT_MAP = {
   "email.sent": "SENT",
@@ -73,18 +86,47 @@ function toFieldOf(batch) {
   return cc.length ? cc : batch;
 }
 
-// Returns { targets, unattributed } for one message.
+// Addresses of the message's internal (locally delivered) recipients.
+function internalAddresses(message) {
+  return new Set(message.recipients.filter((recipient) => recipient.status === "INTERNAL_DELIVERED").map((recipient) => recipient.address));
+}
+
+// Returns { targets, unattributed, internalOnly } for one message.
 function attribute(message, providerMessageId, type, named) {
   let batch = message.recipients.filter((recipient) => recipient.status !== "INTERNAL_DELIVERED" && recipient.providerMessageId === providerMessageId);
   if (!batch.length && message.providerMessageId === providerMessageId) batch = message.recipients.filter((recipient) => recipient.status !== "INTERNAL_DELIVERED" && !recipient.providerMessageId);
+  // Every row the provider request addressed: in full-headers mode internal
+  // To/Cc rows carry the request's provider id too (status unchanged).
+  const addressed = [...message.recipients.filter((recipient) => recipient.status === "INTERNAL_DELIVERED" && recipient.providerMessageId === providerMessageId), ...batch];
+  const internal = internalAddresses(message);
+  // Evidence that singles out internal addresses only: ops record, no
+  // status change. An event that merely echoes the request's To list
+  // (Resend lists the To addresses) is not attribution and falls through.
+  const echoedTo = sameSet(named, toFieldOf(addressed).map((recipient) => recipient.address));
+  if (named.length && named.every((address) => internal.has(address)) && !echoedTo) return { targets: [], unattributed: false, internalOnly: true };
   const namedRecipients = batch.filter((recipient) => named.includes(recipient.address));
   if (!FAILURE_TYPES.has(type)) return { targets: namedRecipients, unattributed: false };
-  if (batch.length === 1) return { targets: batch, unattributed: false };
-  const ambiguous = !namedRecipients.length || sameSet(namedRecipients.map((r) => r.id), toFieldOf(batch).map((r) => r.id));
+  if (batch.length === 1 && addressed.length === 1) return { targets: batch, unattributed: false };
+  const namedAddressed = addressed.filter((recipient) => named.includes(recipient.address));
+  const ambiguous = !namedRecipients.length || sameSet(namedAddressed.map((r) => r.id), toFieldOf(addressed).map((r) => r.id));
   return ambiguous ? { targets: [], unattributed: true } : { targets: namedRecipients, unattributed: false };
 }
 
-function createDeliveryEventApplier({ client, audit, notifications }) {
+// Stores the provider-assigned Message-ID as an alias of our message when it
+// differs from ours. Gated by migration 37; never throws (core paths).
+async function recordProviderMessageId({ client, features, messageId, rfcMessageId, providerRfcMessageId }) {
+  const alias = normalizeMessageId(providerRfcMessageId);
+  if (!alias || !messageId || alias === normalizeMessageId(rfcMessageId)) return false;
+  try {
+    if (!features?.finalGap || !(await features.finalGap.isReady())) return false;
+    const result = await client.mailMessageProviderId.createMany({ data: [{ messageId, providerRfcMessageId: alias }], skipDuplicates: true });
+    return result.count > 0;
+  } catch {
+    return false;
+  }
+}
+
+function createDeliveryEventApplier({ client, audit, notifications, features = null }) {
   async function findMessages(db, providerMessageId) {
     // A message may span several provider requests (e.g. individual BCC
     // sends); match on the per-recipient provider id as well.
@@ -101,15 +143,27 @@ function createDeliveryEventApplier({ client, audit, notifications }) {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`mail-delivery-event:${event.id}`}))`;
       const already = await tx.mailDeliveryEvent.findFirst({ where: { webhookEventId: event.id, messageId: message.id } });
       if (already) return false;
+      const opsRows = await tx.mailDeliveryEvent.findMany({ where: { webhookEventId: event.id, messageId: null }, select: { detail: true } });
+      if (opsRows.some((row) => row.detail?.internalRecipient === true && row.detail?.outboundMessageId === message.id)) return false;
       const fresh = await tx.mailMessage.findUnique({ where: { id: message.id }, include: { recipients: true } });
-      const { targets, unattributed } = attribute(fresh, providerMessageId, type, named);
+      const { targets, unattributed, internalOnly } = attribute(fresh, providerMessageId, type, named);
+      if (internalOnly) {
+        // Ops-only record: not linked to the message, so the sender's
+        // delivery details never show an internal address as delivered or
+        // failed by the provider. No status change, no suppression.
+        await tx.mailDeliveryEvent.create({ data: { webhookEventId: event.id, providerMessageId, eventType: type, occurredAt, recipient: named.join(",").slice(0, 320) || null, detail: { internalRecipient: true, ignored: true, outboundMessageId: message.id } } });
+        await tx.mailDeliveryEvent.updateMany({ where: { webhookEventId: event.id, messageId: null, detail: { path: ["unmatched"], equals: true } }, data: { detail: { unmatched: false, rematched: true } } });
+        await audit.record({ action: "MAIL_DELIVERY_INTERNAL_RECIPIENT_IGNORED", targetType: "message", targetId: message.id, mailboxId: message.mailboxId, metadata: { eventType: type, recipients: named.length } }, {}, tx);
+        return false;
+      }
+      const internal = internalAddresses(fresh);
       const detail = {
         bounceType: data.bounce?.type || null,
         reason: String(data.bounce?.message || data.reason || "").slice(0, 300) || null,
         ...(suppressed ? { suppressed: true } : {}),
         ...(unattributed ? { unattributed: true } : {}),
       };
-      const shown = targets.length ? targets.map((recipient) => recipient.address) : named;
+      const shown = targets.length ? targets.map((recipient) => recipient.address) : named.filter((address) => !internal.has(address));
       await tx.mailDeliveryEvent.create({
         data: { messageId: message.id, webhookEventId: event.id, providerMessageId, eventType: type, occurredAt, recipient: shown.join(",").slice(0, 320) || null, detail },
       });
@@ -150,6 +204,10 @@ function createDeliveryEventApplier({ client, audit, notifications }) {
     const named = [...new Set([...addressList(data.to), ...addressList(data.cc), ...addressList(data.bcc)])];
     const ctx = { type, providerMessageId, occurredAt, named, data, suppressed: event.eventType === "email.suppressed" };
     let messages = await findMessages(client, providerMessageId);
+    // Provider-assigned Message-ID (threading / echo dedup alias).
+    if (data.message_id) {
+      for (const message of messages) await recordProviderMessageId({ client, features, messageId: message.id, rfcMessageId: message.rfcMessageId, providerRfcMessageId: data.message_id });
+    }
     if (!messages.length) {
       if (!storeUnmatched) return { matched: 0 };
       const exists = await client.mailDeliveryEvent.findFirst({ where: { webhookEventId: event.id, messageId: null } });
@@ -157,6 +215,9 @@ function createDeliveryEventApplier({ client, audit, notifications }) {
       // Acceptance may have committed meanwhile: look once more.
       messages = await findMessages(client, providerMessageId);
       if (!messages.length) return { matched: 0 };
+      if (data.message_id) {
+        for (const message of messages) await recordProviderMessageId({ client, features, messageId: message.id, rfcMessageId: message.rfcMessageId, providerRfcMessageId: data.message_id });
+      }
     }
     for (const message of messages) {
       const applied = await applyToMessage(event, message, ctx);
@@ -184,8 +245,8 @@ function createDeliveryEventApplier({ client, audit, notifications }) {
   return { applyWebhookEvent, reapplyUnmatched };
 }
 
-function createDeliveryEventProcessor({ client, audit, notifications, marketingEvents = null }) {
-  const applier = createDeliveryEventApplier({ client, audit, notifications });
+function createDeliveryEventProcessor({ client, audit, notifications, marketingEvents = null, features = null }) {
+  const applier = createDeliveryEventApplier({ client, audit, notifications, features });
 
   async function process(job) {
     const event = await client.mailWebhookEvent.findUnique({ where: { id: job.webhookEventId } });
@@ -205,4 +266,4 @@ function createDeliveryEventProcessor({ client, audit, notifications, marketingE
   return { process, reapplyUnmatched: applier.reapplyUnmatched };
 }
 
-module.exports = { createDeliveryEventProcessor, createDeliveryEventApplier, aggregateMessageStatus, deriveMessageStatus: aggregateMessageStatus, EVENT_MAP };
+module.exports = { createDeliveryEventProcessor, createDeliveryEventApplier, aggregateMessageStatus, deriveMessageStatus: aggregateMessageStatus, recordProviderMessageId, attribute, EVENT_MAP };

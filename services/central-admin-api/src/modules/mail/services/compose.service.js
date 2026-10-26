@@ -6,8 +6,12 @@
 //   browser-supplied From addresses are never trusted.
 // - Send returns 202 + durable job id. Provider acceptance and delivery are
 //   tracked separately; nothing here claims delivery.
-// - Recipients that are local active mailboxes are delivered internally and
+// - Recipients that are local active mailboxes are delivered internally
+//   (exactly one copy per mailbox, the only delivery path for them) and
 //   deduplicated against later provider echoes by Message-ID per mailbox.
+//   Whether the provider also gets internal To/Cc (so external recipients see
+//   the full visible header set) is MAIL_MIXED_RECIPIENT_MODE, applied at
+//   dispatch (outbound.processor.js, docs/cosmicforge-mail-mixed-recipients.md).
 // - Before queuing: content policy (unsafe link schemes, misleading link
 //   text), total size, provider suppressions, and quotas. The final quota
 //   checks run inside the send transaction under per-user and per-org
@@ -38,7 +42,7 @@ function assertContentPolicy(html) {
   if (blocked.length) throw mailError("MAIL_VALIDATION_FAILED", { field: "html", reason: "UNSAFE_LINK", issues: blocked.slice(0, 5), status: 422 }, "This message contains a link that is not allowed (unsafe link type or link text that shows a different site).");
 }
 
-function createComposeService({ client, config, store, encryption, scanner, jobs, audit, notifications, preferences = null, providerReady = () => false, runtime = null, usage = null, clock = () => new Date() }) {
+function createComposeService({ client, config, store, encryption, scanner, jobs, audit, notifications, preferences = null, providerReady = () => false, runtime = null, usage = null, deletions = null, clock = () => new Date() }) {
   function encryptDraftBody(html, text) {
     if (!encryption.available) throw mailError("MAIL_STORAGE_UNAVAILABLE");
     return encryption.encryptJson({ html, text }, DRAFT_PURPOSE);
@@ -109,6 +113,14 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
     const source = await client.mailMessage.findUnique({ where: { id: inReplyToMessageId }, include: { recipients: true } });
     if (!source || source.mailboxId !== access.mailbox.id) throw mailError("MAIL_NOT_FOUND", { resource: "message" });
     const own = await ownAddresses(access.mailbox.id);
+    // GAP 8: Reply-All never re-adds the replier's own sender identities
+    // (e.g. a personal address Cc'd on a shared-mailbox copy). Bcc rows are
+    // never copied: internal copies hold none, and the sender's own BCC list
+    // stays private.
+    if (mode === "REPLY_ALL") {
+      const identities = await policy.listSenderIdentities(client, user, access, { now: clock() }).catch(() => []);
+      for (const identity of identities) if (identity?.address) own.add(identity.address);
+    }
     const sourceBody = await store.readBody(source).catch(() => ({ html: null, text: null }));
     const quoted = `<br><br><blockquote>${sourceBody.html ? sanitizeEmailHtml(sourceBody.html).html : escapeHtml(sourceBody.text || "")}</blockquote>`;
     const subjectPrefix = mode === "FORWARD" ? "Fwd: " : "Re: ";
@@ -202,9 +214,35 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
     return serializeDraft(await client.mailDraft.findUnique({ where: { id: draftId } }));
   }
 
+  // Gap 5: with the durable deletion queue (migration 37) and no legal hold on
+  // the mailbox/author, discarding a draft (or removing one of its files)
+  // drops the attachment rows and enqueues their objects for deletion in the
+  // same transaction, settled right after commit. Otherwise (pre-37, or held)
+  // rows are only unlinked and the retention draft sweep removes them later.
+  async function queuedDraftCleanup(draft) {
+    if (!deletions || !(await deletions.ready())) return false;
+    return !(await deletions.scopeHeld({ mailboxId: draft.mailboxId, adminUserIds: [draft.authorAdminUserId] }));
+  }
+
+  async function dropDraftAttachments(tx, draft, where, reason) {
+    const rows = await tx.mailAttachment.findMany({ where: { ...where, draftId: draft.id, messageId: null }, select: { id: true, storageKey: true } });
+    if (!rows.length) return null;
+    await deletions.dropAttachments(tx, { id: { in: rows.map((row) => row.id) }, draftId: draft.id, messageId: null });
+    return deletions.enqueue(tx, rows.map((row) => row.storageKey), { purpose: "COMPOSE", reason, sourceType: "draft", sourceId: draft.id, mailboxId: draft.mailboxId, requestedBy: draft.authorAdminUserId });
+  }
+
   async function discardDraft(user, draftId) {
     const { draft } = await loadOwnDraft(user, draftId, "READ");
     if (draft.status !== "ACTIVE") throw mailError("MAIL_INVALID_TRANSITION", { from: draft.status });
+    if (await queuedDraftCleanup(draft)) {
+      const plan = await client.$transaction(async (tx) => {
+        const changed = await tx.mailDraft.updateMany({ where: { id: draftId, status: "ACTIVE" }, data: { status: "DISCARDED", encryptedBody: null } });
+        if (changed.count !== 1) throw mailError("MAIL_INVALID_TRANSITION", { from: "SENDING" });
+        return dropDraftAttachments(tx, draft, {}, "DRAFT_DISCARDED");
+      });
+      if (plan) await deletions.settle(plan);
+      return { discarded: true };
+    }
     await client.mailDraft.update({ where: { id: draftId }, data: { status: "DISCARDED", encryptedBody: null } });
     return { discarded: true };
   }
@@ -227,7 +265,16 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
   }
 
   async function removeAttachment(user, draftId, attachmentId) {
-    await loadOwnDraft(user, draftId, "SEND");
+    const { draft } = await loadOwnDraft(user, draftId, "SEND");
+    if (policy.isUuid(String(attachmentId)) && (await queuedDraftCleanup(draft))) {
+      const plan = await client.$transaction(async (tx) => {
+        const queued = await dropDraftAttachments(tx, draft, { id: String(attachmentId) }, "DRAFT_ATTACHMENT_REMOVED");
+        if (!queued) throw mailError("MAIL_NOT_FOUND", { resource: "attachment" });
+        return queued;
+      });
+      await deletions.settle(plan);
+      return { removed: true };
+    }
     const result = await client.mailAttachment.updateMany({ where: { id: String(attachmentId), draftId }, data: { draftId: null, quarantined: true } });
     if (!result.count) throw mailError("MAIL_NOT_FOUND", { resource: "attachment" });
     return { removed: true };

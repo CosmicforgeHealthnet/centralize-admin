@@ -1177,7 +1177,9 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
         // Dispatch re-check: over the hard limit queued mail is deferred, not failed.
         const pending = (await send(["q7@partner.example"])).body.data;
         assert.ok(pending.jobId);
-        await client.mailQuotaLimit.update({ where: { organizationId_purpose: { organizationId: state.orgId, purpose: "STAFF_MAIL" } }, data: { dailyHardLimit: 1 } });
+        await client.mailQuotaLimit.update({ where: { organizationId_purpose: { organizationId: state.orgId, purpose: "STAFF_MAIL" } }, data: { dailyHardLimit: null, monthlyHardLimit: 1 } });
+        // Monthly, not daily: every drain() moves the harness clock 4h, so a
+        // daily limit would reset whenever that crosses midnight.
         await drain();
         const held = await client.mailOutboxJob.findUnique({ where: { id: pending.jobId } });
         assert.equal(held.status, "RETRY_SCHEDULED");
@@ -1188,6 +1190,21 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       }
       await drain();
       assert.equal(harness.adapter.state.sent.filter((entry) => entry.to.some((party) => party.address === "q7@partner.example")).length, 1, "sent once the limit allows");
+
+      // Provider quota exhausted (429 daily_quota_exceeded): held until the
+      // reset, not retried hourly or failed; recipients stay queued.
+      harness.adapter.failNext("sendMessage", "QUOTA_EXHAUSTED", "DAILY", { now: harness.clock() });
+      const quotaSend = await send(["q8@partner.example"]);
+      assert.equal(quotaSend.status, 202, quotaSend.text);
+      await drain();
+      const quotaJob = await client.mailOutboxJob.findUnique({ where: { id: quotaSend.body.data.jobId } });
+      assert.equal(quotaJob.status, "RETRY_SCHEDULED");
+      assert.equal(quotaJob.lastErrorCode, "PROVIDER_QUOTA_EXHAUSTED");
+      assert.ok(quotaJob.nextAttemptAt.getTime() > harness.clock().getTime(), "deferred to the quota reset");
+      assert.equal((await client.mailMessageRecipient.findFirst({ where: { messageId: quotaSend.body.data.messageId } })).status, "PENDING");
+      harness.advance(25 * 3600000);
+      await drain();
+      assert.equal(harness.adapter.state.sent.filter((entry) => entry.to.some((party) => party.address === "q8@partner.example")).length, 1, "sent once after the reset");
     });
 
     await t.test("Regression: staff send policy (suppression, links, size, Reply-To, internal copies, idempotency)", async () => {

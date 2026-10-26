@@ -19,8 +19,8 @@ function createFakeAdapter() {
   return {
     name: "fake",
     state,
-    failNext(operation, kind, code = "FAKE_FAILURE", { acceptBeforeFailing = false } = {}) {
-      state.failures.push({ operation, kind, code, acceptBeforeFailing });
+    failNext(operation, kind, code = "FAKE_FAILURE", { acceptBeforeFailing = false, now = null } = {}) {
+      state.failures.push({ operation, kind, code, acceptBeforeFailing, now });
     },
     addInbound(providerEmailId, message, attachments = []) {
       state.inbound.set(providerEmailId, message);
@@ -28,6 +28,12 @@ function createFakeAdapter() {
     },
     async sendMessage(request) {
       const failure = nextFailure("sendMessage");
+      // failNext("sendMessage", "QUOTA_EXHAUSTED", "DAILY"|"MONTHLY", { now })
+      // models Resend's 429 daily_quota_exceeded / monthly_quota_exceeded.
+      if (failure?.kind === "QUOTA_EXHAUSTED") {
+        const { quotaExhaustedError } = require("../ops/provider-quota.service");
+        throw quotaExhaustedError(failure.code === "MONTHLY" ? "MONTHLY" : "DAILY", { now: failure.now || new Date() });
+      }
       if (failure && !failure.acceptBeforeFailing) throw new MailProviderError(failure.kind, failure.code, "fake failure");
       // Provider-side idempotency mirrors Resend's Idempotency-Key semantics.
       if (state.byIdempotency.has(request.idempotencyKey)) return { providerMessageId: state.byIdempotency.get(request.idempotencyKey) };
