@@ -488,6 +488,7 @@ export interface AccountDetail {
   tier: AccountTier;
   status: AccountStatus;
   sectionGrants?: SectionGrant[];
+  mailProvisioning?: AccountMailProvisioningOutcome;
 }
 
 export interface ListAccountsParams {
@@ -511,7 +512,25 @@ export interface CreateAccountPayload {
   employmentCategory?: string;
   location?: string;
   personalPhone?: string;
+  // HR onboarding (Mail spec section 15): files a PENDING work-email request.
+  mailProvisioning?: CreateAccountMailProvisioning;
 }
+
+// --- HR onboarding work-email request (Mail spec section 15) ---
+export interface CreateAccountMailProvisioning {
+  requested: boolean;
+  localPart?: string | null;
+  domainId?: string | null;
+}
+
+export interface AccountMailProvisioningOutcome {
+  status: "REQUESTED" | "SKIPPED" | "FAILED";
+  reason?: string;
+  requestId?: string;
+  requestStatus?: string;
+  requestedAddress?: string | null;
+}
+// --- end HR onboarding work-email request ---
 
 export interface UpdateAccountPayload {
   name?: string;

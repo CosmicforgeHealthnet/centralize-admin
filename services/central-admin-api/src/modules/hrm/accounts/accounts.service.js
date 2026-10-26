@@ -159,38 +159,14 @@ async function sendInviteLink({ user, actor }) {
   }
 }
 
-// ─── Mail offboarding on HR lifecycle changes ─────────────────────────────
-// Mail is optional: the running app exposes its Mail application on
-// app.locals.mail (tests may inject one). When Mail or its tables are absent
-// the HR action still succeeds and the skip is logged. Reactivation never
-// restores Mail access.
-const MAIL_REVOKING_STATUSES = new Set(["INACTIVE", "LOCKED"]);
-let mailApplicationOverride;
+// ─── Mail offboarding / onboarding on HR lifecycle changes ────────────────
+// Shared with admin-users and HRM employees (src/shared/mail/mail-lifecycle):
+// Mail is optional, the HR action always succeeds, the outcome is recorded in
+// the HR audit entry. Reactivation never restores Mail access.
+const mailLifecycle = require("../../../shared/mail/mail-lifecycle");
 
-function resolveMailApplication(req) {
-  if (mailApplicationOverride !== undefined) return mailApplicationOverride;
-  return req?.app?.locals?.mail || null;
-}
-
-async function offboardMail({ accountId, actor, trigger, req }) {
-  const mail = resolveMailApplication(req);
-  const offboard = mail?.services?.admin?.offboardForAccountLifecycle;
-  if (!offboard) {
-    logger.info(`HRM ${trigger} ${accountId}: Mail not available, Mail offboarding skipped`);
-    return { status: "SKIPPED_MAIL_UNAVAILABLE" };
-  }
-  try {
-    if (mail.schema && !(await mail.schema.isReady())) {
-      logger.warn(`HRM ${trigger} ${accountId}: Mail schema not ready, Mail offboarding skipped`);
-      return { status: "SKIPPED_SCHEMA_NOT_READY" };
-    }
-    const context = { requestId: req?.correlationId || null, ipAddress: req?.ip || null, sessionId: req?.authSession?.id || null };
-    const summary = await offboard(accountId, { actorAdminUserId: actor?.id || null, trigger }, context);
-    return { status: "OFFBOARDED", ...summary };
-  } catch (error) {
-    logger.error(`HRM ${trigger} ${accountId}: Mail offboarding failed (${error?.code || "error"})`);
-    return { status: "FAILED" };
-  }
+function offboardMail({ accountId, actor, trigger, req }) {
+  return mailLifecycle.offboardMailForAccount({ accountId, actorId: actor?.id || null, trigger, req });
 }
 
 function isForeignKeyViolation(error) {
@@ -200,7 +176,7 @@ function isForeignKeyViolation(error) {
 class AccountsService {
   // Test seam: inject a Mail application (or null for "Mail not available").
   setMailApplication(application) {
-    mailApplicationOverride = application;
+    mailLifecycle.setMailApplication(application);
   }
 
   // ─── Account Methods ────────────────────────────────────────────────────
@@ -287,12 +263,16 @@ class AccountsService {
       throw new ApiError(409, "A user with this email already exists");
     }
 
+    // Optional HR onboarding request for a work email (spec section 15).
+    // Not an AdminUser column: stripped before the account is created.
+    const { mailProvisioning: mailProvisioningInput, ...accountData } = data;
+
     // Unusable random password: the invitee chooses one through the link.
     const password = await hashPassword(unusablePassword());
 
     const created = await prisma.adminUser.create({
       data: {
-        ...data,
+        ...accountData,
         password,
         mustChangePassword: true,
         status: "PENDING",
@@ -302,6 +282,18 @@ class AccountsService {
     });
 
     const inviteDelivery = await sendInviteLink({ user: created, actor });
+
+    // A PENDING request only: IT still approves it in Mail administration.
+    const mailProvisioning = mailProvisioningInput?.requested
+      ? await mailLifecycle.requestMailProvisioningForAccount({
+        accountId: created.id,
+        actorId: actor.id,
+        localPart: mailProvisioningInput.localPart || null,
+        domainId: mailProvisioningInput.domainId || null,
+        name: created.name,
+        req,
+      })
+      : undefined;
 
     await createAuditLog({
       adminUserId: actor.id,
@@ -313,11 +305,14 @@ class AccountsService {
         tier: created.tier,
         department: created.department,
         inviteDelivery,
+        mailProvisioning: mailProvisioning
+          ? { status: mailProvisioning.status, reason: mailProvisioning.reason, requestId: mailProvisioning.requestId }
+          : undefined,
       },
       req,
     });
 
-    return { ...mapAccountDetail(created), inviteDelivery };
+    return { ...mapAccountDetail(created), inviteDelivery, ...(mailProvisioning ? { mailProvisioning } : {}) };
   }
 
   async updateAccount({ id, data, actor, req }) {
@@ -354,7 +349,7 @@ class AccountsService {
       select: ACCOUNT_SELECT,
     });
 
-    const mailOffboarding = update.status && MAIL_REVOKING_STATUSES.has(update.status)
+    const mailOffboarding = update.status && mailLifecycle.isMailRevokingStatus(update.status)
       ? await offboardMail({ accountId, actor, trigger: `HR_ACCOUNT_${update.status}`, req })
       : undefined;
 
@@ -469,7 +464,7 @@ class AccountsService {
     });
 
     // Reactivation (ACTIVE) deliberately restores nothing in Mail.
-    const mailOffboarding = MAIL_REVOKING_STATUSES.has(status)
+    const mailOffboarding = mailLifecycle.isMailRevokingStatus(status)
       ? await offboardMail({ accountId, actor, trigger: `HR_ACCOUNT_${status}`, req })
       : undefined;
 

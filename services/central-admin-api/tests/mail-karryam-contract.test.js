@@ -215,7 +215,8 @@ test("Karryam contract on real PostgreSQL with Go-signed fixtures", { timeout: 3
       for (const audit of audits) {
         assert.equal(audit.outcome, "DENIED");
         assert.equal(audit.metadata.staffIdentity, true);
-        assert.equal(audit.metadata.senderAddress, "kg.owner@karryam.example");
+        assert.ok(audit.metadata.senderAddressId, "the claimed staff identity is referenced by id");
+        assert.equal(audit.metadata.senderAddress, undefined, "the full staff address is not stored");
       }
       assert.deepEqual(audits.map((audit) => audit.metadata.shape), ["karryam.notifications.Request", "contract.v1"]);
       assert.equal(await client.mailProductDeliveryEvent.count({ where: { senderAddress: "kg.owner@karryam.example" } }), 0);

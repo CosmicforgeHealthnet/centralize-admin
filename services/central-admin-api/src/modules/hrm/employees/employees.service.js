@@ -1,6 +1,7 @@
 const { prisma } = require("../../../shared/config/database");
 const ApiError = require("../../../shared/utils/ApiError");
 const { createAuditLog } = require("../../../shared/middlewares/audit.middleware");
+const mailLifecycle = require("../../../shared/mail/mail-lifecycle");
 const {
   assertSelfOrTier,
   assertSensitiveTier,
@@ -373,7 +374,13 @@ class EmployeesService {
       select: EMPLOYEE_DETAIL_SELECT,
     });
 
-    await this.auditProfileUpdate({ actor, employeeId, section: "employment", changes: update, req });
+    // INACTIVE/LOCKED revokes Mail access (best effort, never fails the HR
+    // update); reactivation restores nothing.
+    const mailOffboarding = update.status && mailLifecycle.isMailRevokingStatus(update.status)
+      ? await mailLifecycle.offboardMailForAccount({ accountId: employeeId, actorId: actor?.id || null, trigger: `HR_EMPLOYEE_${update.status}`, req })
+      : undefined;
+
+    await this.auditProfileUpdate({ actor, employeeId, section: "employment", changes: update, req, extra: mailOffboarding ? { mailOffboarding: mailOffboarding.status } : undefined });
     return mapEmployeeDetail(updated, isSensitiveTier(actor));
   }
 
@@ -610,13 +617,13 @@ class EmployeesService {
     return employee;
   }
 
-  async auditProfileUpdate({ actor, employeeId, section, changes, req }) {
+  async auditProfileUpdate({ actor, employeeId, section, changes, req, extra }) {
     await createAuditLog({
       adminUserId: actor.id,
       action: "PROFILE_UPDATED",
       targetId: employeeId,
       targetType: "admin_user",
-      metadata: { section, changes },
+      metadata: { section, changes, ...(extra || {}) },
       req,
     });
   }

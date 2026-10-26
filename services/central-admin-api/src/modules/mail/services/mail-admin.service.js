@@ -461,6 +461,53 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
     return row;
   }
 
+  // HR onboarding (spec section 15): a system action that files a PENDING
+  // PERSONAL_MAILBOX request for a newly created HR account, with the HR
+  // operator as requester. Nothing is provisioned here: IT approval through
+  // decideProvisionRequest is still required (and the HR operator cannot
+  // approve their own request). Idempotent per subject: an existing PENDING
+  // personal-mailbox request for the subject is returned instead.
+  async function createOnboardingProvisionRequest(subjectAdminUserId, { requestedByAdminUserId, localPart = null, domainId = null, name = null } = {}, context = {}) {
+    const subject = policy.isUuid(subjectAdminUserId) ? await client.adminUser.findUnique({ where: { id: subjectAdminUserId }, select: { id: true, name: true, status: true } }) : null;
+    if (!subject || ["INACTIVE", "LOCKED"].includes(subject.status)) throw mailError("MAIL_VALIDATION_FAILED", { field: "subjectAdminUserId" });
+    const requester = requestedByAdminUserId ? await client.adminUser.findUnique({ where: { id: String(requestedByAdminUserId) }, select: { id: true } }) : null;
+    if (!requester) throw mailError("MAIL_VALIDATION_FAILED", { field: "requestedByAdminUserId" });
+    const local = localPart ? normalizeLocalPart(localPart) : null;
+    if (localPart && !local) throw mailError("MAIL_VALIDATION_FAILED", { field: "localPart" });
+    let domain = null;
+    let organization = null;
+    if (domainId) {
+      domain = policy.isUuid(domainId) ? await client.mailDomain.findUnique({ where: { id: domainId } }) : null;
+      if (!domain) throw mailError("MAIL_VALIDATION_FAILED", { field: "domainId", reason: "DOMAIN_NOT_REGISTERED" });
+      organization = await client.mailOrganization.findUnique({ where: { id: domain.organizationId } });
+    } else {
+      // Default: the single company (HQ) organization and, when unambiguous,
+      // its single verified domain. Otherwise IT chooses at approval time.
+      const companies = await client.mailOrganization.findMany({ where: { kind: "COMPANY", status: "ACTIVE" }, take: 2 });
+      if (companies.length !== 1) throw mailError("MAIL_VALIDATION_FAILED", { field: "organizationId", reason: companies.length ? "ORGANIZATION_AMBIGUOUS" : "NO_COMPANY_ORGANIZATION" });
+      organization = companies[0];
+      const domains = await client.mailDomain.findMany({ where: { organizationId: organization.id, status: "VERIFIED" }, take: 2 });
+      if (domains.length === 1) domain = domains[0];
+    }
+    if (!organization) throw mailError("MAIL_VALIDATION_FAILED", { field: "organizationId" });
+    const existing = await client.mailProvisionRequest.findFirst({ where: { subjectAdminUserId: subject.id, type: "PERSONAL_MAILBOX", status: "PENDING" } });
+    if (existing) return existing;
+    const requestedAddress = local ? (domain ? normalizeAddress(`${local}@${domain.domain}`) || local : local) : null;
+    const row = await client.mailProvisionRequest.create({
+      data: {
+        organizationId: organization.id,
+        type: "PERSONAL_MAILBOX",
+        requestedByAdminUserId: requester.id,
+        subjectAdminUserId: subject.id,
+        requestedAddress,
+        payload: { domainId: domain ? domain.id : null, localPart: local, name: (name || subject.name) ? String(name || subject.name).slice(0, 160) : null, purpose: null, addressId: null, source: "hrm_onboarding" },
+        justification: "HR onboarding: work email requested at account creation",
+      },
+    });
+    await audit.record({ actorAdminUserId: requester.id, action: "MAIL_PROVISION_REQUESTED", targetType: "provision_request", targetId: row.id, organizationId: organization.id, metadata: { type: "PERSONAL_MAILBOX", source: "hrm", system: true, subjectAdminUserId: subject.id } }, context);
+    return row;
+  }
+
   async function decideProvisionRequest(user, requestId, { approve, note }, context) {
     await admin(user);
     const request = policy.isUuid(requestId) ? await client.mailProvisionRequest.findUnique({ where: { id: requestId } }) : null;
@@ -635,7 +682,7 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
     listOrganizations, createOrganization, listDomains, createDomain, verifyDomain,
     listAddresses, createAddress, updateAddressStatus, listMailboxes, createMailbox, setMailboxStatus,
     staffDirectory, listMembers, addMember, revokeMember, updateMailboxSettings, listSenderGrants, grantSender, revokeSender, offboardUser, offboardForAccountLifecycle,
-    provisioningCapabilities, listProvisionRequests, createProvisionRequest, decideProvisionRequest,
+    provisioningCapabilities, listProvisionRequests, createProvisionRequest, createOnboardingProvisionRequest, decideProvisionRequest,
     listLegalHolds, createLegalHold, releaseLegalHold, listRetentionPolicies, createRetentionPolicy,
   };
 }

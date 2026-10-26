@@ -8,6 +8,7 @@ import {
   ACCOUNT_DEPARTMENTS,
   ACCOUNT_TIERS,
   AccountDepartment,
+  AccountMailProvisioningOutcome,
   AccountTier,
   formatEnumLabel,
 } from "@/types/hrm.types";
@@ -252,6 +253,15 @@ const LOCATION_OPTIONS = [
   { label: "Hybrid", value: "Hybrid" },
 ];
 
+const WORK_EMAIL_LOCAL_PART = /^[a-z0-9._+-]{1,64}$/;
+
+function workEmailOutcomeMessage(outcome?: AccountMailProvisioningOutcome): string {
+  if (!outcome) return "";
+  if (outcome.status === "REQUESTED") return " A work email request was sent to IT for approval.";
+  if (outcome.status === "SKIPPED") return " The work email request was skipped because CosmicForge Mail is not available yet.";
+  return " The work email request could not be filed; ask IT to provision the mailbox.";
+}
+
 interface Props {
   mode?: "create" | "edit";
   accountId?: string;
@@ -287,6 +297,8 @@ export default function CreateAccountForm({ mode = "create", accountId, onBack, 
   const [empCategory, setEmpCategory] = useState("");
   const [location, setLocation] = useState("");
   const [tier, setTier] = useState<string>("EMPLOYEE");
+  const [requestWorkEmail, setRequestWorkEmail] = useState(false);
+  const [workEmailLocalPart, setWorkEmailLocalPart] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -345,6 +357,13 @@ export default function CreateAccountForm({ mode = "create", accountId, onBack, 
       return;
     }
 
+    const localPart = workEmailLocalPart.trim().toLowerCase();
+    if (!isEdit && requestWorkEmail && localPart && !WORK_EMAIL_LOCAL_PART.test(localPart)) {
+      setFormError("The work email name may only contain letters, numbers, dots, hyphens, underscores and plus signs.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       if (isEdit && accountId) {
         await updateAccount(accountId, {
@@ -361,7 +380,7 @@ export default function CreateAccountForm({ mode = "create", accountId, onBack, 
         setSuccessMessage("Account updated successfully!");
         setTimeout(() => setSuccessMessage(null), 6000);
       } else {
-        await createAccount({
+        const created = await createAccount({
           name: fullName.trim(),
           email: email.trim(),
           position: jobTitle.trim() || undefined,
@@ -371,9 +390,10 @@ export default function CreateAccountForm({ mode = "create", accountId, onBack, 
           employmentCategory: empCategory || undefined,
           location: location.trim() || undefined,
           personalPhone: phone.trim() || undefined,
+          ...(requestWorkEmail ? { mailProvisioning: { requested: true, localPart: localPart || undefined } } : {}),
         });
 
-        setSuccessMessage("Account created successfully! An invitation email has been sent.");
+        setSuccessMessage(`Account created successfully! An invitation email has been sent.${workEmailOutcomeMessage(created?.mailProvisioning)}`);
 
         setTimeout(() => {
           if (!isEdit) {
@@ -387,6 +407,8 @@ export default function CreateAccountForm({ mode = "create", accountId, onBack, 
             setEmpCategory("");
             setLocation("");
             setTier("EMPLOYEE");
+            setRequestWorkEmail(false);
+            setWorkEmailLocalPart("");
           }
         }, 2000);
 
@@ -525,6 +547,32 @@ export default function CreateAccountForm({ mode = "create", accountId, onBack, 
           )}
         </div>
       </SectionCard>
+
+      {!isEdit && (
+        <SectionCard title="Work Email" subtitle="Optionally request a professional email address for this employee">
+          <div className="flex flex-col gap-3">
+            <label className="flex items-center gap-2 cursor-pointer w-fit">
+              <input
+                type="checkbox"
+                data-testid="request-work-email"
+                checked={requestWorkEmail}
+                onChange={(e) => setRequestWorkEmail(e.target.checked)}
+                className="w-4 h-4 accent-primary"
+              />
+              <span className="font-poppins text-[12px] font-medium text-foreground">Request a work email address</span>
+            </label>
+            {requestWorkEmail && (
+              <div>
+                <Label>Email name (optional)</Label>
+                <Input placeholder="e.g. jane.doe" value={workEmailLocalPart} onChange={setWorkEmailLocalPart} />
+                <p className="font-poppins text-[11px] text-muted-foreground mt-1">
+                  This files a request for IT. The mailbox is only created after IT approves it in Mail administration.
+                </p>
+              </div>
+            )}
+          </div>
+        </SectionCard>
+      )}
 
       {isEdit ? (
         <div className="grid grid-cols-2 gap-4 mt-2">

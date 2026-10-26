@@ -41,6 +41,15 @@ const accountCreateSchema = z
     workPhone: optionalString,
     homePhone: optionalString,
     personalPhone: optionalString,
+    // HR onboarding: optionally file a PENDING work-email request for IT.
+    mailProvisioning: z
+      .object({
+        requested: z.boolean(),
+        localPart: z.string().trim().min(1).max(64).regex(/^[A-Za-z0-9._+-]+$/, "Invalid email local part").optional().nullable(),
+        domainId: z.string().uuid().optional().nullable(),
+      })
+      .strict()
+      .optional(),
   })
   .strict();
 

@@ -278,12 +278,16 @@ test("CosmicForge Mail M8 product integration on real PostgreSQL", { timeout: 30
       const audit = await client.mailAuditEvent.findFirst({ where: { action: "MAIL_INTEGRATION_SENDER_REJECTED", targetId: kgId }, orderBy: { createdAt: "desc" } });
       assert.ok(audit, "audited");
       assert.equal(audit.metadata.staffIdentity, true);
-      assert.equal(audit.metadata.senderAddress, "kg.owner@karryam.example");
+      const claimedAddress = await client.mailAddress.findUnique({ where: { address: "kg.owner@karryam.example" } });
+      assert.equal(audit.metadata.senderAddressId, claimedAddress.id, "the claimed staff identity is referenced by id");
+      assert.equal(audit.metadata.senderAddress, undefined, "the full staff address is not stored in the audit");
+      assert.ok(!JSON.stringify(audit.metadata).includes("kg.owner"), "no part of the staff address is stored");
       const external = await karryam(envelope({}, { sender: "someone@elsewhere.example" }));
       assert.equal(external.body.code, "MAIL_SENDER_NOT_AUTHORIZED");
       const last = await client.mailAuditEvent.findFirst({ where: { action: "MAIL_INTEGRATION_SENDER_REJECTED", targetId: kgId }, orderBy: { createdAt: "desc" } });
       assert.equal(last.metadata.hqManagedAddress, false);
-      assert.equal(last.metadata.senderAddress, null, "unknown addresses are recorded by domain only");
+      assert.equal(last.metadata.senderAddressId, null, "unknown addresses are recorded by domain only");
+      assert.equal(last.metadata.senderAddress, undefined);
       assert.equal(last.metadata.senderDomain, "elsewhere.example");
     });
   } finally {

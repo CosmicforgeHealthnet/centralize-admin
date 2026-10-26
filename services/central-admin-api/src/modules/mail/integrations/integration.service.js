@@ -137,15 +137,16 @@ function createIntegrationService({ client, config, audit, stepUp, automations, 
 
   // A product may never send as an HQ identity (staff personal address, HQ
   // mailbox) or any address not authorised for it. Every refused sender claim
-  // is audited (metadata only); HQ-managed addresses are named so security
-  // can see which staff identity was claimed.
+  // is audited (metadata only); HQ-managed addresses are referenced by id
+  // (never the full address) plus a staffIdentity flag, so security can
+  // resolve which identity was claimed without the audit holding the address.
   async function auditSenderRejection(integration, details, shape, context) {
     const claimed = typeof (details.claimedSender || details.sender) === "string" ? String(details.claimedSender || details.sender).toLowerCase().slice(0, 320) : null;
     const address = claimed ? await client.mailAddress.findUnique({ where: { address: claimed }, include: { mailbox: { select: { type: true } } } }).catch(() => null) : null;
     const staffIdentity = Boolean(address && (address.kind === "PRIMARY" || address.mailbox?.type === "PERSONAL"));
     await audit.record({
       actorAdminUserId: null, action: "MAIL_INTEGRATION_SENDER_REJECTED", targetType: "mail_integration", targetId: integration.id, organizationId: integration.organizationId, outcome: "DENIED",
-      metadata: { product: integration.product, serviceName: integration.serviceName, shape, reason: details.reason || "SENDER_NOT_AUTHORIZED_FOR_INTEGRATION", field: details.field || "data.sender", senderDomain: claimed && claimed.includes("@") ? claimed.split("@")[1] : null, hqManagedAddress: Boolean(address), staffIdentity, senderAddress: address ? claimed : null },
+      metadata: { product: integration.product, serviceName: integration.serviceName, shape, reason: details.reason || "SENDER_NOT_AUTHORIZED_FOR_INTEGRATION", field: details.field || "data.sender", senderDomain: claimed && claimed.includes("@") ? claimed.split("@")[1] : null, hqManagedAddress: Boolean(address), staffIdentity, senderAddressId: address ? address.id : null },
     }, context).catch(() => {});
   }
 

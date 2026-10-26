@@ -3,6 +3,7 @@ const { mainPrisma } = require("../../shared/config/mainDatabase");
 const { hashPassword } = require("../../shared/utils/password.util");
 const { createAuditLog } = require("../../shared/middlewares/audit.middleware");
 const ApiError = require("../../shared/utils/ApiError");
+const mailLifecycle = require("../../shared/mail/mail-lifecycle");
 
 // Fields we never return to the client
 const SAFE_USER_SELECT = {
@@ -217,12 +218,15 @@ class AdminUsersService {
       });
     });
 
+    // Mail offboarding (best effort; never fails the deactivation).
+    const mailOffboarding = await mailLifecycle.offboardMailForAccount({ accountId: id, actorId: deactivatedBy, trigger: "ADMIN_USER_INACTIVE", req });
+
     await createAuditLog({
       adminUserId: deactivatedBy,
       action: "USER_DEACTIVATED",
       targetId: id,
       targetType: "admin_user",
-      metadata: { reassignedTo: newOwnerId },
+      metadata: { reassignedTo: newOwnerId, mailOffboarding: mailOffboarding.status },
       req,
     });
   }
@@ -231,6 +235,8 @@ class AdminUsersService {
     const user = await prisma.adminUser.findUnique({ where: { id } });
     if (!user) throw new ApiError(404, "User not found");
 
+    // Reactivation deliberately restores nothing in Mail: memberships,
+    // sender grants and forwarding stay revoked; IT re-grants explicitly.
     await prisma.adminUser.update({
       where: { id },
       data: { status: "ACTIVE", failedLoginAttempts: 0, lockedUntil: null },
