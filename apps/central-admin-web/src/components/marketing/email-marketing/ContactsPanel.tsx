@@ -12,10 +12,12 @@ import {
   fetchContacts,
   fetchSuppressions,
   importContacts,
+  type ImportMode,
+  type ImportResult,
   liftSuppression,
   withdrawConsent,
 } from "@/lib/mail-marketing.service";
-import type { ConsentSource, ImportReport, MarketingOrganization } from "@/types/mail-marketing.types";
+import type { ConsentSource, MarketingOrganization } from "@/types/mail-marketing.types";
 import { EmBadge, EmCard, EmField, EmMessage, emBtn, emBtnOutline, emInput } from "./em-ui";
 
 const SOURCES: ConsentSource[] = ["WEB_FORM", "EVENT", "MANUAL", "API", "IMPORT"];
@@ -98,18 +100,22 @@ function ImportContacts({ org, onDone }: { org: MarketingOrganization; onDone: (
   const [policyVersion, setPolicyVersion] = useState("");
   const [evidenceReference, setEvidenceReference] = useState("");
   const [audienceId, setAudienceId] = useState("");
-  const [report, setReport] = useState<ImportReport | null>(null);
+  const [attest, setAttest] = useState(false);
+  // Authors preview; a different brand approver commits the same file.
+  const [mode, setMode] = useState<ImportMode>(org.canAuthor ? "preview" : "commit");
+  const [fileSha256, setFileSha256] = useState("");
+  const [report, setReport] = useState<ImportResult | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const m = useMutation({
     mutationFn: () => {
       const file = fileRef.current?.files?.[0];
       if (!file) throw new Error("Choose a CSV file.");
-      return importContacts(org.id, file, { topic, source, policyVersion, evidenceReference, audienceId: audienceId || undefined });
+      return importContacts(org.id, file, { topic, source, policyVersion, evidenceReference, audienceId: audienceId || undefined, attestOptIn: attest, mode, fileSha256: mode === "commit" ? fileSha256.trim() : undefined });
     },
     onSuccess: (r) => {
       setReport(r);
       setMsg(null);
-      onDone();
+      if (r.mode === "commit") onDone();
     },
     onError: (e) => setMsg(e instanceof Error && !("response" in e) ? e.message : classifyMailError(e).message),
   });
@@ -141,9 +147,24 @@ function ImportContacts({ org, onDone }: { org: MarketingOrganization; onDone: (
             {(audiences.data?.items ?? []).map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
         </EmField>
+        <EmField label="Step">
+          <select value={mode} onChange={(e) => setMode(e.target.value as ImportMode)} className={emInput}>
+            {org.canAuthor && <option value="preview">1. Preview (dry run)</option>}
+            {org.canApprove && <option value="commit">2. Approve and import</option>}
+          </select>
+        </EmField>
+        {mode === "commit" && (
+          <EmField label="Preview fingerprint (sha256)" hint="From the preview; you must be a different person from the uploader.">
+            <input value={fileSha256} onChange={(e) => setFileSha256(e.target.value)} className={emInput} pattern="[0-9a-fA-F]{64}" required />
+          </EmField>
+        )}
+        <label className="sm:col-span-3 flex items-center gap-2 text-[12px]">
+          <input type="checkbox" checked={attest} onChange={(e) => setAttest(e.target.checked)} />
+          I confirm every person in this file opted in to this topic and the evidence is held as referenced.
+        </label>
         <div className="sm:col-span-3 flex items-center gap-2">
-          <button type="submit" className={emBtn} disabled={m.isPending || !policyVersion.trim() || !evidenceReference.trim()}>
-            {m.isPending ? "Importing…" : "Import"}
+          <button type="submit" className={emBtn} disabled={m.isPending || !attest || !policyVersion.trim() || !evidenceReference.trim() || (mode === "commit" && !fileSha256.trim())}>
+            {m.isPending ? "Working…" : mode === "preview" ? "Preview import" : "Approve and import"}
           </button>
           <EmMessage message={msg} tone="error" />
         </div>
@@ -151,8 +172,15 @@ function ImportContacts({ org, onDone }: { org: MarketingOrganization; onDone: (
       {report && (
         <div role="status" className="rounded-md border border-border p-3 text-[12px]">
           <p className="font-semibold">
-            {report.total} rows · {report.created} created · {report.updated} updated · {report.skipped} skipped · {report.rejected} rejected
+            {report.dryRun ? "Preview (nothing imported): " : ""}
+            {report.total} rows · {report.created} {report.dryRun ? "new" : "created"} · {report.updated} updated · {report.skipped} skipped · {report.rejected} rejected
+            {report.counts ? ` · ${report.counts.suppressed} suppressed · ${report.counts.skippedWithdrawn} withdrawn · ${report.counts.skippedPendingConfirmation} awaiting confirmation` : ""}
           </p>
+          {report.dryRun && report.fileSha256 && (
+            <p className="mt-1 break-all text-muted-foreground">
+              Fingerprint <code>{report.fileSha256}</code>. A different brand approver must upload the same file with this fingerprint to import it.
+            </p>
+          )}
           {report.rows.some((r) => r.status === "REJECTED" || r.status === "SKIPPED") && (
             <div className="mt-2 max-h-56 overflow-auto">
               <table className="w-full text-left">
@@ -246,7 +274,8 @@ export default function ContactsPanel({ org }: { org: MarketingOrganization }) {
 
   const tabs = [
     { id: "contacts" as const, label: "Contacts" },
-    ...(org.canAuthor ? [{ id: "add" as const, label: "Add contact" }, { id: "import" as const, label: "CSV import" }] : []),
+    ...(org.canAuthor ? [{ id: "add" as const, label: "Add contact" }] : []),
+    ...(org.canAuthor || org.canApprove ? [{ id: "import" as const, label: "CSV import" }] : []),
     { id: "suppressions" as const, label: "Suppressions" },
   ];
 

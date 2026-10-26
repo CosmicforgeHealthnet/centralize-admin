@@ -177,6 +177,11 @@
       "order": 35,
       "file": "20261101_mail_spec_gap_closure.sql",
       "sha256": "efc3c863c21ba0413a9d239ea53de50cf2837c3ba456caa622776ed65818f5b4"
+    },
+    {
+      "order": 36,
+      "file": "20261102_mail_user_preferences.sql",
+      "sha256": "f99c79176acf7a3f36e154d742ff487943e485413d88472a20731be1848ab3ea"
     }
   ]
 }

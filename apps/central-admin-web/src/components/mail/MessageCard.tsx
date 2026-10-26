@@ -5,7 +5,7 @@ import { ChevronDown, ChevronRight, ShieldAlert, TriangleAlert } from "lucide-re
 import { classifyMailError, downloadRawMessage, fetchOriginalHeaders } from "@/lib/mail.service";
 import AttachmentViewer from "./AttachmentViewer";
 import SafeHtmlFrame from "./SafeHtmlFrame";
-import { STATUS_LABELS, formatFullDate, partyLabel, recipientStatusLabel, statusTone } from "./mail-utils";
+import { formatFullDate, messageStatusLabel, partyLabel, recipientStatusLabel, statusTone, visibleDeliveryEvents } from "./mail-utils";
 import type { MailMessage, OriginalHeaders, Recipient, SenderAuthentication } from "@/types/mail.types";
 
 const AUTH_REASON_TEXT: Record<string, string> = {
@@ -80,13 +80,18 @@ function RecipientLine({ label, recipients }: { label: string; recipients: Recip
 export default function MessageCard({
   message,
   defaultExpanded,
+  allowRemoteImages = false,
 }: {
   message: MailMessage;
   defaultExpanded: boolean;
+  allowRemoteImages?: boolean;
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [showDetails, setShowDetails] = useState(false);
-  const outbound = message.direction !== "INBOUND";
+  // Only the sender's OUTBOUND copy tracks delivery; INTERNAL copies list
+  // header participants and must not show delivery details.
+  const outbound = message.direction === "OUTBOUND";
+  const deliveryEvents = visibleDeliveryEvents(message.deliveryEvents ?? []);
   const to = message.recipients.filter((r) => r.type === "TO");
   const cc = message.recipients.filter((r) => r.type === "CC");
   const bcc = message.recipients.filter((r) => r.type === "BCC");
@@ -108,7 +113,7 @@ export default function MessageCard({
               <span className="text-[11px] text-muted-foreground">sent by {message.sentBy.name}</span>
             )}
             {(outbound || message.status === "QUARANTINED") && (
-              <span className={`rounded border px-1.5 text-[10px] ${statusTone(message.status)}`}>{STATUS_LABELS[message.status]}</span>
+              <span className={`rounded border px-1.5 text-[10px] ${statusTone(message.status)}`}>{messageStatusLabel(message)}</span>
             )}
             <span className="ml-auto text-[11px] text-muted-foreground">{formatFullDate(when)}</span>
           </div>
@@ -127,7 +132,7 @@ export default function MessageCard({
                 {showDetails ? "Hide delivery details" : "Delivery details"}
               </button>
             )}
-            {showDetails && (
+            {outbound && showDetails && (
               <div className="mt-2 rounded-md border border-border p-2 text-[11px]">
                 <p className="mb-1 text-muted-foreground">
                   &ldquo;Accepted by provider&rdquo; means our email provider received the message; it does not confirm inbox delivery.
@@ -141,9 +146,12 @@ export default function MessageCard({
                     </li>
                   ))}
                 </ul>
-                {message.deliveryEvents.length > 0 && (
+                <p className="mb-1 text-muted-foreground">
+                  &ldquo;Delivered to receiving server&rdquo; means the recipient&rsquo;s mail server accepted it; it does not confirm the message reached the inbox.
+                </p>
+                {deliveryEvents.length > 0 && (
                   <ul className="mt-2 flex flex-col gap-0.5 text-muted-foreground">
-                    {message.deliveryEvents.map((ev, i) => (
+                    {deliveryEvents.map((ev, i) => (
                       <li key={i}>
                         {formatFullDate(ev.occurredAt)} · {ev.type}
                         {ev.recipient ? ` · ${ev.recipient}` : ""}
@@ -162,7 +170,7 @@ export default function MessageCard({
           )}
           {message.direction === "INBOUND" && <SenderAuthWarning auth={message.senderAuthentication} />}
           {message.html ? (
-            <SafeHtmlFrame html={message.html} title={`Message body: ${message.subject || "no subject"}`} />
+            <SafeHtmlFrame html={message.html} allowRemoteImages={allowRemoteImages} title={`Message body: ${message.subject || "no subject"}`} />
           ) : (
             <pre className="whitespace-pre-wrap break-words font-poppins text-[13px] text-foreground">{message.text || "(empty message)"}</pre>
           )}

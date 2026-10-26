@@ -225,7 +225,7 @@ export default function ThreadDetail({
             <PermissionBoundary isLoading={messagesQ.isLoading} error={messagesQ.error} retry={() => messagesQ.refetch()} loadingLabel="Loading messages" compact>
               <div className="flex flex-col gap-2">
                 {messages.map((m, i) => (
-                  <MessageCard key={m.id} message={m} defaultExpanded={i === messages.length - 1 || !thread.isRead} />
+                  <MessageCard key={m.id} message={m} allowRemoteImages={remoteImages === "allow"} defaultExpanded={i === messages.length - 1 || !thread.isRead} />
                 ))}
               </div>
             </PermissionBoundary>

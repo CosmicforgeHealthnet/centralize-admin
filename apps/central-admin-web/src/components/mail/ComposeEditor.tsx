@@ -6,7 +6,7 @@ import { Bold, Italic, Link2, List, ListOrdered, Loader2, Paperclip, Send, Trash
 import ContactPicker from "./ContactPicker";
 import AttachmentViewer from "./AttachmentViewer";
 import PermissionBoundary from "./PermissionBoundary";
-import { useMailbox } from "./hooks";
+import { useMailbox, usePreferences } from "./hooks";
 import { newIdempotencyKey } from "./mail-utils";
 import { sanitizeForEditor } from "./editor-sanitize";
 import {
@@ -49,9 +49,14 @@ export default function ComposeEditor({
 }: ComposeEditorProps) {
   const qc = useQueryClient();
   const mailboxQ = useMailbox(mailboxId);
+  // Preferred sender (spec 15). The server already pre-selects it on new
+  // drafts; this covers drafts that were saved without a sender.
+  const prefsQ = usePreferences();
   const [draft, setDraft] = useState<Draft | null>(null);
   const [loadError, setLoadError] = useState<unknown>(null);
   const [senderAddressId, setSenderAddressId] = useState<string>("");
+  // Optional Reply-To; only identities this user may send as are offered.
+  const [replyToAddressId, setReplyToAddressId] = useState<string>("");
   const [to, setTo] = useState<Party[]>([]);
   const [cc, setCc] = useState<Party[]>([]);
   const [bcc, setBcc] = useState<Party[]>([]);
@@ -111,14 +116,17 @@ export default function ComposeEditor({
     })();
   }, [draftId, mailboxId, mode, threadId, inReplyToMessageId, applyDraft]);
 
-  // Default the sender to the first approved identity.
+  // Default the sender to the user's preferred identity when it belongs to
+  // this mailbox, else the first approved identity. Waits for the preference
+  // request so the choice does not flip once it arrives.
   useEffect(() => {
     const ids = mailboxQ.data?.senderIdentities ?? [];
-    if (!senderAddressId && ids.length && draft) {
-      setSenderAddressId(ids[0].addressId);
-      setSaveState("dirty");
-    }
-  }, [mailboxQ.data, senderAddressId, draft]);
+    if (senderAddressId || !ids.length || !draft || prefsQ.isLoading) return;
+    const preferred = prefsQ.data?.defaultSenderAddressId;
+    const pick = (preferred && ids.find((s) => s.addressId === preferred)) || ids[0];
+    setSenderAddressId(pick.addressId);
+    setSaveState("dirty");
+  }, [mailboxQ.data, senderAddressId, draft, prefsQ.isLoading, prefsQ.data]);
 
   const collect = useCallback(() => {
     const el = editorRef.current;
@@ -275,7 +283,7 @@ export default function ComposeEditor({
     try {
       if (timerRef.current) clearTimeout(timerRef.current);
       if (saveState !== "saved" && saveState !== "idle") await save();
-      const result = await sendDraft(draft.id, revisionRef.current, idemKeyRef.current);
+      const result = await sendDraft(draft.id, revisionRef.current, idemKeyRef.current, replyToAddressId || null);
       setSent(result);
       setSaveState("idle");
       qc.invalidateQueries({ queryKey: ["mail", "mailbox", mailboxId] });
@@ -317,11 +325,17 @@ export default function ComposeEditor({
   }
 
   if (sent) {
+    // Show what the server actually returned: internal-only mail is already
+    // delivered locally; anything with external recipients is only queued.
+    const sentStatus: string = sent.status;
+    const deliveredInternally = sentStatus === "DELIVERED";
     return (
       <div role="status" className="flex flex-col gap-2 rounded-lg border border-border bg-card p-4 text-[12px]">
-        <p className="font-semibold text-foreground">Message queued for sending.</p>
+        <p className="font-semibold text-foreground">{deliveredInternally ? "Message delivered internally." : "Message queued for sending."}</p>
         <p className="text-muted-foreground">
-          It has not been delivered yet. Delivery status appears on the message once the provider reports it.
+          {deliveredInternally
+            ? "All recipients are internal mailboxes; it is already in their inboxes."
+            : "It has not been delivered yet. Delivery status appears on the message once the provider reports it."}
         </p>
         <div>
           <button type="button" onClick={onClose} className="rounded-md border border-border px-3 py-1.5 font-semibold hover:bg-muted">
@@ -395,6 +409,26 @@ export default function ComposeEditor({
             </button>
           )}
         </div>
+        {identities.length > 1 && (
+          <div className="flex items-center gap-2 border-b border-border py-1.5">
+            <label htmlFor="compose-reply-to" className="w-14 shrink-0 text-[12px] text-muted-foreground">Reply-To</label>
+            <select
+              id="compose-reply-to"
+              value={replyToAddressId}
+              onChange={(e) => setReplyToAddressId(e.target.value)}
+              className="flex-1 bg-transparent text-[12px] outline-none"
+            >
+              <option value="">Same as From</option>
+              {identities
+                .filter((s) => s.addressId !== senderAddressId)
+                .map((s) => (
+                  <option key={s.addressId} value={s.addressId}>
+                    {s.displayName ? `${s.displayName} <${s.address}>` : s.address}
+                  </option>
+                ))}
+            </select>
+          </div>
+        )}
         <ContactPicker label="To" value={to} onChange={(v) => { setTo(v); markDirty(); }} autoFocus={mode === "NEW" || mode === "FORWARD"} />
         {showCc && (
           <>

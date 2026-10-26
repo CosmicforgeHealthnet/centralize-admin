@@ -11,7 +11,8 @@
 //   approval), downloaded from the provider's signed, expiring link, bounded
 //   by MAIL_ARCHIVE_RAW_MAX_BYTES, SHA-256 recorded and verified on read.
 // - Reading needs READ access to the mailbox; raw MIME of a quarantined
-//   message is mail-admin only. Every read is audited. Retention purges the
+//   message, or of one with any attachment that is not CLEAN and released,
+//   is mail-admin only. Every read is audited. Retention purges the
 //   rows with their message and removes objects only once unreferenced.
 
 const { mailError } = require("../mail.errors");
@@ -93,7 +94,14 @@ function createMessageArchive({ client, config, storage, features, audit, logger
 
   async function rawMime(user, messageId, context = {}) {
     const { message, access, archive } = await load(user, messageId);
-    if (message.status === "QUARANTINED" && !(await policy.canAdministerMail(client, user, "EDIT"))) throw mailError("MAIL_ATTACHMENT_QUARANTINED", { reason: "QUARANTINED_MESSAGE" });
+    // The .eml carries every attachment unscanned-by-the-viewer, so it is only
+    // handed out when each attachment is CLEAN and released (or to a mail
+    // admin, for quarantine review).
+    const attachments = await client.mailAttachment.findMany({ where: { messageId: message.id }, select: { scanStatus: true, quarantined: true } });
+    const unsafeAttachment = attachments.some((attachment) => attachment.scanStatus !== "CLEAN" || attachment.quarantined);
+    if ((message.status === "QUARANTINED" || unsafeAttachment) && !(await policy.canAdministerMail(client, user, "EDIT"))) {
+      throw mailError("MAIL_ATTACHMENT_QUARANTINED", { reason: message.status === "QUARANTINED" ? "QUARANTINED_MESSAGE" : "ATTACHMENT_NOT_CLEAN" });
+    }
     if (!archive || archive.rawMimeStatus !== "STORED") throw mailError("MAIL_NOT_FOUND", { resource: "raw_mime", status: archive?.rawMimeStatus || "NOT_REQUESTED" });
     const content = await readVerified(archive.rawMimeObjectKey, RAW_PURPOSE, archive.rawMimeSha256);
     await audit.record({ actorAdminUserId: user.id, action: access.viaBreakGlass ? "MAIL_BREAK_GLASS_RAW_DOWNLOAD" : "MAIL_RAW_MIME_DOWNLOADED", targetType: "message", targetId: message.id, mailboxId: message.mailboxId, metadata: { sizeBytes: archive.rawMimeSizeBytes } }, context);

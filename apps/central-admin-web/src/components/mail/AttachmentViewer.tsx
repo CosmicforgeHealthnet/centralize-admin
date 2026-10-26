@@ -15,7 +15,9 @@ export default function AttachmentViewer({
 }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
-  const visible = attachments.filter((a) => !a.isInline || a.scanStatus !== "CLEAN");
+  // Inline images the server rendered into the body are not repeated here;
+  // every other attachment (including inline ones it could not render) is listed.
+  const visible = attachments.filter((a) => !(a as Attachment & { renderedInline?: boolean }).renderedInline);
   if (visible.length === 0) return null;
 
   const download = async (a: Attachment) => {

@@ -10,7 +10,8 @@ const policy = require("../authz/mail.policy");
 const { zonedLocalToUtc, isValidTimeZone } = require("./scheduling");
 const { describeBrandProvider } = require("../adapters/marketing");
 const { iso, decodeCursor, encodeCursor, pageLimit } = require("../services/serializers");
-const { TERMINAL_BROADCAST_STATUSES } = require("./broadcast.processor");
+const { TERMINAL_BROADCAST_STATUSES, deliveredCount } = require("./broadcast.processor");
+const { isBrandSender, SENDER_MAILBOX_SELECT } = require("./marketing-sender");
 
 const PRE_SEND = new Set(["SCHEDULED", "QUEUED", "PREPARING", "PAUSED"]);
 const DELIVERY_STATUSES = ["PROVIDER_ACCEPTED", "DELIVERED", "DELAYED", "BOUNCED", "COMPLAINED", "FAILED", "SUPPRESSED", "UNSUBSCRIBED", "OUTCOME_UNKNOWN", "CANCELLED", "EXCLUDED", "PENDING", "SYNCED"];
@@ -83,8 +84,8 @@ function createBroadcastService({ client, config, audit, jobs, stepUp, env = pro
     capField("maxBroadcastRecipients", config.broadcast.maxRecipients);
     if (input.confirmationSenderAddressId !== undefined) {
       if (input.confirmationSenderAddressId) {
-        const address = policy.isUuid(input.confirmationSenderAddressId) ? await client.mailAddress.findUnique({ where: { id: input.confirmationSenderAddressId } }) : null;
-        if (!address || address.organizationId !== organizationId || address.status !== "ACTIVE" || !["SHARED", "SYSTEM", "ALIAS"].includes(address.kind)) throw mailError("MAIL_VALIDATION_FAILED", { field: "confirmationSenderAddressId" });
+        const address = policy.isUuid(input.confirmationSenderAddressId) ? await client.mailAddress.findUnique({ where: { id: input.confirmationSenderAddressId }, include: { mailbox: SENDER_MAILBOX_SELECT } }) : null;
+        if (!isBrandSender(address, organizationId)) throw mailError("MAIL_VALIDATION_FAILED", { field: "confirmationSenderAddressId" });
       }
       data.confirmationSenderId = input.confirmationSenderAddressId || null;
     }
@@ -184,19 +185,27 @@ function createBroadcastService({ client, config, audit, jobs, stepUp, env = pro
   async function cancel(user, organizationId, campaignId, { reason } = {}, context) {
     await scopeEither(user, organizationId);
     const dispatch = await requireDispatch(organizationId, campaignId);
+    // Repeated cancel is idempotent: report the current state.
+    if (dispatch.cancelRequestedAt || dispatch.status === "CANCELLED") return { ...serializeDispatch(dispatch), alreadyRequested: true, note: null };
     if (TERMINAL_BROADCAST_STATUSES.has(dispatch.status)) throw mailError("MAIL_INVALID_TRANSITION", { from: dispatch.status });
     const nothingAtProvider = PRE_SEND.has(dispatch.status) && !dispatch.providerBroadcastId && !dispatch.providerSegmentId;
     const result = await client.$transaction(async (tx) => {
       const updated = await tx.marketingBroadcastDispatch.updateMany({ where: { id: dispatch.id, cancelRequestedAt: null }, data: { cancelRequestedAt: clock(), cancelRequestedBy: user.id } });
-      if (updated.count !== 1) throw mailError("MAIL_INVALID_TRANSITION", { reason: "CANCEL_ALREADY_REQUESTED" });
+      if (updated.count !== 1) return { immediate: false, raced: true };
+      let immediate = false;
       if (nothingAtProvider && dispatch.status !== "PREPARING") {
-        await tx.marketingBroadcastDispatch.update({ where: { id: dispatch.id }, data: { status: "CANCELLED", completedAt: clock() } });
+        // Guarded on the status we saw: if the worker moved it to PREPARING
+        // meanwhile, the worker performs the cancellation instead.
+        const moved = await tx.marketingBroadcastDispatch.updateMany({ where: { id: dispatch.id, status: dispatch.status, providerSendAttemptAt: null }, data: { status: "CANCELLED", completedAt: clock() } });
+        immediate = moved.count === 1;
+      }
+      if (immediate) {
         await tx.marketingEmailCampaign.update({ where: { id: campaignId }, data: { status: "CANCELLED" } });
         await tx.marketingBroadcastRecipient.updateMany({ where: { dispatchId: dispatch.id, status: { in: ["PENDING", "SYNCED"] } }, data: { status: "CANCELLED", exclusionReason: "CANCELLED_BEFORE_SEND" } });
         await jobs.cancelPending(jobKey(dispatch.id), "BROADCAST_CANCELLED");
       }
       await audit.record({ actorAdminUserId: user.id, action: "MARKETING_BROADCAST_CANCEL_REQUESTED", targetType: "marketing_broadcast", targetId: dispatch.id, organizationId, metadata: { previousStatus: dispatch.status, reason: reason ? String(reason).slice(0, 200) : null } }, context, tx);
-      return { immediate: nothingAtProvider && dispatch.status !== "PREPARING" };
+      return { immediate };
     });
     if (!result.immediate) {
       await jobs.expedite(jobKey(dispatch.id));
@@ -209,9 +218,15 @@ function createBroadcastService({ client, config, audit, jobs, stepUp, env = pro
   async function pause(user, organizationId, campaignId, context) {
     await scopeEither(user, organizationId);
     const dispatch = await requireDispatch(organizationId, campaignId);
+    // Repeated pause is idempotent: report the current state.
+    if (dispatch.status === "PAUSED") return serializeDispatch(dispatch);
     if (!["SCHEDULED", "QUEUED", "PREPARING"].includes(dispatch.status) || dispatch.providerSendAttemptAt) throw mailError("MAIL_INVALID_TRANSITION", { from: dispatch.status, reason: "ONLY_BEFORE_PROVIDER_HANDOFF" });
-    const updated = await client.marketingBroadcastDispatch.updateMany({ where: { id: dispatch.id, status: dispatch.status, providerSendAttemptAt: null }, data: { status: "PAUSED", pausedAt: clock(), pausedBy: user.id } });
-    if (updated.count !== 1) throw mailError("MAIL_INVALID_TRANSITION", { reason: "CHANGED" });
+    const updated = await client.marketingBroadcastDispatch.updateMany({ where: { id: dispatch.id, status: { in: ["SCHEDULED", "QUEUED", "PREPARING"] }, providerSendAttemptAt: null, cancelRequestedAt: null }, data: { status: "PAUSED", pausedAt: clock(), pausedBy: user.id } });
+    if (updated.count !== 1) {
+      const current = await client.marketingBroadcastDispatch.findUnique({ where: { id: dispatch.id } });
+      if (current.status === "PAUSED") return serializeDispatch(current);
+      throw mailError("MAIL_INVALID_TRANSITION", { from: current.status, reason: "CHANGED" });
+    }
     await audit.record({ actorAdminUserId: user.id, action: "MARKETING_BROADCAST_PAUSED", targetType: "marketing_broadcast", targetId: dispatch.id, organizationId }, context);
     return serializeDispatch(await client.marketingBroadcastDispatch.findUnique({ where: { id: dispatch.id } }));
   }
@@ -220,7 +235,13 @@ function createBroadcastService({ client, config, audit, jobs, stepUp, env = pro
     await scopeEither(user, organizationId);
     const dispatch = await requireDispatch(organizationId, campaignId);
     if (dispatch.status !== "PAUSED") throw mailError("MAIL_INVALID_TRANSITION", { from: dispatch.status });
-    await client.marketingBroadcastDispatch.update({ where: { id: dispatch.id }, data: { status: "SCHEDULED", pausedAt: null, pausedBy: null } });
+    // Guarded: only a still-paused, not-cancelled dispatch is resumed.
+    const resumed = await client.marketingBroadcastDispatch.updateMany({ where: { id: dispatch.id, status: "PAUSED", cancelRequestedAt: null }, data: { status: "SCHEDULED", pausedAt: null, pausedBy: null } });
+    if (resumed.count !== 1) {
+      const current = await client.marketingBroadcastDispatch.findUnique({ where: { id: dispatch.id } });
+      if (current.status === "SCHEDULED") return serializeDispatch(current);
+      throw mailError("MAIL_INVALID_TRANSITION", { from: current.status, reason: "CHANGED" });
+    }
     await client.mailOutboxJob.updateMany({ where: { idempotencyKey: jobKey(dispatch.id), status: { in: ["PENDING", "RETRY_SCHEDULED"] } }, data: { nextAttemptAt: new Date(Math.max(clock().getTime(), dispatch.scheduledFor.getTime())) } });
     await audit.record({ actorAdminUserId: user.id, action: "MARKETING_BROADCAST_RESUMED", targetType: "marketing_broadcast", targetId: dispatch.id, organizationId }, context);
     return serializeDispatch(await client.marketingBroadcastDispatch.findUnique({ where: { id: dispatch.id } }));
@@ -255,11 +276,20 @@ function createBroadcastService({ client, config, audit, jobs, stepUp, env = pro
     const handedToProvider = counts.PROVIDER_ACCEPTED + counts.DELIVERED + counts.DELAYED + counts.BOUNCED + counts.COMPLAINED + counts.SUPPRESSED;
     const rate = (value) => (handedToProvider ? Math.round((value / handedToProvider) * 10000) / 100 : null);
     const replied = replies ? await replies.summary(dispatch) : null;
+    // Delivered from evidence (stays monotonic when complaints arrive).
+    const delivered = await deliveredCount(client, dispatch.id);
+    const windowFrom = dispatch.providerSendAttemptAt || dispatch.providerSentAt || null;
     return {
       dispatch: serializeDispatch(dispatch),
       counts,
-      totals: { handedToProvider, delivered: counts.DELIVERED, awaitingDeliveryEvidence: counts.PROVIDER_ACCEPTED, outcomeUnknown: counts.OUTCOME_UNKNOWN, excluded: dispatch.excludedCount },
-      rates: { deliveredPercent: rate(counts.DELIVERED), bouncePercent: rate(counts.BOUNCED), complaintPercent: rate(counts.COMPLAINED), openPercentIndicative: rate(opened), clickPercentIndicative: rate(clicked), replyPercent: replied ? rate(replied.replied) : null },
+      totals: { handedToProvider, delivered, awaitingDeliveryEvidence: counts.PROVIDER_ACCEPTED, outcomeUnknown: counts.OUTCOME_UNKNOWN, excluded: dispatch.excludedCount },
+      // What every percentage is measured against, and over which period.
+      denominators: {
+        rates: "recipients handed to the provider (provider accepted, delivered, delayed, bounced, complained, suppressed)",
+        delivered: "recipients with delivery evidence (delivered event or a later complaint)",
+        window: { from: iso(windowFrom), to: iso(dispatch.completedAt) || iso(clock()), note: "From provider handoff until the report was generated; events keep arriving after completion." },
+      },
+      rates: { deliveredPercent: rate(delivered), bouncePercent: rate(counts.BOUNCED), complaintPercent: rate(counts.COMPLAINED), openPercentIndicative: rate(opened), clickPercentIndicative: rate(clicked), replyPercent: replied ? rate(replied.replied) : null },
       // Spec 13.3 "replied": evidence-based attribution (null until migration 35).
       replied,
       engagement: { opened, clicked, note: "Opens and clicks are indicative only." },
@@ -290,15 +320,17 @@ function createBroadcastService({ client, config, audit, jobs, stepUp, env = pro
   async function overview(user, organizationId) {
     await scope(user, organizationId, "VIEW");
     const since = new Date(clock().getTime() - 30 * 86400000);
-    const [campaigns, recipients, suppressions, automations, enrollments, jobRows] = await Promise.all([
+    const [campaigns, recipients, suppressions, automations, enrollments, jobRows, consents] = await Promise.all([
       client.marketingEmailCampaign.groupBy({ by: ["status"], where: { organizationId }, _count: { _all: true } }),
       client.marketingBroadcastRecipient.groupBy({ by: ["status"], where: { organizationId, createdAt: { gt: since } }, _count: { _all: true } }),
       client.marketingSuppression.groupBy({ by: ["reason"], where: { organizationId, liftedAt: null }, _count: { _all: true } }),
       client.marketingAutomation.groupBy({ by: ["status"], where: { organizationId }, _count: { _all: true } }),
       client.marketingAutomationEnrollment.groupBy({ by: ["status"], where: { organizationId }, _count: { _all: true } }),
       client.$queryRaw`SELECT "kind", "status"::text AS "status", COUNT(*)::int AS "count", MIN("next_attempt_at") AS "oldest" FROM "mail_outbox_jobs" WHERE "queue"::text = 'MARKETING' AND "payload"->>'organizationId' = ${organizationId} AND "status"::text IN ('PENDING','LEASED','RETRY_SCHEDULED','RECONCILING','DEAD_LETTER','FAILED') GROUP BY "kind", "status"`,
+      client.marketingConsent.groupBy({ by: ["status"], where: { organizationId }, _count: { _all: true } }),
     ]);
-    const flatten = (rows, key) => Object.fromEntries(rows.map((row) => [row[key], row._count._all]));
+    const consentCounts = flattenCounts(consents, "status");
+    const flatten = flattenCounts;
     return {
       campaigns: flatten(campaigns, "status"),
       recipientsLast30Days: flatten(recipients, "status"),
@@ -306,8 +338,15 @@ function createBroadcastService({ client, config, audit, jobs, stepUp, env = pro
       automations: flatten(automations, "status"),
       enrollments: flatten(enrollments, "status"),
       jobs: jobRows.map((row) => ({ kind: row.kind, status: row.status, count: Number(row.count), oldestNextAttemptAt: iso(row.oldest) })),
+      // Current consent state per (contact, topic) for this brand.
+      subscriptions: { subscribed: consentCounts.GRANTED || 0, pendingConfirmation: consentCounts.PENDING_CONFIRMATION || 0, optedOut: consentCounts.WITHDRAWN || 0, denominator: "consent records (one per contact and topic) of this brand", window: "current state, all time" },
+      windows: { recipientsLast30Days: { from: since.toISOString(), to: clock().toISOString(), denominator: "broadcast recipient rows created in the window, by status" } },
       flags: { broadcastDispatchEnabled: config.broadcastDispatchEnabled, automationEnabled: config.automationEnabled, emergencyStop: config.emergencyStop.marketing },
     };
+  }
+
+  function flattenCounts(rows, key) {
+    return Object.fromEntries(rows.map((row) => [row[key], row._count._all]));
   }
 
   async function suppressionReport(user, organizationId, { days = 30 } = {}) {

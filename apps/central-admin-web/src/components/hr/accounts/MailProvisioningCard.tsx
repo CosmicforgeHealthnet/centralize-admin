@@ -35,7 +35,10 @@ function explain(error: unknown) {
 export default function MailProvisioningCard({ accountId, accountName }: { accountId: string; accountName: string }) {
   const qc = useQueryClient();
   const ents = useEntitlements();
-  const enabled = Boolean(ents.data?.mailEnabled && ents.data?.canProvision);
+  // Requests for another employee need HR/Mail-admin authority (the API
+  // refuses others with 403). Older APIs without the flag fall back to canProvision.
+  const canRequestForOthers = ents.data?.canProvisionForOthers ?? ents.data?.canProvision;
+  const enabled = Boolean(ents.data?.mailEnabled && canRequestForOthers);
   const requests = useQuery({ queryKey: ["mail", "provisioning", "hr"], queryFn: listProvisionRequests, enabled, retry: false });
   const [address, setAddress] = useState("");
   const [justification, setJustification] = useState("");

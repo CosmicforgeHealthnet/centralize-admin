@@ -36,6 +36,8 @@ const PURPOSES = new Set([
   "MAIL_JOB_REQUEUE",
   "MAIL_FORWARDING_APPROVE",
   "MAIL_ARCHIVE_EXPORT",
+  "MAIL_DSAR_EXPORT",
+  "MAIL_DSAR_ERASURE",
 ]);
 
 // Shared-MFA error codes -> Mail error codes (same envelope, Mail semantics).

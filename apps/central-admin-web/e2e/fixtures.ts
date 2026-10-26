@@ -95,7 +95,7 @@ export interface E2EUser {
   department: string;
   isTeamLead: boolean;
 }
-export const ALICE: E2EUser = { id: "u-alice", name: "Alice Ade", email: "alice@cosmicforge.example", tier: "STAFF", department: "Operations", isTeamLead: false };
+export const ALICE: E2EUser = { id: "u-alice", name: "Alice Ade", email: "alice@cosmicforge.example", tier: "EMPLOYEE", department: "Operations", isTeamLead: false };
 export const SUPER_USER: E2EUser = { id: "u-super", name: "Sam Super", email: "super@cosmicforge.example", tier: "SUPER", department: "Executive", isTeamLead: false };
 export const REVIEWER: E2EUser = { id: "u-rev", name: "Rita Reviewer", email: "rita@cosmicforge.example", tier: "ADMIN", department: "Marketing", isTeamLead: true };
 
@@ -130,6 +130,29 @@ export function mailbox(overrides: Record<string, unknown> = {}) {
     ...overrides,
   };
 }
+/** GET /support/mailboxes row (queue counts, not unread counts). */
+export function supportMailboxSummary(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "mb-support",
+    name: "Support",
+    role: "MEMBER",
+    canSend: true,
+    primaryAddress: "support@cosmicforge.example",
+    signatureHtml: null,
+    slaFirstResponseMinutes: 60,
+    supportTicketLinkEnabled: true,
+    openCount: 3,
+    overdueCount: 1,
+    organization: ORG,
+    ...overrides,
+  };
+}
+
+/** GET /api/hrm/accounts/me/grants (the signed-in user's own active grants). */
+export function myGrants(tier: string, grants: { module: string; section: string; mode?: string }[] = []) {
+  return { tier, grants: grants.map((grant) => ({ mode: "VIEW", expiresAt: null, ...grant })) };
+}
+
 export const SUPPORT_MAILBOX = mailbox({ id: "mb-support", name: "Support", type: "SHARED", purpose: "SUPPORT", role: "MEMBER", primaryAddress: "support@cosmicforge.example", unreadCount: 2 });
 
 export function entitlements(overrides: Record<string, unknown> = {}) {
@@ -140,7 +163,8 @@ export function entitlements(overrides: Record<string, unknown> = {}) {
     identityActive: true,
     mailboxes: [mailbox()],
     canManageDomains: false,
-    canProvision: false,
+    canViewAdministration: false,
+    canProvision: true,
     canApproveProvisioning: false,
     canManageSharedMembership: false,
     marketing: [],
@@ -223,6 +247,11 @@ export function draft(overrides: Record<string, unknown> = {}) {
 
 export const ALICE_IDENTITY = { addressId: "addr-alice", address: "alice@cosmicforge.example", displayName: "Alice Ade", kind: "PRIMARY" };
 
+/** GET /me/preferences (spec 15): defaults, migration 36 applied. */
+export function preferences(overrides: Record<string, unknown> = {}) {
+  return { available: true, notificationsEnabled: true, defaultSenderAddressId: null, senderOptions: [], updatedAt: null, ...overrides };
+}
+
 /** Harmless defaults for the dashboard shell and an ordinary Mail user. */
 export function defaultMocks(api: MockApi, user: E2EUser, ents: Record<string, unknown> = entitlements()) {
   const M = "/api/mail/v1";
@@ -230,8 +259,10 @@ export function defaultMocks(api: MockApi, user: E2EUser, ents: Record<string, u
     .on("*", /^\/api\/(?!mail\/).*/, ok(null))
     .on("GET", /^\/api\/(profile|users\/me|auth\/me|admin\/me).*/, ok({ ...user, avatarUrl: null }))
     .on("POST", "/api/auth/refresh-token", fail(401, "UNAUTHORIZED", "expired"))
+    .on("GET", "/api/hrm/accounts/me/grants", ok(myGrants(user.tier)))
     .on("GET", `${M}/me/entitlements`, ok(ents))
     .on("GET", `${M}/me/mailboxes`, ok((ents as { mailboxes: unknown[] }).mailboxes))
+    .on("GET", `${M}/me/preferences`, ok(preferences()))
     .on("GET", `${M}/mailboxes/:id/threads`, ok([], { nextCursor: null }))
     .on("GET", `${M}/mailboxes/:id/labels`, ok([]))
     .on("GET", `${M}/mailboxes/:id/drafts`, ok([], { nextCursor: null }))

@@ -303,19 +303,26 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
   }
 
   // ---------------------------------------------------------------- sender grants
-  async function grantSender(user, { mailboxId, addressId, adminUserId, expiresAt }, context) {
-    await admin(user);
+  // Shared by direct grants, grant requests and their approval, so a request
+  // can never grant more than a mail administrator could grant directly.
+  async function validateSenderGrant(db, { mailboxId, addressId, adminUserId }) {
     const [mailbox, address, member] = await Promise.all([
-      policy.isUuid(mailboxId) ? client.mailMailbox.findUnique({ where: { id: mailboxId } }) : null,
-      policy.isUuid(addressId) ? client.mailAddress.findUnique({ where: { id: addressId } }) : null,
-      client.adminUser.findUnique({ where: { id: String(adminUserId || "") }, select: { id: true, status: true } }),
+      policy.isUuid(mailboxId) ? db.mailMailbox.findUnique({ where: { id: mailboxId } }) : null,
+      policy.isUuid(addressId) ? db.mailAddress.findUnique({ where: { id: addressId } }) : null,
+      db.adminUser.findUnique({ where: { id: String(adminUserId || "") }, select: { id: true, status: true } }),
     ]);
     if (!mailbox || !address || !member || member.status !== "ACTIVE") throw mailError("MAIL_VALIDATION_FAILED", { field: "grant" });
     if (address.organizationId !== mailbox.organizationId || address.status !== "ACTIVE") throw mailError("MAIL_VALIDATION_FAILED", { field: "addressId" });
     // Sending as a personal identity requires that person's own delegation.
     if (address.kind === "PRIMARY" && address.mailboxId !== mailbox.id) throw mailError("MAIL_FORBIDDEN", { reason: "PERSONAL_IDENTITY_DELEGATION_OWNER_ONLY" });
-    const membership = await client.mailMembership.findFirst({ where: { mailboxId, adminUserId: member.id, revokedAt: null } });
+    const membership = await db.mailMembership.findFirst({ where: { mailboxId, adminUserId: member.id, revokedAt: null } });
     if (!membership) throw mailError("MAIL_VALIDATION_FAILED", { field: "adminUserId", reason: "MAILBOX_MEMBERSHIP_REQUIRED" });
+    return { mailbox, address, member };
+  }
+
+  async function grantSender(user, { mailboxId, addressId, adminUserId, expiresAt }, context) {
+    await admin(user);
+    const { member } = await validateSenderGrant(client, { mailboxId, addressId, adminUserId });
     const row = await client.mailSenderGrant.create({ data: { mailboxId, addressId, adminUserId: member.id, grantedBy: user.id, expiresAt: expiresAt ? new Date(expiresAt) : null } }).catch((error) => {
       if (error.code === "P2002") throw mailError("MAIL_VALIDATION_FAILED", { reason: "GRANT_EXISTS" });
       throw error;
@@ -345,32 +352,53 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
   }
 
   // ---------------------------------------------------------------- offboarding
-  async function offboardUser(user, adminUserId, context) {
-    await admin(user);
-    const subject = await client.adminUser.findUnique({ where: { id: String(adminUserId || "") }, select: { id: true } });
-    if (!subject) throw mailError("MAIL_NOT_FOUND", { resource: "admin_user" });
+  async function performOffboarding(actorId, subjectId, context, extra = {}) {
     const now = clock();
     const summary = await client.$transaction(async (tx) => {
-      const memberships = await tx.mailMembership.updateMany({ where: { adminUserId: subject.id, revokedAt: null }, data: { revokedAt: now, revokedBy: user.id } });
-      const grants = await tx.mailSenderGrant.updateMany({ where: { adminUserId: subject.id, revokedAt: null }, data: { revokedAt: now, revokedBy: user.id } });
-      const mailboxes = await tx.mailMailbox.findMany({ where: { ownerAdminUserId: subject.id, type: "PERSONAL" }, select: { id: true } });
+      const memberships = await tx.mailMembership.updateMany({ where: { adminUserId: subjectId, revokedAt: null }, data: { revokedAt: now, revokedBy: actorId } });
+      const grants = await tx.mailSenderGrant.updateMany({ where: { adminUserId: subjectId, revokedAt: null }, data: { revokedAt: now, revokedBy: actorId } });
+      const mailboxes = await tx.mailMailbox.findMany({ where: { ownerAdminUserId: subjectId, type: "PERSONAL" }, select: { id: true } });
       await tx.mailMailbox.updateMany({ where: { id: { in: mailboxes.map((mailbox) => mailbox.id) } }, data: { status: "SUSPENDED", suspendedAt: now, offboardedAt: now } });
       await tx.mailAddress.updateMany({ where: { mailboxId: { in: mailboxes.map((mailbox) => mailbox.id) }, status: "ACTIVE" }, data: { status: "SUSPENDED" } });
-      await tx.mailDraft.updateMany({ where: { authorAdminUserId: subject.id, status: "ACTIVE" }, data: { status: "DISCARDED", encryptedBody: null } });
+      await tx.mailDraft.updateMany({ where: { authorAdminUserId: subjectId, status: "ACTIVE" }, data: { status: "DISCARDED", encryptedBody: null } });
       return { membershipsRevoked: memberships.count, senderGrantsRevoked: grants.count, mailboxesSuspended: mailboxes.length };
     });
     // Former employees' mail is never silently forwarded (spec 5.4).
     let forwardingDisabled = 0;
     if (forwarding) {
-      const owned = await client.mailMailbox.findMany({ where: { ownerAdminUserId: subject.id, type: "PERSONAL" }, select: { id: true } });
-      for (const mailbox of owned) forwardingDisabled += await forwarding.disableForMailbox(mailbox.id, "OFFBOARDED", user.id, context);
-      forwardingDisabled += await forwarding.disableForRequester(subject.id, "REQUESTER_OFFBOARDED", user.id, context);
+      const owned = await client.mailMailbox.findMany({ where: { ownerAdminUserId: subjectId, type: "PERSONAL" }, select: { id: true } });
+      for (const mailbox of owned) forwardingDisabled += await forwarding.disableForMailbox(mailbox.id, "OFFBOARDED", actorId, context);
+      forwardingDisabled += await forwarding.disableForRequester(subjectId, "REQUESTER_OFFBOARDED", actorId, context);
     }
-    await audit.record({ actorAdminUserId: user.id, action: "MAIL_USER_OFFBOARDED", targetType: "admin_user", targetId: subject.id, metadata: { ...summary, forwardingDisabled } }, context);
+    await audit.record({ actorAdminUserId: actorId, action: "MAIL_USER_OFFBOARDED", targetType: "admin_user", targetId: subjectId, metadata: { ...summary, forwardingDisabled, ...extra } }, context);
     return { ...summary, forwardingDisabled, historyRetained: true };
   }
 
+  async function offboardUser(user, adminUserId, context) {
+    await admin(user);
+    const subject = await client.adminUser.findUnique({ where: { id: String(adminUserId || "") }, select: { id: true } });
+    if (!subject) throw mailError("MAIL_NOT_FOUND", { resource: "admin_user" });
+    return performOffboarding(user.id, subject.id, context);
+  }
+
+  // HR account lifecycle (deactivate, lock, delete attempt). A system action:
+  // HR needs no Mail administration grant, the HR operator is recorded as the
+  // actor. Reactivating the account later restores nothing.
+  async function offboardForAccountLifecycle(adminUserId, { actorAdminUserId = null, trigger = "HR_ACCOUNT_DEACTIVATED" } = {}, context = {}) {
+    const subject = await client.adminUser.findUnique({ where: { id: String(adminUserId || "") }, select: { id: true } });
+    if (!subject) throw mailError("MAIL_NOT_FOUND", { resource: "admin_user" });
+    return performOffboarding(actorAdminUserId, subject.id, context, { trigger: String(trigger).slice(0, 64), source: "hrm", system: true });
+  }
+
   // ---------------------------------------------------------------- provisioning
+  // Real provisioning booleans for /me/entitlements. Every active employee may
+  // request for themselves; requests for others need HR or Mail admin authority.
+  async function provisioningCapabilities(user) {
+    policy.assertActiveIdentity(user);
+    const [forOthers, approve] = await Promise.all([policy.canRequestProvisioningForOthers(client, user), policy.canAdministerMail(client, user, "EDIT")]);
+    return { canProvision: true, canProvisionForOthers: Boolean(forOthers), canApproveProvisioning: Boolean(approve) };
+  }
+
   async function listProvisionRequests(user) {
     policy.assertActiveIdentity(user);
     const isAdmin = await policy.canAdministerMail(client, user, "VIEW");
@@ -395,8 +423,12 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
     const organization = policy.isUuid(input.organizationId) ? await client.mailOrganization.findUnique({ where: { id: input.organizationId } }) : null;
     if (!organization) throw mailError("MAIL_VALIDATION_FAILED", { field: "organizationId" });
     const isAdmin = await policy.canAdministerMail(client, user, "EDIT");
-    const onBehalf = input.subjectAdminUserId && String(input.subjectAdminUserId) !== user.id && (await policy.canRequestProvisioningForOthers(client, user));
-    const subjectAdminUserId = type === "PERSONAL_MAILBOX" ? (onBehalf ? String(input.subjectAdminUserId) : user.id) : input.subjectAdminUserId ? String(input.subjectAdminUserId) : null;
+    // A request about someone else needs HR/Mail-admin authority, for every
+    // type. It is refused, never silently re-targeted at the caller.
+    const requestedSubject = input.subjectAdminUserId ? String(input.subjectAdminUserId) : null;
+    const onBehalf = Boolean(requestedSubject) && requestedSubject !== user.id;
+    if (onBehalf && !(await policy.canRequestProvisioningForOthers(client, user))) throw mailError("MAIL_FORBIDDEN", { reason: "PROVISIONING_FOR_OTHERS_NOT_ALLOWED" });
+    const subjectAdminUserId = requestedSubject || (type === "PERSONAL_MAILBOX" ? user.id : null);
     if (onBehalf) {
       const subject = await client.adminUser.findUnique({ where: { id: subjectAdminUserId }, select: { id: true, status: true } });
       if (!subject || ["INACTIVE", "LOCKED"].includes(subject.status)) throw mailError("MAIL_VALIDATION_FAILED", { field: "subjectAdminUserId" });
@@ -404,6 +436,12 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
     if ((type === "ALIAS" || type === "SENDER_GRANT") && policy.isUuid(input.mailboxId)) {
       const access = await policy.resolveMailboxAccess(client, user, input.mailboxId);
       if (!access && !isAdmin) throw mailError("MAIL_NOT_FOUND", { resource: "mailbox" });
+    }
+    // Same checks as a direct grant (organization, ACTIVE address, membership,
+    // personal identities only by their owner); re-run at approval time.
+    if (type === "SENDER_GRANT") {
+      const { mailbox } = await validateSenderGrant(client, { mailboxId: input.mailboxId, addressId: input.addressId, adminUserId: subjectAdminUserId || user.id });
+      if (mailbox.organizationId !== organization.id) throw mailError("MAIL_VALIDATION_FAILED", { field: "organizationId" });
     }
     const local = input.localPart ? normalizeLocalPart(input.localPart) : null;
     if (input.localPart && !local) throw mailError("MAIL_VALIDATION_FAILED", { field: "localPart" });
@@ -453,7 +491,11 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
         const address = await createAddressTx(tx, user, { domainId: payload.domainId, localPart: payload.localPart, kind: "ALIAS", mailboxId, aliasOfAddressId: primary.id });
         addressId = address.id;
       } else if (request.type === "SENDER_GRANT") {
-        await tx.mailSenderGrant.create({ data: { mailboxId, addressId: payload.addressId, adminUserId: request.subjectAdminUserId || request.requestedByAdminUserId, grantedBy: user.id } });
+        const { member } = await validateSenderGrant(tx, { mailboxId, addressId: payload.addressId, adminUserId: request.subjectAdminUserId || request.requestedByAdminUserId });
+        await tx.mailSenderGrant.create({ data: { mailboxId, addressId: payload.addressId, adminUserId: member.id, grantedBy: user.id } }).catch((error) => {
+          if (error.code === "P2002") throw mailError("MAIL_VALIDATION_FAILED", { reason: "GRANT_EXISTS" });
+          throw error;
+        });
         addressId = payload.addressId;
       }
       return tx.mailProvisionRequest.update({ where: { id: requestId }, data: { status: "PROVISIONED", reviewedByAdminUserId: user.id, reviewedAt: clock(), reviewNote: note ? String(note).slice(0, 2000) : null, provisionedMailboxId: mailboxId, provisionedAddressId: addressId } });
@@ -592,8 +634,8 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
     listAuditEvents, listWebhookEvents, listDeliveryEvents, listJobs,
     listOrganizations, createOrganization, listDomains, createDomain, verifyDomain,
     listAddresses, createAddress, updateAddressStatus, listMailboxes, createMailbox, setMailboxStatus,
-    staffDirectory, listMembers, addMember, revokeMember, updateMailboxSettings, listSenderGrants, grantSender, revokeSender, offboardUser,
-    listProvisionRequests, createProvisionRequest, decideProvisionRequest,
+    staffDirectory, listMembers, addMember, revokeMember, updateMailboxSettings, listSenderGrants, grantSender, revokeSender, offboardUser, offboardForAccountLifecycle,
+    provisioningCapabilities, listProvisionRequests, createProvisionRequest, decideProvisionRequest,
     listLegalHolds, createLegalHold, releaseLegalHold, listRetentionPolicies, createRetentionPolicy,
   };
 }

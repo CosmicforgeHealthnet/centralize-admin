@@ -35,6 +35,7 @@ export const mailKeys = {
   activity: (id: string) => ["mail", "thread", id, "activity"] as const,
   members: (id: string) => ["mail", "mailbox", id, "members"] as const,
   support: ["mail", "support-mailboxes"] as const,
+  preferences: ["mail", "preferences"] as const,
 };
 
 /** Drops cached content for a mailbox (e.g. after access is revoked). */
@@ -60,6 +61,18 @@ export function useEntitlements() {
     queryFn: mail.fetchEntitlements,
     gcTime: MAIL_GC_TIME,
     staleTime: 30_000,
+    retry: shouldRetry,
+  });
+}
+
+/** The caller's own Mail preferences (preferred sender, notifications). */
+export function usePreferences(enabled = true) {
+  return useQuery({
+    queryKey: mailKeys.preferences,
+    queryFn: mail.fetchPreferences,
+    enabled,
+    gcTime: MAIL_GC_TIME,
+    staleTime: 60_000,
     retry: shouldRetry,
   });
 }

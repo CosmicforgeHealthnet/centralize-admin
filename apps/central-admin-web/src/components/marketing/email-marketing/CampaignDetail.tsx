@@ -20,9 +20,10 @@ import {
   submitCampaign,
   testSendCampaign,
   updateCampaign,
+  type CampaignPreflight,
 } from "@/lib/mail-marketing.service";
 import { useAuthStore } from "@/stores/auth.store";
-import type { Campaign, CampaignInput, MarketingOrganization, PreflightResult } from "@/types/mail-marketing.types";
+import type { Campaign, CampaignInput, MarketingOrganization } from "@/types/mail-marketing.types";
 import StepUpDialog from "./StepUpDialog";
 import CampaignDispatchPanel from "./CampaignDispatchPanel";
 import { EmBadge, EmCard, EmField, EmMessage, emBtn, emBtnOutline, emInput } from "./em-ui";
@@ -48,7 +49,7 @@ export default function CampaignDetail({ org, campaignId }: { org: MarketingOrga
   const [form, setForm] = useState<CampaignInput>({});
   const [dirty, setDirty] = useState(false);
   const [msg, setMsg] = useState<{ text: string; tone: "info" | "error" } | null>(null);
-  const [preflight, setPreflight] = useState<PreflightResult | null>(null);
+  const [preflight, setPreflight] = useState<CampaignPreflight | null>(null);
   const [stepUpOpen, setStepUpOpen] = useState(false);
   const [approveComment, setApproveComment] = useState("");
   const [rejectComment, setRejectComment] = useState("");
@@ -153,7 +154,14 @@ export default function CampaignDetail({ org, campaignId }: { org: MarketingOrga
   });
   const approve = useMutation({
     mutationFn: (stepUpId: string) =>
-      approveCampaign(org.id, campaignId, { revision: campaign?.revision ?? 1, stepUpId, comment: approveComment || undefined }),
+      approveCampaign(org.id, campaignId, {
+        revision: campaign?.revision ?? 1,
+        stepUpId,
+        comment: approveComment || undefined,
+        // Binds the approval to the recipient set shown in the last preflight.
+        contactSetSha256: preflight?.contactSetSha256,
+        eligibleCount: preflight?.eligibleCount,
+      }),
     onSuccess: () => {
       setStepUpOpen(false);
       setMsg({ text: campaignQ.data?.dispatchEnabled ? "Campaign approved. You can now schedule the broadcast." : "Campaign approved. Dispatch is not enabled in this environment.", tone: "info" });
@@ -384,7 +392,12 @@ export default function CampaignDetail({ org, campaignId }: { org: MarketingOrga
                   <EmField label="Approval comment (optional)">
                     <textarea rows={2} value={approveComment} onChange={(e) => setApproveComment(e.target.value)} className={emInput} />
                   </EmField>
-                  <button type="button" className={emBtn} onClick={() => setStepUpOpen(true)} disabled={approve.isPending}>
+                  {preflight?.contactSetSha256 ? (
+                    <p className="text-muted-foreground">You are approving delivery to the {preflight.eligibleCount} eligible recipient{preflight.eligibleCount === 1 ? "" : "s"} shown in preflight. If the audience changes, approval is refused.</p>
+                  ) : (
+                    <p className="text-muted-foreground">Run preflight to review the audience before approving.</p>
+                  )}
+                  <button type="button" className={emBtn} onClick={() => setStepUpOpen(true)} disabled={approve.isPending || !preflight?.contactSetSha256}>
                     Approve (requires 2FA code)
                   </button>
                 </div>

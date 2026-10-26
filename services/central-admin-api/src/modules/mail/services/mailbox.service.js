@@ -21,6 +21,34 @@ const VIEWS = {
   all: () => ({ folder: { notIn: ["TRASH", "SPAM"] } }),
 };
 const FOLDERS = new Set(["INBOX", "ARCHIVE", "TRASH", "SPAM"]);
+// Inline (cid:) images rendered as data: URIs: clean, released raster images only.
+const INLINE_IMAGE_TYPES = new Set(["image/png", "image/gif", "image/jpeg", "image/jpg", "image/webp"]);
+const INLINE_IMAGE_MAX_BYTES = 1024 * 1024;
+const INLINE_IMAGES_MAX_TOTAL_BYTES = 3 * 1024 * 1024;
+
+// ILIKE input is matched literally (no user-supplied % or _ wildcards).
+function likePattern(value, max) {
+  return `%${String(value).slice(0, max).replace(/[\\%_]/g, "\\$&")}%`;
+}
+
+// Search cursor: [rankAt, threadId, snapshotAt], timestamps as microsecond
+// ISO strings from PostgreSQL. The snapshot fixes each thread's rank for the
+// whole paging session, so mail arriving meanwhile cannot skip or repeat rows.
+function encodeSearchCursor(rankAt, id, snapshotAt) {
+  return Buffer.from(JSON.stringify([rankAt, id, snapshotAt])).toString("base64url");
+}
+
+function decodeSearchCursor(cursor) {
+  if (!cursor) return null;
+  try {
+    const [at, id, snapshot] = JSON.parse(Buffer.from(String(cursor), "base64url").toString("utf8"));
+    const stamp = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?Z$/;
+    if (!stamp.test(at) || !stamp.test(snapshot) || !/^[0-9a-f-]{36}$/i.test(id)) return null;
+    return { at, id, snapshot };
+  } catch {
+    return null;
+  }
+}
 
 function createMailboxService({ client, config, store, audit, searchIndex = null }) {
   async function accessibleMailboxes(user, now = new Date()) {
@@ -137,6 +165,32 @@ function createMailboxService({ client, config, store, audit, searchIndex = null
     return summary;
   }
 
+  // Resolves cid: references to data: URIs, server side, only for inline
+  // images that are CLEAN, not quarantined and within the size caps.
+  async function inlineImages(message, html) {
+    const byCid = new Map();
+    const rendered = new Set();
+    let total = 0;
+    for (const attachment of message.attachments) {
+      const type = String(attachment.contentType || "").toLowerCase();
+      if (!attachment.isInline || !attachment.contentId || !attachment.storageKey) continue;
+      if (attachment.scanStatus !== "CLEAN" || attachment.quarantined || !INLINE_IMAGE_TYPES.has(type)) continue;
+      if (!html.includes(`cid:${attachment.contentId}`) || byCid.has(attachment.contentId)) continue;
+      if (attachment.sizeBytes > INLINE_IMAGE_MAX_BYTES || total + attachment.sizeBytes > INLINE_IMAGES_MAX_TOTAL_BYTES) continue;
+      let content;
+      try {
+        content = await store.readAttachmentContent(attachment);
+      } catch {
+        continue;
+      }
+      if (content.length > INLINE_IMAGE_MAX_BYTES || total + content.length > INLINE_IMAGES_MAX_TOTAL_BYTES) continue;
+      total += content.length;
+      byCid.set(attachment.contentId, `data:${type === "image/jpg" ? "image/jpeg" : type};base64,${content.toString("base64")}`);
+      rendered.add(attachment.id);
+    }
+    return { byCid, rendered };
+  }
+
   async function getMessages(user, threadId, { remoteImages = "block" } = {}, context = {}) {
     const access = await policy.requireThreadAccess(client, user, threadId, "READ");
     const messages = await client.mailMessage.findMany({
@@ -158,7 +212,10 @@ function createMailboxService({ client, config, store, audit, searchIndex = null
         contentUnavailable = true;
       }
       const quarantined = message.status === "QUARANTINED";
-      const sanitized = body.html ? sanitizeEmailHtml(body.html, { allowRemoteImages: remoteImages === "allow" && !quarantined }) : { html: null, remoteImagesBlocked: 0 };
+      const inline = body.html && !quarantined ? await inlineImages(message, body.html) : { byCid: new Map(), rendered: new Set() };
+      const sanitized = body.html
+        ? sanitizeEmailHtml(body.html, { allowRemoteImages: remoteImages === "allow" && !quarantined, cidResolver: (cid) => inline.byCid.get(cid) || inline.byCid.get(cid.toLowerCase()) || null })
+        : { html: null, remoteImagesBlocked: 0 };
       output.push({
         id: message.id,
         threadId: message.threadId,
@@ -177,7 +234,9 @@ function createMailboxService({ client, config, store, audit, searchIndex = null
         text: body.text,
         remoteImagesBlocked: sanitized.remoteImagesBlocked,
         contentUnavailable,
-        attachments: message.attachments.map(serializeAttachment),
+        // renderedInline: shown in the body; every other attachment (including
+        // inline ones that could not be rendered) is listed for download.
+        attachments: message.attachments.map((attachment) => ({ ...serializeAttachment(attachment), renderedInline: inline.rendered.has(attachment.id) })),
         sentBy: message.sentByAdminUserId ? senderBy.get(message.sentByAdminUserId) || { id: message.sentByAdminUserId, name: "Former staff" } : null,
         deliveryEvents: message.deliveryEvents.map((event) => ({ type: event.eventType, recipient: event.recipient, occurredAt: iso(event.occurredAt) })),
         quarantineReason: message.quarantineReason,
@@ -249,7 +308,8 @@ function createMailboxService({ client, config, store, audit, searchIndex = null
     if (thread.folder !== "TRASH") throw mailError("MAIL_INVALID_TRANSITION", { reason: "MOVE_TO_TRASH_FIRST" });
     const hold = await client.mailLegalHold.findFirst({ where: { releasedAt: null, OR: [{ mailboxId: thread.mailboxId }, { mailboxId: null, organizationId: mailbox.organizationId }] } });
     if (hold) throw mailError("MAIL_LEGAL_HOLD");
-    // Soft delete only: content stays subject to retention policy.
+    // Soft delete: content is purged by the next DELETE retention run whose
+    // period covers it (retention includes soft-deleted threads).
     await client.mailThread.update({ where: { id: thread.id }, data: { deletedAt: new Date() } });
     await audit.record({ actorAdminUserId: user.id, action: "MAIL_THREAD_DELETED", targetType: "thread", targetId: thread.id, mailboxId: thread.mailboxId }, context);
     return { deleted: true };
@@ -301,8 +361,9 @@ function createMailboxService({ client, config, store, audit, searchIndex = null
     }
     if (!mailboxIds.length) return { items: [], nextCursor: null };
     const take = pageLimit(limit);
-    const position = decodeCursor(cursor);
-    const conditions = [Prisma.sql`m."mailbox_id"::text IN (${Prisma.join(mailboxIds)})`, Prisma.sql`m."deleted_at" IS NULL`, Prisma.sql`t."deleted_at" IS NULL`];
+    const position = decodeSearchCursor(cursor);
+    // = ANY(uuid[]) keeps the mailbox_id indexes usable (a ::text cast does not).
+    const conditions = [Prisma.sql`m."mailbox_id" = ANY(${mailboxIds}::uuid[])`, Prisma.sql`m."deleted_at" IS NULL`, Prisma.sql`t."deleted_at" IS NULL`];
     const query = String(q || "").trim().slice(0, 200);
     const bodyTerms = query && searchIndex ? await searchIndex.queryTerms(mailboxIds, query) : null;
     if (query && bodyTerms && bodyTerms.length) {
@@ -313,21 +374,27 @@ function createMailboxService({ client, config, store, audit, searchIndex = null
     } else if (query) {
       conditions.push(Prisma.sql`to_tsvector('simple', m."metadata_search_text") @@ plainto_tsquery('simple', ${query})`);
     }
-    if (from) conditions.push(Prisma.sql`(m."from_address" ILIKE ${`%${String(from).slice(0, 120)}%`} OR m."from_name" ILIKE ${`%${String(from).slice(0, 120)}%`})`);
-    if (subject) conditions.push(Prisma.sql`m."subject" ILIKE ${`%${String(subject).slice(0, 200)}%`}`);
-    if (to) conditions.push(Prisma.sql`EXISTS (SELECT 1 FROM "mail_message_recipients" r WHERE r."message_id" = m."id" AND r."type" <> 'BCC' AND r."address" ILIKE ${`%${String(to).slice(0, 120)}%`})`);
+    if (from) conditions.push(Prisma.sql`(m."from_address" ILIKE ${likePattern(from, 120)} OR m."from_name" ILIKE ${likePattern(from, 120)})`);
+    if (subject) conditions.push(Prisma.sql`m."subject" ILIKE ${likePattern(subject, 200)}`);
+    if (to) conditions.push(Prisma.sql`EXISTS (SELECT 1 FROM "mail_message_recipients" r WHERE r."message_id" = m."id" AND r."type" <> 'BCC' AND r."address" ILIKE ${likePattern(to, 120)})`);
     const afterDate = after ? new Date(after) : null;
     const beforeDate = before ? new Date(before) : null;
     if (afterDate && !Number.isNaN(afterDate.getTime())) conditions.push(Prisma.sql`m."created_at" >= ${afterDate}`);
     if (beforeDate && !Number.isNaN(beforeDate.getTime())) conditions.push(Prisma.sql`m."created_at" < ${beforeDate}`);
-    if (labelId && policy.isUuid(labelId)) conditions.push(Prisma.sql`EXISTS (SELECT 1 FROM "mail_thread_labels" l WHERE l."thread_id" = t."id" AND l."label_id" = ${labelId}::uuid)`);
-    if (position) conditions.push(Prisma.sql`(t."last_message_at", t."id") < (${position.at}, ${position.id}::uuid)`);
-    if (!query && !from && !to && !subject && !afterDate && !beforeDate) throw mailError("MAIL_VALIDATION_FAILED", { field: "q" });
+    const label = labelId && policy.isUuid(labelId) ? String(labelId) : null;
+    if (label) conditions.push(Prisma.sql`EXISTS (SELECT 1 FROM "mail_thread_labels" l WHERE l."thread_id" = t."id" AND l."label_id" = ${label}::uuid)`);
+    if (!query && !from && !to && !subject && !afterDate && !beforeDate && !label) throw mailError("MAIL_VALIDATION_FAILED", { field: "q" });
+    // Ranked by the newest matching message created up to the snapshot (the
+    // first page's transaction time), never by the mutable last_message_at.
+    conditions.push(position ? Prisma.sql`m."created_at" <= ${position.snapshot}::timestamptz` : Prisma.sql`m."created_at" <= now()`);
+    const stamp = (expression) => Prisma.sql`to_char(${expression} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`;
     const rows = await client.$queryRaw(Prisma.sql`
-      SELECT DISTINCT t."id", t."last_message_at"
+      SELECT t."id", ${stamp(Prisma.sql`MAX(m."created_at")`)} AS "rank_at", ${stamp(Prisma.sql`now()`)} AS "snapshot_at"
       FROM "mail_messages" m JOIN "mail_threads" t ON t."id" = m."thread_id" AND t."mailbox_id" = m."mailbox_id"
       WHERE ${Prisma.join(conditions, " AND ")}
-      ORDER BY t."last_message_at" DESC, t."id" DESC
+      GROUP BY t."id"
+      ${position ? Prisma.sql`HAVING (MAX(m."created_at"), t."id") < (${position.at}::timestamptz, ${position.id}::uuid)` : Prisma.empty}
+      ORDER BY MAX(m."created_at") DESC, t."id" DESC
       LIMIT ${take + 1}
     `);
     const page = rows.slice(0, take);
@@ -338,7 +405,9 @@ function createMailboxService({ client, config, store, audit, searchIndex = null
       // The query text is never logged; only that a search happened.
       await audit.record({ actorAdminUserId: user.id, action: "MAIL_BREAK_GLASS_SEARCH", targetType: "mailbox", targetId: mailboxId, mailboxId, metadata: { breakGlassRequestId: breakGlass.id, results: threads.length } }, context);
     }
-    return { items: await summarize(user, threads), nextCursor: rows.length > take ? encodeCursor(threads[threads.length - 1]) : null };
+    const last = page[page.length - 1];
+    const snapshot = position ? position.snapshot : last?.snapshot_at;
+    return { items: await summarize(user, threads), nextCursor: rows.length > take ? encodeSearchCursor(last.rank_at, last.id, snapshot) : null };
   }
 
   async function suggestContacts(user, q) {

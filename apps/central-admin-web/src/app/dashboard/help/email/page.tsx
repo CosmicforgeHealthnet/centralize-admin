@@ -7,10 +7,12 @@ import PermissionBoundary from "@/components/mail/PermissionBoundary";
 import { useQuery } from "@tanstack/react-query";
 import { mailKeys } from "@/components/mail/hooks";
 import { fetchSupportMailboxes } from "@/lib/mail.service";
+import type { SupportMailboxSummary } from "@/types/mail.types";
 
 export default function EmailSupportPage() {
   const q = useQuery({ queryKey: mailKeys.support, queryFn: fetchSupportMailboxes, gcTime: 5 * 60 * 1000, retry: false });
-  const mailboxes = q.data ?? [];
+  // The API returns queue counts (open/overdue), not an unread count.
+  const mailboxes: SupportMailboxSummary[] = q.data ?? [];
 
   return (
     <div className="flex gap-4">
@@ -64,11 +66,16 @@ export default function EmailSupportPage() {
                           <span className="text-[12px] text-muted-foreground flex-1 text-center truncate">
                             {mb.primaryAddress ?? "No primary address"}
                           </span>
-                          {mb.unreadCount > 0 && (
+                          <span className="flex items-center gap-1 shrink-0">
                             <span className="rounded-full bg-primary px-2 text-[10px] font-semibold text-primary-foreground">
-                              {mb.unreadCount} unread
+                              {mb.openCount} open
                             </span>
-                          )}
+                            {mb.overdueCount > 0 && (
+                              <span className="rounded-full bg-red-600 px-2 text-[10px] font-semibold text-white">
+                                {mb.overdueCount} overdue
+                              </span>
+                            )}
+                          </span>
                           <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />
                         </Link>
                       </li>

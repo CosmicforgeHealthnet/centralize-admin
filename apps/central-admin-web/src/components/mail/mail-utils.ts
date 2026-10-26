@@ -1,4 +1,4 @@
-import type { MailView, MessageStatus, Party, ScanStatus } from "@/types/mail.types";
+import type { DeliveryEvent, MailMessage, MailView, MessageStatus, Party, ScanStatus } from "@/types/mail.types";
 
 export const MAIL_VIEWS: { id: MailView; label: string }[] = [
   { id: "inbox", label: "Inbox" },
@@ -19,7 +19,8 @@ export function isMailView(value: string | null | undefined): value is MailView 
 export const STATUS_LABELS: Record<MessageStatus, string> = {
   QUEUED: "Queued",
   PROVIDER_ACCEPTED: "Accepted by provider",
-  DELIVERED: "Delivered",
+  // The receiving mail server accepted it; this is not proof of inbox placement.
+  DELIVERED: "Delivered to receiving server",
   DELAYED: "Delivery delayed",
   FAILED: "Failed",
   BOUNCED: "Bounced",
@@ -53,6 +54,18 @@ export function recipientStatusLabel(status: string): string {
   if (status === "PENDING") return "Pending";
   if (status === "INTERNAL_DELIVERED") return "Delivered internally";
   return status;
+}
+
+/** Status label for one message; mail that never left our system is "Delivered internally". */
+export function messageStatusLabel(message: Pick<MailMessage, "status" | "recipients">): string {
+  if (message.status === "DELIVERED" && message.recipients.length > 0 && message.recipients.every((r) => r.status === "INTERNAL_DELIVERED")) return "Delivered internally";
+  return STATUS_LABELS[message.status] ?? message.status;
+}
+
+// Open/click tracking is never shown for private mail.
+const TRACKING_EVENTS = new Set(["OPENED", "CLICKED"]);
+export function visibleDeliveryEvents(events: DeliveryEvent[]): DeliveryEvent[] {
+  return events.filter((event) => !TRACKING_EVENTS.has(event.type));
 }
 
 export const SCAN_LABELS: Record<ScanStatus, string> = {

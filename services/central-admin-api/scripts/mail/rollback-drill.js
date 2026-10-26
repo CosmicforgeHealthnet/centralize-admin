@@ -7,7 +7,8 @@
 //      manual migration (db-replay-verify, kept).
 //   2. Seeds one row into representative M7-M10 tables.
 //   3. Runs docs/sql/cosmicforge-mail-m7-m10-rollback.sql.
-//   4. Verifies every M7-M10 table and type is gone, M1-M6 tables are intact
+//   4. Verifies every M7-M10 table and type (and the later preferences and
+//      gap-closure tables) is gone, M1-M6 tables are intact
 //      and their rows untouched.
 //   5. Re-applies migrations 29+ in manifest order (roll-forward) and checks
 //      there is no schema drift against prisma/schema.prisma.
@@ -30,7 +31,7 @@ const FIRST_ROLLED_BACK = "20261026_mail_step_up_session_binding.sql";
 // Rollbacks for migrations ordered after M10, newest first. They run before
 // the M7-M10 rollback (later migrations may depend on M7-M10 objects) and are
 // re-applied by the same roll-forward.
-const LATER_ROLLBACKS = ["cosmicforge-mail-gap-closure-rollback.sql", "account-setup-tokens-rollback.sql"].map((file) => path.resolve(ROOT, "..", "..", "docs", "sql", file));
+const LATER_ROLLBACKS = ["cosmicforge-mail-user-preferences-rollback.sql", "cosmicforge-mail-gap-closure-rollback.sql", "account-setup-tokens-rollback.sql"].map((file) => path.resolve(ROOT, "..", "..", "docs", "sql", file));
 const REMOVED_TABLES = [
   "marketing_brand_settings", "marketing_broadcast_dispatches", "marketing_broadcast_recipients", "marketing_automations", "marketing_automation_versions",
   "marketing_automation_enrollments", "marketing_automation_step_runs", "marketing_trigger_events", "marketing_campaign_approved_contacts",
@@ -66,12 +67,16 @@ async function main() {
       await client.query(`INSERT INTO mail_rollout_cohorts (id, key, name, created_by, created_at) VALUES (gen_random_uuid(), 'drill', 'Drill', 'drill', now())`);
       await client.query(`INSERT INTO mail_emergency_stops (id, environment, scope, reason, activated_by, activated_at) VALUES (gen_random_uuid(), 'test', 'ALL', 'drill stop', 'drill', now())`);
       await client.query(`INSERT INTO mail_product_integrations (id, product, organization_id, service_name, created_by, updated_by, created_at, updated_at) VALUES (gen_random_uuid(), 'drill', $1, 'drill-service', 'drill', 'drill', now(), now())`, [org]);
+      // Migration 36: a preferences row (references admin_users, which is kept).
+      const drillUser = (await client.query(`INSERT INTO admin_users (id, email, password, name, "updatedAt") VALUES (gen_random_uuid()::text, 'drill@drill.invalid', 'x', 'Drill', now()) RETURNING id`)).rows[0].id;
+      await client.query(`INSERT INTO mail_user_preferences (admin_user_id, notifications_enabled) VALUES ($1, false)`, [drillUser]);
       report.seeded = true;
       for (const file of LATER_ROLLBACKS) await client.query(fs.readFileSync(file, "utf8"));
       report.laterRollbacks = LATER_ROLLBACKS.map((file) => path.basename(file));
       await client.query(fs.readFileSync(ROLLBACK_SQL, "utf8"));
       const leftovers = [];
       for (const table of REMOVED_TABLES) if (await exists(client, table)) leftovers.push(table);
+      if (await exists(client, "mail_user_preferences")) leftovers.push("mail_user_preferences");
       const missing = [];
       for (const table of KEPT_TABLES) if (!(await exists(client, table))) missing.push(table);
       const types = (await client.query(`SELECT typname FROM pg_type WHERE typname IN ('MailRetentionRunMode', 'MailRetentionRunStatus', 'MailProductIntegrationStatus', 'MarketingBroadcastStatus', 'MarketingAutomationStatus')`)).rows.map((row) => row.typname);

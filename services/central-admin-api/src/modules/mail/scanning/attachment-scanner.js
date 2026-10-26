@@ -2,7 +2,8 @@
 
 // Attachment safety: type/size policy plus malware scanning. Anything not
 // positively CLEAN stays quarantined (fail closed), including when no scanner
-// is configured.
+// is configured. Policy refusals are SCAN_FAILED with a POLICY_* detail;
+// INFECTED is reserved for a scanner detection.
 
 const net = require("net");
 
@@ -219,13 +220,17 @@ function createAttachmentScanner({ config, scanner, logger } = {}) {
 
 async function evaluateAttachment(scanner, { filename, contentType, buffer, maxBytes }) {
   const policy = policyCheck({ filename, contentType, buffer, maxBytes });
-  if (!policy.allowed) return { scanStatus: "INFECTED", scanDetail: policy.reason, quarantined: true };
   let result;
   try {
     result = await scanner.scan(buffer, { filename, contentType });
   } catch {
     result = { status: "SCAN_FAILED", detail: "scanner error" };
   }
+  // A policy refusal (size, blocked type, executable) is not a malware
+  // verdict: the attachment stays quarantined, but only a real scanner
+  // INFECTED result marks the message as malicious (still checked for
+  // blocked files, so malware is never hidden behind its file name).
+  if (!policy.allowed && result.status !== "INFECTED") return { scanStatus: "SCAN_FAILED", scanDetail: `POLICY_${policy.reason}`, quarantined: true, policyBlocked: true };
   return { scanStatus: result.status, scanDetail: String(result.detail || "").slice(0, 255), quarantined: result.status !== "CLEAN" };
 }
 

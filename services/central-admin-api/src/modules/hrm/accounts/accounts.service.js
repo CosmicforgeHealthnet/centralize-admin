@@ -159,7 +159,50 @@ async function sendInviteLink({ user, actor }) {
   }
 }
 
+// ─── Mail offboarding on HR lifecycle changes ─────────────────────────────
+// Mail is optional: the running app exposes its Mail application on
+// app.locals.mail (tests may inject one). When Mail or its tables are absent
+// the HR action still succeeds and the skip is logged. Reactivation never
+// restores Mail access.
+const MAIL_REVOKING_STATUSES = new Set(["INACTIVE", "LOCKED"]);
+let mailApplicationOverride;
+
+function resolveMailApplication(req) {
+  if (mailApplicationOverride !== undefined) return mailApplicationOverride;
+  return req?.app?.locals?.mail || null;
+}
+
+async function offboardMail({ accountId, actor, trigger, req }) {
+  const mail = resolveMailApplication(req);
+  const offboard = mail?.services?.admin?.offboardForAccountLifecycle;
+  if (!offboard) {
+    logger.info(`HRM ${trigger} ${accountId}: Mail not available, Mail offboarding skipped`);
+    return { status: "SKIPPED_MAIL_UNAVAILABLE" };
+  }
+  try {
+    if (mail.schema && !(await mail.schema.isReady())) {
+      logger.warn(`HRM ${trigger} ${accountId}: Mail schema not ready, Mail offboarding skipped`);
+      return { status: "SKIPPED_SCHEMA_NOT_READY" };
+    }
+    const context = { requestId: req?.correlationId || null, ipAddress: req?.ip || null, sessionId: req?.authSession?.id || null };
+    const summary = await offboard(accountId, { actorAdminUserId: actor?.id || null, trigger }, context);
+    return { status: "OFFBOARDED", ...summary };
+  } catch (error) {
+    logger.error(`HRM ${trigger} ${accountId}: Mail offboarding failed (${error?.code || "error"})`);
+    return { status: "FAILED" };
+  }
+}
+
+function isForeignKeyViolation(error) {
+  return error?.code === "P2003" || error?.cause?.code === "P2003" || /foreign key constraint/i.test(String(error?.message || ""));
+}
+
 class AccountsService {
+  // Test seam: inject a Mail application (or null for "Mail not available").
+  setMailApplication(application) {
+    mailApplicationOverride = application;
+  }
+
   // ─── Account Methods ────────────────────────────────────────────────────
 
   async listAccounts(query = {}) {
@@ -311,12 +354,16 @@ class AccountsService {
       select: ACCOUNT_SELECT,
     });
 
+    const mailOffboarding = update.status && MAIL_REVOKING_STATUSES.has(update.status)
+      ? await offboardMail({ accountId, actor, trigger: `HR_ACCOUNT_${update.status}`, req })
+      : undefined;
+
     await createAuditLog({
       adminUserId: actor.id,
       action: "USER_UPDATED",
       targetId: accountId,
       targetType: "admin_user",
-      metadata: { changes: update },
+      metadata: { changes: update, mailOffboarding: mailOffboarding?.status },
       req,
     });
 
@@ -334,21 +381,33 @@ class AccountsService {
     });
     if (!existing) throw new ApiError(404, "Account not found");
 
-    await prisma.$transaction(async (tx) => {
-      // Delete all grants first
-      await tx.adminSectionGrant.deleteMany({
-        where: { adminUserId: accountId },
-      });
+    // A delete attempt revokes Mail access first; Mail history is retained
+    // (Restrict foreign keys), so such an account cannot be deleted.
+    const mailOffboarding = await offboardMail({ accountId, actor, trigger: "HR_ACCOUNT_DELETE_ATTEMPT", req });
 
-      await tx.task.deleteMany({
-        where: { OR: [{ assigneeId: accountId }, { assignerId: accountId }] },
+    try {
+      await prisma.$transaction(async (tx) => {
+        // Delete all grants first
+        await tx.adminSectionGrant.deleteMany({
+          where: { adminUserId: accountId },
+        });
+
+        await tx.task.deleteMany({
+          where: { OR: [{ assigneeId: accountId }, { assignerId: accountId }] },
+        });
+        await tx.projectMember.deleteMany({ where: { adminUserId: accountId } });
+        await tx.teamMember.deleteMany({ where: { adminUserId: accountId } });
+        await tx.notification.deleteMany({ where: { adminUserId: accountId } });
+        await tx.refreshToken.deleteMany({ where: { adminUserId: accountId } });
+        await tx.adminUser.delete({ where: { id: accountId } });
       });
-      await tx.projectMember.deleteMany({ where: { adminUserId: accountId } });
-      await tx.teamMember.deleteMany({ where: { adminUserId: accountId } });
-      await tx.notification.deleteMany({ where: { adminUserId: accountId } });
-      await tx.refreshToken.deleteMany({ where: { adminUserId: accountId } });
-      await tx.adminUser.delete({ where: { id: accountId } });
-    });
+    } catch (error) {
+      if (!isForeignKeyViolation(error)) throw error;
+      const message = mailOffboarding.status === "OFFBOARDED"
+        ? "This account has retained records (such as CosmicForge Mail history) and cannot be deleted. Its Mail access has been revoked; deactivate the account instead."
+        : "This account has retained records (such as CosmicForge Mail history) and cannot be deleted. Offboard the user from Mail and deactivate the account instead.";
+      throw new ApiError(409, message, [{ reason: "RECORDS_RETAINED", mailOffboarding: mailOffboarding.status }]);
+    }
 
     await createAuditLog({
       adminUserId: actor.id,
@@ -409,6 +468,11 @@ class AccountsService {
       });
     });
 
+    // Reactivation (ACTIVE) deliberately restores nothing in Mail.
+    const mailOffboarding = MAIL_REVOKING_STATUSES.has(status)
+      ? await offboardMail({ accountId, actor, trigger: `HR_ACCOUNT_${status}`, req })
+      : undefined;
+
     await createAuditLog({
       adminUserId: actor.id,
       action: status === "ACTIVE" ? "USER_ACTIVATED" : "USER_DEACTIVATED",
@@ -418,6 +482,7 @@ class AccountsService {
         previousStatus: existing.status,
         status,
         reassignedTo: status === "INACTIVE" ? newOwnerId : undefined,
+        mailOffboarding: mailOffboarding?.status,
       },
       req,
     });
@@ -450,6 +515,17 @@ class AccountsService {
   }
 
   // ─── Grant Methods ──────────────────────────────────────────────────────
+
+  // The signed-in user's own active grants (drives navigation visibility).
+  async getMyGrants(actor) {
+    const now = new Date();
+    const grants = await prisma.adminSectionGrant.findMany({
+      where: { adminUserId: actor.id, revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] },
+      select: { module: true, section: true, mode: true, expiresAt: true },
+      orderBy: { createdAt: "asc" },
+    });
+    return { tier: actor.tier, grants };
+  }
 
   async getUserGrants(userId) {
     const accountId = assertUuid(userId, "user id");

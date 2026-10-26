@@ -184,7 +184,10 @@ app.use(
     app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
   }
 
-  app.use(globalLimiter);
+  // Raw Mail routes (provider webhooks, product integration events) have their
+  // own signature auth and rate limits; the per-IP global limit would throttle
+  // a provider far below them.
+  app.use((req, res, next) => (req.method === "POST" && isMailRawPath(req.originalUrl) ? next() : globalLimiter(req, res, next)));
 
   app.get("/health", (req, res) => {
     res.json({
@@ -243,3 +246,4 @@ const app = createApp();
 
 module.exports = app;
 module.exports.createApp = createApp;
+module.exports.isMailRawPath = isMailRawPath;

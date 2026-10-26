@@ -345,7 +345,9 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       for (let index = 0; index < 5; index += 1) await drain();
       const dead = await client.mailOutboxJob.findUnique({ where: { id: sent4.body.data.jobId } });
       assert.equal(dead.status, "DEAD_LETTER", "provider outage exhausts to dead letter, never silent success");
-      assert.equal((await call("alice", "GET", `/messages/${sent4.body.data.messageId}/status`)).body.data.status, "FAILED");
+      // A 5xx may come back after the provider accepted the email, so an
+      // exhausted 5xx outage is an unknown outcome, not a clean failure.
+      assert.equal((await call("alice", "GET", `/messages/${sent4.body.data.messageId}/status`)).body.data.status, "OUTCOME_UNKNOWN");
     });
 
     await t.test("M2: signed webhooks are durable and deduplicated; delivery events update honest status", async () => {
@@ -984,7 +986,7 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       assert.equal(hrRequest.body.data.subjectAdminUserId, ids.bob);
       assert.equal(hrRequest.body.data.status, "PENDING");
       const selfOnly = await call("alice", "POST", "/provisioning/requests", { type: "PERSONAL_MAILBOX", requestedAddress: "bob.other@cosmicforge.example", subjectAdminUserId: ids.bob });
-      assert.equal(selfOnly.body.data.subjectAdminUserId, ids.alice, "an ordinary employee cannot raise a request for someone else");
+      assert.equal(selfOnly.status, 403, "an ordinary employee cannot raise a request for someone else (refused, not re-targeted)");
       assert.equal((await call("hrManager", "POST", "/provisioning/requests", { type: "PERSONAL_MAILBOX", requestedAddress: "ghost@cosmicforge.example", subjectAdminUserId: ids.mallory })).status, 201, "pending starters can be provisioned ahead of activation");
       assert.equal((await call("hrManager", "POST", "/provisioning/requests", { type: "PERSONAL_MAILBOX", requestedAddress: "nobody@cosmicforge.example", subjectAdminUserId: "c0000000-0000-4000-8000-999999999999" })).status, 400);
       assert.equal((await call("hrManager", "POST", `/provisioning/requests/${hrRequest.body.data.id}/approve`, {})).status, 403, "HR cannot approve; Mail administration does");
@@ -1019,6 +1021,226 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       assert.equal((await call("alice", "GET", `/messages/${sent.messageId}/status`)).body.data.status, "OUTCOME_UNKNOWN");
       const job = await client.mailOutboxJob.findUnique({ where: { id: sent.jobId } });
       assert.notEqual(job.status, "RETRY_SCHEDULED", "unknown outcomes are never retried automatically");
+    });
+
+    await t.test("Regression: dispatch follows the batch plan, not message status; status never regresses", async () => {
+      const { MailProviderError } = require("../src/modules/mail/adapters/mail-provider.contract");
+      const original = harness.adapter.sendMessage;
+      let refused = false;
+      harness.adapter.sendMessage = async (request) => {
+        if (!refused && request.to.some((party) => party.address === "plan-b1@partner.example")) {
+          refused = true;
+          throw new MailProviderError("RETRYABLE", "RESEND_HTTP_429", "rate limited", { status: 429, retryAfterSeconds: 60 });
+        }
+        return original(request);
+      };
+      try {
+        const draft = await call("alice", "POST", `/mailboxes/${state.aliceBox}/drafts`, { bcc: ["plan-b0@partner.example", "plan-b1@partner.example"], subject: "Plan batches", text: "x" });
+        const sent = (await call("alice", "POST", `/drafts/${draft.body.data.id}/send`, { revision: 1 })).body.data;
+        await harness.worker.drain({ maxTicks: 1 });
+        const b0 = harness.adapter.state.sent.find((entry) => entry.to.some((party) => party.address === "plan-b0@partner.example"));
+        assert.ok(b0 && refused, "batch 0 accepted, batch 1 refused with 429");
+        // Batch 0 bounces before batch 1 is retried (no time advance: retry not due).
+        await webhook("email.bounced", { email_id: b0.providerMessageId, to: ["plan-b0@partner.example"], bounce: { type: "Permanent", message: "unknown" } });
+        await harness.worker.drain({ maxTicks: 2 });
+        assert.equal((await client.mailMessage.findUnique({ where: { id: sent.messageId } })).status, "BOUNCED");
+        await drain();
+        const b1 = harness.adapter.state.sent.filter((entry) => entry.to.some((party) => party.address === "plan-b1@partner.example"));
+        assert.equal(b1.length, 1, "batch 1 is still sent after a batch 0 event");
+        const message = await client.mailMessage.findUnique({ where: { id: sent.messageId }, include: { recipients: true, outboxJobs: true } });
+        assert.equal(message.recipients.find((r) => r.address === "plan-b1@partner.example").status, "PROVIDER_ACCEPTED");
+        assert.equal(message.status, "BOUNCED", "dispatch keeps the event-derived BOUNCED state");
+        assert.equal(message.outboxJobs[0].status, "SUCCEEDED");
+      } finally {
+        harness.adapter.sendMessage = original;
+      }
+    });
+
+    await t.test("Regression: earlier ambiguity survives later definitive errors at dead letter", async () => {
+      const { MailProviderError } = require("../src/modules/mail/adapters/mail-provider.contract");
+      // Attempt 1 times out after the provider accepted; attempts 2..4 get 429.
+      const draft = await call("alice", "POST", `/mailboxes/${state.aliceBox}/drafts`, { to: ["sticky@partner.example"], subject: "Sticky ambiguity", text: "x" });
+      harness.adapter.failNext("sendMessage", "AMBIGUOUS", "PROVIDER_TIMEOUT", { acceptBeforeFailing: true });
+      const original = harness.adapter.sendMessage;
+      let calls = 0;
+      harness.adapter.sendMessage = async (request) => {
+        if (request.to.some((party) => party.address === "sticky@partner.example") && ++calls > 1) throw new MailProviderError("RETRYABLE", "RESEND_HTTP_429", "rate limited", { status: 429 });
+        return original(request);
+      };
+      const crashDraft = await call("alice", "POST", `/mailboxes/${state.aliceBox}/drafts`, { to: ["crashed@partner.example"], subject: "Crashed worker", text: "x" });
+      let crashCalls = 0;
+      const sticky = harness.adapter.sendMessage;
+      harness.adapter.sendMessage = async (request) => {
+        if (request.to.some((party) => party.address === "crashed@partner.example")) {
+          // First attempt dies mid-call (no provider answer); later ones get 429.
+          if (++crashCalls === 1) throw new Error("worker crashed mid-call");
+          throw new MailProviderError("RETRYABLE", "RESEND_HTTP_429", "rate limited", { status: 429 });
+        }
+        return sticky(request);
+      };
+      const failedNotices = () => client.notification.count({ where: { adminUserId: ids.alice, title: "Email could not be sent" } });
+      const noticesBefore = await failedNotices();
+      try {
+        const sent = (await call("alice", "POST", `/drafts/${draft.body.data.id}/send`, { revision: 1 })).body.data;
+        const crashed = (await call("alice", "POST", `/drafts/${crashDraft.body.data.id}/send`, { revision: 1 })).body.data;
+        for (let index = 0; index < 6; index += 1) await drain();
+        for (const { jobId, messageId } of [sent, crashed]) {
+          assert.equal((await client.mailOutboxJob.findUnique({ where: { id: jobId } })).status, "DEAD_LETTER");
+          const message = await client.mailMessage.findUnique({ where: { id: messageId }, include: { recipients: true } });
+          assert.equal(message.status, "OUTCOME_UNKNOWN", "possibly accepted mail is never reported as failed");
+          assert.equal(message.recipients[0].status, "OUTCOME_UNKNOWN");
+        }
+        assert.equal(await failedNotices(), noticesBefore, "sender is never told to re-send possibly delivered mail");
+      } finally {
+        harness.adapter.sendMessage = original;
+      }
+    });
+
+    await t.test("Regression: delivery events are attributed per batch; suppressed, early and tracking events", async () => {
+      // To + Cc in one provider request.
+      const draft = await call("alice", "POST", `/mailboxes/${state.aliceBox}/drafts`, { to: ["attr-to@partner.example"], cc: ["attr-cc@partner.example"], subject: "Attribution", text: "x" });
+      const sent = (await call("alice", "POST", `/drafts/${draft.body.data.id}/send`, { revision: 1 })).body.data;
+      await drain();
+      const request = harness.adapter.state.sent.find((entry) => entry.to.some((party) => party.address === "attr-to@partner.example"));
+      const recipientStatus = async (messageId, address) => (await client.mailMessageRecipient.findFirst({ where: { messageId, address } })).status;
+      await webhook("email.delivered", { email_id: request.providerMessageId, to: ["attr-to@partner.example"] });
+      await drain();
+      assert.equal(await recipientStatus(sent.messageId, "attr-to@partner.example"), "DELIVERED");
+      assert.equal(await recipientStatus(sent.messageId, "attr-cc@partner.example"), "PROVIDER_ACCEPTED", "unnamed Cc stays accepted, not guessed");
+      // Resend echoes the To list on a bounce: it does not say who bounced.
+      await webhook("email.bounced", { email_id: request.providerMessageId, to: ["attr-to@partner.example"], bounce: { type: "Permanent", message: "unknown" } });
+      await drain();
+      assert.equal(await recipientStatus(sent.messageId, "attr-to@partner.example"), "DELIVERED");
+      assert.equal(await recipientStatus(sent.messageId, "attr-cc@partner.example"), "PROVIDER_ACCEPTED");
+      assert.equal(await client.marketingSuppression.count({ where: { email: { in: ["attr-to@partner.example", "attr-cc@partner.example"] } } }), 0, "no suppression for unattributed bounces");
+      const bounce = await client.mailDeliveryEvent.findFirst({ where: { messageId: sent.messageId, eventType: "BOUNCED" } });
+      assert.equal(bounce.detail.unattributed, true);
+
+      // email.suppressed (not a marketing send) fails the recipient.
+      const lone = await call("alice", "POST", `/mailboxes/${state.aliceBox}/drafts`, { to: ["suppressed@partner.example"], subject: "Suppressed", text: "x" });
+      const loneSent = (await call("alice", "POST", `/drafts/${lone.body.data.id}/send`, { revision: 1 })).body.data;
+      await drain();
+      const loneRequest = harness.adapter.state.sent.find((entry) => entry.to.some((party) => party.address === "suppressed@partner.example"));
+      await webhook("email.suppressed", { email_id: loneRequest.providerMessageId, to: ["suppressed@partner.example"] });
+      // Open/click tracking is never recorded for mailbox mail.
+      await webhook("email.opened", { email_id: loneRequest.providerMessageId, to: ["suppressed@partner.example"] });
+      await drain();
+      const loneRecipient = await client.mailMessageRecipient.findFirst({ where: { messageId: loneSent.messageId } });
+      assert.equal(loneRecipient.status, "FAILED");
+      assert.equal(loneRecipient.lastEventDetail, "SUPPRESSED_BY_PROVIDER");
+      const suppressedEvent = await client.mailDeliveryEvent.findFirst({ where: { messageId: loneSent.messageId, eventType: "FAILED" } });
+      assert.equal(suppressedEvent.detail.suppressed, true);
+      assert.equal((await client.mailMessage.findUnique({ where: { id: loneSent.messageId } })).status, "FAILED");
+      assert.equal(await client.mailDeliveryEvent.count({ where: { providerMessageId: loneRequest.providerMessageId, eventType: { in: ["OPENED", "CLICKED"] } } }), 0);
+
+      // An event processed before acceptance commits is re-applied afterwards.
+      const early = await call("alice", "POST", `/mailboxes/${state.aliceBox}/drafts`, { to: ["early@partner.example"], subject: "Early event", text: "x" });
+      const earlySent = (await call("alice", "POST", `/drafts/${early.body.data.id}/send`, { revision: 1 })).body.data;
+      const original = harness.adapter.sendMessage;
+      harness.adapter.sendMessage = async (req) => {
+        const result = await original(req);
+        if (req.to.some((party) => party.address === "early@partner.example")) {
+          const hook = await webhook("email.delivered", { email_id: result.providerMessageId, to: ["early@partner.example"] });
+          const event = await client.mailWebhookEvent.findFirst({ where: { providerEventId: hook.id } });
+          await harness.mail.processors.deliveryEvents.process({ webhookEventId: event.id });
+          await client.mailOutboxJob.updateMany({ where: { webhookEventId: event.id }, data: { status: "SUCCEEDED" } });
+        }
+        return result;
+      };
+      try {
+        await drain();
+      } finally {
+        harness.adapter.sendMessage = original;
+      }
+      assert.equal(await recipientStatus(earlySent.messageId, "early@partner.example"), "DELIVERED", "early event applied after acceptance");
+      assert.equal(await client.mailDeliveryEvent.count({ where: { messageId: earlySent.messageId, eventType: "DELIVERED" } }), 1);
+      await harness.mail.processors.deliveryEvents.reapplyUnmatched(harness.adapter.state.sent.at(-1).providerMessageId);
+      assert.equal(await client.mailDeliveryEvent.count({ where: { messageId: earlySent.messageId, eventType: "DELIVERED" } }), 1, "re-apply is idempotent");
+    });
+
+    await t.test("Regression: org quota counts queued recipients, is race-safe, and is re-checked at dispatch", async () => {
+      const usage = harness.mail.services.usage;
+      const staffQueued = () => client.mailMessageRecipient.count({ where: { status: "PENDING", message: { direction: "OUTBOUND", mailbox: { organizationId: state.orgId, NOT: { purpose: "SUPPORT" } } } } });
+      const base = (await usage.totals(state.orgId, "STAFF_MAIL")).today + (await staffQueued());
+      await client.mailQuotaLimit.create({ data: { organizationId: state.orgId, purpose: "STAFF_MAIL", dailyHardLimit: base + 3, updatedBy: ids.mailAdmin } });
+      const send = async (to) => {
+        const draft = await call("alice", "POST", `/mailboxes/${state.aliceBox}/drafts`, { to, subject: "Quota", text: "x" });
+        return call("alice", "POST", `/drafts/${draft.body.data.id}/send`, { revision: 1 });
+      };
+      try {
+        const results = await Promise.all([send(["q1@partner.example", "q2@partner.example"]), send(["q3@partner.example", "q4@partner.example"])]);
+        assert.deepEqual(results.map((r) => r.status).sort(), [202, 429], "concurrent sends cannot both pass");
+        const refused = await send(["q5@partner.example", "q6@partner.example"]);
+        assert.equal(refused.status, 429, "queued, not yet accepted recipients count");
+        assert.equal(refused.body.code, "MAIL_QUOTA_HARD_LIMIT");
+        await drain();
+        // Dispatch re-check: over the hard limit queued mail is deferred, not failed.
+        const pending = (await send(["q7@partner.example"])).body.data;
+        assert.ok(pending.jobId);
+        await client.mailQuotaLimit.update({ where: { organizationId_purpose: { organizationId: state.orgId, purpose: "STAFF_MAIL" } }, data: { dailyHardLimit: 1 } });
+        await drain();
+        const held = await client.mailOutboxJob.findUnique({ where: { id: pending.jobId } });
+        assert.equal(held.status, "RETRY_SCHEDULED");
+        assert.equal(held.lastErrorCode, "MAIL_QUOTA_HARD_LIMIT");
+        assert.equal((await client.mailMessageRecipient.findFirst({ where: { messageId: pending.messageId } })).status, "PENDING");
+      } finally {
+        await client.mailQuotaLimit.deleteMany({ where: { organizationId: state.orgId, purpose: "STAFF_MAIL" } });
+      }
+      await drain();
+      assert.equal(harness.adapter.state.sent.filter((entry) => entry.to.some((party) => party.address === "q7@partner.example")).length, 1, "sent once the limit allows");
+    });
+
+    await t.test("Regression: staff send policy (suppression, links, size, Reply-To, internal copies, idempotency)", async () => {
+      const alice = await client.adminUser.findUnique({ where: { id: ids.alice } });
+      const draftFor = async (body) => (await call("alice", "POST", `/mailboxes/${state.aliceBox}/drafts`, { subject: "Policy", text: "x", ...body })).body.data;
+      // Suppressed (previously bounced) external address.
+      const suppressedDraft = await draftFor({ to: ["plan-b0@partner.example", "fine@partner.example"] });
+      const suppressed = await call("alice", "POST", `/drafts/${suppressedDraft.id}/send`, { revision: 1 });
+      assert.equal(suppressed.status, 422, suppressed.text);
+      assert.equal(suppressed.body.errors[0].reason, "RECIPIENT_SUPPRESSED");
+      assert.deepEqual(suppressed.body.errors[0].addresses, ["plan-b0@partner.example"]);
+
+      // Phishing-style link text.
+      const phish = await draftFor({ to: ["fine@partner.example"], html: '<p><a href="https://evil.example/login">https://cosmicforge.example/login</a></p>' });
+      const blocked = await call("alice", "POST", `/drafts/${phish.id}/send`, { revision: 1 });
+      assert.equal(blocked.status, 422, blocked.text);
+      assert.equal(blocked.body.errors[0].reason, "UNSAFE_LINK");
+
+      // Total message size limit.
+      const small = harness.variant({ MAIL_MESSAGE_MAX_BYTES: "1024" });
+      const big = await draftFor({ to: ["fine@partner.example"], text: "y".repeat(2048) });
+      await assert.rejects(small.services.compose.sendDraft(alice, big.id, { revision: 1 }), (error) => error.statusCode === 413 && error.errors[0].reason === "MESSAGE_TOO_LARGE");
+
+      // Reply-To must be an address the sender is granted.
+      const alias = await client.mailAddress.findUnique({ where: { address: "a.okafor@cosmicforge.example" } });
+      const replyDraft = await draftFor({ to: ["reply-to@partner.example", "bob@cosmicforge.example"] });
+      await assert.rejects(harness.mail.services.compose.sendDraft(alice, replyDraft.id, { revision: 1, replyToAddressId: state.addr.bob.id }), (error) => error.code === "MAIL_SENDER_NOT_AUTHORIZED");
+      const replied = await harness.mail.services.compose.sendDraft(alice, replyDraft.id, { revision: 1, replyToAddressId: alias.id });
+      assert.equal((await client.mailMessage.findUnique({ where: { id: replied.messageId } })).replyTo, "a.okafor@cosmicforge.example");
+      await drain();
+      assert.equal(harness.adapter.state.sent.find((entry) => entry.to.some((party) => party.address === "reply-to@partner.example")).replyTo, "a.okafor@cosmicforge.example");
+
+      // Internal copies never claim delivery for external recipients.
+      const { rfcMessageId } = await client.mailMessage.findUnique({ where: { id: replied.messageId } });
+      const bobCopy = await client.mailMessage.findFirst({ where: { mailboxId: state.bobBox, rfcMessageId }, include: { recipients: true } });
+      assert.equal(bobCopy.direction, "INTERNAL");
+      assert.equal(bobCopy.replyTo, "a.okafor@cosmicforge.example");
+      assert.ok(bobCopy.recipients.length === 2 && bobCopy.recipients.every((recipient) => recipient.status === "INTERNAL_DELIVERED"));
+
+      // Idempotency-Key: reuse for another draft is a conflict; concurrent
+      // same-key requests both get the one message.
+      const first = await draftFor({ to: ["idem@partner.example"] });
+      const ok = await call("alice", "POST", `/drafts/${first.id}/send`, { revision: 1 }, { "Idempotency-Key": "policy-key-0001" });
+      assert.equal(ok.status, 202, ok.text);
+      const other = await draftFor({ to: ["idem2@partner.example"] });
+      const reused = await call("alice", "POST", `/drafts/${other.id}/send`, { revision: 1 }, { "Idempotency-Key": "policy-key-0001" });
+      assert.equal(reused.status, 409, reused.text);
+      assert.equal(reused.body.errors[0].reason, "IDEMPOTENCY_KEY_REUSED");
+      const racing = await draftFor({ to: ["idem3@partner.example"] });
+      const both = await Promise.all([1, 2].map(() => call("alice", "POST", `/drafts/${racing.id}/send`, { revision: 1 }, { "Idempotency-Key": "policy-key-0002" })));
+      assert.deepEqual(both.map((r) => r.status), [202, 202], both.map((r) => r.text).join(" | "));
+      assert.equal(both[0].body.data.messageId, both[1].body.data.messageId);
+      await drain();
     });
 
     await t.test("Malware scanning: clamd verdicts quarantine EICAR and scanner outages; only an admin rescan can clear unscanned files", async () => {
@@ -1177,8 +1399,18 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       csv.append("evidenceReference", "event-signup-sheet-2026-09");
       csv.append("attestOptIn", "true");
       csv.append("audienceId", audience.body.data.id);
-      const report = await call("dave", "POST", `${base}/contacts/import`, csv);
+      // D4: the upload is a dry-run preview; a different brand approver
+      // commits the same file by its sha256.
+      const dryRun = await call("dave", "POST", `${base}/contacts/import`, csv);
+      assert.equal(dryRun.status, 200, dryRun.text);
+      assert.equal(dryRun.body.data.dryRun, true);
+      assert.equal(dryRun.body.data.created, 1);
+      csv.append("mode", "commit");
+      csv.append("fileSha256", dryRun.body.data.fileSha256);
+      assert.equal((await call("dave", "POST", `${base}/contacts/import`, csv)).status, 403, "the uploader cannot approve the import");
+      const report = await call("erin", "POST", `${base}/contacts/import`, csv);
       assert.equal(report.status, 200, report.text);
+      assert.equal(report.body.data.dryRun, false);
       assert.equal(report.body.data.created, 1);
       const reasons = Object.fromEntries(report.body.data.rows.map((row) => [row.row, row.reason]));
       assert.equal(reasons[3], "DUPLICATE_IN_FILE");

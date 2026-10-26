@@ -15,7 +15,7 @@
 // Message content (html/text/body/subject), attachments, credentials and any
 // clinical or patient data are prohibited in every contract and rejected
 // fail-closed. RESTRICTED_HEALTH integrations (HealthNet) may only send
-// ops.alert@1 with no personal data at all.
+// ops.alert@1 with no personal data at all; their summary is a fixed code.
 
 const SUPPORTED_CONTRACT_VERSIONS = new Set([1]);
 const EVENT_TYPES = Object.freeze({
@@ -125,13 +125,18 @@ function parseMarketingTrigger(data) {
   };
 }
 
+// RESTRICTED_HEALTH alerts carry no free text at all: the summary must be one
+// of these operational codes, so clinical text cannot slip through.
+const RESTRICTED_ALERT_SUMMARIES = Object.freeze(["SYNC_FAILED", "QUEUE_BACKLOG", "PROVIDER_DOWN", "AUTH_FAILURE", "CONFIG_ERROR", "OTHER"]);
+
 function parseOpsAlert(data, { restricted }) {
   strictKeys(data, new Set(["severity", "code", "summary", "component"]), "data");
   const severity = requireString(data, "severity", /^(info|warning|critical)$/, "data", { max: 16 });
   const summary = requireString(data, "summary", null, "data", { max: 200 });
+  if (restricted && !RESTRICTED_ALERT_SUMMARIES.includes(summary)) throw new ContractError("MAIL_INTEGRATION_FORBIDDEN_CONTENT", 422, { field: "data.summary", reason: "FREE_TEXT_NOT_ALLOWED", allowed: RESTRICTED_ALERT_SUMMARIES });
   // Operational alerts carry no personal data (strictly enforced for health).
   if (PERSONAL_DATA_VALUE.test(summary) || (restricted && /\d{5,}/.test(summary))) throw new ContractError("MAIL_INTEGRATION_FORBIDDEN_CONTENT", 422, { field: "data.summary", reason: "PERSONAL_DATA_NOT_ALLOWED" });
   return { severity, code: requireString(data, "code", /^[A-Z][A-Z0-9_]{2,63}$/, "data", { max: 64 }), summary: summary.replace(/[\u0000-\u001f<>]/g, " "), component: requireString(data, "component", /^[a-z0-9][a-z0-9-]{0,63}$/, "data", { max: 64 }) };
 }
 
-module.exports = { parseEnvelope, parseDeliveryStatus, parseMarketingTrigger, parseOpsAlert, ContractError, EVENT_TYPES, SUPPORTED_CONTRACT_VERSIONS, DELIVERY_STATUSES, prohibitedKeys };
+module.exports = { parseEnvelope, parseDeliveryStatus, parseMarketingTrigger, parseOpsAlert, ContractError, RESTRICTED_ALERT_SUMMARIES, EVENT_TYPES, SUPPORTED_CONTRACT_VERSIONS, DELIVERY_STATUSES, prohibitedKeys };

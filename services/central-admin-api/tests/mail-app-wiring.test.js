@@ -89,3 +89,35 @@ test("Mail module has no HealthNet Main DB or cross-module internal dependencies
     }
   }
 });
+
+// D10: the per-IP global limiter (500 / 15 min) must not throttle the raw
+// Mail routes, which carry their own signature auth and rate limits.
+test("app.js exempts raw Mail webhook/integration routes from the global limiter", async () => {
+  const seen = {};
+  const stub = stubMailHttp(seen);
+  stub.integrationHandler = (req, res) => res.status(202).json({ success: true });
+  const app = createApp({
+    env: { ...process.env, NODE_ENV: "test" },
+    passportInstance: { initialize: () => (req, res, next) => next() },
+    googleStrategyRegistrar: () => ({ enabled: false }),
+    cloudinaryConfigurator: () => ({ configured: false }),
+    mailHttpFactory: () => stub,
+  });
+  const server = await new Promise((resolve) => {
+    const instance = app.listen(0, "127.0.0.1", () => resolve(instance));
+  });
+  const base = `http://127.0.0.1:${server.address().port}`;
+  try {
+    let lastWebhook;
+    for (let index = 0; index < 510; index += 1) {
+      const path = index % 2 ? "/api/mail/v1/webhooks/resend" : "/api/mail/v1/integrations/v1/events";
+      lastWebhook = await fetch(`${base}${path}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+      assert.ok([200, 202].includes(lastWebhook.status), `request ${index} was not throttled (${lastWebhook.status})`);
+    }
+    assert.equal(lastWebhook.headers.get("ratelimit-limit"), null, "raw Mail routes bypass the global limiter");
+    const health = await fetch(`${base}/health`);
+    assert.equal(health.headers.get("ratelimit-limit"), "500", "other routes keep the global limiter");
+  } finally {
+    await closeServer(server);
+  }
+});

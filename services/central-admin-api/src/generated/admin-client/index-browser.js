@@ -3046,6 +3046,14 @@ exports.Prisma.MarketingCampaignReplyScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.MailUserPreferenceScalarFieldEnum = {
+  adminUserId: 'adminUserId',
+  defaultSenderAddressId: 'defaultSenderAddressId',
+  notificationsEnabled: 'notificationsEnabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -4433,7 +4441,8 @@ exports.Prisma.ModelName = {
   MailMessageArchive: 'MailMessageArchive',
   MailForwardingRule: 'MailForwardingRule',
   MailRateLimitBucket: 'MailRateLimitBucket',
-  MarketingCampaignReply: 'MarketingCampaignReply'
+  MarketingCampaignReply: 'MarketingCampaignReply',
+  MailUserPreference: 'MailUserPreference'
 };
 
 /**

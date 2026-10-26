@@ -42,6 +42,21 @@ export interface MailboxSummary {
   organization: MailOrganizationRef;
 }
 
+/** GET /support/mailboxes: Support shared mailboxes with queue counts. */
+export interface SupportMailboxSummary {
+  id: string;
+  name: string;
+  role: MembershipRole;
+  canSend: boolean;
+  primaryAddress: string | null;
+  signatureHtml: string | null;
+  slaFirstResponseMinutes: number | null;
+  supportTicketLinkEnabled: boolean;
+  openCount: number;
+  overdueCount: number;
+  organization: MailOrganizationRef | null;
+}
+
 export interface SenderIdentity {
   addressId: string;
   address: string;
@@ -73,7 +88,10 @@ export interface MailEntitlements {
   canManageDomains: boolean;
   /** Read-only Mail administration (domains, mailboxes, audits). */
   canViewAdministration?: boolean;
+  /** May request for themselves (every active employee). */
   canProvision: boolean;
+  /** May request on behalf of another employee (HR / Mail admin). Absent on older APIs. */
+  canProvisionForOthers?: boolean;
   canApproveProvisioning: boolean;
   canManageSharedMembership: boolean;
   marketing: MarketingEntitlement[];

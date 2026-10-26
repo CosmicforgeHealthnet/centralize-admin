@@ -65,4 +65,17 @@ async function enforceWithdrawal(tx, { organizationId, contactId = null, email =
   return { applied: true, contactId: contact?.id || null, email: address, withdrawn, suppressionCreated, enrollmentsExited, recipientsStopped };
 }
 
-module.exports = { enforceWithdrawal };
+// Deliverability suppression (hard bounce, provider-side suppression): the
+// address stops receiving this brand's marketing, but consent rows are left
+// untouched - a bounce is not a withdrawal of consent. Lifting the
+// suppression (BOUNCED is liftable) restores eligibility.
+async function suppressAddress(tx, { organizationId, email, reason = "BOUNCED", source, contactStatus = "BOUNCED" }) {
+  const address = email ? String(email).toLowerCase() : null;
+  if (!organizationId || !address) return { applied: false, reason: "UNKNOWN_CONTACT" };
+  const active = await tx.marketingSuppression.findFirst({ where: { organizationId, email: address, liftedAt: null, reason } });
+  if (!active) await tx.marketingSuppression.create({ data: { organizationId, email: address, reason, source: String(source).slice(0, 64) } });
+  await tx.marketingContact.updateMany({ where: { organizationId, email: address, status: "ACTIVE" }, data: { status: contactStatus } });
+  return { applied: true, suppressionCreated: !active };
+}
+
+module.exports = { enforceWithdrawal, suppressAddress };

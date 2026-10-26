@@ -26,6 +26,7 @@
 
 const crypto = require("crypto");
 const { externalSendBlockReason } = require("../authz/sending-gate");
+const { isBrandSender, SENDER_MAILBOX_SELECT } = require("./marketing-sender");
 
 const TERMINAL = new Set(["COMPLETED", "PARTIAL", "FAILED", "CANCELLED", "OUTCOME_UNKNOWN"]);
 const SEND_UNKNOWN_AFTER_MS = 60 * 60 * 1000;
@@ -48,6 +49,18 @@ function toProviderContent(value, brandName, { html }) {
     .replace(/\{\{\s*email\s*\}\}/g, "{{{contact.email}}}")
     .replace(/\{\{\s*unsubscribe_url\s*\}\}/g, "{{{RESEND_UNSUBSCRIBE_URL}}}")
     .replace(/\{\{\s*brand_name\s*\}\}/g, html ? escapeHtml(brandName) : brandName);
+}
+
+// Recipients with delivery evidence: status DELIVERED, a complaint (only a
+// delivered message can be complained about), or a recorded email.delivered
+// event (mail_delivery_events, written by marketing-events.processor).
+async function deliveredCount(client, dispatchId) {
+  const rows = await client.$queryRaw`
+    SELECT COUNT(*)::int AS "count" FROM "marketing_broadcast_recipients" r
+    WHERE r."dispatch_id" = ${dispatchId}::uuid
+      AND (r."status"::text IN ('DELIVERED', 'COMPLAINED')
+        OR EXISTS (SELECT 1 FROM "mail_delivery_events" e WHERE e."message_id" IS NULL AND e."event_type"::text = 'DELIVERED' AND e."detail"->>'recipientId' = r."id"::text))`;
+  return Number(rows[0]?.count || 0);
 }
 
 function dispatchError(code, message, { retryable = false, retryAfterSeconds = null } = {}) {
@@ -111,8 +124,8 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
     const approval = approvals.find((entry) => entry.decision === "APPROVED" && entry.snapshotId === snapshot.id);
     if (!approval || approvals.some((entry) => entry.decision === "INVALIDATED" && entry.createdAt > approval.createdAt)) return { error: ["APPROVAL_INVALIDATED", "Approval is no longer valid"] };
     if (now().getTime() - approval.createdAt.getTime() > config.broadcast.approvalTtlDays * 86400000) return { error: ["APPROVAL_EXPIRED", `Approval is older than ${config.broadcast.approvalTtlDays} days`] };
-    const sender = await client.mailAddress.findUnique({ where: { address: snapshot.senderAddress }, include: { domain: { include: { organization: { select: { id: true, slug: true } } } } } });
-    if (!sender || sender.organizationId !== organization.id || sender.status !== "ACTIVE" || !["SHARED", "SYSTEM", "ALIAS"].includes(sender.kind)) return { error: ["SENDER_NOT_AUTHORIZED", "Sender identity is no longer an active brand identity"] };
+    const sender = await client.mailAddress.findUnique({ where: { address: snapshot.senderAddress }, include: { domain: { include: { organization: { select: { id: true, slug: true } } } }, mailbox: SENDER_MAILBOX_SELECT } });
+    if (!isBrandSender(sender, organization.id)) return { error: ["SENDER_NOT_AUTHORIZED", "Sender identity is no longer an active brand identity"] };
     const blocked = externalSendBlockReason({ config, providerReady: () => provider.configured !== false && provider.name !== "unconfigured", domain: sender.domain });
     if (blocked) return { error: [blocked, `Sending gate: ${blocked}`] };
     return { campaign, snapshot, sender };
@@ -325,15 +338,22 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
   async function finalize(dispatch, providerStatus) {
     const counts = Object.fromEntries((await client.marketingBroadcastRecipient.groupBy({ by: ["status"], where: { dispatchId: dispatch.id }, _count: { _all: true } })).map((row) => [row.status, row._count._all]));
     const handed = ["PROVIDER_ACCEPTED", "DELIVERED", "DELAYED", "BOUNCED", "COMPLAINED", "SUPPRESSED"].reduce((sum, key) => sum + (counts[key] || 0), 0);
-    const delivered = (counts.DELIVERED || 0) + (counts.DELAYED || 0) + (counts.BOUNCED || 0) + (counts.COMPLAINED || 0);
+    // Same evidence-based definition as the report: delivered never falls
+    // when a later complaint replaces a recipient's DELIVERED status.
+    const delivered = await deliveredCount(client, dispatch.id);
+    // On cancel, PARTIAL means some mail demonstrably left the provider.
+    const attempted = delivered + (counts.DELAYED || 0) + (counts.BOUNCED || 0);
     const syncFailures = counts.FAILED || 0;
     let status;
-    if (providerStatus === "CANCELED") status = delivered > 0 ? "PARTIAL" : "CANCELLED";
+    if (providerStatus === "CANCELED") status = attempted > 0 ? "PARTIAL" : "CANCELLED";
     else status = handed === 0 ? "FAILED" : syncFailures > 0 ? "PARTIAL" : "COMPLETED";
+    // providerSentAt is the time the provider reported completion (seen at
+    // reconcile); reply attribution uses each recipient's acceptedAt instead.
+    const sentAt = providerStatus === "SENT" ? now() : dispatch.providerSentAt;
     await client.$transaction(async (tx) => {
-      await setStatus(dispatch, status, { providerStatus, providerSentAt: providerStatus === "SENT" ? now() : dispatch.providerSentAt, completedAt: now() }, tx);
+      await setStatus(dispatch, status, { providerStatus, providerSentAt: sentAt, completedAt: now() }, tx);
       if (providerStatus === "CANCELED") await tx.marketingBroadcastRecipient.updateMany({ where: { dispatchId: dispatch.id, status: "PROVIDER_ACCEPTED" }, data: { status: "CANCELLED", exclusionReason: "CANCELLED_AT_PROVIDER" } });
-      await audit.record({ action: "MARKETING_BROADCAST_FINALIZED", targetType: "marketing_broadcast", targetId: dispatch.id, organizationId: dispatch.organizationId, metadata: { status, providerStatus, counts } }, {}, tx);
+      await audit.record({ action: "MARKETING_BROADCAST_FINALIZED", targetType: "marketing_broadcast", targetId: dispatch.id, organizationId: dispatch.organizationId, metadata: { status, providerStatus, counts, delivered } }, {}, tx);
     });
     await notifyOwners(dispatch, status === "COMPLETED" ? "Broadcast handed to the provider" : `Broadcast ${status.toLowerCase()}`, "Delivery results continue to update from provider events.");
     return { finalized: status };
@@ -353,6 +373,10 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
     return null;
   }
 
+  function assertLease(job) {
+    if (job?.lease?.lost) throw dispatchError("LEASE_LOST", "Job lease was lost; another worker continues", { retryable: true });
+  }
+
   async function processDispatch(job) {
     const context = await loadContext(job);
     if (!context) return { skipped: true };
@@ -368,12 +392,20 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
     if (!dispatch.providerSendAttemptAt) {
       const checked = await verify(dispatch, organization, provider);
       if (checked.error) return fail(dispatch, ...checked.error);
-      if (dispatch.status === "SCHEDULED" || dispatch.status === "QUEUED") await setStatus(dispatch, "PREPARING", { lastErrorCode: null });
+      if (dispatch.status === "SCHEDULED" || dispatch.status === "QUEUED") {
+        // Guarded: a pause or cancel that landed since this job loaded the
+        // dispatch wins; the job re-reads and defers / cancels next run.
+        const moved = await client.marketingBroadcastDispatch.updateMany({ where: { id: dispatch.id, status: dispatch.status, cancelRequestedAt: null }, data: { status: "PREPARING", lastErrorCode: null } });
+        if (moved.count !== 1) return { defer: { seconds: 1, code: "DISPATCH_STATE_CHANGED" } };
+        await client.marketingEmailCampaign.update({ where: { id: dispatch.campaignId }, data: { status: "QUEUED" } });
+        Object.assign(dispatch, { status: "PREPARING", lastErrorCode: null });
+      }
       const existing = await client.marketingBroadcastRecipient.count({ where: { dispatchId: dispatch.id } });
       if (!existing) {
         const built = await buildRecipients(dispatch, checked.campaign, checked.snapshot, settings);
         if (built.error) return fail(dispatch, ...built.error);
       }
+      assertLease(job);
       await ensureSegment(dispatch, provider);
       const { remaining } = await syncBatch(dispatch, checked.campaign, provider);
       if (remaining > 0) return { defer: { seconds: 1, code: "SYNC_IN_PROGRESS", message: `${remaining} recipients left` } };
@@ -394,8 +426,12 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
       const fresh = await client.marketingBroadcastDispatch.findUnique({ where: { id: dispatch.id } });
       if (fresh.cancelRequestedAt) return cancelBeforeSend({ ...dispatch, ...fresh }, provider);
       if (fresh.status === "PAUSED") return { defer: { seconds: 300, code: "DISPATCH_PAUSED" } };
+      assertLease(job);
       await ensureBroadcast(dispatch, organization, checked.snapshot, checked.sender, provider);
     }
+    // A run whose lease was lost must not touch the provider: the newer
+    // lease holder continues from the persisted progress.
+    assertLease(job);
     return sendOrResolve(dispatch, provider);
   }
 
@@ -447,4 +483,4 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
   return { processDispatch, processReconcile, onDeadLetter, toProviderContent, snapshotHash };
 }
 
-module.exports = { createBroadcastProcessor, toProviderContent, snapshotHash, TERMINAL_BROADCAST_STATUSES: TERMINAL };
+module.exports = { createBroadcastProcessor, toProviderContent, snapshotHash, deliveredCount, TERMINAL_BROADCAST_STATUSES: TERMINAL };

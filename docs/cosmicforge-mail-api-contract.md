@@ -282,6 +282,27 @@ Allowed personalization variables: `first_name`, `last_name`, `email`, `brand_na
 `unsubscribe_url`. Unknown variables fail rendering with `MAIL_TEMPLATE_INVALID_VARIABLE`.
 
 
+## User preferences (migration 36)
+
+`GET /me/preferences` and `PUT /me/preferences` (any active Mail user; own
+preferences only). Body: `{ defaultSenderAddressId?: uuid | null,
+notificationsEnabled?: boolean }` (at least one; unknown fields are refused).
+
+- `defaultSenderAddressId` must be one of the caller's current sender
+  identities in any mailbox they can send from (`403
+  MAIL_SENDER_NOT_AUTHORIZED` otherwise). It is re-checked on every read and
+  use: new drafts pre-select it only in the mailbox that owns it, and a
+  revoked identity is reported as `null`.
+- `notificationsEnabled: false` suppresses in-app **new-mail** notices only.
+  Delivery failures, outcome-unknown, bounces/complaints, mailbox full,
+  forwarding decisions, membership/request decisions, assignments, mentions
+  and ops alerts are always sent.
+- Every change writes a `MAIL_PREFERENCES_UPDATED` audit event (field names and
+  values only).
+- Before `20261102_mail_user_preferences.sql` is applied, GET answers the
+  defaults with `available: false` and PUT answers `503
+  MAIL_FEATURE_NOT_READY` (retryable).
+
 ## Specification gap closure (migration 35)
 
 Feature endpoints answer `503 MAIL_FEATURE_NOT_READY` (retryable) until

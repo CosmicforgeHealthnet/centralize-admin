@@ -204,6 +204,54 @@ test("backoff is bounded with jitter and delivery status never claims more than 
   assert.equal(aggregateMessageStatus([{ status: "DELIVERED" }, { status: "BOUNCED" }], "DELIVERED"), "BOUNCED");
 });
 
+test("message status derivation handles PENDING recipients and never regresses event-derived states", () => {
+  const rs = (...statuses) => statuses.map((status) => ({ status }));
+  assert.equal(aggregateMessageStatus(rs("PENDING", "PENDING"), "QUEUED"), "QUEUED");
+  assert.equal(aggregateMessageStatus(rs("INTERNAL_DELIVERED", "PENDING"), "QUEUED"), "QUEUED");
+  assert.equal(aggregateMessageStatus(rs("PENDING", "PROVIDER_ACCEPTED"), "QUEUED"), "PROVIDER_ACCEPTED");
+  assert.equal(aggregateMessageStatus(rs("PENDING", "DELIVERED"), "DELIVERED"), "PROVIDER_ACCEPTED");
+  assert.equal(aggregateMessageStatus(rs("BOUNCED", "FAILED"), "BOUNCED"), "BOUNCED");
+  assert.equal(aggregateMessageStatus(rs("BOUNCED", "PROVIDER_ACCEPTED"), "BOUNCED"), "BOUNCED");
+  assert.equal(aggregateMessageStatus(rs("BOUNCED", "PENDING"), "BOUNCED"), "BOUNCED");
+  assert.equal(aggregateMessageStatus(rs("DELIVERED", "DELAYED"), "DELIVERED"), "DELAYED");
+  assert.equal(aggregateMessageStatus(rs("DELIVERED", "PROVIDER_ACCEPTED"), "DELAYED"), "PROVIDER_ACCEPTED");
+  assert.equal(aggregateMessageStatus(rs("FAILED", "OUTCOME_UNKNOWN"), "QUEUED"), "OUTCOME_UNKNOWN");
+  assert.equal(aggregateMessageStatus(rs("FAILED", "FAILED"), "QUEUED"), "FAILED");
+  assert.equal(aggregateMessageStatus(rs("INTERNAL_DELIVERED"), "DELIVERED"), "DELIVERED");
+  const { deriveMessageStatus } = require("../pipelines/delivery-event.processor");
+  assert.equal(deriveMessageStatus, aggregateMessageStatus, "dispatch and delivery events share one derivation");
+});
+
+test("provider errors that may follow acceptance are treated as possibly accepted", () => {
+  const { possiblyAccepted } = require("../pipelines/outbound.processor");
+  const { MailProviderError } = require("../adapters/mail-provider.contract");
+  assert.equal(possiblyAccepted(new MailProviderError("AMBIGUOUS", "PROVIDER_TIMEOUT", "x")), true);
+  assert.equal(possiblyAccepted(new MailProviderError("RETRYABLE", "RESEND_HTTP_503", "x", { status: 503 })), true);
+  assert.equal(possiblyAccepted(new MailProviderError("RETRYABLE", "RESEND_HTTP_500", "x")), true, "status parsed from code");
+  assert.equal(possiblyAccepted(new MailProviderError("RETRYABLE", "RESEND_HTTP_409", "x", { status: 409 })), true, "concurrent same-key request");
+  assert.equal(possiblyAccepted(new MailProviderError("RETRYABLE", "RESEND_HTTP_429", "x", { status: 429 })), false);
+  assert.equal(possiblyAccepted(new MailProviderError("PERMANENT", "RESEND_HTTP_422", "x", { status: 422 })), false);
+});
+
+test("staff content policy blocks script-like link schemes and misleading link text", () => {
+  const { assertContentPolicy } = require("../services/compose.service");
+  const code = (html) => {
+    try {
+      assertContentPolicy(html);
+      return null;
+    } catch (error) {
+      return error.errors?.[0]?.reason;
+    }
+  };
+  assert.equal(code('<a href="javascript:alert(1)">x</a>'), "UNSAFE_LINK");
+  assert.equal(code('<a href="data:text/html,hi">x</a>'), "UNSAFE_LINK");
+  assert.equal(code('<a href="VBScript:x">x</a>'), "UNSAFE_LINK");
+  assert.equal(code('<a href="https://evil.example/login">https://bank.example</a>'), "UNSAFE_LINK");
+  assert.equal(code('<a href="https://www.bank.example/login">bank.example</a>'), null, "same site is fine");
+  assert.equal(code('<a href="https://partner.example/doc">the report</a> <a href="mailto:a@b.example">mail</a>'), null);
+  assert.equal(code("plain text only"), null);
+});
+
 test("delivery plan sends only external (PENDING) recipients and never exposes BCC", () => {
   const { buildDeliveryPlan } = require("../pipelines/outbound.processor");
   const r = (id, type, status = "PENDING") => ({ id, type, status, address: `${id}@x.example` });
@@ -265,4 +313,105 @@ test("body search indexing cannot be enabled by configuration", () => {
   assert.equal(config.search.bodies, false);
   assert.equal(config.search.bodyIndexingRequestRefused, true);
   assert.equal(loadMailConfig({}).search.bodyIndexingRequestRefused, false);
+});
+
+// ---- hardening regressions (d1, a4, c1): self-contained ----
+test("d1: style values are checked after decoding entities/escapes; tracking CSS and fixed positioning are removed", () => {
+  const { sanitizeEmailHtml: clean, safeStyle } = require("../security/html-sanitizer");
+  const bypasses = [
+    'style="background:u&#114;l(https://t.example/p.gif)"',
+    'style="background:u&#x72;l(https://t.example/p.gif)"',
+    'style="background-image:image-set(&quot;https://t.example/p.gif&quot; 1x)"',
+    "style=\"background-image:-webkit-image-set('https://t.example/p.gif' 1x)\"",
+    'style="background:\\75 rl(https://t.example/p.gif)"',
+    'style="background:\\000075rl(https://t.example/p.gif)"',
+    'style="background:u/**/rl(https://t.example/p.gif)"',
+    'style="background:&amp;#117;rl(https://t.example/p.gif)"',
+    'style="background:image(https://t.example/p.gif)"',
+    'style="background:cross-fade(url(a),url(b),50%)"',
+    'style="background:element(#x)"',
+    'style="width:expression(alert(1))"',
+    'style="x:1;@import \'https://t.example/a.css\'"',
+    'style="position:fixed;top:0;left:0"',
+    'style="position : sticky"',
+    'style="POSITION:FIXED"',
+  ];
+  for (const attr of bypasses) {
+    const { html } = clean(`<div ${attr}>x</div>`);
+    assert.equal(html, "<div>x</div>", `not removed: ${attr}`);
+    assert.doesNotMatch(html, /t\.example|style=/);
+  }
+  assert.equal(clean('<p style="color:red;font-size:12px;position:relative">ok</p>').html, '<p style="color:red;font-size:12px;position:relative">ok</p>');
+  assert.equal(clean('<p style="font-family:&quot;Arial&quot;, sans-serif">ok</p>').html, '<p style="font-family:&quot;Arial&quot;, sans-serif">ok</p>');
+  assert.equal(safeStyle("color:&#114;ed"), "color:red", "the checked (decoded) value is what is emitted");
+});
+
+test("d1: links whose text names another host, or punycode hosts, are flagged", () => {
+  const { sanitizeEmailHtml: clean } = require("../security/html-sanitizer");
+  assert.match(clean('<a href="https://evil.example/login">https://bank.example/login</a>').html, /data-suspicious="host-mismatch"/);
+  assert.match(clean('<a href="https://xn--bnk-7ma.example/">bank</a>').html, /data-suspicious="punycode"/);
+  assert.doesNotMatch(clean('<a href="https://www.bank.example/x">bank.example</a>').html, /data-suspicious/);
+  assert.doesNotMatch(clean('<a href="https://mail.bank.example/x">bank.example</a>').html, /data-suspicious/);
+  assert.doesNotMatch(clean('<a href="https://evil.example">Click here</a>').html, /data-suspicious/);
+});
+
+test("a4: policy refusals are quarantined SCAN_FAILED (POLICY_*), never INFECTED", async () => {
+  const scanner = require("../scanning/attachment-scanner");
+  const big = await scanner.evaluateAttachment(scanner.signatureScanner(), { filename: "report.pdf", contentType: "application/pdf", buffer: Buffer.alloc(2048), maxBytes: 1024 });
+  assert.deepEqual([big.scanStatus, big.scanDetail, big.quarantined], ["SCAN_FAILED", "POLICY_SIZE_LIMIT", true]);
+  const exe = await scanner.evaluateAttachment(scanner.signatureScanner(), { filename: "setup.exe", contentType: "application/octet-stream", buffer: Buffer.from("x"), maxBytes: 1024 });
+  assert.deepEqual([exe.scanStatus, exe.scanDetail, exe.quarantined], ["SCAN_FAILED", "POLICY_BLOCKED_EXTENSION_EXE", true]);
+  const pe = await scanner.evaluateAttachment(scanner.signatureScanner(), { filename: "doc.pdf", contentType: "application/pdf", buffer: Buffer.from("MZ\x90\x00"), maxBytes: 1024 });
+  assert.equal(pe.scanStatus, "SCAN_FAILED");
+  assert.equal(pe.scanDetail, "POLICY_EXECUTABLE_CONTENT");
+  const virus = await scanner.evaluateAttachment(scanner.signatureScanner(), { filename: "a.txt", contentType: "text/plain", buffer: Buffer.from(scanner.EICAR), maxBytes: 1024 });
+  assert.equal(virus.scanStatus, "INFECTED", "only a scanner detection is INFECTED");
+  const hidden = await scanner.evaluateAttachment(scanner.signatureScanner(), { filename: "virus.com", contentType: "application/octet-stream", buffer: Buffer.from(scanner.EICAR), maxBytes: 1024 });
+  assert.equal(hidden.scanStatus, "INFECTED", "malware behind a blocked name is still reported as malware");
+});
+
+test("c1: attachment downloads stream with a hard cap and refuse redirects", async () => {
+  const { createResendAdapter: resend } = require("../adapters/resend.adapter");
+  const config = { resend: { apiKey: "re_test", baseUrl: "https://api.resend.test", timeoutMs: 5000, attachmentHostAllowlist: ["files.resend.test"] } };
+  let pulled = 0;
+  let cancelled = false;
+  let signal = null;
+  let redirectMode = null;
+  const listing = (url) => new Response(JSON.stringify({ data: [{ id: "a1", filename: "big.pdf", content_type: "application/pdf", download_url: url }] }), { status: 200 });
+  const make = (respond) => resend({
+    config,
+    fetchImpl: async (url, init) => {
+      if (url.startsWith("https://api.resend.test/")) return listing(url.includes("redir") ? "https://files.resend.test/redir" : "https://files.resend.test/a1");
+      signal = init.signal;
+      redirectMode = init.redirect;
+      return respond(url);
+    },
+  });
+  // Chunked response, no Content-Length, endless 256 KiB chunks.
+  const chunked = make(() => new Response(new ReadableStream({
+    pull(controller) {
+      pulled += 1;
+      controller.enqueue(new Uint8Array(256 * 1024));
+    },
+    cancel() {
+      cancelled = true;
+    },
+  }), { status: 200 }));
+  const [attachment] = await chunked.fetchInboundAttachments("em_1");
+  await assert.rejects(attachment.download(1024 * 1024), (error) => error.code === "ATTACHMENT_TOO_LARGE" && error.kind === "PERMANENT");
+  assert.ok(pulled <= 8, `stopped early (pulled ${pulled} chunks)`);
+  assert.ok(cancelled && signal.aborted, "stream cancelled and request aborted");
+  assert.equal(redirectMode, "error");
+
+  // Within the cap: returned whole.
+  const small = make(() => new Response(Buffer.from("hello"), { status: 200 }));
+  assert.equal((await (await small.fetchInboundAttachments("em_2"))[0].download(1024)).toString(), "hello");
+  // A declared oversize length is refused before reading.
+  const declared = make(() => new Response("x", { status: 200, headers: { "content-length": String(50 * 1024 * 1024) } }));
+  await assert.rejects((await declared.fetchInboundAttachments("em_3"))[0].download(), (error) => error.code === "ATTACHMENT_TOO_LARGE");
+  // A 3xx (fetch implementations that do not enforce redirect:"error") is refused.
+  const redirect = make(() => new Response(null, { status: 302, headers: { location: "https://evil.example/x" } }));
+  await assert.rejects((await redirect.fetchInboundAttachments("redir"))[0].download(), (error) => error.code === "ATTACHMENT_REDIRECT_REFUSED" && error.kind === "PERMANENT");
+  const fakeRedirected = resend({ config, fetchImpl: async (url) => (url.startsWith("https://api.resend.test/") ? listing("https://files.resend.test/a1") : { ok: true, status: 200, redirected: true, headers: new Headers(), body: null, arrayBuffer: async () => new ArrayBuffer(1) }) });
+  await assert.rejects((await fakeRedirected.fetchInboundAttachments("em_4"))[0].download(), (error) => error.code === "ATTACHMENT_REDIRECT_REFUSED");
 });

@@ -211,6 +211,20 @@ function createForwardingService({ client, config, features, store, jobs, audit,
     return { requester, identity };
   }
 
+  // Both target kinds: a deactivated requester's rule stops, and so does a
+  // rule on a personal mailbox whose owner is no longer active.
+  async function lifecycleBlockReason(source, rule) {
+    const mailbox = source.type ? source : (await client.mailMailbox.findUnique({ where: { id: source.id } })) || source;
+    const requester = await client.adminUser.findUnique({ where: { id: rule.requestedBy }, select: { status: true } });
+    if (!requester || requester.status !== "ACTIVE") return "REQUESTER_NOT_ACTIVE";
+    if (mailbox.type === "PERSONAL") {
+      if (mailbox.status && mailbox.status !== "ACTIVE") return "MAILBOX_NOT_ACTIVE";
+      const owner = mailbox.ownerAdminUserId ? await client.adminUser.findUnique({ where: { id: mailbox.ownerAdminUserId }, select: { status: true } }) : null;
+      if (!owner || owner.status !== "ACTIVE") return "OWNER_NOT_ACTIVE";
+    }
+    return null;
+  }
+
   // Called once per committed inbound mailbox copy. Never throws for a single
   // rule: failures are audited and the inbound delivery stays successful.
   async function forwardInbound({ mailbox, message, inbound, body, attachments = [] }) {
@@ -236,6 +250,11 @@ function createForwardingService({ client, config, features, store, jobs, audit,
           await skip("HOURLY_CAP");
           break;
         }
+        const lifecycleBlocked = await lifecycleBlockReason(mailbox, rule);
+        if (lifecycleBlocked) {
+          await skip(lifecycleBlocked);
+          continue;
+        }
         if (rule.targetKind === "INTERNAL") {
           const target = await client.mailAddress.findUnique({ where: { address: rule.targetAddress }, include: { mailbox: true } });
           if (!target || target.status !== "ACTIVE" || !target.mailboxId || target.mailbox?.status !== "ACTIVE") {
@@ -259,7 +278,7 @@ function createForwardingService({ client, config, features, store, jobs, audit,
           if (!copy.duplicate) {
             forwarded += 1;
             const members = await notifications.mailboxMemberIds(target.mailboxId);
-            await notifications.notifyUsers(members, { icon: "bell", title: `New email in ${target.mailbox.name}`, subtitle: `Forwarded from ${mailbox.name}` }).catch(() => {});
+            await notifications.notifyUsers(members, { icon: "bell", kind: "NEW_MAIL", title: `New email in ${target.mailbox.name}`, subtitle: `Forwarded from ${mailbox.name}` }).catch(() => {});
           }
           continue;
         }

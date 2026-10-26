@@ -31,6 +31,10 @@ function storedPayload(payload, providerEmailId, brandOrganizationId) {
     data: {
       email_id: providerEmailId,
       to: Array.isArray(data.to) ? data.to.slice(0, 100).map((value) => String(value).slice(0, 320)) : data.to ? [String(data.to).slice(0, 320)] : [],
+      // cc/bcc (when the provider sends them) let delivery events be
+      // attributed to the exact recipients instead of only the To list.
+      ...(Array.isArray(data.cc) ? { cc: data.cc.slice(0, 100).map((value) => String(value).slice(0, 320)) } : {}),
+      ...(Array.isArray(data.bcc) ? { bcc: data.bcc.slice(0, 100).map((value) => String(value).slice(0, 320)) } : {}),
       from: data.from ? String(data.from).slice(0, 320) : null,
       created_at: data.created_at || null,
       ...(data.broadcast_id ? { broadcast_id: String(data.broadcast_id).slice(0, 128) } : {}),

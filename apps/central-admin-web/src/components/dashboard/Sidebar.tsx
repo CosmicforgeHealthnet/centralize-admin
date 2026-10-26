@@ -23,31 +23,128 @@ import {
   Verified,
   Mail,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import type { LucideIcon } from "lucide-react";
+import api from "@/lib/api";
 import { useAuthStore } from "@/stores/auth.store";
 import { useProfileStore } from "@/stores/profile.store";
 import { useEntitlements } from "@/components/mail/hooks";
 
-const MAIL_NAV_ITEM = { label: "Mail", icon: Mail, href: "/dashboard/mail" };
+// Who sees what. ADMIN/EXECUTIVE/SUPER keep the full navigation. Everyone
+// else sees personal pages, Mail (when entitled) and only the sections they
+// hold an active section grant for. This is presentation only: every API
+// enforces its own tier/section checks.
+type NavAccess = "all" | "privileged" | { module: string };
+interface NavItem {
+  label: string;
+  icon: LucideIcon;
+  href: string;
+  access: NavAccess;
+}
 
-const navItems = [
-  { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-  { label: "User Management", icon: Users, href: "/dashboard/users" },
-  { label: "Help & Support", icon: HelpCircle, href: "/dashboard/help" },
-  { label: "Human Resources", icon: Users, href: "/dashboard/hr" },
-  { label: "I.T and System", icon: Cloud, href: "/dashboard/it" },
-  { label: "Finance", icon: CreditCard, href: "/dashboard/finance" },
-  { label: "Marketing", icon: Megaphone, href: "/dashboard/marketing" },
-  { label: "Analytics", icon: BarChart2, href: "/dashboard/analytics" },
-  { label: "Profile", icon: User, href: "/dashboard/profile" },
-  { label: "Verification", icon: Verified, href: "/dashboard/verification" },
-  { label: "Settings", icon: Settings, href: "/dashboard/settings" },
+const PRIVILEGED_TIERS = new Set(["SUPER", "EXECUTIVE", "ADMIN"]);
+
+const MAIL_NAV_ITEM: NavItem = { label: "Mail", icon: Mail, href: "/dashboard/mail", access: "all" };
+
+const navItems: NavItem[] = [
+  { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard", access: "all" },
+  { label: "User Management", icon: Users, href: "/dashboard/users", access: "privileged" },
+  { label: "Help & Support", icon: HelpCircle, href: "/dashboard/help", access: { module: "support" } },
+  { label: "Human Resources", icon: Users, href: "/dashboard/hr", access: { module: "hrm" } },
+  { label: "I.T and System", icon: Cloud, href: "/dashboard/it", access: "privileged" },
+  { label: "Finance", icon: CreditCard, href: "/dashboard/finance", access: { module: "finance" } },
+  { label: "Marketing", icon: Megaphone, href: "/dashboard/marketing", access: { module: "marketing" } },
+  { label: "Analytics", icon: BarChart2, href: "/dashboard/analytics", access: "privileged" },
+  { label: "Profile", icon: User, href: "/dashboard/profile", access: "all" },
+  { label: "Verification", icon: Verified, href: "/dashboard/verification", access: { module: "verification" } },
+  { label: "Settings", icon: Settings, href: "/dashboard/settings", access: "all" },
 ];
 
-const productSuites = [
-  { label: "Healthnet", icon: Cross, href: "/dashboard/healthnet" },
-  { label: "Events Management", icon: Gift, href: "/dashboard/events" },
-  { label: "Trading Bot", icon: TrendingUp, href: "/dashboard/trading" },
+const productSuites: NavItem[] = [
+  { label: "Healthnet", icon: Cross, href: "/dashboard/healthnet", access: "privileged" },
+  { label: "Events Management", icon: Gift, href: "/dashboard/events", access: "privileged" },
+  { label: "Trading Bot", icon: TrendingUp, href: "/dashboard/trading", access: "privileged" },
 ];
+
+// Mail-backed pages outside /dashboard/mail that Mail entitlements open.
+const MAIL_SUPPORT_PATH = "/dashboard/help/email";
+const MAIL_MARKETING_PATH = "/dashboard/marketing/email-marketing";
+
+interface MyGrants {
+  tier: string;
+  grants: { module: string; section: string; mode: string; expiresAt: string | null }[];
+}
+
+export interface NavPermissions {
+  /** False until tier/grants/entitlements are known (employees only). */
+  ready: boolean;
+  privileged: boolean;
+  modules: Set<string>;
+  showMail: boolean;
+  mailSupport: boolean;
+  mailMarketing: boolean;
+}
+
+export function useNavPermissions(): NavPermissions {
+  const user = useAuthStore((state) => state.user);
+  const privileged = PRIVILEGED_TIERS.has(user?.tier ?? "");
+  const grants = useQuery({
+    queryKey: ["nav", "my-grants", user?.id ?? null],
+    queryFn: async () => (await api.get<{ data: MyGrants | null }>("/api/hrm/accounts/me/grants")).data.data,
+    enabled: !!user && !privileged,
+    staleTime: 60_000,
+    retry: false,
+  });
+  // Mail is shown only when the backend says this employee may use it.
+  const ents = useEntitlements();
+  const mail = ents.data;
+  const mailEnabled = !!mail?.mailEnabled;
+  const showMail =
+    mailEnabled &&
+    (mail.mailboxes.length > 0 ||
+      !!mail.canViewAdministration ||
+      mail.canManageDomains ||
+      mail.canApproveProvisioning ||
+      mail.canManageSharedMembership ||
+      mail.marketing.length > 0);
+  const modules = new Set((grants.data?.grants ?? []).map((grant) => grant.module));
+  return {
+    ready: privileged || (!!user && !grants.isLoading && !ents.isLoading),
+    privileged,
+    modules,
+    showMail,
+    mailSupport: mailEnabled && (mail?.mailboxes ?? []).some((mb) => mb.type === "SHARED" && mb.purpose === "SUPPORT"),
+    mailMarketing: mailEnabled && (mail?.marketing.length ?? 0) > 0,
+  };
+}
+
+function itemAllowed(item: NavItem, perms: NavPermissions) {
+  if (perms.privileged || item.access === "all") return true;
+  if (item.access === "privileged") return false;
+  return perms.modules.has(item.access.module);
+}
+
+/** Navigation entries for this user; Mail-only access links to the Mail page. */
+function visibleItems(items: NavItem[], perms: NavPermissions): NavItem[] {
+  return items.flatMap((item) => {
+    if (itemAllowed(item, perms)) return [item];
+    if (item.href === "/dashboard/help" && perms.mailSupport) return [{ ...item, href: MAIL_SUPPORT_PATH }];
+    if (item.href === "/dashboard/marketing" && perms.mailMarketing) return [{ ...item, href: MAIL_MARKETING_PATH }];
+    return [];
+  });
+}
+
+const under = (pathname: string, base: string) => pathname === base || pathname.startsWith(`${base}/`);
+
+/** Used by the dashboard layout to keep employees out of other sections. */
+export function isDashboardPathAllowed(pathname: string, perms: NavPermissions) {
+  if (perms.privileged || pathname === "/dashboard") return true;
+  if (under(pathname, MAIL_NAV_ITEM.href)) return true; // Mail pages check entitlements themselves.
+  if (under(pathname, MAIL_SUPPORT_PATH)) return perms.mailSupport || perms.modules.has("support");
+  if (under(pathname, MAIL_MARKETING_PATH)) return perms.mailMarketing || perms.modules.has("marketing");
+  const item = [...navItems, ...productSuites].find((entry) => entry.href !== "/dashboard" && under(pathname, entry.href));
+  return item ? itemAllowed(item, perms) : true;
+}
 
 export default function Sidebar({
   mobileOpen,
@@ -64,15 +161,12 @@ export default function Sidebar({
   const router = useRouter();
   const { logout, user } = useAuthStore();
   const { profile } = useProfileStore();
-  // Mail is shown only when the backend says this employee may use it.
-  const mailEntitlements = useEntitlements();
-  const mail = mailEntitlements.data;
-  const showMail =
-    !!mail?.mailEnabled &&
-    (mail.mailboxes.length > 0 || mail.canManageDomains || mail.canApproveProvisioning || mail.canProvision);
-  const visibleNavItems = showMail
-    ? [navItems[0], MAIL_NAV_ITEM, ...navItems.slice(1)]
-    : navItems;
+  const perms = useNavPermissions();
+  const allowedNavItems = visibleItems(navItems, perms);
+  const visibleNavItems = perms.showMail
+    ? [allowedNavItems[0], MAIL_NAV_ITEM, ...allowedNavItems.slice(1)]
+    : allowedNavItems;
+  const visibleSuites = visibleItems(productSuites, perms);
 
   const handleLogout = async () => {
     await logout();
@@ -265,13 +359,14 @@ export default function Sidebar({
             </nav>
 
             {/* Product Suites */}
+            {visibleSuites.length > 0 && (
             <div className="mt-4 px-3">
               <div className="sidebar-suites-divider w-full h-[1px] bg-white/20 mb-3" />
               <p className="sidebar-suites-title text-[11px] font-poppins text-white/50 font-medium px-3 mb-2">
                 Product Suites
               </p>
               <nav className="flex flex-col gap-1">
-                {productSuites.map((item) => {
+                {visibleSuites.map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;
                   return (
@@ -295,6 +390,7 @@ export default function Sidebar({
                 })}
               </nav>
             </div>
+            )}
 
             <div className="flex-1" />
 

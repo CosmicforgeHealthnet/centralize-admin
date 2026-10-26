@@ -6,6 +6,10 @@
 //   the same job
 // - expired leases are recovered (crash recovery) and retried with backoff
 // - exhausted jobs move to DEAD_LETTER for manual review
+// - every claim gets its own lease token (worker id + random suffix in
+//   lease_owner), so a stale run of an earlier lease can never complete,
+//   fail, defer or extend a newer lease of the same job - even in the same
+//   worker process
 
 const crypto = require("crypto");
 const { Prisma } = require("../../../generated/admin-client");
@@ -32,7 +36,7 @@ function createMailJobRepository({ client, clock = () => new Date(), random = Ma
     const take = Math.min(Math.max(Number(limit) || 1, 1), 50);
     const rows = await client.$queryRaw(Prisma.sql`
       UPDATE "mail_outbox_jobs" AS job
-      SET "status" = 'LEASED', "lease_owner" = ${leaseOwner}, "lease_expires_at" = ${leaseExpiresAt},
+      SET "status" = 'LEASED', "lease_owner" = ${String(leaseOwner).slice(0, 100)}::text || ':' || substr(md5(random()::text || job."id"::text), 1, 16), "lease_expires_at" = ${leaseExpiresAt},
           "attempt_count" = job."attempt_count" + 1, "updated_at" = ${now}
       WHERE job."id" IN (
         SELECT candidate."id" FROM "mail_outbox_jobs" candidate
@@ -47,6 +51,16 @@ function createMailJobRepository({ client, clock = () => new Date(), random = Ma
     `);
     if (!rows.length) return [];
     return client.mailOutboxJob.findMany({ where: { id: { in: rows.map((row) => row.id) } } });
+  }
+
+  // Extends a lease this run still holds (long MARKETING jobs). Returns
+  // false when the lease was lost (expired and recovered / reclaimed).
+  async function heartbeat(job, { leaseSeconds = 120 } = {}) {
+    const result = await client.mailOutboxJob.updateMany({
+      where: { id: job.id, leaseOwner: job.leaseOwner, status: "LEASED" },
+      data: { leaseExpiresAt: new Date(clock().getTime() + Math.min(Math.max(Number(leaseSeconds) || 120, 15), 3600) * 1000) },
+    });
+    return result.count === 1;
   }
 
   // The provider event behind a job is marked once its job settles, so the
@@ -166,7 +180,7 @@ function createMailJobRepository({ client, clock = () => new Date(), random = Ma
     return rows.map((row) => ({ queue: row.queue, status: row.status, count: row._count._all }));
   }
 
-  return { enqueue, claim, complete, fail, defer, expedite, cancelPending, recoverExpiredLeases, requeue, stats };
+  return { enqueue, claim, heartbeat, complete, fail, defer, expedite, cancelPending, recoverExpiredLeases, requeue, stats };
 }
 
 function leaseOwnerId(prefix = "mail-worker") {

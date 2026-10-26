@@ -8,16 +8,32 @@ const FRAME_STYLE = `<style>
   table{max-width:100%}
   a{color:#272EA7}
   blockquote{margin:0 0 0 .8ex;border-left:2px solid #ddd;padding-left:1ex;color:#555}
+  a[data-suspicious]{background:#fef3c7;outline:1px dashed #d97706;color:#92400e}
+  a[data-suspicious]::after{content:" \\26A0  check link";font-size:10px;font-weight:600;color:#b45309}
 </style>`;
 
 /**
  * Displays HTML that was already sanitized by the server inside a fully
  * sandboxed iframe: no scripts, no same-origin access, no forms, no popups.
- * Links cannot navigate the parent.
+ * Links cannot navigate the parent. Remote (https:) images load only when the
+ * user explicitly allowed them for this message (allowRemoteImages); otherwise
+ * the CSP allows data: images only, as a second line of defence against
+ * tracking pixels that slip past the sanitizer.
  */
-export default function SafeHtmlFrame({ html, title, minHeight = 80 }: { html: string; title: string; minHeight?: number }) {
+export default function SafeHtmlFrame({
+  html,
+  title,
+  minHeight = 80,
+  allowRemoteImages = false,
+}: {
+  html: string;
+  title: string;
+  minHeight?: number;
+  allowRemoteImages?: boolean;
+}) {
   const ref = useRef<HTMLIFrameElement>(null);
-  const doc = `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data: https: cid:; style-src 'unsafe-inline';"><base target="_blank">${FRAME_STYLE}</head><body>${html}</body></html>`;
+  const imgSrc = allowRemoteImages ? "data: https:" : "data:";
+  const doc = `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${imgSrc}; style-src 'unsafe-inline'; font-src 'none'; form-action 'none';"><base target="_blank">${FRAME_STYLE}</head><body>${html}</body></html>`;
 
   // Sandbox without allow-same-origin blocks reading contentDocument, so size
   // by a content estimate and let the user scroll inside the frame.

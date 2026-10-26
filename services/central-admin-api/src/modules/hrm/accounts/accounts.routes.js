@@ -27,6 +27,9 @@ router.get(
   accountsController.getAvailableModules,
 );
 
+// Own grants: any signed-in account (navigation). MUST COME BEFORE /:id routes
+router.get("/me/grants", accountsController.getMyGrants);
+
 // ✅ DELETE grant - MUST COME BEFORE /:id routes
 router.delete(
   "/grants/:grantId",

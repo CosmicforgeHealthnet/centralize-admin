@@ -4,7 +4,9 @@
 //   AUTOMATION_TICK  (one per minute bucket, deduplicated by idempotency key)
 //     - turns RECEIVED trigger events into enrollments (dedupe per event)
 //     - enrolls schedule occurrences (latest due occurrence only; missed
-//       occurrences are not backfilled after downtime)
+//       occurrences are not backfilled after downtime). A large audience is
+//       enrolled in pages across ticks; the occurrence is marked done
+//       (lastScheduledRunAt) only once every eligible contact was handled.
 //     - enqueues one AUTOMATION_STEP job per due enrollment step
 //   AUTOMATION_STEP  (idempotency key per enrollment + step sequence)
 //     - runs exactly the step of the version the enrollment is bound to
@@ -16,7 +18,7 @@
 const { externalSendBlockReason } = require("../../authz/sending-gate");
 const { renderTemplate } = require("../template-renderer");
 const { unsubscribeUrl } = require("../unsubscribe-token");
-const { classifySendError, unsubscribeHeaders } = require("../marketing-sender");
+const { classifySendError, unsubscribeHeaders, brandSenderProblem, automationReplyTo, SENDER_MAILBOX_SELECT } = require("../marketing-sender");
 const { evaluateCondition } = require("./definition");
 const { nextOccurrence } = require("../scheduling");
 
@@ -48,7 +50,8 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
   }
 
   function triggerMatches(automation, version, event) {
-    if (event.source === "CONSENT") return automation.triggerType === "CONSENT_GRANTED" && event.payload?.topic === version.triggerConfig.topic;
+    // Imported consents are not sign-ups and never start welcome flows.
+    if (event.source === "CONSENT") return automation.triggerType === "CONSENT_GRANTED" && event.payload?.origin !== "IMPORT" && event.payload?.topic === version.triggerConfig.topic;
     if (event.source === "PRODUCT") return automation.triggerType === "PRODUCT_EVENT" && event.eventType === `${version.triggerConfig.eventType}@${version.triggerConfig.version}`;
     return false;
   }
@@ -97,14 +100,26 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
         continue;
       }
       const { eligible } = await eligibility({ organizationId: automation.organizationId, audience, segment, topic: version.definition.topic });
-      const batch = eligible.slice(0, config.automation.scheduleMaxEnrollmentsPerRun);
+      // The occurrence's own enrollments are the paging cursor: contacts
+      // already enrolled for it (dedupe key) are skipped on the next tick.
+      const prefix = `sched:${due.toISOString()}:`;
+      const done = new Set((await client.marketingAutomationEnrollment.findMany({ where: { automationId: automation.id, dedupeKey: { startsWith: prefix } }, select: { contactId: true } })).map((row) => row.contactId));
+      const pending = eligible.filter((contact) => !done.has(contact.id));
+      const batch = pending.slice(0, config.automation.scheduleMaxEnrollmentsPerRun);
       await client.$transaction(async (tx) => {
+        let blocked = null;
+        let added = 0;
         for (const contact of batch) {
-          const result = await enroll(tx, { ...automation, enrollmentLimit: Number.MAX_SAFE_INTEGER }, contact.id, { dedupeKey: `sched:${due.toISOString()}:${contact.id}` });
-          if (result.enrolled) enrolled += 1;
+          const result = await enroll(tx, { ...automation, enrollmentLimit: Number.MAX_SAFE_INTEGER }, contact.id, { dedupeKey: `${prefix}${contact.id}` });
+          if (result.enrolled) added += 1;
+          // At the active-enrollment ceiling: stop and retry next tick.
+          if (result.skipped === "MAX_ACTIVE_ENROLLMENTS" || result.skipped === "NO_PUBLISHED_VERSION") { blocked = result.skipped; break; }
         }
-        await tx.marketingAutomation.update({ where: { id: automation.id }, data: { lastScheduledRunAt: due } });
-        await audit.record({ action: "MARKETING_AUTOMATION_SCHEDULE_RUN", targetType: "marketing_automation", targetId: automation.id, organizationId: automation.organizationId, metadata: { occurrence: due.toISOString(), eligible: eligible.length, enrolled: batch.length, truncated: eligible.length > batch.length } }, {}, tx);
+        enrolled += added;
+        const remaining = pending.length - added;
+        const complete = !blocked && remaining <= 0;
+        if (complete) await tx.marketingAutomation.update({ where: { id: automation.id }, data: { lastScheduledRunAt: due } });
+        await audit.record({ action: "MARKETING_AUTOMATION_SCHEDULE_RUN", targetType: "marketing_automation", targetId: automation.id, organizationId: automation.organizationId, metadata: { occurrence: due.toISOString(), eligible: eligible.length, enrolled: added, alreadyEnrolled: done.size, remaining: Math.max(0, remaining), complete, blocked } }, {}, tx);
       });
     }
     return { enrolled };
@@ -159,9 +174,11 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
     return null;
   }
 
-  async function lastMarketingSendAt(organizationId, email, excludeEnrollmentId) {
+  // Includes this enrollment's own earlier sends (a multi-email sequence is
+  // still subject to the cap); only the step being run now is excluded.
+  async function lastMarketingSendAt(organizationId, email, enrollment) {
     const [run, recipient] = await Promise.all([
-      client.marketingAutomationStepRun.findFirst({ where: { organizationId, recipientEmail: email, status: "SUCCEEDED", enrollmentId: { not: excludeEnrollmentId } }, orderBy: { createdAt: "desc" }, select: { createdAt: true } }),
+      client.marketingAutomationStepRun.findFirst({ where: { organizationId, recipientEmail: email, status: "SUCCEEDED", NOT: { enrollmentId: enrollment.id, sequence: enrollment.stepCount } }, orderBy: { createdAt: "desc" }, select: { createdAt: true } }),
       client.marketingBroadcastRecipient.findFirst({ where: { organizationId, email, acceptedAt: { not: null } }, orderBy: { acceptedAt: "desc" }, select: { acceptedAt: true } }),
     ]);
     return Math.max(run?.createdAt?.getTime() || 0, recipient?.acceptedAt?.getTime() || 0) || null;
@@ -173,6 +190,18 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
     return { previous_send_delivered: ["DELIVERED"].includes(status), previous_send_opened: Boolean(previous?.outcome?.opened), previous_send_clicked: Boolean(previous?.outcome?.clicked) };
   }
 
+  // Records a blocked step. An earlier attempt may have left a RUNNING row
+  // for this (enrollment, sequence): that row is updated, never duplicated
+  // (a second insert would hit the unique key and dead-letter the job). A
+  // RUNNING row may already have reached the provider, so it becomes
+  // OUTCOME_UNKNOWN rather than SKIPPED/FAILED.
+  async function recordBlockedRun(tx, enrollment, organization, step, contact, status, errorCode) {
+    const existing = await tx.marketingAutomationStepRun.findUnique({ where: { enrollmentId_sequence: { enrollmentId: enrollment.id, sequence: enrollment.stepCount } } });
+    if (!existing) return tx.marketingAutomationStepRun.create({ data: { enrollmentId: enrollment.id, organizationId: organization.id, stepId: step.id, stepType: step.type, sequence: enrollment.stepCount, status, recipientEmail: contact.email, templateVersionId: step.templateVersionId || null, errorCode, createdAt: now() } });
+    if (existing.status !== "RUNNING") return existing;
+    return tx.marketingAutomationStepRun.update({ where: { id: existing.id }, data: { status: "OUTCOME_UNKNOWN", errorCode, outcome: { ...(existing.outcome || {}), blockedAfterAttempt: status } } });
+  }
+
   async function runSend(job, enrollment, automation, version, step, contact, organization) {
     const topic = version.definition.topic;
     const consent = await client.marketingConsent.findUnique({ where: { contactId_topic: { contactId: contact.id, topic } } });
@@ -181,13 +210,13 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
     if (contact.status !== "ACTIVE" || !consentOk || suppressed) {
       const reason = suppressed ? "SUPPRESSED" : contact.status !== "ACTIVE" ? `CONTACT_${contact.status}` : "CONSENT_NOT_GRANTED";
       await client.$transaction(async (tx) => {
-        await tx.marketingAutomationStepRun.create({ data: { enrollmentId: enrollment.id, organizationId: organization.id, stepId: step.id, stepType: step.type, sequence: enrollment.stepCount, status: "SKIPPED", recipientEmail: contact.email, errorCode: reason, createdAt: now() } });
+        await recordBlockedRun(tx, enrollment, organization, step, contact, "SKIPPED", reason);
         await finish(enrollment, "EXITED", reason, tx);
         await audit.record({ action: "MARKETING_AUTOMATION_SEND_BLOCKED", targetType: "marketing_automation", targetId: automation.id, organizationId: organization.id, metadata: { enrollmentId: enrollment.id, reason } }, {}, tx);
       });
       return { exited: reason };
     }
-    const last = await lastMarketingSendAt(organization.id, contact.email, enrollment.id);
+    const last = await lastMarketingSendAt(organization.id, contact.email, enrollment);
     if (automation.frequencyCapHours > 0 && last && now().getTime() - last < automation.frequencyCapHours * 3600000) {
       const runAt = new Date(last + automation.frequencyCapHours * 3600000);
       await client.marketingAutomationEnrollment.update({ where: { id: enrollment.id }, data: { status: "WAITING", nextRunAt: runAt } });
@@ -200,14 +229,15 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
     if (!settings?.postalAddress) return { defer: { seconds: 3600, code: "POSTAL_ADDRESS_MISSING" } };
     if (config.unsubscribe.secret.length < 32 || !config.publicApiUrl) return { defer: { seconds: 3600, code: "UNSUBSCRIBE_NOT_CONFIGURED" } };
     const template = await client.marketingTemplateVersion.findUnique({ where: { id: step.templateVersionId }, include: { template: true } });
-    const sender = await client.mailAddress.findUnique({ where: { id: step.senderAddressId }, include: { domain: { include: { organization: { select: { id: true, slug: true } } } } } });
+    const sender = await client.mailAddress.findUnique({ where: { id: step.senderAddressId }, include: { domain: { include: { organization: { select: { id: true, slug: true } } } }, mailbox: SENDER_MAILBOX_SELECT } });
     const provider = marketingProviders(organization);
-    const senderOk = sender && sender.organizationId === organization.id && sender.status === "ACTIVE" && ["SHARED", "SYSTEM", "ALIAS"].includes(sender.kind);
-    const blocked = !template || template.template.organizationId !== organization.id ? "TEMPLATE_UNAVAILABLE" : !senderOk ? "SENDER_NOT_AUTHORIZED" : externalSendBlockReason({ config, providerReady: () => provider.configured !== false && provider.name !== "unconfigured", domain: sender.domain });
+    const senderOk = !brandSenderProblem(sender, organization.id);
+    const replyTo = senderOk ? await automationReplyTo(client, organization.id, step, sender) : { address: null, problem: null };
+    const blocked = !template || template.template.organizationId !== organization.id ? "TEMPLATE_UNAVAILABLE" : !senderOk ? "SENDER_NOT_AUTHORIZED" : replyTo.problem ? "REPLY_TO_NOT_AUTHORIZED" : externalSendBlockReason({ config, providerReady: () => provider.configured !== false && provider.name !== "unconfigured", domain: sender.domain });
     if (blocked) {
       if (blocked === "MAIL_PROVIDER_NOT_CONFIGURED" || blocked === "MAIL_SENDING_DISABLED") return { defer: { seconds: 3600, code: blocked } };
       await client.$transaction(async (tx) => {
-        await tx.marketingAutomationStepRun.create({ data: { enrollmentId: enrollment.id, organizationId: organization.id, stepId: step.id, stepType: step.type, sequence: enrollment.stepCount, status: "FAILED", recipientEmail: contact.email, templateVersionId: step.templateVersionId, errorCode: blocked, createdAt: now() } });
+        await recordBlockedRun(tx, enrollment, organization, step, contact, "FAILED", blocked);
         await finish(enrollment, "FAILED", blocked, tx);
       });
       return { failed: blocked };
@@ -226,7 +256,7 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
       const result = await provider.sendEmail({
         idempotencyKey,
         from: { address: sender.address, name: sender.displayName || organization.name },
-        replyTo: null,
+        replyTo: { address: replyTo.address, name: null },
         to: [{ address: contact.email, name: [contact.firstName, contact.lastName].filter(Boolean).join(" ") || null }],
         cc: [], bcc: [],
         subject: rendered.subject,

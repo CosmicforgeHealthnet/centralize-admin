@@ -183,6 +183,16 @@ test("live responses and request validation agree with the OpenAPI document (rea
   conforms("get", "/me/entitlements", await call("dave", "GET", "/me/entitlements"));
   conforms("get", "/me/mailboxes", await call("dave", "GET", "/me/mailboxes"));
 
+  // Preferences (migration 36)
+  conforms("get", "/me/preferences", await call("dave", "GET", "/me/preferences"));
+  const prefsBody = { notificationsEnabled: false, defaultSenderAddressId: null };
+  assert.deepEqual(bodyErrors("put", "/me/preferences", prefsBody), []);
+  conforms("put", "/me/preferences", await call("dave", "PUT", "/me/preferences", prefsBody));
+  for (const bad of [{}, { notificationsEnabled: "off" }, { theme: "dark" }]) {
+    assert.notDeepEqual(bodyErrors("put", "/me/preferences", bad), [], `schema rejects ${JSON.stringify(bad)}`);
+    refused("put", "/me/preferences", await call("dave", "PUT", "/me/preferences", bad));
+  }
+
   // Labels
   const labelBody = { name: "Contract" };
   assert.deepEqual(bodyErrors("post", "/mailboxes/{mailboxId}/labels", labelBody), []);

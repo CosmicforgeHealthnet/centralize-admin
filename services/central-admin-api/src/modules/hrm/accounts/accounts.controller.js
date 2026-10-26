@@ -74,6 +74,11 @@ const resendInvite = asyncHandler(async (req, res) => {
 
 // ─── Grant Controllers ──────────────────────────────────────────────────
 
+const getMyGrants = asyncHandler(async (req, res) => {
+  const result = await accountsService.getMyGrants(req.adminUser);
+  return ApiResponse.success(res, 200, "Own grants retrieved", result);
+});
+
 const getUserGrants = asyncHandler(async (req, res) => {
   const grants = await accountsService.getUserGrants(req.params.id);
   return ApiResponse.success(res, 200, "User grants retrieved", grants);
@@ -136,6 +141,7 @@ module.exports = {
   updateAccount,
   updateStatus,
   getUserGrants,
+  getMyGrants,
   addGrant,
   syncGrants,
   updateGrant,

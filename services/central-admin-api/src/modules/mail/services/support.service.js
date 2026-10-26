@@ -13,6 +13,9 @@ const STATUSES = new Set(["OPEN", "PENDING", "RESOLVED", "CLOSED"]);
 const LOCK_MS = 2 * 60 * 1000;
 
 const NOTE_PURPOSE = "mail-internal-note";
+// Matches the Help > Tickets deep link (/dashboard/help/tickets?ref=...).
+const TICKET_REF = /^[A-Za-z0-9_-]{1,128}$/;
+const TICKET_TIERS = ["ADMIN", "EXECUTIVE", "SUPER"];
 
 function createSupportService({ client, mailboxService, audit, notifications, encryption, clock = () => new Date() }) {
   // Internal notes can quote customer mail, so they are encrypted at rest.
@@ -140,14 +143,25 @@ function createSupportService({ client, mailboxService, audit, notifications, en
     return { id: note.id, createdAt: iso(note.createdAt), mentions: valid };
   }
 
+  // Same authority as the Help & Support ticket API (requireTier("ADMIN") +
+  // requireSection("support", "tickets", "VIEW"); SUPER always passes).
+  async function canSeeSupportTickets(user) {
+    if (user?.tier === "SUPER") return true;
+    if (!TICKET_TIERS.includes(user?.tier)) return false;
+    return policy.hasSection(client, user, "support", "tickets", "VIEW");
+  }
+
+  // The ticket store lives in the HealthNet Main DB, which Mail never reads,
+  // so the link is a reference only: its existence is not verified.
   async function setTicketLink(user, threadId, { ticketRef }, context) {
     const { thread, mailbox } = await requireShared(user, threadId);
     if (!mailbox.supportTicketLinkEnabled) throw mailError("MAIL_INVALID_TRANSITION", { reason: "TICKET_LINKS_DISABLED" });
-    const ref = ticketRef == null ? null : String(ticketRef).trim();
-    if (ref && !/^[A-Za-z0-9_:#.-]{1,128}$/.test(ref)) throw mailError("MAIL_VALIDATION_FAILED", { field: "ticketRef" });
+    if (!(await canSeeSupportTickets(user))) throw mailError("MAIL_FORBIDDEN", { reason: "SUPPORT_TICKETS_ACCESS_REQUIRED" });
+    const ref = ticketRef == null || String(ticketRef).trim() === "" ? null : String(ticketRef).trim();
+    if (ref && !TICKET_REF.test(ref)) throw mailError("MAIL_VALIDATION_FAILED", { field: "ticketRef" });
     await client.mailThread.update({ where: { id: thread.id }, data: { supportTicketRef: ref } });
-    await audit.record({ actorAdminUserId: user.id, action: "MAIL_TICKET_LINK_SET", targetType: "thread", targetId: thread.id, mailboxId: mailbox.id, metadata: { ticketRef: ref } }, context);
-    return { supportTicketRef: ref };
+    await audit.record({ actorAdminUserId: user.id, action: "MAIL_TICKET_LINK_SET", targetType: "thread", targetId: thread.id, mailboxId: mailbox.id, metadata: { ticketRef: ref, verified: false } }, context);
+    return { supportTicketRef: ref, ticketRefVerified: false };
   }
 
   async function activity(user, threadId) {
@@ -161,4 +175,4 @@ function createSupportService({ client, mailboxService, audit, notifications, en
   return { supportMailboxes, queue, assign, setStatus, lock, unlock, listNotes, addNote, setTicketLink, activity };
 }
 
-module.exports = { createSupportService };
+module.exports = { createSupportService, TICKET_REF };

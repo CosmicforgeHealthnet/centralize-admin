@@ -41,6 +41,16 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
+  // Prisma foreign key violation: dependent records (retained history) exist
+  if (err.code === "P2003") {
+    return res.status(409).json({
+      success: false,
+      code: "INVALID_TRANSITION",
+      message: "This record is still referenced by other records and cannot be removed",
+      correlationId: req.correlationId || res.locals.correlationId || null,
+    });
+  }
+
   // Prisma record not found
   if (err.code === "P2025") {
     return res.status(404).json({

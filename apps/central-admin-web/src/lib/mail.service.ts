@@ -1,6 +1,6 @@
 import api from "./api";
 import { inspectHttpError } from "./error-messages";
-import { MAIL_API_BASE, MAIL_OPERATIONS, mailPath, type MailOperationId, type MailPathParams } from "./generated/mail-api";
+import { MAIL_API_BASE, MAIL_OPERATIONS, mailPath, type MailBody, type MailOperationId, type MailPathParams, type MailPreferences } from "./generated/mail-api";
 import type {
   ActivityEvent,
   Attachment,
@@ -22,6 +22,7 @@ import type {
   MailboxMember,
   MailboxSettingsInput,
   MailboxSummary,
+  SupportMailboxSummary,
   MembershipRole,
   MessageStatusResult,
   Paged,
@@ -165,8 +166,8 @@ export async function uploadDraftAttachment(draftId: string, file: File): Promis
 export const removeDraftAttachment = (draftId: string, attachmentId: string) =>
   op("deleteDraftsAttachmentsByAttachmentId", { draftId, attachmentId }).send<unknown>();
 
-export const sendDraft = (draftId: string, revision: number, idempotencyKey: string) =>
-  op("postDraftsSend", { draftId }).send<SendResult>({ revision }, { "Idempotency-Key": idempotencyKey });
+export const sendDraft = (draftId: string, revision: number, idempotencyKey: string, replyToAddressId: string | null = null) =>
+  op("postDraftsSend", { draftId }).send<SendResult>({ revision, ...(replyToAddressId ? { replyToAddressId } : {}) }, { "Idempotency-Key": idempotencyKey });
 export const fetchMessageStatus = (messageId: string) => op("getMessagesStatus", { messageId }).get<MessageStatusResult>();
 
 export async function downloadAttachment(attachment: Attachment): Promise<void> {
@@ -205,7 +206,7 @@ export const revokeMember = (mailboxId: string, membershipId: string) =>
   op("deleteMailboxesMembersByMembershipId", { mailboxId, membershipId }).send<unknown>();
 export const updateMailboxSettings = (mailboxId: string, body: MailboxSettingsInput) =>
   op("patchMailboxesSettings", { mailboxId }).send<MailboxDetail>(body);
-export const fetchSupportMailboxes = () => op("getSupportMailboxes", {}).get<MailboxSummary[]>();
+export const fetchSupportMailboxes = () => op("getSupportMailboxes", {}).get<SupportMailboxSummary[]>();
 
 export const searchStaffDirectory = (q: string) => op("getDirectoryStaff", {}).get<StaffDirectoryEntry[]>({ q });
 
@@ -215,6 +216,14 @@ export const createRule = (mailboxId: string, body: MailRuleInput) => op("postMa
 export const updateRule = (ruleId: string, body: MailRuleInput) => op("patchRulesByRuleId", { ruleId }).send<MailRule>(body);
 export const deleteRule = (ruleId: string) => op("deleteRulesByRuleId", { ruleId }).send<{ deleted: boolean }>();
 export const reorderRules = (mailboxId: string, ruleIds: string[]) => op("postMailboxesRulesReorder", { mailboxId }).send<MailRule[]>({ ruleIds });
+
+// ── Per-user preferences (spec 15 "Profiles") ────────────────────────────
+// Before migration 36 the GET answers the defaults with available=false and
+// the PUT answers 503 MAIL_FEATURE_NOT_READY.
+export type { MailPreferences };
+export type MailPreferencesInput = MailBody<"putMePreferences">;
+export const fetchPreferences = () => op("getMePreferences", {}).get<MailPreferences>();
+export const updatePreferences = (body: MailPreferencesInput) => op("putMePreferences", {}).send<MailPreferences>(body);
 
 // ── Forwarding (approved by a mail administrator) ─────────────────────────
 export const fetchForwarding = (mailboxId: string) => op("getMailboxesForwarding", { mailboxId }).get<ForwardingRule[]>();

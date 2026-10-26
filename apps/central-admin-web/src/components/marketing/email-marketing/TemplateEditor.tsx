@@ -254,7 +254,7 @@ export default function TemplateEditor({ org, templateId }: { org: MarketingOrga
           <div className="flex flex-col gap-3">
             <div className={device === "mobile" ? "mx-auto w-[375px] max-w-full" : "w-full"}>
               {previewTab === "html" ? (
-                <SafeHtmlFrame html={render.html} title="Email preview" minHeight={480} />
+                <SafeHtmlFrame html={render.html} title="Email preview" minHeight={480} allowRemoteImages />
               ) : (
                 <pre className="max-h-[480px] overflow-auto whitespace-pre-wrap rounded border border-border p-3 font-mono text-[12px]">{render.text}</pre>
               )}

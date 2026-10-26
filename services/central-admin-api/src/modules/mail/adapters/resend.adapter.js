@@ -187,6 +187,48 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
     return url;
   }
 
+  const tooLarge = () => new MailProviderError("PERMANENT", "ATTACHMENT_TOO_LARGE", "Attachment exceeds limit");
+
+  // Reads the body chunk by chunk and aborts as soon as the cap is passed, so
+  // a response without (or with a lying) Content-Length is never buffered whole.
+  async function readCapped(response, limit, controller) {
+    const body = response.body;
+    if (!body) {
+      const buffer = Buffer.from(await response.arrayBuffer());
+      if (buffer.length > limit) throw tooLarge();
+      return buffer;
+    }
+    const chunks = [];
+    let total = 0;
+    const take = (chunk) => {
+      total += chunk.byteLength;
+      if (total > limit) return false;
+      chunks.push(Buffer.from(chunk));
+      return true;
+    };
+    if (typeof body.getReader === "function") {
+      const reader = body.getReader();
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (!take(value)) {
+          controller.abort();
+          await reader.cancel().catch(() => {});
+          throw tooLarge();
+        }
+      }
+    } else {
+      for await (const chunk of body) {
+        if (!take(chunk)) {
+          controller.abort();
+          body.destroy?.();
+          throw tooLarge();
+        }
+      }
+    }
+    return Buffer.concat(chunks, total);
+  }
+
   async function download(urlValue, maxBytes = MAX_ATTACHMENT_DOWNLOAD_BYTES) {
     const limit = Math.min(Number(maxBytes) || MAX_ATTACHMENT_DOWNLOAD_BYTES, MAX_ATTACHMENT_DOWNLOAD_BYTES);
     const url = assertSafeDownloadUrl(urlValue);
@@ -194,12 +236,18 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const response = await fetchImpl(url.toString(), { method: "GET", signal: controller.signal, redirect: "error" });
+      // Redirects are never followed (the target host would bypass the allowlist).
+      if (response.redirected || (response.status >= 300 && response.status < 400)) {
+        controller.abort();
+        throw new MailProviderError("PERMANENT", "ATTACHMENT_REDIRECT_REFUSED", "Attachment download redirected");
+      }
       if (!response.ok) throw new MailProviderError(classifyStatus(response.status), `ATTACHMENT_HTTP_${response.status}`, "Attachment download failed", { status: response.status });
       const declared = Number(response.headers?.get?.("content-length"));
-      if (Number.isFinite(declared) && declared > limit) throw new MailProviderError("PERMANENT", "ATTACHMENT_TOO_LARGE", "Attachment exceeds limit");
-      const buffer = Buffer.from(await response.arrayBuffer());
-      if (buffer.length > limit) throw new MailProviderError("PERMANENT", "ATTACHMENT_TOO_LARGE", "Attachment exceeds limit");
-      return buffer;
+      if (Number.isFinite(declared) && declared > limit) {
+        controller.abort();
+        throw tooLarge();
+      }
+      return await readCapped(response, limit, controller);
     } catch (error) {
       if (error instanceof MailProviderError) throw error;
       throw new MailProviderError("RETRYABLE", "ATTACHMENT_DOWNLOAD_FAILED", "Attachment download did not complete");
@@ -218,7 +266,7 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
       sizeBytes: Number(item.size || 0),
       contentId: item.content_id ? String(item.content_id).replace(/[<>]/g, "").slice(0, 255) : null,
       inline: item.content_disposition === "inline",
-      download: () => download(item.download_url),
+      download: (maxBytes) => download(item.download_url, maxBytes),
     }));
   }
 

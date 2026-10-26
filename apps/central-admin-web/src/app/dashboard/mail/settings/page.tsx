@@ -11,6 +11,7 @@ import { formatFullDate } from "@/components/mail/mail-utils";
 import StaffPicker from "@/components/mail/StaffPicker";
 import MailFilters from "@/components/mail/MailFilters";
 import MailForwarding from "@/components/mail/MailForwarding";
+import MailPreferences from "@/components/mail/MailPreferences";
 import api from "@/lib/api";
 import {
   addMember,
@@ -264,6 +265,7 @@ function SettingsInner() {
         <Link href="/dashboard/mail/integrations" className="text-[12px] font-semibold text-primary hover:underline">Product integrations</Link>
       </div>
       <PermissionBoundary isLoading={ent.isLoading} error={ent.error} retry={() => ent.refetch()}>
+        <MailPreferences />
         {mailboxes.length > 0 && (
           <label className="text-[11px] text-muted-foreground">Mailbox
             <select value={selectedId} onChange={(e) => router.replace(`/dashboard/mail/settings?mailboxId=${e.target.value}`)} className={input}>

@@ -11,6 +11,8 @@ const { mailError } = require("../mail.errors");
 
 const PURPOSES = Object.freeze(["STAFF_MAIL", "SUPPORT", "MARKETING_BROADCAST", "MARKETING_AUTOMATION", "MARKETING_CONFIRMATION", "INBOUND"]);
 const LIMITABLE = Object.freeze(PURPOSES.filter((purpose) => purpose !== "INBOUND"));
+// Purposes whose queued mail lives in mail_message_recipients (staff/support).
+const QUEUE_TRACKED = Object.freeze(["STAFF_MAIL", "SUPPORT"]);
 
 function utcDay(date) {
   return date.toISOString().slice(0, 10);
@@ -53,9 +55,9 @@ function createUsageService({ client, audit, env = process.env, clock = () => ne
         "updated_at" = now()`;
   }
 
-  async function totals(organizationId, purpose) {
+  async function totals(organizationId, purpose, db = client) {
     const now = clock();
-    const rows = await client.mailUsageDaily.findMany({ where: { organizationId, purpose, day: { gte: new Date(`${monthStart(now)}T00:00:00Z`) } } });
+    const rows = await db.mailUsageDaily.findMany({ where: { organizationId, purpose, day: { gte: new Date(`${monthStart(now)}T00:00:00Z`) } } });
     const today = utcDay(now);
     return {
       today: rows.filter((row) => utcDay(row.day) === today).reduce((sum, row) => sum + row.accepted, 0),
@@ -63,14 +65,31 @@ function createUsageService({ client, audit, env = process.env, clock = () => ne
     };
   }
 
+  // External recipients queued but not yet accepted by the provider. They
+  // are counted toward the limit so a burst of queued mail cannot overshoot.
+  async function queuedRecipients(db, organizationId, purpose) {
+    if (!QUEUE_TRACKED.includes(purpose)) return 0;
+    const mailbox = purpose === "SUPPORT" ? { organizationId, purpose: "SUPPORT" } : { organizationId, NOT: { purpose: "SUPPORT" } };
+    return db.mailMessageRecipient.count({ where: { status: "PENDING", message: { direction: "OUTBOUND", mailbox } } });
+  }
+
   /**
    * Returns { allowed, reason, limit, period, soft } for sending `count` more
    * messages. Never throws; callers decide whether to refuse or defer.
+   * includeQueued (default true) also counts queued, not yet accepted staff
+   * recipients; the dispatcher passes false because the batch it is about to
+   * send is itself queued. `db` lets callers check inside their transaction.
    */
-  async function check(organizationId, purpose, count = 1) {
-    const limit = await client.mailQuotaLimit.findUnique({ where: { organizationId_purpose: { organizationId, purpose } } });
+  async function check(organizationId, purpose, count = 1, { includeQueued = true, db = client } = {}) {
+    if (!organizationId) return { allowed: true, soft: false };
+    const limit = await db.mailQuotaLimit.findUnique({ where: { organizationId_purpose: { organizationId, purpose } } });
     if (!limit) return { allowed: true, soft: false };
-    const used = await totals(organizationId, purpose);
+    const used = await totals(organizationId, purpose, db);
+    if (includeQueued) {
+      const queued = await queuedRecipients(db, organizationId, purpose);
+      used.today += queued;
+      used.month += queued;
+    }
     if (limit.dailyHardLimit != null && used.today + count > limit.dailyHardLimit) return { allowed: false, reason: "MAIL_QUOTA_HARD_LIMIT", limit: limit.dailyHardLimit, period: "day", used: used.today };
     if (limit.monthlyHardLimit != null && used.month + count > limit.monthlyHardLimit) return { allowed: false, reason: "MAIL_QUOTA_HARD_LIMIT", limit: limit.monthlyHardLimit, period: "month", used: used.month };
     const soft = limit.dailySoftLimit != null && used.today + count > limit.dailySoftLimit;
@@ -78,8 +97,8 @@ function createUsageService({ client, audit, env = process.env, clock = () => ne
     return { allowed: true, soft };
   }
 
-  async function assertWithinQuota(organizationId, purpose, count = 1) {
-    const result = await check(organizationId, purpose, count);
+  async function assertWithinQuota(organizationId, purpose, count = 1, options = {}) {
+    const result = await check(organizationId, purpose, count, options);
     if (!result.allowed) throw mailError("MAIL_QUOTA_HARD_LIMIT", { purpose, period: result.period, limit: result.limit });
     return result;
   }

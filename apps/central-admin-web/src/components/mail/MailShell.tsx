@@ -29,8 +29,11 @@ export default function MailShell({ mailboxId, threadId }: { mailboxId: string; 
       const v = params.get(k);
       if (v) s[k] = v;
     }
-    return Object.keys(s).length ? s : null;
-  }, [params]);
+    if (!Object.keys(s).length) return null;
+    // A text search inside a label keeps the label filter.
+    if (labelId) s.labelId = labelId;
+    return s;
+  }, [params, labelId]);
 
   const mailboxes = entitlements.data?.mailboxes ?? [];
   const mailbox = mailboxes.find((m) => m.id === mailboxId);

@@ -1,8 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import Sidebar from "@/components/dashboard/Sidebar";
+import { usePathname } from "next/navigation";
+import Sidebar, { isDashboardPathAllowed, useNavPermissions } from "@/components/dashboard/Sidebar";
 import Navbar from "@/components/dashboard/Navbar";
+
+// Employees only reach sections they hold a grant for (the APIs enforce the
+// same rules; this keeps the UI from showing pages that would only fail).
+function SectionGate({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const perms = useNavPermissions();
+  if (perms.privileged || isDashboardPathAllowed(pathname, perms)) return <>{children}</>;
+  if (!perms.ready) {
+    return <p role="status" className="font-poppins text-[12px] text-muted-foreground p-6">Loading…</p>;
+  }
+  return (
+    <div role="status" className="bg-card rounded-lg border border-border p-6 flex flex-col gap-2">
+      <h2 className="font-poppins text-[14px] font-semibold text-foreground">You do not have access to this section</h2>
+      <p className="font-poppins text-[12px] text-muted-foreground">Ask an administrator for access if you need it for your work.</p>
+    </div>
+  );
+}
 
 export default function DashboardLayout({
   children,
@@ -101,7 +119,7 @@ export default function DashboardLayout({
 
       {/* Main content sits in grid col 2, row 2 */}
       <main className="dashboard-main">
-        {children}
+        <SectionGate>{children}</SectionGate>
       </main>
     </div>
   );

@@ -389,3 +389,299 @@ test("CosmicForge Mail M9 operations on real PostgreSQL", { timeout: 300000 }, a
 });
 
 const state = {};
+
+// ---- hardening regressions on real PostgreSQL (self-contained) ----
+// a1 multipart limits, a4 policy vs malware quarantine, b1 raw MIME gating,
+// b2 inline cid images, e1-e3 search, f1 soft-deleted thread purge, f2 draft
+// sweep + inbound orphan avoidance, f3 replies to deleted threads.
+test("CosmicForge Mail hardening regressions on real PostgreSQL", { timeout: 300000 }, async (t) => {
+  assert.ok(process.env.DATABASE_URL, "DATABASE_URL is required");
+  const db = await openDatabase();
+  const { client } = db;
+  const env = { MAIL_ATTACHMENT_MAX_BYTES: "4096", MAIL_ARCHIVE_RAW_MIME: "true", MAIL_RETENTION_BATCH_SIZE: "2" };
+  const harness = createHarness(client, { env });
+  const seeded = await seed(client, { clock: harness.clock });
+  for (const [userId, sessionId] of seeded.sessions) harness.state.sessions.set(userId, sessionId);
+  const { ids, brands } = seeded;
+  const cf = brands.cosmicforge;
+  const execApp = harness.build({ ...env, MAIL_RETENTION_EXECUTION_ENABLED: "true" });
+  const { server, base } = await listen(harness.mountApp(harness.mail));
+  const exec = await listen(harness.mountApp(execApp));
+  const call = caller(base, ids);
+  const callExec = caller(exec.base, ids);
+  const local = {};
+  const stepUp = async (purpose, target = call) => {
+    harness.advance(31000);
+    const response = await target("ops", "POST", "/security/step-up", { code: totp(harness.clock), purpose });
+    assert.equal(response.status, 201, response.text);
+    return response.body.data.stepUpId;
+  };
+  const work = async (application, rounds = 12) => {
+    const worker = application.createWorker({ queues: ["EVENTS"] });
+    for (let index = 0; index < rounds; index += 1) {
+      harness.advance(2000);
+      await worker.drain({ maxTicks: 20 });
+    }
+  };
+  let seq = 0;
+  const receive = async (attachments = [], overrides = {}) => {
+    seq += 1;
+    const id = `in_hard_${seq}`;
+    harness.adapter.addInbound(id, {
+      from: { address: "sender@client.example", name: "Sender" }, to: [{ address: "dave@cosmicforge.example", name: null }], cc: [], envelopeRecipients: [],
+      subject: `Hardening ${seq}`, html: "<p>hello</p>", text: "hello", rfcMessageId: `<hard-${seq}-${crypto.randomUUID()}@client.example>`, inReplyTo: null, references: [], receivedAt: harness.clock(),
+      originalHeaders: [{ name: "Subject", value: `Hardening ${seq}` }], ...overrides,
+    }, attachments);
+    const result = await harness.mail.processors.inbound.process({ payload: { providerEmailId: id, to: ["dave@cosmicforge.example"] }, webhookEventId: null });
+    const message = await client.mailMessage.findFirst({ where: { providerMessageId: id, mailboxId: local.daveBox }, include: { attachments: true } });
+    return { id, result, message };
+  };
+  const PNG = Buffer.from("89504e470d0a1a0a0000000d4948445200000001000000010806000000", "hex");
+
+  try {
+    await t.test("setup: dave's personal mailbox", async () => {
+      const box = await call("ops", "POST", "/admin/mailboxes", { organizationId: cf.organization.id, type: "PERSONAL", ownerAdminUserId: ids.dave, address: { domainId: cf.domain.id, localPart: "dave" } });
+      assert.equal(box.status, 201, box.text);
+      local.daveBox = box.body.data.id;
+    });
+
+    await t.test("a1: attachment uploads refuse extra form fields and oversized text parts", async () => {
+      const draft = await call("dave", "POST", `/mailboxes/${local.daveBox}/drafts`, { to: ["x@partner.example"], subject: "Upload", text: "x" });
+      assert.equal(draft.status, 201, draft.text);
+      local.draftId = draft.body.data.id;
+      const upload = (form) => fetch(`${base}/drafts/${local.draftId}/attachments`, { method: "POST", headers: { "x-test-user": ids.dave }, body: form });
+      const manyFields = new FormData();
+      for (let index = 0; index < 50; index += 1) manyFields.append(`f${index}`, "x");
+      manyFields.append("file", new Blob(["hello"], { type: "text/plain" }), "a.txt");
+      const refused = await upload(manyFields);
+      assert.equal(refused.status, 400);
+      assert.match(await refused.text(), /LIMIT_(FIELD_COUNT|PART_COUNT)/);
+      const bigField = new FormData();
+      bigField.append("note", "x".repeat(4096));
+      bigField.append("file", new Blob(["hello"], { type: "text/plain" }), "a.txt");
+      const tooBig = await upload(bigField);
+      assert.equal(tooBig.status, 400);
+      assert.match(await tooBig.text(), /LIMIT_FIELD_VALUE/);
+      const plain = new FormData();
+      plain.append("file", new Blob(["hello"], { type: "text/plain" }), "a.txt");
+      assert.equal((await upload(plain)).status, 201);
+    });
+
+    await t.test("a4: an oversize or blocked attachment is quarantined by policy without marking the message malicious", async () => {
+      const { message } = await receive([
+        { filename: "big-report.pdf", contentType: "application/pdf", content: Buffer.alloc(6000, 1) },
+        { filename: "tool.exe", contentType: "application/octet-stream", content: Buffer.from("not really") },
+        { filename: "ok.txt", contentType: "text/plain", content: Buffer.from("fine") },
+      ]);
+      assert.equal(message.status, "RECEIVED", "policy refusals are not malware");
+      assert.equal(message.quarantineReason, null);
+      const byName = Object.fromEntries(message.attachments.map((row) => [row.filename, row]));
+      assert.deepEqual([byName["big-report.pdf"].scanStatus, byName["big-report.pdf"].scanDetail, byName["big-report.pdf"].quarantined], ["SCAN_FAILED", "POLICY_SIZE_LIMIT", true]);
+      assert.deepEqual([byName["tool.exe"].scanStatus, byName["tool.exe"].scanDetail, byName["tool.exe"].quarantined], ["SCAN_FAILED", "POLICY_BLOCKED_EXTENSION_EXE", true]);
+      assert.equal(byName["ok.txt"].scanStatus, "CLEAN");
+      local.policyMessage = message;
+      const { message: virus } = await receive([{ filename: "v.txt", contentType: "text/plain", content: Buffer.from(EICAR_TEXT) }]);
+      assert.equal(virus.status, "QUARANTINED");
+      assert.equal(virus.quarantineReason, "MALICIOUS_ATTACHMENT");
+    });
+
+    await t.test("b1: raw MIME is refused unless every attachment is CLEAN and released", async () => {
+      const raw = (messageId) => call("dave", "GET", `/messages/${messageId}/raw`);
+      const withPolicyBlock = await receive([{ filename: "tool.exe", contentType: "application/octet-stream", content: Buffer.from("x") }], { rawMime: "From: sender@client.example\r\n\r\nraw" });
+      const refused = await raw(withPolicyBlock.message.id);
+      assert.equal(refused.status, 403, refused.text);
+      assert.equal(refused.body.code, "MAIL_ATTACHMENT_QUARANTINED");
+      for (const scanStatus of ["SCANNER_UNAVAILABLE", "SCAN_FAILED", "PENDING", "INFECTED"]) {
+        await client.mailAttachment.updateMany({ where: { messageId: withPolicyBlock.message.id }, data: { scanStatus, quarantined: false } });
+        assert.equal((await raw(withPolicyBlock.message.id)).status, 403, `${scanStatus} blocks raw download`);
+      }
+      await client.mailAttachment.updateMany({ where: { messageId: withPolicyBlock.message.id }, data: { scanStatus: "CLEAN", quarantined: true } });
+      assert.equal((await raw(withPolicyBlock.message.id)).status, 403, "quarantined flag alone blocks");
+      await client.mailAttachment.updateMany({ where: { messageId: withPolicyBlock.message.id }, data: { scanStatus: "CLEAN", quarantined: false } });
+      const allowed = await raw(withPolicyBlock.message.id);
+      assert.equal(allowed.status, 200, allowed.text);
+      assert.match(allowed.text, /raw/);
+    });
+
+    await t.test("b2: clean inline cid images render as data: URIs; others are listed for download", async () => {
+      const { message } = await receive([
+        { filename: "logo.png", contentType: "image/png", content: PNG, inline: true, contentId: "logo1" },
+        { filename: "vector.svg", contentType: "image/svg+xml", content: Buffer.from("<svg/>"), inline: true, contentId: "vec1" },
+        { filename: "huge.png", contentType: "image/png", content: Buffer.alloc(6000, 2), inline: true, contentId: "huge1" },
+      ], { html: '<p>Hi <img src="cid:logo1"> <img src="cid:vec1"> <img src="cid:huge1"></p>' });
+      const messages = await call("dave", "GET", `/threads/${message.threadId}/messages`);
+      assert.equal(messages.status, 200, messages.text);
+      const [rendered] = messages.body.data;
+      assert.match(rendered.html, new RegExp(`src="data:image/png;base64,${PNG.toString("base64")}"`));
+      assert.equal((rendered.html.match(/data-blocked-src="cid"/g) || []).length, 2, "svg and unclean images stay blocked");
+      const byName = Object.fromEntries(rendered.attachments.map((row) => [row.filename, row]));
+      assert.equal(byName["logo.png"].renderedInline, true);
+      assert.equal(byName["vector.svg"].renderedInline, false);
+      assert.equal(byName["vector.svg"].downloadable, true, "clean but unrenderable inline images stay downloadable");
+      assert.equal(byName["huge.png"].renderedInline, false);
+      assert.equal(byName["huge.png"].downloadable, false);
+    });
+
+    await t.test("f2: replays and failures leave no orphan objects in storage", async () => {
+      const before = harness.backend.objects.size;
+      const first = await receive([{ filename: "a.txt", contentType: "text/plain", content: Buffer.from("a") }]);
+      const afterFirst = harness.backend.objects.size;
+      assert.ok(afterFirst > before);
+      const replay = await harness.mail.processors.inbound.process({ payload: { providerEmailId: first.id, to: ["dave@cosmicforge.example"] }, webhookEventId: null });
+      assert.equal(replay.duplicate, true);
+      assert.equal(harness.backend.objects.size, afterFirst, "nothing stored for a replay");
+      // A failure after objects were written removes them again.
+      const failingApp = harness.build(env, { adapter: { ...harness.adapter, fetchInboundAttachments: async (id) => (await harness.adapter.fetchInboundAttachments(id)).map((entry, index) => (index === 1 ? { ...entry, download: async () => { throw Object.assign(new Error("boom"), { kind: "RETRYABLE" }); } } : entry)) } });
+      seq += 1;
+      harness.adapter.addInbound("in_fail", { from: { address: "sender@client.example", name: null }, to: [{ address: "dave@cosmicforge.example", name: null }], cc: [], envelopeRecipients: [], subject: "Fails", html: null, text: "x", rfcMessageId: "<fails@client.example>", inReplyTo: null, references: [], receivedAt: harness.clock() }, [
+        { filename: "1.txt", contentType: "text/plain", content: Buffer.from("one") },
+        { filename: "2.txt", contentType: "text/plain", content: Buffer.from("two") },
+      ]);
+      await assert.rejects(failingApp.processors.inbound.process({ payload: { providerEmailId: "in_fail", to: ["dave@cosmicforge.example"] }, webhookEventId: null }), (error) => error.code === "ATTACHMENT_DOWNLOAD_RETRY");
+      assert.equal(harness.backend.objects.size, afterFirst, "the first attachment written before the failure was removed");
+    });
+
+    await t.test("f3: a reply to a deleted conversation starts a new, visible thread", async () => {
+      const original = await receive([], { rfcMessageId: "<deleted-root@client.example>", subject: "Old topic" });
+      await call("dave", "POST", `/threads/${original.message.threadId}/move`, { folder: "TRASH" });
+      assert.equal((await call("dave", "DELETE", `/threads/${original.message.threadId}`)).status, 200);
+      const reply = await receive([], { subject: "Re: Old topic", inReplyTo: "<deleted-root@client.example>", references: ["<deleted-root@client.example>"] });
+      assert.notEqual(reply.message.threadId, original.message.threadId);
+      const thread = await client.mailThread.findUnique({ where: { id: reply.message.threadId } });
+      assert.equal(thread.deletedAt, null);
+      const inbox = await call("dave", "GET", `/mailboxes/${local.daveBox}/threads?view=inbox`);
+      assert.ok(inbox.body.data.some((row) => row.id === reply.message.threadId), "the reply is visible");
+      local.deletedThreadId = original.message.threadId;
+    });
+
+    await t.test("e1-e3: search paging is stable, label-only search works, filters are literal", async () => {
+      const searchBox = await client.mailMailbox.create({ data: { organizationId: cf.organization.id, type: "SHARED", purpose: "GENERAL", name: "Search box" } });
+      await client.mailMembership.create({ data: { mailboxId: searchBox.id, adminUserId: ids.dave, role: "MEMBER", canSend: false, grantedBy: ids.super } });
+      const hour = 3600000;
+      const now = harness.clock().getTime();
+      const make = async (index, { subject = `Paging thread ${index}`, from = "pager@client.example", to = "dave@cosmicforge.example", at = new Date(now - (10 - index) * hour) } = {}) => {
+        const thread = await client.mailThread.create({ data: { mailboxId: searchBox.id, subject, normalizedSubject: subject.toLowerCase(), lastMessageAt: at, messageCount: 1, hasInbound: true } });
+        const message = await client.mailMessage.create({ data: { mailboxId: searchBox.id, threadId: thread.id, direction: "INBOUND", status: "RECEIVED", rfcMessageId: `<${crypto.randomUUID()}@client.example>`, subject, fromAddress: from, metadataSearchText: `${subject} ${from} ${to}`, createdAt: at } });
+        await client.mailMessageRecipient.create({ data: { messageId: message.id, type: "TO", address: to, status: "DELIVERED" } });
+        return thread;
+      };
+      const threads = [];
+      for (let index = 1; index <= 5; index += 1) threads.push(await make(index));
+      const search = (query) => call("dave", "GET", `/mailboxes/${searchBox.id}/search?${new URLSearchParams(query)}`);
+      const page1 = await search({ q: "paging", limit: "2" });
+      assert.equal(page1.status, 200, page1.text);
+      assert.deepEqual(page1.body.data.map((row) => row.id), [threads[4].id, threads[3].id]);
+      // New mail arrives in the oldest thread and in an already-listed thread.
+      for (const thread of [threads[0], threads[4]]) {
+        const at = new Date(Date.now() + 1000);
+        await client.mailMessage.create({ data: { mailboxId: searchBox.id, threadId: thread.id, direction: "INBOUND", status: "RECEIVED", rfcMessageId: `<${crypto.randomUUID()}@client.example>`, subject: "Paging follow-up", fromAddress: "pager@client.example", metadataSearchText: "paging follow-up", createdAt: new Date() } });
+        await client.mailThread.update({ where: { id: thread.id }, data: { lastMessageAt: at } });
+      }
+      const seen = page1.body.data.map((row) => row.id);
+      let cursor = page1.body.meta.nextCursor;
+      while (cursor) {
+        const next = await search({ q: "paging", limit: "2", cursor });
+        assert.equal(next.status, 200, next.text);
+        seen.push(...next.body.data.map((row) => row.id));
+        cursor = next.body.meta.nextCursor;
+      }
+      assert.equal(new Set(seen).size, seen.length, "no thread repeated across pages");
+      assert.deepEqual([...seen].sort(), threads.map((thread) => thread.id).sort(), "no thread skipped");
+
+      // Label-only search (e3).
+      const label = await call("dave", "POST", `/mailboxes/${searchBox.id}/labels`, { name: "Finance" });
+      assert.equal(label.status, 201, label.text);
+      assert.equal((await call("dave", "PUT", `/threads/${threads[2].id}/labels/${label.body.data.id}`)).status, 200);
+      const byLabel = await search({ labelId: label.body.data.id });
+      assert.equal(byLabel.status, 200, byLabel.text);
+      assert.deepEqual(byLabel.body.data.map((row) => row.id), [threads[2].id]);
+      assert.equal((await search({})).status, 400, "an empty search is still refused");
+
+      // from / to / date filters, and literal % and _ (e3).
+      const special = await make(6, { subject: "100%_off deal", from: "promo_team@shop.example", to: "finance@cosmicforge.example", at: new Date(now - 30 * hour) });
+      const ids6 = async (query) => (await search(query)).body.data.map((row) => row.id);
+      assert.deepEqual(await ids6({ from: "promo_team" }), [special.id]);
+      assert.deepEqual(await ids6({ from: "%" }), [], "% is not a wildcard");
+      assert.deepEqual(await ids6({ subject: "100%_off" }), [special.id]);
+      assert.deepEqual(await ids6({ subject: "100__off" }), [], "_ is not a wildcard");
+      assert.deepEqual(await ids6({ to: "finance@cosmicforge" }), [special.id]);
+      assert.deepEqual(await ids6({ q: "paging", before: new Date(now - 7.5 * hour).toISOString() }), [threads[1].id, threads[0].id]);
+      assert.deepEqual(await ids6({ q: "paging", after: new Date(now - 6.5 * hour).toISOString(), before: new Date(now - 5.5 * hour).toISOString() }), [threads[3].id]);
+    });
+
+    await t.test("f1 + f2: DELETE retention purges soft-deleted threads and stale draft content, respecting holds", async () => {
+      const box = await client.mailMailbox.create({ data: { organizationId: cf.organization.id, type: "SHARED", purpose: "GENERAL", name: "Retention sweep" } });
+      const heldBox = await client.mailMailbox.create({ data: { organizationId: cf.organization.id, type: "SHARED", purpose: "GENERAL", name: "Retention held" } });
+      await client.mailMembership.create({ data: { mailboxId: box.id, adminUserId: ids.dave, role: "MANAGER", canSend: true, grantedBy: ids.super } });
+      const old = new Date(harness.clock().getTime() - 400 * 86400000);
+      const exists = async (key) => harness.backend.read(key).then(() => true, () => false);
+      // Soft-deleted (by the user) old thread.
+      const body = await harness.mail.store.storeBody({ html: "<p>deleted secret</p>", text: "deleted secret" });
+      const thread = await client.mailThread.create({ data: { mailboxId: box.id, subject: "Deleted topic", normalizedSubject: "deleted topic", folder: "TRASH", lastMessageAt: old, messageCount: 1, hasInbound: true } });
+      const message = await client.mailMessage.create({ data: { mailboxId: box.id, threadId: thread.id, direction: "INBOUND", status: "RECEIVED", rfcMessageId: `<${crypto.randomUUID()}@client.example>`, subject: "Deleted topic", fromAddress: "x@client.example", contentObjectKey: body.key, contentSha256: body.sha256, createdAt: old } });
+      assert.equal((await call("dave", "DELETE", `/threads/${thread.id}`)).status, 200);
+      // Stale draft content.
+      const draftAttachment = await harness.mail.store.storeAttachmentContent(Buffer.from("draft attachment"));
+      const discarded = await client.mailDraft.create({ data: { mailboxId: box.id, authorAdminUserId: ids.dave, status: "DISCARDED", updatedAt: old, createdAt: old } });
+      await client.mailAttachment.create({ data: { mailboxId: box.id, draftId: discarded.id, filename: "d.txt", contentType: "text/plain", sizeBytes: 1, sha256: draftAttachment.sha256, storageKey: draftAttachment.key, scanStatus: "CLEAN", quarantined: false, createdAt: old } });
+      const removedKey = await harness.mail.store.storeAttachmentContent(Buffer.from("removed attachment"));
+      const removed = await client.mailAttachment.create({ data: { mailboxId: box.id, filename: "r.txt", contentType: "text/plain", sizeBytes: 1, sha256: removedKey.sha256, storageKey: removedKey.key, scanStatus: "CLEAN", quarantined: true, createdAt: old } });
+      const fresh = await client.mailDraft.create({ data: { mailboxId: box.id, authorAdminUserId: ids.dave, status: "DISCARDED" } });
+      const sending = await client.mailDraft.create({ data: { mailboxId: box.id, authorAdminUserId: ids.dave, status: "SENDING", updatedAt: old } });
+      const heldDraft = await client.mailDraft.create({ data: { mailboxId: heldBox.id, authorAdminUserId: ids.dave, status: "DISCARDED", updatedAt: old } });
+      const hold = await call("ops", "POST", "/admin/legal-holds", { organizationId: cf.organization.id, mailboxId: heldBox.id, reason: "Hold for sweep test" });
+      assert.equal(hold.status, 201, hold.text);
+
+      const policyRow = await call("ops", "POST", "/admin/retention-policies", { organizationId: cf.organization.id, mailboxId: box.id, name: "Sweep 1y", retainDays: 365, action: "DELETE" });
+      assert.equal(policyRow.status, 201, policyRow.text);
+      const heldPolicy = await call("ops", "POST", "/admin/retention-policies", { organizationId: cf.organization.id, mailboxId: heldBox.id, name: "Held 1y", retainDays: 365, action: "DELETE" });
+      const runFor = async (policyId) => {
+        const dry = await callExec("ops", "POST", "/admin/retention/runs", { policyId });
+        assert.equal(dry.status, 201, dry.text);
+        await work(execApp);
+        const dryRun = await client.mailRetentionRun.findUnique({ where: { id: dry.body.data.id } });
+        assert.equal(dryRun.status, "COMPLETED", JSON.stringify(dryRun));
+        assert.equal(dryRun.counts.purgedThreads || 0, 0);
+        assert.equal(dryRun.counts.purgedDrafts, undefined, "dry run removes nothing");
+        assert.equal(await client.mailDraft.count({ where: { id: discarded.id } }), dryRun.counts.draftCandidates ? 1 : 0);
+        const executed = await callExec("ops", "POST", `/admin/retention/runs/${dry.body.data.id}/execute`, { stepUpId: await stepUp("MAIL_RETENTION_EXECUTE", callExec) });
+        assert.equal(executed.status, 201, executed.text);
+        await work(execApp);
+        const run = await client.mailRetentionRun.findUnique({ where: { id: executed.body.data.id } });
+        assert.equal(run.status, "COMPLETED", JSON.stringify(run));
+        return { dryRun, run };
+      };
+      const { dryRun, run } = await runFor(policyRow.body.data.id);
+      assert.equal(dryRun.counts.candidates, 1, "the soft-deleted thread is a candidate");
+      assert.equal(dryRun.counts.draftCandidates, 1);
+      assert.equal(dryRun.counts.orphanAttachmentCandidates, 1);
+      assert.equal(run.counts.purgedThreads, 1);
+      assert.equal(run.counts.purgedDrafts, 1);
+      assert.equal(run.counts.purgedOrphanAttachments, 1);
+      const purged = await client.mailMessage.findUnique({ where: { id: message.id } });
+      assert.equal(purged.contentObjectKey, null);
+      assert.ok(purged.deletedAt);
+      for (const key of [body.key, draftAttachment.key, removedKey.key]) assert.equal(await exists(key), false);
+      assert.equal(await client.mailDraft.count({ where: { id: discarded.id } }), 0);
+      assert.equal(await client.mailAttachment.count({ where: { id: removed.id } }), 0);
+      assert.equal(await client.mailDraft.count({ where: { id: { in: [fresh.id, sending.id] } } }), 2, "recent and in-flight drafts are kept");
+      const audit = await client.mailAuditEvent.findMany({ where: { targetId: run.id, action: "MAIL_RETENTION_BATCH_EXECUTED" } });
+      assert.ok(audit.some((row) => row.metadata?.delta?.purgedDrafts === 1), "the sweep is audited");
+      assert.doesNotMatch(JSON.stringify(audit), /deleted secret|Deleted topic/);
+      // Idempotent: a second run finds nothing left to purge.
+      const again = await runFor(policyRow.body.data.id);
+      assert.equal(again.dryRun.counts.candidates || 0, 0);
+      assert.equal(again.dryRun.counts.draftCandidates || 0, 0);
+      // Held mailbox: the draft sweep skips it.
+      const held = await runFor(heldPolicy.body.data.id);
+      assert.equal(held.run.counts.purgedDrafts || 0, 0);
+      assert.equal(await client.mailDraft.count({ where: { id: heldDraft.id } }), 1);
+    });
+  } finally {
+    await closeServer(server);
+    await closeServer(exec.server);
+    await db.close();
+  }
+});
+
+const EICAR_TEXT = "X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*";

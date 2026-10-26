@@ -29,7 +29,69 @@ const TAG_ATTRS = {
 const SAFE_LINK = /^(https?:|mailto:|tel:|#)/i;
 const SAFE_CID = /^cid:[A-Za-z0-9._@-]{1,200}$/i;
 const SAFE_DATA_IMAGE = /^data:image\/(png|gif|jpeg|jpg|webp);base64,[A-Za-z0-9+/=\s]+$/i;
-const UNSAFE_CSS = /(expression\s*\(|javascript:|vbscript:|behavior\s*:|-moz-binding|@import|url\s*\()/i;
+// Checked against the DECODED style value (HTML entities, CSS comments and
+// whitespace removed), so "u&#114;l(", "\\75 rl(" or "image-set(" cannot slip
+// through. Backslashes (CSS escapes) are refused outright.
+const UNSAFE_CSS = /(expression\(|javascript:|vbscript:|behavior:|-moz-binding|@import|url\(|image-set\(|image\(|cross-fade\(|element\(|paint\(|position:(fixed|sticky)|\\)/i;
+const NAMED_ENTITIES = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", colon: ":", lpar: "(", rpar: ")", sol: "/", bsol: "\\", semi: ";", comma: ",", period: ".", excl: "!", num: "#", newline: "\n", tab: "\t" };
+
+function decodeEntities(value) {
+  return String(value ?? "").replace(/&(#x[0-9a-f]+|#[0-9]+|[a-z]+);?/gi, (match, entity) => {
+    if (entity[0] === "#") {
+      const code = entity[1] === "x" || entity[1] === "X" ? Number.parseInt(entity.slice(2), 16) : Number.parseInt(entity.slice(1), 10);
+      return Number.isFinite(code) && code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : "";
+    }
+    const named = NAMED_ENTITIES[entity.toLowerCase()];
+    return named === undefined ? match : named;
+  });
+}
+
+// Returns the decoded style value when it is safe, otherwise null.
+function safeStyle(value) {
+  let decoded = String(value ?? "");
+  // Decode repeatedly so nested encodings (&amp;#114;) are also inspected.
+  for (let round = 0; round < 3; round += 1) {
+    const next = decodeEntities(decoded);
+    if (next === decoded) break;
+    decoded = next;
+  }
+  if (/[\u0000-\u0008\u000b\u000e-\u001f\u007f<>]/.test(decoded)) return null;
+  const compact = decoded.replace(/\/\*[\s\S]*?(\*\/|$)/g, "").replace(/\s+/g, "");
+  if (UNSAFE_CSS.test(compact)) return null;
+  return decoded;
+}
+
+// Received-mail phishing hint: a link whose visible text names a different
+// host than its href, or whose host is punycode (IDN look-alikes), is marked
+// with data-suspicious so the viewer can flag it. The link itself is kept.
+function linkHost(href) {
+  try {
+    const url = new URL(decodeEntities(href));
+    return /^https?:$/.test(url.protocol) ? url.hostname.toLowerCase() : null;
+  } catch {
+    return null;
+  }
+}
+
+function suspiciousReason(href, inner) {
+  const host = linkHost(href);
+  if (!host) return null;
+  if (host.split(".").some((label) => label.startsWith("xn--"))) return "punycode";
+  const text = decodeEntities(inner.replace(/<[^>]*>/g, "")).trim();
+  const shown = /^(?:https?:\/\/)?((?:[a-z0-9-]+\.)+[a-z]{2,})(?:[/:?#]\S*)?$/i.exec(text);
+  if (!shown) return null;
+  const strip = (name) => name.toLowerCase().replace(/^www\./, "");
+  const named = strip(shown[1]);
+  const actual = strip(host);
+  return named === actual || actual.endsWith(`.${named}`) ? null : "host-mismatch";
+}
+
+function flagSuspiciousLinks(html) {
+  return html.replace(/<a\s([^>]*?)href="([^"]*)"([^>]*)>([\s\S]*?)<\/a>/gi, (match, before, href, after, inner) => {
+    const reason = suspiciousReason(href, inner);
+    return reason ? `<a ${before}href="${href}" data-suspicious="${reason}"${after}>${inner}</a>` : match;
+  });
+}
 
 function buildWhitelist() {
   const whiteList = {};
@@ -49,8 +111,10 @@ function sanitizeEmailHtml(html, { allowRemoteImages = false, cidResolver = null
       const attr = name.toLowerCase();
       if (attr.startsWith("on")) return "";
       if (attr === "style") {
-        if (UNSAFE_CSS.test(value)) return "";
-        return `style="${String(value).replace(/"/g, "&quot;")}"`;
+        const style = safeStyle(value);
+        if (style === null) return "";
+        // Re-encode the value that was actually checked.
+        return `style="${style.replace(/&/g, "&amp;").replace(/"/g, "&quot;")}"`;
       }
       if (tag === "a" && attr === "href") {
         const href = String(value).trim();
@@ -76,7 +140,7 @@ function sanitizeEmailHtml(html, { allowRemoteImages = false, cidResolver = null
       return escapeAttrValue(String(value ?? ""));
     },
   });
-  const output = filter.process(String(html ?? ""));
+  const output = flagSuspiciousLinks(filter.process(String(html ?? "")));
   return { html: output, remoteImagesBlocked };
 }
 
@@ -114,4 +178,4 @@ function snippetOf(text, length = 200) {
   return String(text ?? "").replace(/\s+/g, " ").trim().slice(0, length);
 }
 
-module.exports = { sanitizeEmailHtml, escapeHtml, htmlToText, textToHtml, snippetOf };
+module.exports = { sanitizeEmailHtml, safeStyle, escapeHtml, htmlToText, textToHtml, snippetOf };

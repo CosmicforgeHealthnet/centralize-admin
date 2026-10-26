@@ -87,6 +87,11 @@ test("CosmicForge Mail M8 product integration on real PostgreSQL", { timeout: 30
       // Senders: own brand system identities only; HealthNet only for alerts.
       assert.equal((await call("ops", "POST", `/admin/integrations/${kgId}/senders`, { addressId: cf.sender.id, purpose: "TRANSACTIONAL" })).status, 403, "another brand's identity");
       assert.equal((await call("ops", "POST", `/admin/integrations/${kgId}/senders`, { addressId: kgSystem.id, purpose: "TRANSACTIONAL" })).status, 201);
+      // An ALIAS on a person's mailbox is never a product sender.
+      const personalBox = await client.mailMailbox.create({ data: { organizationId: kg.organization.id, type: "PERSONAL", purpose: "GENERAL", name: "KG personal", ownerAdminUserId: ids.kgOwner } });
+      const personalPrimary = await client.mailAddress.create({ data: { organizationId: kg.organization.id, domainId: kg.domain.id, localPart: "kg.owner", address: "kg.owner@karryam.example", kind: "PRIMARY", status: "ACTIVE", mailboxId: personalBox.id } });
+      const personalAlias = await client.mailAddress.create({ data: { organizationId: kg.organization.id, domainId: kg.domain.id, localPart: "ceo.office", address: "ceo.office@karryam.example", kind: "ALIAS", status: "ACTIVE", mailboxId: personalBox.id, aliasOfAddressId: personalPrimary.id } });
+      assert.equal((await call("ops", "POST", `/admin/integrations/${kgId}/senders`, { addressId: personalAlias.id, purpose: "TRANSACTIONAL" })).status, 403, "personal alias refused");
       assert.equal((await call("ops", "POST", `/admin/integrations/${hnId}/senders`, { addressId: hnSystem.id, purpose: "TRANSACTIONAL" })).status, 400);
 
       // Events are refused until activated.
@@ -183,11 +188,11 @@ test("CosmicForge Mail M8 product integration on real PostgreSQL", { timeout: 30
 
     await t.test("HealthNet: operational alerts only, no personal or clinical data, no cross-product claims", async () => {
       const alert = (data, overrides = {}) => ({ contractVersion: 1, product: "healthnet", organization: "healthnet", eventId: `hn-${crypto.randomUUID()}`, eventType: "ops.alert", eventVersion: 1, occurredAt: harness.clock().toISOString(), data, ...overrides });
-      const okAlert = await healthnet(alert({ severity: "warning", code: "QUEUE_BACKLOG", summary: "Notification queue above threshold", component: "notification-worker" }));
+      const okAlert = await healthnet(alert({ severity: "warning", code: "QUEUE_BACKLOG", summary: "QUEUE_BACKLOG", component: "notification-worker" }));
       assert.equal(okAlert.status, 202, JSON.stringify(okAlert.body));
       const notified = await client.notification.count({ where: { title: { contains: "QUEUE_BACKLOG" } } });
       assert.ok(notified >= 1, "mail admins are notified");
-      assert.equal((await healthnet(alert({ severity: "warning", code: "QUEUE_BACKLOG", summary: "again", component: "notification-worker" }))).status, 202);
+      assert.equal((await healthnet(alert({ severity: "warning", code: "QUEUE_BACKLOG", summary: "OTHER", component: "notification-worker" }))).status, 202);
       assert.equal(await client.notification.count({ where: { title: { contains: "QUEUE_BACKLOG" } } }), notified, "the same alert code is not re-notified within an hour");
       assert.equal((await healthnet(alert({ severity: "critical", code: "DELIVERY_FAILED", summary: "Failed for jane@patient.example", component: "mailer" }))).body.code, "MAIL_INTEGRATION_FORBIDDEN_CONTENT");
       assert.equal((await healthnet(alert({ severity: "critical", code: "DELIVERY_FAILED", summary: "Patient 12345678 not notified", component: "mailer" }))).body.code, "MAIL_INTEGRATION_FORBIDDEN_CONTENT");

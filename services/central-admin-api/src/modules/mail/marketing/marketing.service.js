@@ -15,6 +15,7 @@ const { scanLinks } = require("./link-scan");
 const { isRestrictedHealthOrganization } = require("../authz/sending-gate");
 const { parseCsv, neutralizeCell, isFormula } = require("./csv");
 const { iso, decodeCursor, encodeCursor, pageLimit } = require("../services/serializers");
+const { isBrandSender, replyToProblem, SENDER_MAILBOX_SELECT } = require("./marketing-sender");
 
 const CONSENT_SOURCES = new Set(["WEB_FORM", "IMPORT", "MANUAL", "API", "EVENT"]);
 const TOPIC = /^[a-z0-9][a-z0-9_-]{1,63}$/;
@@ -23,6 +24,10 @@ const MATERIAL_FIELDS = ["name", "topic", "senderAddressId", "replyTo", "subject
 const SEGMENT_FIELD_ALIASES = { email: "email", email_domain: "email_domain", first_name: "firstName", firstName: "firstName", last_name: "lastName", lastName: "lastName", created_at: "createdAt", createdAt: "createdAt" };
 const SEGMENT_OPS = new Set(["equals", "not_equals", "contains", "ends_with", "in", "before", "after", "exists"]);
 const MAX_SEGMENT_CONTACTS = 50000;
+// A CSV import is previewed by one marketer and committed by a different
+// brand approver who re-uploads the same file (bound by sha256) within 24 h.
+const IMPORT_PREVIEW_TTL_MS = 24 * 3600000;
+const LEGACY_TEMPLATE_SECTION = "content";
 
 function cleanName(value, max = 120) {
   if (value == null || value === "") return null;
@@ -77,10 +82,13 @@ function hashToken(token) {
 
 // Durable trigger for consent-backed welcome automations (M7). Idempotent per
 // consent grant; the automation engine re-checks consent before every send.
-async function recordConsentGranted(tx, { organizationId, contactId, consent, at }) {
+// Imported consents are recorded for the audit trail but never trigger:
+// a list upload is not a fresh sign-up, so it must not enroll welcome flows.
+async function recordConsentGranted(tx, { organizationId, contactId, consent, at, origin = null }) {
   const occurredAt = at || consent.confirmedAt || consent.consentedAt || new Date();
+  const imported = origin === "IMPORT";
   await tx.marketingTriggerEvent.createMany({
-    data: [{ organizationId, source: "CONSENT", eventType: "consent.granted", eventId: `${consent.id}:${occurredAt.getTime()}`, contactId, payload: { topic: consent.topic, policyVersion: consent.policyVersion }, occurredAt }],
+    data: [{ organizationId, source: "CONSENT", eventType: "consent.granted", eventId: `${consent.id}:${occurredAt.getTime()}`, contactId, payload: { topic: consent.topic, policyVersion: consent.policyVersion, ...(imported ? { origin: "IMPORT" } : {}) }, occurredAt, ...(imported ? { status: "IGNORED", error: "IMPORTED_CONSENT_NOT_A_TRIGGER", processedAt: occurredAt } : {}) }],
     skipDuplicates: true,
   });
 }
@@ -112,7 +120,7 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     };
   }
 
-  async function upsertConsentTx(tx, user, organizationId, contact, consent) {
+  async function upsertConsentTx(tx, user, organizationId, contact, consent, { origin = null } = {}) {
     const now = clock();
     let token = null;
     let tokenHash = null;
@@ -128,7 +136,9 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
       policyVersion: consent.policyVersion,
       doubleOptIn: consent.doubleOptIn,
       confirmationTokenHash: tokenHash,
-      consentedAt: consent.consentedAt || now,
+      // An import without a consented_at column does not know when consent
+      // was given: store null rather than inventing "now".
+      consentedAt: consent.consentedAt || (origin === "IMPORT" ? null : now),
       confirmedAt: null,
       withdrawnAt: null,
       withdrawalSource: null,
@@ -140,7 +150,7 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
       update: data,
     });
     await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CONSENT_RECORDED", targetType: "marketing_contact", targetId: contact.id, organizationId, metadata: { topic: consent.topic, status: row.status, source: consent.source, policyVersion: consent.policyVersion } }, {}, tx);
-    if (row.status === "GRANTED") await recordConsentGranted(tx, { organizationId, contactId: contact.id, consent: row, at: now });
+    if (row.status === "GRANTED") await recordConsentGranted(tx, { organizationId, contactId: contact.id, consent: row, at: now, origin });
     // Double opt-in: the confirmation email is a durable job (never sent inline).
     let confirmationEmail = null;
     if (row.status === "PENDING_CONFIRMATION" && token && hooks.onConfirmationRequired) confirmationEmail = await hooks.onConfirmationRequired(tx, { organizationId, contact, consent: row, token });
@@ -213,6 +223,10 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     await scope(user, organizationId, "EDIT");
     const contact = await loadContact(organizationId, contactId);
     const consent = validateConsentInput(input);
+    // A withdrawn consent is re-granted only through double opt-in: the
+    // contact must confirm again, an admin cannot re-subscribe them.
+    const prior = (contact.consents || []).find((entry) => entry.topic === consent.topic);
+    if (prior?.status === "WITHDRAWN" && !consent.doubleOptIn) throw mailError("MAIL_CONSENT_REQUIRED", { field: "consent.doubleOptIn", reason: "WITHDRAWN_CONSENT_REQUIRES_DOUBLE_OPT_IN" });
     const result = await client.$transaction((tx) => upsertConsentTx(tx, user, organizationId, contact, consent));
     await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CONSENT_UPDATED", targetType: "marketing_contact", targetId: contactId, organizationId }, context);
     return { topic: result.consent.topic, status: result.consent.status, confirmationToken: result.confirmationToken, confirmationEmail: result.confirmationEmail };
@@ -243,8 +257,18 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     return { confirmed: true };
   }
 
-  async function importCsv(user, organizationId, { buffer, topic, source, policyVersion, evidenceReference, audienceId, attestOptIn, country }, context) {
-    await scope(user, organizationId, "EDIT");
+  // Two-step CSV import (operator approval):
+  //   mode "preview" (default): dry run; writes nothing but an audit record
+  //     with the file sha256, a parameter hash and counts (no row data);
+  //   mode "commit": a brand approver other than the previewer re-uploads the
+  //     same file with the preview's fileSha256 and identical parameters.
+  // Imports never upgrade PENDING_CONFIRMATION or WITHDRAWN consent, store
+  // consentedAt only when the file states it, and never trigger welcome
+  // automations. File name and sha256 are kept in each consent's evidence.
+  async function importCsv(user, organizationId, { buffer, topic, source, policyVersion, evidenceReference, audienceId, attestOptIn, country, fileName, mode, fileSha256 }, context) {
+    if (mode != null && mode !== "" && !["preview", "commit"].includes(mode)) throw mailError("MAIL_VALIDATION_FAILED", { field: "mode" });
+    const commit = mode === "commit";
+    await scope(user, organizationId, commit ? "APPROVE" : "EDIT");
     if (!buffer || buffer.length > 2 * 1024 * 1024) throw mailError("MAIL_VALIDATION_FAILED", { field: "file", reason: "MAX_2MB" });
     // Purchased, scraped or unverifiable lists are not eligible: every import
     // must carry an evidence reference and an explicit opt-in attestation.
@@ -256,6 +280,21 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
       audience = policy.isUuid(audienceId) ? await client.marketingAudience.findUnique({ where: { id: audienceId } }) : null;
       if (!audience || audience.organizationId !== organizationId) throw mailError("MAIL_NOT_FOUND", { resource: "audience" });
     }
+    const sha = crypto.createHash("sha256").update(buffer).digest("hex");
+    const name = fileName ? String(fileName).replace(/[\u0000-\u001f\u007f<>"'`=+@]/g, "").trim().slice(0, 200) || null : null;
+    const paramsSha256 = crypto.createHash("sha256").update(JSON.stringify({ topic: baseConsent.topic, source, policyVersion: baseConsent.policyVersion, evidence: baseConsent.evidence.reference, country: baseConsent.evidence.country, audienceId: audience?.id || null })).digest("hex");
+    let preview = null;
+    if (commit) {
+      if (String(fileSha256 || "").toLowerCase() !== sha) throw mailError("MAIL_VALIDATION_FAILED", { field: "fileSha256", reason: "FILE_DIFFERS_FROM_PREVIEW" });
+      // Latest preview of this file with the same parameters, measured on the
+      // service clock it recorded (previewedAt), single use per preview.
+      preview = await client.mailAuditEvent.findFirst({ where: { organizationId, action: "MARKETING_CONTACTS_IMPORT_PREVIEWED", targetType: "marketing_import", targetId: sha, metadata: { path: ["paramsSha256"], equals: paramsSha256 } }, orderBy: { createdAt: "desc" } });
+      const previewedAt = preview?.metadata?.previewedAt ? new Date(preview.metadata.previewedAt).getTime() : NaN;
+      if (!preview || !(clock().getTime() - previewedAt <= IMPORT_PREVIEW_TTL_MS)) throw mailError("MAIL_INVALID_TRANSITION", { reason: "IMPORT_PREVIEW_REQUIRED" });
+      if (preview.actorAdminUserId === user.id) throw mailError("MAIL_FORBIDDEN", { reason: "IMPORT_APPROVER_MUST_DIFFER_FROM_UPLOADER" });
+      const committed = await client.mailAuditEvent.findFirst({ where: { organizationId, action: "MARKETING_CONTACTS_IMPORTED", targetType: "marketing_import", targetId: sha, metadata: { path: ["previewId"], equals: preview.id } } });
+      if (committed) throw mailError("MAIL_INVALID_TRANSITION", { reason: "IMPORT_ALREADY_COMMITTED" });
+    }
     let rows;
     try {
       rows = parseCsv(buffer.toString("utf8"), { maxRows: config.limits.csvImportMaxRows });
@@ -264,10 +303,11 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     }
     if (rows.length < 2) throw mailError("MAIL_VALIDATION_FAILED", { field: "file", reason: "NO_ROWS" });
     const header = rows[0].map((column) => column.trim().toLowerCase().replace(/\s+/g, "_"));
-    const column = (name) => header.indexOf(name);
+    const column = (columnName) => header.indexOf(columnName);
     const emailIndex = column("email");
     if (emailIndex === -1) throw mailError("MAIL_VALIDATION_FAILED", { field: "file", reason: "EMAIL_COLUMN_REQUIRED" });
-    const report = { total: rows.length - 1, created: 0, updated: 0, skipped: 0, rejected: 0, rows: [] };
+    const counts = { new: 0, updated: 0, skippedWithdrawn: 0, skippedPendingConfirmation: 0, suppressed: 0, invalid: 0, duplicateInFile: 0 };
+    const report = { mode: commit ? "commit" : "preview", dryRun: !commit, fileSha256: sha, fileName: name, total: rows.length - 1, created: 0, updated: 0, skipped: 0, rejected: 0, counts, rows: [] };
     const seen = new Set();
     for (let index = 1; index < rows.length; index += 1) {
       const cells = rows[index];
@@ -277,36 +317,55 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
         if (status === "SKIPPED" && reason !== "DUPLICATE_IN_FILE") report.rejected += 1;
         if (report.rows.length < 500) report.rows.push({ row: line, line, email: email || String(cells[emailIndex] || "").slice(0, 80), status: status === "SKIPPED" && reason !== "DUPLICATE_IN_FILE" ? "REJECTED" : status, reason });
       };
-      if (!email) { report.skipped += 1; push("SKIPPED", "INVALID_EMAIL"); continue; }
-      if (seen.has(email)) { report.skipped += 1; push("SKIPPED", "DUPLICATE_IN_FILE"); continue; }
+      const invalid = (reason) => {
+        report.skipped += 1;
+        counts.invalid += 1;
+        push("SKIPPED", reason);
+      };
+      if (!email) { invalid("INVALID_EMAIL"); continue; }
+      if (seen.has(email)) { report.skipped += 1; counts.duplicateInFile += 1; push("SKIPPED", "DUPLICATE_IN_FILE"); continue; }
       seen.add(email);
       const firstName = column("first_name") >= 0 ? cells[column("first_name")] : null;
       const lastName = column("last_name") >= 0 ? cells[column("last_name")] : null;
-      if (isFormula(firstName) || isFormula(lastName)) { report.skipped += 1; push("SKIPPED", "FORMULA_NOT_ALLOWED"); continue; }
+      if (isFormula(firstName) || isFormula(lastName)) { invalid("FORMULA_NOT_ALLOWED"); continue; }
       const consentedAtRaw = column("consented_at") >= 0 ? cells[column("consented_at")] : null;
       const consentedAt = consentedAtRaw ? new Date(consentedAtRaw) : null;
-      if (consentedAtRaw && (Number.isNaN(consentedAt.getTime()) || consentedAt > clock())) { report.skipped += 1; push("SKIPPED", "INVALID_CONSENT_TIMESTAMP"); continue; }
+      if (consentedAtRaw && (Number.isNaN(consentedAt.getTime()) || consentedAt > clock())) { invalid("INVALID_CONSENT_TIMESTAMP"); continue; }
       const suppressed = await client.marketingSuppression.findFirst({ where: { email, liftedAt: null, OR: [{ organizationId }, { organizationId: null }] } });
       try {
         const outcome = await client.$transaction(async (tx) => {
           const existing = await tx.marketingContact.findUnique({ where: { organizationId_email: { organizationId, email } } });
+          const priorConsent = existing ? await tx.marketingConsent.findUnique({ where: { contactId_topic: { contactId: existing.id, topic: baseConsent.topic } } }) : null;
+          // A withdrawn consent is never re-granted by an import, and a
+          // pending double opt-in is never upgraded without confirmation.
+          if (priorConsent?.status === "WITHDRAWN") return { status: "SKIPPED", reason: "CONSENT_PREVIOUSLY_WITHDRAWN" };
+          if (priorConsent?.status === "PENDING_CONFIRMATION") return { status: "SKIPPED", reason: "CONSENT_PENDING_CONFIRMATION" };
+          if (!commit) return { status: existing ? "UPDATED" : "CREATED" };
           const contact = existing || (await tx.marketingContact.create({ data: { organizationId, email, firstName: cleanName(firstName), lastName: cleanName(lastName), source: "import", createdBy: user.id } }));
-          const priorConsent = existing ? await tx.marketingConsent.findUnique({ where: { contactId_topic: { contactId: contact.id, topic: baseConsent.topic } } }) : null;
-          // A withdrawn consent is never silently re-granted by an import.
-          if (priorConsent?.status === "WITHDRAWN") return { status: "SKIPPED", reason: "CONSENT_PREVIOUSLY_WITHDRAWN", contact };
-          if (!priorConsent || priorConsent.status !== "GRANTED") await upsertConsentTx(tx, user, organizationId, contact, { ...baseConsent, consentedAt, evidence: { ...baseConsent.evidence, importLine: line } });
+          const evidence = { ...baseConsent.evidence, importLine: line, importFileName: name, importFileSha256: sha, importPreviewedBy: preview.actorAdminUserId, importApprovedBy: user.id, consentedAtKnown: Boolean(consentedAt) };
+          if (!priorConsent) await upsertConsentTx(tx, user, organizationId, contact, { ...baseConsent, consentedAt, evidence }, { origin: "IMPORT" });
           if (audience) await tx.marketingAudienceContact.upsert({ where: { audienceId_contactId: { audienceId: audience.id, contactId: contact.id } }, create: { audienceId: audience.id, contactId: contact.id, addedBy: user.id }, update: {} });
-          return { status: existing ? "UPDATED" : "CREATED", contact };
+          return { status: existing ? "UPDATED" : "CREATED" };
         });
-        if (outcome.status === "SKIPPED") { report.skipped += 1; push("SKIPPED", outcome.reason); continue; }
+        if (outcome.status === "SKIPPED") {
+          report.skipped += 1;
+          counts[outcome.reason === "CONSENT_PREVIOUSLY_WITHDRAWN" ? "skippedWithdrawn" : "skippedPendingConfirmation"] += 1;
+          push("SKIPPED", outcome.reason);
+          continue;
+        }
         report[outcome.status === "CREATED" ? "created" : "updated"] += 1;
+        counts[outcome.status === "CREATED" ? "new" : "updated"] += 1;
+        if (suppressed) counts.suppressed += 1;
         push(outcome.status, suppressed ? "SUPPRESSED_WILL_BE_EXCLUDED" : null);
       } catch (error) {
         report.skipped += 1;
+        counts.invalid += 1;
         push("SKIPPED", error.code === "MAIL_VALIDATION_FAILED" ? "INVALID_VALUE" : "ERROR");
       }
     }
-    await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CONTACTS_IMPORTED", targetType: "organization", targetId: organizationId, organizationId, metadata: { total: report.total, created: report.created, updated: report.updated, skipped: report.skipped, topic: baseConsent.topic, evidence: baseConsent.evidence.reference } }, context);
+    const metadata = { fileSha256: sha, fileName: name, paramsSha256, total: report.total, counts, topic: baseConsent.topic, evidence: baseConsent.evidence.reference, ...(commit ? { previewId: preview.id, previewedBy: preview.actorAdminUserId, previewedAt: preview.metadata.previewedAt } : { previewedAt: iso(clock()) }) };
+    await audit.record({ actorAdminUserId: user.id, action: commit ? "MARKETING_CONTACTS_IMPORTED" : "MARKETING_CONTACTS_IMPORT_PREVIEWED", targetType: "marketing_import", targetId: sha, organizationId, metadata }, context);
+    if (!commit) report.next = { mode: "commit", fileSha256: sha, requires: "A different brand approver re-uploads this file with mode=commit and fileSha256 within 24 hours." };
     return report;
   }
 
@@ -584,8 +643,14 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     return { id: version.id, version: version.version, contentSha256: version.contentSha256, accessibility: rendered.accessibility };
   }
 
+  // Legacy (pre-Mail) marketing email templates are read-only references.
+  // The legacy tables have no brand column, so brand isolation is impossible
+  // for them: the list is only shown to users who also hold the legacy
+  // marketing "content" section (requireSection semantics; SUPER allowed).
+  // Everyone else gets an empty list.
   async function legacyTemplates(user, organizationId) {
     await scope(user, organizationId, "VIEW");
+    if (!(await policy.hasSection(client, user, "marketing", LEGACY_TEMPLATE_SECTION, "VIEW", { allowSuper: true }))) return [];
     const rows = await client.marketing_email_templates.findMany({ include: { event: true }, orderBy: { createdAt: "desc" }, take: 200 });
     return rows.map((row) => ({ id: row.id, eventId: row.eventId, eventName: row.event?.event || null, eventCode: row.event?.eventCode || null, language: row.language, status: row.status, validFrom: iso(row.validFrom), validTo: iso(row.validTo), readOnly: true }));
   }
@@ -593,7 +658,8 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
   // Approved brand sender identities (non-personal, active addresses).
   async function senderIdentities(user, organizationId) {
     await scope(user, organizationId, "VIEW");
-    const rows = await client.mailAddress.findMany({ where: { organizationId, status: "ACTIVE", kind: { in: ["SHARED", "SYSTEM", "ALIAS"] } }, include: { domain: true, mailbox: { select: { purpose: true, name: true } } }, orderBy: { address: "asc" } });
+    // Aliases on a PERSONAL mailbox are a person's address, never a brand sender.
+    const rows = await client.mailAddress.findMany({ where: { organizationId, status: "ACTIVE", kind: { in: ["SHARED", "SYSTEM", "ALIAS"] }, OR: [{ mailboxId: null }, { mailbox: { type: "SHARED" } }] }, include: { domain: true, mailbox: { select: { purpose: true, name: true, type: true } } }, orderBy: { address: "asc" } });
     return rows.map((row) => ({ addressId: row.id, address: row.address, displayName: row.displayName, kind: row.kind, mailboxName: row.mailbox?.name || null, purpose: row.mailbox?.purpose || null, domainVerifiedForSending: row.domain.status === "VERIFIED" && row.domain.sendingStatus === "VERIFIED" }));
   }
 
@@ -633,6 +699,12 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     if (input.replyTo != null && input.replyTo !== "" && !normalizeAddress(input.replyTo)) throw mailError("MAIL_VALIDATION_FAILED", { field: "replyTo" });
     if (input.topic != null && !TOPIC.test(String(input.topic))) throw mailError("MAIL_VALIDATION_FAILED", { field: "topic" });
     if (input.frequencyCapHours != null && (!Number.isInteger(Number(input.frequencyCapHours)) || Number(input.frequencyCapHours) < 0 || Number(input.frequencyCapHours) > 8760)) throw mailError("MAIL_VALIDATION_FAILED", { field: "frequencyCapHours" });
+    // Legacy campaign link: a UUID of an existing legacy campaign (read-only).
+    if (input.legacyCampaignId != null && input.legacyCampaignId !== "") {
+      if (!policy.isUuid(input.legacyCampaignId)) throw mailError("MAIL_VALIDATION_FAILED", { field: "legacyCampaignId", reason: "INVALID_UUID", status: 422 });
+      const legacy = await client.marketing_campaigns.findUnique({ where: { id: String(input.legacyCampaignId) }, select: { id: true } });
+      if (!legacy) throw mailError("MAIL_VALIDATION_FAILED", { field: "legacyCampaignId", reason: "NOT_FOUND", status: 422 });
+    }
   }
 
   function campaignData(input) {
@@ -662,10 +734,6 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     if (!data.name) throw mailError("MAIL_VALIDATION_FAILED", { field: "name" });
     if (!data.topic) throw mailError("MAIL_VALIDATION_FAILED", { field: "topic" });
     await validateCampaignReferences(organizationId, input);
-    if (data.legacyCampaignId) {
-      const legacy = await client.marketing_campaigns.findUnique({ where: { id: data.legacyCampaignId } });
-      if (!legacy) throw mailError("MAIL_VALIDATION_FAILED", { field: "legacyCampaignId" });
-    }
     const row = await client.marketingEmailCampaign.create({ data: { organizationId, ...data, createdByAdminUserId: user.id, updatedByAdminUserId: user.id } });
     await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CAMPAIGN_CREATED", targetType: "marketing_campaign", targetId: row.id, organizationId }, context);
     return serializeCampaign(row);
@@ -707,8 +775,8 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     const add = (id, ok, detail) => checks.push({ id, ok, detail });
     const version = campaign.templateVersionId ? await client.marketingTemplateVersion.findUnique({ where: { id: campaign.templateVersionId }, include: { template: true } }) : null;
     add("template", Boolean(version && version.template.organizationId === campaign.organizationId), version ? `Template version ${version.version}` : "Select an approved template version");
-    const sender = campaign.senderAddressId ? await client.mailAddress.findUnique({ where: { id: campaign.senderAddressId }, include: { domain: { include: { organization: { select: { id: true, slug: true } } } } } }) : null;
-    const senderOk = Boolean(sender && sender.organizationId === campaign.organizationId && sender.status === "ACTIVE" && ["SHARED", "SYSTEM", "ALIAS"].includes(sender.kind));
+    const sender = campaign.senderAddressId ? await client.mailAddress.findUnique({ where: { id: campaign.senderAddressId }, include: { domain: { include: { organization: { select: { id: true, slug: true } } } }, mailbox: SENDER_MAILBOX_SELECT } }) : null;
+    const senderOk = isBrandSender(sender, campaign.organizationId);
     add("sender_identity", senderOk, sender ? (senderOk ? sender.address : "Sender must be an active brand (non-personal) address") : "Select an approved sender identity");
     add("sender_domain_verified", Boolean(sender && sender.domain.status === "VERIFIED" && sender.domain.sendingStatus === "VERIFIED"), sender ? `${sender.domain.domain}: ${sender.domain.status}/${sender.domain.sendingStatus}` : "No sender");
     // Approval requires the same allowlist the dispatch gate enforces (M7
@@ -721,10 +789,10 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     let replyOk = true;
     let replyDetail = "Replies go to the sender address";
     if (campaign.replyTo) {
-      const domain = campaign.replyTo.split("@")[1];
-      const owned = await client.mailDomain.findFirst({ where: { organizationId: campaign.organizationId, domain } });
-      replyOk = Boolean(owned);
-      replyDetail = replyOk ? campaign.replyTo : "Reply-To must use a brand-owned domain";
+      // Replies must reach a team inbox: an active SHARED mailbox of the brand.
+      const problem = await replyToProblem(client, campaign.organizationId, campaign.replyTo);
+      replyOk = !problem;
+      replyDetail = replyOk ? campaign.replyTo : `Reply-To must be an active shared mailbox address of this brand (${problem})`;
     }
     add("reply_to_policy", replyOk, replyDetail);
     const audience = campaign.audienceId ? await client.marketingAudience.findUnique({ where: { id: campaign.audienceId } }) : null;
@@ -766,7 +834,22 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
   async function runPreflight(user, organizationId, campaignId) {
     await scope(user, organizationId, "VIEW");
     const result = await preflight(await loadCampaign(organizationId, campaignId));
-    return { ok: result.ok, checks: result.checks, eligibleCount: result.eligibleCount, excludedCount: result.excludedCount, excluded: result.excluded };
+    // contactSetSha256 identifies the exact recipient set; the approver sends
+    // it back so approval binds the audience they reviewed.
+    return { ok: result.ok, checks: result.checks, eligibleCount: result.eligibleCount, excludedCount: result.excludedCount, excluded: result.excluded, contactSetSha256: result.contactHash };
+  }
+
+  // Everyone who authored or changed the campaign since its last approval
+  // (from the module's own audit records), so an intermediate editor cannot
+  // approve after someone else made the final save.
+  async function campaignEditorsSinceApproval(campaignId) {
+    const lastApproval = await client.marketingCampaignApproval.findFirst({ where: { campaignId, decision: "APPROVED" }, orderBy: { createdAt: "desc" }, select: { createdAt: true } });
+    const rows = await client.mailAuditEvent.findMany({
+      where: { targetType: "marketing_campaign", targetId: campaignId, action: { in: ["MARKETING_CAMPAIGN_CREATED", "MARKETING_CAMPAIGN_UPDATED", "MARKETING_CAMPAIGN_SUBMITTED"] }, actorAdminUserId: { not: null }, ...(lastApproval ? { createdAt: { gt: lastApproval.createdAt } } : {}) },
+      select: { actorAdminUserId: true },
+      distinct: ["actorAdminUserId"],
+    });
+    return rows.map((row) => row.actorAdminUserId);
   }
 
   async function createSnapshot(tx, user, campaign, result, kind) {
@@ -797,15 +880,25 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     return serializeCampaign(row);
   }
 
-  async function approve(user, organizationId, campaignId, { revision, stepUpId, comment }, context) {
+  async function approve(user, organizationId, campaignId, { revision, stepUpId, comment, contactSetSha256, eligibleCount }, context) {
     await scope(user, organizationId, "APPROVE");
     const campaign = await loadCampaign(organizationId, campaignId);
     if (campaign.status !== "READY_FOR_REVIEW") throw mailError("MAIL_INVALID_TRANSITION", { from: campaign.status });
     if (Number(revision) !== campaign.revision) throw mailError("MAIL_DRAFT_REVISION_CONFLICT", { currentRevision: campaign.revision });
     // Reviewer separation: authors and submitters cannot approve their own campaign.
     if ([campaign.createdByAdminUserId, campaign.submittedByAdminUserId, campaign.updatedByAdminUserId].includes(user.id)) throw mailError("MAIL_FORBIDDEN", { reason: "REVIEWER_MUST_DIFFER_FROM_AUTHOR" });
+    if ((await campaignEditorsSinceApproval(campaignId)).includes(user.id)) throw mailError("MAIL_FORBIDDEN", { reason: "REVIEWER_EDITED_CAMPAIGN" });
     const result = await preflight(campaign);
     if (!result.ok) throw mailError("MAIL_PREFLIGHT_FAILED", { checks: result.checks.filter((check) => !check.ok) });
+    // The author of the template version is an author of the content.
+    if (result.version?.createdBy === user.id) throw mailError("MAIL_FORBIDDEN", { reason: "REVIEWER_AUTHORED_TEMPLATE_VERSION" });
+    // Audience binding: the recipient set must be the one the reviewer saw
+    // (sent back from preflight), or, when not sent, the one captured at
+    // submission. Any change requires a fresh review.
+    const submitted = await client.marketingCampaignSnapshot.findUnique({ where: { campaignId_revision_kind: { campaignId, revision: campaign.revision, kind: "SUBMISSION" } } });
+    const expectedSet = contactSetSha256 ? String(contactSetSha256) : submitted?.audienceSnapshot?.contactSetSha256 || null;
+    if (expectedSet && expectedSet !== result.contactHash) throw mailError("MAIL_INVALID_TRANSITION", { reason: contactSetSha256 ? "AUDIENCE_CHANGED_SINCE_REVIEW" : "AUDIENCE_CHANGED_SINCE_SUBMISSION", eligibleCount: result.eligibleCount, contactSetSha256: result.contactHash });
+    if (eligibleCount != null && eligibleCount !== "" && Number(eligibleCount) !== result.eligibleCount) throw mailError("MAIL_INVALID_TRANSITION", { reason: "AUDIENCE_CHANGED_SINCE_REVIEW", eligibleCount: result.eligibleCount, contactSetSha256: result.contactHash });
     const row = await client.$transaction(async (tx) => {
       const consumed = await stepUp.consume(tx, user, stepUpId, "MARKETING_CAMPAIGN_APPROVAL", context);
       const submission = await tx.marketingCampaignSnapshot.findUnique({ where: { campaignId_revision_kind: { campaignId, revision: campaign.revision, kind: "SUBMISSION" } } });
@@ -820,7 +913,7 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
       for (let index = 0; index < result.contactIds.length; index += 1000) {
         await tx.marketingCampaignApprovedContact.createMany({ data: result.contactIds.slice(index, index + 1000).map((contactId) => ({ snapshotId: snapshot.id, contactId })), skipDuplicates: true });
       }
-      await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CAMPAIGN_APPROVED", targetType: "marketing_campaign", targetId: campaignId, organizationId, metadata: { revision: campaign.revision, snapshotId: snapshot.id, contentSha256: snapshot.contentSha256 } }, context, tx);
+      await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CAMPAIGN_APPROVED", targetType: "marketing_campaign", targetId: campaignId, organizationId, metadata: { revision: campaign.revision, snapshotId: snapshot.id, contentSha256: snapshot.contentSha256, contactSetSha256: result.contactHash, eligibleCount: result.eligibleCount, audienceConfirmedByReviewer: Boolean(contactSetSha256) } }, context, tx);
       return tx.marketingEmailCampaign.findUnique({ where: { id: campaignId } });
     });
     return serializeCampaign(row);
@@ -833,9 +926,12 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     if (Number(revision) !== campaign.revision) throw mailError("MAIL_DRAFT_REVISION_CONFLICT", { currentRevision: campaign.revision });
     if (!comment || String(comment).trim().length < 3) throw mailError("MAIL_VALIDATION_FAILED", { field: "comment" });
     const row = await client.$transaction(async (tx) => {
-      await tx.marketingEmailCampaign.update({ where: { id: campaignId }, data: { status: "REJECTED" } });
-      await tx.marketingCampaignApproval.create({ data: { campaignId, revision: campaign.revision, decision: "REJECTED", reviewerAdminUserId: user.id, comment: String(comment).slice(0, 2000) } });
-      await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CAMPAIGN_REJECTED", targetType: "marketing_campaign", targetId: campaignId, organizationId }, context, tx);
+      // Guarded, and the revision moves on: a resubmission (even unchanged)
+      // gets a fresh SUBMISSION snapshot of the current content and audience.
+      const updated = await tx.marketingEmailCampaign.updateMany({ where: { id: campaignId, revision: campaign.revision, status: "READY_FOR_REVIEW" }, data: { status: "REJECTED", revision: { increment: 1 }, submittedAt: null, submittedByAdminUserId: null } });
+      if (updated.count !== 1) throw mailError("MAIL_DRAFT_REVISION_CONFLICT", { currentRevision: null });
+      await tx.marketingCampaignApproval.create({ data: { campaignId, revision: campaign.revision, decision: "REJECTED", reviewerAdminUserId: user.id, comment: String(comment).slice(0, 2000), createdAt: clock() } });
+      await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CAMPAIGN_REJECTED", targetType: "marketing_campaign", targetId: campaignId, organizationId, metadata: { revision: campaign.revision } }, context, tx);
       return tx.marketingEmailCampaign.findUnique({ where: { id: campaignId } });
     });
     return serializeCampaign(row);

@@ -23,6 +23,13 @@
 //   for 24 hours; once a batch's first attempt is older than the configured
 //   window (default 23h) it is never re-sent, and an unresolved batch becomes
 //   OUTCOME_UNKNOWN for human review instead of risking a duplicate.
+// - Each batch is marked inFlight in the plan immediately before every
+//   provider call and cleared on a definitive answer; an ambiguous answer
+//   sets a sticky `ambiguous` flag. A batch that dead-letters while inFlight
+//   or ambiguous (timeout, crash, possibly-accepted 5xx) becomes
+//   OUTCOME_UNKNOWN, never FAILED, so the sender is not told to re-send.
+// - Dispatch is driven by unresolved batches in the persisted plan, not by
+//   message.status: a delivery event on one batch never stops the others.
 // - A 409 invalid_idempotent_request (same key, different payload) means an
 //   earlier request may have been sent: OUTCOME_UNKNOWN, not FAILED.
 //
@@ -37,6 +44,7 @@ const { PipelineError } = require("./inbound.processor");
 const policy = require("../authz/mail.policy");
 const { externalSendBlockReason, SEND_BLOCK_REASONS } = require("../authz/sending-gate");
 const { purposeForMailbox } = require("../ops/runtime-controls");
+const { aggregateMessageStatus, createDeliveryEventApplier } = require("./delivery-event.processor");
 
 function party(recipient) {
   return { address: recipient.address, name: recipient.name };
@@ -54,6 +62,26 @@ function buildDeliveryPlan(recipients) {
   return bcc.map((recipient) => ({ to: [recipient.id], cc: [], bcc: [], individualBcc: true }));
 }
 
+function providerHttpStatus(error) {
+  if (Number.isInteger(error?.status)) return error.status;
+  const match = /_HTTP_(\d{3})$/.exec(String(error?.code || ""));
+  return match ? Number(match[1]) : null;
+}
+
+// Could the provider have accepted the request that produced this error?
+// Resend classifies 429 and 5xx as RETRYABLE. A 429 is a definitive refusal.
+// A 5xx (or a non-idempotency 409 such as a concurrent request with the same
+// key) can be returned after the provider already accepted the email, so it
+// is treated conservatively as possibly-accepted. Unknown statuses likewise.
+function possiblyAccepted(error) {
+  if (error?.kind === "AMBIGUOUS") return true;
+  if (error?.kind !== "RETRYABLE") return false;
+  const status = providerHttpStatus(error);
+  if (status === 429) return false;
+  if (status !== null && status >= 400 && status < 500 && status !== 409) return false;
+  return true;
+}
+
 class DispatchBlockedError extends Error {
   constructor(reason) {
     super(reason);
@@ -63,6 +91,7 @@ class DispatchBlockedError extends Error {
 
 function createOutboundProcessor({ client, config, adapter, store, audit, notifications, runtime = null, usage = null, forwarding = null, clock = () => new Date() }) {
   const windowMs = (config.reconciliation?.idempotencyWindowHours || 23) * 3600 * 1000;
+  const deliveryEvents = createDeliveryEventApplier({ client, audit, notifications });
 
   async function assertStillAuthorized(message) {
     if (!message.sentByAdminUserId || !message.senderAddressId) throw new DispatchBlockedError("SENDER_UNKNOWN");
@@ -88,15 +117,12 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
     job.payload = payload;
   }
 
+  // Same derivation as delivery events, so dispatch never regresses an
+  // event-derived state (BOUNCED, DELIVERED, ...).
   async function finalizeStatus(messageId, extra = {}) {
-    const recipients = await client.mailMessageRecipient.findMany({ where: { messageId } });
-    const external = recipients.filter((recipient) => recipient.status !== "INTERNAL_DELIVERED");
-    let status;
-    if (external.some((recipient) => recipient.status === "OUTCOME_UNKNOWN")) status = "OUTCOME_UNKNOWN";
-    else if (external.some((recipient) => recipient.status === "PROVIDER_ACCEPTED")) status = "PROVIDER_ACCEPTED";
-    else if (external.length && external.every((recipient) => recipient.status === "FAILED")) status = "FAILED";
-    else status = "QUEUED";
-    await client.mailMessage.update({ where: { id: messageId }, data: { status, lastStatusAt: clock(), ...extra } });
+    const message = await client.mailMessage.findUnique({ where: { id: messageId }, select: { status: true, recipients: { select: { status: true } } } });
+    const status = aggregateMessageStatus(message.recipients, message.status);
+    if (status !== message.status || Object.keys(extra).length) await client.mailMessage.update({ where: { id: messageId }, data: { status, lastStatusAt: clock(), ...extra } });
     return status;
   }
 
@@ -113,10 +139,10 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
     if (!config.sendingEnabled) throw new PipelineError("MAIL_SENDING_DISABLED", "sending disabled", { retryable: true });
     const message = await client.mailMessage.findUnique({ where: { id: job.messageId }, include: { recipients: true, attachments: true, mailbox: true } });
     if (!message) throw new PipelineError("MESSAGE_MISSING", "message not found", { retryable: false });
-    if (!["QUEUED", "PROVIDER_ACCEPTED"].includes(message.status)) return { skipped: true, status: message.status };
 
     let plan = job.payload?.plan;
     if (!Array.isArray(plan)) {
+      if (!message.recipients.some((recipient) => recipient.status === "PENDING")) return { skipped: true, status: message.status };
       plan = buildDeliveryPlan(message.recipients);
       await savePlan(job, plan);
     }
@@ -166,6 +192,11 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
 
     for (const { batch, index } of pendingBatches) {
       const recipientIds = [...batch.to, ...batch.cc, ...batch.bcc];
+      // Org hard quota re-check before each provider call: defer, never fail.
+      if (usage) {
+        const quota = await usage.check(message.mailbox?.organizationId, purpose, recipientIds.length, { includeQueued: false });
+        if (!quota.allowed) return { defer: { seconds: 900, code: quota.reason || "MAIL_QUOTA_HARD_LIMIT" } };
+      }
       const now = clock();
       if (batch.firstAttemptAt && now.getTime() - new Date(batch.firstAttemptAt).getTime() > windowMs) {
         // The provider no longer guarantees deduplication for this key.
@@ -177,10 +208,12 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
         await notifySender(message, "Email delivery status unknown");
         continue;
       }
-      if (!batch.firstAttemptAt) {
-        batch.firstAttemptAt = now.toISOString();
-        await savePlan(job, plan);
-      }
+      if (!batch.firstAttemptAt) batch.firstAttemptAt = now.toISOString();
+      // Still marked from an earlier attempt: that attempt crashed mid-call.
+      if (batch.inFlight) batch.ambiguous = true;
+      // Persisted before the call: a crash from here on leaves the outcome open.
+      batch.inFlight = true;
+      await savePlan(job, plan);
       const request = {
         idempotencyKey: `${job.idempotencyKey}:b${index}`,
         from: { address: message.fromAddress, name: message.fromName },
@@ -200,8 +233,11 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
       } catch (error) {
         if (usage) await usage.record(null, { organizationId: message.mailbox?.organizationId, purpose, providerRequests: 1, rejected: error?.kind === "PERMANENT" ? recipientIds.length : 0 }).catch(() => {});
         if (!(error instanceof MailProviderError)) throw error;
-        if (error.kind === "IDEMPOTENCY_CONFLICT") {
+        // An earlier attempt may have been accepted: a later definitive error
+        // cannot prove it was not.
+        if (error.kind === "IDEMPOTENCY_CONFLICT" || (error.kind === "PERMANENT" && batch.ambiguous)) {
           batch.outcome = "UNKNOWN";
+          batch.inFlight = false;
           await savePlan(job, plan);
           await markRecipients(recipientIds, "OUTCOME_UNKNOWN", error.code);
           await finalizeStatus(message.id);
@@ -211,6 +247,7 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
         }
         if (error.kind === "PERMANENT" || error.kind === "NOT_CONFIGURED") {
           batch.outcome = "FAILED";
+          batch.inFlight = false;
           await savePlan(job, plan);
           await markRecipients(recipientIds, "FAILED", error.code);
           const status = await finalizeStatus(message.id);
@@ -219,6 +256,9 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
           if (error.kind === "NOT_CONFIGURED") throw new PipelineError(error.code, error.message, { retryable: false });
           continue;
         }
+        if (possiblyAccepted(error)) batch.ambiguous = true;
+        batch.inFlight = false;
+        await savePlan(job, plan);
         const pipelineError = new PipelineError(error.code, error.message, { retryable: true });
         pipelineError.reconcile = error.kind === "AMBIGUOUS";
         pipelineError.retryAfterSeconds = error.retryAfterSeconds;
@@ -226,6 +266,7 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
       }
       batch.providerMessageId = result.providerMessageId;
       batch.acceptedAt = clock().toISOString();
+      batch.inFlight = false;
       await client.$transaction(async (tx) => {
         await tx.mailOutboxJob.update({ where: { id: job.id }, data: { payload: { ...(job.payload || {}), plan } } });
         await tx.mailMessageRecipient.updateMany({ where: { id: { in: recipientIds }, status: "PENDING" }, data: { status: "PROVIDER_ACCEPTED", providerMessageId: result.providerMessageId, lastEventAt: clock() } });
@@ -235,25 +276,30 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
       });
       message.providerMessageId = message.providerMessageId || result.providerMessageId;
       message.sentAt = message.sentAt || clock();
+      // Events that arrived before this acceptance committed were stored
+      // unmatched; apply them now (idempotent). Failure here never re-sends.
+      await deliveryEvents.reapplyUnmatched(result.providerMessageId).catch(() => {});
     }
     const status = await finalizeStatus(message.id);
     return { providerMessageId: message.providerMessageId, status };
   }
 
-  // Called when a job exhausts its attempts: never claim success; an
-  // ambiguous last error leaves the unresolved recipients OUTCOME_UNKNOWN.
+  // Called when a job exhausts its attempts: never claim success. Unresolved
+  // batches that were ever ambiguous, are still marked in flight (crash), or
+  // whose last error was ambiguous become OUTCOME_UNKNOWN; the rest FAILED.
   async function onDeadLetter(job, error) {
     if (!job.messageId) return;
     const message = await client.mailMessage.findUnique({ where: { id: job.messageId }, include: { mailbox: true, recipients: true } });
     if (!message) return;
     const fresh = await client.mailOutboxJob.findUnique({ where: { id: job.id } });
     const plan = Array.isArray(fresh?.payload?.plan) ? fresh.payload.plan : null;
-    // Recipients whose batch reached the provider without a recorded answer.
-    const attempted = new Set(plan ? plan.filter((batch) => batch.firstAttemptAt && !batch.providerMessageId && !batch.outcome).flatMap((batch) => [...batch.to, ...batch.cc, ...batch.bcc]) : []);
     const pending = message.recipients.filter((recipient) => recipient.status === "PENDING");
     if (!pending.length) return;
-    const ambiguous = Boolean(error?.reconcile) || error?.code === "LEASE_EXPIRED";
-    const unknownIds = pending.filter((recipient) => ambiguous && attempted.has(recipient.id)).map((recipient) => recipient.id);
+    const lastAmbiguous = Boolean(error?.reconcile) || error?.code === "LEASE_EXPIRED";
+    // Recipients whose batch may have reached the provider without an answer.
+    const unresolved = plan ? plan.filter((batch) => batch.firstAttemptAt && !batch.providerMessageId && !batch.outcome) : [];
+    const uncertain = new Set(unresolved.filter((batch) => batch.ambiguous || batch.inFlight || lastAmbiguous).flatMap((batch) => [...batch.to, ...batch.cc, ...batch.bcc]));
+    const unknownIds = pending.filter((recipient) => uncertain.has(recipient.id)).map((recipient) => recipient.id);
     const failedIds = pending.map((recipient) => recipient.id).filter((id) => !unknownIds.includes(id));
     await markRecipients(unknownIds, "OUTCOME_UNKNOWN", error?.code || "DEAD_LETTER");
     await markRecipients(failedIds, "FAILED", error?.code || "DEAD_LETTER");
@@ -265,4 +311,4 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
   return { process, onDeadLetter };
 }
 
-module.exports = { createOutboundProcessor, buildDeliveryPlan };
+module.exports = { createOutboundProcessor, buildDeliveryPlan, possiblyAccepted };

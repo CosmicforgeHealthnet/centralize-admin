@@ -23,6 +23,7 @@ const { verifyServiceRequest, parseServiceSecrets } = require("./service-auth");
 const { parseEnvelope, parseDeliveryStatus, parseMarketingTrigger, parseOpsAlert, ContractError } = require("./contracts");
 const { approvedEvent } = require("../marketing/automation/event-registry");
 const { enforceWithdrawal } = require("../marketing/consent-enforcement");
+const { isRestrictedHealthOrganization } = require("../authz/sending-gate");
 
 const PURPOSES = new Set(["TRANSACTIONAL", "MARKETING_TRIGGER", "OPERATIONAL_ALERT"]);
 const CLASSIFICATIONS = new Set(["STANDARD", "RESTRICTED_HEALTH"]);
@@ -103,15 +104,20 @@ function createIntegrationService({ client, config, audit, stepUp, automations, 
     return { kind: "marketing_trigger", matchedContact: result.matchedContact, droppedFields: result.droppedFields };
   }
 
-  async function handleAlert(integration, envelope) {
-    const data = parseOpsAlert(envelope.data, { restricted: integration.classification === "RESTRICTED_HEALTH" });
+  // Returns the outcome plus a notify() side effect that the caller runs only
+  // after this event is stored, so a retried or racing delivery never
+  // notifies twice.
+  async function handleAlert(integration, envelope, { restricted }) {
+    const data = parseOpsAlert(envelope.data, { restricted });
     const since = new Date(clock().getTime() - 3600000);
     const recent = await client.mailProductIntegrationEvent.count({ where: { integrationId: integration.id, eventType: "ops.alert", status: "ACCEPTED", receivedAt: { gt: since }, outcome: { path: ["code"], equals: data.code } } });
-    if (!recent && data.severity !== "info") {
+    const shouldNotify = !recent && data.severity !== "info";
+    const notify = async () => {
+      if (!shouldNotify) return;
       const admins = await client.adminSectionGrant.findMany({ where: { module: "mail", section: { in: ["admin", `integration:${integration.product}`] }, revokedAt: null }, select: { adminUserId: true } });
       await notifications.notifyUsers([...new Set(admins.map((row) => row.adminUserId))], { icon: data.severity === "critical" ? "xcircle" : "alert", title: `[${integration.product}] ${data.severity}: ${data.code}`, subtitle: data.summary }).catch(() => {});
-    }
-    return { kind: "ops_alert", code: data.code, severity: data.severity, component: data.component, notified: !recent && data.severity !== "info" };
+    };
+    return { outcome: { kind: "ops_alert", code: data.code, severity: data.severity, component: data.component, notified: shouldNotify }, notify };
   }
 
   // Raw-body HTTP handler: POST /api/mail/v1/integrations/v1/events
@@ -145,7 +151,9 @@ function createIntegrationService({ client, config, audit, stepUp, automations, 
       const organization = await client.mailOrganization.findUnique({ where: { id: integration.organizationId } });
       // Spoofing: a service may only speak for its own product and brand.
       if (envelope.product !== integration.product || !organization || envelope.organization !== organization.slug) throw new ContractError("MAIL_INTEGRATION_SCOPE_MISMATCH", 403, {});
-      if (!integration.allowedEventTypes.includes(envelope.eventType) || !(EVENT_TYPES_FOR[integration.classification] || []).includes(envelope.eventType)) throw new ContractError("MAIL_INTEGRATION_FORBIDDEN_CONTENT", 403, { reason: "EVENT_TYPE_NOT_ALLOWED", eventType: envelope.eventType });
+      // A restricted-health brand is treated as restricted whatever the row says.
+      const classification = isRestrictedHealthOrganization(config, organization) ? "RESTRICTED_HEALTH" : integration.classification;
+      if (!integration.allowedEventTypes.includes(envelope.eventType) || !(EVENT_TYPES_FOR[classification] || []).includes(envelope.eventType)) throw new ContractError("MAIL_INTEGRATION_FORBIDDEN_CONTENT", 403, { reason: "EVENT_TYPE_NOT_ALLOWED", eventType: envelope.eventType });
       const existing = await client.mailProductIntegrationEvent.findUnique({ where: { integrationId_eventId: { integrationId: integration.id, eventId: envelope.eventId } } });
       if (existing) {
         if (existing.payloadSha256 !== payloadSha256) throw new ContractError("MAIL_INTEGRATION_EVENT_CONFLICT", 409, { eventId: envelope.eventId });
@@ -159,13 +167,25 @@ function createIntegrationService({ client, config, audit, stepUp, automations, 
           return result;
         });
       } else {
-        outcome = envelope.eventType === "marketing.trigger" ? await handleTrigger(integration, organization, envelope) : await handleAlert(integration, envelope);
+        let afterStore = null;
+        if (envelope.eventType === "marketing.trigger") outcome = await handleTrigger(integration, organization, envelope);
+        else ({ outcome, notify: afterStore } = await handleAlert(integration, envelope, { restricted: classification === "RESTRICTED_HEALTH" }));
         await client.mailProductIntegrationEvent.create({ data: { integrationId: integration.id, eventId: envelope.eventId, eventType: envelope.eventType, eventVersion: envelope.eventVersion, correlationId: envelope.correlationId, payloadSha256, status: "ACCEPTED", outcome, occurredAt: envelope.occurredAtDate, receivedAt: clock() } });
+        if (afterStore) await afterStore();
       }
       await client.mailProductIntegration.update({ where: { id: integration.id }, data: { lastEventAt: clock() } });
       return reply(202, null, { accepted: true, duplicate: false, eventId: envelope.eventId, outcome: { kind: outcome.kind } });
     } catch (error) {
-      if (error?.code === "P2002") return reply(202, null, { accepted: true, duplicate: true, eventId: envelope?.eventId });
+      // Lost a race with a concurrent first delivery of the same eventId: only
+      // an identical payload is a duplicate; a different one is a conflict.
+      if (error?.code === "P2002" && envelope?.eventId) {
+        const winner = await client.mailProductIntegrationEvent.findUnique({ where: { integrationId_eventId: { integrationId: integration.id, eventId: envelope.eventId } } }).catch(() => null);
+        if (winner && winner.payloadSha256 === payloadSha256) return reply(202, null, { accepted: true, duplicate: true, eventId: envelope.eventId });
+        if (winner) {
+          await recordRejection(integration, envelope, payloadSha256, "MAIL_INTEGRATION_EVENT_CONFLICT", { eventId: envelope.eventId });
+          return reply(409, "MAIL_INTEGRATION_EVENT_CONFLICT", { eventId: envelope.eventId });
+        }
+      }
       if (error instanceof ContractError || error?.code === "MAIL_INTEGRATION_FORBIDDEN_CONTENT") {
         const code = error.code;
         const status = error.status || 422;
@@ -232,12 +252,14 @@ function createIntegrationService({ client, config, audit, stepUp, automations, 
     if (!/^[a-z][a-z0-9-]{1,63}$/.test(product)) throw mailError("MAIL_VALIDATION_FAILED", { field: "product" });
     const serviceName = String(input.serviceName || "");
     if (!/^[a-z][a-z0-9-]{2,95}$/.test(serviceName)) throw mailError("MAIL_VALIDATION_FAILED", { field: "serviceName" });
-    const classification = input.classification || (product.startsWith("healthnet") ? "RESTRICTED_HEALTH" : "STANDARD");
-    if (!CLASSIFICATIONS.has(classification)) throw mailError("MAIL_VALIDATION_FAILED", { field: "classification" });
-    // HealthNet is always restricted, whatever the request says.
-    if (product.startsWith("healthnet") && classification !== "RESTRICTED_HEALTH") throw mailError("MAIL_VALIDATION_FAILED", { field: "classification", reason: "HEALTHNET_MUST_BE_RESTRICTED" });
     const organization = policy.isUuid(input.organizationId) ? await client.mailOrganization.findUnique({ where: { id: input.organizationId } }) : null;
     if (!organization) throw mailError("MAIL_VALIDATION_FAILED", { field: "organizationId" });
+    // Restriction follows the target organization (and the HealthNet product),
+    // never only the product name a caller picked.
+    const mustRestrict = isRestrictedHealthOrganization(config, organization) || product.startsWith("healthnet");
+    const classification = input.classification || (mustRestrict ? "RESTRICTED_HEALTH" : "STANDARD");
+    if (!CLASSIFICATIONS.has(classification)) throw mailError("MAIL_VALIDATION_FAILED", { field: "classification" });
+    if (mustRestrict && classification !== "RESTRICTED_HEALTH") throw mailError("MAIL_VALIDATION_FAILED", { field: "classification", reason: "HEALTHNET_MUST_BE_RESTRICTED" });
     const types = validateTypes(classification, input.allowedEventTypes, input.allowedTriggerTypes, product);
     const row = await client.mailProductIntegration.create({ data: { product, serviceName, organizationId: organization.id, classification, allowedEventTypes: types.events, allowedTriggerTypes: types.triggers, createdBy: user.id, updatedBy: user.id } }).catch((error) => {
       if (error.code === "P2002") throw mailError("MAIL_VALIDATION_FAILED", { reason: "DUPLICATE_PRODUCT_OR_SERVICE" });
@@ -293,9 +315,11 @@ function createIntegrationService({ client, config, audit, stepUp, automations, 
     const row = await load(id);
     if (!PURPOSES.has(purpose)) throw mailError("MAIL_VALIDATION_FAILED", { field: "purpose" });
     if (row.classification === "RESTRICTED_HEALTH" && purpose !== "OPERATIONAL_ALERT") throw mailError("MAIL_VALIDATION_FAILED", { field: "purpose", reason: "RESTRICTED_HEALTH_OPS_ALERTS_ONLY" });
-    const address = policy.isUuid(addressId) ? await client.mailAddress.findUnique({ where: { id: addressId }, include: { domain: true } }) : null;
+    const address = policy.isUuid(addressId) ? await client.mailAddress.findUnique({ where: { id: addressId }, include: { domain: true, mailbox: { select: { type: true } } } }) : null;
     // Only the integration's own brand, non-personal identities, verified domains.
-    if (!address || address.organizationId !== row.organizationId || address.status !== "ACTIVE" || !["SYSTEM", "SHARED", "ALIAS"].includes(address.kind)) throw mailError("MAIL_SENDER_NOT_AUTHORIZED", { reason: "BRAND_SYSTEM_IDENTITY_REQUIRED" });
+    // An ALIAS that lives on a PERSONAL mailbox is a person's identity, not a brand's.
+    const personal = address?.kind === "PRIMARY" || address?.mailbox?.type === "PERSONAL";
+    if (!address || personal || address.organizationId !== row.organizationId || address.status !== "ACTIVE" || !["SYSTEM", "SHARED", "ALIAS"].includes(address.kind)) throw mailError("MAIL_SENDER_NOT_AUTHORIZED", { reason: "BRAND_SYSTEM_IDENTITY_REQUIRED" });
     if (address.domain.status !== "VERIFIED") throw mailError("MAIL_SENDER_NOT_AUTHORIZED", { reason: "DOMAIN_NOT_VERIFIED" });
     const created = await client.mailProductSenderAuthorization.create({ data: { integrationId: id, addressId: address.id, address: address.address, purpose, grantedBy: user.id } }).catch((error) => {
       if (error.code === "P2002") throw mailError("MAIL_VALIDATION_FAILED", { reason: "ALREADY_AUTHORIZED" });

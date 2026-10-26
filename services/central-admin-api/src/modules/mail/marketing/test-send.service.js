@@ -14,7 +14,7 @@ const policy = require("../authz/mail.policy");
 const { externalSendBlockReason } = require("../authz/sending-gate");
 const { normalizeAddress } = require("../security/address.util");
 const { renderTemplate } = require("./template-renderer");
-const { classifySendError } = require("./marketing-sender");
+const { classifySendError, isBrandSender, SENDER_MAILBOX_SELECT } = require("./marketing-sender");
 
 const SAMPLE = { first_name: "Ada", last_name: "Lovelace", email: "test@example.invalid", unsubscribe_url: "https://example.invalid/unsubscribe-disabled-for-test-sends" };
 
@@ -86,10 +86,10 @@ function createTestSendService({ client, config, audit, jobs, marketingProviders
     if (usage && !(await usage.check(organizationId, PURPOSE, to.length)).allowed) return { defer: { seconds: 3600, code: "MAIL_QUOTA_HARD_LIMIT" } };
     const [version, sender, brandSettings] = await Promise.all([
       client.marketingTemplateVersion.findUnique({ where: { id: campaign.templateVersionId }, include: { template: true } }),
-      client.mailAddress.findUnique({ where: { id: campaign.senderAddressId }, include: { domain: { include: { organization: { select: { id: true, slug: true } } } } } }),
+      client.mailAddress.findUnique({ where: { id: campaign.senderAddressId }, include: { domain: { include: { organization: { select: { id: true, slug: true } } } }, mailbox: SENDER_MAILBOX_SELECT } }),
       client.marketingBrandSettings.findUnique({ where: { organizationId } }),
     ]);
-    const senderOk = sender && sender.organizationId === organizationId && sender.status === "ACTIVE" && ["SHARED", "SYSTEM", "ALIAS"].includes(sender.kind);
+    const senderOk = isBrandSender(sender, organizationId);
     const provider = marketingProviders(organization);
     const blocked = !version || version.template.organizationId !== organizationId ? "TEMPLATE_UNAVAILABLE" : !senderOk ? "SENDER_NOT_AUTHORIZED" : externalSendBlockReason({ config, providerReady: () => provider.configured !== false && provider.name !== "unconfigured", domain: sender.domain });
     if (blocked) {

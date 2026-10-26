@@ -2,7 +2,7 @@
 
 // Versioned automation definitions: a bounded, acyclic graph of steps.
 //   { topic, entryStepId, steps: [
-//       { id, type: "send_email", templateVersionId, senderAddressId, subjectOverride?, next },
+//       { id, type: "send_email", templateVersionId, senderAddressId, subjectOverride?, replyTo?, next },
 //       { id, type: "delay", minutes, next },
 //       { id, type: "condition", condition: { field, op, value }, then, else },
 //       { id, type: "exit" } ] }
@@ -20,6 +20,7 @@ const TOPIC = /^[a-z0-9][a-z0-9_-]{1,63}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const OPS = new Set(["equals", "not_equals", "contains", "in", "exists", "gt", "lt"]);
 const FIELD = /^(first_name|last_name|email_domain|attributes\.[a-zA-Z][a-zA-Z0-9_]{0,40}|event\.[a-zA-Z][a-zA-Z0-9_]{0,40}|engagement\.(previous_send_delivered|previous_send_opened|previous_send_clicked))$/;
+const EMAIL = /^[^\s@<>"']{1,64}@[a-z0-9.-]{1,253}\.[a-z]{2,}$/i;
 const MAX_STEPS = 30;
 const MAX_SEND_STEPS = 10;
 const MAX_DELAY_MINUTES = 90 * 24 * 60;
@@ -50,7 +51,10 @@ function validateDefinition(input) {
       case "send_email":
         if (!UUID.test(String(step.templateVersionId || ""))) errors.push({ field: `${at}.templateVersionId` });
         if (!UUID.test(String(step.senderAddressId || ""))) errors.push({ field: `${at}.senderAddressId` });
-        clean.push({ id, type: "send_email", templateVersionId: String(step.templateVersionId), senderAddressId: String(step.senderAddressId), subjectOverride: step.subjectOverride ? String(step.subjectOverride).replace(/[\r\n]+/g, " ").slice(0, 998) : null, next: ref(step.next) });
+        // replyTo is optional; when absent the sender address must itself
+        // route to a shared mailbox (checked against the brand at submit).
+        if (step.replyTo != null && step.replyTo !== "" && !EMAIL.test(String(step.replyTo))) errors.push({ field: `${at}.replyTo` });
+        clean.push({ id, type: "send_email", templateVersionId: String(step.templateVersionId), senderAddressId: String(step.senderAddressId), subjectOverride: step.subjectOverride ? String(step.subjectOverride).replace(/[\r\n]+/g, " ").slice(0, 998) : null, ...(step.replyTo ? { replyTo: String(step.replyTo).trim().toLowerCase().slice(0, 320) } : {}), next: ref(step.next) });
         break;
       case "delay": {
         const minutes = Number(step.minutes);

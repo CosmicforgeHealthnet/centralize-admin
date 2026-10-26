@@ -54,8 +54,49 @@ export interface Attachment {
   filename?: string;
   contentType?: string;
   sizeBytes?: number;
+  isInline?: boolean;
   scanStatus?: "PENDING" | "CLEAN" | "INFECTED" | "SCAN_FAILED" | "SCANNER_UNAVAILABLE";
   downloadable?: boolean;
+  renderedInline?: boolean;
+}
+
+export interface DsarExport {
+  organizationId: string;
+  email: string;
+  generatedAt?: string;
+  truncated?: boolean;
+  messages: Array<{
+    id?: string;
+    date?: string | null;
+    direction?: string;
+    mailbox?: string;
+    subject?: string;
+    from?: Record<string, unknown>;
+    to?: Array<Record<string, unknown>>;
+    cc?: Array<Record<string, unknown>>;
+    bcc?: Array<Record<string, unknown>>;
+    attachments?: Array<{
+      filename?: string;
+      sizeBytes?: number;
+    }>;
+  }>;
+  marketing?: Record<string, unknown> | null;
+}
+
+export interface DsarErasure {
+  organizationId?: string;
+  dryRun: boolean;
+  candidates: number;
+  erasable?: number;
+  erased: number;
+  truncated?: boolean;
+  skippedHeld?: Array<{
+    messageId?: string;
+    mailboxId?: string;
+  }>;
+  objectsRemoved?: number;
+  objectsKeptShared?: number;
+  objectRemoveFailed?: number;
 }
 
 export interface Message {
@@ -93,6 +134,9 @@ export interface Entitlements {
   sendingEnabled?: boolean;
   marketingEnabled?: boolean;
   mailboxes?: Array<MailboxSummary>;
+  canProvision?: boolean;
+  canProvisionForOthers?: boolean;
+  canApproveProvisioning?: boolean;
 }
 
 export interface BroadcastDispatch {
@@ -198,6 +242,21 @@ export interface SearchIndexStatus {
   activeKeyVersion?: string | null;
 }
 
+export interface MailPreferences {
+  available: boolean;
+  notificationsEnabled: boolean;
+  defaultSenderAddressId: string | null;
+  senderOptions: Array<{
+    addressId: string;
+    address: string;
+    displayName?: string | null;
+    kind?: string;
+    mailboxId: string;
+    mailboxName?: string;
+  }>;
+  updatedAt?: string | null;
+}
+
 export interface Error {
   success?: false;
   code?: string;
@@ -292,6 +351,7 @@ export const MAIL_OPERATIONS = {
   getMarketingTemplatesByTemplateId: { method: "GET", path: "/marketing/{orgId}/templates/{templateId}", status: 200 },
   getMeEntitlements: { method: "GET", path: "/me/entitlements", status: 200 },
   getMeMailboxes: { method: "GET", path: "/me/mailboxes", status: 200 },
+  getMePreferences: { method: "GET", path: "/me/preferences", status: 200 },
   getMessagesOriginalHeaders: { method: "GET", path: "/messages/{messageId}/original-headers", status: 200 },
   getMessagesRaw: { method: "GET", path: "/messages/{messageId}/raw", status: 200 },
   getMessagesStatus: { method: "GET", path: "/messages/{messageId}/status", status: 200 },
@@ -319,6 +379,8 @@ export const MAIL_OPERATIONS = {
   postAdminAttachmentsRescan: { method: "POST", path: "/admin/attachments/{attachmentId}/rescan", status: 200 },
   postAdminDomains: { method: "POST", path: "/admin/domains", status: 201 },
   postAdminDomainsVerify: { method: "POST", path: "/admin/domains/{domainId}/verify", status: 200 },
+  postAdminDsarErasure: { method: "POST", path: "/admin/dsar/erasure", status: 200 },
+  postAdminDsarExport: { method: "POST", path: "/admin/dsar/export", status: 200 },
   postAdminEmergencyStops: { method: "POST", path: "/admin/emergency-stops", status: 201 },
   postAdminEmergencyStopsRelease: { method: "POST", path: "/admin/emergency-stops/{stopId}/release", status: 200 },
   postAdminForwardingApprove: { method: "POST", path: "/admin/forwarding/{ruleId}/approve", status: 200 },
@@ -408,6 +470,7 @@ export const MAIL_OPERATIONS = {
   postWebhooksResendBrandBySlug: { method: "POST", path: "/webhooks/resend/brand/{slug}", status: 200 },
   putAdminQuotas: { method: "PUT", path: "/admin/quotas", status: 200 },
   putMarketingAutomationsDraft: { method: "PUT", path: "/marketing/{orgId}/automations/{automationId}/draft", status: 200 },
+  putMePreferences: { method: "PUT", path: "/me/preferences", status: 200 },
   putThreadsLabelsByLabelId: { method: "PUT", path: "/threads/{threadId}/labels/{labelId}", status: 200 },
   putThreadsTicketLink: { method: "PUT", path: "/threads/{threadId}/ticket-link", status: 200 },
 } as const;
@@ -582,6 +645,8 @@ export interface MailResponses {
   getMeEntitlements: Entitlements;
   /** Mailboxes the caller may open */
   getMeMailboxes: Array<MailboxSummary>;
+  /** The caller's Mail preferences (defaults before migration 36) */
+  getMePreferences: MailPreferences;
   /** Archived original headers (audited) */
   getMessagesOriginalHeaders: OriginalHeaders;
   /** Archived raw MIME (.eml; audited; quarantined: mail admins only) */
@@ -636,6 +701,10 @@ export interface MailResponses {
   postAdminDomains: Record<string, unknown>;
   /** Read provider verification status */
   postAdminDomainsVerify: Record<string, unknown>;
+  /** GDPR DSAR erasure for an external address (dry run unless dryRun=false; legal holds skipped; step-up MAIL_DSAR_ERASURE) */
+  postAdminDsarErasure: DsarErasure;
+  /** GDPR DSAR access export for one address in one organization (metadata only; step-up MAIL_DSAR_EXPORT) */
+  postAdminDsarExport: DsarExport;
   /** Activate an emergency stop (ALL, MARKETING or ORGANIZATION); immediate */
   postAdminEmergencyStops: Record<string, unknown>;
   /** Release an emergency stop (step-up MAIL_EMERGENCY_STOP_RELEASE) */
@@ -742,13 +811,13 @@ export interface MailResponses {
   postMarketingAutomationsVersionsSubmit: Record<string, unknown>;
   /** Create campaign draft */
   postMarketingCampaigns: Record<string, unknown>;
-  /** Approve (distinct reviewer + step-up) */
+  /** Approve (distinct reviewer, not an editor or template author since the last approval; step-up; body contactSetSha256/eligibleCount bind the audience the reviewer saw) */
   postMarketingCampaignsApprove: Record<string, unknown>;
   /** Cancel (complete before handoff; after handoff stops unsent mail only) */
   postMarketingCampaignsCancel: BroadcastDispatch;
   /** Pause before provider handoff */
   postMarketingCampaignsPause: BroadcastDispatch;
-  /** Preflight checks */
+  /** Preflight checks (returns contactSetSha256 for approval binding) */
   postMarketingCampaignsPreflight: Record<string, unknown>;
   /** Reject */
   postMarketingCampaignsReject: Record<string, unknown>;
@@ -766,7 +835,7 @@ export interface MailResponses {
   postMarketingContactsConsents: Record<string, unknown>;
   /** Withdraw consent */
   postMarketingContactsConsentsWithdraw: Record<string, unknown>;
-  /** CSV import with consent evidence */
+  /** CSV import with consent evidence: mode=preview (default, dry run returning counts and fileSha256) or mode=commit by a different brand approver with the same fileSha256 */
   postMarketingContactsImport: Record<string, unknown>;
   /** Pause all brand dispatch (authors or approvers) */
   postMarketingDispatchPause: Record<string, unknown>;
@@ -814,6 +883,8 @@ export interface MailResponses {
   putAdminQuotas: Record<string, unknown>;
   /** Create/update the editable draft version */
   putMarketingAutomationsDraft: Record<string, unknown>;
+  /** Update the caller's Mail preferences (503 MAIL_FEATURE_NOT_READY before migration 36) */
+  putMePreferences: MailPreferences;
   /** Attach label */
   putThreadsLabelsByLabelId: Record<string, unknown>;
   /** Link support ticket reference */
@@ -835,6 +906,19 @@ export interface MailRequestBodies {
     isRead?: boolean;
     isStarred?: boolean;
   };
+  postAdminDsarErasure: {
+    organizationId: string;
+    email: string;
+    reason: string;
+    stepUpId: string;
+    dryRun?: boolean;
+  };
+  postAdminDsarExport: {
+    organizationId: string;
+    email: string;
+    reason: string;
+    stepUpId: string;
+  };
   postAdminForwardingApprove: {
     note?: string;
     stepUpId?: string;
@@ -855,6 +939,7 @@ export interface MailRequestBodies {
   };
   postDraftsSend: {
     revision: number;
+    replyToAddressId?: string;
   };
   postForwardingDisable: {
     reason?: string;
@@ -904,6 +989,10 @@ export interface MailRequestBodies {
   postThreadsStatus: {
     status: "OPEN" | "PENDING" | "RESOLVED" | "CLOSED";
     revision: number;
+  };
+  putMePreferences: {
+    defaultSenderAddressId?: string | null;
+    notificationsEnabled?: boolean;
   };
   putThreadsTicketLink: {
     ticketRef?: string | null;

@@ -235,3 +235,60 @@ test("every Mail route is described in the OpenAPI document", () => {
   }
   assert.deepEqual(missing, []);
 });
+
+// ---- audit fixes (D9b, D8, D17) -------------------------------------------
+test("D9b: brand senders exclude addresses on PERSONAL mailboxes and fail closed when the mailbox is not loaded", () => {
+  const { brandSenderProblem, isBrandSender } = require("../src/modules/mail/marketing/marketing-sender");
+  const base = { organizationId: UUID, status: "ACTIVE" };
+  assert.equal(brandSenderProblem({ ...base, kind: "SHARED", mailboxId: "m", mailbox: { type: "SHARED" } }, UUID), null);
+  assert.equal(brandSenderProblem({ ...base, kind: "SYSTEM", mailboxId: null }, UUID), null, "system identities have no mailbox");
+  assert.equal(brandSenderProblem({ ...base, kind: "ALIAS", mailboxId: "m", mailbox: { type: "SHARED" } }, UUID), null);
+  assert.equal(brandSenderProblem({ ...base, kind: "ALIAS", mailboxId: "m", mailbox: { type: "PERSONAL" } }, UUID), "PERSONAL_MAILBOX_SENDER", "a person's alias");
+  assert.equal(brandSenderProblem({ ...base, kind: "ALIAS", mailboxId: "m" }, UUID), "PERSONAL_MAILBOX_SENDER", "mailbox not loaded: refused");
+  assert.equal(brandSenderProblem({ ...base, kind: "PRIMARY", mailboxId: null }, UUID), "PERSONAL_SENDER");
+  assert.equal(brandSenderProblem({ ...base, kind: "SHARED", status: "SUSPENDED" }, UUID), "SENDER_INACTIVE");
+  assert.equal(isBrandSender({ ...base, kind: "SHARED", organizationId: "other" }, UUID), false, "another brand");
+});
+
+test("D8: automation send steps accept an optional Reply-To address", () => {
+  const step = { id: "a", type: "send_email", templateVersionId: UUID, senderAddressId: UUID };
+  assert.equal(validateDefinition({ topic: "news", steps: [{ ...step, replyTo: "Team@Brand.example" }] }).steps[0].replyTo, "team@brand.example");
+  assert.equal("replyTo" in validateDefinition({ topic: "news", steps: [step] }).steps[0], false, "absent stays absent (definition hash unchanged)");
+  assert.throws(() => validateDefinition({ topic: "news", steps: [{ ...step, replyTo: "not an address" }] }), DefinitionError);
+});
+
+test("D17: MARKETING jobs get a lease heartbeat; a lost lease is flagged to the handler; other queues are unchanged", async () => {
+  const { createMailWorker } = require("../src/modules/mail/jobs/mail-worker");
+  const beats = [];
+  let held = true;
+  const done = [];
+  const pending = [{ id: "m1", kind: "SLOW", queue: "MARKETING", leaseOwner: "w:1" }, { id: "o1", kind: "SLOW", queue: "OUTBOUND", leaseOwner: "w:2" }];
+  const jobs = {
+    recoverExpiredLeases: async () => [],
+    claim: async () => pending.splice(0),
+    heartbeat: async (job) => { beats.push(job.id); return held; },
+    complete: async (job) => { done.push(job.id); return true; },
+    fail: async () => ({ status: "RETRY_SCHEDULED" }),
+    defer: async () => ({ status: "RETRY_SCHEDULED" }),
+  };
+  const seen = {};
+  const handlers = {
+    SLOW: async (job) => {
+      await new Promise((resolve) => setTimeout(resolve, 60));
+      held = false;
+      await new Promise((resolve) => setTimeout(resolve, 40));
+      seen[job.id] = job.lease.lost;
+      return {};
+    },
+  };
+  const worker = createMailWorker({ jobs, handlers, config: { worker: { concurrency: 2, leaseSeconds: 120, pollIntervalMs: 1000 } }, queues: ["MARKETING", "OUTBOUND"], heartbeatIntervalMs: 15 });
+  await worker.drain({ maxTicks: 2 });
+  assert.ok(beats.filter((id) => id === "m1").length >= 2, "marketing lease extended while running");
+  assert.equal(beats.includes("o1"), false, "outbound behaviour unchanged");
+  assert.equal(seen.m1, true, "lost lease is visible to the handler");
+  assert.equal(seen.o1, false);
+  const count = beats.length;
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  assert.equal(beats.length, count, "heartbeat stops when the job ends");
+  assert.deepEqual(done.sort(), ["m1", "o1"]);
+});

@@ -1000,6 +1000,7 @@ model AdminUser {
   mailSenderGrants   MailSenderGrant[]     @relation("MailSenderGrantUser")
   mailThreadStates   MailUserThreadState[] @relation("MailUserThreadStateUser")
   mailDrafts         MailDraft[]           @relation("MailDraftAuthor")
+  mailPreference     MailUserPreference?   @relation("MailUserPreferenceUser")
 
   @@map("admin_users")
 }
@@ -4218,12 +4219,13 @@ model MailAddress {
   createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  organization MailOrganization  @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_addresses_organization")
-  domain       MailDomain        @relation(fields: [domainId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_addresses_domain")
-  mailbox      MailMailbox?      @relation(fields: [mailboxId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_addresses_mailbox")
-  aliasOf      MailAddress?      @relation("MailAddressAlias", fields: [aliasOfAddressId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_addresses_alias_of")
-  aliases      MailAddress[]     @relation("MailAddressAlias")
+  organization MailOrganization     @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_addresses_organization")
+  domain       MailDomain           @relation(fields: [domainId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_addresses_domain")
+  mailbox      MailMailbox?         @relation(fields: [mailboxId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_addresses_mailbox")
+  aliasOf      MailAddress?         @relation("MailAddressAlias", fields: [aliasOfAddressId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_addresses_alias_of")
+  aliases      MailAddress[]        @relation("MailAddressAlias")
   senderGrants MailSenderGrant[]
+  preferredBy  MailUserPreference[] @relation("MailUserPreferenceDefaultSender")
 
   @@unique([domainId, localPart], map: "UQ_mail_addresses_domain_local_part")
   @@index([mailboxId, status], map: "IDX_mail_addresses_mailbox_status")
@@ -5668,4 +5670,22 @@ model MarketingCampaignReply {
 
   @@index([campaignId, receivedAt], map: "IDX_marketing_campaign_replies_campaign")
   @@map("marketing_campaign_replies")
+}
+
+// Per-user Mail preferences (spec 15 "Profiles", migration 36). One row per
+// staff member, written on first save; no row means the defaults
+// (notifications on, no preferred sender). The preferred sender is
+// re-authorized on every use; a revoked identity is simply ignored.
+model MailUserPreference {
+  adminUserId            String   @id @map("admin_user_id")
+  defaultSenderAddressId String?  @map("default_sender_address_id") @db.Uuid
+  notificationsEnabled   Boolean  @default(true) @map("notifications_enabled")
+  createdAt              DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  adminUser     AdminUser    @relation("MailUserPreferenceUser", fields: [adminUserId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_user_preferences_admin_user")
+  defaultSender MailAddress? @relation("MailUserPreferenceDefaultSender", fields: [defaultSenderAddressId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_mail_user_preferences_default_sender")
+
+  @@index([defaultSenderAddressId], map: "IDX_mail_user_preferences_default_sender")
+  @@map("mail_user_preferences")
 }

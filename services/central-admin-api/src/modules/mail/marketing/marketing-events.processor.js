@@ -6,12 +6,16 @@
 // - automation / confirmation sends (provider message id) -> step runs
 // - contact.updated with unsubscribed=true -> brand-wide withdrawal
 // Rules: status never regresses (rank order); provider acceptance is not
-// delivery; bounces and complaints suppress the address for that brand only;
+// delivery; hard (Permanent) bounces and provider suppressions suppress the
+// address for that brand only and never touch consent; soft bounces only
+// record status; complaints withdraw the brand's consent and suppress;
 // events are matched to a brand through records CosmicForge created, and a
-// brand-endpoint event can only affect its own brand.
+// brand-endpoint event can only affect its own brand. Delivery evidence is
+// kept as a mail_delivery_events row so "delivered" never falls when a later
+// complaint or bounce replaces the recipient status.
 
 const { normalizeAddress } = require("../security/address.util");
-const { enforceWithdrawal } = require("./consent-enforcement");
+const { enforceWithdrawal, suppressAddress } = require("./consent-enforcement");
 
 const EVENT_TO_STATUS = {
   "email.sent": "PROVIDER_ACCEPTED",
@@ -46,10 +50,27 @@ function createMarketingEventsProcessor({ client, audit, clock = () => new Date(
     };
   }
 
-  async function suppress(tx, organizationId, email, status) {
-    if (status === "BOUNCED") return enforceWithdrawal(tx, { organizationId, email, reason: "BOUNCED", source: "provider_event", now: clock() });
+  // Only a Permanent (hard) bounce is evidence that the address is dead.
+  function isHardBounce(data) {
+    return /^(permanent|hard)$/i.test(String(data?.bounce?.type || ""));
+  }
+
+  async function suppress(tx, organizationId, email, status, data) {
+    if (status === "BOUNCED") return isHardBounce(data) ? suppressAddress(tx, { organizationId, email, reason: "BOUNCED", source: "provider_hard_bounce" }) : null;
+    // A complaint is a withdrawal of consent for this brand.
     if (status === "COMPLAINED") return enforceWithdrawal(tx, { organizationId, email, reason: "COMPLAINED", source: "provider_event", now: clock() });
+    // Provider-side suppression list (prior hard bounces / complaints on the
+    // provider account). No dedicated enum value exists; BOUNCED is the
+    // closest liftable reason, the source says where it came from.
+    if (status === "SUPPRESSED") return suppressAddress(tx, { organizationId, email, reason: "BOUNCED", source: "provider_suppressed", contactStatus: "SUPPRESSED" });
     return null;
+  }
+
+  // One evidence row per recipient: the report counts delivered from it.
+  async function recordDeliveryEvidence(tx, event, meta, dispatch, recipient) {
+    const existing = await tx.mailDeliveryEvent.findFirst({ where: { messageId: null, eventType: "DELIVERED", detail: { path: ["recipientId"], equals: recipient.id } }, select: { id: true } });
+    if (existing) return;
+    await tx.mailDeliveryEvent.create({ data: { webhookEventId: event.id || null, providerMessageId: String(meta.data.email_id || `broadcast:${dispatch.id}`).slice(0, 255), recipient: recipient.email, eventType: "DELIVERED", occurredAt: meta.occurredAt, detail: { marketing: true, dispatchId: dispatch.id, recipientId: recipient.id } } });
   }
 
   async function handleBroadcastEvent(event) {
@@ -69,7 +90,8 @@ function createMarketingEventsProcessor({ client, audit, clock = () => new Date(
         if (meta.type === "email.clicked" && !recipient.clickedAt) data.clickedAt = meta.occurredAt;
         await tx.marketingBroadcastRecipient.update({ where: { id: recipient.id }, data });
         if (status && !FINAL_SKIP.has(recipient.status)) await tx.marketingBroadcastRecipient.updateMany({ where: { id: recipient.id, status: { in: replaceable(status) } }, data: { status } });
-        if (status === "BOUNCED" || status === "COMPLAINED") await suppress(tx, dispatch.organizationId, email, status);
+        if (status === "DELIVERED") await recordDeliveryEvidence(tx, event, meta, dispatch, recipient);
+        if (status === "BOUNCED" || status === "COMPLAINED" || status === "SUPPRESSED") await suppress(tx, dispatch.organizationId, email, status, meta.data);
       }
       if (matched) await audit.record({ action: `MARKETING_BROADCAST_EVENT_${String(meta.type).split(".")[1].toUpperCase()}`, targetType: "marketing_broadcast", targetId: dispatch.id, organizationId: dispatch.organizationId, metadata: { recipients: matched } }, {}, tx);
     });
@@ -82,7 +104,11 @@ function createMarketingEventsProcessor({ client, audit, clock = () => new Date(
     const status = EVENT_TO_STATUS[meta.type];
     await client.$transaction(async (tx) => {
       if (status) await tx.marketingAutomationStepRun.updateMany({ where: { id: run.id, OR: [{ deliveryStatus: null }, { deliveryStatus: { in: replaceable(status) } }] }, data: { deliveryStatus: status } });
-      if ((status === "BOUNCED" || status === "COMPLAINED") && run.recipientEmail) await suppress(tx, run.organizationId, run.recipientEmail, status);
+      // Engagement for automation condition steps (engagement.previous_send_*).
+      // Merged atomically so concurrent events never drop each other's flag.
+      const flag = meta.type === "email.opened" ? { opened: true } : meta.type === "email.clicked" ? { clicked: true } : null;
+      if (flag) await tx.$executeRaw`UPDATE "marketing_automation_step_runs" SET "outcome" = COALESCE("outcome", '{}'::jsonb) || ${JSON.stringify(flag)}::jsonb, "updated_at" = now() WHERE "id" = ${run.id}::uuid`;
+      if ((status === "BOUNCED" || status === "COMPLAINED" || status === "SUPPRESSED") && run.recipientEmail) await suppress(tx, run.organizationId, run.recipientEmail, status, meta.data);
       await audit.record({ action: `MARKETING_AUTOMATION_EVENT_${String(meta.type).split(".")[1].toUpperCase()}`, targetType: "marketing_automation_step_run", targetId: run.id, organizationId: run.organizationId }, {}, tx);
     });
     return { matched: 1 };

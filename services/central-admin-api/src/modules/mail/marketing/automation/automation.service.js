@@ -11,6 +11,10 @@ const policy = require("../../authz/mail.policy");
 const { iso, decodeCursor, encodeCursor, pageLimit } = require("../../services/serializers");
 const { validateDefinition, validateTriggerConfig, definitionHash, DefinitionError } = require("./definition");
 const { approvedEvent, minimizePayload } = require("./event-registry");
+const { brandSenderProblem, automationReplyTo, SENDER_MAILBOX_SELECT } = require("../marketing-sender");
+const { renderTemplate } = require("../template-renderer");
+const { scanLinks } = require("../link-scan");
+const { isRestrictedHealthOrganization } = require("../../authz/sending-gate");
 
 const TRIGGER_TYPES = new Set(["CONSENT_GRANTED", "PRODUCT_EVENT", "SCHEDULE"]);
 
@@ -54,8 +58,9 @@ function createAutomationService({ client, config, audit, stepUp, clock = () => 
     for (const step of definition.steps.filter((entry) => entry.type === "send_email")) {
       const version = await client.marketingTemplateVersion.findUnique({ where: { id: step.templateVersionId }, include: { template: true } });
       if (!version || version.template.organizationId !== organizationId) problems.push({ field: `step ${step.id}.templateVersionId` });
-      const sender = await client.mailAddress.findUnique({ where: { id: step.senderAddressId } });
-      if (!sender || sender.organizationId !== organizationId || sender.status !== "ACTIVE" || !["SHARED", "SYSTEM", "ALIAS"].includes(sender.kind)) problems.push({ field: `step ${step.id}.senderAddressId`, reason: "BRAND_SENDER_REQUIRED" });
+      const sender = await client.mailAddress.findUnique({ where: { id: step.senderAddressId }, include: { mailbox: SENDER_MAILBOX_SELECT } });
+      const senderProblem = brandSenderProblem(sender, organizationId);
+      if (senderProblem) problems.push({ field: `step ${step.id}.senderAddressId`, reason: "BRAND_SENDER_REQUIRED", detail: senderProblem });
     }
     if (triggerType === "SCHEDULE") {
       const audience = await client.marketingAudience.findUnique({ where: { id: triggerConfig.audienceId } });
@@ -67,6 +72,60 @@ function createAutomationService({ client, config, audit, stepUp, clock = () => 
       }
     }
     if (problems.length) throw mailError("MAIL_VALIDATION_FAILED", { errors: problems });
+  }
+
+  // Same content/sender checks a campaign passes before review (link scan,
+  // sender domain verified + allowlisted, restricted-health block, Reply-To to
+  // a shared mailbox, postal address, template renders). Run at submit and
+  // again at approval. Accessibility findings are reported, not blocking
+  // (as for campaigns).
+  async function preflightSteps(organizationId, definition) {
+    const checks = [];
+    const add = (step, id, ok, detail) => checks.push({ id: `${step.id}:${id}`, ok, detail });
+    const brandSettings = await client.marketingBrandSettings.findUnique({ where: { organizationId } });
+    for (const step of definition.steps.filter((entry) => entry.type === "send_email")) {
+      add(step, "postal_address", Boolean(brandSettings?.postalAddress), brandSettings?.postalAddress ? "Postal address included in the footer" : "Set the brand postal address in Email Marketing settings");
+      const sender = await client.mailAddress.findUnique({ where: { id: step.senderAddressId }, include: { domain: { include: { organization: { select: { id: true, slug: true } } } }, mailbox: SENDER_MAILBOX_SELECT } });
+      const senderProblem = brandSenderProblem(sender, organizationId);
+      add(step, "sender_identity", !senderProblem, senderProblem || sender.address);
+      if (sender && !senderProblem) {
+        add(step, "sender_domain_verified", sender.domain.status === "VERIFIED" && sender.domain.sendingStatus === "VERIFIED", `${sender.domain.domain}: ${sender.domain.status}/${sender.domain.sendingStatus}`);
+        const allowlisted = Boolean(config.domainAllowlist.length && config.domainAllowlist.includes(sender.domain.domain));
+        add(step, "sender_domain_allowlisted", allowlisted, allowlisted ? sender.domain.domain : `${sender.domain.domain} is not in MAIL_DOMAIN_ALLOWLIST`);
+        const restricted = isRestrictedHealthOrganization(config, sender.domain.organization) && !config.restrictedHealth?.providerApproved;
+        add(step, "brand_provider_allowed", !restricted, restricted ? "Restricted-health brand: provider sending is not approved" : "Brand may use the provider");
+      }
+      const replyTo = await automationReplyTo(client, organizationId, step, sender);
+      add(step, "reply_to_policy", !replyTo.problem, replyTo.problem ? `Reply-To must be an active shared mailbox address of this brand (${replyTo.problem})` : replyTo.address);
+      const version = await client.marketingTemplateVersion.findUnique({ where: { id: step.templateVersionId }, include: { template: true } });
+      if (!version || version.template.organizationId !== organizationId) {
+        add(step, "template", false, "Select a template version of this brand");
+        continue;
+      }
+      try {
+        const rendered = renderTemplate({ subject: step.subjectOverride || version.subject, preheader: version.preheader, blocks: version.blocks, brand: { ...(version.brand || {}), ...(brandSettings?.postalAddress ? { postalAddress: brandSettings.postalAddress } : {}) } });
+        add(step, "template_renders", true, `${rendered.variables.length} variables`);
+        const links = scanLinks(rendered.html);
+        add(step, "links_safe", links.ok, links.ok ? `${links.linkCount} link(s) checked` : links.issues.slice(0, 5).map((issue) => `${issue.kind}: ${issue.detail}`).join("; "));
+        if (rendered.accessibility?.length) checks.push({ id: `${step.id}:accessibility`, ok: true, advisory: true, detail: rendered.accessibility.map((entry) => entry.detail).join(" ") });
+      } catch (error) {
+        add(step, "template_renders", false, error.code || "render failed");
+      }
+    }
+    const failed = checks.filter((check) => !check.ok);
+    if (failed.length) throw mailError("MAIL_PREFLIGHT_FAILED", { checks: failed });
+    return checks;
+  }
+
+  // Authors of a version: everyone who saved it as a draft (audit trail),
+  // its recorded creator and submitter. None of them may approve it.
+  async function versionEditors(automationId, version) {
+    const rows = await client.mailAuditEvent.findMany({
+      where: { targetType: "marketing_automation", targetId: automationId, action: "MARKETING_AUTOMATION_DRAFT_SAVED", actorAdminUserId: { not: null }, metadata: { path: ["version"], equals: version.version } },
+      select: { actorAdminUserId: true },
+      distinct: ["actorAdminUserId"],
+    });
+    return [...new Set([version.createdByAdminUserId, version.submittedByAdminUserId, ...rows.map((row) => row.actorAdminUserId)].filter(Boolean))];
   }
 
   function serialize(row, versions = null) {
@@ -143,7 +202,9 @@ function createAutomationService({ client, config, audit, stepUp, clock = () => 
     const sha = definitionHash(definition, triggerConfig);
     const row = await client.$transaction(async (tx) => {
       const draft = await tx.marketingAutomationVersion.findFirst({ where: { automationId, status: "DRAFT" } });
-      if (draft) return tx.marketingAutomationVersion.update({ where: { id: draft.id }, data: { definition, triggerConfig, definitionSha256: sha, createdByAdminUserId: user.id } });
+      // The original author stays recorded; later editors are tracked through
+      // the DRAFT_SAVED audit records (see versionEditors).
+      if (draft) return tx.marketingAutomationVersion.update({ where: { id: draft.id }, data: { definition, triggerConfig, definitionSha256: sha } });
       const last = await tx.marketingAutomationVersion.findFirst({ where: { automationId }, orderBy: { version: "desc" } });
       return tx.marketingAutomationVersion.create({ data: { automationId, version: (last?.version || 0) + 1, status: "DRAFT", definition, triggerConfig, definitionSha256: sha, createdByAdminUserId: user.id } });
     });
@@ -158,6 +219,7 @@ function createAutomationService({ client, config, audit, stepUp, clock = () => 
     const version = await loadVersion(automation, versionId);
     if (version.status !== "DRAFT") throw mailError("MAIL_INVALID_TRANSITION", { from: version.status });
     await validateReferences(organizationId, version.definition, automation.triggerType, version.triggerConfig);
+    await preflightSteps(organizationId, version.definition);
     const updated = await client.marketingAutomationVersion.updateMany({ where: { id: versionId, status: "DRAFT", definitionSha256: version.definitionSha256 }, data: { status: "PENDING_REVIEW", submittedByAdminUserId: user.id, submittedAt: clock() } });
     if (updated.count !== 1) throw mailError("MAIL_DRAFT_REVISION_CONFLICT", { currentRevision: null });
     await audit.record({ actorAdminUserId: user.id, action: "MARKETING_AUTOMATION_SUBMITTED", targetType: "marketing_automation", targetId: automationId, organizationId, metadata: { version: version.version, definitionSha256: version.definitionSha256 } }, context);
@@ -169,10 +231,15 @@ function createAutomationService({ client, config, audit, stepUp, clock = () => 
     const automation = await load(organizationId, automationId);
     const version = await loadVersion(automation, versionId);
     if (version.status !== "PENDING_REVIEW") throw mailError("MAIL_INVALID_TRANSITION", { from: version.status });
-    if ([version.createdByAdminUserId, version.submittedByAdminUserId].includes(user.id)) throw mailError("MAIL_FORBIDDEN", { reason: "REVIEWER_MUST_DIFFER_FROM_AUTHOR" });
+    if ((await versionEditors(automationId, version)).includes(user.id)) throw mailError("MAIL_FORBIDDEN", { reason: "REVIEWER_MUST_DIFFER_FROM_AUTHOR" });
+    // Authoring a referenced template version is authoring the content.
+    const templateIds = version.definition.steps.filter((step) => step.type === "send_email").map((step) => step.templateVersionId);
+    const authored = templateIds.length ? await client.marketingTemplateVersion.count({ where: { id: { in: templateIds }, createdBy: user.id } }) : 0;
+    if (authored) throw mailError("MAIL_FORBIDDEN", { reason: "REVIEWER_AUTHORED_TEMPLATE_VERSION" });
     // The reviewer approves exactly the definition they reviewed.
     if (definitionSha256 && definitionSha256 !== version.definitionSha256) throw mailError("MAIL_INVALID_TRANSITION", { reason: "DEFINITION_CHANGED_SINCE_REVIEW" });
     await validateReferences(organizationId, version.definition, automation.triggerType, version.triggerConfig);
+    await preflightSteps(organizationId, version.definition);
     const now = clock();
     await client.$transaction(async (tx) => {
       const consumed = await stepUp.consume(tx, user, stepUpId, "MARKETING_AUTOMATION_PUBLISH", context);
@@ -204,7 +271,9 @@ function createAutomationService({ client, config, audit, stepUp, clock = () => 
     const automation = await load(organizationId, automationId);
     if (!automation.activeVersionId) throw mailError("MAIL_INVALID_TRANSITION", { reason: "PUBLISHED_VERSION_REQUIRED" });
     if (!["DRAFT", "PAUSED"].includes(automation.status)) throw mailError("MAIL_INVALID_TRANSITION", { from: automation.status });
-    const row = await client.marketingAutomation.update({ where: { id: automationId }, data: { status: "ACTIVE", updatedByAdminUserId: user.id, activatedAt: clock(), lastScheduledRunAt: automation.lastScheduledRunAt || clock() } });
+    // Schedules start from now: resuming a paused automation never fires an
+    // occurrence that fell due while it was paused.
+    const row = await client.marketingAutomation.update({ where: { id: automationId }, data: { status: "ACTIVE", updatedByAdminUserId: user.id, activatedAt: clock(), lastScheduledRunAt: clock() } });
     await audit.record({ actorAdminUserId: user.id, action: "MARKETING_AUTOMATION_ACTIVATED", targetType: "marketing_automation", targetId: automationId, organizationId }, context);
     return serialize(row);
   }

@@ -8,6 +8,12 @@
 //   tracked separately; nothing here claims delivery.
 // - Recipients that are local active mailboxes are delivered internally and
 //   deduplicated against later provider echoes by Message-ID per mailbox.
+// - Before queuing: content policy (unsafe link schemes, misleading link
+//   text), total size, provider suppressions, and quotas. The final quota
+//   checks run inside the send transaction under per-user and per-org
+//   advisory locks so concurrent sends cannot all pass.
+// - A client Idempotency-Key replays only for the same draft; reuse for a
+//   different draft is a 409.
 
 const crypto = require("crypto");
 const { mailError } = require("../mail.errors");
@@ -19,10 +25,20 @@ const { evaluateAttachment } = require("../scanning/attachment-scanner");
 const { serializeAttachment, iso } = require("./serializers");
 const { externalSendBlockReason, SEND_BLOCK_REASONS } = require("../authz/sending-gate");
 const { purposeForMailbox } = require("../ops/runtime-controls");
+const { scanLinks } = require("../marketing/link-scan");
 
 const DRAFT_PURPOSE = "mail-draft";
+const BLOCKED_LINK_SCHEMES = new Set(["javascript", "data", "vbscript"]);
 
-function createComposeService({ client, config, store, encryption, scanner, jobs, audit, notifications, providerReady = () => false, runtime = null, usage = null, clock = () => new Date() }) {
+// Staff content policy: script-like link schemes and anchor text that shows
+// one host while linking to another (phishing pattern) are refused.
+function assertContentPolicy(html) {
+  const { issues } = scanLinks(html);
+  const blocked = issues.filter((issue) => (issue.kind === "UNSAFE_SCHEME" && BLOCKED_LINK_SCHEMES.has(issue.detail)) || issue.kind === "MISLEADING_TEXT");
+  if (blocked.length) throw mailError("MAIL_VALIDATION_FAILED", { field: "html", reason: "UNSAFE_LINK", issues: blocked.slice(0, 5), status: 422 }, "This message contains a link that is not allowed (unsafe link type or link text that shows a different site).");
+}
+
+function createComposeService({ client, config, store, encryption, scanner, jobs, audit, notifications, preferences = null, providerReady = () => false, runtime = null, usage = null, clock = () => new Date() }) {
   function encryptDraftBody(html, text) {
     if (!encryption.available) throw mailError("MAIL_STORAGE_UNAVAILABLE");
     return encryption.encryptJson({ html, text }, DRAFT_PURPOSE);
@@ -119,7 +135,10 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
       prefill = await prefillFromSource(user, access, mode, input.inReplyToMessageId);
     }
     const identities = await policy.listSenderIdentities(client, user, access);
-    const senderAddressId = input.senderAddressId || identities[0]?.addressId || null;
+    // Explicit choice, else the caller's preferred sender (spec 15) when it is
+    // an identity of THIS mailbox, else the first identity.
+    const preferred = (input.senderAddressId || !preferences) ? null : await preferences.defaultSenderFor(user, identities);
+    const senderAddressId = input.senderAddressId || preferred || identities[0]?.addressId || null;
     if (senderAddressId && !identities.some((identity) => identity.addressId === senderAddressId)) throw mailError("MAIL_SENDER_NOT_AUTHORIZED", { field: "senderAddressId" });
     const to = input.to ? parseRecipients(input.to, "to") : prefill.to;
     const cc = input.cc ? parseRecipients(input.cc, "cc") : prefill.cc;
@@ -214,29 +233,59 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
     return { removed: true };
   }
 
-  async function enforceQuota(user, mailbox) {
+  // Runs inside the send transaction. Advisory locks (user, then org, always
+  // in that order) serialize concurrent sends so the counts below are final.
+  async function enforceQuota(tx, user, mailbox, { recipients, external }) {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`mail-send-quota:user:${user.id}`}))`;
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`mail-send-quota:org:${mailbox.organizationId}`}))`;
     const now = clock();
-    const recentByUser = await client.mailMessage.count({ where: { sentByAdminUserId: user.id, direction: "OUTBOUND", createdAt: { gt: new Date(now.getTime() - 60000) } } });
+    const recentByUser = await tx.mailMessage.count({ where: { sentByAdminUserId: user.id, direction: "OUTBOUND", createdAt: { gt: new Date(now.getTime() - 60000) } } });
     if (recentByUser >= config.limits.sendsPerMinutePerUser) throw mailError("MAIL_RATE_LIMITED", { retryAfter: 60 });
-    const dailyForMailbox = await client.mailMessage.count({ where: { mailboxId: mailbox.id, direction: "OUTBOUND", createdAt: { gt: new Date(now.getTime() - 86400000) } } });
-    if (dailyForMailbox >= mailbox.dailySendQuota) throw mailError("MAIL_QUOTA_EXCEEDED", { limit: mailbox.dailySendQuota });
+    // The mailbox daily quota counts recipients, not messages.
+    const dailyForMailbox = await tx.mailMessageRecipient.count({ where: { message: { mailboxId: mailbox.id, direction: "OUTBOUND", createdAt: { gt: new Date(now.getTime() - 86400000) } } } });
+    if (dailyForMailbox + recipients > mailbox.dailySendQuota) throw mailError("MAIL_QUOTA_EXCEEDED", { limit: mailbox.dailySendQuota, unit: "recipients" });
+    // Org hard limit: accepted + queued external recipients + this send.
+    if (external && usage) await usage.assertWithinQuota(mailbox.organizationId, purposeForMailbox(mailbox), external, { db: tx });
   }
 
-  async function sendDraft(user, draftId, { revision, idempotencyKey }, context = {}) {
+  // A client Idempotency-Key replays only the message sent from this draft.
+  async function findReplay(messageKey, draftId) {
+    const existing = await client.mailMessage.findUnique({ where: { idempotencyKey: messageKey }, include: { outboxJobs: true } });
+    if (!existing) return null;
+    const draft = policy.isUuid(draftId) ? await client.mailDraft.findUnique({ where: { id: draftId }, select: { sentMessageId: true } }) : null;
+    if (!draft || draft.sentMessageId !== existing.id) throw mailError("MAIL_INVALID_TRANSITION", { field: "Idempotency-Key", reason: "IDEMPOTENCY_KEY_REUSED" }, "This Idempotency-Key was already used for a different draft.");
+    return { messageId: existing.id, threadId: existing.threadId, jobId: existing.outboxJobs[0]?.id || null, status: existing.status, replayed: true };
+  }
+
+  async function sendDraft(user, draftId, { revision, idempotencyKey, replyToAddressId = null }, context = {}) {
     if (!config.enabled) throw mailError("MAIL_DISABLED");
     const clientKey = idempotencyKey ? String(idempotencyKey).slice(0, 80) : null;
     if (clientKey && !/^[A-Za-z0-9_.:-]{8,80}$/.test(clientKey)) throw mailError("MAIL_VALIDATION_FAILED", { field: "Idempotency-Key" });
     const messageKey = clientKey ? `${user.id}:${clientKey}` : null;
     if (messageKey) {
-      const existing = await client.mailMessage.findUnique({ where: { idempotencyKey: messageKey }, include: { outboxJobs: true } });
-      if (existing) return { messageId: existing.id, threadId: existing.threadId, jobId: existing.outboxJobs[0]?.id || null, status: existing.status, replayed: true };
+      const replay = await findReplay(messageKey, draftId);
+      if (replay) return replay;
     }
     const { draft, access } = await loadOwnDraft(user, draftId, "SEND");
-    if (draft.status !== "ACTIVE") throw mailError("MAIL_INVALID_TRANSITION", { from: draft.status });
+    if (draft.status !== "ACTIVE") {
+      // A concurrent request with the same key may have just sent it.
+      const replay = messageKey ? await findReplay(messageKey, draftId) : null;
+      if (replay) return replay;
+      throw mailError("MAIL_INVALID_TRANSITION", { from: draft.status });
+    }
     if (Number(revision) !== draft.revision) throw mailError("MAIL_DRAFT_REVISION_CONFLICT", { currentRevision: draft.revision });
     const mailbox = access.mailbox;
     if (!draft.senderAddressId) throw mailError("MAIL_SENDER_NOT_AUTHORIZED", { field: "senderAddressId" });
     const identity = await policy.requireSenderIdentity(client, user, access, draft.senderAddressId);
+    // Optional Reply-To: must be an address the user may send as.
+    let replyTo = null;
+    if (replyToAddressId != null && replyToAddressId !== "") {
+      if (!policy.isUuid(replyToAddressId)) throw mailError("MAIL_VALIDATION_FAILED", { field: "replyToAddressId" });
+      const identities = await policy.listSenderIdentities(client, user, access, { now: clock() });
+      const match = identities.find((entry) => entry.addressId === replyToAddressId);
+      if (!match) throw mailError("MAIL_SENDER_NOT_AUTHORIZED", { field: "replyToAddressId" });
+      replyTo = match.address;
+    }
     const to = parseRecipients(draft.toRecipients, "to");
     const cc = parseRecipients(draft.ccRecipients, "cc");
     const bcc = parseRecipients(draft.bccRecipients, "bcc");
@@ -256,6 +305,11 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
 
     const attachments = await client.mailAttachment.findMany({ where: { draftId } });
     if (attachments.some((attachment) => attachment.quarantined || attachment.scanStatus !== "CLEAN")) throw mailError("MAIL_ATTACHMENT_NOT_CLEAN");
+    const draftBody = decryptDraftBody(draft);
+    assertContentPolicy(draftBody.html);
+    // Total size (raw body + attachment bytes, before transfer encoding).
+    const totalBytes = Buffer.byteLength(draftBody.html || "") + Buffer.byteLength(draftBody.text || "") + attachments.reduce((sum, attachment) => sum + attachment.sizeBytes, 0);
+    if (totalBytes > config.limits.messageMaxBytes) throw mailError("MAIL_VALIDATION_FAILED", { field: "body", reason: "MESSAGE_TOO_LARGE", maxBytes: config.limits.messageMaxBytes, sizeBytes: totalBytes, status: 413 }, "This message is too large to send. Remove attachments or shorten it.");
 
     const recipientAddresses = all.map((party) => party.address);
     const internalRows = await client.mailAddress.findMany({ where: { address: { in: recipientAddresses }, status: "ACTIVE", mailboxId: { not: null }, mailbox: { status: "ACTIVE" } }, include: { mailbox: true } });
@@ -271,14 +325,17 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
       const purpose = purposeForMailbox(mailbox);
       const halted = runtime ? await runtime.haltReason(purpose, { organizationId: mailbox.organizationId, mailboxId: mailbox.id, domainId: senderAddress?.domainId, adminUserId: user.id }) : null;
       if (halted) throw mailError(halted.startsWith("MAIL_ROLLOUT_") ? halted : "MAIL_EMERGENCY_STOP", { reason: halted });
-      if (usage) await usage.assertWithinQuota(mailbox.organizationId, purpose, externalRecipients.length);
+      // Addresses the provider reported as bounced/complained for this brand.
+      const suppressed = await client.marketingSuppression.findMany({ where: { organizationId: mailbox.organizationId, email: { in: externalRecipients.map((party) => party.address) }, liftedAt: null, reason: { in: ["BOUNCED", "COMPLAINED"] } }, select: { email: true } });
+      if (suppressed.length) {
+        const addresses = [...new Set(suppressed.map((row) => row.email))].slice(0, 10);
+        throw mailError("MAIL_VALIDATION_FAILED", { field: "to", reason: "RECIPIENT_SUPPRESSED", addresses, status: 422 }, `Cannot send to ${addresses.join(", ")}: the address previously bounced or reported this sender as spam.`);
+      }
     }
-    await enforceQuota(user, mailbox);
 
     const source = draft.inReplyToMessageId ? await client.mailMessage.findUnique({ where: { id: draft.inReplyToMessageId } }) : null;
     const inReplyTo = draft.mode === "REPLY" || draft.mode === "REPLY_ALL" ? source?.rfcMessageId || null : null;
     const references = inReplyTo ? [...(source.references || []), source.rfcMessageId].slice(-20) : [];
-    const draftBody = decryptDraftBody(draft);
     const body = await store.storeBody({ html: draftBody.html, text: draftBody.text });
     const rfcMessageId = store.generateMessageId(domainOf(identity.address));
     const now = clock();
@@ -286,29 +343,34 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
     const fromParty = { address: identity.address, name: identity.displayName };
     const sizeBytes = body.sizeBytes + attachments.reduce((sum, attachment) => sum + attachment.sizeBytes, 0);
 
-    const result = await client.$transaction(async (tx) => {
-      const claimed = await tx.mailDraft.updateMany({ where: { id: draftId, revision: draft.revision, status: "ACTIVE" }, data: { status: "SENDING" } });
-      if (claimed.count !== 1) throw mailError("MAIL_DRAFT_REVISION_CONFLICT", { currentRevision: null });
-      const recipients = all.map((party) => ({ ...party, status: internalByAddress.has(party.address) ? "INTERNAL_DELIVERED" : "PENDING" }));
-      const created = await store.createMessage(tx, mailbox, {
-        direction: "OUTBOUND",
-        status: externalRecipients.length ? "QUEUED" : "DELIVERED",
-        rfcMessageId,
-        inReplyTo,
-        references,
-        threadId: draft.mode === "FORWARD" ? null : draft.threadId,
-        subject,
-        from: fromParty,
-        recipients,
-        text: body.text,
-        body,
-        senderAddressId: identity.addressId,
-        sentByAdminUserId: user.id,
-        hasAttachments: attachments.length > 0,
-        sizeBytes,
-        idempotencyKey: messageKey,
-        sentAt: externalRecipients.length ? null : now,
-        at: now,
+    let result;
+    try {
+      result = await client.$transaction(async (tx) => {
+        // Claim first: a concurrent same-draft send waits here, not on the locks.
+        const claimed = await tx.mailDraft.updateMany({ where: { id: draftId, revision: draft.revision, status: "ACTIVE" }, data: { status: "SENDING" } });
+        if (claimed.count !== 1) throw mailError("MAIL_DRAFT_REVISION_CONFLICT", { currentRevision: null });
+        await enforceQuota(tx, user, mailbox, { recipients: all.length, external: externalRecipients.length });
+        const recipients = all.map((party) => ({ ...party, status: internalByAddress.has(party.address) ? "INTERNAL_DELIVERED" : "PENDING" }));
+        const created = await store.createMessage(tx, mailbox, {
+          direction: "OUTBOUND",
+          status: externalRecipients.length ? "QUEUED" : "DELIVERED",
+          rfcMessageId,
+          inReplyTo,
+          references,
+          threadId: draft.mode === "FORWARD" ? null : draft.threadId,
+          subject,
+          from: fromParty,
+          replyTo,
+          recipients,
+          text: body.text,
+          body,
+          senderAddressId: identity.addressId,
+          sentByAdminUserId: user.id,
+          hasAttachments: attachments.length > 0,
+          sizeBytes,
+          idempotencyKey: messageKey,
+          sentAt: externalRecipients.length ? null : now,
+          at: now,
       });
       await tx.mailAttachment.updateMany({ where: { draftId }, data: { messageId: created.message.id, draftId: null } });
       await tx.mailDraft.update({ where: { id: draftId }, data: { status: "SENT", sentMessageId: created.message.id, encryptedBody: null } });
@@ -320,7 +382,9 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
       }
       // Internal delivery (each local mailbox gets its own copy; BCC rows are
       // never copied into recipients' mailboxes).
-      const visibleRecipients = recipients.filter((recipient) => recipient.type !== "BCC").map((recipient) => ({ ...recipient, status: "DELIVERED" }));
+      // Copies list header participants only; delivery is tracked on the
+      // sender's OUTBOUND message, so these rows never claim delivery.
+      const visibleRecipients = recipients.filter((recipient) => recipient.type !== "BCC").map((recipient) => ({ ...recipient, status: "INTERNAL_DELIVERED" }));
       const delivered = new Set([mailbox.id]);
       const internalTargets = [];
       let selfAddressed = false;
@@ -337,6 +401,7 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
           references,
           subject,
           from: fromParty,
+          replyTo,
           recipients: visibleRecipients,
           envelopeRecipient: target.address,
           text: body.text,
@@ -362,11 +427,19 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
       }
       await audit.record({ actorAdminUserId: user.id, action: "MAIL_MESSAGE_QUEUED", targetType: "message", targetId: created.message.id, mailboxId: mailbox.id, metadata: { external: externalRecipients.length, internal: internalTargets.length, senderAddressId: identity.addressId, jobId: job?.id || null } }, context, tx);
       return { message: created.message, thread: created.thread, job, internalTargets };
-    });
+      });
+    } catch (error) {
+      // Lost a race with a same-key request: return the winner's message.
+      if (messageKey && (error?.code === "MAIL_DRAFT_REVISION_CONFLICT" || error?.code === "P2002")) {
+        const replay = await findReplay(messageKey, draftId);
+        if (replay) return replay;
+      }
+      throw error;
+    }
 
     for (const target of result.internalTargets) {
       const members = await notifications.mailboxMemberIds(target.id);
-      await notifications.notifyUsers(members.filter((id) => id !== user.id), { icon: "bell", title: `New email in ${target.name}`, subtitle: `From ${fromParty.name || fromParty.address}` });
+      await notifications.notifyUsers(members.filter((id) => id !== user.id), { icon: "bell", kind: "NEW_MAIL", title: `New email in ${target.name}`, subtitle: `From ${fromParty.name || fromParty.address}` });
     }
     return { messageId: result.message.id, threadId: result.thread.id, jobId: result.job?.id || null, status: result.message.status };
   }
@@ -411,4 +484,4 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
   return { createDraft, listDrafts, getDraft, updateDraft, discardDraft, addAttachment, removeAttachment, sendDraft, messageStatus, downloadAttachment };
 }
 
-module.exports = { createComposeService, DRAFT_PURPOSE };
+module.exports = { createComposeService, assertContentPolicy, DRAFT_PURPOSE };

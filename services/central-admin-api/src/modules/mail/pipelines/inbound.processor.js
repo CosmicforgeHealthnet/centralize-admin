@@ -108,34 +108,82 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
       await audit.record({ action: assessment.quarantineReason ? "MAIL_INBOUND_AUTH_QUARANTINED" : "MAIL_INBOUND_AUTH_WARNING", targetType: "webhook_event", targetId: job.webhookEventId, outcome: assessment.quarantineReason ? "DENIED" : "SUCCESS", metadata: { verdict: assessment.verdict, reasons: assessment.reasons, source: assessment.source, senderDomain: assessment.fromDomain, providerEmailId } });
     }
 
+    const rfcMessageId = normalizeMessageId(inbound.rfcMessageId) || `<resend-${providerEmailId.replace(/[^A-Za-z0-9_-]/g, "")}@inbound.cosmicforge.invalid>`;
+    // Replays (webhook retry, reconciliation) of an email every mailbox
+    // already has: nothing to store. Checked before any object is written.
+    const existingCopies = await client.mailMessage.count({ where: { mailboxId: { in: local.map((target) => target.mailboxId) }, rfcMessageId } });
+    if (existingCopies >= local.length) return { delivered: 0, unknown: unknown.length, duplicate: true };
+
+    // Objects written by this job; removed again if no mailbox copy ends up
+    // referencing them (duplicate race, quota rejection or a failure).
+    const writtenKeys = [];
+    try {
+      return await deliver({ job, inbound, providerEmailId, local, unknown, domains, assessment, rfcMessageId, writtenKeys });
+    } catch (error) {
+      await discardUnreferenced(writtenKeys);
+      throw error;
+    }
+  }
+
+  async function stillReferenced(key) {
+    const [messages, attachments] = await Promise.all([
+      client.mailMessage.count({ where: { OR: [{ contentObjectKey: key }, { rawMimeObjectKey: key }] } }),
+      client.mailAttachment.count({ where: { storageKey: key } }),
+    ]);
+    if (messages || attachments) return true;
+    if (!archive || !(await archive.ready().catch(() => false))) return false;
+    return (await client.mailMessageArchive.count({ where: { OR: [{ headersObjectKey: key }, { rawMimeObjectKey: key }] } })) > 0;
+  }
+
+  async function discardUnreferenced(keys) {
+    let removed = 0;
+    for (const key of keys) {
+      try {
+        if (await stillReferenced(key)) continue;
+        await store.removeObject(key);
+        removed += 1;
+      } catch (error) {
+        logger?.warn?.(`[Mail] inbound orphan cleanup failed (${error?.code || "error"})`);
+      }
+    }
+    return removed;
+  }
+
+  async function deliver({ job, inbound, providerEmailId, local, unknown, assessment, rfcMessageId, writtenKeys }) {
     // Attachments are scanned once, stored once, referenced per mailbox copy.
     const storedAttachments = [];
+    const maxBytes = config.limits.attachmentMaxBytes;
     if (inbound.attachmentCount > 0) {
       const attachments = await adapter.fetchInboundAttachments(providerEmailId);
       for (const attachment of attachments.slice(0, config.limits.maxAttachmentsPerMessage * 2)) {
         let buffer;
         try {
-          buffer = await attachment.download();
+          // Same cap as the policy check below, so the download stops early.
+          buffer = await attachment.download(maxBytes);
         } catch (error) {
           if (error.kind === "RETRYABLE") throw new PipelineError("ATTACHMENT_DOWNLOAD_RETRY", "attachment download failed", { retryable: true });
-          storedAttachments.push({ meta: attachment, failed: true, reason: error.code || "DOWNLOAD_FAILED" });
+          storedAttachments.push({ meta: attachment, failed: true, reason: error.code === "ATTACHMENT_TOO_LARGE" ? "POLICY_SIZE_LIMIT" : error.code || "DOWNLOAD_FAILED" });
           continue;
         }
-        const verdict = await evaluateAttachment(scanner, { filename: attachment.filename, contentType: attachment.contentType, buffer, maxBytes: config.limits.attachmentMaxBytes });
+        const verdict = await evaluateAttachment(scanner, { filename: attachment.filename, contentType: attachment.contentType, buffer, maxBytes });
         const stored = await store.storeAttachmentContent(buffer);
+        writtenKeys.push(stored.key);
         storedAttachments.push({ meta: attachment, stored, verdict });
       }
     }
 
     const body = await store.storeBody({ html: inbound.html, text: inbound.text });
+    writtenKeys.push(body.key);
     // Original headers / raw MIME (spec 10.6), encrypted, stored once.
     const archived = archive ? await archive.captureInbound(inbound) : null;
-    const rfcMessageId = normalizeMessageId(inbound.rfcMessageId) || `<resend-${providerEmailId.replace(/[^A-Za-z0-9_-]/g, "")}@inbound.cosmicforge.invalid>`;
+    if (archived) writtenKeys.push(...[archived.headersObjectKey, archived.rawMimeObjectKey].filter(Boolean));
     const isSpam = ["yes", "true", "spam"].includes(String(inbound.spamVerdict || "").toLowerCase());
     const visibleRecipients = [
       ...(inbound.to || []).map((party) => ({ ...party, type: "TO", status: "DELIVERED" })),
       ...(inbound.cc || []).map((party) => ({ ...party, type: "CC", status: "DELIVERED" })),
     ];
+    // Only a scanner detection is "malicious"; policy refusals just keep the
+    // attachment itself quarantined.
     const anyInfected = storedAttachments.some((entry) => entry.verdict?.scanStatus === "INFECTED");
     const quarantineReason = anyInfected ? "MALICIOUS_ATTACHMENT" : assessment.quarantineReason || (isSpam ? "PROVIDER_SPAM_VERDICT" : null);
     const sizeBytes = body.sizeBytes + storedAttachments.reduce((sum, entry) => sum + (entry.stored?.sizeBytes || 0), 0);
@@ -226,7 +274,7 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
       if (!outcome.duplicate) {
         delivered += 1;
         const members = await notifications.mailboxMemberIds(mailbox.id);
-        await notifications.notifyUsers(members, { icon: "bell", title: `New email in ${mailbox.name}`, subtitle: `From ${inbound.from.name || inbound.from.address}` });
+        await notifications.notifyUsers(members, { icon: "bell", kind: "NEW_MAIL", title: `New email in ${mailbox.name}`, subtitle: `From ${inbound.from.name || inbound.from.address}` });
         // Post-commit side effects never undo the delivery.
         if (forwarding) {
           await forwarding.forwardInbound({ mailbox, message: outcome.message, inbound, body, attachments: outcome.attachmentRows }).catch((error) => logger?.warn?.(`[Mail] forwarding failed (${error?.code || "error"})`));
@@ -236,6 +284,7 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
         }
       }
     }
+    if (!delivered) await discardUnreferenced(writtenKeys);
     return { delivered, unknown: unknown.length, overQuota, authVerdict: assessment.verdict };
   }
 

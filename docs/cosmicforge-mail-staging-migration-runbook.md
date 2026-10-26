@@ -141,6 +141,7 @@ it refuses a file whose checksum differs from `manifest.json`. All files are add
 | 33 | `20261030_mail_m10_rollout.sql` | `1bc07e19b8fe54837c0b2c5ff1199c7dc2841bfa4e5be37fdeb9f305ab7a1753` |
 | 34 | `20261031_account_setup_tokens.sql` | `364fa19c3b9bdd6844dcfe068a4f63e6952d8a6d631b354f0416317b9bf9a613` |
 | 35 | `20261101_mail_spec_gap_closure.sql` | `efc3c863c21ba0413a9d239ea53de50cf2837c3ba456caa622776ed65818f5b4` |
+| 36 | `20261102_mail_user_preferences.sql` | `f99c79176acf7a3f36e154d742ff487943e485413d88472a20731be1848ab3ea` |
 
 Migration 34 (account setup links, P0 security fix) is not Mail-specific: it
 replaces emailed temporary passwords for lab approval, HR invitations and
@@ -157,6 +158,18 @@ metadata-only, rate limits use the process-local window and nothing is
 archived or forwarded (tested by `tests/mail-pre-gap-migration.test.js`).
 Rollback: `docs/sql/cosmicforge-mail-gap-closure-rollback.sql` (run it before
 the M7-M10 rollback; the rollback drill does this).
+
+Migration 36 (Mail user preferences, spec 15 "Profiles") adds one new table,
+`mail_user_preferences` (preferred sender identity, Mail notification opt-out;
+FKs to `admin_users` RESTRICT and `mail_addresses` SET NULL). Code deployed
+before it keeps all Mail and gap-closure features working: `GET
+/me/preferences` answers the defaults (`available: false`, notifications on,
+no preferred sender), `PUT /me/preferences` answers 503
+`MAIL_FEATURE_NOT_READY`, compose uses the first sender identity and no
+notification is suppressed (tested by
+`tests/mail-pre-preferences-migration.test.js`). Rollback:
+`docs/sql/cosmicforge-mail-user-preferences-rollback.sql` (run it first; the
+rollback drill does this).
 
 Pre-checks: `npm run db:replay:verify` (drift none) and `npm run mail:rollback:drill` on a disposable copy.
 Post-checks: every file present in the ledger; `npm run db:schema:assert`; Mail flags unchanged (all OFF).

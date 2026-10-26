@@ -48,6 +48,14 @@ const MAIL_FEATURE_REQUIREMENTS = [
   },
 ];
 
+// Optional per-user preferences (migration 36, spec 15 "Profiles"). Probed
+// separately so a database at migration 35 keeps every gap-closure feature:
+// before it, GET /me/preferences answers the defaults, PUT answers 503
+// MAIL_FEATURE_NOT_READY and no notification is ever suppressed.
+const MAIL_PREFERENCES_REQUIREMENTS = [
+  { migration: "20261102_mail_user_preferences.sql", tables: ["mail_user_preferences"] },
+];
+
 function quoteLiteral(value) {
   if (!/^[a-z_][a-z0-9_]*$/.test(value)) throw new Error(`unsafe identifier ${value}`);
   return `'${value}'`;
@@ -109,4 +117,4 @@ function createMailSchemaReadiness({ client, logger = null, recheckMs = 30_000, 
   });
 }
 
-module.exports = { createMailSchemaReadiness, MAIL_SCHEMA_REQUIREMENTS, MAIL_FEATURE_REQUIREMENTS };
+module.exports = { createMailSchemaReadiness, MAIL_SCHEMA_REQUIREMENTS, MAIL_FEATURE_REQUIREMENTS, MAIL_PREFERENCES_REQUIREMENTS };

@@ -8,7 +8,9 @@
 //      shared reply mailbox of the same brand/organization;
 //   2. its sender is a recipient the provider accepted for that dispatch;
 //   3. it is a reply (In-Reply-To present, or a "Re:" subject);
-//   4. it arrived after the dispatch was sent and inside the reply window.
+//   4. it arrived after the provider accepted the mail for that recipient
+//      (recipient acceptedAt, i.e. the send handoff - not the later
+//      reconcile time) and inside the reply window.
 // When several campaigns qualify, the most recently sent one wins. Opens and
 // clicks are never used. One row per recipient (deduplicated); the row holds
 // ids only, so reports never expose the reply's content.
@@ -29,11 +31,10 @@ function createCampaignReplies({ client, config, features, audit = null, clock =
       where: {
         organizationId: mailbox.organizationId,
         email: message.fromAddress.toLowerCase(),
-        acceptedAt: { not: null },
-        dispatch: { providerSentAt: { gte: since, lte: receivedAt } },
+        acceptedAt: { gte: since, lte: receivedAt },
       },
       include: { dispatch: { select: { id: true, campaignId: true, approvalSnapshotId: true, providerSentAt: true } } },
-      orderBy: { dispatch: { providerSentAt: "desc" } },
+      orderBy: { acceptedAt: "desc" },
       take: 20,
     });
     for (const candidate of candidates) {
@@ -62,12 +63,15 @@ function createCampaignReplies({ client, config, features, audit = null, clock =
       client.marketingCampaignReply.count({ where: { dispatchId: dispatch.id } }),
       client.marketingCampaignReply.findFirst({ where: { dispatchId: dispatch.id }, orderBy: { receivedAt: "asc" }, select: { receivedAt: true } }),
     ]);
-    const windowEnd = dispatch.providerSentAt ? new Date(dispatch.providerSentAt.getTime() + config.marketingReplies.windowDays * 86400000) : null;
+    // The window opens at the provider handoff (send attempt), falling back
+    // to the reconcile-time providerSentAt for older dispatches.
+    const windowStart = dispatch.providerSendAttemptAt || dispatch.providerSentAt || null;
+    const windowEnd = windowStart ? new Date(windowStart.getTime() + config.marketingReplies.windowDays * 86400000) : null;
     return {
       replied,
       method: METHOD,
       denominator: "recipients accepted by the provider",
-      window: { from: dispatch.providerSentAt ? dispatch.providerSentAt.toISOString() : null, to: windowEnd ? windowEnd.toISOString() : null, days: config.marketingReplies.windowDays },
+      window: { from: windowStart ? windowStart.toISOString() : null, to: windowEnd ? windowEnd.toISOString() : null, days: config.marketingReplies.windowDays },
       firstReplyAt: first?.receivedAt ? first.receivedAt.toISOString() : null,
       note: "Counts distinct recipients whose reply reached the campaign's reply mailbox; content is never included.",
     };

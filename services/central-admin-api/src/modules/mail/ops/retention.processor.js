@@ -22,6 +22,12 @@
 //            text on the thread and messages; delete the encrypted content
 //            and attachment objects from storage. A minimal tombstone (ids,
 //            direction, timestamps, sizes, hashes) stays for audit integrity.
+//            DELETE runs also cover threads the user soft-deleted (thread
+//            deletedAt set, messages not yet purged): purging marks every
+//            message deletedAt with no content key, which is the
+//            idempotency marker. After the thread phase, DELETE runs sweep
+//            stale draft content in scope (discarded drafts, drafts without a
+//            thread, removed draft attachments) older than the cutoff.
 //   REDACT   (webhook payloads) replace the stored provider payload.
 //   system DELETE removes append-only integration rows inside a purge
 //            transaction (SET LOCAL cosmicforge.mail_retention_purge = 'on').
@@ -64,7 +70,7 @@ function createRetentionProcessor({ client, config, audit, storage, features = n
   }
 
   function afterCursor(cursor) {
-    if (!cursor?.at) return {};
+    if (!cursor?.at || cursor.phase) return {};
     const at = new Date(cursor.at);
     return { OR: [{ lastMessageAt: { gt: at } }, { lastMessageAt: at, id: { gt: cursor.id } }] };
   }
@@ -141,10 +147,13 @@ function createRetentionProcessor({ client, config, audit, storage, features = n
     if (!retentionPolicy) return { error: "POLICY_MISSING" };
     if (run.mode === "EXECUTE" && (!retentionPolicy.enabled || retentionPolicy.action !== run.action)) return { error: "POLICY_CHANGED" };
     const holds = await holdsFor(run.organizationId);
+    const scope = await mailboxScope(run, retentionPolicy);
+    if (run.cursor?.phase) return sweepBatch(run, scope, holds);
     const where = {
-      mailboxId: { in: await mailboxScope(run, retentionPolicy) },
+      mailboxId: { in: scope },
       lastMessageAt: { lt: run.cutoff },
-      deletedAt: null,
+      // User-deleted threads keep their content until a DELETE run purges it.
+      ...(run.action === "DELETE" ? { OR: [{ deletedAt: null }, { messages: { some: { deletedAt: null } } }] } : { deletedAt: null }),
       ...(run.action === "ARCHIVE" ? { folder: { notIn: ["ARCHIVE", "TRASH"] } } : {}),
       ...afterCursor(run.cursor),
     };
@@ -183,7 +192,74 @@ function createRetentionProcessor({ client, config, audit, storage, features = n
       delta = addCounts(delta, { purgedThreads: 1, purgedMessages: result.messages, purgedAttachments: result.attachments, purgedAttachmentBytes: result.bytes, storageObjectsRemoved: objects.removed, storageRemoveFailed: objects.failed, storageObjectsKeptShared: objects.shared });
     }
     if (threads.length && delta.candidates) delta.newestCandidateAt = threads[threads.length - 1].lastMessageAt.toISOString();
-    return { delta, cursor, done: threads.length < config.retention.batchSize };
+    const threadsDone = threads.length < config.retention.batchSize;
+    // DELETE runs continue with the draft sweep phases.
+    if (threadsDone && run.action === "DELETE") return { delta, cursor: { phase: "drafts" }, done: false };
+    return { delta, cursor, done: threadsDone };
+  }
+
+  // Draft sweep (DELETE runs only), in two resumable phases ordered by id:
+  //   drafts       discarded drafts, and drafts without a thread, last touched
+  //                before the cutoff (with their attachments);
+  //   attachments  attachments removed from a draft (no draft, no message).
+  // In-flight drafts (SENDING) are never touched. Held mailboxes, and drafts
+  // written by a held subject, are skipped. Objects are removed only when
+  // nothing else references them.
+  async function sweepBatch(run, scope, holds) {
+    const take = config.retention.batchSize;
+    const execute = run.mode === "EXECUTE";
+    const orgHeld = holds.orgWide.has(run.organizationId);
+    const mailboxes = orgHeld ? [] : scope.filter((id) => !holds.mailboxes.has(id));
+    const afterId = run.cursor.id ? { id: { gt: run.cursor.id } } : {};
+    let delta = {};
+    if (run.cursor.phase === "drafts") {
+      const drafts = mailboxes.length
+        ? await client.mailDraft.findMany({
+          where: {
+            mailboxId: { in: mailboxes },
+            updatedAt: { lt: run.cutoff },
+            OR: [{ status: "DISCARDED" }, { threadId: null, status: { in: ["ACTIVE", "SENT"] } }],
+            ...(holds.subjects.length ? { authorAdminUserId: { notIn: holds.subjects } } : {}),
+            ...afterId,
+          },
+          orderBy: { id: "asc" },
+          take,
+          select: { id: true },
+        })
+        : [];
+      delta = { draftCandidates: drafts.length, ...(orgHeld ? { draftSweepHeld: 1 } : {}) };
+      let cursor = drafts.length ? { phase: "drafts", id: drafts[drafts.length - 1].id } : { phase: "attachments" };
+      if (execute && drafts.length) {
+        const ids = drafts.map((draft) => draft.id);
+        const keys = await client.$transaction(async (tx) => {
+          const attachments = await tx.mailAttachment.findMany({ where: { draftId: { in: ids }, messageId: null }, select: { id: true, storageKey: true } });
+          await tx.mailAttachment.deleteMany({ where: { id: { in: attachments.map((attachment) => attachment.id) } } });
+          // Draft attachment rows already copied onto a sent message only lose the draft link.
+          await tx.mailAttachment.updateMany({ where: { draftId: { in: ids } }, data: { draftId: null } });
+          await tx.mailDraft.deleteMany({ where: { id: { in: ids } } });
+          await tx.mailRetentionRun.update({ where: { id: run.id }, data: { cursor } });
+          return attachments.map((attachment) => attachment.storageKey).filter(Boolean);
+        });
+        const objects = await removeObjects([...new Set(keys)]);
+        delta = addCounts(delta, { purgedDrafts: ids.length, storageObjectsRemoved: objects.removed, storageRemoveFailed: objects.failed, storageObjectsKeptShared: objects.shared });
+      }
+      if (drafts.length < take) cursor = { phase: "attachments" };
+      return { delta, cursor, done: false };
+    }
+    const orphans = mailboxes.length
+      ? await client.mailAttachment.findMany({ where: { mailboxId: { in: mailboxes }, messageId: null, draftId: null, createdAt: { lt: run.cutoff }, ...afterId }, orderBy: { id: "asc" }, take, select: { id: true, storageKey: true } })
+      : [];
+    delta = { orphanAttachmentCandidates: orphans.length };
+    const cursor = orphans.length ? { phase: "attachments", id: orphans[orphans.length - 1].id } : run.cursor;
+    if (execute && orphans.length) {
+      await client.$transaction(async (tx) => {
+        await tx.mailAttachment.deleteMany({ where: { id: { in: orphans.map((row) => row.id) }, messageId: null, draftId: null } });
+        await tx.mailRetentionRun.update({ where: { id: run.id }, data: { cursor } });
+      });
+      const objects = await removeObjects([...new Set(orphans.map((row) => row.storageKey).filter(Boolean))]);
+      delta = addCounts(delta, { purgedOrphanAttachments: orphans.length, storageObjectsRemoved: objects.removed, storageRemoveFailed: objects.failed, storageObjectsKeptShared: objects.shared });
+    }
+    return { delta, cursor, done: orphans.length < take };
   }
 
   async function systemBatch(run) {

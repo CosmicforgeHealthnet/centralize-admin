@@ -70,24 +70,30 @@ function createMessageStore({ client, storage, config, encryption }) {
     return storage.get(attachment.storageKey, { purpose: ATTACHMENT_PURPOSE, sha256: attachment.sha256 });
   }
 
-  // Finds the mailbox thread referenced by In-Reply-To/References.
+  // Callers check that nothing references the key any more.
+  async function removeObject(key) {
+    return storage.remove(key);
+  }
+
+  // Finds the mailbox thread referenced by In-Reply-To/References. Deleted
+  // threads are never reused: a reply to one starts a new, visible thread.
   async function findThreadForReferences(tx, mailboxId, { inReplyTo, references = [] }) {
     const ids = [...new Set([inReplyTo, ...references].map(normalizeMessageId).filter(Boolean))];
     if (!ids.length) return null;
     const match = await tx.mailMessage.findFirst({
-      where: { mailboxId, rfcMessageId: { in: ids } },
+      where: { mailboxId, rfcMessageId: { in: ids }, thread: { deletedAt: null } },
       orderBy: { createdAt: "desc" },
       select: { threadId: true },
     });
     if (match) return tx.mailThread.findUnique({ where: { id: match.threadId } });
-    const root = await tx.mailThread.findFirst({ where: { mailboxId, rootRfcMessageId: { in: ids } } });
+    const root = await tx.mailThread.findFirst({ where: { mailboxId, rootRfcMessageId: { in: ids }, deletedAt: null } });
     return root || null;
   }
 
   async function resolveThread(tx, mailbox, { threadId, rfcMessageId, inReplyTo, references, subject, at }) {
     if (threadId) {
       const thread = await tx.mailThread.findUnique({ where: { id: threadId } });
-      if (thread && thread.mailboxId === mailbox.id) return thread;
+      if (thread && thread.mailboxId === mailbox.id && !thread.deletedAt) return thread;
     }
     const existing = await findThreadForReferences(tx, mailbox.id, { inReplyTo, references });
     if (existing) return existing;
@@ -183,7 +189,7 @@ function createMessageStore({ client, storage, config, encryption }) {
     return { message, thread, duplicate: false };
   }
 
-  return { useSearchIndex, encryptSnippet, decryptSnippet, storeBody, readBody, storeAttachmentContent, readAttachmentContent, createMessage, resolveThread, findThreadForReferences, generateMessageId, BODY_PURPOSE, ATTACHMENT_PURPOSE };
+  return { useSearchIndex, encryptSnippet, decryptSnippet, storeBody, readBody, storeAttachmentContent, readAttachmentContent, removeObject, createMessage, resolveThread, findThreadForReferences, generateMessageId, BODY_PURPOSE, ATTACHMENT_PURPOSE };
 }
 
 module.exports = { createMessageStore, generateMessageId, buildMetadataSearchText, SNIPPET_PURPOSE };

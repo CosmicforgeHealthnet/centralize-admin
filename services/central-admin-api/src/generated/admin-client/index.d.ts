@@ -933,6 +933,11 @@ export type MailRateLimitBucket = $Result.DefaultSelection<Prisma.$MailRateLimit
  * 
  */
 export type MarketingCampaignReply = $Result.DefaultSelection<Prisma.$MarketingCampaignReplyPayload>
+/**
+ * Model MailUserPreference
+ * 
+ */
+export type MailUserPreference = $Result.DefaultSelection<Prisma.$MailUserPreferencePayload>
 
 /**
  * Enums
@@ -5011,6 +5016,16 @@ export class PrismaClient<
     * ```
     */
   get marketingCampaignReply(): Prisma.MarketingCampaignReplyDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mailUserPreference`: Exposes CRUD operations for the **MailUserPreference** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MailUserPreferences
+    * const mailUserPreferences = await prisma.mailUserPreference.findMany()
+    * ```
+    */
+  get mailUserPreference(): Prisma.MailUserPreferenceDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -5641,7 +5656,8 @@ export namespace Prisma {
     MailMessageArchive: 'MailMessageArchive',
     MailForwardingRule: 'MailForwardingRule',
     MailRateLimitBucket: 'MailRateLimitBucket',
-    MarketingCampaignReply: 'MarketingCampaignReply'
+    MarketingCampaignReply: 'MarketingCampaignReply',
+    MailUserPreference: 'MailUserPreference'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -5657,7 +5673,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "adminUser" | "marketing_campaigns" | "marketing_campaign_performance" | "marketing_campaign_timeline" | "marketing_campaign_team_members" | "marketing_content_items" | "marketing_content_monthly_performance" | "marketing_notification_events" | "marketing_email_templates" | "marketing_social_accounts" | "marketing_social_posts" | "marketing_social_analytics_snapshots" | "marketing_promotions" | "marketing_banners" | "marketing_analytics_snapshots" | "marketing_ad_platform_connections" | "marketing_ad_insights_raw" | "marketing_performance_snapshots" | "marketing_oauth_states" | "marketing_attributions" | "marketing_funnel_events" | "marketing_identity_links" | "marketing_attribution_decisions" | "marketing_intelligence_settings" | "marketing_intelligence_evaluation_runs" | "marketing_creative_assets" | "marketing_creative_performance_snapshots" | "marketing_creative_score_snapshots" | "marketing_recommendations" | "marketing_alerts" | "marketing_experiments" | "marketing_sync_locks" | "marketingExecutionPlan" | "marketingExecutionPlanItem" | "marketingExecutionApproval" | "marketingExecutionApprovalEvent" | "marketingExecutionRun" | "marketingExecutionJob" | "marketingProviderOperation" | "marketingProviderOperationAttempt" | "marketingExecutionStateSnapshot" | "marketingExecutionValidationIssue" | "marketingExecutionReconciliation" | "marketingExecutionPolicy" | "marketingCreativePublication" | "marketingCreativeMediaValidationEvidence" | "marketingCreativePublicationReviewEvent" | "marketingTargetingDiscovery" | "marketingExecutionAccountLock" | "marketingExecutionDeadLetterReview" | "marketingExecutionPolicyHistory" | "marketingExecutionValidationPacket" | "marketingExecutionDriftAcknowledgment" | "marketingExecutionRetryReview" | "marketingExecutionEmergencyOverride" | "marketingExecutionReconciliationJob" | "marketingExecutionCompensationLink" | "socialAccountConnection" | "socialPublishingIdentity" | "socialOAuthState" | "socialPost" | "socialPostRevision" | "socialPostTarget" | "socialPostApproval" | "socialPublication" | "socialPublicationAttempt" | "socialPublishingJob" | "socialMediaAsset" | "socialPostMedia" | "socialContact" | "socialConversation" | "socialMessage" | "socialTag" | "socialConversationTag" | "socialProviderContent" | "socialComment" | "socialEngagementEvent" | "socialEscalation" | "socialWebhookSubscription" | "socialWebhookEvent" | "socialIdentityMetricSnapshot" | "socialProviderContentMetricSnapshot" | "socialIdentitySyncState" | "socialActionJob" | "socialActionAttempt" | "socialInternalNote" | "socialSavedReply" | "socialOperationsSetting" | "adminManualMigrationLedger" | "adminSession" | "adminSessionRefreshToken" | "adminMfaEnrollment" | "adminMfaRecoveryCode" | "adminMfaChallenge" | "adminAuthEvent" | "refreshToken" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event" | "mailOrganization" | "mailDomain" | "mailMailbox" | "mailAddress" | "mailMembership" | "mailSenderGrant" | "mailProvisionRequest" | "mailThread" | "mailMessage" | "mailMessageRecipient" | "mailUserThreadState" | "mailDraft" | "mailLabel" | "mailThreadLabel" | "mailRule" | "mailAttachment" | "mailInternalNote" | "mailOutboxJob" | "mailWebhookEvent" | "mailDeliveryEvent" | "mailAuditEvent" | "mailRetentionPolicy" | "mailLegalHold" | "mailStepUpVerification" | "mailBreakGlassRequest" | "marketingContact" | "marketingConsent" | "marketingSuppression" | "marketingAudience" | "marketingAudienceContact" | "marketingSegment" | "marketingEmailTemplate" | "marketingTemplateVersion" | "marketingEmailCampaign" | "marketingCampaignSnapshot" | "marketingCampaignApproval" | "marketingBrandSettings" | "marketingCampaignApprovedContact" | "marketingBroadcastDispatch" | "marketingBroadcastRecipient" | "marketingAutomation" | "marketingAutomationVersion" | "marketingAutomationEnrollment" | "marketingAutomationStepRun" | "marketingTriggerEvent" | "mailProductIntegration" | "mailProductSenderAuthorization" | "mailProductIntegrationEvent" | "mailProductDeliveryEvent" | "mailRetentionRun" | "mailUsageDaily" | "mailQuotaLimit" | "mailOpsAlert" | "mailRolloutCohort" | "mailRolloutCohortMember" | "mailRolloutRule" | "mailEmergencyStop" | "accountSetupToken" | "mailMessageSearchIndex" | "mailMessageArchive" | "mailForwardingRule" | "mailRateLimitBucket" | "marketingCampaignReply"
+      modelProps: "adminUser" | "marketing_campaigns" | "marketing_campaign_performance" | "marketing_campaign_timeline" | "marketing_campaign_team_members" | "marketing_content_items" | "marketing_content_monthly_performance" | "marketing_notification_events" | "marketing_email_templates" | "marketing_social_accounts" | "marketing_social_posts" | "marketing_social_analytics_snapshots" | "marketing_promotions" | "marketing_banners" | "marketing_analytics_snapshots" | "marketing_ad_platform_connections" | "marketing_ad_insights_raw" | "marketing_performance_snapshots" | "marketing_oauth_states" | "marketing_attributions" | "marketing_funnel_events" | "marketing_identity_links" | "marketing_attribution_decisions" | "marketing_intelligence_settings" | "marketing_intelligence_evaluation_runs" | "marketing_creative_assets" | "marketing_creative_performance_snapshots" | "marketing_creative_score_snapshots" | "marketing_recommendations" | "marketing_alerts" | "marketing_experiments" | "marketing_sync_locks" | "marketingExecutionPlan" | "marketingExecutionPlanItem" | "marketingExecutionApproval" | "marketingExecutionApprovalEvent" | "marketingExecutionRun" | "marketingExecutionJob" | "marketingProviderOperation" | "marketingProviderOperationAttempt" | "marketingExecutionStateSnapshot" | "marketingExecutionValidationIssue" | "marketingExecutionReconciliation" | "marketingExecutionPolicy" | "marketingCreativePublication" | "marketingCreativeMediaValidationEvidence" | "marketingCreativePublicationReviewEvent" | "marketingTargetingDiscovery" | "marketingExecutionAccountLock" | "marketingExecutionDeadLetterReview" | "marketingExecutionPolicyHistory" | "marketingExecutionValidationPacket" | "marketingExecutionDriftAcknowledgment" | "marketingExecutionRetryReview" | "marketingExecutionEmergencyOverride" | "marketingExecutionReconciliationJob" | "marketingExecutionCompensationLink" | "socialAccountConnection" | "socialPublishingIdentity" | "socialOAuthState" | "socialPost" | "socialPostRevision" | "socialPostTarget" | "socialPostApproval" | "socialPublication" | "socialPublicationAttempt" | "socialPublishingJob" | "socialMediaAsset" | "socialPostMedia" | "socialContact" | "socialConversation" | "socialMessage" | "socialTag" | "socialConversationTag" | "socialProviderContent" | "socialComment" | "socialEngagementEvent" | "socialEscalation" | "socialWebhookSubscription" | "socialWebhookEvent" | "socialIdentityMetricSnapshot" | "socialProviderContentMetricSnapshot" | "socialIdentitySyncState" | "socialActionJob" | "socialActionAttempt" | "socialInternalNote" | "socialSavedReply" | "socialOperationsSetting" | "adminManualMigrationLedger" | "adminSession" | "adminSessionRefreshToken" | "adminMfaEnrollment" | "adminMfaRecoveryCode" | "adminMfaChallenge" | "adminAuthEvent" | "refreshToken" | "auditLog" | "adminSectionGrant" | "adminSocialLink" | "adminEducation" | "adminDocument" | "adminPerformanceNote" | "adminReport" | "team" | "teamMember" | "project" | "projectMember" | "task" | "attendanceLog" | "leaveRequest" | "leaveBalance" | "notification" | "payrollRecord" | "payslip" | "deduction" | "receipt" | "invoice" | "jobVacancy" | "jobApplicant" | "jobApplicantAttachment" | "event" | "mailOrganization" | "mailDomain" | "mailMailbox" | "mailAddress" | "mailMembership" | "mailSenderGrant" | "mailProvisionRequest" | "mailThread" | "mailMessage" | "mailMessageRecipient" | "mailUserThreadState" | "mailDraft" | "mailLabel" | "mailThreadLabel" | "mailRule" | "mailAttachment" | "mailInternalNote" | "mailOutboxJob" | "mailWebhookEvent" | "mailDeliveryEvent" | "mailAuditEvent" | "mailRetentionPolicy" | "mailLegalHold" | "mailStepUpVerification" | "mailBreakGlassRequest" | "marketingContact" | "marketingConsent" | "marketingSuppression" | "marketingAudience" | "marketingAudienceContact" | "marketingSegment" | "marketingEmailTemplate" | "marketingTemplateVersion" | "marketingEmailCampaign" | "marketingCampaignSnapshot" | "marketingCampaignApproval" | "marketingBrandSettings" | "marketingCampaignApprovedContact" | "marketingBroadcastDispatch" | "marketingBroadcastRecipient" | "marketingAutomation" | "marketingAutomationVersion" | "marketingAutomationEnrollment" | "marketingAutomationStepRun" | "marketingTriggerEvent" | "mailProductIntegration" | "mailProductSenderAuthorization" | "mailProductIntegrationEvent" | "mailProductDeliveryEvent" | "mailRetentionRun" | "mailUsageDaily" | "mailQuotaLimit" | "mailOpsAlert" | "mailRolloutCohort" | "mailRolloutCohortMember" | "mailRolloutRule" | "mailEmergencyStop" | "accountSetupToken" | "mailMessageSearchIndex" | "mailMessageArchive" | "mailForwardingRule" | "mailRateLimitBucket" | "marketingCampaignReply" | "mailUserPreference"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -19277,6 +19293,80 @@ export namespace Prisma {
           }
         }
       }
+      MailUserPreference: {
+        payload: Prisma.$MailUserPreferencePayload<ExtArgs>
+        fields: Prisma.MailUserPreferenceFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MailUserPreferenceFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUserPreferencePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MailUserPreferenceFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUserPreferencePayload>
+          }
+          findFirst: {
+            args: Prisma.MailUserPreferenceFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUserPreferencePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MailUserPreferenceFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUserPreferencePayload>
+          }
+          findMany: {
+            args: Prisma.MailUserPreferenceFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUserPreferencePayload>[]
+          }
+          create: {
+            args: Prisma.MailUserPreferenceCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUserPreferencePayload>
+          }
+          createMany: {
+            args: Prisma.MailUserPreferenceCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MailUserPreferenceCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUserPreferencePayload>[]
+          }
+          delete: {
+            args: Prisma.MailUserPreferenceDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUserPreferencePayload>
+          }
+          update: {
+            args: Prisma.MailUserPreferenceUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUserPreferencePayload>
+          }
+          deleteMany: {
+            args: Prisma.MailUserPreferenceDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MailUserPreferenceUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MailUserPreferenceUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUserPreferencePayload>[]
+          }
+          upsert: {
+            args: Prisma.MailUserPreferenceUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MailUserPreferencePayload>
+          }
+          aggregate: {
+            args: Prisma.MailUserPreferenceAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMailUserPreference>
+          }
+          groupBy: {
+            args: Prisma.MailUserPreferenceGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MailUserPreferenceGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MailUserPreferenceCountArgs<ExtArgs>
+            result: $Utils.Optional<MailUserPreferenceCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -19584,6 +19674,7 @@ export namespace Prisma {
     mailForwardingRule?: MailForwardingRuleOmit
     mailRateLimitBucket?: MailRateLimitBucketOmit
     marketingCampaignReply?: MarketingCampaignReplyOmit
+    mailUserPreference?: MailUserPreferenceOmit
   }
 
   /* Types for Logging */
@@ -22511,11 +22602,13 @@ export namespace Prisma {
   export type MailAddressCountOutputType = {
     aliases: number
     senderGrants: number
+    preferredBy: number
   }
 
   export type MailAddressCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     aliases?: boolean | MailAddressCountOutputTypeCountAliasesArgs
     senderGrants?: boolean | MailAddressCountOutputTypeCountSenderGrantsArgs
+    preferredBy?: boolean | MailAddressCountOutputTypeCountPreferredByArgs
   }
 
   // Custom InputTypes
@@ -22541,6 +22634,13 @@ export namespace Prisma {
    */
   export type MailAddressCountOutputTypeCountSenderGrantsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MailSenderGrantWhereInput
+  }
+
+  /**
+   * MailAddressCountOutputType without action
+   */
+  export type MailAddressCountOutputTypeCountPreferredByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailUserPreferenceWhereInput
   }
 
 
@@ -23907,6 +24007,7 @@ export namespace Prisma {
     mailSenderGrants?: boolean | AdminUser$mailSenderGrantsArgs<ExtArgs>
     mailThreadStates?: boolean | AdminUser$mailThreadStatesArgs<ExtArgs>
     mailDrafts?: boolean | AdminUser$mailDraftsArgs<ExtArgs>
+    mailPreference?: boolean | AdminUser$mailPreferenceArgs<ExtArgs>
     _count?: boolean | AdminUserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["adminUser"]>
 
@@ -24141,6 +24242,7 @@ export namespace Prisma {
     mailSenderGrants?: boolean | AdminUser$mailSenderGrantsArgs<ExtArgs>
     mailThreadStates?: boolean | AdminUser$mailThreadStatesArgs<ExtArgs>
     mailDrafts?: boolean | AdminUser$mailDraftsArgs<ExtArgs>
+    mailPreference?: boolean | AdminUser$mailPreferenceArgs<ExtArgs>
     _count?: boolean | AdminUserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type AdminUserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -24225,6 +24327,7 @@ export namespace Prisma {
       mailSenderGrants: Prisma.$MailSenderGrantPayload<ExtArgs>[]
       mailThreadStates: Prisma.$MailUserThreadStatePayload<ExtArgs>[]
       mailDrafts: Prisma.$MailDraftPayload<ExtArgs>[]
+      mailPreference: Prisma.$MailUserPreferencePayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -24745,6 +24848,7 @@ export namespace Prisma {
     mailSenderGrants<T extends AdminUser$mailSenderGrantsArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$mailSenderGrantsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailSenderGrantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     mailThreadStates<T extends AdminUser$mailThreadStatesArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$mailThreadStatesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailUserThreadStatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     mailDrafts<T extends AdminUser$mailDraftsArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$mailDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    mailPreference<T extends AdminUser$mailPreferenceArgs<ExtArgs> = {}>(args?: Subset<T, AdminUser$mailPreferenceArgs<ExtArgs>>): Prisma__MailUserPreferenceClient<$Result.GetResult<Prisma.$MailUserPreferencePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -27031,6 +27135,25 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: MailDraftScalarFieldEnum | MailDraftScalarFieldEnum[]
+  }
+
+  /**
+   * AdminUser.mailPreference
+   */
+  export type AdminUser$mailPreferenceArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUserPreference
+     */
+    select?: MailUserPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUserPreference
+     */
+    omit?: MailUserPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailUserPreferenceInclude<ExtArgs> | null
+    where?: MailUserPreferenceWhereInput
   }
 
   /**
@@ -177794,6 +177917,7 @@ export namespace Prisma {
     aliasOf?: boolean | MailAddress$aliasOfArgs<ExtArgs>
     aliases?: boolean | MailAddress$aliasesArgs<ExtArgs>
     senderGrants?: boolean | MailAddress$senderGrantsArgs<ExtArgs>
+    preferredBy?: boolean | MailAddress$preferredByArgs<ExtArgs>
     _count?: boolean | MailAddressCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["mailAddress"]>
 
@@ -177864,6 +177988,7 @@ export namespace Prisma {
     aliasOf?: boolean | MailAddress$aliasOfArgs<ExtArgs>
     aliases?: boolean | MailAddress$aliasesArgs<ExtArgs>
     senderGrants?: boolean | MailAddress$senderGrantsArgs<ExtArgs>
+    preferredBy?: boolean | MailAddress$preferredByArgs<ExtArgs>
     _count?: boolean | MailAddressCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MailAddressIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -177888,6 +178013,7 @@ export namespace Prisma {
       aliasOf: Prisma.$MailAddressPayload<ExtArgs> | null
       aliases: Prisma.$MailAddressPayload<ExtArgs>[]
       senderGrants: Prisma.$MailSenderGrantPayload<ExtArgs>[]
+      preferredBy: Prisma.$MailUserPreferencePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -178304,6 +178430,7 @@ export namespace Prisma {
     aliasOf<T extends MailAddress$aliasOfArgs<ExtArgs> = {}>(args?: Subset<T, MailAddress$aliasOfArgs<ExtArgs>>): Prisma__MailAddressClient<$Result.GetResult<Prisma.$MailAddressPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     aliases<T extends MailAddress$aliasesArgs<ExtArgs> = {}>(args?: Subset<T, MailAddress$aliasesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailAddressPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     senderGrants<T extends MailAddress$senderGrantsArgs<ExtArgs> = {}>(args?: Subset<T, MailAddress$senderGrantsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailSenderGrantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    preferredBy<T extends MailAddress$preferredByArgs<ExtArgs> = {}>(args?: Subset<T, MailAddress$preferredByArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailUserPreferencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -178831,6 +178958,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: MailSenderGrantScalarFieldEnum | MailSenderGrantScalarFieldEnum[]
+  }
+
+  /**
+   * MailAddress.preferredBy
+   */
+  export type MailAddress$preferredByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUserPreference
+     */
+    select?: MailUserPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUserPreference
+     */
+    omit?: MailUserPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailUserPreferenceInclude<ExtArgs> | null
+    where?: MailUserPreferenceWhereInput
+    orderBy?: MailUserPreferenceOrderByWithRelationInput | MailUserPreferenceOrderByWithRelationInput[]
+    cursor?: MailUserPreferenceWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MailUserPreferenceScalarFieldEnum | MailUserPreferenceScalarFieldEnum[]
   }
 
   /**
@@ -248984,6 +249135,1096 @@ export namespace Prisma {
 
 
   /**
+   * Model MailUserPreference
+   */
+
+  export type AggregateMailUserPreference = {
+    _count: MailUserPreferenceCountAggregateOutputType | null
+    _min: MailUserPreferenceMinAggregateOutputType | null
+    _max: MailUserPreferenceMaxAggregateOutputType | null
+  }
+
+  export type MailUserPreferenceMinAggregateOutputType = {
+    adminUserId: string | null
+    defaultSenderAddressId: string | null
+    notificationsEnabled: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MailUserPreferenceMaxAggregateOutputType = {
+    adminUserId: string | null
+    defaultSenderAddressId: string | null
+    notificationsEnabled: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MailUserPreferenceCountAggregateOutputType = {
+    adminUserId: number
+    defaultSenderAddressId: number
+    notificationsEnabled: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MailUserPreferenceMinAggregateInputType = {
+    adminUserId?: true
+    defaultSenderAddressId?: true
+    notificationsEnabled?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MailUserPreferenceMaxAggregateInputType = {
+    adminUserId?: true
+    defaultSenderAddressId?: true
+    notificationsEnabled?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MailUserPreferenceCountAggregateInputType = {
+    adminUserId?: true
+    defaultSenderAddressId?: true
+    notificationsEnabled?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MailUserPreferenceAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailUserPreference to aggregate.
+     */
+    where?: MailUserPreferenceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailUserPreferences to fetch.
+     */
+    orderBy?: MailUserPreferenceOrderByWithRelationInput | MailUserPreferenceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MailUserPreferenceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailUserPreferences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailUserPreferences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MailUserPreferences
+    **/
+    _count?: true | MailUserPreferenceCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MailUserPreferenceMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MailUserPreferenceMaxAggregateInputType
+  }
+
+  export type GetMailUserPreferenceAggregateType<T extends MailUserPreferenceAggregateArgs> = {
+        [P in keyof T & keyof AggregateMailUserPreference]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMailUserPreference[P]>
+      : GetScalarType<T[P], AggregateMailUserPreference[P]>
+  }
+
+
+
+
+  export type MailUserPreferenceGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MailUserPreferenceWhereInput
+    orderBy?: MailUserPreferenceOrderByWithAggregationInput | MailUserPreferenceOrderByWithAggregationInput[]
+    by: MailUserPreferenceScalarFieldEnum[] | MailUserPreferenceScalarFieldEnum
+    having?: MailUserPreferenceScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MailUserPreferenceCountAggregateInputType | true
+    _min?: MailUserPreferenceMinAggregateInputType
+    _max?: MailUserPreferenceMaxAggregateInputType
+  }
+
+  export type MailUserPreferenceGroupByOutputType = {
+    adminUserId: string
+    defaultSenderAddressId: string | null
+    notificationsEnabled: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: MailUserPreferenceCountAggregateOutputType | null
+    _min: MailUserPreferenceMinAggregateOutputType | null
+    _max: MailUserPreferenceMaxAggregateOutputType | null
+  }
+
+  type GetMailUserPreferenceGroupByPayload<T extends MailUserPreferenceGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MailUserPreferenceGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MailUserPreferenceGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MailUserPreferenceGroupByOutputType[P]>
+            : GetScalarType<T[P], MailUserPreferenceGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MailUserPreferenceSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    adminUserId?: boolean
+    defaultSenderAddressId?: boolean
+    notificationsEnabled?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+    defaultSender?: boolean | MailUserPreference$defaultSenderArgs<ExtArgs>
+  }, ExtArgs["result"]["mailUserPreference"]>
+
+  export type MailUserPreferenceSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    adminUserId?: boolean
+    defaultSenderAddressId?: boolean
+    notificationsEnabled?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+    defaultSender?: boolean | MailUserPreference$defaultSenderArgs<ExtArgs>
+  }, ExtArgs["result"]["mailUserPreference"]>
+
+  export type MailUserPreferenceSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    adminUserId?: boolean
+    defaultSenderAddressId?: boolean
+    notificationsEnabled?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+    defaultSender?: boolean | MailUserPreference$defaultSenderArgs<ExtArgs>
+  }, ExtArgs["result"]["mailUserPreference"]>
+
+  export type MailUserPreferenceSelectScalar = {
+    adminUserId?: boolean
+    defaultSenderAddressId?: boolean
+    notificationsEnabled?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type MailUserPreferenceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"adminUserId" | "defaultSenderAddressId" | "notificationsEnabled" | "createdAt" | "updatedAt", ExtArgs["result"]["mailUserPreference"]>
+  export type MailUserPreferenceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+    defaultSender?: boolean | MailUserPreference$defaultSenderArgs<ExtArgs>
+  }
+  export type MailUserPreferenceIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+    defaultSender?: boolean | MailUserPreference$defaultSenderArgs<ExtArgs>
+  }
+  export type MailUserPreferenceIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    adminUser?: boolean | AdminUserDefaultArgs<ExtArgs>
+    defaultSender?: boolean | MailUserPreference$defaultSenderArgs<ExtArgs>
+  }
+
+  export type $MailUserPreferencePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MailUserPreference"
+    objects: {
+      adminUser: Prisma.$AdminUserPayload<ExtArgs>
+      defaultSender: Prisma.$MailAddressPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      adminUserId: string
+      defaultSenderAddressId: string | null
+      notificationsEnabled: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["mailUserPreference"]>
+    composites: {}
+  }
+
+  type MailUserPreferenceGetPayload<S extends boolean | null | undefined | MailUserPreferenceDefaultArgs> = $Result.GetResult<Prisma.$MailUserPreferencePayload, S>
+
+  type MailUserPreferenceCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MailUserPreferenceFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MailUserPreferenceCountAggregateInputType | true
+    }
+
+  export interface MailUserPreferenceDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MailUserPreference'], meta: { name: 'MailUserPreference' } }
+    /**
+     * Find zero or one MailUserPreference that matches the filter.
+     * @param {MailUserPreferenceFindUniqueArgs} args - Arguments to find a MailUserPreference
+     * @example
+     * // Get one MailUserPreference
+     * const mailUserPreference = await prisma.mailUserPreference.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MailUserPreferenceFindUniqueArgs>(args: SelectSubset<T, MailUserPreferenceFindUniqueArgs<ExtArgs>>): Prisma__MailUserPreferenceClient<$Result.GetResult<Prisma.$MailUserPreferencePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MailUserPreference that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MailUserPreferenceFindUniqueOrThrowArgs} args - Arguments to find a MailUserPreference
+     * @example
+     * // Get one MailUserPreference
+     * const mailUserPreference = await prisma.mailUserPreference.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MailUserPreferenceFindUniqueOrThrowArgs>(args: SelectSubset<T, MailUserPreferenceFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MailUserPreferenceClient<$Result.GetResult<Prisma.$MailUserPreferencePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailUserPreference that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailUserPreferenceFindFirstArgs} args - Arguments to find a MailUserPreference
+     * @example
+     * // Get one MailUserPreference
+     * const mailUserPreference = await prisma.mailUserPreference.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MailUserPreferenceFindFirstArgs>(args?: SelectSubset<T, MailUserPreferenceFindFirstArgs<ExtArgs>>): Prisma__MailUserPreferenceClient<$Result.GetResult<Prisma.$MailUserPreferencePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MailUserPreference that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailUserPreferenceFindFirstOrThrowArgs} args - Arguments to find a MailUserPreference
+     * @example
+     * // Get one MailUserPreference
+     * const mailUserPreference = await prisma.mailUserPreference.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MailUserPreferenceFindFirstOrThrowArgs>(args?: SelectSubset<T, MailUserPreferenceFindFirstOrThrowArgs<ExtArgs>>): Prisma__MailUserPreferenceClient<$Result.GetResult<Prisma.$MailUserPreferencePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MailUserPreferences that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailUserPreferenceFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MailUserPreferences
+     * const mailUserPreferences = await prisma.mailUserPreference.findMany()
+     * 
+     * // Get first 10 MailUserPreferences
+     * const mailUserPreferences = await prisma.mailUserPreference.findMany({ take: 10 })
+     * 
+     * // Only select the `adminUserId`
+     * const mailUserPreferenceWithAdminUserIdOnly = await prisma.mailUserPreference.findMany({ select: { adminUserId: true } })
+     * 
+     */
+    findMany<T extends MailUserPreferenceFindManyArgs>(args?: SelectSubset<T, MailUserPreferenceFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailUserPreferencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MailUserPreference.
+     * @param {MailUserPreferenceCreateArgs} args - Arguments to create a MailUserPreference.
+     * @example
+     * // Create one MailUserPreference
+     * const MailUserPreference = await prisma.mailUserPreference.create({
+     *   data: {
+     *     // ... data to create a MailUserPreference
+     *   }
+     * })
+     * 
+     */
+    create<T extends MailUserPreferenceCreateArgs>(args: SelectSubset<T, MailUserPreferenceCreateArgs<ExtArgs>>): Prisma__MailUserPreferenceClient<$Result.GetResult<Prisma.$MailUserPreferencePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MailUserPreferences.
+     * @param {MailUserPreferenceCreateManyArgs} args - Arguments to create many MailUserPreferences.
+     * @example
+     * // Create many MailUserPreferences
+     * const mailUserPreference = await prisma.mailUserPreference.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MailUserPreferenceCreateManyArgs>(args?: SelectSubset<T, MailUserPreferenceCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MailUserPreferences and returns the data saved in the database.
+     * @param {MailUserPreferenceCreateManyAndReturnArgs} args - Arguments to create many MailUserPreferences.
+     * @example
+     * // Create many MailUserPreferences
+     * const mailUserPreference = await prisma.mailUserPreference.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MailUserPreferences and only return the `adminUserId`
+     * const mailUserPreferenceWithAdminUserIdOnly = await prisma.mailUserPreference.createManyAndReturn({
+     *   select: { adminUserId: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MailUserPreferenceCreateManyAndReturnArgs>(args?: SelectSubset<T, MailUserPreferenceCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailUserPreferencePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MailUserPreference.
+     * @param {MailUserPreferenceDeleteArgs} args - Arguments to delete one MailUserPreference.
+     * @example
+     * // Delete one MailUserPreference
+     * const MailUserPreference = await prisma.mailUserPreference.delete({
+     *   where: {
+     *     // ... filter to delete one MailUserPreference
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MailUserPreferenceDeleteArgs>(args: SelectSubset<T, MailUserPreferenceDeleteArgs<ExtArgs>>): Prisma__MailUserPreferenceClient<$Result.GetResult<Prisma.$MailUserPreferencePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MailUserPreference.
+     * @param {MailUserPreferenceUpdateArgs} args - Arguments to update one MailUserPreference.
+     * @example
+     * // Update one MailUserPreference
+     * const mailUserPreference = await prisma.mailUserPreference.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MailUserPreferenceUpdateArgs>(args: SelectSubset<T, MailUserPreferenceUpdateArgs<ExtArgs>>): Prisma__MailUserPreferenceClient<$Result.GetResult<Prisma.$MailUserPreferencePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MailUserPreferences.
+     * @param {MailUserPreferenceDeleteManyArgs} args - Arguments to filter MailUserPreferences to delete.
+     * @example
+     * // Delete a few MailUserPreferences
+     * const { count } = await prisma.mailUserPreference.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MailUserPreferenceDeleteManyArgs>(args?: SelectSubset<T, MailUserPreferenceDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailUserPreferences.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailUserPreferenceUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MailUserPreferences
+     * const mailUserPreference = await prisma.mailUserPreference.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MailUserPreferenceUpdateManyArgs>(args: SelectSubset<T, MailUserPreferenceUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MailUserPreferences and returns the data updated in the database.
+     * @param {MailUserPreferenceUpdateManyAndReturnArgs} args - Arguments to update many MailUserPreferences.
+     * @example
+     * // Update many MailUserPreferences
+     * const mailUserPreference = await prisma.mailUserPreference.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MailUserPreferences and only return the `adminUserId`
+     * const mailUserPreferenceWithAdminUserIdOnly = await prisma.mailUserPreference.updateManyAndReturn({
+     *   select: { adminUserId: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MailUserPreferenceUpdateManyAndReturnArgs>(args: SelectSubset<T, MailUserPreferenceUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MailUserPreferencePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MailUserPreference.
+     * @param {MailUserPreferenceUpsertArgs} args - Arguments to update or create a MailUserPreference.
+     * @example
+     * // Update or create a MailUserPreference
+     * const mailUserPreference = await prisma.mailUserPreference.upsert({
+     *   create: {
+     *     // ... data to create a MailUserPreference
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MailUserPreference we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MailUserPreferenceUpsertArgs>(args: SelectSubset<T, MailUserPreferenceUpsertArgs<ExtArgs>>): Prisma__MailUserPreferenceClient<$Result.GetResult<Prisma.$MailUserPreferencePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MailUserPreferences.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailUserPreferenceCountArgs} args - Arguments to filter MailUserPreferences to count.
+     * @example
+     * // Count the number of MailUserPreferences
+     * const count = await prisma.mailUserPreference.count({
+     *   where: {
+     *     // ... the filter for the MailUserPreferences we want to count
+     *   }
+     * })
+    **/
+    count<T extends MailUserPreferenceCountArgs>(
+      args?: Subset<T, MailUserPreferenceCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MailUserPreferenceCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MailUserPreference.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailUserPreferenceAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MailUserPreferenceAggregateArgs>(args: Subset<T, MailUserPreferenceAggregateArgs>): Prisma.PrismaPromise<GetMailUserPreferenceAggregateType<T>>
+
+    /**
+     * Group by MailUserPreference.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MailUserPreferenceGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MailUserPreferenceGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MailUserPreferenceGroupByArgs['orderBy'] }
+        : { orderBy?: MailUserPreferenceGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MailUserPreferenceGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMailUserPreferenceGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MailUserPreference model
+   */
+  readonly fields: MailUserPreferenceFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MailUserPreference.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MailUserPreferenceClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    adminUser<T extends AdminUserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AdminUserDefaultArgs<ExtArgs>>): Prisma__AdminUserClient<$Result.GetResult<Prisma.$AdminUserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    defaultSender<T extends MailUserPreference$defaultSenderArgs<ExtArgs> = {}>(args?: Subset<T, MailUserPreference$defaultSenderArgs<ExtArgs>>): Prisma__MailAddressClient<$Result.GetResult<Prisma.$MailAddressPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MailUserPreference model
+   */
+  interface MailUserPreferenceFieldRefs {
+    readonly adminUserId: FieldRef<"MailUserPreference", 'String'>
+    readonly defaultSenderAddressId: FieldRef<"MailUserPreference", 'String'>
+    readonly notificationsEnabled: FieldRef<"MailUserPreference", 'Boolean'>
+    readonly createdAt: FieldRef<"MailUserPreference", 'DateTime'>
+    readonly updatedAt: FieldRef<"MailUserPreference", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MailUserPreference findUnique
+   */
+  export type MailUserPreferenceFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUserPreference
+     */
+    select?: MailUserPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUserPreference
+     */
+    omit?: MailUserPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailUserPreferenceInclude<ExtArgs> | null
+    /**
+     * Filter, which MailUserPreference to fetch.
+     */
+    where: MailUserPreferenceWhereUniqueInput
+  }
+
+  /**
+   * MailUserPreference findUniqueOrThrow
+   */
+  export type MailUserPreferenceFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUserPreference
+     */
+    select?: MailUserPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUserPreference
+     */
+    omit?: MailUserPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailUserPreferenceInclude<ExtArgs> | null
+    /**
+     * Filter, which MailUserPreference to fetch.
+     */
+    where: MailUserPreferenceWhereUniqueInput
+  }
+
+  /**
+   * MailUserPreference findFirst
+   */
+  export type MailUserPreferenceFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUserPreference
+     */
+    select?: MailUserPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUserPreference
+     */
+    omit?: MailUserPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailUserPreferenceInclude<ExtArgs> | null
+    /**
+     * Filter, which MailUserPreference to fetch.
+     */
+    where?: MailUserPreferenceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailUserPreferences to fetch.
+     */
+    orderBy?: MailUserPreferenceOrderByWithRelationInput | MailUserPreferenceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailUserPreferences.
+     */
+    cursor?: MailUserPreferenceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailUserPreferences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailUserPreferences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailUserPreferences.
+     */
+    distinct?: MailUserPreferenceScalarFieldEnum | MailUserPreferenceScalarFieldEnum[]
+  }
+
+  /**
+   * MailUserPreference findFirstOrThrow
+   */
+  export type MailUserPreferenceFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUserPreference
+     */
+    select?: MailUserPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUserPreference
+     */
+    omit?: MailUserPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailUserPreferenceInclude<ExtArgs> | null
+    /**
+     * Filter, which MailUserPreference to fetch.
+     */
+    where?: MailUserPreferenceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailUserPreferences to fetch.
+     */
+    orderBy?: MailUserPreferenceOrderByWithRelationInput | MailUserPreferenceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MailUserPreferences.
+     */
+    cursor?: MailUserPreferenceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailUserPreferences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailUserPreferences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailUserPreferences.
+     */
+    distinct?: MailUserPreferenceScalarFieldEnum | MailUserPreferenceScalarFieldEnum[]
+  }
+
+  /**
+   * MailUserPreference findMany
+   */
+  export type MailUserPreferenceFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUserPreference
+     */
+    select?: MailUserPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUserPreference
+     */
+    omit?: MailUserPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailUserPreferenceInclude<ExtArgs> | null
+    /**
+     * Filter, which MailUserPreferences to fetch.
+     */
+    where?: MailUserPreferenceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MailUserPreferences to fetch.
+     */
+    orderBy?: MailUserPreferenceOrderByWithRelationInput | MailUserPreferenceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MailUserPreferences.
+     */
+    cursor?: MailUserPreferenceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MailUserPreferences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MailUserPreferences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MailUserPreferences.
+     */
+    distinct?: MailUserPreferenceScalarFieldEnum | MailUserPreferenceScalarFieldEnum[]
+  }
+
+  /**
+   * MailUserPreference create
+   */
+  export type MailUserPreferenceCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUserPreference
+     */
+    select?: MailUserPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUserPreference
+     */
+    omit?: MailUserPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailUserPreferenceInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MailUserPreference.
+     */
+    data: XOR<MailUserPreferenceCreateInput, MailUserPreferenceUncheckedCreateInput>
+  }
+
+  /**
+   * MailUserPreference createMany
+   */
+  export type MailUserPreferenceCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MailUserPreferences.
+     */
+    data: MailUserPreferenceCreateManyInput | MailUserPreferenceCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MailUserPreference createManyAndReturn
+   */
+  export type MailUserPreferenceCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUserPreference
+     */
+    select?: MailUserPreferenceSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUserPreference
+     */
+    omit?: MailUserPreferenceOmit<ExtArgs> | null
+    /**
+     * The data used to create many MailUserPreferences.
+     */
+    data: MailUserPreferenceCreateManyInput | MailUserPreferenceCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailUserPreferenceIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MailUserPreference update
+   */
+  export type MailUserPreferenceUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUserPreference
+     */
+    select?: MailUserPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUserPreference
+     */
+    omit?: MailUserPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailUserPreferenceInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MailUserPreference.
+     */
+    data: XOR<MailUserPreferenceUpdateInput, MailUserPreferenceUncheckedUpdateInput>
+    /**
+     * Choose, which MailUserPreference to update.
+     */
+    where: MailUserPreferenceWhereUniqueInput
+  }
+
+  /**
+   * MailUserPreference updateMany
+   */
+  export type MailUserPreferenceUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MailUserPreferences.
+     */
+    data: XOR<MailUserPreferenceUpdateManyMutationInput, MailUserPreferenceUncheckedUpdateManyInput>
+    /**
+     * Filter which MailUserPreferences to update
+     */
+    where?: MailUserPreferenceWhereInput
+    /**
+     * Limit how many MailUserPreferences to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailUserPreference updateManyAndReturn
+   */
+  export type MailUserPreferenceUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUserPreference
+     */
+    select?: MailUserPreferenceSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUserPreference
+     */
+    omit?: MailUserPreferenceOmit<ExtArgs> | null
+    /**
+     * The data used to update MailUserPreferences.
+     */
+    data: XOR<MailUserPreferenceUpdateManyMutationInput, MailUserPreferenceUncheckedUpdateManyInput>
+    /**
+     * Filter which MailUserPreferences to update
+     */
+    where?: MailUserPreferenceWhereInput
+    /**
+     * Limit how many MailUserPreferences to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailUserPreferenceIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MailUserPreference upsert
+   */
+  export type MailUserPreferenceUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUserPreference
+     */
+    select?: MailUserPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUserPreference
+     */
+    omit?: MailUserPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailUserPreferenceInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MailUserPreference to update in case it exists.
+     */
+    where: MailUserPreferenceWhereUniqueInput
+    /**
+     * In case the MailUserPreference found by the `where` argument doesn't exist, create a new MailUserPreference with this data.
+     */
+    create: XOR<MailUserPreferenceCreateInput, MailUserPreferenceUncheckedCreateInput>
+    /**
+     * In case the MailUserPreference was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MailUserPreferenceUpdateInput, MailUserPreferenceUncheckedUpdateInput>
+  }
+
+  /**
+   * MailUserPreference delete
+   */
+  export type MailUserPreferenceDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUserPreference
+     */
+    select?: MailUserPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUserPreference
+     */
+    omit?: MailUserPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailUserPreferenceInclude<ExtArgs> | null
+    /**
+     * Filter which MailUserPreference to delete.
+     */
+    where: MailUserPreferenceWhereUniqueInput
+  }
+
+  /**
+   * MailUserPreference deleteMany
+   */
+  export type MailUserPreferenceDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MailUserPreferences to delete
+     */
+    where?: MailUserPreferenceWhereInput
+    /**
+     * Limit how many MailUserPreferences to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MailUserPreference.defaultSender
+   */
+  export type MailUserPreference$defaultSenderArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailAddress
+     */
+    select?: MailAddressSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailAddress
+     */
+    omit?: MailAddressOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailAddressInclude<ExtArgs> | null
+    where?: MailAddressWhereInput
+  }
+
+  /**
+   * MailUserPreference without action
+   */
+  export type MailUserPreferenceDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MailUserPreference
+     */
+    select?: MailUserPreferenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MailUserPreference
+     */
+    omit?: MailUserPreferenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MailUserPreferenceInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -252475,6 +253716,17 @@ export namespace Prisma {
   export type MarketingCampaignReplyScalarFieldEnum = (typeof MarketingCampaignReplyScalarFieldEnum)[keyof typeof MarketingCampaignReplyScalarFieldEnum]
 
 
+  export const MailUserPreferenceScalarFieldEnum: {
+    adminUserId: 'adminUserId',
+    defaultSenderAddressId: 'defaultSenderAddressId',
+    notificationsEnabled: 'notificationsEnabled',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MailUserPreferenceScalarFieldEnum = (typeof MailUserPreferenceScalarFieldEnum)[keyof typeof MailUserPreferenceScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -254654,6 +255906,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantListRelationFilter
     mailThreadStates?: MailUserThreadStateListRelationFilter
     mailDrafts?: MailDraftListRelationFilter
+    mailPreference?: XOR<MailUserPreferenceNullableScalarRelationFilter, MailUserPreferenceWhereInput> | null
   }
 
   export type AdminUserOrderByWithRelationInput = {
@@ -254781,6 +256034,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantOrderByRelationAggregateInput
     mailThreadStates?: MailUserThreadStateOrderByRelationAggregateInput
     mailDrafts?: MailDraftOrderByRelationAggregateInput
+    mailPreference?: MailUserPreferenceOrderByWithRelationInput
   }
 
   export type AdminUserWhereUniqueInput = Prisma.AtLeast<{
@@ -254911,6 +256165,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantListRelationFilter
     mailThreadStates?: MailUserThreadStateListRelationFilter
     mailDrafts?: MailDraftListRelationFilter
+    mailPreference?: XOR<MailUserPreferenceNullableScalarRelationFilter, MailUserPreferenceWhereInput> | null
   }, "id" | "email" | "googleId" | "mainAppUserId" | "passwordResetToken">
 
   export type AdminUserOrderByWithAggregationInput = {
@@ -267442,6 +268697,7 @@ export namespace Prisma {
     aliasOf?: XOR<MailAddressNullableScalarRelationFilter, MailAddressWhereInput> | null
     aliases?: MailAddressListRelationFilter
     senderGrants?: MailSenderGrantListRelationFilter
+    preferredBy?: MailUserPreferenceListRelationFilter
   }
 
   export type MailAddressOrderByWithRelationInput = {
@@ -267465,6 +268721,7 @@ export namespace Prisma {
     aliasOf?: MailAddressOrderByWithRelationInput
     aliases?: MailAddressOrderByRelationAggregateInput
     senderGrants?: MailSenderGrantOrderByRelationAggregateInput
+    preferredBy?: MailUserPreferenceOrderByRelationAggregateInput
   }
 
   export type MailAddressWhereUniqueInput = Prisma.AtLeast<{
@@ -267492,6 +268749,7 @@ export namespace Prisma {
     aliasOf?: XOR<MailAddressNullableScalarRelationFilter, MailAddressWhereInput> | null
     aliases?: MailAddressListRelationFilter
     senderGrants?: MailSenderGrantListRelationFilter
+    preferredBy?: MailUserPreferenceListRelationFilter
   }, "id" | "address" | "domainId_localPart">
 
   export type MailAddressOrderByWithAggregationInput = {
@@ -273196,6 +274454,64 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"MarketingCampaignReply"> | Date | string
   }
 
+  export type MailUserPreferenceWhereInput = {
+    AND?: MailUserPreferenceWhereInput | MailUserPreferenceWhereInput[]
+    OR?: MailUserPreferenceWhereInput[]
+    NOT?: MailUserPreferenceWhereInput | MailUserPreferenceWhereInput[]
+    adminUserId?: StringFilter<"MailUserPreference"> | string
+    defaultSenderAddressId?: UuidNullableFilter<"MailUserPreference"> | string | null
+    notificationsEnabled?: BoolFilter<"MailUserPreference"> | boolean
+    createdAt?: DateTimeFilter<"MailUserPreference"> | Date | string
+    updatedAt?: DateTimeFilter<"MailUserPreference"> | Date | string
+    adminUser?: XOR<AdminUserScalarRelationFilter, AdminUserWhereInput>
+    defaultSender?: XOR<MailAddressNullableScalarRelationFilter, MailAddressWhereInput> | null
+  }
+
+  export type MailUserPreferenceOrderByWithRelationInput = {
+    adminUserId?: SortOrder
+    defaultSenderAddressId?: SortOrderInput | SortOrder
+    notificationsEnabled?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    adminUser?: AdminUserOrderByWithRelationInput
+    defaultSender?: MailAddressOrderByWithRelationInput
+  }
+
+  export type MailUserPreferenceWhereUniqueInput = Prisma.AtLeast<{
+    adminUserId?: string
+    AND?: MailUserPreferenceWhereInput | MailUserPreferenceWhereInput[]
+    OR?: MailUserPreferenceWhereInput[]
+    NOT?: MailUserPreferenceWhereInput | MailUserPreferenceWhereInput[]
+    defaultSenderAddressId?: UuidNullableFilter<"MailUserPreference"> | string | null
+    notificationsEnabled?: BoolFilter<"MailUserPreference"> | boolean
+    createdAt?: DateTimeFilter<"MailUserPreference"> | Date | string
+    updatedAt?: DateTimeFilter<"MailUserPreference"> | Date | string
+    adminUser?: XOR<AdminUserScalarRelationFilter, AdminUserWhereInput>
+    defaultSender?: XOR<MailAddressNullableScalarRelationFilter, MailAddressWhereInput> | null
+  }, "adminUserId">
+
+  export type MailUserPreferenceOrderByWithAggregationInput = {
+    adminUserId?: SortOrder
+    defaultSenderAddressId?: SortOrderInput | SortOrder
+    notificationsEnabled?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MailUserPreferenceCountOrderByAggregateInput
+    _max?: MailUserPreferenceMaxOrderByAggregateInput
+    _min?: MailUserPreferenceMinOrderByAggregateInput
+  }
+
+  export type MailUserPreferenceScalarWhereWithAggregatesInput = {
+    AND?: MailUserPreferenceScalarWhereWithAggregatesInput | MailUserPreferenceScalarWhereWithAggregatesInput[]
+    OR?: MailUserPreferenceScalarWhereWithAggregatesInput[]
+    NOT?: MailUserPreferenceScalarWhereWithAggregatesInput | MailUserPreferenceScalarWhereWithAggregatesInput[]
+    adminUserId?: StringWithAggregatesFilter<"MailUserPreference"> | string
+    defaultSenderAddressId?: UuidNullableWithAggregatesFilter<"MailUserPreference"> | string | null
+    notificationsEnabled?: BoolWithAggregatesFilter<"MailUserPreference"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"MailUserPreference"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MailUserPreference"> | Date | string
+  }
+
   export type AdminUserCreateInput = {
     id?: string
     email: string
@@ -273321,6 +274637,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateInput = {
@@ -273448,6 +274765,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUpdateInput = {
@@ -273575,6 +274893,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateInput = {
@@ -273702,6 +275021,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserCreateManyInput = {
@@ -287905,6 +289225,7 @@ export namespace Prisma {
     aliasOf?: MailAddressCreateNestedOneWithoutAliasesInput
     aliases?: MailAddressCreateNestedManyWithoutAliasOfInput
     senderGrants?: MailSenderGrantCreateNestedManyWithoutAddressInput
+    preferredBy?: MailUserPreferenceCreateNestedManyWithoutDefaultSenderInput
   }
 
   export type MailAddressUncheckedCreateInput = {
@@ -287924,6 +289245,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     aliases?: MailAddressUncheckedCreateNestedManyWithoutAliasOfInput
     senderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAddressInput
+    preferredBy?: MailUserPreferenceUncheckedCreateNestedManyWithoutDefaultSenderInput
   }
 
   export type MailAddressUpdateInput = {
@@ -287943,6 +289265,7 @@ export namespace Prisma {
     aliasOf?: MailAddressUpdateOneWithoutAliasesNestedInput
     aliases?: MailAddressUpdateManyWithoutAliasOfNestedInput
     senderGrants?: MailSenderGrantUpdateManyWithoutAddressNestedInput
+    preferredBy?: MailUserPreferenceUpdateManyWithoutDefaultSenderNestedInput
   }
 
   export type MailAddressUncheckedUpdateInput = {
@@ -287962,6 +289285,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     aliases?: MailAddressUncheckedUpdateManyWithoutAliasOfNestedInput
     senderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAddressNestedInput
+    preferredBy?: MailUserPreferenceUncheckedUpdateManyWithoutDefaultSenderNestedInput
   }
 
   export type MailAddressCreateManyInput = {
@@ -294467,6 +295791,60 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type MailUserPreferenceCreateInput = {
+    notificationsEnabled?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    adminUser: AdminUserCreateNestedOneWithoutMailPreferenceInput
+    defaultSender?: MailAddressCreateNestedOneWithoutPreferredByInput
+  }
+
+  export type MailUserPreferenceUncheckedCreateInput = {
+    adminUserId: string
+    defaultSenderAddressId?: string | null
+    notificationsEnabled?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MailUserPreferenceUpdateInput = {
+    notificationsEnabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    adminUser?: AdminUserUpdateOneRequiredWithoutMailPreferenceNestedInput
+    defaultSender?: MailAddressUpdateOneWithoutPreferredByNestedInput
+  }
+
+  export type MailUserPreferenceUncheckedUpdateInput = {
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    defaultSenderAddressId?: NullableStringFieldUpdateOperationsInput | string | null
+    notificationsEnabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailUserPreferenceCreateManyInput = {
+    adminUserId: string
+    defaultSenderAddressId?: string | null
+    notificationsEnabled?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MailUserPreferenceUpdateManyMutationInput = {
+    notificationsEnabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailUserPreferenceUncheckedUpdateManyInput = {
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    defaultSenderAddressId?: NullableStringFieldUpdateOperationsInput | string | null
+    notificationsEnabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -294954,6 +296332,11 @@ export namespace Prisma {
     every?: MailDraftWhereInput
     some?: MailDraftWhereInput
     none?: MailDraftWhereInput
+  }
+
+  export type MailUserPreferenceNullableScalarRelationFilter = {
+    is?: MailUserPreferenceWhereInput | null
+    isNot?: MailUserPreferenceWhereInput | null
   }
 
   export type SortOrderInput = {
@@ -304973,6 +306356,16 @@ export namespace Prisma {
     isNot?: MailAddressWhereInput | null
   }
 
+  export type MailUserPreferenceListRelationFilter = {
+    every?: MailUserPreferenceWhereInput
+    some?: MailUserPreferenceWhereInput
+    none?: MailUserPreferenceWhereInput
+  }
+
+  export type MailUserPreferenceOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type MailAddressDomainIdLocalPartCompoundUniqueInput = {
     domainId: string
     localPart: string
@@ -309061,6 +310454,30 @@ export namespace Prisma {
     createdAt?: SortOrder
   }
 
+  export type MailUserPreferenceCountOrderByAggregateInput = {
+    adminUserId?: SortOrder
+    defaultSenderAddressId?: SortOrder
+    notificationsEnabled?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MailUserPreferenceMaxOrderByAggregateInput = {
+    adminUserId?: SortOrder
+    defaultSenderAddressId?: SortOrder
+    notificationsEnabled?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MailUserPreferenceMinOrderByAggregateInput = {
+    adminUserId?: SortOrder
+    defaultSenderAddressId?: SortOrder
+    notificationsEnabled?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
   export type AdminSessionCreateNestedManyWithoutAdminUserInput = {
     create?: XOR<AdminSessionCreateWithoutAdminUserInput, AdminSessionUncheckedCreateWithoutAdminUserInput> | AdminSessionCreateWithoutAdminUserInput[] | AdminSessionUncheckedCreateWithoutAdminUserInput[]
     connectOrCreate?: AdminSessionCreateOrConnectWithoutAdminUserInput | AdminSessionCreateOrConnectWithoutAdminUserInput[]
@@ -309592,6 +311009,12 @@ export namespace Prisma {
     connect?: MailDraftWhereUniqueInput | MailDraftWhereUniqueInput[]
   }
 
+  export type MailUserPreferenceCreateNestedOneWithoutAdminUserInput = {
+    create?: XOR<MailUserPreferenceCreateWithoutAdminUserInput, MailUserPreferenceUncheckedCreateWithoutAdminUserInput>
+    connectOrCreate?: MailUserPreferenceCreateOrConnectWithoutAdminUserInput
+    connect?: MailUserPreferenceWhereUniqueInput
+  }
+
   export type AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput = {
     create?: XOR<AdminSessionCreateWithoutAdminUserInput, AdminSessionUncheckedCreateWithoutAdminUserInput> | AdminSessionCreateWithoutAdminUserInput[] | AdminSessionUncheckedCreateWithoutAdminUserInput[]
     connectOrCreate?: AdminSessionCreateOrConnectWithoutAdminUserInput | AdminSessionCreateOrConnectWithoutAdminUserInput[]
@@ -310121,6 +311544,12 @@ export namespace Prisma {
     connectOrCreate?: MailDraftCreateOrConnectWithoutAuthorInput | MailDraftCreateOrConnectWithoutAuthorInput[]
     createMany?: MailDraftCreateManyAuthorInputEnvelope
     connect?: MailDraftWhereUniqueInput | MailDraftWhereUniqueInput[]
+  }
+
+  export type MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput = {
+    create?: XOR<MailUserPreferenceCreateWithoutAdminUserInput, MailUserPreferenceUncheckedCreateWithoutAdminUserInput>
+    connectOrCreate?: MailUserPreferenceCreateOrConnectWithoutAdminUserInput
+    connect?: MailUserPreferenceWhereUniqueInput
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -311231,6 +312660,16 @@ export namespace Prisma {
     deleteMany?: MailDraftScalarWhereInput | MailDraftScalarWhereInput[]
   }
 
+  export type MailUserPreferenceUpdateOneWithoutAdminUserNestedInput = {
+    create?: XOR<MailUserPreferenceCreateWithoutAdminUserInput, MailUserPreferenceUncheckedCreateWithoutAdminUserInput>
+    connectOrCreate?: MailUserPreferenceCreateOrConnectWithoutAdminUserInput
+    upsert?: MailUserPreferenceUpsertWithoutAdminUserInput
+    disconnect?: MailUserPreferenceWhereInput | boolean
+    delete?: MailUserPreferenceWhereInput | boolean
+    connect?: MailUserPreferenceWhereUniqueInput
+    update?: XOR<XOR<MailUserPreferenceUpdateToOneWithWhereWithoutAdminUserInput, MailUserPreferenceUpdateWithoutAdminUserInput>, MailUserPreferenceUncheckedUpdateWithoutAdminUserInput>
+  }
+
   export type AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput = {
     create?: XOR<AdminSessionCreateWithoutAdminUserInput, AdminSessionUncheckedCreateWithoutAdminUserInput> | AdminSessionCreateWithoutAdminUserInput[] | AdminSessionUncheckedCreateWithoutAdminUserInput[]
     connectOrCreate?: AdminSessionCreateOrConnectWithoutAdminUserInput | AdminSessionCreateOrConnectWithoutAdminUserInput[]
@@ -312289,6 +313728,16 @@ export namespace Prisma {
     update?: MailDraftUpdateWithWhereUniqueWithoutAuthorInput | MailDraftUpdateWithWhereUniqueWithoutAuthorInput[]
     updateMany?: MailDraftUpdateManyWithWhereWithoutAuthorInput | MailDraftUpdateManyWithWhereWithoutAuthorInput[]
     deleteMany?: MailDraftScalarWhereInput | MailDraftScalarWhereInput[]
+  }
+
+  export type MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput = {
+    create?: XOR<MailUserPreferenceCreateWithoutAdminUserInput, MailUserPreferenceUncheckedCreateWithoutAdminUserInput>
+    connectOrCreate?: MailUserPreferenceCreateOrConnectWithoutAdminUserInput
+    upsert?: MailUserPreferenceUpsertWithoutAdminUserInput
+    disconnect?: MailUserPreferenceWhereInput | boolean
+    delete?: MailUserPreferenceWhereInput | boolean
+    connect?: MailUserPreferenceWhereUniqueInput
+    update?: XOR<XOR<MailUserPreferenceUpdateToOneWithWhereWithoutAdminUserInput, MailUserPreferenceUpdateWithoutAdminUserInput>, MailUserPreferenceUncheckedUpdateWithoutAdminUserInput>
   }
 
   export type marketing_campaign_performanceCreateNestedOneWithoutCampaignInput = {
@@ -321521,6 +322970,13 @@ export namespace Prisma {
     connect?: MailSenderGrantWhereUniqueInput | MailSenderGrantWhereUniqueInput[]
   }
 
+  export type MailUserPreferenceCreateNestedManyWithoutDefaultSenderInput = {
+    create?: XOR<MailUserPreferenceCreateWithoutDefaultSenderInput, MailUserPreferenceUncheckedCreateWithoutDefaultSenderInput> | MailUserPreferenceCreateWithoutDefaultSenderInput[] | MailUserPreferenceUncheckedCreateWithoutDefaultSenderInput[]
+    connectOrCreate?: MailUserPreferenceCreateOrConnectWithoutDefaultSenderInput | MailUserPreferenceCreateOrConnectWithoutDefaultSenderInput[]
+    createMany?: MailUserPreferenceCreateManyDefaultSenderInputEnvelope
+    connect?: MailUserPreferenceWhereUniqueInput | MailUserPreferenceWhereUniqueInput[]
+  }
+
   export type MailAddressUncheckedCreateNestedManyWithoutAliasOfInput = {
     create?: XOR<MailAddressCreateWithoutAliasOfInput, MailAddressUncheckedCreateWithoutAliasOfInput> | MailAddressCreateWithoutAliasOfInput[] | MailAddressUncheckedCreateWithoutAliasOfInput[]
     connectOrCreate?: MailAddressCreateOrConnectWithoutAliasOfInput | MailAddressCreateOrConnectWithoutAliasOfInput[]
@@ -321533,6 +322989,13 @@ export namespace Prisma {
     connectOrCreate?: MailSenderGrantCreateOrConnectWithoutAddressInput | MailSenderGrantCreateOrConnectWithoutAddressInput[]
     createMany?: MailSenderGrantCreateManyAddressInputEnvelope
     connect?: MailSenderGrantWhereUniqueInput | MailSenderGrantWhereUniqueInput[]
+  }
+
+  export type MailUserPreferenceUncheckedCreateNestedManyWithoutDefaultSenderInput = {
+    create?: XOR<MailUserPreferenceCreateWithoutDefaultSenderInput, MailUserPreferenceUncheckedCreateWithoutDefaultSenderInput> | MailUserPreferenceCreateWithoutDefaultSenderInput[] | MailUserPreferenceUncheckedCreateWithoutDefaultSenderInput[]
+    connectOrCreate?: MailUserPreferenceCreateOrConnectWithoutDefaultSenderInput | MailUserPreferenceCreateOrConnectWithoutDefaultSenderInput[]
+    createMany?: MailUserPreferenceCreateManyDefaultSenderInputEnvelope
+    connect?: MailUserPreferenceWhereUniqueInput | MailUserPreferenceWhereUniqueInput[]
   }
 
   export type EnumMailAddressKindFieldUpdateOperationsInput = {
@@ -321607,6 +323070,20 @@ export namespace Prisma {
     deleteMany?: MailSenderGrantScalarWhereInput | MailSenderGrantScalarWhereInput[]
   }
 
+  export type MailUserPreferenceUpdateManyWithoutDefaultSenderNestedInput = {
+    create?: XOR<MailUserPreferenceCreateWithoutDefaultSenderInput, MailUserPreferenceUncheckedCreateWithoutDefaultSenderInput> | MailUserPreferenceCreateWithoutDefaultSenderInput[] | MailUserPreferenceUncheckedCreateWithoutDefaultSenderInput[]
+    connectOrCreate?: MailUserPreferenceCreateOrConnectWithoutDefaultSenderInput | MailUserPreferenceCreateOrConnectWithoutDefaultSenderInput[]
+    upsert?: MailUserPreferenceUpsertWithWhereUniqueWithoutDefaultSenderInput | MailUserPreferenceUpsertWithWhereUniqueWithoutDefaultSenderInput[]
+    createMany?: MailUserPreferenceCreateManyDefaultSenderInputEnvelope
+    set?: MailUserPreferenceWhereUniqueInput | MailUserPreferenceWhereUniqueInput[]
+    disconnect?: MailUserPreferenceWhereUniqueInput | MailUserPreferenceWhereUniqueInput[]
+    delete?: MailUserPreferenceWhereUniqueInput | MailUserPreferenceWhereUniqueInput[]
+    connect?: MailUserPreferenceWhereUniqueInput | MailUserPreferenceWhereUniqueInput[]
+    update?: MailUserPreferenceUpdateWithWhereUniqueWithoutDefaultSenderInput | MailUserPreferenceUpdateWithWhereUniqueWithoutDefaultSenderInput[]
+    updateMany?: MailUserPreferenceUpdateManyWithWhereWithoutDefaultSenderInput | MailUserPreferenceUpdateManyWithWhereWithoutDefaultSenderInput[]
+    deleteMany?: MailUserPreferenceScalarWhereInput | MailUserPreferenceScalarWhereInput[]
+  }
+
   export type MailAddressUncheckedUpdateManyWithoutAliasOfNestedInput = {
     create?: XOR<MailAddressCreateWithoutAliasOfInput, MailAddressUncheckedCreateWithoutAliasOfInput> | MailAddressCreateWithoutAliasOfInput[] | MailAddressUncheckedCreateWithoutAliasOfInput[]
     connectOrCreate?: MailAddressCreateOrConnectWithoutAliasOfInput | MailAddressCreateOrConnectWithoutAliasOfInput[]
@@ -321633,6 +323110,20 @@ export namespace Prisma {
     update?: MailSenderGrantUpdateWithWhereUniqueWithoutAddressInput | MailSenderGrantUpdateWithWhereUniqueWithoutAddressInput[]
     updateMany?: MailSenderGrantUpdateManyWithWhereWithoutAddressInput | MailSenderGrantUpdateManyWithWhereWithoutAddressInput[]
     deleteMany?: MailSenderGrantScalarWhereInput | MailSenderGrantScalarWhereInput[]
+  }
+
+  export type MailUserPreferenceUncheckedUpdateManyWithoutDefaultSenderNestedInput = {
+    create?: XOR<MailUserPreferenceCreateWithoutDefaultSenderInput, MailUserPreferenceUncheckedCreateWithoutDefaultSenderInput> | MailUserPreferenceCreateWithoutDefaultSenderInput[] | MailUserPreferenceUncheckedCreateWithoutDefaultSenderInput[]
+    connectOrCreate?: MailUserPreferenceCreateOrConnectWithoutDefaultSenderInput | MailUserPreferenceCreateOrConnectWithoutDefaultSenderInput[]
+    upsert?: MailUserPreferenceUpsertWithWhereUniqueWithoutDefaultSenderInput | MailUserPreferenceUpsertWithWhereUniqueWithoutDefaultSenderInput[]
+    createMany?: MailUserPreferenceCreateManyDefaultSenderInputEnvelope
+    set?: MailUserPreferenceWhereUniqueInput | MailUserPreferenceWhereUniqueInput[]
+    disconnect?: MailUserPreferenceWhereUniqueInput | MailUserPreferenceWhereUniqueInput[]
+    delete?: MailUserPreferenceWhereUniqueInput | MailUserPreferenceWhereUniqueInput[]
+    connect?: MailUserPreferenceWhereUniqueInput | MailUserPreferenceWhereUniqueInput[]
+    update?: MailUserPreferenceUpdateWithWhereUniqueWithoutDefaultSenderInput | MailUserPreferenceUpdateWithWhereUniqueWithoutDefaultSenderInput[]
+    updateMany?: MailUserPreferenceUpdateManyWithWhereWithoutDefaultSenderInput | MailUserPreferenceUpdateManyWithWhereWithoutDefaultSenderInput[]
+    deleteMany?: MailUserPreferenceScalarWhereInput | MailUserPreferenceScalarWhereInput[]
   }
 
   export type MailMailboxCreateNestedOneWithoutMembershipsInput = {
@@ -324519,6 +326010,36 @@ export namespace Prisma {
     upsert?: MailMessageUpsertWithoutCampaignReplyInput
     connect?: MailMessageWhereUniqueInput
     update?: XOR<XOR<MailMessageUpdateToOneWithWhereWithoutCampaignReplyInput, MailMessageUpdateWithoutCampaignReplyInput>, MailMessageUncheckedUpdateWithoutCampaignReplyInput>
+  }
+
+  export type AdminUserCreateNestedOneWithoutMailPreferenceInput = {
+    create?: XOR<AdminUserCreateWithoutMailPreferenceInput, AdminUserUncheckedCreateWithoutMailPreferenceInput>
+    connectOrCreate?: AdminUserCreateOrConnectWithoutMailPreferenceInput
+    connect?: AdminUserWhereUniqueInput
+  }
+
+  export type MailAddressCreateNestedOneWithoutPreferredByInput = {
+    create?: XOR<MailAddressCreateWithoutPreferredByInput, MailAddressUncheckedCreateWithoutPreferredByInput>
+    connectOrCreate?: MailAddressCreateOrConnectWithoutPreferredByInput
+    connect?: MailAddressWhereUniqueInput
+  }
+
+  export type AdminUserUpdateOneRequiredWithoutMailPreferenceNestedInput = {
+    create?: XOR<AdminUserCreateWithoutMailPreferenceInput, AdminUserUncheckedCreateWithoutMailPreferenceInput>
+    connectOrCreate?: AdminUserCreateOrConnectWithoutMailPreferenceInput
+    upsert?: AdminUserUpsertWithoutMailPreferenceInput
+    connect?: AdminUserWhereUniqueInput
+    update?: XOR<XOR<AdminUserUpdateToOneWithWhereWithoutMailPreferenceInput, AdminUserUpdateWithoutMailPreferenceInput>, AdminUserUncheckedUpdateWithoutMailPreferenceInput>
+  }
+
+  export type MailAddressUpdateOneWithoutPreferredByNestedInput = {
+    create?: XOR<MailAddressCreateWithoutPreferredByInput, MailAddressUncheckedCreateWithoutPreferredByInput>
+    connectOrCreate?: MailAddressCreateOrConnectWithoutPreferredByInput
+    upsert?: MailAddressUpsertWithoutPreferredByInput
+    disconnect?: MailAddressWhereInput | boolean
+    delete?: MailAddressWhereInput | boolean
+    connect?: MailAddressWhereUniqueInput
+    update?: XOR<XOR<MailAddressUpdateToOneWithWhereWithoutPreferredByInput, MailAddressUpdateWithoutPreferredByInput>, MailAddressUncheckedUpdateWithoutPreferredByInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -330617,6 +332138,25 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type MailUserPreferenceCreateWithoutAdminUserInput = {
+    notificationsEnabled?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    defaultSender?: MailAddressCreateNestedOneWithoutPreferredByInput
+  }
+
+  export type MailUserPreferenceUncheckedCreateWithoutAdminUserInput = {
+    defaultSenderAddressId?: string | null
+    notificationsEnabled?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MailUserPreferenceCreateOrConnectWithoutAdminUserInput = {
+    where: MailUserPreferenceWhereUniqueInput
+    create: XOR<MailUserPreferenceCreateWithoutAdminUserInput, MailUserPreferenceUncheckedCreateWithoutAdminUserInput>
+  }
+
   export type AdminSessionUpsertWithWhereUniqueWithoutAdminUserInput = {
     where: AdminSessionWhereUniqueInput
     update: XOR<AdminSessionUpdateWithoutAdminUserInput, AdminSessionUncheckedUpdateWithoutAdminUserInput>
@@ -333061,6 +334601,31 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"MailDraft"> | Date | string
   }
 
+  export type MailUserPreferenceUpsertWithoutAdminUserInput = {
+    update: XOR<MailUserPreferenceUpdateWithoutAdminUserInput, MailUserPreferenceUncheckedUpdateWithoutAdminUserInput>
+    create: XOR<MailUserPreferenceCreateWithoutAdminUserInput, MailUserPreferenceUncheckedCreateWithoutAdminUserInput>
+    where?: MailUserPreferenceWhereInput
+  }
+
+  export type MailUserPreferenceUpdateToOneWithWhereWithoutAdminUserInput = {
+    where?: MailUserPreferenceWhereInput
+    data: XOR<MailUserPreferenceUpdateWithoutAdminUserInput, MailUserPreferenceUncheckedUpdateWithoutAdminUserInput>
+  }
+
+  export type MailUserPreferenceUpdateWithoutAdminUserInput = {
+    notificationsEnabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    defaultSender?: MailAddressUpdateOneWithoutPreferredByNestedInput
+  }
+
+  export type MailUserPreferenceUncheckedUpdateWithoutAdminUserInput = {
+    defaultSenderAddressId?: NullableStringFieldUpdateOperationsInput | string | null
+    notificationsEnabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type marketing_campaign_performanceCreateWithoutCampaignInput = {
     id?: string
     opens?: number
@@ -333656,6 +335221,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingCampaignTeamMembershipsInput = {
@@ -333782,6 +335348,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingCampaignTeamMembershipsInput = {
@@ -333977,6 +335544,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingCampaignTeamMembershipsInput = {
@@ -334103,6 +335671,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserCreateWithoutMarketingContentItemsInput = {
@@ -334229,6 +335798,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingContentItemsInput = {
@@ -334355,6 +335925,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingContentItemsInput = {
@@ -334525,6 +336096,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingContentItemsInput = {
@@ -334651,6 +336223,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type marketing_content_monthly_performanceUpsertWithWhereUniqueWithoutContentInput = {
@@ -337686,6 +339259,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingSettingsUpdatedInput = {
@@ -337812,6 +339386,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingSettingsUpdatedInput = {
@@ -338053,6 +339628,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingSettingsUpdatedInput = {
@@ -338179,6 +339755,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type marketing_ad_platform_connectionsCreateWithoutEvaluationRunsInput = {
@@ -338398,6 +339975,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingEvaluationRunsRequestedInput = {
@@ -338524,6 +340102,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingEvaluationRunsRequestedInput = {
@@ -338765,6 +340344,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingEvaluationRunsRequestedInput = {
@@ -338891,6 +340471,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type marketing_ad_platform_connectionsCreateWithoutCreativeAssetsInput = {
@@ -340429,6 +342010,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingRecommendationsAcceptedInput = {
@@ -340555,6 +342137,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingRecommendationsAcceptedInput = {
@@ -340686,6 +342269,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingRecommendationsDismissedInput = {
@@ -340812,6 +342396,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingRecommendationsDismissedInput = {
@@ -341160,6 +342745,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingRecommendationsAcceptedInput = {
@@ -341286,6 +342872,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUpsertWithoutMarketingRecommendationsDismissedInput = {
@@ -341423,6 +343010,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingRecommendationsDismissedInput = {
@@ -341549,6 +343137,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type TaskUpsertWithoutMarketingRecommendationsInput = {
@@ -341898,6 +343487,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingAlertsAcknowledgedInput = {
@@ -342024,6 +343614,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingAlertsAcknowledgedInput = {
@@ -342155,6 +343746,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingAlertsResolvedInput = {
@@ -342281,6 +343873,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingAlertsResolvedInput = {
@@ -342626,6 +344219,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingAlertsAcknowledgedInput = {
@@ -342752,6 +344346,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUpsertWithoutMarketingAlertsResolvedInput = {
@@ -342889,6 +344484,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingAlertsResolvedInput = {
@@ -343015,6 +344611,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type NotificationUpsertWithoutMarketingAlertsInput = {
@@ -343265,6 +344862,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingExperimentsCreatedInput = {
@@ -343391,6 +344989,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingExperimentsCreatedInput = {
@@ -343632,6 +345231,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingExperimentsCreatedInput = {
@@ -343758,6 +345358,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type marketing_recommendationsCreateWithoutExecutionPlansInput = {
@@ -344052,6 +345653,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingExecutionPlansCreatedInput = {
@@ -344178,6 +345780,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingExecutionPlansCreatedInput = {
@@ -344309,6 +345912,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingExecutionPlansUpdatedInput = {
@@ -344435,6 +346039,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingExecutionPlansUpdatedInput = {
@@ -345175,6 +346780,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingExecutionPlansCreatedInput = {
@@ -345301,6 +346907,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUpsertWithoutMarketingExecutionPlansUpdatedInput = {
@@ -345438,6 +347045,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingExecutionPlansUpdatedInput = {
@@ -345564,6 +347172,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type MarketingExecutionPlanItemUpsertWithWhereUniqueWithoutPlanInput = {
@@ -346265,6 +347874,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingExecutionApprovalsInput = {
@@ -346391,6 +348001,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingExecutionApprovalsInput = {
@@ -346632,6 +348243,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingExecutionApprovalsInput = {
@@ -346758,6 +348370,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type MarketingExecutionApprovalEventUpsertWithWhereUniqueWithoutApprovalInput = {
@@ -347786,6 +349399,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingExecutionCancellationRequestsInput = {
@@ -347912,6 +349526,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingExecutionCancellationRequestsInput = {
@@ -348271,6 +349886,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingExecutionCancellationRequestsInput = {
@@ -348397,6 +350013,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type MarketingExecutionRetryReviewUpsertWithWhereUniqueWithoutActionJobInput = {
@@ -350084,6 +351701,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingExecutionPoliciesCreatedInput = {
@@ -350210,6 +351828,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingExecutionPoliciesCreatedInput = {
@@ -350341,6 +351960,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingExecutionPoliciesUpdatedInput = {
@@ -350467,6 +352087,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingExecutionPoliciesUpdatedInput = {
@@ -350760,6 +352381,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingExecutionPoliciesCreatedInput = {
@@ -350886,6 +352508,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUpsertWithoutMarketingExecutionPoliciesUpdatedInput = {
@@ -351023,6 +352646,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingExecutionPoliciesUpdatedInput = {
@@ -351149,6 +352773,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type MarketingExecutionPolicyHistoryUpsertWithWhereUniqueWithoutPolicyInput = {
@@ -351457,6 +353082,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingCreativePublicationsAuthoredInput = {
@@ -351583,6 +353209,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingCreativePublicationsAuthoredInput = {
@@ -351985,6 +353612,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingCreativePublicationsAuthoredInput = {
@@ -352111,6 +353739,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type MarketingCreativeMediaValidationEvidenceUpsertWithWhereUniqueWithoutPublicationInput = {
@@ -353179,6 +354808,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingDeadLetterReviewsInput = {
@@ -353305,6 +354935,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingDeadLetterReviewsInput = {
@@ -353516,6 +355147,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingDeadLetterReviewsInput = {
@@ -353642,6 +355274,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type MarketingExecutionPolicyCreateWithoutHistoryInput = {
@@ -353805,6 +355438,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingExecutionPolicyHistoryInput = {
@@ -353931,6 +355565,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingExecutionPolicyHistoryInput = {
@@ -354116,6 +355751,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingExecutionPolicyHistoryInput = {
@@ -354242,6 +355878,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type MarketingExecutionPlanCreateWithoutValidationPacketsInput = {
@@ -354435,6 +356072,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingExecutionValidationPacketsInput = {
@@ -354561,6 +356199,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingExecutionValidationPacketsInput = {
@@ -354776,6 +356415,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingExecutionValidationPacketsInput = {
@@ -354902,6 +356542,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type MarketingExecutionReconciliationCreateWithoutAcknowledgmentsInput = {
@@ -355063,6 +356704,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingExecutionDriftAcknowledgmentsInput = {
@@ -355189,6 +356831,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingExecutionDriftAcknowledgmentsInput = {
@@ -355372,6 +357015,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingExecutionDriftAcknowledgmentsInput = {
@@ -355498,6 +357142,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type MarketingProviderOperationCreateWithoutRetryReviewsInput = {
@@ -355677,6 +357322,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingExecutionRetryReviewsInput = {
@@ -355803,6 +357449,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingExecutionRetryReviewsInput = {
@@ -356067,6 +357714,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingExecutionRetryReviewsInput = {
@@ -356193,6 +357841,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type MarketingExecutionJobUpsertWithoutRetryReviewsAsActionInput = {
@@ -356388,6 +358037,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingExecutionOverridesRequestedInput = {
@@ -356514,6 +358164,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingExecutionOverridesRequestedInput = {
@@ -356645,6 +358296,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingExecutionOverridesApprovedInput = {
@@ -356771,6 +358423,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingExecutionOverridesApprovedInput = {
@@ -357173,6 +358826,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingExecutionOverridesRequestedInput = {
@@ -357299,6 +358953,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUpsertWithoutMarketingExecutionOverridesApprovedInput = {
@@ -357436,6 +359091,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingExecutionOverridesApprovedInput = {
@@ -357562,6 +359218,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type marketing_ad_platform_connectionsUpsertWithoutExecutionOverridesInput = {
@@ -358693,6 +360350,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMarketingCompensationsAuthoredInput = {
@@ -358819,6 +360477,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMarketingCompensationsAuthoredInput = {
@@ -359372,6 +361031,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMarketingCompensationsAuthoredInput = {
@@ -359498,6 +361158,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserCreateWithoutSocialAccountConnectionsInput = {
@@ -359624,6 +361285,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialAccountConnectionsInput = {
@@ -359750,6 +361412,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialAccountConnectionsInput = {
@@ -359982,6 +361645,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialAccountConnectionsInput = {
@@ -360108,6 +361772,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type SocialPublishingIdentityUpsertWithWhereUniqueWithoutConnectionInput = {
@@ -361122,6 +362787,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialOAuthStatesInput = {
@@ -361248,6 +362914,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialOAuthStatesInput = {
@@ -361390,6 +363057,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialOAuthStatesInput = {
@@ -361516,6 +363184,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type marketing_campaignsCreateWithoutSocialPostsInput = {
@@ -361689,6 +363358,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialPostsCreatedInput = {
@@ -361815,6 +363485,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialPostsCreatedInput = {
@@ -362128,6 +363799,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialPostsCreatedInput = {
@@ -362254,6 +363926,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type SocialPostRevisionUpsertWithWhereUniqueWithoutPostInput = {
@@ -362461,6 +364134,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialPostRevisionsCreatedInput = {
@@ -362587,6 +364261,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialPostRevisionsCreatedInput = {
@@ -362802,6 +364477,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialPostRevisionsCreatedInput = {
@@ -362928,6 +364604,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type SocialPostApprovalUpsertWithWhereUniqueWithoutRevisionInput = {
@@ -363533,6 +365210,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialApprovalsSubmittedInput = {
@@ -363659,6 +365337,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialApprovalsSubmittedInput = {
@@ -363790,6 +365469,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialApprovalsDecidedInput = {
@@ -363916,6 +365596,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialApprovalsDecidedInput = {
@@ -364183,6 +365864,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialApprovalsSubmittedInput = {
@@ -364309,6 +365991,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUpsertWithoutSocialApprovalsDecidedInput = {
@@ -364446,6 +366129,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialApprovalsDecidedInput = {
@@ -364572,6 +366256,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type SocialPostTargetCreateWithoutPublicationsInput = {
@@ -364743,6 +366428,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialPublicationsRequestedInput = {
@@ -364869,6 +366555,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialPublicationsRequestedInput = {
@@ -365000,6 +366687,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialPublicationsApprovedInput = {
@@ -365126,6 +366814,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialPublicationsApprovedInput = {
@@ -365493,6 +367182,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialPublicationsRequestedInput = {
@@ -365619,6 +367309,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUpsertWithoutSocialPublicationsApprovedInput = {
@@ -365756,6 +367447,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialPublicationsApprovedInput = {
@@ -365882,6 +367574,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type SocialPublicationAttemptUpsertWithWhereUniqueWithoutPublicationInput = {
@@ -366349,6 +368042,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialMediaAssetsInput = {
@@ -366475,6 +368169,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialMediaAssetsInput = {
@@ -366721,6 +368416,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialMediaAssetsInput = {
@@ -366847,6 +368543,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type SocialPostMediaUpsertWithWhereUniqueWithoutAssetInput = {
@@ -367258,6 +368955,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialContactsLinkedInput = {
@@ -367384,6 +369082,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialContactsLinkedInput = {
@@ -367725,6 +369424,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialContactsLinkedInput = {
@@ -367851,6 +369551,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type SocialConversationUpsertWithWhereUniqueWithoutContactInput = {
@@ -368103,6 +369804,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialConversationsAssignedInput = {
@@ -368229,6 +369931,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialConversationsAssignedInput = {
@@ -368360,6 +370063,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialConversationAssignmentsInput = {
@@ -368486,6 +370190,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialConversationAssignmentsInput = {
@@ -368814,6 +370519,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialConversationsAssignedInput = {
@@ -368940,6 +370646,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUpsertWithoutSocialConversationAssignmentsInput = {
@@ -369077,6 +370784,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialConversationAssignmentsInput = {
@@ -369203,6 +370911,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type SocialMessageUpsertWithWhereUniqueWithoutConversationInput = {
@@ -369418,6 +371127,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialMessagesSentInput = {
@@ -369544,6 +371254,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialMessagesSentInput = {
@@ -369811,6 +371522,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialMessagesSentInput = {
@@ -369937,6 +371649,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type SocialActionJobUpsertWithWhereUniqueWithoutMessageInput = {
@@ -370193,6 +371906,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialConversationTagsAddedInput = {
@@ -370319,6 +372033,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialConversationTagsAddedInput = {
@@ -370549,6 +372264,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialConversationTagsAddedInput = {
@@ -370675,6 +372391,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type SocialPublishingIdentityCreateWithoutProviderContentInput = {
@@ -371548,6 +373265,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialCommentsAssignedInput = {
@@ -371674,6 +373392,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialCommentsAssignedInput = {
@@ -371805,6 +373524,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialCommentsSentInput = {
@@ -371931,6 +373651,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialCommentsSentInput = {
@@ -372385,6 +374106,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialCommentsAssignedInput = {
@@ -372511,6 +374233,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUpsertWithoutSocialCommentsSentInput = {
@@ -372648,6 +374371,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialCommentsSentInput = {
@@ -372774,6 +374498,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type SocialActionJobUpsertWithWhereUniqueWithoutCommentInput = {
@@ -373028,6 +374753,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialEscalationsConfirmedInput = {
@@ -373154,6 +374880,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialEscalationsConfirmedInput = {
@@ -373331,6 +375058,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialEscalationsConfirmedInput = {
@@ -373457,6 +375185,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type TaskUpsertWithoutSocialEscalationsInput = {
@@ -374897,6 +376626,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialInternalNotesAuthoredInput = {
@@ -375023,6 +376753,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialInternalNotesAuthoredInput = {
@@ -375165,6 +376896,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialInternalNotesAuthoredInput = {
@@ -375291,6 +377023,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserCreateWithoutSocialSavedRepliesCreatedInput = {
@@ -375417,6 +377150,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialSavedRepliesCreatedInput = {
@@ -375543,6 +377277,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialSavedRepliesCreatedInput = {
@@ -375685,6 +377420,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialSavedRepliesCreatedInput = {
@@ -375811,6 +377547,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserCreateWithoutSocialSettingsUpdatedInput = {
@@ -375937,6 +377674,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialSettingsUpdatedInput = {
@@ -376063,6 +377801,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialSettingsUpdatedInput = {
@@ -376205,6 +377944,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialSettingsUpdatedInput = {
@@ -376331,6 +378071,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserCreateWithoutAuthSessionsInput = {
@@ -376457,6 +378198,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutAuthSessionsInput = {
@@ -376583,6 +378325,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutAuthSessionsInput = {
@@ -376759,6 +378502,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutAuthSessionsInput = {
@@ -376885,6 +378629,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminSessionRefreshTokenUpsertWithWhereUniqueWithoutSessionInput = {
@@ -377127,6 +378872,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMfaEnrollmentInput = {
@@ -377253,6 +378999,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMfaEnrollmentInput = {
@@ -377395,6 +379142,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMfaEnrollmentInput = {
@@ -377521,6 +379269,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserCreateWithoutMfaRecoveryCodesInput = {
@@ -377647,6 +379396,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMfaRecoveryCodesInput = {
@@ -377773,6 +379523,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMfaRecoveryCodesInput = {
@@ -377915,6 +379666,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMfaRecoveryCodesInput = {
@@ -378041,6 +379793,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserCreateWithoutMfaChallengesInput = {
@@ -378167,6 +379920,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMfaChallengesInput = {
@@ -378293,6 +380047,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMfaChallengesInput = {
@@ -378435,6 +380190,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMfaChallengesInput = {
@@ -378561,6 +380317,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserCreateWithoutAuthEventsInput = {
@@ -378687,6 +380444,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutAuthEventsInput = {
@@ -378813,6 +380571,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutAuthEventsInput = {
@@ -378955,6 +380714,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutAuthEventsInput = {
@@ -379081,6 +380841,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserCreateWithoutRefreshTokensInput = {
@@ -379207,6 +380968,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutRefreshTokensInput = {
@@ -379333,6 +381095,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutRefreshTokensInput = {
@@ -379475,6 +381238,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutRefreshTokensInput = {
@@ -379601,6 +381365,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserCreateWithoutAuditLogsInput = {
@@ -379727,6 +381492,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutAuditLogsInput = {
@@ -379853,6 +381619,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutAuditLogsInput = {
@@ -379995,6 +381762,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutAuditLogsInput = {
@@ -380121,6 +381889,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserCreateWithoutSectionGrantsInput = {
@@ -380247,6 +382016,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSectionGrantsInput = {
@@ -380373,6 +382143,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSectionGrantsInput = {
@@ -380515,6 +382286,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSectionGrantsInput = {
@@ -380641,6 +382413,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserCreateWithoutSocialLinksInput = {
@@ -380767,6 +382540,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutSocialLinksInput = {
@@ -380893,6 +382667,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutSocialLinksInput = {
@@ -381035,6 +382810,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutSocialLinksInput = {
@@ -381161,6 +382937,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserCreateWithoutEducationsInput = {
@@ -381287,6 +383064,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutEducationsInput = {
@@ -381413,6 +383191,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutEducationsInput = {
@@ -381555,6 +383334,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutEducationsInput = {
@@ -381681,6 +383461,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserCreateWithoutDocumentsInput = {
@@ -381807,6 +383588,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutDocumentsInput = {
@@ -381933,6 +383715,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutDocumentsInput = {
@@ -382075,6 +383858,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutDocumentsInput = {
@@ -382201,6 +383985,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserCreateWithoutPerformanceNotesInput = {
@@ -382327,6 +384112,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutPerformanceNotesInput = {
@@ -382453,6 +384239,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutPerformanceNotesInput = {
@@ -382595,6 +384382,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutPerformanceNotesInput = {
@@ -382721,6 +384509,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserCreateWithoutReportsInput = {
@@ -382847,6 +384636,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutReportsInput = {
@@ -382973,6 +384763,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutReportsInput = {
@@ -383115,6 +384906,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutReportsInput = {
@@ -383241,6 +385033,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type TeamMemberCreateWithoutTeamInput = {
@@ -383502,6 +385295,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutTeamMembershipsInput = {
@@ -383628,6 +385422,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutTeamMembershipsInput = {
@@ -383801,6 +385596,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutTeamMembershipsInput = {
@@ -383927,6 +385723,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type TeamCreateWithoutProjectsInput = {
@@ -384236,6 +386033,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutProjectMembershipsInput = {
@@ -384362,6 +386160,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutProjectMembershipsInput = {
@@ -384543,6 +386342,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutProjectMembershipsInput = {
@@ -384669,6 +386469,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type ProjectCreateWithoutTasksInput = {
@@ -384828,6 +386629,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutCreatedTasksInput = {
@@ -384954,6 +386756,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutCreatedTasksInput = {
@@ -385085,6 +386888,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutAssignedTasksInput = {
@@ -385211,6 +387015,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutAssignedTasksInput = {
@@ -385514,6 +387319,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutCreatedTasksInput = {
@@ -385640,6 +387446,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUpsertWithoutAssignedTasksInput = {
@@ -385777,6 +387584,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutAssignedTasksInput = {
@@ -385903,6 +387711,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type SocialEscalationUpsertWithWhereUniqueWithoutTaskInput = {
@@ -386061,6 +387870,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutAttendanceLogsInput = {
@@ -386187,6 +387997,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutAttendanceLogsInput = {
@@ -386329,6 +388140,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutAttendanceLogsInput = {
@@ -386455,6 +388267,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserCreateWithoutLeaveRequestsInput = {
@@ -386581,6 +388394,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutLeaveRequestsInput = {
@@ -386707,6 +388521,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutLeaveRequestsInput = {
@@ -386838,6 +388653,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutReviewedLeaveRequestsInput = {
@@ -386964,6 +388780,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutReviewedLeaveRequestsInput = {
@@ -387106,6 +388923,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutLeaveRequestsInput = {
@@ -387232,6 +389050,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUpsertWithoutReviewedLeaveRequestsInput = {
@@ -387369,6 +389188,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutReviewedLeaveRequestsInput = {
@@ -387495,6 +389315,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserCreateWithoutLeaveBalancesInput = {
@@ -387621,6 +389442,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutLeaveBalancesInput = {
@@ -387747,6 +389569,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutLeaveBalancesInput = {
@@ -387889,6 +389712,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutLeaveBalancesInput = {
@@ -388015,6 +389839,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserCreateWithoutNotificationsInput = {
@@ -388141,6 +389966,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutNotificationsInput = {
@@ -388267,6 +390093,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutNotificationsInput = {
@@ -388479,6 +390306,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutNotificationsInput = {
@@ -388605,6 +390433,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type marketing_alertsUpsertWithWhereUniqueWithoutNotificationInput = {
@@ -388747,6 +390576,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutPayrollRecordsInput = {
@@ -388873,6 +390703,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutPayrollRecordsInput = {
@@ -389157,6 +390988,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutPayrollRecordsInput = {
@@ -389283,6 +391115,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type PayslipUpsertWithWhereUniqueWithoutPayrollRecordInput = {
@@ -389473,6 +391306,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutPayslipsInput = {
@@ -389599,6 +391433,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutPayslipsInput = {
@@ -389792,6 +391627,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutPayslipsInput = {
@@ -389918,6 +391754,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type PayrollRecordUpsertWithoutPayslipsInput = {
@@ -390101,6 +391938,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutDeductionsInput = {
@@ -390227,6 +392065,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutDeductionsInput = {
@@ -390420,6 +392259,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutDeductionsInput = {
@@ -390546,6 +392386,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type PayrollRecordUpsertWithoutDeductionsInput = {
@@ -390729,6 +392570,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutReceiptsInput = {
@@ -390855,6 +392697,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutReceiptsInput = {
@@ -391048,6 +392891,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutReceiptsInput = {
@@ -391174,6 +393018,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type PayrollRecordUpsertWithoutReceiptsInput = {
@@ -391357,6 +393202,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutInvoicesInput = {
@@ -391483,6 +393329,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutInvoicesInput = {
@@ -391676,6 +393523,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutInvoicesInput = {
@@ -391802,6 +393650,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type PayrollRecordUpsertWithoutInvoicesInput = {
@@ -392225,6 +394074,7 @@ export namespace Prisma {
     aliasOf?: MailAddressCreateNestedOneWithoutAliasesInput
     aliases?: MailAddressCreateNestedManyWithoutAliasOfInput
     senderGrants?: MailSenderGrantCreateNestedManyWithoutAddressInput
+    preferredBy?: MailUserPreferenceCreateNestedManyWithoutDefaultSenderInput
   }
 
   export type MailAddressUncheckedCreateWithoutOrganizationInput = {
@@ -392243,6 +394093,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     aliases?: MailAddressUncheckedCreateNestedManyWithoutAliasOfInput
     senderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAddressInput
+    preferredBy?: MailUserPreferenceUncheckedCreateNestedManyWithoutDefaultSenderInput
   }
 
   export type MailAddressCreateOrConnectWithoutOrganizationInput = {
@@ -393191,6 +395042,7 @@ export namespace Prisma {
     aliasOf?: MailAddressCreateNestedOneWithoutAliasesInput
     aliases?: MailAddressCreateNestedManyWithoutAliasOfInput
     senderGrants?: MailSenderGrantCreateNestedManyWithoutAddressInput
+    preferredBy?: MailUserPreferenceCreateNestedManyWithoutDefaultSenderInput
   }
 
   export type MailAddressUncheckedCreateWithoutDomainInput = {
@@ -393209,6 +395061,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     aliases?: MailAddressUncheckedCreateNestedManyWithoutAliasOfInput
     senderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAddressInput
+    preferredBy?: MailUserPreferenceUncheckedCreateNestedManyWithoutDefaultSenderInput
   }
 
   export type MailAddressCreateOrConnectWithoutDomainInput = {
@@ -393465,6 +395318,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMailMailboxesOwnedInput = {
@@ -393591,6 +395445,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMailMailboxesOwnedInput = {
@@ -393614,6 +395469,7 @@ export namespace Prisma {
     aliasOf?: MailAddressCreateNestedOneWithoutAliasesInput
     aliases?: MailAddressCreateNestedManyWithoutAliasOfInput
     senderGrants?: MailSenderGrantCreateNestedManyWithoutAddressInput
+    preferredBy?: MailUserPreferenceCreateNestedManyWithoutDefaultSenderInput
   }
 
   export type MailAddressUncheckedCreateWithoutMailboxInput = {
@@ -393632,6 +395488,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     aliases?: MailAddressUncheckedCreateNestedManyWithoutAliasOfInput
     senderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAddressInput
+    preferredBy?: MailUserPreferenceUncheckedCreateNestedManyWithoutDefaultSenderInput
   }
 
   export type MailAddressCreateOrConnectWithoutMailboxInput = {
@@ -394390,6 +396247,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMailMailboxesOwnedInput = {
@@ -394516,6 +396374,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type MailAddressUpsertWithWhereUniqueWithoutMailboxInput = {
@@ -395063,6 +396922,7 @@ export namespace Prisma {
     mailbox?: MailMailboxCreateNestedOneWithoutAddressesInput
     aliasOf?: MailAddressCreateNestedOneWithoutAliasesInput
     senderGrants?: MailSenderGrantCreateNestedManyWithoutAddressInput
+    preferredBy?: MailUserPreferenceCreateNestedManyWithoutDefaultSenderInput
   }
 
   export type MailAddressUncheckedCreateWithoutAliasesInput = {
@@ -395081,6 +396941,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     senderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAddressInput
+    preferredBy?: MailUserPreferenceUncheckedCreateNestedManyWithoutDefaultSenderInput
   }
 
   export type MailAddressCreateOrConnectWithoutAliasesInput = {
@@ -395104,6 +396965,7 @@ export namespace Prisma {
     mailbox?: MailMailboxCreateNestedOneWithoutAddressesInput
     aliases?: MailAddressCreateNestedManyWithoutAliasOfInput
     senderGrants?: MailSenderGrantCreateNestedManyWithoutAddressInput
+    preferredBy?: MailUserPreferenceCreateNestedManyWithoutDefaultSenderInput
   }
 
   export type MailAddressUncheckedCreateWithoutAliasOfInput = {
@@ -395122,6 +396984,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     aliases?: MailAddressUncheckedCreateNestedManyWithoutAliasOfInput
     senderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAddressInput
+    preferredBy?: MailUserPreferenceUncheckedCreateNestedManyWithoutDefaultSenderInput
   }
 
   export type MailAddressCreateOrConnectWithoutAliasOfInput = {
@@ -395163,6 +397026,30 @@ export namespace Prisma {
 
   export type MailSenderGrantCreateManyAddressInputEnvelope = {
     data: MailSenderGrantCreateManyAddressInput | MailSenderGrantCreateManyAddressInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MailUserPreferenceCreateWithoutDefaultSenderInput = {
+    notificationsEnabled?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    adminUser: AdminUserCreateNestedOneWithoutMailPreferenceInput
+  }
+
+  export type MailUserPreferenceUncheckedCreateWithoutDefaultSenderInput = {
+    adminUserId: string
+    notificationsEnabled?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MailUserPreferenceCreateOrConnectWithoutDefaultSenderInput = {
+    where: MailUserPreferenceWhereUniqueInput
+    create: XOR<MailUserPreferenceCreateWithoutDefaultSenderInput, MailUserPreferenceUncheckedCreateWithoutDefaultSenderInput>
+  }
+
+  export type MailUserPreferenceCreateManyDefaultSenderInputEnvelope = {
+    data: MailUserPreferenceCreateManyDefaultSenderInput | MailUserPreferenceCreateManyDefaultSenderInput[]
     skipDuplicates?: boolean
   }
 
@@ -395366,6 +397253,7 @@ export namespace Prisma {
     mailbox?: MailMailboxUpdateOneWithoutAddressesNestedInput
     aliasOf?: MailAddressUpdateOneWithoutAliasesNestedInput
     senderGrants?: MailSenderGrantUpdateManyWithoutAddressNestedInput
+    preferredBy?: MailUserPreferenceUpdateManyWithoutDefaultSenderNestedInput
   }
 
   export type MailAddressUncheckedUpdateWithoutAliasesInput = {
@@ -395384,6 +397272,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     senderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAddressNestedInput
+    preferredBy?: MailUserPreferenceUncheckedUpdateManyWithoutDefaultSenderNestedInput
   }
 
   export type MailAddressUpsertWithWhereUniqueWithoutAliasOfInput = {
@@ -395416,6 +397305,33 @@ export namespace Prisma {
   export type MailSenderGrantUpdateManyWithWhereWithoutAddressInput = {
     where: MailSenderGrantScalarWhereInput
     data: XOR<MailSenderGrantUpdateManyMutationInput, MailSenderGrantUncheckedUpdateManyWithoutAddressInput>
+  }
+
+  export type MailUserPreferenceUpsertWithWhereUniqueWithoutDefaultSenderInput = {
+    where: MailUserPreferenceWhereUniqueInput
+    update: XOR<MailUserPreferenceUpdateWithoutDefaultSenderInput, MailUserPreferenceUncheckedUpdateWithoutDefaultSenderInput>
+    create: XOR<MailUserPreferenceCreateWithoutDefaultSenderInput, MailUserPreferenceUncheckedCreateWithoutDefaultSenderInput>
+  }
+
+  export type MailUserPreferenceUpdateWithWhereUniqueWithoutDefaultSenderInput = {
+    where: MailUserPreferenceWhereUniqueInput
+    data: XOR<MailUserPreferenceUpdateWithoutDefaultSenderInput, MailUserPreferenceUncheckedUpdateWithoutDefaultSenderInput>
+  }
+
+  export type MailUserPreferenceUpdateManyWithWhereWithoutDefaultSenderInput = {
+    where: MailUserPreferenceScalarWhereInput
+    data: XOR<MailUserPreferenceUpdateManyMutationInput, MailUserPreferenceUncheckedUpdateManyWithoutDefaultSenderInput>
+  }
+
+  export type MailUserPreferenceScalarWhereInput = {
+    AND?: MailUserPreferenceScalarWhereInput | MailUserPreferenceScalarWhereInput[]
+    OR?: MailUserPreferenceScalarWhereInput[]
+    NOT?: MailUserPreferenceScalarWhereInput | MailUserPreferenceScalarWhereInput[]
+    adminUserId?: StringFilter<"MailUserPreference"> | string
+    defaultSenderAddressId?: UuidNullableFilter<"MailUserPreference"> | string | null
+    notificationsEnabled?: BoolFilter<"MailUserPreference"> | boolean
+    createdAt?: DateTimeFilter<"MailUserPreference"> | Date | string
+    updatedAt?: DateTimeFilter<"MailUserPreference"> | Date | string
   }
 
   export type MailMailboxCreateWithoutMembershipsInput = {
@@ -395609,6 +397525,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMailMembershipsInput = {
@@ -395735,6 +397652,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMailMembershipsInput = {
@@ -395950,6 +397868,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMailMembershipsInput = {
@@ -396076,6 +397995,7 @@ export namespace Prisma {
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type MailMailboxCreateWithoutSenderGrantsInput = {
@@ -396161,6 +398081,7 @@ export namespace Prisma {
     mailbox?: MailMailboxCreateNestedOneWithoutAddressesInput
     aliasOf?: MailAddressCreateNestedOneWithoutAliasesInput
     aliases?: MailAddressCreateNestedManyWithoutAliasOfInput
+    preferredBy?: MailUserPreferenceCreateNestedManyWithoutDefaultSenderInput
   }
 
   export type MailAddressUncheckedCreateWithoutSenderGrantsInput = {
@@ -396179,6 +398100,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     aliases?: MailAddressUncheckedCreateNestedManyWithoutAliasOfInput
+    preferredBy?: MailUserPreferenceUncheckedCreateNestedManyWithoutDefaultSenderInput
   }
 
   export type MailAddressCreateOrConnectWithoutSenderGrantsInput = {
@@ -396310,6 +398232,7 @@ export namespace Prisma {
     mailMemberships?: MailMembershipCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMailSenderGrantsInput = {
@@ -396436,6 +398359,7 @@ export namespace Prisma {
     mailMemberships?: MailMembershipUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMailSenderGrantsInput = {
@@ -396543,6 +398467,7 @@ export namespace Prisma {
     mailbox?: MailMailboxUpdateOneWithoutAddressesNestedInput
     aliasOf?: MailAddressUpdateOneWithoutAliasesNestedInput
     aliases?: MailAddressUpdateManyWithoutAliasOfNestedInput
+    preferredBy?: MailUserPreferenceUpdateManyWithoutDefaultSenderNestedInput
   }
 
   export type MailAddressUncheckedUpdateWithoutSenderGrantsInput = {
@@ -396561,6 +398486,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     aliases?: MailAddressUncheckedUpdateManyWithoutAliasOfNestedInput
+    preferredBy?: MailUserPreferenceUncheckedUpdateManyWithoutDefaultSenderNestedInput
   }
 
   export type AdminUserUpsertWithoutMailSenderGrantsInput = {
@@ -396698,6 +398624,7 @@ export namespace Prisma {
     mailMemberships?: MailMembershipUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMailSenderGrantsInput = {
@@ -396824,6 +398751,7 @@ export namespace Prisma {
     mailMemberships?: MailMembershipUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type MailOrganizationCreateWithoutProvisionRequestsInput = {
@@ -398511,6 +400439,7 @@ export namespace Prisma {
     mailMemberships?: MailMembershipCreateNestedManyWithoutAdminUserInput
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMailThreadStatesInput = {
@@ -398637,6 +400566,7 @@ export namespace Prisma {
     mailMemberships?: MailMembershipUncheckedCreateNestedManyWithoutAdminUserInput
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMailThreadStatesInput = {
@@ -398854,6 +400784,7 @@ export namespace Prisma {
     mailMemberships?: MailMembershipUpdateManyWithoutAdminUserNestedInput
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMailThreadStatesInput = {
@@ -398980,6 +400911,7 @@ export namespace Prisma {
     mailMemberships?: MailMembershipUncheckedUpdateManyWithoutAdminUserNestedInput
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type MailMailboxCreateWithoutDraftsInput = {
@@ -399173,6 +401105,7 @@ export namespace Prisma {
     mailMemberships?: MailMembershipCreateNestedManyWithoutAdminUserInput
     mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
+    mailPreference?: MailUserPreferenceCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserUncheckedCreateWithoutMailDraftsInput = {
@@ -399299,6 +401232,7 @@ export namespace Prisma {
     mailMemberships?: MailMembershipUncheckedCreateNestedManyWithoutAdminUserInput
     mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
     mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
+    mailPreference?: MailUserPreferenceUncheckedCreateNestedOneWithoutAdminUserInput
   }
 
   export type AdminUserCreateOrConnectWithoutMailDraftsInput = {
@@ -399631,6 +401565,7 @@ export namespace Prisma {
     mailMemberships?: MailMembershipUpdateManyWithoutAdminUserNestedInput
     mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
+    mailPreference?: MailUserPreferenceUpdateOneWithoutAdminUserNestedInput
   }
 
   export type AdminUserUncheckedUpdateWithoutMailDraftsInput = {
@@ -399757,6 +401692,7 @@ export namespace Prisma {
     mailMemberships?: MailMembershipUncheckedUpdateManyWithoutAdminUserNestedInput
     mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
     mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailPreference?: MailUserPreferenceUncheckedUpdateOneWithoutAdminUserNestedInput
   }
 
   export type MailThreadUpsertWithoutDraftsInput = {
@@ -407878,6 +409814,622 @@ export namespace Prisma {
     outboxJobs?: MailOutboxJobUncheckedUpdateManyWithoutMessageNestedInput
     searchIndex?: MailMessageSearchIndexUncheckedUpdateOneWithoutMessageNestedInput
     archive?: MailMessageArchiveUncheckedUpdateOneWithoutMessageNestedInput
+  }
+
+  export type AdminUserCreateWithoutMailPreferenceInput = {
+    id?: string
+    email: string
+    password: string
+    name: string
+    position?: string | null
+    department?: $Enums.Department | null
+    tier?: $Enums.AdminTier
+    status?: $Enums.AdminStatus
+    isTeamLead?: boolean
+    failedLoginAttempts?: number
+    googleId?: string | null
+    mainAppUserId?: string | null
+    lockedUntil?: Date | string | null
+    lastLoginAt?: Date | string | null
+    lastLoginIp?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
+    avatarUrl?: string | null
+    avatarCloudinaryId?: string | null
+    preferredName?: string | null
+    birthday?: Date | string | null
+    nationality?: string | null
+    gender?: string | null
+    maritalStatus?: string | null
+    workPhone?: string | null
+    homePhone?: string | null
+    personalPhone?: string | null
+    fax?: string | null
+    address?: string | null
+    state?: string | null
+    country?: string | null
+    emergencyName?: string | null
+    emergencyPhone?: string | null
+    emergencyEmail?: string | null
+    emergencyRelation?: string | null
+    employmentType?: string | null
+    employmentCategory?: string | null
+    location?: string | null
+    salary?: Decimal | DecimalJsLike | number | string | null
+    bonus?: Decimal | DecimalJsLike | number | string | null
+    equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventCreateNestedManyWithoutAdminUserInput
+    refreshTokens?: RefreshTokenCreateNestedManyWithoutAdminUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutAdminUserInput
+    socialLinks?: AdminSocialLinkCreateNestedManyWithoutAdminUserInput
+    educations?: AdminEducationCreateNestedManyWithoutAdminUserInput
+    documents?: AdminDocumentCreateNestedManyWithoutAdminUserInput
+    performanceNotes?: AdminPerformanceNoteCreateNestedManyWithoutAdminUserInput
+    reports?: AdminReportCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantCreateNestedManyWithoutAdminUserInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryCreateNestedManyWithoutChangedByInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketCreateNestedManyWithoutValidatedByInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentCreateNestedManyWithoutAcknowledgedByInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewCreateNestedManyWithoutReviewedByInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobCreateNestedManyWithoutCancellationRequestedByInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideCreateNestedManyWithoutRequestedByInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideCreateNestedManyWithoutApprovedByInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersCreateNestedManyWithoutAdminUserInput
+    marketingContentItems?: marketing_content_itemsCreateNestedManyWithoutAdminUserInput
+    socialAccountConnections?: SocialAccountConnectionCreateNestedManyWithoutCreatedByInput
+    socialOAuthStates?: SocialOAuthStateCreateNestedManyWithoutAdminUserInput
+    socialPostsCreated?: SocialPostCreateNestedManyWithoutCreatedByInput
+    socialPostRevisionsCreated?: SocialPostRevisionCreateNestedManyWithoutCreatedByInput
+    socialApprovalsSubmitted?: SocialPostApprovalCreateNestedManyWithoutSubmittedByInput
+    socialApprovalsDecided?: SocialPostApprovalCreateNestedManyWithoutDecidedByInput
+    socialPublicationsRequested?: SocialPublicationCreateNestedManyWithoutRequestedByInput
+    socialPublicationsApproved?: SocialPublicationCreateNestedManyWithoutApprovedByInput
+    socialMediaAssets?: SocialMediaAssetCreateNestedManyWithoutOwnerInput
+    socialContactsLinked?: SocialContactCreateNestedManyWithoutLinkedByInput
+    socialConversationsAssigned?: SocialConversationCreateNestedManyWithoutAssigneeInput
+    socialConversationAssignments?: SocialConversationCreateNestedManyWithoutAssignedByInput
+    socialMessagesSent?: SocialMessageCreateNestedManyWithoutSentByAdminInput
+    socialConversationTagsAdded?: SocialConversationTagCreateNestedManyWithoutTaggedByInput
+    socialCommentsAssigned?: SocialCommentCreateNestedManyWithoutAssigneeInput
+    socialCommentsSent?: SocialCommentCreateNestedManyWithoutSentByAdminInput
+    socialEscalationsConfirmed?: SocialEscalationCreateNestedManyWithoutConfirmedByInput
+    socialInternalNotesAuthored?: SocialInternalNoteCreateNestedManyWithoutAuthorInput
+    socialSavedRepliesCreated?: SocialSavedReplyCreateNestedManyWithoutCreatedByInput
+    socialSettingsUpdated?: SocialOperationsSettingCreateNestedManyWithoutUpdatedByInput
+    marketingRecommendationsAccepted?: marketing_recommendationsCreateNestedManyWithoutAcceptedByAdminInput
+    marketingRecommendationsDismissed?: marketing_recommendationsCreateNestedManyWithoutDismissedByAdminInput
+    marketingAlertsResolved?: marketing_alertsCreateNestedManyWithoutResolvedByAdminInput
+    marketingAlertsAcknowledged?: marketing_alertsCreateNestedManyWithoutAcknowledgedByAdminInput
+    marketingExperimentsCreated?: marketing_experimentsCreateNestedManyWithoutCreatedByAdminInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsCreateNestedManyWithoutRequestedByAdminInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalCreateNestedManyWithoutApproverInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyCreateNestedManyWithoutUpdatedByAdminInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationCreateNestedManyWithoutCreatedByAdminInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewCreateNestedManyWithoutReviewerInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkCreateNestedManyWithoutAuthoredByAdminInput
+    teamMemberships?: TeamMemberCreateNestedManyWithoutAdminUserInput
+    projectMemberships?: ProjectMemberCreateNestedManyWithoutAdminUserInput
+    assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
+    createdTasks?: TaskCreateNestedManyWithoutAssignerInput
+    notifications?: NotificationCreateNestedManyWithoutAdminUserInput
+    attendanceLogs?: AttendanceLogCreateNestedManyWithoutAdminUserInput
+    leaveRequests?: LeaveRequestCreateNestedManyWithoutAdminUserInput
+    reviewedLeaveRequests?: LeaveRequestCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceCreateNestedManyWithoutAdminUserInput
+    payrollRecords?: PayrollRecordCreateNestedManyWithoutAdminUserInput
+    payslips?: PayslipCreateNestedManyWithoutAdminUserInput
+    deductions?: DeductionCreateNestedManyWithoutAdminUserInput
+    receipts?: ReceiptCreateNestedManyWithoutAdminUserInput
+    invoices?: InvoiceCreateNestedManyWithoutAdminUserInput
+    mailMailboxesOwned?: MailMailboxCreateNestedManyWithoutOwnerInput
+    mailMemberships?: MailMembershipCreateNestedManyWithoutAdminUserInput
+    mailSenderGrants?: MailSenderGrantCreateNestedManyWithoutAdminUserInput
+    mailThreadStates?: MailUserThreadStateCreateNestedManyWithoutAdminUserInput
+    mailDrafts?: MailDraftCreateNestedManyWithoutAuthorInput
+  }
+
+  export type AdminUserUncheckedCreateWithoutMailPreferenceInput = {
+    id?: string
+    email: string
+    password: string
+    name: string
+    position?: string | null
+    department?: $Enums.Department | null
+    tier?: $Enums.AdminTier
+    status?: $Enums.AdminStatus
+    isTeamLead?: boolean
+    failedLoginAttempts?: number
+    googleId?: string | null
+    mainAppUserId?: string | null
+    lockedUntil?: Date | string | null
+    lastLoginAt?: Date | string | null
+    lastLoginIp?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    twoFactorEnabled?: boolean
+    twoFactorSecret?: string | null
+    avatarUrl?: string | null
+    avatarCloudinaryId?: string | null
+    preferredName?: string | null
+    birthday?: Date | string | null
+    nationality?: string | null
+    gender?: string | null
+    maritalStatus?: string | null
+    workPhone?: string | null
+    homePhone?: string | null
+    personalPhone?: string | null
+    fax?: string | null
+    address?: string | null
+    state?: string | null
+    country?: string | null
+    emergencyName?: string | null
+    emergencyPhone?: string | null
+    emergencyEmail?: string | null
+    emergencyRelation?: string | null
+    employmentType?: string | null
+    employmentCategory?: string | null
+    location?: string | null
+    salary?: Decimal | DecimalJsLike | number | string | null
+    bonus?: Decimal | DecimalJsLike | number | string | null
+    equity?: Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedCreateNestedOneWithoutAdminUserInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedCreateNestedManyWithoutAdminUserInput
+    mfaChallenges?: AdminMfaChallengeUncheckedCreateNestedManyWithoutAdminUserInput
+    authEvents?: AdminAuthEventUncheckedCreateNestedManyWithoutAdminUserInput
+    refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutAdminUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutAdminUserInput
+    socialLinks?: AdminSocialLinkUncheckedCreateNestedManyWithoutAdminUserInput
+    educations?: AdminEducationUncheckedCreateNestedManyWithoutAdminUserInput
+    documents?: AdminDocumentUncheckedCreateNestedManyWithoutAdminUserInput
+    performanceNotes?: AdminPerformanceNoteUncheckedCreateNestedManyWithoutAdminUserInput
+    reports?: AdminReportUncheckedCreateNestedManyWithoutAdminUserInput
+    sectionGrants?: AdminSectionGrantUncheckedCreateNestedManyWithoutAdminUserInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUncheckedCreateNestedManyWithoutChangedByInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUncheckedCreateNestedManyWithoutValidatedByInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUncheckedCreateNestedManyWithoutAcknowledgedByInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUncheckedCreateNestedManyWithoutReviewedByInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUncheckedCreateNestedManyWithoutCancellationRequestedByInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUncheckedCreateNestedManyWithoutRequestedByInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUncheckedCreateNestedManyWithoutApprovedByInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUncheckedCreateNestedManyWithoutAdminUserInput
+    marketingContentItems?: marketing_content_itemsUncheckedCreateNestedManyWithoutAdminUserInput
+    socialAccountConnections?: SocialAccountConnectionUncheckedCreateNestedManyWithoutCreatedByInput
+    socialOAuthStates?: SocialOAuthStateUncheckedCreateNestedManyWithoutAdminUserInput
+    socialPostsCreated?: SocialPostUncheckedCreateNestedManyWithoutCreatedByInput
+    socialPostRevisionsCreated?: SocialPostRevisionUncheckedCreateNestedManyWithoutCreatedByInput
+    socialApprovalsSubmitted?: SocialPostApprovalUncheckedCreateNestedManyWithoutSubmittedByInput
+    socialApprovalsDecided?: SocialPostApprovalUncheckedCreateNestedManyWithoutDecidedByInput
+    socialPublicationsRequested?: SocialPublicationUncheckedCreateNestedManyWithoutRequestedByInput
+    socialPublicationsApproved?: SocialPublicationUncheckedCreateNestedManyWithoutApprovedByInput
+    socialMediaAssets?: SocialMediaAssetUncheckedCreateNestedManyWithoutOwnerInput
+    socialContactsLinked?: SocialContactUncheckedCreateNestedManyWithoutLinkedByInput
+    socialConversationsAssigned?: SocialConversationUncheckedCreateNestedManyWithoutAssigneeInput
+    socialConversationAssignments?: SocialConversationUncheckedCreateNestedManyWithoutAssignedByInput
+    socialMessagesSent?: SocialMessageUncheckedCreateNestedManyWithoutSentByAdminInput
+    socialConversationTagsAdded?: SocialConversationTagUncheckedCreateNestedManyWithoutTaggedByInput
+    socialCommentsAssigned?: SocialCommentUncheckedCreateNestedManyWithoutAssigneeInput
+    socialCommentsSent?: SocialCommentUncheckedCreateNestedManyWithoutSentByAdminInput
+    socialEscalationsConfirmed?: SocialEscalationUncheckedCreateNestedManyWithoutConfirmedByInput
+    socialInternalNotesAuthored?: SocialInternalNoteUncheckedCreateNestedManyWithoutAuthorInput
+    socialSavedRepliesCreated?: SocialSavedReplyUncheckedCreateNestedManyWithoutCreatedByInput
+    socialSettingsUpdated?: SocialOperationsSettingUncheckedCreateNestedManyWithoutUpdatedByInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUncheckedCreateNestedManyWithoutAcceptedByAdminInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUncheckedCreateNestedManyWithoutDismissedByAdminInput
+    marketingAlertsResolved?: marketing_alertsUncheckedCreateNestedManyWithoutResolvedByAdminInput
+    marketingAlertsAcknowledged?: marketing_alertsUncheckedCreateNestedManyWithoutAcknowledgedByAdminInput
+    marketingExperimentsCreated?: marketing_experimentsUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUncheckedCreateNestedManyWithoutRequestedByAdminInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUncheckedCreateNestedManyWithoutApproverInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUncheckedCreateNestedManyWithoutUpdatedByAdminInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUncheckedCreateNestedManyWithoutCreatedByAdminInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUncheckedCreateNestedManyWithoutReviewerInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUncheckedCreateNestedManyWithoutAuthoredByAdminInput
+    teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutAdminUserInput
+    projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutAdminUserInput
+    assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
+    createdTasks?: TaskUncheckedCreateNestedManyWithoutAssignerInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutAdminUserInput
+    attendanceLogs?: AttendanceLogUncheckedCreateNestedManyWithoutAdminUserInput
+    leaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutAdminUserInput
+    reviewedLeaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutAdminUserInput
+    payrollRecords?: PayrollRecordUncheckedCreateNestedManyWithoutAdminUserInput
+    payslips?: PayslipUncheckedCreateNestedManyWithoutAdminUserInput
+    deductions?: DeductionUncheckedCreateNestedManyWithoutAdminUserInput
+    receipts?: ReceiptUncheckedCreateNestedManyWithoutAdminUserInput
+    invoices?: InvoiceUncheckedCreateNestedManyWithoutAdminUserInput
+    mailMailboxesOwned?: MailMailboxUncheckedCreateNestedManyWithoutOwnerInput
+    mailMemberships?: MailMembershipUncheckedCreateNestedManyWithoutAdminUserInput
+    mailSenderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAdminUserInput
+    mailThreadStates?: MailUserThreadStateUncheckedCreateNestedManyWithoutAdminUserInput
+    mailDrafts?: MailDraftUncheckedCreateNestedManyWithoutAuthorInput
+  }
+
+  export type AdminUserCreateOrConnectWithoutMailPreferenceInput = {
+    where: AdminUserWhereUniqueInput
+    create: XOR<AdminUserCreateWithoutMailPreferenceInput, AdminUserUncheckedCreateWithoutMailPreferenceInput>
+  }
+
+  export type MailAddressCreateWithoutPreferredByInput = {
+    id?: string
+    localPart: string
+    address: string
+    displayName?: string | null
+    kind: $Enums.MailAddressKind
+    status?: $Enums.MailAddressStatus
+    createdBy?: string | null
+    retiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: MailOrganizationCreateNestedOneWithoutAddressesInput
+    domain: MailDomainCreateNestedOneWithoutAddressesInput
+    mailbox?: MailMailboxCreateNestedOneWithoutAddressesInput
+    aliasOf?: MailAddressCreateNestedOneWithoutAliasesInput
+    aliases?: MailAddressCreateNestedManyWithoutAliasOfInput
+    senderGrants?: MailSenderGrantCreateNestedManyWithoutAddressInput
+  }
+
+  export type MailAddressUncheckedCreateWithoutPreferredByInput = {
+    id?: string
+    organizationId: string
+    domainId: string
+    mailboxId?: string | null
+    localPart: string
+    address: string
+    displayName?: string | null
+    kind: $Enums.MailAddressKind
+    status?: $Enums.MailAddressStatus
+    aliasOfAddressId?: string | null
+    createdBy?: string | null
+    retiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    aliases?: MailAddressUncheckedCreateNestedManyWithoutAliasOfInput
+    senderGrants?: MailSenderGrantUncheckedCreateNestedManyWithoutAddressInput
+  }
+
+  export type MailAddressCreateOrConnectWithoutPreferredByInput = {
+    where: MailAddressWhereUniqueInput
+    create: XOR<MailAddressCreateWithoutPreferredByInput, MailAddressUncheckedCreateWithoutPreferredByInput>
+  }
+
+  export type AdminUserUpsertWithoutMailPreferenceInput = {
+    update: XOR<AdminUserUpdateWithoutMailPreferenceInput, AdminUserUncheckedUpdateWithoutMailPreferenceInput>
+    create: XOR<AdminUserCreateWithoutMailPreferenceInput, AdminUserUncheckedCreateWithoutMailPreferenceInput>
+    where?: AdminUserWhereInput
+  }
+
+  export type AdminUserUpdateToOneWithWhereWithoutMailPreferenceInput = {
+    where?: AdminUserWhereInput
+    data: XOR<AdminUserUpdateWithoutMailPreferenceInput, AdminUserUncheckedUpdateWithoutMailPreferenceInput>
+  }
+
+  export type AdminUserUpdateWithoutMailPreferenceInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    position?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: NullableEnumDepartmentFieldUpdateOperationsInput | $Enums.Department | null
+    tier?: EnumAdminTierFieldUpdateOperationsInput | $Enums.AdminTier
+    status?: EnumAdminStatusFieldUpdateOperationsInput | $Enums.AdminStatus
+    isTeamLead?: BoolFieldUpdateOperationsInput | boolean
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    mainAppUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginIp?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
+    preferredName?: NullableStringFieldUpdateOperationsInput | string | null
+    birthday?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nationality?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    maritalStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    homePhone?: NullableStringFieldUpdateOperationsInput | string | null
+    personalPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    fax?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyName?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyRelation?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentType?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUpdateManyWithoutAdminUserNestedInput
+    refreshTokens?: RefreshTokenUpdateManyWithoutAdminUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutAdminUserNestedInput
+    socialLinks?: AdminSocialLinkUpdateManyWithoutAdminUserNestedInput
+    educations?: AdminEducationUpdateManyWithoutAdminUserNestedInput
+    documents?: AdminDocumentUpdateManyWithoutAdminUserNestedInput
+    performanceNotes?: AdminPerformanceNoteUpdateManyWithoutAdminUserNestedInput
+    reports?: AdminReportUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUpdateManyWithoutAdminUserNestedInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUpdateManyWithoutChangedByNestedInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUpdateManyWithoutValidatedByNestedInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUpdateManyWithoutAcknowledgedByNestedInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUpdateManyWithoutReviewedByNestedInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUpdateManyWithoutCancellationRequestedByNestedInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUpdateManyWithoutRequestedByNestedInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUpdateManyWithoutApprovedByNestedInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUpdateManyWithoutAdminUserNestedInput
+    marketingContentItems?: marketing_content_itemsUpdateManyWithoutAdminUserNestedInput
+    socialAccountConnections?: SocialAccountConnectionUpdateManyWithoutCreatedByNestedInput
+    socialOAuthStates?: SocialOAuthStateUpdateManyWithoutAdminUserNestedInput
+    socialPostsCreated?: SocialPostUpdateManyWithoutCreatedByNestedInput
+    socialPostRevisionsCreated?: SocialPostRevisionUpdateManyWithoutCreatedByNestedInput
+    socialApprovalsSubmitted?: SocialPostApprovalUpdateManyWithoutSubmittedByNestedInput
+    socialApprovalsDecided?: SocialPostApprovalUpdateManyWithoutDecidedByNestedInput
+    socialPublicationsRequested?: SocialPublicationUpdateManyWithoutRequestedByNestedInput
+    socialPublicationsApproved?: SocialPublicationUpdateManyWithoutApprovedByNestedInput
+    socialMediaAssets?: SocialMediaAssetUpdateManyWithoutOwnerNestedInput
+    socialContactsLinked?: SocialContactUpdateManyWithoutLinkedByNestedInput
+    socialConversationsAssigned?: SocialConversationUpdateManyWithoutAssigneeNestedInput
+    socialConversationAssignments?: SocialConversationUpdateManyWithoutAssignedByNestedInput
+    socialMessagesSent?: SocialMessageUpdateManyWithoutSentByAdminNestedInput
+    socialConversationTagsAdded?: SocialConversationTagUpdateManyWithoutTaggedByNestedInput
+    socialCommentsAssigned?: SocialCommentUpdateManyWithoutAssigneeNestedInput
+    socialCommentsSent?: SocialCommentUpdateManyWithoutSentByAdminNestedInput
+    socialEscalationsConfirmed?: SocialEscalationUpdateManyWithoutConfirmedByNestedInput
+    socialInternalNotesAuthored?: SocialInternalNoteUpdateManyWithoutAuthorNestedInput
+    socialSavedRepliesCreated?: SocialSavedReplyUpdateManyWithoutCreatedByNestedInput
+    socialSettingsUpdated?: SocialOperationsSettingUpdateManyWithoutUpdatedByNestedInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUpdateManyWithoutAcceptedByAdminNestedInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUpdateManyWithoutDismissedByAdminNestedInput
+    marketingAlertsResolved?: marketing_alertsUpdateManyWithoutResolvedByAdminNestedInput
+    marketingAlertsAcknowledged?: marketing_alertsUpdateManyWithoutAcknowledgedByAdminNestedInput
+    marketingExperimentsCreated?: marketing_experimentsUpdateManyWithoutCreatedByAdminNestedInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUpdateManyWithoutRequestedByAdminNestedInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUpdateManyWithoutApproverNestedInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUpdateManyWithoutCreatedByAdminNestedInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUpdateManyWithoutReviewerNestedInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUpdateManyWithoutAuthoredByAdminNestedInput
+    teamMemberships?: TeamMemberUpdateManyWithoutAdminUserNestedInput
+    projectMemberships?: ProjectMemberUpdateManyWithoutAdminUserNestedInput
+    assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
+    createdTasks?: TaskUpdateManyWithoutAssignerNestedInput
+    notifications?: NotificationUpdateManyWithoutAdminUserNestedInput
+    attendanceLogs?: AttendanceLogUpdateManyWithoutAdminUserNestedInput
+    leaveRequests?: LeaveRequestUpdateManyWithoutAdminUserNestedInput
+    reviewedLeaveRequests?: LeaveRequestUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUpdateManyWithoutAdminUserNestedInput
+    payrollRecords?: PayrollRecordUpdateManyWithoutAdminUserNestedInput
+    payslips?: PayslipUpdateManyWithoutAdminUserNestedInput
+    deductions?: DeductionUpdateManyWithoutAdminUserNestedInput
+    receipts?: ReceiptUpdateManyWithoutAdminUserNestedInput
+    invoices?: InvoiceUpdateManyWithoutAdminUserNestedInput
+    mailMailboxesOwned?: MailMailboxUpdateManyWithoutOwnerNestedInput
+    mailMemberships?: MailMembershipUpdateManyWithoutAdminUserNestedInput
+    mailSenderGrants?: MailSenderGrantUpdateManyWithoutAdminUserNestedInput
+    mailThreadStates?: MailUserThreadStateUpdateManyWithoutAdminUserNestedInput
+    mailDrafts?: MailDraftUpdateManyWithoutAuthorNestedInput
+  }
+
+  export type AdminUserUncheckedUpdateWithoutMailPreferenceInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    position?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: NullableEnumDepartmentFieldUpdateOperationsInput | $Enums.Department | null
+    tier?: EnumAdminTierFieldUpdateOperationsInput | $Enums.AdminTier
+    status?: EnumAdminStatusFieldUpdateOperationsInput | $Enums.AdminStatus
+    isTeamLead?: BoolFieldUpdateOperationsInput | boolean
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    mainAppUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lockedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLoginIp?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarCloudinaryId?: NullableStringFieldUpdateOperationsInput | string | null
+    preferredName?: NullableStringFieldUpdateOperationsInput | string | null
+    birthday?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nationality?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    maritalStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    homePhone?: NullableStringFieldUpdateOperationsInput | string | null
+    personalPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    fax?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyName?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    emergencyRelation?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentType?: NullableStringFieldUpdateOperationsInput | string | null
+    employmentCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    salary?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    bonus?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    equity?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    authSessions?: AdminSessionUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaEnrollment?: AdminMfaEnrollmentUncheckedUpdateOneWithoutAdminUserNestedInput
+    mfaRecoveryCodes?: AdminMfaRecoveryCodeUncheckedUpdateManyWithoutAdminUserNestedInput
+    mfaChallenges?: AdminMfaChallengeUncheckedUpdateManyWithoutAdminUserNestedInput
+    authEvents?: AdminAuthEventUncheckedUpdateManyWithoutAdminUserNestedInput
+    refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutAdminUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialLinks?: AdminSocialLinkUncheckedUpdateManyWithoutAdminUserNestedInput
+    educations?: AdminEducationUncheckedUpdateManyWithoutAdminUserNestedInput
+    documents?: AdminDocumentUncheckedUpdateManyWithoutAdminUserNestedInput
+    performanceNotes?: AdminPerformanceNoteUncheckedUpdateManyWithoutAdminUserNestedInput
+    reports?: AdminReportUncheckedUpdateManyWithoutAdminUserNestedInput
+    sectionGrants?: AdminSectionGrantUncheckedUpdateManyWithoutAdminUserNestedInput
+    marketingExecutionPolicyHistory?: MarketingExecutionPolicyHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+    marketingExecutionValidationPackets?: MarketingExecutionValidationPacketUncheckedUpdateManyWithoutValidatedByNestedInput
+    marketingExecutionDriftAcknowledgments?: MarketingExecutionDriftAcknowledgmentUncheckedUpdateManyWithoutAcknowledgedByNestedInput
+    marketingExecutionRetryReviews?: MarketingExecutionRetryReviewUncheckedUpdateManyWithoutReviewedByNestedInput
+    marketingExecutionCancellationRequests?: MarketingExecutionJobUncheckedUpdateManyWithoutCancellationRequestedByNestedInput
+    marketingExecutionOverridesRequested?: MarketingExecutionEmergencyOverrideUncheckedUpdateManyWithoutRequestedByNestedInput
+    marketingExecutionOverridesApproved?: MarketingExecutionEmergencyOverrideUncheckedUpdateManyWithoutApprovedByNestedInput
+    marketingCampaignTeamMemberships?: marketing_campaign_team_membersUncheckedUpdateManyWithoutAdminUserNestedInput
+    marketingContentItems?: marketing_content_itemsUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialAccountConnections?: SocialAccountConnectionUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialOAuthStates?: SocialOAuthStateUncheckedUpdateManyWithoutAdminUserNestedInput
+    socialPostsCreated?: SocialPostUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialPostRevisionsCreated?: SocialPostRevisionUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialApprovalsSubmitted?: SocialPostApprovalUncheckedUpdateManyWithoutSubmittedByNestedInput
+    socialApprovalsDecided?: SocialPostApprovalUncheckedUpdateManyWithoutDecidedByNestedInput
+    socialPublicationsRequested?: SocialPublicationUncheckedUpdateManyWithoutRequestedByNestedInput
+    socialPublicationsApproved?: SocialPublicationUncheckedUpdateManyWithoutApprovedByNestedInput
+    socialMediaAssets?: SocialMediaAssetUncheckedUpdateManyWithoutOwnerNestedInput
+    socialContactsLinked?: SocialContactUncheckedUpdateManyWithoutLinkedByNestedInput
+    socialConversationsAssigned?: SocialConversationUncheckedUpdateManyWithoutAssigneeNestedInput
+    socialConversationAssignments?: SocialConversationUncheckedUpdateManyWithoutAssignedByNestedInput
+    socialMessagesSent?: SocialMessageUncheckedUpdateManyWithoutSentByAdminNestedInput
+    socialConversationTagsAdded?: SocialConversationTagUncheckedUpdateManyWithoutTaggedByNestedInput
+    socialCommentsAssigned?: SocialCommentUncheckedUpdateManyWithoutAssigneeNestedInput
+    socialCommentsSent?: SocialCommentUncheckedUpdateManyWithoutSentByAdminNestedInput
+    socialEscalationsConfirmed?: SocialEscalationUncheckedUpdateManyWithoutConfirmedByNestedInput
+    socialInternalNotesAuthored?: SocialInternalNoteUncheckedUpdateManyWithoutAuthorNestedInput
+    socialSavedRepliesCreated?: SocialSavedReplyUncheckedUpdateManyWithoutCreatedByNestedInput
+    socialSettingsUpdated?: SocialOperationsSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
+    marketingRecommendationsAccepted?: marketing_recommendationsUncheckedUpdateManyWithoutAcceptedByAdminNestedInput
+    marketingRecommendationsDismissed?: marketing_recommendationsUncheckedUpdateManyWithoutDismissedByAdminNestedInput
+    marketingAlertsResolved?: marketing_alertsUncheckedUpdateManyWithoutResolvedByAdminNestedInput
+    marketingAlertsAcknowledged?: marketing_alertsUncheckedUpdateManyWithoutAcknowledgedByAdminNestedInput
+    marketingExperimentsCreated?: marketing_experimentsUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingEvaluationRunsRequested?: marketing_intelligence_evaluation_runsUncheckedUpdateManyWithoutRequestedByAdminNestedInput
+    marketingSettingsUpdated?: marketing_intelligence_settingsUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionPlansCreated?: MarketingExecutionPlanUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPlansUpdated?: MarketingExecutionPlanUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingExecutionApprovals?: MarketingExecutionApprovalUncheckedUpdateManyWithoutApproverNestedInput
+    marketingExecutionPoliciesCreated?: MarketingExecutionPolicyUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingExecutionPoliciesUpdated?: MarketingExecutionPolicyUncheckedUpdateManyWithoutUpdatedByAdminNestedInput
+    marketingCreativePublicationsAuthored?: MarketingCreativePublicationUncheckedUpdateManyWithoutCreatedByAdminNestedInput
+    marketingDeadLetterReviews?: MarketingExecutionDeadLetterReviewUncheckedUpdateManyWithoutReviewerNestedInput
+    marketingCompensationsAuthored?: MarketingExecutionCompensationLinkUncheckedUpdateManyWithoutAuthoredByAdminNestedInput
+    teamMemberships?: TeamMemberUncheckedUpdateManyWithoutAdminUserNestedInput
+    projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutAdminUserNestedInput
+    assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
+    createdTasks?: TaskUncheckedUpdateManyWithoutAssignerNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutAdminUserNestedInput
+    attendanceLogs?: AttendanceLogUncheckedUpdateManyWithoutAdminUserNestedInput
+    leaveRequests?: LeaveRequestUncheckedUpdateManyWithoutAdminUserNestedInput
+    reviewedLeaveRequests?: LeaveRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutAdminUserNestedInput
+    payrollRecords?: PayrollRecordUncheckedUpdateManyWithoutAdminUserNestedInput
+    payslips?: PayslipUncheckedUpdateManyWithoutAdminUserNestedInput
+    deductions?: DeductionUncheckedUpdateManyWithoutAdminUserNestedInput
+    receipts?: ReceiptUncheckedUpdateManyWithoutAdminUserNestedInput
+    invoices?: InvoiceUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailMailboxesOwned?: MailMailboxUncheckedUpdateManyWithoutOwnerNestedInput
+    mailMemberships?: MailMembershipUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailSenderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailThreadStates?: MailUserThreadStateUncheckedUpdateManyWithoutAdminUserNestedInput
+    mailDrafts?: MailDraftUncheckedUpdateManyWithoutAuthorNestedInput
+  }
+
+  export type MailAddressUpsertWithoutPreferredByInput = {
+    update: XOR<MailAddressUpdateWithoutPreferredByInput, MailAddressUncheckedUpdateWithoutPreferredByInput>
+    create: XOR<MailAddressCreateWithoutPreferredByInput, MailAddressUncheckedCreateWithoutPreferredByInput>
+    where?: MailAddressWhereInput
+  }
+
+  export type MailAddressUpdateToOneWithWhereWithoutPreferredByInput = {
+    where?: MailAddressWhereInput
+    data: XOR<MailAddressUpdateWithoutPreferredByInput, MailAddressUncheckedUpdateWithoutPreferredByInput>
+  }
+
+  export type MailAddressUpdateWithoutPreferredByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    localPart?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: EnumMailAddressKindFieldUpdateOperationsInput | $Enums.MailAddressKind
+    status?: EnumMailAddressStatusFieldUpdateOperationsInput | $Enums.MailAddressStatus
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: MailOrganizationUpdateOneRequiredWithoutAddressesNestedInput
+    domain?: MailDomainUpdateOneRequiredWithoutAddressesNestedInput
+    mailbox?: MailMailboxUpdateOneWithoutAddressesNestedInput
+    aliasOf?: MailAddressUpdateOneWithoutAliasesNestedInput
+    aliases?: MailAddressUpdateManyWithoutAliasOfNestedInput
+    senderGrants?: MailSenderGrantUpdateManyWithoutAddressNestedInput
+  }
+
+  export type MailAddressUncheckedUpdateWithoutPreferredByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    domainId?: StringFieldUpdateOperationsInput | string
+    mailboxId?: NullableStringFieldUpdateOperationsInput | string | null
+    localPart?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: EnumMailAddressKindFieldUpdateOperationsInput | $Enums.MailAddressKind
+    status?: EnumMailAddressStatusFieldUpdateOperationsInput | $Enums.MailAddressStatus
+    aliasOfAddressId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    aliases?: MailAddressUncheckedUpdateManyWithoutAliasOfNestedInput
+    senderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAddressNestedInput
   }
 
   export type AdminSessionCreateManyAdminUserInput = {
@@ -421247,6 +423799,7 @@ export namespace Prisma {
     aliasOf?: MailAddressUpdateOneWithoutAliasesNestedInput
     aliases?: MailAddressUpdateManyWithoutAliasOfNestedInput
     senderGrants?: MailSenderGrantUpdateManyWithoutAddressNestedInput
+    preferredBy?: MailUserPreferenceUpdateManyWithoutDefaultSenderNestedInput
   }
 
   export type MailAddressUncheckedUpdateWithoutOrganizationInput = {
@@ -421265,6 +423818,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     aliases?: MailAddressUncheckedUpdateManyWithoutAliasOfNestedInput
     senderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAddressNestedInput
+    preferredBy?: MailUserPreferenceUncheckedUpdateManyWithoutDefaultSenderNestedInput
   }
 
   export type MailAddressUncheckedUpdateManyWithoutOrganizationInput = {
@@ -421786,6 +424340,7 @@ export namespace Prisma {
     aliasOf?: MailAddressUpdateOneWithoutAliasesNestedInput
     aliases?: MailAddressUpdateManyWithoutAliasOfNestedInput
     senderGrants?: MailSenderGrantUpdateManyWithoutAddressNestedInput
+    preferredBy?: MailUserPreferenceUpdateManyWithoutDefaultSenderNestedInput
   }
 
   export type MailAddressUncheckedUpdateWithoutDomainInput = {
@@ -421804,6 +424359,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     aliases?: MailAddressUncheckedUpdateManyWithoutAliasOfNestedInput
     senderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAddressNestedInput
+    preferredBy?: MailUserPreferenceUncheckedUpdateManyWithoutDefaultSenderNestedInput
   }
 
   export type MailAddressUncheckedUpdateManyWithoutDomainInput = {
@@ -422058,6 +424614,7 @@ export namespace Prisma {
     aliasOf?: MailAddressUpdateOneWithoutAliasesNestedInput
     aliases?: MailAddressUpdateManyWithoutAliasOfNestedInput
     senderGrants?: MailSenderGrantUpdateManyWithoutAddressNestedInput
+    preferredBy?: MailUserPreferenceUpdateManyWithoutDefaultSenderNestedInput
   }
 
   export type MailAddressUncheckedUpdateWithoutMailboxInput = {
@@ -422076,6 +424633,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     aliases?: MailAddressUncheckedUpdateManyWithoutAliasOfNestedInput
     senderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAddressNestedInput
+    preferredBy?: MailUserPreferenceUncheckedUpdateManyWithoutDefaultSenderNestedInput
   }
 
   export type MailAddressUncheckedUpdateManyWithoutMailboxInput = {
@@ -422761,6 +425319,13 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type MailUserPreferenceCreateManyDefaultSenderInput = {
+    adminUserId: string
+    notificationsEnabled?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type MailAddressUpdateWithoutAliasOfInput = {
     id?: StringFieldUpdateOperationsInput | string
     localPart?: StringFieldUpdateOperationsInput | string
@@ -422777,6 +425342,7 @@ export namespace Prisma {
     mailbox?: MailMailboxUpdateOneWithoutAddressesNestedInput
     aliases?: MailAddressUpdateManyWithoutAliasOfNestedInput
     senderGrants?: MailSenderGrantUpdateManyWithoutAddressNestedInput
+    preferredBy?: MailUserPreferenceUpdateManyWithoutDefaultSenderNestedInput
   }
 
   export type MailAddressUncheckedUpdateWithoutAliasOfInput = {
@@ -422795,6 +425361,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     aliases?: MailAddressUncheckedUpdateManyWithoutAliasOfNestedInput
     senderGrants?: MailSenderGrantUncheckedUpdateManyWithoutAddressNestedInput
+    preferredBy?: MailUserPreferenceUncheckedUpdateManyWithoutDefaultSenderNestedInput
   }
 
   export type MailAddressUncheckedUpdateManyWithoutAliasOfInput = {
@@ -422844,6 +425411,27 @@ export namespace Prisma {
     revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     revokedBy?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailUserPreferenceUpdateWithoutDefaultSenderInput = {
+    notificationsEnabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    adminUser?: AdminUserUpdateOneRequiredWithoutMailPreferenceNestedInput
+  }
+
+  export type MailUserPreferenceUncheckedUpdateWithoutDefaultSenderInput = {
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    notificationsEnabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MailUserPreferenceUncheckedUpdateManyWithoutDefaultSenderInput = {
+    adminUserId?: StringFieldUpdateOperationsInput | string
+    notificationsEnabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type MailMessageCreateManyThreadInput = {

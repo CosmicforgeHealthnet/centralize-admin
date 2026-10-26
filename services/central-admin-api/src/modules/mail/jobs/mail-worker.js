@@ -7,12 +7,37 @@
 
 const { leaseOwnerId } = require("./mail-job.repository");
 
-function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, queues = ["OUTBOUND", "INBOUND", "EVENTS"], beforeTick = null, queueFilter = null, schemaReady = null, setTimer = setTimeout, clearTimer = clearTimeout }) {
+// Queues whose jobs can outlive one lease (broadcast sync of a large
+// segment): their lease is extended while the handler runs.
+const HEARTBEAT_QUEUES = new Set(["MARKETING"]);
+
+function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, queues = ["OUTBOUND", "INBOUND", "EVENTS"], beforeTick = null, queueFilter = null, schemaReady = null, setTimer = setTimeout, clearTimer = clearTimeout, heartbeatIntervalMs = null }) {
   const leaseOwner = leaseOwnerId();
   const metrics = { claimed: 0, succeeded: 0, retried: 0, failed: 0, deadLettered: 0, recovered: 0, lastTickAt: null, lastError: null };
   let running = false;
   let timer = null;
   const inFlight = new Set();
+
+  // Lease heartbeat: extends the lease every third of its length. If the
+  // lease is lost, job.lease.lost is set so the handler can stop before any
+  // provider call; the stale run's complete/fail are refused by lease token.
+  function startHeartbeat(job) {
+    const lease = { lost: false };
+    job.lease = lease;
+    if (!HEARTBEAT_QUEUES.has(job.queue) || typeof jobs.heartbeat !== "function") return () => {};
+    const leaseSeconds = config.worker.leaseSeconds || 120;
+    const every = heartbeatIntervalMs || Math.max(5000, Math.floor((leaseSeconds * 1000) / 3));
+    const timerId = setInterval(() => {
+      jobs.heartbeat(job, { leaseSeconds }).then((held) => {
+        if (!held) {
+          lease.lost = true;
+          metrics.leasesLost = (metrics.leasesLost || 0) + 1;
+        }
+      }).catch(() => {});
+    }, every);
+    timerId.unref?.();
+    return () => clearInterval(timerId);
+  }
 
   async function runJob(job) {
     const handler = handlers[job.kind];
@@ -21,8 +46,10 @@ function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, q
       metrics.failed += 1;
       return;
     }
+    const stopHeartbeat = startHeartbeat(job);
     try {
       const result = await handler(job);
+      stopHeartbeat();
       // Handlers may ask to run again later without consuming an attempt
       // (paused dispatch, disabled flag, batched multi-step progress).
       if (result?.defer) {
@@ -33,6 +60,7 @@ function createMailWorker({ jobs, handlers, config, logger, onDeadLetter = {}, q
       await jobs.complete(job, { providerRequestId: result?.providerMessageId || null });
       metrics.succeeded += 1;
     } catch (error) {
+      stopHeartbeat();
       const retryable = error?.retryable !== false;
       const outcome = await jobs.fail(job, { code: error?.code || "HANDLER_ERROR", message: error?.message, retryable, reconcile: Boolean(error?.reconcile), retryAfterSeconds: error?.retryAfterSeconds ?? null });
       if (outcome.status === "DEAD_LETTER") {

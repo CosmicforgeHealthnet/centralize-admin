@@ -102,8 +102,10 @@ test.describe("IT > Mail Administration", () => {
   test("an ordinary employee gets an explanation and no admin API calls", async ({ page, api }) => {
     await signIn(page, ALICE);
     defaultMocks(api, ALICE);
-    await openMailAdministration(page, api);
-    await expect(page.getByText("Mail administration is available to mail administrators only.")).toBeVisible();
+    // Employees without an IT grant are stopped by the dashboard section gate.
+    await page.goto("/dashboard/it");
+    await expect(page.getByRole("heading", { name: "You do not have access to this section" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Mail Administration" })).toHaveCount(0);
     expect(api.callsTo("GET", /\/api\/mail\/v1\/admin\//)).toHaveLength(0);
   });
 

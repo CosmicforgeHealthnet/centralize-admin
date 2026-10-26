@@ -43,10 +43,13 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
     });
   }
 
-  const attachmentUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: limits.attachmentMaxBytes, files: 1 } });
+  // Text parts are buffered in memory too, so fields/parts are capped as
+  // tightly as files: attachments need no form fields, the two-step CSV import sends up to nine.
+  const formLimits = { files: 1, fieldSize: 1024, fieldNameSize: 100, headerPairs: 50 };
+  const attachmentUpload = multer({ storage: multer.memoryStorage(), limits: { ...formLimits, fields: 4, parts: 5, fileSize: limits.attachmentMaxBytes } });
   const csvUpload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: 2 * 1024 * 1024, files: 1 },
+    limits: { ...formLimits, fields: 10, parts: 11, fileSize: 2 * 1024 * 1024 },
     fileFilter: (req, file, cb) => cb(null, /\.csv$/i.test(file.originalname || "") && /^(text\/csv|application\/vnd\.ms-excel|text\/plain|application\/octet-stream)$/i.test(file.mimetype || "")),
   });
   const uploadErrors = (handler) => (req, res, next) =>
@@ -166,13 +169,19 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
       mailboxes,
       canManageDomains: canEditAdmin,
       canViewAdministration: canAdmin,
-      canProvision: true,
       canApproveProvisioning: canEditAdmin,
+      ...(await admin.provisioningCapabilities(user(req))),
       canManageSharedMembership: canEditAdmin || mailboxes.some((entry) => entry.type === "SHARED" && ["OWNER", "MANAGER"].includes(entry.role)),
       marketing: scopes.map(({ organizationId, slug, name, canAuthor, canApprove }) => ({ organizationId, slug, name, canAuthor, canApprove })),
     });
   }));
   router.get("/me/mailboxes", asyncHandler(async (req, res) => ok(res, await mailbox.listMyMailboxes(user(req)))));
+  // Per-user preferences (spec 15): any active Mail user, own row only.
+  router.get("/me/preferences", asyncHandler(async (req, res) => {
+    res.setHeader("Cache-Control", "no-store");
+    ok(res, await mail.services.preferences.getPreferences(user(req)));
+  }));
+  router.put("/me/preferences", asyncHandler(async (req, res) => ok(res, await mail.services.preferences.updatePreferences(user(req), body(req), ctx(req)))));
 
   // --------------------------------------------------------------- mailboxes / threads
   router.get("/mailboxes/:mailboxId", asyncHandler(async (req, res) => ok(res, await mailbox.getMailbox(user(req), req.params.mailboxId))));
@@ -238,7 +247,7 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
   router.post("/drafts/:draftId/attachments", uploadErrors(attachmentUpload.single("file")), asyncHandler(async (req, res) => ok(res, await compose.addAttachment(user(req), req.params.draftId, req.file), { status: 201 })));
   router.delete("/drafts/:draftId/attachments/:attachmentId", asyncHandler(async (req, res) => ok(res, await compose.removeAttachment(user(req), req.params.draftId, req.params.attachmentId))));
   router.post("/drafts/:draftId/send", asyncHandler(async (req, res) => {
-    const result = await compose.sendDraft(user(req), req.params.draftId, { revision: body(req).revision, idempotencyKey: req.get("Idempotency-Key") }, ctx(req));
+    const result = await compose.sendDraft(user(req), req.params.draftId, { revision: body(req).revision, replyToAddressId: body(req).replyToAddressId || null, idempotencyKey: req.get("Idempotency-Key") }, ctx(req));
     ok(res, result, { status: 202, message: result.status === "QUEUED" ? "Queued for sending" : "Delivered internally" });
   }));
   router.get("/messages/:messageId/status", asyncHandler(async (req, res) => ok(res, await compose.messageStatus(user(req), req.params.messageId))));
@@ -360,6 +369,15 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
   router.get("/admin/integrations/:integrationId/senders", asyncHandler(async (req, res) => ok(res, await integrations.listSenders(user(req), req.params.integrationId))));
   router.post("/admin/integrations/:integrationId/senders", asyncHandler(async (req, res) => ok(res, await integrations.authorizeSender(user(req), req.params.integrationId, body(req), ctx(req)), { status: 201 })));
   router.delete("/admin/integrations/:integrationId/senders/:senderId", asyncHandler(async (req, res) => ok(res, await integrations.revokeSender(user(req), req.params.integrationId, req.params.senderId, ctx(req)))));
+  // ---- GDPR DSAR (mail admins + step-up; POST so the address never sits in a URL)
+  router.post("/admin/dsar/export", asyncHandler(async (req, res) => {
+    res.setHeader("Cache-Control", "no-store");
+    ok(res, await mail.services.dsar.exportSubject(user(req), body(req), ctx(req)));
+  }));
+  router.post("/admin/dsar/erasure", asyncHandler(async (req, res) => {
+    res.setHeader("Cache-Control", "no-store");
+    ok(res, await mail.services.dsar.eraseSubject(user(req), body(req), ctx(req)));
+  }));
   router.get("/admin/retention-policies", asyncHandler(async (req, res) => ok(res, await admin.listRetentionPolicies(user(req)))));
   router.post("/admin/retention-policies", asyncHandler(async (req, res) => ok(res, await admin.createRetentionPolicy(user(req), body(req), ctx(req)), { status: 201 })));
 
@@ -377,7 +395,7 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
   m.get("/:orgId/sender-identities", asyncHandler(async (req, res) => ok(res, await marketing.senderIdentities(user(req), req.params.orgId))));
   m.get("/:orgId/contacts", asyncHandler(async (req, res) => page(res, await marketing.listContacts(user(req), req.params.orgId, req.query))));
   m.post("/:orgId/contacts", asyncHandler(async (req, res) => ok(res, await marketing.createContact(user(req), req.params.orgId, body(req), ctx(req)), { status: 201 })));
-  m.post("/:orgId/contacts/import", uploadErrors(csvUpload.single("file")), asyncHandler(async (req, res) => ok(res, await marketing.importCsv(user(req), req.params.orgId, { ...body(req), buffer: req.file?.buffer }, ctx(req)))));
+  m.post("/:orgId/contacts/import", uploadErrors(csvUpload.single("file")), asyncHandler(async (req, res) => ok(res, await marketing.importCsv(user(req), req.params.orgId, { ...body(req), buffer: req.file?.buffer, fileName: req.file?.originalname }, ctx(req)))));
   m.get("/:orgId/contacts/:contactId", asyncHandler(async (req, res) => ok(res, await marketing.getContact(user(req), req.params.orgId, req.params.contactId))));
   m.patch("/:orgId/contacts/:contactId", asyncHandler(async (req, res) => ok(res, await marketing.updateContact(user(req), req.params.orgId, req.params.contactId, body(req), ctx(req)))));
   m.post("/:orgId/contacts/:contactId/consents", asyncHandler(async (req, res) => ok(res, await marketing.recordConsent(user(req), req.params.orgId, req.params.contactId, body(req), ctx(req)), { status: 201 })));

@@ -70,15 +70,25 @@ export const recordConsent = (orgId: string, contactId: string, body: ConsentInp
 export const withdrawConsent = (orgId: string, contactId: string, topic: string) =>
   post<Consent>(`/${orgId}/contacts/${contactId}/consents/${encodeURIComponent(topic)}/withdraw`);
 
+/** Two-step import: "preview" (dry run, any author) then "commit" by a different brand approver with the preview's fileSha256. */
+export type ImportMode = "preview" | "commit";
+export type ImportResult = ImportReport & {
+  mode?: ImportMode;
+  dryRun?: boolean;
+  fileSha256?: string;
+  fileName?: string | null;
+  counts?: { new: number; updated: number; skippedWithdrawn: number; skippedPendingConfirmation: number; suppressed: number; invalid: number; duplicateInFile: number };
+};
+
 export async function importContacts(
   orgId: string,
   file: File,
-  fields: { topic: string; source: string; policyVersion: string; evidenceReference: string; audienceId?: string },
-): Promise<ImportReport> {
+  fields: { topic: string; source: string; policyVersion: string; evidenceReference: string; audienceId?: string; attestOptIn?: boolean; mode?: ImportMode; fileSha256?: string },
+): Promise<ImportResult> {
   const form = new FormData();
   form.append("file", file);
-  for (const [k, v] of Object.entries(fields)) if (v) form.append(k, v);
-  const { data } = await api.post<Envelope<ImportReport>>(`${BASE}/${orgId}/contacts/import`, form, {
+  for (const [k, v] of Object.entries(fields)) if (v) form.append(k, String(v));
+  const { data } = await api.post<Envelope<ImportResult>>(`${BASE}/${orgId}/contacts/import`, form, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return data.data;
@@ -129,14 +139,21 @@ export const createCampaign = (orgId: string, body: CampaignInput & { name: stri
   post<Campaign>(`/${orgId}/campaigns`, body);
 export const updateCampaign = (orgId: string, campaignId: string, body: CampaignInput & { revision: number }) =>
   patch<Campaign>(`/${orgId}/campaigns/${campaignId}`, body);
+/** Preflight plus the hash of the exact eligible recipient set. */
+export type CampaignPreflight = PreflightResult & { contactSetSha256?: string };
 export const preflightCampaign = (orgId: string, campaignId: string) =>
-  post<PreflightResult>(`/${orgId}/campaigns/${campaignId}/preflight`);
+  post<CampaignPreflight>(`/${orgId}/campaigns/${campaignId}/preflight`);
 /** Sends the rendered campaign to active HQ staff only (never the audience). */
 export const testSendCampaign = (orgId: string, campaignId: string, recipients: string[]) =>
   post<{ queued: boolean; duplicate: boolean; recipientCount: number }>(`/${orgId}/campaigns/${campaignId}/test-send`, recipients.length ? { recipients } : {});
 export const submitCampaign = (orgId: string, campaignId: string, revision: number) =>
   post<Campaign>(`/${orgId}/campaigns/${campaignId}/submit`, { revision });
-export const approveCampaign = (orgId: string, campaignId: string, body: { revision: number; stepUpId: string; comment?: string }) =>
+/** contactSetSha256/eligibleCount bind the approval to the audience the reviewer saw in preflight. */
+export const approveCampaign = (
+  orgId: string,
+  campaignId: string,
+  body: { revision: number; stepUpId: string; comment?: string; contactSetSha256?: string; eligibleCount?: number },
+) =>
   post<Campaign>(`/${orgId}/campaigns/${campaignId}/approve`, body);
 export const rejectCampaign = (orgId: string, campaignId: string, body: { revision: number; comment: string }) =>
   post<Campaign>(`/${orgId}/campaigns/${campaignId}/reject`, body);

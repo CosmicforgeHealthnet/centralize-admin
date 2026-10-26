@@ -68,9 +68,14 @@ test.describe("Marketing campaign approval is reviewer-scoped", () => {
     marketingMocks(api, REVIEWER, { canAuthor: false, canApprove: true });
     api.on("POST", "/api/mail/v1/security/step-up", ok({ stepUpId: "su-1", expiresAt: "2026-10-24T09:05:00Z" }));
     api.on("POST", `${MK}/org-cf/campaigns/cmp-1/approve`, ok(campaign({ status: "APPROVED", approvedByAdminUserId: REVIEWER.id })));
+    api.on("POST", `${MK}/org-cf/campaigns/cmp-1/preflight`, ok({ ok: true, checks: [], eligibleCount: 2, excludedCount: 0, contactSetSha256: "a".repeat(64) }));
     await gotoWithEntitlements(page, PAGE);
 
     await expect(page.getByRole("button", { name: "Reject" })).toBeDisabled(); // needs a reason
+    // Approval binds the audience shown in preflight, so it needs a preflight first.
+    await expect(page.getByRole("button", { name: "Approve (requires 2FA code)" })).toBeDisabled();
+    await page.getByRole("button", { name: "Run preflight" }).click();
+    await expect(page.getByText("All checks passed.")).toBeVisible();
     await page.getByRole("button", { name: "Approve (requires 2FA code)" }).click();
     const dialog = page.getByRole("dialog", { name: "Confirm campaign approval" });
     await expect(dialog).toBeVisible();
@@ -79,7 +84,7 @@ test.describe("Marketing campaign approval is reviewer-scoped", () => {
     await dialog.getByRole("button", { name: "Verify" }).click();
     await expect.poll(() => api.callsTo("POST", `${MK}/org-cf/campaigns/cmp-1/approve`).length).toBe(1);
     expect(api.callsTo("POST", "/api/mail/v1/security/step-up")[0].body).toEqual({ code: "123456", purpose: "MARKETING_CAMPAIGN_APPROVAL" });
-    expect(api.callsTo("POST", `${MK}/org-cf/campaigns/cmp-1/approve`)[0].body).toMatchObject({ revision: 3, stepUpId: "su-1" });
+    expect(api.callsTo("POST", `${MK}/org-cf/campaigns/cmp-1/approve`)[0].body).toMatchObject({ revision: 3, stepUpId: "su-1", contactSetSha256: "a".repeat(64), eligibleCount: 2 });
     await expect(page.getByText("Dispatch is not enabled in this environment", { exact: false }).first()).toBeVisible();
   });
 });

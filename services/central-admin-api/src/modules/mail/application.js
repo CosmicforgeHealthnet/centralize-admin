@@ -20,6 +20,8 @@ const { createSearchIndex } = require("./services/search-index.service");
 const { createForwardingService } = require("./services/forwarding.service");
 const { createMessageArchive } = require("./services/message-archive.service");
 const { createAttachmentReviewService } = require("./services/attachment-review.service");
+const { createDsarService } = require("./services/dsar.service");
+const { createPreferencesService } = require("./services/preferences.service");
 const { createMarketingService } = require("./marketing/marketing.service");
 const { createStepUpService } = require("./authz/step-up.service");
 const { createBreakGlassService } = require("./authz/break-glass.service");
@@ -51,7 +53,7 @@ const { createReadiness } = require("./ops/readiness");
 const { createRuntimeMetrics } = require("./ops/runtime-metrics");
 const { createInboundReconciler } = require("./pipelines/inbound-reconciler");
 const { createSharedRateLimiter } = require("./ops/shared-rate-limit");
-const { createMailSchemaReadiness, MAIL_FEATURE_REQUIREMENTS } = require("./schema-readiness");
+const { createMailSchemaReadiness, MAIL_FEATURE_REQUIREMENTS, MAIL_PREFERENCES_REQUIREMENTS } = require("./schema-readiness");
 
 async function unwrapKeyring({ config, encryption, logger, kmsClient }) {
   const { resolveMailKeyring, createAwsKmsClient } = require("./security/kms-keyring");
@@ -89,6 +91,15 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
     label: "Mail gap-closure feature",
     missingMessage: "[Mail] Gap-closure tables not present: body search, forwarding, message archives, shared rate limits and campaign reply attribution stay off until migration 20261101_mail_spec_gap_closure.sql is applied",
   });
+  // Migration 36 (per-user preferences). Probed on its own so a database at
+  // migration 35 keeps the gap-closure features; core Mail never waits for it.
+  const preferencesFeature = createMailSchemaReadiness({
+    client,
+    logger,
+    requirements: MAIL_PREFERENCES_REQUIREMENTS,
+    label: "Mail preferences",
+    missingMessage: "[Mail] Preferences table not present: GET /me/preferences answers the defaults, saving preferences answers 503 and no notification is suppressed until migration 20261102_mail_user_preferences.sql is applied",
+  });
   const useKms = !encryption && config.kms?.provider === "aws-kms";
   const resolvedEncryption = encryption || createMailEncryption(useKms ? { deferred: true } : config.encryption);
   // KMS-wrapped data keys are unwrapped once, asynchronously. Until then (or if
@@ -100,7 +111,8 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const storage = createMailStorage({ config, encryption: resolvedEncryption, backend: storageBackend, logger });
   const resolvedScanner = createAttachmentScanner({ config, scanner, logger });
   const audit = createMailAudit({ client });
-  const notifications = createMailNotifications({ client, logger });
+  const notifications = createMailNotifications({ client, logger, preferencesReady: preferencesFeature.isReady });
+  const preferences = createPreferencesService({ client, feature: preferencesFeature, audit, clock, logger });
   const store = createMessageStore({ client, storage, config, encryption: resolvedEncryption });
   const searchIndex = createSearchIndex({ client, config, features, store, audit, logger, clock });
   store.useSearchIndex(searchIndex);
@@ -115,7 +127,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   runtime.use(rollout.resolver);
   const usage = createUsageService({ client, audit, env, clock });
   const providerReady = () => resolvedAdapter.name !== "unconfigured";
-  const compose = createComposeService({ client, config, store, encryption: resolvedEncryption, scanner: resolvedScanner, jobs, audit, notifications, providerReady, runtime, usage, clock });
+  const compose = createComposeService({ client, config, store, encryption: resolvedEncryption, scanner: resolvedScanner, jobs, audit, notifications, preferences, providerReady, runtime, usage, clock });
   const forwarding = createForwardingService({ client, config, features, store, jobs, audit, stepUp, notifications, providerReady, runtime, usage, clock, logger });
   const archive = createMessageArchive({ client, config, storage, features, audit, logger });
   const admin = createMailAdminService({ client, config, adapter: resolvedAdapter, audit, notifications, jobs, stepUp, forwarding, clock });
@@ -143,6 +155,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
 
   const retention = createRetentionService({ client, config, audit, jobs, stepUp, clock });
   const retentionProcessor = createRetentionProcessor({ client, config, audit, storage, features, clock, logger });
+  const dsar = createDsarService({ client, audit, stepUp, storage, features, clock });
   // `health` is a hoisted function declaration below.
   const ops = createOpsMonitor({ client, config, notifications, health: () => health(), runtime, metrics, searchIndex, features, clock, logger });
   const readiness = createReadiness({ client, config, ops, health: () => health() });
@@ -230,7 +243,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
     searchIndex,
     rateLimiter,
     jobs,
-    services: { mailbox, compose, admin, rules, forwarding, archive, support, marketing, stepUp, breakGlass, attachmentReview, broadcasts, automations, publicPreferences, confirmation, testSends, integrations, usage, retention, ops, rollout, readiness },
+    services: { mailbox, compose, admin, rules, forwarding, archive, support, marketing, stepUp, breakGlass, attachmentReview, broadcasts, automations, publicPreferences, confirmation, testSends, integrations, usage, retention, dsar, ops, rollout, readiness, preferences },
     runtime,
     metrics,
     processors: { inbound, outbound, deliveryEvents, marketingEvents, broadcasts: broadcastProcessor, automations: automationProcessor, retention: retentionProcessor, inboundReconciler },
@@ -250,6 +263,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
     health,
     schema,
     features,
+    preferencesFeature,
     // Public readiness (booleans only; never secrets or migration names).
     readiness: async () => {
       if (!config.enabled) return { ready: true, enabled: false, checks: {} };

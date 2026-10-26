@@ -62,7 +62,11 @@ test("message content, credentials and clinical data are rejected anywhere in da
   }
   assert.throws(() => parseOpsAlert({ severity: "warning", code: "QUEUE_LAG", summary: "lag for jane@example.com", component: "outbox" }, { restricted: false }), /FORBIDDEN_CONTENT/);
   assert.throws(() => parseOpsAlert({ severity: "warning", code: "QUEUE_LAG", summary: "record 1234567 slow", component: "outbox" }, { restricted: true }), /FORBIDDEN_CONTENT/);
-  assert.equal(parseOpsAlert({ severity: "info", code: "QUEUE_LAG", summary: "outbox lag above 5m", component: "outbox" }, { restricted: true }).code, "QUEUE_LAG");
+  // Restricted (health) alerts: the summary is a catalogue code, never free text.
+  assert.throws(() => parseOpsAlert({ severity: "info", code: "QUEUE_LAG", summary: "outbox lag above 5m", component: "outbox" }, { restricted: true }), /FORBIDDEN_CONTENT/);
+  assert.throws(() => parseOpsAlert({ severity: "info", code: "QUEUE_LAG", summary: "Patient flu symptoms rising", component: "outbox" }, { restricted: true }), /FORBIDDEN_CONTENT/);
+  assert.equal(parseOpsAlert({ severity: "info", code: "QUEUE_LAG", summary: "QUEUE_BACKLOG", component: "outbox" }, { restricted: true }).summary, "QUEUE_BACKLOG");
+  assert.equal(parseOpsAlert({ severity: "info", code: "QUEUE_LAG", summary: "outbox lag above 5m", component: "outbox" }, { restricted: false }).summary, "outbox lag above 5m", "standard integrations keep free text");
 });
 
 test("integrations default OFF", () => {
