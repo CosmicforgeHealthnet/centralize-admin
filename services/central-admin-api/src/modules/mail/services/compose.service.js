@@ -57,10 +57,44 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
     }
   }
 
+  function tooManyRecipients(field) {
+    return mailError("MAIL_VALIDATION_FAILED", { field, reason: "TOO_MANY_RECIPIENTS" });
+  }
+
+  // Draft lists are capped at the same limit as a send (before parsing, so an
+  // oversized list is never processed or stored).
   function parseRecipients(input, field) {
+    const raw = Array.isArray(input) ? input.length : String(input ?? "").split(",").filter((part) => part.trim()).length;
+    if (raw > config.limits.maxRecipients) throw tooManyRecipients(field);
     const { parties, invalid } = parsePartyList(input || []);
     if (invalid.length) throw mailError("MAIL_VALIDATION_FAILED", { field, invalid: invalid.slice(0, 5) });
     return parties;
+  }
+
+  function assertDraftRecipientTotal(to, cc, bcc) {
+    if ((to?.length || 0) + (cc?.length || 0) + (bcc?.length || 0) > config.limits.maxRecipients) throw tooManyRecipients("to");
+  }
+
+  // Best-effort removal of objects written before a transaction that then
+  // failed (nothing references them). Uses the durable deletion queue when
+  // available (reference-checked, retried by the worker), else a direct
+  // remove. Never throws: the caller's original error is what surfaces.
+  async function discardOrphans(keys, meta = {}) {
+    const unique = [...new Set((keys || []).filter(Boolean))];
+    if (!unique.length) return;
+    try {
+      const settled = store.discardObjects ? await store.discardObjects(unique, { purpose: "COMPOSE", sourceType: "compose", ...meta }) : null;
+      if (settled) return;
+    } catch {
+      // fall through to the direct remove
+    }
+    for (const key of unique) {
+      try {
+        await store.removeObject(key);
+      } catch {
+        // left for the retention orphan sweep
+      }
+    }
   }
 
   function normalizeBody({ html, text }) {
@@ -155,6 +189,7 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
     const to = input.to ? parseRecipients(input.to, "to") : prefill.to;
     const cc = input.cc ? parseRecipients(input.cc, "cc") : prefill.cc;
     const bcc = parseRecipients(input.bcc, "bcc");
+    assertDraftRecipientTotal(to, cc, bcc);
     const mailbox = await client.mailMailbox.findUnique({ where: { id: mailboxId } });
     const signature = mailbox.signatureHtml ? `<br><br>${sanitizeEmailHtml(mailbox.signatureHtml).html}` : "";
     const body = normalizeBody({ html: input.html != null ? input.html : `${signature}${prefill.html}`, text: input.text });
@@ -196,6 +231,9 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
     if (input.to !== undefined) data.toRecipients = parseRecipients(input.to, "to");
     if (input.cc !== undefined) data.ccRecipients = parseRecipients(input.cc, "cc");
     if (input.bcc !== undefined) data.bccRecipients = parseRecipients(input.bcc, "bcc");
+    if (input.to !== undefined || input.cc !== undefined || input.bcc !== undefined) {
+      assertDraftRecipientTotal(data.toRecipients ?? draft.toRecipients, data.ccRecipients ?? draft.ccRecipients, data.bccRecipients ?? draft.bccRecipients);
+    }
     if (input.subject !== undefined) data.subject = sanitizeSubject(input.subject);
     if (input.senderAddressId !== undefined) {
       await policy.requireSenderIdentity(client, user, access, input.senderAddressId);
@@ -247,20 +285,36 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
     return { discarded: true };
   }
 
-  async function addAttachment(user, draftId, file) {
+  // The count limit is enforced under the draft row lock (lockActiveDraft)
+  // inside the insert transaction, so concurrent uploads cannot exceed it;
+  // the early count only avoids storing a file that is sure to be refused.
+  // The object is written before the transaction and removed (best effort)
+  // when the transaction fails.
+  async function addAttachment(user, draftId, file, context = {}) {
     const { draft } = await loadOwnDraft(user, draftId, "SEND");
     if (!file?.buffer) throw mailError("MAIL_VALIDATION_FAILED", { field: "file" });
     if (file.buffer.length > config.limits.attachmentMaxBytes) throw mailError("MAIL_ATTACHMENT_TOO_LARGE", { maxBytes: config.limits.attachmentMaxBytes });
-    const count = await client.mailAttachment.count({ where: { draftId } });
-    if (count >= config.limits.maxAttachmentsPerMessage) throw mailError("MAIL_VALIDATION_FAILED", { field: "file", reason: "TOO_MANY_ATTACHMENTS" });
+    const tooMany = () => mailError("MAIL_VALIDATION_FAILED", { field: "file", reason: "TOO_MANY_ATTACHMENTS" });
+    if ((await client.mailAttachment.count({ where: { draftId } })) >= config.limits.maxAttachmentsPerMessage) throw tooMany();
     const filename = String(file.originalname || "attachment").replace(/[\r\n\u0000"\\/]/g, "_").slice(0, 255);
     const contentType = /^[a-z0-9.+-]+\/[a-z0-9.+-]+$/i.test(String(file.mimetype || "")) ? file.mimetype.toLowerCase() : "application/octet-stream";
     const verdict = await evaluateAttachment(scanner, { filename, contentType, buffer: file.buffer, maxBytes: config.limits.attachmentMaxBytes });
     const stored = await store.storeAttachmentContent(file.buffer);
-    const attachment = await client.mailAttachment.create({
-      data: { mailboxId: draft.mailboxId, draftId, filename, contentType, sizeBytes: stored.sizeBytes, sha256: stored.sha256, storageKey: stored.key, scanStatus: verdict.scanStatus, scanDetail: verdict.scanDetail, quarantined: verdict.quarantined, uploadedByAdminUserId: user.id },
-    });
-    await audit.record({ actorAdminUserId: user.id, action: verdict.quarantined ? "MAIL_ATTACHMENT_QUARANTINED" : "MAIL_ATTACHMENT_UPLOADED", targetType: "attachment", targetId: attachment.id, mailboxId: draft.mailboxId, metadata: { scanStatus: verdict.scanStatus, sizeBytes: stored.sizeBytes } });
+    let attachment;
+    try {
+      attachment = await client.$transaction(async (tx) => {
+        await lockActiveDraft(tx, draftId);
+        if ((await tx.mailAttachment.count({ where: { draftId } })) >= config.limits.maxAttachmentsPerMessage) throw tooMany();
+        const created = await tx.mailAttachment.create({
+          data: { mailboxId: draft.mailboxId, draftId, filename, contentType, sizeBytes: stored.sizeBytes, sha256: stored.sha256, storageKey: stored.key, scanStatus: verdict.scanStatus, scanDetail: verdict.scanDetail, quarantined: verdict.quarantined, uploadedByAdminUserId: user.id },
+        });
+        await audit.record({ actorAdminUserId: user.id, action: verdict.quarantined ? "MAIL_ATTACHMENT_QUARANTINED" : "MAIL_ATTACHMENT_UPLOADED", targetType: "attachment", targetId: created.id, mailboxId: draft.mailboxId, metadata: { scanStatus: verdict.scanStatus, sizeBytes: stored.sizeBytes } }, context, tx);
+        return created;
+      });
+    } catch (error) {
+      await discardOrphans([stored.key], { reason: "ATTACHMENT_UPLOAD_ABORTED", sourceType: "draft", sourceId: draftId, mailboxId: draft.mailboxId, requestedBy: user.id });
+      throw error;
+    }
     return serializeAttachment(attachment);
   }
 
@@ -497,12 +551,15 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
       }
       let job = null;
       if (externalRecipients.length) {
-        ({ job } = await jobs.enqueue(tx, { queue: "OUTBOUND", kind: "SEND_MESSAGE", idempotencyKey: sendKey, messageId: created.message.id, maxAttempts: config.worker.maxAttempts }));
+        ({ job } = await jobs.enqueue(tx, { queue: "OUTBOUND", kind: "SEND_MESSAGE", idempotencyKey: sendKey, messageId: created.message.id, maxAttempts: config.worker.maxAttempts, correlationId: context?.requestId || null }));
       }
       await audit.record({ actorAdminUserId: user.id, action: "MAIL_MESSAGE_QUEUED", targetType: "message", targetId: created.message.id, mailboxId: mailbox.id, metadata: { external: externalRecipients.length, internal: internalTargets.length, senderAddressId: identity.addressId, jobId: job?.id || null } }, context, tx);
       return { message: created.message, thread: created.thread, job, internalTargets };
       });
     } catch (error) {
+      // The encrypted body was written before the transaction; nothing
+      // references it after a rollback (best effort, never masks the error).
+      await discardOrphans([body.key], { reason: "SEND_ABORTED", sourceType: "draft", sourceId: draftId, mailboxId: mailbox.id, requestedBy: user.id });
       // Lost a race with a same-key request: return the winner's message.
       if (messageKey && (error?.code === "MAIL_DRAFT_REVISION_CONFLICT" || error?.code === "P2002")) {
         const replay = await findReplay(messageKey, draftId);

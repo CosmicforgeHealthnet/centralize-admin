@@ -262,7 +262,7 @@ test("D17: MARKETING jobs get a lease heartbeat; a lost lease is flagged to the 
   const beats = [];
   let held = true;
   const done = [];
-  const pending = [{ id: "m1", kind: "SLOW", queue: "MARKETING", leaseOwner: "w:1" }, { id: "o1", kind: "SLOW", queue: "OUTBOUND", leaseOwner: "w:2" }];
+  const pending = [{ id: "m1", kind: "SLOW", queue: "MARKETING", leaseOwner: "w:1" }, { id: "o1", kind: "SLOW", queue: "EVENTS", leaseOwner: "w:2" }];
   const jobs = {
     recoverExpiredLeases: async () => [],
     claim: async () => pending.splice(0),
@@ -281,10 +281,10 @@ test("D17: MARKETING jobs get a lease heartbeat; a lost lease is flagged to the 
       return {};
     },
   };
-  const worker = createMailWorker({ jobs, handlers, config: { worker: { concurrency: 2, leaseSeconds: 120, pollIntervalMs: 1000 } }, queues: ["MARKETING", "OUTBOUND"], heartbeatIntervalMs: 15 });
+  const worker = createMailWorker({ jobs, handlers, config: { worker: { concurrency: 2, leaseSeconds: 120, pollIntervalMs: 1000 } }, queues: ["MARKETING", "EVENTS"], heartbeatIntervalMs: 15 });
   await worker.drain({ maxTicks: 2 });
   assert.ok(beats.filter((id) => id === "m1").length >= 2, "marketing lease extended while running");
-  assert.equal(beats.includes("o1"), false, "outbound behaviour unchanged");
+  assert.equal(beats.includes("o1"), false, "events behaviour unchanged (OUTBOUND/INBOUND are heartbeated since §17 fencing)");
   assert.equal(seen.m1, true, "lost lease is visible to the handler");
   assert.equal(seen.o1, false);
   const count = beats.length;

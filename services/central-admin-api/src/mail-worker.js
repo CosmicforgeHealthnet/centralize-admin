@@ -30,22 +30,47 @@ async function main() {
     return 0;
   }
   const worker = mail.createWorker({ queues });
-  logger.info(`[MailWorker] starting ${JSON.stringify({ ...publicStatus(config), queues, leaseOwner: worker.leaseOwner })}`);
+  if (config.worker.leaseClampedFrom != null) logger.warn(`[MailWorker] MAIL_WORKER_LEASE_SECONDS=${config.worker.leaseClampedFrom} is shorter than the provider timeout plus margin; using ${config.worker.leaseSeconds}s`);
+  logger.info(`[MailWorker] starting ${JSON.stringify({ ...publicStatus(config), queues, leaseOwner: worker.leaseOwner, leaseSeconds: config.worker.leaseSeconds, drainTimeoutMs: config.worker.drainTimeoutMs })}`);
   worker.start();
-
-  let stopping = false;
-  const shutdown = async (signal) => {
-    if (stopping) return;
-    stopping = true;
-    logger.info(`[MailWorker] ${signal} received; draining in-flight jobs`);
-    const result = await worker.stop({ timeoutMs: 30000 });
-    logger.info(`[MailWorker] stopped ${JSON.stringify({ ...result, metrics: worker.metrics })}`);
-    await prisma.$disconnect().catch(() => {});
-    process.exit(0);
-  };
-  process.on("SIGTERM", () => shutdown("SIGTERM"));
-  process.on("SIGINT", () => shutdown("SIGINT"));
+  installShutdown({ worker, config, disconnect: () => prisma.$disconnect() });
   return null;
+}
+
+// Graceful shutdown: stop claiming, drain in-flight jobs up to
+// MAIL_WORKER_DRAIN_TIMEOUT_MS, then exit. Jobs still running are left to
+// lease recovery (their ids are logged by worker.stop). An unexpected
+// rejection/exception is logged and also triggers a graceful shutdown (exit
+// code 1) instead of a silent crash; the supervisor restarts the process.
+function installShutdown({ worker, config, disconnect, exit = (code) => process.exit(code), on = (event, handler) => process.on(event, handler) }) {
+  let stopping = null;
+  const shutdown = (reason, code = 0) => {
+    if (stopping) return stopping;
+    stopping = (async () => {
+      logger.info(`[MailWorker] ${reason}; draining in-flight jobs (up to ${config.worker.drainTimeoutMs}ms)`);
+      let result = null;
+      try {
+        result = await worker.stop({ timeoutMs: config.worker.drainTimeoutMs });
+      } catch (error) {
+        logger.error(`[MailWorker] stop failed: ${error?.message}`);
+      }
+      logger.info(`[MailWorker] stopped ${JSON.stringify({ ...(result || {}), metrics: worker.metrics })}`);
+      await Promise.resolve().then(disconnect).catch(() => {});
+      exit(code);
+    })();
+    return stopping;
+  };
+  on("SIGTERM", () => shutdown("SIGTERM received"));
+  on("SIGINT", () => shutdown("SIGINT received"));
+  on("unhandledRejection", (error) => {
+    logger.error(`[MailWorker] unhandled rejection (${error?.code || "error"}): ${error?.message || error}`);
+    shutdown("unhandled rejection", 1);
+  });
+  on("uncaughtException", (error) => {
+    logger.error(`[MailWorker] uncaught exception (${error?.code || "error"}): ${error?.message || error}`);
+    shutdown("uncaught exception", 1);
+  });
+  return { shutdown };
 }
 
 if (require.main === module) {
@@ -57,4 +82,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { main };
+module.exports = { main, installShutdown };

@@ -20,12 +20,17 @@ function backoffSeconds(attempt, { base = 15, cap = 3600, random = Math.random }
 }
 
 function createMailJobRepository({ client, clock = () => new Date(), random = Math.random }) {
-  async function enqueue(tx, { queue, kind, idempotencyKey, messageId = null, webhookEventId = null, payload = null, maxAttempts = 6, nextAttemptAt = null }) {
+  // `correlationId` (optional, e.g. the HTTP request id) is stored in the
+  // job payload under the reserved key CORRELATION_KEY (no column exists);
+  // readers of the payload ignore unknown keys.
+  async function enqueue(tx, { queue, kind, idempotencyKey, messageId = null, webhookEventId = null, payload = null, maxAttempts = 6, nextAttemptAt = null, correlationId = null }) {
     const db = tx || client;
     const existing = await db.mailOutboxJob.findUnique({ where: { idempotencyKey } });
     if (existing) return { job: existing, created: false };
+    const correlation = correlationId ? String(correlationId).slice(0, 128) : null;
+    const data = correlation ? { ...(payload && typeof payload === "object" ? payload : {}), [CORRELATION_KEY]: correlation } : payload;
     const job = await db.mailOutboxJob.create({
-      data: { queue, kind, idempotencyKey, messageId, webhookEventId, payload, maxAttempts, nextAttemptAt: nextAttemptAt || clock() },
+      data: { queue, kind, idempotencyKey, messageId, webhookEventId, payload: data, maxAttempts, nextAttemptAt: nextAttemptAt || clock() },
     });
     return { job, created: true };
   }
@@ -61,6 +66,14 @@ function createMailJobRepository({ client, clock = () => new Date(), random = Ma
       data: { leaseExpiresAt: new Date(clock().getTime() + Math.min(Math.max(Number(leaseSeconds) || 120, 15), 3600) * 1000) },
     });
     return result.count === 1;
+  }
+
+  // Payload write fenced by the current lease token: a stale run (its lease
+  // expired and the job was recovered/reclaimed) can never overwrite the
+  // plan of the newer run. Jobs without a lease token (direct processor calls
+  // in tests/tools) are written by id. Throws MAIL_JOB_LEASE_LOST when fenced.
+  async function updatePayload(job, payload, { tx = null } = {}) {
+    return writeJobPayload(tx || client, job, payload);
   }
 
   // The provider event behind a job is marked once its job settles, so the
@@ -183,11 +196,39 @@ function createMailJobRepository({ client, clock = () => new Date(), random = Ma
     return rows.map((row) => ({ queue: row.queue, status: row.status, count: row._count._all }));
   }
 
-  return { enqueue, claim, heartbeat, complete, fail, defer, expedite, cancelPending, recoverExpiredLeases, requeue, stats };
+  return { enqueue, claim, heartbeat, updatePayload, complete, fail, defer, expedite, cancelPending, recoverExpiredLeases, requeue, stats };
+}
+
+const CORRELATION_KEY = "correlationId";
+
+function leaseLostError(job) {
+  const error = new Error(`lease of job ${job?.id} was lost`);
+  error.code = "MAIL_JOB_LEASE_LOST";
+  error.leaseLost = true;
+  error.retryable = true;
+  return error;
+}
+
+async function writeJobPayload(db, job, payload) {
+  if (!job.leaseOwner) {
+    await db.mailOutboxJob.update({ where: { id: job.id }, data: { payload } });
+    return true;
+  }
+  const result = await db.mailOutboxJob.updateMany({ where: { id: job.id, leaseOwner: job.leaseOwner, status: "LEASED" }, data: { payload } });
+  if (result.count !== 1) {
+    if (job.lease) job.lease.lost = true;
+    throw leaseLostError(job);
+  }
+  return true;
+}
+
+function correlationIdOf(job) {
+  const value = job?.payload && typeof job.payload === "object" ? job.payload[CORRELATION_KEY] : null;
+  return typeof value === "string" && value ? value : null;
 }
 
 function leaseOwnerId(prefix = "mail-worker") {
   return `${prefix}:${process.pid}:${crypto.randomBytes(4).toString("hex")}`;
 }
 
-module.exports = { createMailJobRepository, backoffSeconds, leaseOwnerId };
+module.exports = { createMailJobRepository, backoffSeconds, leaseOwnerId, leaseLostError, writeJobPayload, correlationIdOf, CORRELATION_KEY };

@@ -61,6 +61,25 @@
 //   mailbox, address and domain are re-checked. Revocation, offboarding,
 //   suspension or a domain kill-switch cancel batches not yet accepted by the
 //   provider (FAILED, reason recorded). Mail already accepted cannot be recalled.
+// - The emergency stop / rollout halt and the org quota are re-checked before
+//   EVERY batch's provider call: a stop raised mid-send defers the remaining
+//   batches (already accepted batches stay accepted).
+//
+// Lease fencing (spec 17/20):
+// - Every plan/payload write, including the acceptance transaction, is fenced
+//   by the job's current lease token (jobs/mail-job.repository.js
+//   writeJobPayload). A run whose lease was lost (worker heartbeat or a fenced
+//   write) stops before its next provider call and never overwrites the newer
+//   run's plan. A provider acceptance recorded by a stale run is rolled back;
+//   the newer run replays the same Idempotency-Key and records it.
+//
+// Terminal failures: the worker runs onTerminalFailure (FAILED job) and
+// onDeadLetter (exhausted job). Both apply the same ambiguity rules, so mail
+// never stays QUEUED and a batch that may have been accepted becomes
+// OUTCOME_UNKNOWN, never FAILED.
+//
+// MAIL_SENDING_ENABLED=false holds queued mail (defer, no attempt consumed,
+// code MAIL_SENDING_DISABLED); it never exhausts or fails the job.
 
 const { MailProviderError } = require("../adapters/mail-provider.contract");
 const { quotaDeferSeconds } = require("../ops/provider-quota.service");
@@ -70,6 +89,7 @@ const { externalSendBlockReason, SEND_BLOCK_REASONS } = require("../authz/sendin
 const { purposeForMailbox } = require("../ops/runtime-controls");
 const { aggregateMessageStatus, createDeliveryEventApplier, recordProviderMessageId } = require("./delivery-event.processor");
 const { originHeaderFromConfig, ORIGIN_HEADER } = require("../security/origin-header");
+const { writeJobPayload, leaseLostError, correlationIdOf } = require("../jobs/mail-job.repository");
 
 function party(recipient) {
   return { address: recipient.address, name: recipient.name };
@@ -164,10 +184,31 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
     if (forwarding && String(message.idempotencyKey || "").startsWith("fwd:") && !(await forwarding.ruleStillActive(message.idempotencyKey))) throw new DispatchBlockedError("FORWARDING_RULE_DISABLED");
   }
 
-  async function savePlan(job, plan) {
+  // Fenced by lease token; throws MAIL_JOB_LEASE_LOST (no write) when this
+  // run no longer holds the job.
+  async function savePlan(job, plan, db = client) {
     const payload = { ...(job.payload || {}), plan };
-    await client.mailOutboxJob.update({ where: { id: job.id }, data: { payload } });
+    await writeJobPayload(db, job, payload);
     job.payload = payload;
+  }
+
+  function assertLeaseHeld(job) {
+    if (job.lease?.lost) throw leaseLostError(job);
+  }
+
+  // Correlation for audits/logs (never secrets): job id, request id of the
+  // send, and the batch's provider Idempotency-Key reference.
+  function correlation(job, index = null) {
+    return { jobId: job.id || null, correlationId: correlationIdOf(job), ...(index != null && job.idempotencyKey ? { idempotencyRef: `${job.idempotencyKey}:b${index}` } : {}) };
+  }
+
+  function auditContext(job) {
+    const requestId = correlationIdOf(job);
+    return requestId ? { requestId } : {};
+  }
+
+  async function haltFor(message, purpose) {
+    return runtime ? runtime.haltReason(purpose, { organizationId: message.mailbox?.organizationId, mailboxId: message.mailboxId, senderAddressId: message.senderAddressId, adminUserId: message.sentByAdminUserId }) : null;
   }
 
   // Same derivation as delivery events, so dispatch never regresses an
@@ -199,7 +240,7 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
     const notify = !quotaWait.notifiedAt && Boolean(message.sentByAdminUserId);
     if (notify) quotaWait.notifiedAt = clock().toISOString();
     const payload = { ...(job.payload || {}), quotaWait };
-    await client.mailOutboxJob.update({ where: { id: job.id }, data: { payload } });
+    await writeJobPayload(client, job, payload);
     job.payload = payload;
     if (notify) {
       const until = resetAt.replace("T", " ").slice(0, 16);
@@ -208,7 +249,9 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
   }
 
   async function process(job) {
-    if (!config.sendingEnabled) throw new PipelineError("MAIL_SENDING_DISABLED", "sending disabled", { retryable: true });
+    // Hold, never consume attempts: a long sending pause must not dead-letter
+    // queued mail (re-audit: it used to FAIL every recipient after ~6 tries).
+    if (!config.sendingEnabled) return { defer: { seconds: 300, code: "MAIL_SENDING_DISABLED", message: "Sending is disabled (MAIL_SENDING_ENABLED=false); mail stays queued" } };
     const message = await client.mailMessage.findUnique({ where: { id: job.messageId }, include: { recipients: true, attachments: true, mailbox: true } });
     if (!message) throw new PipelineError("MESSAGE_MISSING", "message not found", { retryable: false });
 
@@ -239,14 +282,14 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
       await savePlan(job, plan);
       await markRecipients(pendingBatches.flatMap(({ batch }) => [...batch.to, ...batch.cc, ...batch.bcc]), "FAILED", error.code);
       await finalizeStatus(message.id);
-      await audit.record({ actorAdminUserId: message.sentByAdminUserId, action: "MAIL_SEND_BLOCKED_AT_DISPATCH", targetType: "message", targetId: message.id, mailboxId: message.mailboxId, outcome: "DENIED", metadata: { reason: error.code } });
+      await audit.record({ actorAdminUserId: message.sentByAdminUserId, action: "MAIL_SEND_BLOCKED_AT_DISPATCH", targetType: "message", targetId: message.id, mailboxId: message.mailboxId, outcome: "DENIED", metadata: { reason: error.code, ...correlation(job) } }, auditContext(job));
       await notifySender(message, "Email was not sent");
       throw new PipelineError(error.code, "send blocked at dispatch", { retryable: false });
     }
 
     // M9 kill switch: hold (never drop) queued mail while sending is stopped.
     const purpose = purposeForMailbox(message.mailbox);
-    const halted = runtime ? await runtime.haltReason(purpose, { organizationId: message.mailbox?.organizationId, mailboxId: message.mailboxId, senderAddressId: message.senderAddressId, adminUserId: message.sentByAdminUserId }) : null;
+    const halted = await haltFor(message, purpose);
     if (halted) return { defer: { seconds: 300, code: halted } };
 
     const body = await store.readBody(message);
@@ -262,7 +305,13 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
       ...(forwarding ? forwarding.forwardHeaders(message.idempotencyKey) : {}),
     };
 
-    for (const { batch, index } of pendingBatches) {
+    for (const [position, { batch, index }] of pendingBatches.entries()) {
+      assertLeaseHeld(job);
+      // A stop raised while earlier batches were being sent holds the rest.
+      if (position > 0) {
+        const haltedNow = await haltFor(message, purpose);
+        if (haltedNow) return { defer: { seconds: 300, code: haltedNow } };
+      }
       const recipientIds = [...batch.to, ...batch.cc, ...batch.bcc];
       // Internal To/Cc given to the provider in full-headers mode are
       // delivered locally: never counted against quota/usage.
@@ -280,7 +329,7 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
         await savePlan(job, plan);
         await markRecipients(recipientIds, "OUTCOME_UNKNOWN", "IDEMPOTENCY_WINDOW_EXPIRED");
         await finalizeStatus(message.id);
-        await audit.record({ action: "MAIL_SEND_OUTCOME_UNKNOWN", targetType: "message", targetId: message.id, mailboxId: message.mailboxId, outcome: "UNKNOWN", metadata: { batch: index, reason: "IDEMPOTENCY_WINDOW_EXPIRED" } });
+        await audit.record({ action: "MAIL_SEND_OUTCOME_UNKNOWN", targetType: "message", targetId: message.id, mailboxId: message.mailboxId, outcome: "UNKNOWN", metadata: { batch: index, reason: "IDEMPOTENCY_WINDOW_EXPIRED", ...correlation(job, index) } }, auditContext(job));
         await notifySender(message, "Email delivery status unknown");
         continue;
       }
@@ -289,7 +338,9 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
       if (batch.inFlight) batch.ambiguous = true;
       // Persisted before the call: a crash from here on leaves the outcome open.
       batch.inFlight = true;
+      // Fenced: a lost lease throws here, before the provider call.
       await savePlan(job, plan);
+      assertLeaseHeld(job);
       const request = {
         idempotencyKey: `${job.idempotencyKey}:b${index}`,
         from: { address: message.fromAddress, name: message.fromName },
@@ -317,7 +368,7 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
           await savePlan(job, plan);
           await markRecipients(recipientIds, "OUTCOME_UNKNOWN", error.code);
           await finalizeStatus(message.id);
-          await audit.record({ action: "MAIL_SEND_OUTCOME_UNKNOWN", targetType: "message", targetId: message.id, mailboxId: message.mailboxId, outcome: "UNKNOWN", metadata: { batch: index, reason: error.code } });
+          await audit.record({ action: "MAIL_SEND_OUTCOME_UNKNOWN", targetType: "message", targetId: message.id, mailboxId: message.mailboxId, outcome: "UNKNOWN", metadata: { batch: index, reason: error.code, ...correlation(job, index) } }, auditContext(job));
           await notifySender(message, "Email delivery status unknown");
           continue;
         }
@@ -327,7 +378,7 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
           await savePlan(job, plan);
           await markRecipients(recipientIds, "FAILED", error.code);
           const status = await finalizeStatus(message.id);
-          await audit.record({ actorAdminUserId: message.sentByAdminUserId, action: "MAIL_SEND_FAILED", targetType: "message", targetId: message.id, mailboxId: message.mailboxId, outcome: "FAILURE", metadata: { batch: index, reason: error.code } });
+          await audit.record({ actorAdminUserId: message.sentByAdminUserId, action: "MAIL_SEND_FAILED", targetType: "message", targetId: message.id, mailboxId: message.mailboxId, outcome: "FAILURE", metadata: { batch: index, reason: error.code, ...correlation(job, index) } }, auditContext(job));
           if (status === "FAILED") await notifySender(message, "Email could not be sent");
           if (error.kind === "NOT_CONFIGURED") throw new PipelineError(error.code, error.message, { retryable: false });
           continue;
@@ -357,15 +408,17 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
       batch.providerMessageId = result.providerMessageId;
       batch.acceptedAt = clock().toISOString();
       batch.inFlight = false;
+      // A lost lease rolls this back (fenced write throws inside the tx); the
+      // newer run replays the same Idempotency-Key and records the acceptance.
       await client.$transaction(async (tx) => {
-        await tx.mailOutboxJob.update({ where: { id: job.id }, data: { payload: { ...(job.payload || {}), plan } } });
+        await savePlan(job, plan, tx);
         await tx.mailMessageRecipient.updateMany({ where: { id: { in: recipientIds }, status: "PENDING" }, data: { status: "PROVIDER_ACCEPTED", providerMessageId: result.providerMessageId, lastEventAt: clock() } });
         // full-headers: internal rows the provider was also given keep
         // INTERNAL_DELIVERED; the provider id only lets delivery events know
         // the request had more than one recipient (never changes status).
         if (batch.internal?.length) await tx.mailMessageRecipient.updateMany({ where: { id: { in: batch.internal }, status: "INTERNAL_DELIVERED" }, data: { providerMessageId: result.providerMessageId } });
         await tx.mailMessage.update({ where: { id: message.id }, data: { providerMessageId: message.providerMessageId || result.providerMessageId, sentAt: message.sentAt || clock() } });
-        await audit.record({ actorAdminUserId: message.sentByAdminUserId, action: "MAIL_PROVIDER_ACCEPTED", targetType: "message", targetId: message.id, mailboxId: message.mailboxId, metadata: { batch: index, recipients: externalCount } }, {}, tx);
+        await audit.record({ actorAdminUserId: message.sentByAdminUserId, action: "MAIL_PROVIDER_ACCEPTED", targetType: "message", targetId: message.id, mailboxId: message.mailboxId, metadata: { batch: index, recipients: externalCount, providerMessageId: result.providerMessageId, ...correlation(job, index) } }, auditContext(job), tx);
         if (usage) await usage.record(tx, { organizationId: message.mailbox?.organizationId, purpose, accepted: externalCount, providerRequests: 1, bytes: message.sizeBytes });
       });
       message.providerMessageId = message.providerMessageId || result.providerMessageId;
@@ -381,10 +434,23 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
     return { providerMessageId: message.providerMessageId, status };
   }
 
-  // Called when a job exhausts its attempts: never claim success. Unresolved
-  // batches that were ever ambiguous, are still marked in flight (crash), or
-  // whose last error was ambiguous become OUTCOME_UNKNOWN; the rest FAILED.
+  // Called when a job exhausts its attempts (onDeadLetter) or ends with a
+  // non-retryable error (onTerminalFailure, e.g. ATTACHMENT_NOT_CLEAN after a
+  // rescan, MESSAGE content unreadable): never claim success and never leave
+  // the message QUEUED. Unresolved batches that were ever ambiguous, are
+  // still marked in flight (crash), or whose last error was ambiguous become
+  // OUTCOME_UNKNOWN; the rest FAILED. Recipients already resolved (accepted,
+  // blocked, failed) are untouched, so a path that already cleaned up and
+  // notified is a no-op here.
+  async function onTerminalFailure(job, error) {
+    return settleTerminal(job, error, "FAILED");
+  }
+
   async function onDeadLetter(job, error) {
+    return settleTerminal(job, error, "DEAD_LETTER");
+  }
+
+  async function settleTerminal(job, error, jobStatus) {
     if (!job.messageId) return;
     const message = await client.mailMessage.findUnique({ where: { id: job.messageId }, include: { mailbox: true, recipients: true } });
     if (!message) return;
@@ -398,14 +464,17 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
     const uncertain = new Set(unresolved.filter((batch) => batch.ambiguous || batch.inFlight || lastAmbiguous).flatMap((batch) => [...batch.to, ...batch.cc, ...batch.bcc]));
     const unknownIds = pending.filter((recipient) => uncertain.has(recipient.id)).map((recipient) => recipient.id);
     const failedIds = pending.map((recipient) => recipient.id).filter((id) => !unknownIds.includes(id));
-    await markRecipients(unknownIds, "OUTCOME_UNKNOWN", error?.code || "DEAD_LETTER");
-    await markRecipients(failedIds, "FAILED", error?.code || "DEAD_LETTER");
+    await markRecipients(unknownIds, "OUTCOME_UNKNOWN", error?.code || jobStatus);
+    await markRecipients(failedIds, "FAILED", error?.code || jobStatus);
     const status = await finalizeStatus(message.id);
-    await audit.record({ action: status === "OUTCOME_UNKNOWN" ? "MAIL_SEND_OUTCOME_UNKNOWN" : "MAIL_SEND_FAILED", targetType: "message", targetId: message.id, mailboxId: message.mailboxId, outcome: status === "OUTCOME_UNKNOWN" ? "UNKNOWN" : "FAILURE", metadata: { code: error?.code || null } });
-    await notifySender(message, status === "OUTCOME_UNKNOWN" ? "Email delivery status unknown" : "Email could not be sent");
+    const anyUnknown = status === "OUTCOME_UNKNOWN";
+    // `reason`, not `code`: the audit scrubber drops keys matching /code/.
+    const metadata = { reason: error?.code || null, jobStatus, failedRecipients: failedIds.length, unknownRecipients: unknownIds.length, ...correlation(job) };
+    await audit.record({ actorAdminUserId: message.sentByAdminUserId, action: anyUnknown ? "MAIL_SEND_OUTCOME_UNKNOWN" : "MAIL_SEND_FAILED", targetType: "message", targetId: message.id, mailboxId: message.mailboxId, outcome: anyUnknown ? "UNKNOWN" : "FAILURE", metadata }, auditContext(job));
+    await notifySender(message, anyUnknown ? "Email delivery status unknown" : "Email could not be sent");
   }
 
-  return { process, onDeadLetter };
+  return { process, onDeadLetter, onTerminalFailure };
 }
 
 module.exports = { createOutboundProcessor, buildDeliveryPlan, possiblyAccepted };
