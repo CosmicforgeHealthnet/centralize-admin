@@ -242,7 +242,14 @@ test("durable storage deletions on real PostgreSQL (migration 37)", { timeout: 3
     const old = new Date(harness.clock().getTime() - 400 * 86400000);
     const body = await harness.mail.store.storeBody({ html: null, text: "old text" });
     const thread = await client.mailThread.create({ data: { mailboxId: box.id, subject: "Old", normalizedSubject: "old", lastMessageAt: old, messageCount: 1, hasInbound: true } });
-    await client.mailMessage.create({ data: { mailboxId: box.id, threadId: thread.id, direction: "INBOUND", status: "RECEIVED", rfcMessageId: `<${crypto.randomUUID()}@old.example>`, fromAddress: "old@old.example", contentObjectKey: body.key, contentSha256: body.sha256, createdAt: old } });
+    const oldMessage = await client.mailMessage.create({ data: { mailboxId: box.id, threadId: thread.id, direction: "INBOUND", status: "RECEIVED", rfcMessageId: `<${crypto.randomUUID()}@old.example>`, fromAddress: "old@old.example", contentObjectKey: body.key, contentSha256: body.sha256, createdAt: old } });
+    // Re-audit 7d: provider Message-ID alias and an IT quarantine decision
+    // (with an attachment carrying a decision) go with the purged message.
+    await client.mailMessageProviderId.create({ data: { messageId: oldMessage.id, providerRfcMessageId: `<prov-${crypto.randomUUID()}@resend.example>` } });
+    const decidedKey = await putObject("decided");
+    const decidedAttachment = await client.mailAttachment.create({ data: { mailboxId: box.id, messageId: oldMessage.id, filename: "d.txt", contentType: "text/plain", sizeBytes: 1, sha256: "0".repeat(64), storageKey: decidedKey, scanStatus: "CLEAN", quarantined: false, createdAt: old } });
+    await client.mailQuarantineDecision.create({ data: { mailboxId: box.id, targetType: "MESSAGE", messageId: oldMessage.id, decision: "RELEASED", reason: "Released after review", decidedBy: ids.ops } });
+    await client.mailQuarantineDecision.create({ data: { mailboxId: box.id, targetType: "ATTACHMENT", attachmentId: decidedAttachment.id, messageId: oldMessage.id, decision: "RESCAN_REQUESTED", reason: "Rescan requested", decidedBy: ids.ops } });
     const orphanKey = await putObject("orphan");
     await client.mailAttachment.create({ data: { mailboxId: box.id, filename: "o.txt", contentType: "text/plain", sizeBytes: 1, sha256: "0".repeat(64), storageKey: orphanKey, scanStatus: "CLEAN", quarantined: true, createdAt: old } });
     const policyRow = await call("ops", "POST", "/admin/retention-policies", { organizationId: cf.organization.id, mailboxId: box.id, name: "Queue 1y", retainDays: 365, action: "DELETE" });
@@ -266,7 +273,16 @@ test("durable storage deletions on real PostgreSQL (migration 37)", { timeout: 3
     assert.equal(run.counts.purgedOrphanAttachments, 1);
     const purge = await rowFor(body.key);
     assert.equal(purge.reason, "RETENTION_PURGE");
-    assert.equal(purge.sourceId, run.id);
+    // Re-audit 6: the source is the thread (subject holds re-checked at execution).
+    assert.equal(purge.sourceType, "thread");
+    assert.equal(purge.sourceId, thread.id);
+    assert.equal(await client.mailMessageProviderId.count({ where: { messageId: oldMessage.id } }), 0, "provider Message-ID alias purged");
+    assert.equal(await client.mailQuarantineDecision.count({ where: { OR: [{ messageId: oldMessage.id }, { attachmentId: decidedAttachment.id }] } }), 0, "quarantine decisions purged");
+    assert.equal(await client.mailAttachment.count({ where: { id: decidedAttachment.id } }), 0, "decided attachment row removed, not tombstoned");
+    assert.equal(await exists(decidedKey), false);
+    // Outside a purge the decision log stays append-only (the flag was switched off).
+    const keep = await client.mailQuarantineDecision.create({ data: { mailboxId: box.id, targetType: "MESSAGE", messageId: oldMessage.id, decision: "RESCAN_REQUESTED", reason: "Append-only probe", decidedBy: ids.ops } });
+    await assert.rejects(client.$executeRawUnsafe(`DELETE FROM mail_quarantine_decisions WHERE id = '${keep.id}'`), /retention purge/);
     assert.equal(purge.status, "DONE");
     const sweep = await rowFor(orphanKey);
     assert.equal(sweep.reason, "RETENTION_ORPHAN_SWEEP");
@@ -326,12 +342,166 @@ test("durable storage deletions on real PostgreSQL (migration 37)", { timeout: 3
     assert.equal(notDead.status, 409, "only DEAD / hold-cancelled rows are requeueable");
 
     // Cancel a PENDING row: the object stays.
-    const cancelled = await call("ops", "POST", `/admin/storage-deletions/${row.id}/cancel`, { reason: "Keep for investigation" });
+    const cancelled = await call("ops", "POST", `/admin/storage-deletions/${row.id}/cancel`, { reason: "Keep for investigation", stepUpId: await stepUp("MAIL_STORAGE_DELETION_CANCEL") });
     assert.equal(cancelled.status, 200, cancelled.text);
     assert.equal(cancelled.body.data.status, "CANCELLED");
     assert.equal(cancelled.body.data.lastError, "CANCELLED_BY_ADMIN");
     assert.equal((await deletions.processDue()).claimed, 0);
     assert.ok(await exists(key));
+  });
+
+  await t.test("re-audit 2: concurrent drops of the last two references queue the object exactly once", async () => {
+    const key = await putObject("race");
+    const reference = () => client.mailAttachment.create({ data: { mailboxId: state.daveBox, filename: "r.txt", contentType: "text/plain", sizeBytes: 1, sha256: "0".repeat(64), storageKey: key, scanStatus: "CLEAN", quarantined: true } });
+    const a = await reference();
+    const b = await reference();
+    let release;
+    const gate = new Promise((resolve) => (release = resolve));
+    let checkedA;
+    const checked = new Promise((resolve) => (checkedA = resolve));
+    // A drops its reference and checks (sees B's row) but has not committed yet.
+    const txA = client.$transaction(async (tx) => {
+      await tx.mailAttachment.delete({ where: { id: a.id } });
+      const plan = await deletions.enqueue(tx, [key], { purpose: "TEST", reason: "RACE_A" });
+      checkedA();
+      await gate;
+      return plan;
+    }, { maxWait: 10000, timeout: 20000 });
+    await checked;
+    // B drops the last other reference concurrently (would see A's row before A commits).
+    const txB = client.$transaction(async (tx) => {
+      await tx.mailAttachment.delete({ where: { id: b.id } });
+      return deletions.enqueue(tx, [key], { purpose: "TEST", reason: "RACE_B" });
+    }, { maxWait: 10000, timeout: 20000 });
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    release();
+    const [planA, planB] = await Promise.all([txA, txB]);
+    assert.equal(planA.keys.length, 0, "A still saw B's reference");
+    assert.deepEqual(planB.keys, [key], "B waited for A and saw no reference left");
+    const rows = await client.mailStorageDeletion.findMany({ where: { objectKey: key } });
+    assert.equal(rows.length, 1, "queued exactly once, never orphaned");
+    assert.equal(rows[0].reason, "RACE_B");
+    await deletions.settle(planB);
+    assert.equal(await exists(key), false);
+  });
+
+  await t.test("re-audit 6: subject holds on thread senders and unscoped rows are re-checked at execution", async () => {
+    const thread = await client.mailThread.create({ data: { mailboxId: state.daveBox, subject: "", normalizedSubject: "", lastMessageAt: harness.clock(), messageCount: 1 } });
+    const message = await client.mailMessage.create({ data: { mailboxId: state.daveBox, threadId: thread.id, direction: "OUTBOUND", status: "DELIVERED", rfcMessageId: `<${crypto.randomUUID()}@cosmicforge.example>`, fromAddress: "erin@cosmicforge.example", sentByAdminUserId: ids.erin } });
+    // erin sent mail in dave's mailbox; she owns no mailbox, so only the thread links her.
+    const subjectHold = await client.mailLegalHold.create({ data: { organizationId: cf.organization.id, subjectAdminUserId: ids.erin, reason: "Subject hold for erin", createdBy: ids.ops } });
+    for (const [sourceType, sourceId] of [["thread", thread.id], ["message", message.id]]) {
+      const key = await putObject(`subject-${sourceType}`);
+      const result = await deletions.settle(await enqueue([key], { organizationId: cf.organization.id, mailboxId: state.daveBox, sourceType, sourceId }));
+      assert.equal(result.held, 1, `${sourceType} source is held by the sender's subject hold`);
+      const row = await rowFor(key);
+      assert.deepEqual([row.status, row.lastError], ["CANCELLED", "HELD"]);
+      assert.ok(await exists(key));
+    }
+    await client.mailLegalHold.update({ where: { id: subjectHold.id }, data: { releasedAt: harness.clock(), releasedBy: ids.ops } });
+    const free = await putObject("subject-released");
+    assert.equal((await deletions.settle(await enqueue([free], { organizationId: cf.organization.id, mailboxId: state.daveBox, sourceType: "thread", sourceId: thread.id }))).removed, 1);
+
+    // A row with no organization and no mailbox: any org-wide hold (even in another brand) keeps it.
+    const orgHold = await client.mailLegalHold.create({ data: { organizationId: brands.karryam.organization.id, reason: "Org-wide hold elsewhere", createdBy: ids.ops } });
+    const unscoped = await putObject("unscoped");
+    assert.equal((await deletions.settle(await enqueue([unscoped]))).held, 1, "conservative: unscoped rows honour every org-wide hold");
+    assert.ok(await exists(unscoped));
+    await client.mailLegalHold.update({ where: { id: orgHold.id }, data: { releasedAt: harness.clock(), releasedBy: ids.ops } });
+    const unscoped2 = await putObject("unscoped-after");
+    assert.equal((await deletions.settle(await enqueue([unscoped2]))).removed, 1);
+  });
+
+  await t.test("lead: DSAR / quarantine / retention deletions cannot be cancelled; cancel needs a step-up; admin-cancelled rows can be requeued", async () => {
+    const pending = async (purpose) => {
+      const key = await putObject(`cancel-${purpose}`);
+      backend.remove = async () => {
+        throw outageError();
+      };
+      await deletions.settle(await enqueue([key], { purpose }));
+      backend.remove = originalRemove;
+      const row = await rowFor(key);
+      assert.equal(row.status, "PENDING");
+      return { key, row };
+    };
+    for (const purpose of ["DSAR", "QUARANTINE", "RETENTION"]) {
+      const { key, row } = await pending(purpose);
+      const refused = await call("ops", "POST", `/admin/storage-deletions/${row.id}/cancel`, { reason: "Keep this object", stepUpId: await stepUp("MAIL_STORAGE_DELETION_CANCEL") });
+      assert.equal(refused.status, 409, refused.text);
+      assert.match(refused.text, /PROTECTED_DELETION/);
+      assert.equal((await rowFor(key)).status, "PENDING", `${purpose} deletion still queued`);
+    }
+    const { key, row } = await pending("COMPOSE");
+    const url = `/admin/storage-deletions/${row.id}/cancel`;
+    const noStepUp = await call("ops", "POST", url, { reason: "Keep for investigation" });
+    assert.equal(noStepUp.status, 403, noStepUp.text);
+    assert.equal(noStepUp.body.code, "MAIL_STEP_UP_REQUIRED");
+    assert.equal((await call("ops", "POST", url, { reason: "Keep for investigation", stepUpId: await stepUp("MAIL_STORAGE_DELETION_REQUEUE") })).status, 403, "purpose-bound");
+    assert.equal((await rowFor(key)).status, "PENDING");
+    const cancelled = await call("ops", "POST", url, { reason: "Keep for investigation", stepUpId: await stepUp("MAIL_STORAGE_DELETION_CANCEL") });
+    assert.equal(cancelled.status, 200, cancelled.text);
+    assert.equal(cancelled.body.data.lastError, "CANCELLED_BY_ADMIN");
+    assert.ok(await client.mailAuditEvent.findFirst({ where: { action: "MAIL_STORAGE_DELETION_CANCELLED", targetId: row.id, actorAdminUserId: ids.ops } }));
+    const requeued = await call("ops", "POST", `/admin/storage-deletions/${row.id}/requeue`, { reason: "Investigation finished", stepUpId: await stepUp("MAIL_STORAGE_DELETION_REQUEUE") });
+    assert.equal(requeued.status, 200, requeued.text);
+    assert.equal(requeued.body.data.status, "PENDING");
+    harness.advance(120000);
+    await deletions.processDue();
+    assert.equal((await rowFor(key)).status, "DONE");
+    assert.equal(await exists(key), false);
+  });
+
+  await t.test("re-audit 1: a send never copies a file removed or re-judged after its first read", async () => {
+    const erinBox = await call("ops", "POST", "/admin/mailboxes", { organizationId: cf.organization.id, type: "PERSONAL", ownerAdminUserId: ids.erin, address: { domainId: cf.domain.id, localPart: "erin" } });
+    assert.equal(erinBox.status, 201, erinBox.text);
+    const dave = await userRow("dave");
+    const compose = harness.mail.services.compose;
+    const store = harness.mail.store;
+    const originalStoreBody = store.storeBody;
+    // Runs `fn` after the send's first attachment read, before its transaction.
+    const between = (fn) => {
+      store.storeBody = async (...args) => {
+        store.storeBody = originalStoreBody;
+        await fn();
+        return originalStoreBody.apply(store, args);
+      };
+    };
+    const draftWithFile = async (subject) => {
+      const draft = await compose.createDraft(dave, state.daveBox, { to: ["erin@cosmicforge.example"], subject, text: "see file" });
+      const file = await compose.addAttachment(dave, draft.id, { buffer: Buffer.from(`${subject} ${crypto.randomUUID()}`), originalname: "f.txt", mimetype: "text/plain" });
+      const row = await client.mailAttachment.findUnique({ where: { id: file.id } });
+      return { draft, file, key: row.storageKey };
+    };
+    try {
+      // (a) removal commits between the send's read and its transaction.
+      const a = await draftWithFile("Race remove");
+      between(() => compose.removeAttachment(dave, a.draft.id, a.file.id));
+      await assert.rejects(compose.sendDraft(dave, a.draft.id, { revision: a.draft.revision }), (error) => error.code === "MAIL_DRAFT_REVISION_CONFLICT");
+      assert.equal(await client.mailAttachment.count({ where: { storageKey: a.key } }), 0, "no copy points at the deleted object");
+      assert.equal(await exists(a.key), false);
+      assert.equal((await client.mailDraft.findUnique({ where: { id: a.draft.id } })).status, "ACTIVE", "send rolled back");
+      const resent = await compose.sendDraft(dave, a.draft.id, { revision: a.draft.revision });
+      assert.ok(resent.messageId, "retry sends without the removed file");
+      assert.equal(await client.mailAttachment.count({ where: { message: { rfcMessageId: (await client.mailMessage.findUnique({ where: { id: resent.messageId } })).rfcMessageId } } }), 0);
+
+      // (b) the verdict changes (rescan -> INFECTED) between read and transaction.
+      const b = await draftWithFile("Race verdict");
+      between(() => client.mailAttachment.update({ where: { id: b.file.id }, data: { scanStatus: "INFECTED", scanDetail: "Test.Infected", quarantined: true } }));
+      await assert.rejects(compose.sendDraft(dave, b.draft.id, { revision: b.draft.revision }), (error) => error.code === "MAIL_ATTACHMENT_NOT_CLEAN");
+      assert.equal(await client.mailAttachment.count({ where: { storageKey: b.key } }), 1, "no CLEAN internal copy was created");
+      assert.equal(await client.mailMessage.count({ where: { subject: "Race verdict" } }), 0);
+
+      // (c) a send that already claimed the draft blocks the removal (no deletion of a file being sent).
+      const c = await draftWithFile("Race claimed");
+      await client.mailDraft.update({ where: { id: c.draft.id }, data: { status: "SENDING" } });
+      await assert.rejects(compose.removeAttachment(dave, c.draft.id, c.file.id), (error) => error.code === "MAIL_DRAFT_REVISION_CONFLICT");
+      assert.equal(await client.mailAttachment.count({ where: { id: c.file.id } }), 1);
+      assert.ok(await exists(c.key));
+      assert.equal(await client.mailStorageDeletion.count({ where: { objectKey: c.key } }), 0);
+      await client.mailDraft.update({ where: { id: c.draft.id }, data: { status: "ACTIVE" } });
+    } finally {
+      store.storeBody = originalStoreBody;
+    }
   });
 
   await t.test("the worker schedules and runs STORAGE_DELETION_RUN only when work is due", async () => {

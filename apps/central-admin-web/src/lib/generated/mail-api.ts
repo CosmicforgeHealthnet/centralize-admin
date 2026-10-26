@@ -967,7 +967,7 @@ export interface MailResponses {
   postAdminSearchIndexBackfill: Record<string, unknown>;
   /** Grant send-as */
   postAdminSenderGrants: Record<string, unknown>;
-  /** Cancel a PENDING storage deletion (object is kept; reason) */
+  /** Cancel a PENDING storage deletion (object is kept; reason; step-up MAIL_STORAGE_DELETION_CANCEL; never DSAR/QUARANTINE/RETENTION deletions) */
   postAdminStorageDeletionsCancel: Record<string, unknown>;
   /** Requeue a DEAD (or hold-cancelled) storage deletion (step-up MAIL_STORAGE_DELETION_REQUEUE; reason) */
   postAdminStorageDeletionsRequeue: Record<string, unknown>;

@@ -28,6 +28,14 @@
 //            idempotency marker. After the thread phase, DELETE runs sweep
 //            stale draft content in scope (discarded drafts, drafts without a
 //            thread, removed draft attachments) older than the cutoff.
+//            With migration 37 the purge also removes the messages'
+//            provider Message-ID aliases (mail_message_provider_ids) and their
+//            IT quarantine decisions (append-only; deleted under the
+//            cosmicforge.mail_retention_purge session flag, SET LOCAL inside
+//            the purge transaction, then switched off again). Storage
+//            deletions are queued with sourceType "thread" / sourceId = the
+//            thread id so the deletion worker can re-check subject holds on
+//            the thread's senders at execution time.
 //   REDACT   (webhook payloads) replace the stored provider payload.
 //   system DELETE removes append-only integration rows inside a purge
 //            transaction (SET LOCAL cosmicforge.mail_retention_purge = 'on').
@@ -102,6 +110,16 @@ function createRetentionProcessor({ client, config, audit, storage, features = n
     await tx.mailDeliveryEvent.deleteMany({ where: { messageId: { in: messageIds } } });
     await tx.mailOutboxJob.deleteMany({ where: { messageId: { in: messageIds }, status: { notIn: ACTIVE_JOB_STATUSES } } });
     await tx.mailMessageRecipient.deleteMany({ where: { messageId: { in: messageIds } } });
+    if (deletions && (await deletions.ready())) {
+      await tx.mailMessageProviderId.deleteMany({ where: { messageId: { in: messageIds } } });
+      const attachmentIds = attachments.map((attachment) => attachment.id);
+      const decisionWhere = { OR: [{ messageId: { in: messageIds } }, ...(attachmentIds.length ? [{ attachmentId: { in: attachmentIds } }] : [])] };
+      if (await tx.mailQuarantineDecision.count({ where: decisionWhere })) {
+        await tx.$executeRawUnsafe("SET LOCAL cosmicforge.mail_retention_purge = 'on'");
+        await tx.mailQuarantineDecision.deleteMany({ where: decisionWhere });
+        await tx.$executeRawUnsafe("SET LOCAL cosmicforge.mail_retention_purge = 'off'");
+      }
+    }
     await dropAttachmentRows(tx, { id: { in: attachments.map((attachment) => attachment.id) } });
     await tx.mailDraft.deleteMany({ where: { id: { in: draftIds } } });
     await tx.mailUserThreadState.deleteMany({ where: { threadId: thread.id } });
@@ -211,7 +229,7 @@ function createRetentionProcessor({ client, config, audit, storage, features = n
       }
       const result = await client.$transaction(async (tx) => {
         const purged = await purgeThread(tx, thread);
-        purged.plan = await queueObjects(tx, purged.keys, { reason: "RETENTION_PURGE", sourceType: "retention_run", sourceId: run.id, organizationId: run.organizationId, mailboxId: thread.mailboxId });
+        purged.plan = await queueObjects(tx, purged.keys, { reason: "RETENTION_PURGE", sourceType: "thread", sourceId: thread.id, organizationId: run.organizationId, mailboxId: thread.mailboxId });
         await tx.mailRetentionRun.update({ where: { id: run.id }, data: { cursor } });
         return purged;
       });

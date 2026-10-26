@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, ChevronRight, ShieldAlert, TriangleAlert } from "lucide-react";
-import { classifyMailError, downloadRawMessage, fetchOriginalHeaders } from "@/lib/mail.service";
+import { classifyMailError, downloadRawMessage, fetchMessageStatus, fetchOriginalHeaders } from "@/lib/mail.service";
 import AttachmentViewer from "./AttachmentViewer";
 import SafeHtmlFrame from "./SafeHtmlFrame";
 import { formatFullDate, messageStatusLabel, partyLabel, recipientStatusLabel, statusTone, visibleDeliveryEvents } from "./mail-utils";
@@ -96,6 +96,17 @@ export default function MessageCard({
   const cc = message.recipients.filter((r) => r.type === "CC");
   const bcc = message.recipients.filter((r) => r.type === "BCC");
   const when = message.sentAt || message.receivedAt || message.createdAt;
+  // Spec 11.6: queued mail held for a provider quota reset says so (status API).
+  const [waitNote, setWaitNote] = useState<string | null>(null);
+  const queued = outbound && message.status === "QUEUED";
+  useEffect(() => {
+    if (!expanded || !queued) return;
+    let active = true;
+    fetchMessageStatus(message.id)
+      .then((result) => { if (active) setWaitNote(result.statusDetail?.message ?? null); })
+      .catch(() => { if (active) setWaitNote(null); });
+    return () => { active = false; };
+  }, [expanded, queued, message.id]);
 
   return (
     <article className="rounded-lg border border-border bg-card" aria-label={`Message from ${partyLabel(message.from)}`}>
@@ -162,6 +173,9 @@ export default function MessageCard({
               </div>
             )}
           </div>
+          {queued && waitNote && (
+            <p role="status" className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-[12px] text-amber-900">{waitNote}</p>
+          )}
           {message.status === "QUARANTINED" && (
             <p role="alert" className="flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
               <ShieldAlert className="h-4 w-4" aria-hidden="true" />

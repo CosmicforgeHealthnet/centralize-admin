@@ -224,7 +224,7 @@ const PATHS = [
   // Final gaps 5/6 (migration 37; 503 MAIL_FEATURE_NOT_READY before it, quarantine lists stay read-only)
   ["get", "/admin/storage-deletions", "Durable storage deletion queue: counts by status and rows (key hash prefix only)", any],
   ["post", "/admin/storage-deletions/{deletionId}/requeue", "Requeue a DEAD (or hold-cancelled) storage deletion (step-up MAIL_STORAGE_DELETION_REQUEUE; reason)", any],
-  ["post", "/admin/storage-deletions/{deletionId}/cancel", "Cancel a PENDING storage deletion (object is kept; reason)", any],
+  ["post", "/admin/storage-deletions/{deletionId}/cancel", "Cancel a PENDING storage deletion (object is kept; reason; step-up MAIL_STORAGE_DELETION_CANCEL; never DSAR/QUARANTINE/RETENTION deletions)", any],
   ["get", "/admin/quarantine", "Quarantined messages or attachments (kind=messages|attachments; safe metadata only, never content)", any],
   ["get", "/admin/quarantine/messages/{messageId}", "Quarantined message detail with decision history (metadata only)", any],
   ["get", "/admin/quarantine/attachments/{attachmentId}", "Quarantined attachment detail with decision history (metadata only)", any],

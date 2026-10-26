@@ -50,6 +50,8 @@ const PURPOSES = new Set([
   "MAIL_DSAR_ERASURE",
   // Final gaps 5/6: requeue of dead storage deletions, IT quarantine actions.
   "MAIL_STORAGE_DELETION_REQUEUE",
+  // Re-audit: cancelling a (non-protected) pending storage deletion.
+  "MAIL_STORAGE_DELETION_CANCEL",
   "MAIL_QUARANTINE_RELEASE",
   "MAIL_QUARANTINE_DELETE",
 ]);

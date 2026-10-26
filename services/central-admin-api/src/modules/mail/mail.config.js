@@ -338,6 +338,10 @@ function loadMailConfig(env = process.env) {
 // GAP 8: MAIL_MIXED_RECIPIENT_MODE validation. full-headers is refused
 // (mode stays external-only, reason reported) when no origin-header key is
 // available: MAIL_ORIGIN_HEADER_SECRET (>= 32 chars) or an env keyring.
+// Re-audit 7b: it is also refused (MAIL_RECEIVING_CUTOVER_NOT_CONFIRMED)
+// unless MAIL_RECEIVING_CUTOVER_CONFIRMED=true (default false) says the
+// receiving cutover is done, because before the cutover the provider would
+// deliver duplicate copies of internal To/Cc to the legacy mail system.
 function mixedRecipientConfig(env) {
   const { originKeyAvailable, MIN_SECRET_LENGTH } = require("./security/origin-header");
   const requestedMode = String(env.MAIL_MIXED_RECIPIENT_MODE || "external-only").trim().toLowerCase();
@@ -346,6 +350,7 @@ function mixedRecipientConfig(env) {
   let mode = "external-only";
   let refusedReason = null;
   if (!["external-only", "full-headers"].includes(requestedMode)) refusedReason = "MAIL_MIXED_RECIPIENT_MODE_UNKNOWN";
+  else if (requestedMode === "full-headers" && String(env.MAIL_RECEIVING_CUTOVER_CONFIRMED || "").trim().toLowerCase() !== "true") refusedReason = "MAIL_RECEIVING_CUTOVER_NOT_CONFIRMED";
   else if (requestedMode === "full-headers") {
     const available = originKeyAvailable({ secret: originSecret, encryptionKeys: env.MAIL_ENCRYPTION_KEYS || "", activeKey: env.MAIL_ENCRYPTION_ACTIVE_KEY || "", kmsProvider: env.MAIL_KMS_PROVIDER || "env" });
     if (available) mode = "full-headers";

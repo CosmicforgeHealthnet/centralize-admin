@@ -20,7 +20,7 @@ const { createOriginHeader } = require("../src/modules/mail/security/origin-head
 
 const ROLLBACK_37 = path.join(__dirname, "..", "..", "..", "docs", "sql", "cosmicforge-mail-final-gap-closure-rollback.sql");
 const ORIGIN_SECRET = crypto.randomBytes(32).toString("hex");
-const FULL = { MAIL_MIXED_RECIPIENT_MODE: "full-headers", MAIL_ORIGIN_HEADER_SECRET: ORIGIN_SECRET };
+const FULL = { MAIL_MIXED_RECIPIENT_MODE: "full-headers", MAIL_RECEIVING_CUTOVER_CONFIRMED: "true", MAIL_ORIGIN_HEADER_SECRET: ORIGIN_SECRET };
 const AUTH_PASS = { spf: "pass", dkim: "pass", dmarc: "pass" };
 const state = {};
 
@@ -153,13 +153,19 @@ test("GAP 8 mixed recipients on real PostgreSQL", { timeout: 300000 }, async (t)
     }
   });
 
-  await t.test("external BCC + internal To: BCC recipient is in bcc of the full-header request (sees To, no Bcc)", async () => {
+  await t.test("external BCC + internal To: individual, attributable BCC requests; no internal-only request", async () => {
     const id = await send({ to: [ERIN], bcc: [EXT1, EXT2] });
     const sent = await dispatch(full);
-    assert.equal(sent.length, 1, "one request: To/Cc identical for everyone");
-    assert.deepEqual(addresses(sent[0].to), [ERIN]);
-    assert.deepEqual(sent[0].cc, []);
-    assert.deepEqual(addresses(sent[0].bcc), [EXT1, EXT2].sort());
+    // Re-audit fix 5: events of a request echoing an internal To cannot be
+    // attributed to an external BCC, so each external BCC gets its own
+    // request, and the internal-only To request is not sent at all.
+    assert.equal(sent.length, 2);
+    assert.deepEqual(sent.map((request) => addresses(request.to)[0]).sort(), [EXT1, EXT2].sort());
+    for (const request of sent) {
+      assert.deepEqual(request.cc, []);
+      assert.deepEqual(request.bcc, []);
+      assert.ok(!addresses(request.to).includes(ERIN), "internal To never given to the provider alone");
+    }
     // external-only keeps individual BCC requests (no external To/Cc).
     await send({ to: [ERIN], bcc: [EXT1, EXT2] });
     const legacy = await dispatch(harness.mail);
@@ -174,10 +180,13 @@ test("GAP 8 mixed recipients on real PostgreSQL", { timeout: 300000 }, async (t)
 
   await t.test("multiple external recipients and multiple internal mailboxes: one copy each, echoes deduped", async () => {
     const id = await send({ to: [EXT1, ERIN], cc: [EXT2, FAY], bcc: [EXT3] });
-    const [request] = await dispatch(full);
+    const [request, bccRequest, ...rest] = await dispatch(full);
+    assert.equal(rest.length, 0);
     assert.deepEqual(addresses(request.to), [ERIN, EXT1].sort());
     assert.deepEqual(addresses(request.cc), [EXT2, FAY].sort());
-    assert.deepEqual(addresses(request.bcc), [EXT3]);
+    assert.deepEqual(request.bcc, [], "external BCC next to internal recipients: individual request");
+    assert.deepEqual(addresses(bccRequest.to), [EXT3]);
+    assert.equal(bccRequest.headers["X-CosmicForge-Origin"], undefined);
     const row = await message(id);
     // The provider delivers back to our MX: echo with our Message-ID + origin.
     const echo = await inbound(full, { from: { address: DAVE, name: "dave" }, to: request.to, cc: request.cc, subject: request.subject, rfcMessageId: row.rfcMessageId, originalHeaders: [{ name: "X-CosmicForge-Origin", value: request.headers["X-CosmicForge-Origin"] }] });
@@ -335,6 +344,48 @@ test("GAP 8 mixed recipients on real PostgreSQL", { timeout: 300000 }, async (t)
     assert.equal(after.recipients.find((r) => r.address === EXT1).status, "PROVIDER_ACCEPTED", "not guessed onto the only external recipient");
     assert.equal(after.recipients.find((r) => r.address === ERIN).status, "INTERNAL_DELIVERED");
     assert.equal(await client.marketingSuppression.count({ where: { email: { in: [EXT1, ERIN] } } }), 0);
+  });
+
+  const FRESH = "fresh.recipient@fresh.example";
+  await t.test("re-audit 5: a delivered event echoing a To list with internal addresses never marks external To DELIVERED", async () => {
+    const id = await send({ to: [ERIN, EXT1], bcc: [FRESH], subject: "Echo delivered" });
+    const sent = await dispatch(full);
+    assert.equal(sent.length, 2);
+    const row = await message(id);
+    const main = row.recipients.find((r) => r.address === EXT1).providerMessageId;
+    const bccId = row.recipients.find((r) => r.address === FRESH).providerMessageId;
+    assert.notEqual(main, bccId, "BCC has its own provider request");
+    // Our MX accepting erin's copy produces a delivered event echoing the To list.
+    await webhook("email.delivered", { email_id: main, to: [ERIN, EXT1] });
+    await webhook("email.delivered", { email_id: bccId, to: [FRESH] });
+    await events(full);
+    let after = await message(id);
+    let status = Object.fromEntries(after.recipients.map((r) => [r.address, r.status]));
+    assert.equal(status[EXT1], "PROVIDER_ACCEPTED", "echo with an internal address is not evidence");
+    assert.equal(status[FRESH], "DELIVERED", "individual BCC request is attributable");
+    assert.equal(status[ERIN], "INTERNAL_DELIVERED");
+    // The external address singled out: applied.
+    await webhook("email.delivered", { email_id: main, to: [EXT1] });
+    await events(full);
+    after = await message(id);
+    status = Object.fromEntries(after.recipients.map((r) => [r.address, r.status]));
+    assert.equal(status[EXT1], "DELIVERED");
+    assert.equal(after.status, "DELIVERED");
+  });
+
+  await t.test("re-audit 4: org quota and usage count external recipients only in full-headers mode", async () => {
+    const orgId = (await client.mailMailbox.findUnique({ where: { id: boxes.dave } })).organizationId;
+    const accepted = async () => (await client.mailUsageDaily.aggregate({ where: { organizationId: orgId }, _sum: { accepted: true } }))._sum.accepted || 0;
+    const before = await accepted();
+    const id = await send({ to: [ERIN, FAY, EXT1], cc: [FRESH], subject: "Usage external only" });
+    const sent = await dispatch(full);
+    assert.equal(sent.length, 1);
+    assert.equal(sent[0].to.length + sent[0].cc.length, 4, "provider gets the full visible header set");
+    const row = await message(id);
+    assert.equal(row.recipients.find((r) => r.address === EXT1).status, "PROVIDER_ACCEPTED");
+    assert.equal((await accepted()) - before, 2, "only the two external recipients are counted");
+    const audit = await client.mailAuditEvent.findFirst({ where: { action: "MAIL_PROVIDER_ACCEPTED", targetId: id } });
+    assert.equal(audit.metadata.recipients, 2);
   });
 
   await t.test("default mode: an event naming an internal address is also ignored for status", async () => {

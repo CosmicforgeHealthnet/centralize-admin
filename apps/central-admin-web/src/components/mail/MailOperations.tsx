@@ -325,6 +325,8 @@ function Retention() {
 // ---- Final gap 5: durable storage deletion queue (migration 37) ----
 interface StorageDeletionRow { id: string; keyHash: string; purpose: string; reason: string; status: string; attempts: number; maxAttempts: number; nextAttemptAt: string | null; lastError: string | null; createdAt: string; completedAt: string | null }
 interface StorageDeletionList { counts: Record<string, number>; due: number; oldestDueSeconds: number; items: StorageDeletionRow[]; nextCursor: string | null }
+// DSAR erasure, IT quarantine and retention deletions can never be cancelled.
+const PROTECTED_DELETION_PURPOSES = new Set(["DSAR", "QUARANTINE", "RETENTION"]);
 
 function StorageDeletions() {
   const qc = useQueryClient();
@@ -332,6 +334,7 @@ function StorageDeletions() {
   const [reason, setReason] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [requeueing, setRequeueing] = useState<StorageDeletionRow | null>(null);
+  const [cancelling, setCancelling] = useState<StorageDeletionRow | null>(null);
   const queue = useQuery({
     queryKey: ["mail", "ops", "storage-deletions", status],
     queryFn: async () => (await api.get<{ data: StorageDeletionList }>("/api/mail/v1/admin/storage-deletions", { params: status ? { status } : {} })).data.data,
@@ -339,11 +342,6 @@ function StorageDeletions() {
     refetchInterval: 60_000,
   });
   const refresh = () => qc.invalidateQueries({ queryKey: ["mail", "ops", "storage-deletions"] });
-  const cancel = useMutation({
-    mutationFn: async (row: StorageDeletionRow) => (await api.post(`/api/mail/v1/admin/storage-deletions/${row.id}/cancel`, { reason: reason.trim() })).data,
-    onSuccess: () => { setMsg("Deletion cancelled. The stored object is kept."); refresh(); },
-    onError: (e) => setMsg(classifyMailError(e).message),
-  });
   const reasonOk = reason.trim().length >= 5;
   const data = queue.data;
   return (
@@ -385,11 +383,14 @@ function StorageDeletions() {
                   <span className="text-muted-foreground">{row.attempts}/{row.maxAttempts} attempts{row.lastError ? ` · ${row.lastError}` : ""}</span>
                   <span className="text-[11px] text-muted-foreground">{formatFullDate(row.createdAt)}</span>
                   <span className="ml-auto flex gap-2">
-                    {(row.status === "DEAD" || (row.status === "CANCELLED" && row.lastError === "HELD")) && (
+                    {(row.status === "DEAD" || (row.status === "CANCELLED" && (row.lastError === "HELD" || row.lastError === "CANCELLED_BY_ADMIN"))) && (
                       <button type="button" className={ghost} disabled={!reasonOk} onClick={() => setRequeueing(row)} aria-label={`Requeue deletion ${row.keyHash}`}>Requeue…</button>
                     )}
-                    {row.status === "PENDING" && (
-                      <button type="button" className={ghost} disabled={!reasonOk || cancel.isPending} onClick={() => cancel.mutate(row)} aria-label={`Cancel deletion ${row.keyHash}`}>Cancel</button>
+                    {row.status === "PENDING" && !PROTECTED_DELETION_PURPOSES.has(row.purpose) && (
+                      <button type="button" className={ghost} disabled={!reasonOk} onClick={() => setCancelling(row)} aria-label={`Cancel deletion ${row.keyHash}`}>Cancel…</button>
+                    )}
+                    {row.status === "PENDING" && PROTECTED_DELETION_PURPOSES.has(row.purpose) && (
+                      <span className="text-[11px] text-muted-foreground">Required by {row.purpose.toLowerCase()}: cannot be cancelled</span>
                     )}
                   </span>
                 </li>
@@ -399,6 +400,24 @@ function StorageDeletions() {
         )}
       </PermissionBoundary>
       {msg && <p role="status" className="mt-1 text-[11px] text-muted-foreground">{msg}</p>}
+      {cancelling && (
+        <StepUpDialog
+          purpose="MAIL_STORAGE_DELETION_CANCEL"
+          title={`Cancel deletion #${cancelling.keyHash}`}
+          onCancel={() => setCancelling(null)}
+          onVerified={async (stepUpId) => {
+            const row = cancelling;
+            setCancelling(null);
+            try {
+              await api.post(`/api/mail/v1/admin/storage-deletions/${row.id}/cancel`, { reason: reason.trim(), stepUpId });
+              setMsg("Deletion cancelled. The stored object is kept.");
+              refresh();
+            } catch (e) {
+              setMsg(classifyMailError(e).message);
+            }
+          }}
+        />
+      )}
       {requeueing && (
         <StepUpDialog
           purpose="MAIL_STORAGE_DELETION_REQUEUE"

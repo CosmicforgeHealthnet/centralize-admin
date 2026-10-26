@@ -26,6 +26,13 @@
 //   internal recipient is never "Delivered to receiving server" nor FAILED.
 //   Status derivation ignores internal rows, so a partial provider failure
 //   is judged on external recipients only.
+//   An event whose address list is just the echo of the request's To list
+//   and that list contains internal addresses is not evidence for the
+//   external To rows either (re-audit fix 5): it may be our own MX accepting
+//   the internal copy. It is recorded as unattributed and changes no status;
+//   DELIVERED/DELAYED apply only when an external address is singled out.
+//   External BCC next to internal recipients are sent as individual requests
+//   (outbound.processor.js), so they stay attributable.
 // - The provider's own Message-ID (`message_id` in email webhooks) is stored
 //   as an alias (mail_message_provider_ids, migration 37) when it differs
 //   from ours, for threading and echo dedup. Before migration 37 it is not
@@ -105,7 +112,10 @@ function attribute(message, providerMessageId, type, named) {
   const echoedTo = sameSet(named, toFieldOf(addressed).map((recipient) => recipient.address));
   if (named.length && named.every((address) => internal.has(address)) && !echoedTo) return { targets: [], unattributed: false, internalOnly: true };
   const namedRecipients = batch.filter((recipient) => named.includes(recipient.address));
-  if (!FAILURE_TYPES.has(type)) return { targets: namedRecipients, unattributed: false };
+  if (!FAILURE_TYPES.has(type)) {
+    if (echoedTo && named.some((address) => internal.has(address))) return { targets: [], unattributed: namedRecipients.length > 0 };
+    return { targets: namedRecipients, unattributed: false };
+  }
   if (batch.length === 1 && addressed.length === 1) return { targets: batch, unattributed: false };
   const namedAddressed = addressed.filter((recipient) => named.includes(recipient.address));
   const ambiguous = !namedRecipients.length || sameSet(namedAddressed.map((r) => r.id), toFieldOf(addressed).map((r) => r.id));

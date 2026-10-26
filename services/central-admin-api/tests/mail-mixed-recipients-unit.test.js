@@ -49,18 +49,32 @@ test("origin header: short secret ignored, env keyring fallback verifies across 
 
 test("config: default external-only; full-headers refused without a key; never leaks the secret", () => {
   assert.equal(loadMailConfig({}).mixedRecipients.mode, "external-only");
-  const refused = loadMailConfig({ MAIL_MIXED_RECIPIENT_MODE: "full-headers", MAIL_KMS_PROVIDER: "aws-kms" });
+  const refused = loadMailConfig({ MAIL_RECEIVING_CUTOVER_CONFIRMED: "true", MAIL_MIXED_RECIPIENT_MODE: "full-headers", MAIL_KMS_PROVIDER: "aws-kms" });
   assert.equal(refused.mixedRecipients.mode, "external-only");
   assert.equal(refused.mixedRecipients.refusedReason, "MAIL_ORIGIN_HEADER_SECRET_MISSING");
-  assert.equal(loadMailConfig({ MAIL_MIXED_RECIPIENT_MODE: "full-headers" }).mixedRecipients.mode, "external-only");
-  assert.equal(loadMailConfig({ MAIL_MIXED_RECIPIENT_MODE: "full-headers", MAIL_ORIGIN_HEADER_SECRET: "too-short" }).mixedRecipients.secretTooShort, true);
-  assert.equal(loadMailConfig({ MAIL_MIXED_RECIPIENT_MODE: "full-headers", MAIL_ENCRYPTION_KEYS: KEYS }).mixedRecipients.mode, "full-headers");
-  const enabled = loadMailConfig({ MAIL_MIXED_RECIPIENT_MODE: "Full-Headers", MAIL_ORIGIN_HEADER_SECRET: SECRET, MAIL_KMS_PROVIDER: "aws-kms" });
+  assert.equal(loadMailConfig({ MAIL_RECEIVING_CUTOVER_CONFIRMED: "true", MAIL_MIXED_RECIPIENT_MODE: "full-headers" }).mixedRecipients.mode, "external-only");
+  assert.equal(loadMailConfig({ MAIL_RECEIVING_CUTOVER_CONFIRMED: "true", MAIL_MIXED_RECIPIENT_MODE: "full-headers", MAIL_ORIGIN_HEADER_SECRET: "too-short" }).mixedRecipients.secretTooShort, true);
+  assert.equal(loadMailConfig({ MAIL_RECEIVING_CUTOVER_CONFIRMED: "true", MAIL_MIXED_RECIPIENT_MODE: "full-headers", MAIL_ENCRYPTION_KEYS: KEYS }).mixedRecipients.mode, "full-headers");
+  const enabled = loadMailConfig({ MAIL_RECEIVING_CUTOVER_CONFIRMED: "true", MAIL_MIXED_RECIPIENT_MODE: "Full-Headers", MAIL_ORIGIN_HEADER_SECRET: SECRET, MAIL_KMS_PROVIDER: "aws-kms" });
   assert.equal(enabled.mixedRecipients.mode, "full-headers");
   assert.equal(loadMailConfig({ MAIL_MIXED_RECIPIENT_MODE: "everything" }).mixedRecipients.refusedReason, "MAIL_MIXED_RECIPIENT_MODE_UNKNOWN");
   const status = publicStatus(enabled);
   assert.deepEqual(status.mixedRecipients, { mode: "full-headers", requestedMode: "full-headers", refusedReason: null });
   assert.ok(!JSON.stringify(status).includes(SECRET));
+});
+
+// Re-audit 7b: full-headers needs the explicit receiving-cutover switch.
+test("config: full-headers refused until MAIL_RECEIVING_CUTOVER_CONFIRMED=true", () => {
+  const withKey = { MAIL_MIXED_RECIPIENT_MODE: "full-headers", MAIL_ORIGIN_HEADER_SECRET: SECRET, MAIL_KMS_PROVIDER: "aws-kms" };
+  for (const flagValue of [undefined, "", "false", "1", "yes"]) {
+    const config = loadMailConfig({ ...withKey, ...(flagValue === undefined ? {} : { MAIL_RECEIVING_CUTOVER_CONFIRMED: flagValue }) });
+    assert.equal(config.mixedRecipients.mode, "external-only", `flag=${flagValue}`);
+    assert.equal(config.mixedRecipients.refusedReason, "MAIL_RECEIVING_CUTOVER_NOT_CONFIRMED");
+    assert.deepEqual(publicStatus(config).mixedRecipients, { mode: "external-only", requestedMode: "full-headers", refusedReason: "MAIL_RECEIVING_CUTOVER_NOT_CONFIRMED" });
+  }
+  assert.equal(loadMailConfig({ ...withKey, MAIL_RECEIVING_CUTOVER_CONFIRMED: "true" }).mixedRecipients.mode, "full-headers");
+  // The flag alone never enables anything.
+  assert.equal(loadMailConfig({ MAIL_RECEIVING_CUTOVER_CONFIRMED: "true" }).mixedRecipients.mode, "external-only");
 });
 
 function r(id, type, status, address = `${id}@x.example`) {
@@ -78,8 +92,12 @@ test("plan external-only: unchanged behaviour (externals only, Cc promotion, ind
 test("plan full-headers: visible To/Cc of every status, external BCC only, origin only when internal addressed", () => {
   const recipients = [r("i1", "TO", "INTERNAL_DELIVERED"), r("e1", "TO", "PENDING"), r("e2", "CC", "PENDING"), r("i2", "CC", "INTERNAL_DELIVERED"), r("e3", "BCC", "PENDING"), r("i3", "BCC", "INTERNAL_DELIVERED")];
   const [batch, ...rest] = buildDeliveryPlan(recipients, { mode: "full-headers", origin: "o" });
-  assert.equal(rest.length, 0);
-  assert.deepEqual(batch, { to: ["i1", "e1"], cc: ["e2", "i2"], bcc: ["e3"], fullHeaders: true, internal: ["i1", "i2"], origin: "o" });
+  // Re-audit fix 5: with internal recipients in the headers, external BCC get
+  // individual (attributable) requests instead of riding the main request.
+  assert.deepEqual(batch, { to: ["i1", "e1"], cc: ["e2", "i2"], bcc: [], fullHeaders: true, internal: ["i1", "i2"], origin: "o" });
+  assert.deepEqual(rest, [{ to: ["e3"], cc: [], bcc: [], individualBcc: true, fullHeaders: true, internal: [] }]);
+  // Without internal header recipients the BCC stays on the main request.
+  assert.deepEqual(buildDeliveryPlan([r("e1", "TO", "PENDING"), r("e3", "BCC", "PENDING")], { mode: "full-headers", origin: "o" }), [{ to: ["e1"], cc: [], bcc: ["e3"], fullHeaders: true, internal: [] }]);
   assert.deepEqual(buildDeliveryPlan([r("i1", "CC", "INTERNAL_DELIVERED"), r("e1", "CC", "PENDING")], { mode: "full-headers", origin: "o" }), [{ to: ["i1", "e1"], cc: [], bcc: [], promotedCc: true, fullHeaders: true, internal: ["i1"], origin: "o" }]);
   assert.deepEqual(buildDeliveryPlan([r("e1", "TO", "PENDING"), r("i3", "BCC", "INTERNAL_DELIVERED")], { mode: "full-headers", origin: "o" }), [{ to: ["e1"], cc: [], bcc: [], fullHeaders: true, internal: [] }]);
   assert.deepEqual(buildDeliveryPlan([r("e1", "BCC", "PENDING"), r("i3", "BCC", "INTERNAL_DELIVERED")], { mode: "full-headers", origin: "o" }).map((b) => b.to), [["e1"]]);
@@ -100,7 +118,11 @@ test("attribution: internal-only evidence ignored, To-list echo unattributed, ex
   assert.equal(attribute(message, P, "BOUNCED", ["erin@us.example"]).internalOnly, true);
   assert.equal(attribute(message, P, "DELIVERED", ["erin@us.example"]).internalOnly, true);
   assert.deepEqual(attribute(message, P, "BOUNCED", ["b@x.example"]).targets.map((t) => t.id), ["e2"]);
-  assert.deepEqual(attribute(message, P, "DELIVERED", ["a@x.example", "erin@us.example"]).targets.map((t) => t.id), ["e1"]);
+  // Re-audit fix 5: a DELIVERED that only echoes a To list containing an
+  // internal address may be our MX accepting the internal copy: no change.
+  assert.deepEqual(attribute(message, P, "DELIVERED", ["a@x.example", "erin@us.example"]), { targets: [], unattributed: true });
+  assert.deepEqual(attribute(message, P, "DELIVERY_DELAYED", ["erin@us.example", "a@x.example"]).targets, []);
+  assert.deepEqual(attribute(message, P, "DELIVERED", ["a@x.example"]).targets.map((t) => t.id), ["e1"], "explicitly named external address");
   // One external + internal in the same request: not a single-recipient batch.
   const single = { providerMessageId: P, recipients: [message.recipients[0], { ...message.recipients[2] }] };
   assert.deepEqual(attribute(single, P, "BOUNCED", []), { targets: [], unattributed: true });

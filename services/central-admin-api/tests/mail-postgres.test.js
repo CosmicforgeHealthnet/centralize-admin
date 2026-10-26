@@ -1202,9 +1202,28 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       assert.equal(quotaJob.lastErrorCode, "PROVIDER_QUOTA_EXHAUSTED");
       assert.ok(quotaJob.nextAttemptAt.getTime() > harness.clock().getTime(), "deferred to the quota reset");
       assert.equal((await client.mailMessageRecipient.findFirst({ where: { messageId: quotaSend.body.data.messageId } })).status, "PENDING");
+      // Re-audit 7a (spec 11.6): the sender is told once (an alert, never the
+      // suppressible NEW_MAIL kind) and the status API explains the wait.
+      const quotaSender = (await client.mailMessage.findUnique({ where: { id: quotaSend.body.data.messageId } })).sentByAdminUserId;
+      const waitNotices = () => client.notification.count({ where: { adminUserId: quotaSender, title: "Email waiting for provider quota reset" } });
+      assert.equal(await waitNotices(), 1);
+      const waiting = await call("alice", "GET", `/messages/${quotaSend.body.data.messageId}/status`);
+      assert.equal(waiting.status, 200, waiting.text);
+      assert.equal(waiting.body.data.status, "QUEUED");
+      assert.equal(waiting.body.data.statusDetail.code, "PROVIDER_QUOTA_WAIT");
+      assert.equal(waiting.body.data.statusDetail.quotaKind, "DAILY");
+      assert.ok(new Date(waiting.body.data.statusDetail.until).getTime() > harness.clock().getTime());
+      assert.match(waiting.body.data.statusDetail.message, /^Waiting for provider quota reset \(until /);
+      // A second quota refusal for the same send does not notify again.
+      harness.adapter.failNext("sendMessage", "QUOTA_EXHAUSTED", "DAILY", { now: new Date(quotaJob.nextAttemptAt.getTime() + 1000) });
+      harness.advance(quotaJob.nextAttemptAt.getTime() - harness.clock().getTime() + 1000);
+      await drain();
+      assert.equal((await client.mailOutboxJob.findUnique({ where: { id: quotaSend.body.data.jobId } })).lastErrorCode, "PROVIDER_QUOTA_EXHAUSTED");
+      assert.equal(await waitNotices(), 1, "notified once per send");
       harness.advance(25 * 3600000);
       await drain();
       assert.equal(harness.adapter.state.sent.filter((entry) => entry.to.some((party) => party.address === "q8@partner.example")).length, 1, "sent once after the reset");
+      assert.equal((await call("alice", "GET", `/messages/${quotaSend.body.data.messageId}/status`)).body.data.statusDetail, null, "no wait reported after the send");
     });
 
     await t.test("Regression: staff send policy (suppression, links, size, Reply-To, internal copies, idempotency)", async () => {
@@ -1319,7 +1338,16 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
         const stillDown = await down.services.attachmentReview.rescanAttachment(mailAdmin, unscanned.attachment.id, {});
         assert.equal(stillDown.downloadable, false, "rescan during an outage stays quarantined");
         const cleared = await live.services.attachmentReview.rescanAttachment(mailAdmin, unscanned.attachment.id, {});
-        assert.deepEqual({ scanStatus: cleared.scanStatus, downloadable: cleared.downloadable }, { scanStatus: "CLEAN", downloadable: true });
+        // Re-audit fix 3: with migration 37 a clean rescan records the verdict
+        // but never releases; release is an IT quarantine decision (step-up).
+        assert.deepEqual({ scanStatus: cleared.scanStatus, downloadable: cleared.downloadable, releaseRequired: cleared.releaseRequired }, { scanStatus: "CLEAN", downloadable: false, releaseRequired: true });
+        assert.equal((await call("alice", "GET", `/attachments/${unscanned.attachment.id}/download`)).status, 403, "still quarantined after a clean rescan");
+        await client.adminMfaEnrollment.upsert({ where: { adminUserId: ids.mailAdmin }, create: { adminUserId: ids.mailAdmin, enrolledAt: new Date(harness.clock().getTime() - 86400000), secretEncrypted: encryptSecret(decodeBase32(TOTP_SECRET), ids.mailAdmin), updatedAt: new Date() }, update: {} });
+        harness.advance(31000);
+        const releaseStepUp = await call("mailAdmin", "POST", "/security/step-up", { code: totp(harness.clock), purpose: "MAIL_QUARANTINE_RELEASE" });
+        assert.equal(releaseStepUp.status, 201, releaseStepUp.text);
+        const released = await call("mailAdmin", "POST", `/admin/quarantine/attachments/${unscanned.attachment.id}/release`, { reason: "Clean after rescan", stepUpId: releaseStepUp.body.data.stepUpId });
+        assert.equal(released.status, 200, released.text);
         const download = await call("alice", "GET", `/attachments/${unscanned.attachment.id}/download`);
         assert.equal(download.status, 200);
         assert.equal(download.text, "quarterly numbers");

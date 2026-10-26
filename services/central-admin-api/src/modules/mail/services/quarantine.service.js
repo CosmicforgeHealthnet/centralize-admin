@@ -14,7 +14,15 @@
 // prefix (never the full address), quarantine reason code and category,
 // attachment filename/type/size and scan status/detail, and the decision
 // history. Never subjects, bodies, previews, headers or downloads; acting on
-// quarantine never grants the administrator mailbox access.
+// quarantine never grants the administrator mailbox access. Files of private
+// drafts (outbound, not yet sent) show only their extension and size, never
+// the filename the author chose.
+//
+// Decision reasons are operator free text (5-500 chars, control characters
+// stripped) stored in the append-only decision log. They are shown to mail
+// administrators only and MUST NOT contain message content (subjects, bodies,
+// file contents); the UI says so. Retention purges of a message remove its
+// decision rows (inside the purge transaction).
 //
 // Categories: MALWARE (scanner detection), AUTH_POLICY (spoofed own domain /
 // failed sender authentication), SPAM (provider verdict), POLICY (POLICY_*
@@ -23,7 +31,9 @@
 //
 // Actions (each appends a mail_quarantine_decisions row - append-only,
 // UPDATE/DELETE refused by trigger - and an audit event):
-//   rescan attachment   reuses attachment-review (RESCAN_REQUESTED);
+//   rescan attachment   reuses attachment-review (RESCAN_REQUESTED); it only
+//                       records the new verdict and NEVER releases: a clean
+//                       file stays quarantined until an explicit release;
 //   release attachment  only when its latest scan is CLEAN; INFECTED never,
 //                       POLICY_* blocked types never (no override exists);
 //   release message     only when the reason is not MALWARE and every stored
@@ -92,7 +102,7 @@ function createQuarantineService({ client, audit, stepUp, feature = null, archiv
   }
 
   function cleanReason(reason, { required = true } = {}) {
-    const value = String(reason || "").trim();
+    const value = String(reason || "").replace(/[\u0000-\u001f\u007f]+/g, " ").replace(/\s+/g, " ").trim();
     if (!value && !required) return null;
     if (value.length < 5 || value.length > 500) throw mailError("MAIL_VALIDATION_FAILED", { field: "reason", reason: "REASON_REQUIRED" });
     return value;
@@ -189,6 +199,13 @@ function createQuarantineService({ client, audit, stepUp, feature = null, archiv
   }
 
   // ---- serialization (metadata only) ----
+  // Private draft files: extension only (e.g. "*.pdf"), never the name.
+  function maskedFilename(attachment) {
+    if (attachment.messageId) return attachment.filename;
+    const match = /\.([A-Za-z0-9]{1,10})$/.exec(String(attachment.filename || ""));
+    return match ? `*.${match[1].toLowerCase()}` : "(draft file)";
+  }
+
   function serializeAttachment(attachment, actionsReady) {
     const blockers = attachmentReleaseBlockers(attachment);
     return {
@@ -199,7 +216,8 @@ function createQuarantineService({ client, audit, stepUp, feature = null, archiv
       draftId: attachment.draftId,
       mailboxId: attachment.mailboxId,
       createdAt: iso(attachment.createdAt),
-      filename: attachment.filename,
+      filename: maskedFilename(attachment),
+      filenameMasked: !attachment.messageId,
       contentType: attachment.contentType,
       sizeBytes: attachment.sizeBytes,
       scanStatus: attachment.scanStatus,
@@ -415,6 +433,9 @@ function createQuarantineService({ client, audit, stepUp, feature = null, archiv
       await tx.mailMessageArchive.deleteMany({ where: { messageId: message.id } });
       await tx.mailMessageSearchIndex.deleteMany({ where: { messageId: message.id } });
     }
+    // Provider-assigned Message-ID aliases go with the content (migration 37;
+    // this path only runs when the quarantine actions are available).
+    if (await ready()) await tx.mailMessageProviderId.deleteMany({ where: { messageId: message.id } });
     const attachments = await tx.mailAttachment.findMany({ where: { messageId: message.id }, select: { storageKey: true } });
     await deletions.dropAttachments(tx, { messageId: message.id });
     await tx.mailDeliveryEvent.deleteMany({ where: { messageId: message.id } });

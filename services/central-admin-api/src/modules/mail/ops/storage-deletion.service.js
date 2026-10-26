@@ -21,9 +21,13 @@
 //      replacement written under it) is CANCELLED with reason REFERENCED and
 //      never deleted;
 //   2. re-check legal holds (organization-wide, mailbox, subject owning the
-//      mailbox). A held key is CANCELLED with reason HELD and audited: the
-//      object is kept for the hold, and an operator may requeue the row once
-//      the hold is released (requeue needs an MFA step-up);
+//      mailbox, and subject holds on the people of the source: thread senders
+//      for a thread/message/attachment source, the author for a draft source,
+//      resolved from sourceType/sourceId). A row with no organization and no
+//      mailbox is treated conservatively: any active org-wide hold (in any
+//      organization) holds it. A held key is CANCELLED with reason HELD and
+//      audited: the object is kept for the hold, and an operator may requeue
+//      the row once the hold is released (requeue needs an MFA step-up);
 //   3. delete. A missing object (404) counts as done, so deletion is
 //      idempotent. Transient errors schedule a retry with bounded exponential
 //      backoff and full jitter (base MAIL_STORAGE_DELETION_BACKOFF_BASE_SECONDS,
@@ -31,6 +35,24 @@
 //      DEAD (manual review in Mail operations).
 // The partial unique index UQ_mail_storage_deletions_open_object keeps one
 // open (PENDING/RUNNING) row per key, so duplicate enqueues are no-ops.
+//
+// Concurrency (re-audit fix 2): enqueue takes a transaction-scoped advisory
+// lock per key (pg_advisory_xact_lock(hashtext('mail-obj:'||key)), keys in
+// sorted order so two transactions never deadlock on each other) BEFORE the
+// reference check. Two transactions that each drop one of the last two
+// references to a key are therefore serialized: the second one's check runs
+// after the first committed and sees no reference left, so the object is
+// always queued by one of them (under READ COMMITTED each statement sees the
+// latest committed rows). Every caller drops its references before calling
+// enqueue in the same transaction, which this ordering relies on.
+// Known limit: there is no storage-listing orphan sweep (not every backend can
+// list objects); a key orphaned by a path that bypasses enqueue is not found.
+//
+// Cancel (admin): only for COMPOSE/OBJECT rows. Deletions requested by a DSAR
+// erasure, an IT quarantine reject/delete or a retention purge cannot be
+// cancelled (MAIL_INVALID_TRANSITION reason PROTECTED_DELETION). Cancel needs
+// a reason and the MFA step-up MAIL_STORAGE_DELETION_CANCEL; an admin-cancelled
+// row can be requeued later (requeue step-up).
 //
 // Before migration 37 (features.finalGap not ready) nothing touches the table:
 // callers keep the previous inline, best-effort deletion (never throwing), and
@@ -44,6 +66,9 @@ const policy = require("../authz/mail.policy");
 const { mailError } = require("../mail.errors");
 
 const STATUSES = ["PENDING", "RUNNING", "DONE", "DEAD", "CANCELLED"];
+// Deletions an administrator may never cancel (legal/IT/retention mandates).
+const PROTECTED_PURPOSES = new Set(["DSAR", "QUARANTINE", "RETENTION"]);
+const REQUEUEABLE_CANCELS = new Set(["HELD", "CANCELLED_BY_ADMIN"]);
 const DEFAULTS = { maxAttempts: 12, baseSeconds: 30, capSeconds: 21600, batchSize: 100, leaseSeconds: 300, intervalSeconds: 300 };
 
 function keyHash(key) {
@@ -104,7 +129,12 @@ function createStorageDeletionService({ client, config = {}, storage, audit, ste
   async function scopeHeld({ organizationId = null, mailboxId = null, adminUserIds = [] } = {}) {
     let orgId = organizationId;
     if (!orgId && mailboxId) orgId = (await client.mailMailbox.findUnique({ where: { id: mailboxId }, select: { organizationId: true } }))?.organizationId || null;
-    if (!orgId && !mailboxId) return false;
+    if (!orgId && !mailboxId) {
+      // No scope at all: conservative - any org-wide hold anywhere, or a
+      // subject hold on one of the people, keeps the object.
+      const all = await holdState(null);
+      return all.orgWide.size > 0 || adminUserIds.filter(Boolean).some((id) => all.subjects.includes(id));
+    }
     const holds = await holdState(orgId);
     if (orgId && holds.orgWide.has(orgId)) return true;
     if (mailboxId && holds.mailboxes.has(mailboxId)) return true;
@@ -122,6 +152,9 @@ function createStorageDeletionService({ client, config = {}, storage, audit, ste
     const withArchives = await archivesReady();
     const queued = [];
     let shared = 0;
+    // Serialize concurrent drops of the last references to the same key
+    // (sorted: a stable lock order across transactions).
+    for (const key of [...unique].sort()) await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`mail-obj:${key}`}))`;
     for (const key of unique) {
       if (await objectReferenced(tx, key, { archivesReady: withArchives })) shared += 1;
       else queued.push(key);
@@ -185,7 +218,7 @@ function createStorageDeletionService({ client, config = {}, storage, audit, ste
         )
         UPDATE "mail_storage_deletions" AS d SET "status" = 'RUNNING', "lease_until" = ${leaseUntil}, "updated_at" = ${at}
         FROM picked WHERE d."id" = picked."id"
-        RETURNING d."id", d."object_key" AS "objectKey", d."attempts", d."organization_id" AS "organizationId", d."mailbox_id" AS "mailboxId", d."purpose", d."reason"`;
+        RETURNING d."id", d."object_key" AS "objectKey", d."attempts", d."organization_id" AS "organizationId", d."mailbox_id" AS "mailboxId", d."purpose", d."reason", d."source_type" AS "sourceType", d."source_id" AS "sourceId", d."requested_by" AS "requestedBy"`;
     }
     return client.$queryRaw`
       WITH picked AS (
@@ -197,7 +230,7 @@ function createStorageDeletionService({ client, config = {}, storage, audit, ste
       )
       UPDATE "mail_storage_deletions" AS d SET "status" = 'RUNNING', "lease_until" = ${leaseUntil}, "updated_at" = ${at}
       FROM picked WHERE d."id" = picked."id"
-      RETURNING d."id", d."object_key" AS "objectKey", d."attempts", d."organization_id" AS "organizationId", d."mailbox_id" AS "mailboxId", d."purpose", d."reason"`;
+      RETURNING d."id", d."object_key" AS "objectKey", d."attempts", d."organization_id" AS "organizationId", d."mailbox_id" AS "mailboxId", d."purpose", d."reason", d."source_type" AS "sourceType", d."source_id" AS "sourceId", d."requested_by" AS "requestedBy"`;
   }
 
   // Finishes a claimed row; refused (count 0) when the lease was lost.
@@ -205,6 +238,45 @@ function createStorageDeletionService({ client, config = {}, storage, audit, ste
     const at = clock();
     const result = await client.mailStorageDeletion.updateMany({ where: { id: row.id, status: "RUNNING" }, data: { ...data, leaseUntil: null, updatedAt: at } });
     return result.count === 1;
+  }
+
+  // People whose subject holds protect the row's source (re-audit fix 6).
+  async function threadSenders(threadId) {
+    if (!threadId) return [];
+    const rows = await client.mailMessage.findMany({ where: { threadId, sentByAdminUserId: { not: null } }, select: { sentByAdminUserId: true }, distinct: ["sentByAdminUserId"] });
+    return rows.map((row) => row.sentByAdminUserId);
+  }
+
+  async function sourceScope(row) {
+    const type = String(row.sourceType || "").toLowerCase();
+    const id = row.sourceId;
+    const scope = { mailboxId: row.mailboxId || null, people: [] };
+    if (!id || !policy.isUuid(id)) return scope;
+    let threadId = null;
+    if (type === "thread") {
+      const thread = await client.mailThread.findUnique({ where: { id }, select: { id: true, mailboxId: true } });
+      threadId = thread?.id || null;
+      scope.mailboxId = scope.mailboxId || thread?.mailboxId || null;
+    } else if (type === "message") {
+      const message = await client.mailMessage.findUnique({ where: { id }, select: { threadId: true, mailboxId: true, sentByAdminUserId: true } });
+      threadId = message?.threadId || null;
+      scope.mailboxId = scope.mailboxId || message?.mailboxId || null;
+      scope.people.push(message?.sentByAdminUserId);
+    } else if (type === "attachment") {
+      const attachment = await client.mailAttachment.findUnique({ where: { id }, select: { mailboxId: true, uploadedByAdminUserId: true, message: { select: { threadId: true, sentByAdminUserId: true } }, draft: { select: { authorAdminUserId: true, threadId: true } } } });
+      threadId = attachment?.message?.threadId || attachment?.draft?.threadId || null;
+      scope.mailboxId = scope.mailboxId || attachment?.mailboxId || null;
+      scope.people.push(attachment?.message?.sentByAdminUserId, attachment?.draft?.authorAdminUserId, attachment?.uploadedByAdminUserId);
+    } else if (type === "draft") {
+      const draft = await client.mailDraft.findUnique({ where: { id }, select: { authorAdminUserId: true, threadId: true, mailboxId: true } });
+      threadId = draft?.threadId || null;
+      scope.mailboxId = scope.mailboxId || draft?.mailboxId || null;
+      // Compose rows record the author as requestedBy (the draft may be gone).
+      scope.people.push(draft?.authorAdminUserId || row.requestedBy);
+    }
+    if (threadId) scope.people.push(...(await threadSenders(threadId)));
+    scope.people = [...new Set(scope.people.filter(Boolean))];
+    return scope;
   }
 
   async function processRow(row, holdCache) {
@@ -215,8 +287,9 @@ function createStorageDeletionService({ client, config = {}, storage, audit, ste
         await finish(row, { status: "CANCELLED", lastError: "REFERENCED", completedAt: at });
         return "referenced";
       }
-      const holdKey = `${row.organizationId || "-"}:${row.mailboxId || "-"}`;
-      if (!holdCache.has(holdKey)) holdCache.set(holdKey, await scopeHeld({ organizationId: row.organizationId, mailboxId: row.mailboxId }));
+      const scope = await sourceScope(row);
+      const holdKey = `${row.organizationId || "-"}:${scope.mailboxId || "-"}:${scope.people.sort().join(",")}`;
+      if (!holdCache.has(holdKey)) holdCache.set(holdKey, await scopeHeld({ organizationId: row.organizationId, mailboxId: scope.mailboxId, adminUserIds: scope.people }));
       if (holdCache.get(holdKey)) {
         if (await finish(row, { status: "CANCELLED", lastError: "HELD", completedAt: at })) {
           await audit?.record({ action: "MAIL_STORAGE_DELETION_HELD", targetType: "mail_storage_deletion", targetId: row.id, organizationId: row.organizationId, mailboxId: row.mailboxId, outcome: "DENIED", metadata: meta }).catch(() => {});
@@ -395,7 +468,7 @@ function createStorageDeletionService({ client, config = {}, storage, audit, ste
     await requireReady();
     const why = cleanReason(reason);
     const row = await load(id);
-    const requeueable = row.status === "DEAD" || (row.status === "CANCELLED" && row.lastError === "HELD");
+    const requeueable = row.status === "DEAD" || (row.status === "CANCELLED" && REQUEUEABLE_CANCELS.has(row.lastError));
     if (!requeueable) throw mailError("MAIL_INVALID_TRANSITION", { from: row.status, reason: "NOT_REQUEUEABLE" });
     const at = clock();
     try {
@@ -413,21 +486,30 @@ function createStorageDeletionService({ client, config = {}, storage, audit, ste
     return serialize(await client.mailStorageDeletion.findUnique({ where: { id: row.id } }));
   }
 
-  // Cancelling keeps the object; only PENDING rows (not one being executed).
-  async function cancel(user, id, { reason } = {}, context = {}) {
+  // Cancelling keeps the object; only PENDING rows (not one being executed),
+  // never a DSAR / quarantine / retention mandated deletion, with a reason
+  // and an MFA step-up (MAIL_STORAGE_DELETION_CANCEL).
+  async function cancel(user, id, { stepUpId, reason } = {}, context = {}) {
     await policy.requireMailAdmin(client, user, "EDIT");
     await requireReady();
     const why = cleanReason(reason);
     const row = await load(id);
+    if (PROTECTED_PURPOSES.has(row.purpose)) {
+      await audit.record({ actorAdminUserId: user.id, action: "MAIL_STORAGE_DELETION_CANCEL_REFUSED", targetType: "mail_storage_deletion", targetId: row.id, organizationId: row.organizationId, mailboxId: row.mailboxId, outcome: "DENIED", metadata: { keyHash: keyHash(row.objectKey), purpose: row.purpose } }, context).catch(() => {});
+      throw mailError("MAIL_INVALID_TRANSITION", { reason: "PROTECTED_DELETION", purpose: row.purpose }, "Deletions requested by a data-subject erasure, an IT quarantine decision or a retention purge cannot be cancelled.");
+    }
     if (row.status !== "PENDING") throw mailError("MAIL_INVALID_TRANSITION", { from: row.status });
     const at = clock();
-    const changed = await client.mailStorageDeletion.updateMany({ where: { id: row.id, status: "PENDING" }, data: { status: "CANCELLED", lastError: "CANCELLED_BY_ADMIN", completedAt: at, requestedBy: user.id, updatedAt: at } });
-    if (changed.count !== 1) throw mailError("MAIL_INVALID_TRANSITION", { from: "RUNNING" });
-    await audit.record({ actorAdminUserId: user.id, action: "MAIL_STORAGE_DELETION_CANCELLED", targetType: "mail_storage_deletion", targetId: row.id, organizationId: row.organizationId, mailboxId: row.mailboxId, metadata: { keyHash: keyHash(row.objectKey), reason: why } }, context);
+    await client.$transaction(async (tx) => {
+      await stepUp.consume(tx, user, stepUpId, "MAIL_STORAGE_DELETION_CANCEL", context);
+      const changed = await tx.mailStorageDeletion.updateMany({ where: { id: row.id, status: "PENDING" }, data: { status: "CANCELLED", lastError: "CANCELLED_BY_ADMIN", completedAt: at, requestedBy: user.id, updatedAt: at } });
+      if (changed.count !== 1) throw mailError("MAIL_INVALID_TRANSITION", { from: "RUNNING" });
+      await audit.record({ actorAdminUserId: user.id, action: "MAIL_STORAGE_DELETION_CANCELLED", targetType: "mail_storage_deletion", targetId: row.id, organizationId: row.organizationId, mailboxId: row.mailboxId, metadata: { keyHash: keyHash(row.objectKey), purpose: row.purpose, reason: why } }, context, tx);
+    });
     return serialize(await client.mailStorageDeletion.findUnique({ where: { id: row.id } }));
   }
 
   return { ready, enqueue, settle, dropAttachments, scopeHeld, processDue, hasDue, claim, stats, list, requeue, cancel, backoffSeconds, settings };
 }
 
-module.exports = { createStorageDeletionService, objectReferenced, keyHash, STATUSES };
+module.exports = { createStorageDeletionService, objectReferenced, keyHash, STATUSES, PROTECTED_PURPOSES };

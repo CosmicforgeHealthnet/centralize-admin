@@ -172,7 +172,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const resolveMarketingProvider = createMarketingProviderResolver({ config, env, adapter: marketingAdapter, adapters: marketingAdapters, quotaObserver: providerQuota.observer });
   const marketingProviders = (organization) => metrics.instrumentProvider(resolveMarketingProvider(organization), "marketing");
   // Gaps 2/3: re-subscription workflow and pricing (503 before migration 37).
-  const resubscriptions = createResubscriptionService({ client, config, features: finalGapFeature, audit, stepUp, jobs, marketingProviders, clock, logger });
+  const resubscriptions = createResubscriptionService({ client, config, env, features: finalGapFeature, audit, stepUp, jobs, marketingProviders, clock, logger });
   const pricing = createPricingService({ client, features: finalGapFeature, audit, stepUp, clock, logger });
   const confirmation = createConfirmationService({ client, config, audit, jobs, encryption: resolvedEncryption, marketingProviders, runtime, usage, resubscriptions, clock });
   // Gaps 1 + 7: one template policy (gated on migration 37) shared by every
@@ -180,7 +180,28 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   // transactional adapter (read-only GET; UNKNOWN when unreachable).
   const templatePolicy = registerTemplatePolicy(client, createTemplatePolicy({ client, feature: finalGapFeature, logger }));
   const validateDomain = (providerDomainId) => resolvedAdapter.validateDomain(providerDomainId);
-  registerDeliverability(client, { validateDomain });
+  // --- re-audit (marketing preflight) ----------------------------------------
+  // Broadcasts and automations send with the brand's marketing key, which may
+  // be another provider account: verify the domain there (adapter
+  // getDomainByName), else report UNKNOWN. The offline fake provider is one
+  // account for both. Quota state uses the scope of the account that sends.
+  const marketingAccount = async (organizationId) => {
+    const organization = await client.mailOrganization.findUnique({ where: { id: organizationId }, select: { id: true, slug: true } });
+    const provider = marketingProviders(organization);
+    if (typeof provider.getDomainByName === "function") return { separate: true, lookup: (name) => provider.getDomainByName(name) };
+    if (config.provider === "fake") return { separate: false };
+    return { separate: true, lookup: null, reason: provider.configured === false ? "MARKETING_PROVIDER_NOT_CONFIGURED" : "NO_DOMAIN_LOOKUP" };
+  };
+  const quotaState = async (organizationId) => {
+    if (!(await providerQuota.ready())) return { status: "UNAVAILABLE", reason: "Provider quota is not available until the final gap-closure migration is applied" };
+    const organization = await client.mailOrganization.findUnique({ where: { id: organizationId }, select: { slug: true } });
+    if (config.provider === "fake") return providerQuota.snapshot("account", "fake");
+    const { resolveBrandApiKey, quotaScopeFor } = require("./adapters/marketing");
+    const scope = quotaScopeFor(organization.slug, resolveBrandApiKey(organization.slug, { env, config }).source);
+    return scope ? providerQuota.snapshot(scope, "resend") : { status: "UNAVAILABLE", reason: "No marketing provider account is configured for this brand" };
+  };
+  registerDeliverability(client, { validateDomain, marketingAccount, quotaState });
+  // --- end re-audit ------------------------------------------------------------
   const testSends = createTestSendService({ client, config, audit, jobs, marketingProviders, runtime, usage, clock, templatePolicy });
   const marketing = createMarketingService({ client, config, audit, stepUp, clock, templatePolicy, hooks: { onConfirmationRequired: confirmation.onConfirmationRequired, quotaCheck: (organizationId, count) => usage.check(organizationId, "MARKETING_BROADCAST", count), validateDomain } });
   // Gap 2: a verified double opt-in may open a provider re-subscription request.
@@ -194,7 +215,8 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const automationReplays = createAutomationReplayService({ client, config, audit, stepUp, jobs, feature: finalGapFeature, clock });
   const publicPreferences = createPublicPreferencesService({ client, config, audit, marketing, clock });
   const integrations = createIntegrationService({ client, config, audit, stepUp, automations, notifications, rollout, rateLimiter, env, clock, logger });
-  const attachmentReview = createAttachmentReviewService({ client, config, store, scanner: resolvedScanner, audit });
+  // Re-audit fix 3: with migration 37 a rescan never releases (release is an IT quarantine decision).
+  const attachmentReview = createAttachmentReviewService({ client, config, store, scanner: resolvedScanner, audit, feature: finalGapFeature });
 
   const inbound = createInboundProcessor({ client, config, adapter: resolvedAdapter, store, scanner: resolvedScanner, audit, notifications, usage, archive, forwarding, campaignReplies, senderAuth: loadSenderAuthPolicy(env), clock, logger });
   const outbound = createOutboundProcessor({ client, config, adapter: resolvedAdapter, store, audit, notifications, runtime, usage, forwarding, features: { finalGap: finalGapFeature }, clock });
@@ -205,7 +227,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
 
   const retention = createRetentionService({ client, config, audit, jobs, stepUp, clock });
   const retentionProcessor = createRetentionProcessor({ client, config, audit, storage, features, deletions: storageDeletions, clock, logger });
-  const dsar = createDsarService({ client, audit, stepUp, storage, features, deletions: storageDeletions, clock });
+  const dsar = createDsarService({ client, audit, stepUp, storage, features, finalGap: finalGapFeature, deletions: storageDeletions, clock });
   // Gap 6: IT quarantine (list read-only before migration 37; actions 503).
   const quarantine = createQuarantineService({ client, audit, stepUp, feature: finalGapFeature, archiveFeature: features, deletions: storageDeletions, attachmentReview, notifications, clock, logger });
   // `health` is a hoisted function declaration below.

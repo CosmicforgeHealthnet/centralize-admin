@@ -41,6 +41,8 @@ export interface QuarantineItem {
   authVerdict?: string | null;
   attachments?: QAttachment[];
   filename?: string;
+  // Private draft files: the server sends only "*.ext" (never the name).
+  filenameMasked?: boolean;
   contentType?: string;
   scanStatus?: string;
   scanDetail?: string | null;
@@ -155,7 +157,7 @@ function Detail({ target, canEdit, onClose, onChanged }: { target: { id: string;
   const refresh = () => qc.invalidateQueries({ queryKey: ["mail", "admin", "quarantine"] });
   const rescanMutation = useMutation({
     mutationFn: rescan,
-    onSuccess: () => { setError(null); onChanged("Rescan finished. See the scan status."); refresh(); },
+    onSuccess: () => { setError(null); onChanged("Rescan finished. A clean file stays quarantined until you release it."); refresh(); },
     onError: (e) => setError(errorText(e)),
   });
   const item = detail.data;
@@ -180,7 +182,7 @@ function Detail({ target, canEdit, onClose, onChanged }: { target: { id: string;
                 <dt className="text-muted-foreground">Size</dt><dd>{size(item.sizeBytes)}</dd>
                 {item.kind === "ATTACHMENT" && (
                   <>
-                    <dt className="text-muted-foreground">File</dt><dd>{item.filename} <span className="text-muted-foreground">({item.contentType})</span></dd>
+                    <dt className="text-muted-foreground">File</dt><dd>{item.filename} <span className="text-muted-foreground">({item.contentType})</span>{item.filenameMasked ? <span className="block text-[10px] text-muted-foreground">Private draft file: only the file type and size are shown.</span> : null}</dd>
                     <dt className="text-muted-foreground">Scan</dt><dd>{item.scanStatus}{item.scanDetail ? ` · ${item.scanDetail}` : ""}</dd>
                     <dt className="text-muted-foreground">Source</dt><dd>{item.source === "OUTBOUND_DRAFT" ? "Outgoing draft" : "Received email"}</dd>
                   </>
@@ -213,7 +215,7 @@ function Detail({ target, canEdit, onClose, onChanged }: { target: { id: string;
                       {item.actions.releaseBlockers.map((blocker) => <li key={blocker}>{BLOCKER_LABEL[blocker] ?? blocker}</li>)}
                     </ul>
                   )}
-                  <label htmlFor="q-reason" className="text-[11px] text-muted-foreground">Reason (recorded in the decision log; at least 5 characters)</label>
+                  <label htmlFor="q-reason" className="text-[11px] text-muted-foreground">Reason (recorded in the decision log; at least 5 characters). Do not paste message content, subjects or file contents.</label>
                   <textarea id="q-reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={2} maxLength={500} className={input} />
                   <div className="flex flex-wrap gap-2">
                     {item.kind === "ATTACHMENT" && item.actions.canRescan && (

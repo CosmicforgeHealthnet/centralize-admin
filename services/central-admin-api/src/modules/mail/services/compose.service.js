@@ -264,10 +264,22 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
     return serializeAttachment(attachment);
   }
 
+  // Re-audit fix 1: removing a file takes the draft row lock (a guarded
+  // touch on an ACTIVE draft; the revision is NOT bumped so an open editor
+  // keeps saving). A send that already claimed the draft (SENDING) makes this
+  // fail with 409 instead of deleting a file the send is copying; a send that
+  // claims after this commits re-reads the files inside its transaction and
+  // refuses with a revision conflict when the set changed.
+  async function lockActiveDraft(tx, draftId) {
+    const touched = await tx.mailDraft.updateMany({ where: { id: draftId, status: "ACTIVE" }, data: { updatedAt: clock() } });
+    if (touched.count !== 1) throw mailError("MAIL_DRAFT_REVISION_CONFLICT", { currentRevision: null, reason: "DRAFT_NOT_ACTIVE" });
+  }
+
   async function removeAttachment(user, draftId, attachmentId) {
     const { draft } = await loadOwnDraft(user, draftId, "SEND");
     if (policy.isUuid(String(attachmentId)) && (await queuedDraftCleanup(draft))) {
       const plan = await client.$transaction(async (tx) => {
+        await lockActiveDraft(tx, draftId);
         const queued = await dropDraftAttachments(tx, draft, { id: String(attachmentId) }, "DRAFT_ATTACHMENT_REMOVED");
         if (!queued) throw mailError("MAIL_NOT_FOUND", { resource: "attachment" });
         return queued;
@@ -275,7 +287,10 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
       await deletions.settle(plan);
       return { removed: true };
     }
-    const result = await client.mailAttachment.updateMany({ where: { id: String(attachmentId), draftId }, data: { draftId: null, quarantined: true } });
+    const result = await client.$transaction(async (tx) => {
+      await lockActiveDraft(tx, draftId);
+      return tx.mailAttachment.updateMany({ where: { id: String(attachmentId), draftId }, data: { draftId: null, quarantined: true } });
+    });
     if (!result.count) throw mailError("MAIL_NOT_FOUND", { resource: "attachment" });
     return { removed: true };
   }
@@ -396,6 +411,18 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
         // Claim first: a concurrent same-draft send waits here, not on the locks.
         const claimed = await tx.mailDraft.updateMany({ where: { id: draftId, revision: draft.revision, status: "ACTIVE" }, data: { status: "SENDING" } });
         if (claimed.count !== 1) throw mailError("MAIL_DRAFT_REVISION_CONFLICT", { currentRevision: null });
+        // Re-audit fix 1: the files read above may be stale (a concurrent
+        // removal, or a rescan that changed a verdict). Lock and re-read them
+        // under the claim; any change aborts the send (nothing is copied).
+        await tx.$queryRaw`SELECT "id" FROM "mail_attachments" WHERE "draft_id" = ${draftId}::uuid FOR UPDATE`;
+        const current = await tx.mailAttachment.findMany({ where: { draftId } });
+        const before = new Map(attachments.map((attachment) => [attachment.id, attachment]));
+        const changedSet = current.length !== attachments.length || current.some((attachment) => {
+          const seen = before.get(attachment.id);
+          return !seen || seen.storageKey !== attachment.storageKey || seen.sha256 !== attachment.sha256 || seen.scanStatus !== attachment.scanStatus || seen.quarantined !== attachment.quarantined;
+        });
+        if (current.some((attachment) => attachment.quarantined || attachment.scanStatus !== "CLEAN" || !attachment.storageKey)) throw mailError("MAIL_ATTACHMENT_NOT_CLEAN");
+        if (changedSet) throw mailError("MAIL_DRAFT_REVISION_CONFLICT", { currentRevision: draft.revision, reason: "ATTACHMENTS_CHANGED" });
         await enforceQuota(tx, user, mailbox, { recipients: all.length, external: externalRecipients.length });
         const recipients = all.map((party) => ({ ...party, status: internalByAddress.has(party.address) ? "INTERNAL_DELIVERED" : "PENDING" }));
         const created = await store.createMessage(tx, mailbox, {
@@ -491,9 +518,18 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
     return { messageId: result.message.id, threadId: result.thread.id, jobId: result.job?.id || null, status: result.message.status };
   }
 
+  // Spec 11.6 (re-audit 7a): why queued mail is still waiting. Only the
+  // provider quota wait is reported (never provider error text).
+  function outboundStatusDetail(job) {
+    if (!job || job.status !== "RETRY_SCHEDULED" || job.lastErrorCode !== "PROVIDER_QUOTA_EXHAUSTED") return null;
+    const wait = job.payload?.quotaWait || null;
+    const until = wait?.resetAt || iso(job.nextAttemptAt);
+    return { code: "PROVIDER_QUOTA_WAIT", quotaKind: wait?.kind || null, until, nextAttemptAt: iso(job.nextAttemptAt), message: `Waiting for provider quota reset (until ${until})` };
+  }
+
   async function messageStatus(user, messageId) {
     if (!policy.isUuid(messageId)) throw mailError("MAIL_NOT_FOUND", { resource: "message" });
-    const message = await client.mailMessage.findUnique({ where: { id: messageId }, include: { recipients: true, deliveryEvents: { orderBy: { occurredAt: "asc" } } } });
+    const message = await client.mailMessage.findUnique({ where: { id: messageId }, include: { recipients: true, deliveryEvents: { orderBy: { occurredAt: "asc" } }, outboxJobs: { where: { queue: "OUTBOUND" }, orderBy: { createdAt: "desc" }, take: 1, select: { status: true, lastErrorCode: true, nextAttemptAt: true, payload: true } } } });
     if (!message) throw mailError("MAIL_NOT_FOUND", { resource: "message" });
     try {
       await policy.requireMailboxAccess(client, user, message.mailboxId, "READ");
@@ -504,6 +540,7 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
     return {
       messageId: message.id,
       status: message.status,
+      statusDetail: message.direction === "OUTBOUND" ? outboundStatusDetail(message.outboxJobs?.[0]) : null,
       recipients: message.recipients.filter((recipient) => message.direction === "OUTBOUND" || recipient.type !== "BCC").map((recipient) => ({ type: recipient.type, address: recipient.address, name: recipient.name, status: recipient.status })),
       deliveryEvents: message.deliveryEvents.map((event) => ({ type: event.eventType, recipient: event.recipient, occurredAt: iso(event.occurredAt) })),
     };

@@ -295,6 +295,8 @@ export interface MessageStatusResult {
   status: MessageStatus;
   recipients: Recipient[];
   deliveryEvents: DeliveryEvent[];
+  // Re-audit 7a: why queued mail is waiting (provider quota reset), else null.
+  statusDetail?: { code: "PROVIDER_QUOTA_WAIT"; quotaKind: string | null; until: string | null; nextAttemptAt: string | null; message: string } | null;
 }
 
 export interface Paged<T> {

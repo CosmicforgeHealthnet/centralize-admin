@@ -25,6 +25,14 @@
 //   provider Message-ID aliases. Internal BCC are never given to the provider.
 //   With no visible To, Cc are promoted to `to` (Resend requires it); with no
 //   visible To/Cc, each external BCC gets an individual request as above.
+//   When internal recipients are in the visible headers, external BCC are
+//   ALWAYS sent as individual requests (re-audit fix 5): the main request's
+//   delivery events cannot tell an external BCC from the internal echo, while
+//   a single-recipient request is attributable (trade-off: such a BCC
+//   recipient sees itself as To, as in external-only). A main request whose
+//   visible To/Cc are all internal is not sent at all.
+//   Org quota checks and usage count only the external recipients of a batch
+//   (`batch.internal` rows are delivered locally, re-audit fix 4).
 //   Before the receiving cutover this mode would deliver a duplicate copy to
 //   the legacy mail system: it stays off until approved.
 // - The plan (including the mode and the origin header value) is persisted at
@@ -82,10 +90,18 @@ function buildDeliveryPlan(recipients, { mode = "external-only", origin = null }
     const internal = ids(visible.filter((recipient) => recipient.status === "INTERNAL_DELIVERED"));
     // The origin header is only needed when the provider will echo to us.
     const meta = { fullHeaders: true, internal, ...(internal.length ? { origin } : {}) };
-    if (to.length) return [{ to: ids(to), cc: ids(cc), bcc: ids(bcc), ...meta }];
-    if (cc.length) return [{ to: ids(cc), cc: [], bcc: ids(bcc), promotedCc: true, ...meta }];
+    const individual = (list) => list.map((recipient) => ({ to: [recipient.id], cc: [], bcc: [], individualBcc: true, fullHeaders: true, internal: [] }));
+    // Main request carries external BCC only when no internal echo exists.
+    const mainBcc = internal.length ? [] : ids(bcc);
+    const extra = internal.length ? individual(bcc) : [];
+    // A main request with no external To/Cc would only echo to our own MX:
+    // skip it (the external BCC still get their individual requests).
+    const externalVisible = visible.some((recipient) => recipient.status === "PENDING");
+    if (!externalVisible && internal.length) return extra;
+    if (to.length) return [{ to: ids(to), cc: ids(cc), bcc: mainBcc, ...meta }, ...extra];
+    if (cc.length) return [{ to: ids(cc), cc: [], bcc: mainBcc, promotedCc: true, ...meta }, ...extra];
     // No visible To/Cc at all: individual BCC requests, as in external-only.
-    return bcc.map((recipient) => ({ to: [recipient.id], cc: [], bcc: [], individualBcc: true, fullHeaders: true, internal: [] }));
+    return individual(bcc);
   }
   const to = pending.filter((recipient) => recipient.type === "TO");
   const cc = pending.filter((recipient) => recipient.type === "CC");
@@ -172,6 +188,25 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
     if (message.sentByAdminUserId) await notifications.notifyUsers([message.sentByAdminUserId], { icon: title.includes("unknown") ? "alert" : "xcircle", title, subtitle: `From ${message.mailbox?.name || "your mailbox"}` });
   }
 
+  // Spec 11.6 (re-audit 7a): a provider quota defer can hold mail as Queued
+  // until the next daily/monthly reset. The wait is stored on the job payload
+  // (`quotaWait`, read by the message status API) and the sender is told ONCE
+  // per job (an alert, never the suppressible NEW_MAIL kind).
+  async function noteQuotaWait(job, message, error) {
+    const resetAt = new Date(error.quota.resetAt).toISOString();
+    const previous = job.payload?.quotaWait || null;
+    const quotaWait = { kind: error.quota.kind, resetAt, since: previous?.since || clock().toISOString(), notifiedAt: previous?.notifiedAt || null };
+    const notify = !quotaWait.notifiedAt && Boolean(message.sentByAdminUserId);
+    if (notify) quotaWait.notifiedAt = clock().toISOString();
+    const payload = { ...(job.payload || {}), quotaWait };
+    await client.mailOutboxJob.update({ where: { id: job.id }, data: { payload } });
+    job.payload = payload;
+    if (notify) {
+      const until = resetAt.replace("T", " ").slice(0, 16);
+      await notifications.notifyUsers([message.sentByAdminUserId], { icon: "alert", kind: "ALERT", title: "Email waiting for provider quota reset", subtitle: `Queued until ${until} UTC (${message.mailbox?.name || "your mailbox"})` }).catch(() => {});
+    }
+  }
+
   async function process(job) {
     if (!config.sendingEnabled) throw new PipelineError("MAIL_SENDING_DISABLED", "sending disabled", { retryable: true });
     const message = await client.mailMessage.findUnique({ where: { id: job.messageId }, include: { recipients: true, attachments: true, mailbox: true } });
@@ -229,9 +264,13 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
 
     for (const { batch, index } of pendingBatches) {
       const recipientIds = [...batch.to, ...batch.cc, ...batch.bcc];
+      // Internal To/Cc given to the provider in full-headers mode are
+      // delivered locally: never counted against quota/usage.
+      const internalIds = new Set(batch.internal || []);
+      const externalCount = recipientIds.filter((id) => !internalIds.has(id)).length;
       // Org hard quota re-check before each provider call: defer, never fail.
       if (usage) {
-        const quota = await usage.check(message.mailbox?.organizationId, purpose, recipientIds.length, { includeQueued: false });
+        const quota = await usage.check(message.mailbox?.organizationId, purpose, externalCount, { includeQueued: false });
         if (!quota.allowed) return { defer: { seconds: 900, code: quota.reason || "MAIL_QUOTA_HARD_LIMIT" } };
       }
       const now = clock();
@@ -268,7 +307,7 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
       try {
         result = await adapter.sendMessage(request);
       } catch (error) {
-        if (usage) await usage.record(null, { organizationId: message.mailbox?.organizationId, purpose, providerRequests: 1, rejected: error?.kind === "PERMANENT" ? recipientIds.length : 0 }).catch(() => {});
+        if (usage) await usage.record(null, { organizationId: message.mailbox?.organizationId, purpose, providerRequests: 1, rejected: error?.kind === "PERMANENT" ? externalCount : 0 }).catch(() => {});
         if (!(error instanceof MailProviderError)) throw error;
         // An earlier attempt may have been accepted: a later definitive error
         // cannot prove it was not.
@@ -304,7 +343,8 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
           // reset can be up to 24h away).
           if (!batch.ambiguous) delete batch.firstAttemptAt;
           await savePlan(job, plan);
-          return { defer: { seconds: quotaWait, code: "PROVIDER_QUOTA_EXHAUSTED" } };
+          await noteQuotaWait(job, message, error);
+          return { defer: { seconds: quotaWait, code: "PROVIDER_QUOTA_EXHAUSTED", message: `Waiting for provider ${String(error.quota.kind || "").toLowerCase()} quota reset until ${new Date(error.quota.resetAt).toISOString()}` } };
         }
         if (possiblyAccepted(error)) batch.ambiguous = true;
         batch.inFlight = false;
@@ -325,8 +365,8 @@ function createOutboundProcessor({ client, config, adapter, store, audit, notifi
         // the request had more than one recipient (never changes status).
         if (batch.internal?.length) await tx.mailMessageRecipient.updateMany({ where: { id: { in: batch.internal }, status: "INTERNAL_DELIVERED" }, data: { providerMessageId: result.providerMessageId } });
         await tx.mailMessage.update({ where: { id: message.id }, data: { providerMessageId: message.providerMessageId || result.providerMessageId, sentAt: message.sentAt || clock() } });
-        await audit.record({ actorAdminUserId: message.sentByAdminUserId, action: "MAIL_PROVIDER_ACCEPTED", targetType: "message", targetId: message.id, mailboxId: message.mailboxId, metadata: { batch: index, recipients: recipientIds.length } }, {}, tx);
-        if (usage) await usage.record(tx, { organizationId: message.mailbox?.organizationId, purpose, accepted: recipientIds.length, providerRequests: 1, bytes: message.sizeBytes });
+        await audit.record({ actorAdminUserId: message.sentByAdminUserId, action: "MAIL_PROVIDER_ACCEPTED", targetType: "message", targetId: message.id, mailboxId: message.mailboxId, metadata: { batch: index, recipients: externalCount } }, {}, tx);
+        if (usage) await usage.record(tx, { organizationId: message.mailbox?.organizationId, purpose, accepted: externalCount, providerRequests: 1, bytes: message.sizeBytes });
       });
       message.providerMessageId = message.providerMessageId || result.providerMessageId;
       message.sentAt = message.sentAt || clock();

@@ -164,6 +164,14 @@ test("IT quarantine management on real PostgreSQL (migration 37)", { timeout: 30
     assert.deepEqual((await list({ kind: "attachments", category: "MALWARE" })).body.data.map((item) => item.id), [s.infected.attachments[0].id]);
     const blocked = attachments.body.data.find((item) => item.id === s.blocked.id);
     assert.equal(blocked.source, "OUTBOUND_DRAFT");
+    // Re-audit 7c: private draft files show extension + size only.
+    assert.equal(blocked.filename, "*.exe");
+    assert.equal(blocked.filenameMasked, true);
+    assert.equal(typeof blocked.sizeBytes, "number");
+    assert.ok(!attachments.text.includes("tool.exe"), "draft filename never shown");
+    const blockedDetail = await call("ops", "GET", `/admin/quarantine/attachments/${s.blocked.id}`);
+    assert.equal(blockedDetail.body.data.filename, "*.exe");
+    assert.equal(attachments.body.data.find((item) => item.id === s.infected.attachments[0].id).filename, "invoice.txt", "inbound filenames stay visible");
     assert.deepEqual(blocked.actions.releaseBlockers, ["POLICY_BLOCKED"]);
 
     // No content anywhere: subjects, bodies, full sender addresses, keys or download links.
@@ -207,6 +215,10 @@ test("IT quarantine management on real PostgreSQL (migration 37)", { timeout: 30
     assert.equal(decision.scanEvidence.from, "SCANNER_UNAVAILABLE");
     assert.equal(decision.scanEvidence.to, "CLEAN");
     assert.equal(decision.decidedBy, ids.ops);
+    // Re-audit fix 3: a clean rescan records the verdict but never releases.
+    const rescanned = await client.mailAttachment.findUnique({ where: { id: s.unscanned.attachments[0].id } });
+    assert.equal(rescanned.quarantined, true, "rescan never releases");
+    assert.equal((await call("dave", "GET", `/attachments/${rescanned.id}/download`)).status, 403);
     const detail = await call("ops", "GET", `/admin/quarantine/messages/${s.unscanned.id}`);
     assert.equal(detail.body.data.actions.canRelease, true);
     assert.deepEqual(detail.body.data.decisions.map((row) => row.decision), ["RESCAN_REQUESTED"]);
@@ -215,6 +227,37 @@ test("IT quarantine management on real PostgreSQL (migration 37)", { timeout: 30
     assert.equal(policy.status, 409, policy.text);
     assert.match(policy.text, /POLICY_BLOCKED/);
     assert.equal((await client.mailAttachment.findUnique({ where: { id: s.blocked.id } })).quarantined, true);
+  });
+
+  await t.test("re-audit 3: rescan (IT quarantine or legacy admin endpoint) never releases; release needs step-up + RELEASED decision", async () => {
+    const received = await receive({ from: "friend@partner.example", subject: "Two files", attachments: [{ filename: "one.txt", contentType: "text/plain", content: Buffer.from("first clean file") }, { filename: "two.txt", contentType: "text/plain", content: Buffer.from("second clean file") }] });
+    await client.mailMessage.update({ where: { id: received.id }, data: { status: "RECEIVED", quarantineReason: null } });
+    const [one, two] = received.attachments;
+    await client.mailAttachment.updateMany({ where: { id: { in: [one.id, two.id] } }, data: { scanStatus: "SCANNER_UNAVAILABLE", scanDetail: "SCANNER_DOWN", quarantined: true } });
+
+    const viaQuarantine = await call("ops", "POST", `/admin/quarantine/attachments/${one.id}/rescan`, { reason: "Scanner restored" });
+    assert.equal(viaQuarantine.status, 200, viaQuarantine.text);
+    assert.equal(viaQuarantine.body.data.scanStatus, "CLEAN");
+    assert.equal(viaQuarantine.body.data.quarantined, true);
+    assert.equal(viaQuarantine.body.data.actions.canRelease, true);
+    const legacy = await call("ops", "POST", `/admin/attachments/${two.id}/rescan`);
+    assert.equal(legacy.status, 200, legacy.text);
+    assert.deepEqual({ scanStatus: legacy.body.data.scanStatus, quarantined: legacy.body.data.quarantined, downloadable: legacy.body.data.downloadable, releaseRequired: legacy.body.data.releaseRequired }, { scanStatus: "CLEAN", quarantined: true, downloadable: false, releaseRequired: true });
+    for (const id of [one.id, two.id]) {
+      assert.equal((await client.mailAttachment.findUnique({ where: { id } })).quarantined, true);
+      assert.equal((await call("dave", "GET", `/attachments/${id}/download`)).status, 403, "still not downloadable");
+    }
+    assert.equal(await client.mailQuarantineDecision.count({ where: { attachmentId: { in: [one.id, two.id] }, decision: "RELEASED" } }), 0);
+
+    const noStepUp = await call("ops", "POST", `/admin/quarantine/attachments/${two.id}/release`, { reason: "Clean after rescan" });
+    assert.equal(noStepUp.status, 403);
+    const released = await call("ops", "POST", `/admin/quarantine/attachments/${two.id}/release`, { reason: "Clean after rescan", stepUpId: await stepUp("MAIL_QUARANTINE_RELEASE") });
+    assert.equal(released.status, 200, released.text);
+    assert.equal((await client.mailAttachment.findUnique({ where: { id: two.id } })).quarantined, false);
+    assert.equal((await call("dave", "GET", `/attachments/${two.id}/download`)).status, 200);
+    assert.ok(await client.mailQuarantineDecision.findFirst({ where: { attachmentId: two.id, decision: "RELEASED", decidedBy: ids.ops } }));
+    // Clean up: the other file is released too so later listings stay exact.
+    assert.equal((await call("ops", "POST", `/admin/quarantine/attachments/${one.id}/release`, { reason: "Clean after rescan", stepUpId: await stepUp("MAIL_QUARANTINE_RELEASE") })).status, 200);
   });
 
   await t.test("AUTH_POLICY release needs EDIT, a reason and a purpose-bound MFA step-up", async () => {
@@ -281,6 +324,7 @@ test("IT quarantine management on real PostgreSQL (migration 37)", { timeout: 30
 
   await t.test("reject/delete tombstone the item and remove objects through the durable deletion queue", async () => {
     const spamKey = s.spam.contentObjectKey;
+    await client.mailMessageProviderId.create({ data: { messageId: s.spam.id, providerRfcMessageId: `<prov-${crypto.randomUUID()}@resend.example>` } });
     const rejected = await call("ops", "POST", `/admin/quarantine/messages/${s.spam.id}/reject`, { reason: "Spam confirmed", stepUpId: await stepUp("MAIL_QUARANTINE_DELETE") });
     assert.equal(rejected.status, 200, rejected.text);
     assert.equal(rejected.body.data.decision, "REJECTED");
@@ -289,6 +333,7 @@ test("IT quarantine management on real PostgreSQL (migration 37)", { timeout: 30
     assert.equal(message.contentObjectKey, null);
     assert.equal(message.subject, "");
     assert.equal(message.fromAddress, "");
+    assert.equal(await client.mailMessageProviderId.count({ where: { messageId: s.spam.id } }), 0, "provider Message-ID alias removed with the content");
     const queued = await client.mailStorageDeletion.findFirst({ where: { objectKey: spamKey } });
     assert.equal(queued.reason, "QUARANTINE_REJECTED");
     assert.equal(queued.sourceId, s.spam.id);
