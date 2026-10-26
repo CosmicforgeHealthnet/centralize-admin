@@ -7,8 +7,53 @@ on:
       - fix/marketing-admin-db-target
       - staging
   workflow_dispatch:
+    inputs:
+      api_release_base_sha:
+        description: Full base commit SHA for the separately initiated staging API release
+        required: true
+        type: string
 
 jobs:
+  detect-api-deployment-scope:
+    name: Classify staging API changes
+    if: github.ref == 'refs/heads/staging' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      api_changed: ${{ steps.scope.outputs.api_changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Test deployment scope classifier
+        run: bash scripts/ci/test-staging-api-change-scope.sh
+
+      - name: Classify exact push or manually selected release range
+        id: scope
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+          DISPATCH_BASE_SHA: ${{ inputs.api_release_base_sha }}
+        run: |
+          set -euo pipefail
+          case "$EVENT_NAME" in
+            push) base_sha="$BEFORE_SHA" ;;
+            workflow_dispatch) base_sha="$DISPATCH_BASE_SHA" ;;
+            *) echo "::error::Unsupported event for API deployment classification."; exit 1 ;;
+          esac
+          if [[ -z "$base_sha" || -z "$HEAD_SHA" ]]; then
+            echo "::error::A full base and head commit SHA are required; refusing deployment classification."
+            exit 1
+          fi
+          api_changed="$(bash scripts/ci/staging-api-change-scope.sh "$base_sha" "$HEAD_SHA" "$GITHUB_WORKSPACE")"
+          echo "API deployment source changes detected: $api_changed"
+          printf 'api_changed=%s\n' "$api_changed" >> "$GITHUB_OUTPUT"
+
   verify:
     name: Verify Social Operations backend
     runs-on: ubuntu-latest
@@ -167,7 +212,13 @@ jobs:
   # On staging pushes, a failed test/security check cannot publish or deploy.
   verify-staging-ssh:
     name: Verify Contabo SSH key and staging account
-    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/staging'
+    if: >-
+      needs.verify.result == 'success' &&
+      needs.detect-api-deployment-scope.result == 'success' &&
+      needs.detect-api-deployment-scope.outputs.api_changed == 'true' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/staging'
+    needs: [verify, detect-api-deployment-scope]
     runs-on: ubuntu-latest
     environment: staging
     steps:
@@ -217,8 +268,14 @@ jobs:
 
   build-staging-image:
     name: Publish immutable staging API image
-    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/staging'
-    needs: [verify, verify-staging-ssh]
+    if: >-
+      needs.verify.result == 'success' &&
+      needs.detect-api-deployment-scope.result == 'success' &&
+      needs.detect-api-deployment-scope.outputs.api_changed == 'true' &&
+      needs.verify-staging-ssh.result == 'success' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/staging'
+    needs: [verify, detect-api-deployment-scope, verify-staging-ssh]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -252,8 +309,15 @@ jobs:
 
   deploy-staging-api:
     name: Deploy staging API to Contabo and verify login
-    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/staging'
-    needs: build-staging-image
+    if: >-
+      needs.verify.result == 'success' &&
+      needs.detect-api-deployment-scope.result == 'success' &&
+      needs.detect-api-deployment-scope.outputs.api_changed == 'true' &&
+      needs.verify-staging-ssh.result == 'success' &&
+      needs.build-staging-image.result == 'success' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/staging'
+    needs: [verify, detect-api-deployment-scope, verify-staging-ssh, build-staging-image]
     runs-on: ubuntu-latest
     environment: staging
     concurrency:
