@@ -8,6 +8,9 @@
 const PROVIDER_METHODS = new Set([
   "sendMessage", "sendEmail", "fetchInboundMessage", "fetchInboundAttachments", "listReceivedEmails", "validateDomain", "retrieveDeliveryEvents",
   "createBroadcast", "sendBroadcast", "getBroadcast", "upsertContact", "removeContact", "createAudience", "syncContacts",
+  // §18 contract operations and the remaining documented adapter calls.
+  "cancelBroadcast", "deleteBroadcast", "queueBroadcast", "syncAudience", "getContact", "createContact", "addContactToSegment",
+  "removeContactFromSegment", "createSegment", "findSegmentByName", "deleteSegment", "findBroadcastByName", "createDomain", "verifyDomain", "findDomainByName", "resubscribeContact", "getDomainByName",
 ]);
 
 function createRuntimeMetrics() {
@@ -46,6 +49,9 @@ function createRuntimeMetrics() {
             if (error?.name === "MailProviderError" || error?.kind) {
               const status = error.status ? (error.status === 429 ? "429" : error.status >= 500 ? "5xx" : String(error.status)) : "none";
               inc("provider_errors", { channel, kind: String(error.kind || "UNKNOWN"), status });
+              // §18 normalized category per contract operation (separate
+              // series so existing dashboards keep their label set).
+              inc("provider_error_categories", { channel, operation: String(prop), category: String(error.category || "UNKNOWN") });
             }
             throw error;
           }

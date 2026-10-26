@@ -261,6 +261,7 @@ function createOpsMonitor({ client, config, notifications, health = async () => 
     if (metrics) {
       metric("cf_mail_auth_denials_total", "Mail API requests refused with 401/403 (this process)", "counter", metrics.samples("auth_denials"));
       metric("cf_mail_provider_errors_total", "Provider call errors by channel, kind and status (this process)", "counter", metrics.samples("provider_errors"));
+      metric("cf_mail_provider_error_categories_total", "Provider call errors by channel, contract operation and normalized category (this process)", "counter", metrics.samples("provider_error_categories"));
     }
     metric("cf_mail_storage_bytes", "Stored message bytes (all mailboxes)", "gauge", [[null, snap.storage.totalBytes]]);
     metric("cf_mail_mailboxes_over_quota", "Mailboxes at or above their storage quota / warning level", "gauge", [[{ level: "quota" }, snap.storage.overQuota.length], [{ level: "warn" }, snap.storage.overWarn.length]]);

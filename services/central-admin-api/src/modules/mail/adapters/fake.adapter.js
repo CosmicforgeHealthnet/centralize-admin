@@ -19,8 +19,8 @@ function createFakeAdapter() {
   return {
     name: "fake",
     state,
-    failNext(operation, kind, code = "FAKE_FAILURE", { acceptBeforeFailing = false, now = null } = {}) {
-      state.failures.push({ operation, kind, code, acceptBeforeFailing, now });
+    failNext(operation, kind, code = "FAKE_FAILURE", { acceptBeforeFailing = false, now = null, category = null } = {}) {
+      state.failures.push({ operation, kind, code, acceptBeforeFailing, now, category });
     },
     addInbound(providerEmailId, message, attachments = []) {
       state.inbound.set(providerEmailId, message);
@@ -34,7 +34,7 @@ function createFakeAdapter() {
         const { quotaExhaustedError } = require("../ops/provider-quota.service");
         throw quotaExhaustedError(failure.code === "MONTHLY" ? "MONTHLY" : "DAILY", { now: failure.now || new Date() });
       }
-      if (failure && !failure.acceptBeforeFailing) throw new MailProviderError(failure.kind, failure.code, "fake failure");
+      if (failure && !failure.acceptBeforeFailing) throw new MailProviderError(failure.kind, failure.code, "fake failure", failure.category ? { category: failure.category } : {});
       // Provider-side idempotency mirrors Resend's Idempotency-Key semantics.
       if (state.byIdempotency.has(request.idempotencyKey)) return { providerMessageId: state.byIdempotency.get(request.idempotencyKey) };
       const providerMessageId = `fake_${crypto.randomUUID()}`;
@@ -90,7 +90,32 @@ function createFakeAdapter() {
       }));
     },
     async validateDomain(providerDomainId) {
+      const failure = nextFailure("validateDomain");
+      if (failure) throw new MailProviderError(failure.kind, failure.code, "fake failure", failure.category ? { category: failure.category } : {});
       return state.domains.get(providerDomainId) || { status: "PENDING", sendingStatus: "PENDING", receivingStatus: "PENDING", records: [] };
+    },
+    // §18 domain lifecycle (offline): registration is NOT idempotent, like
+    // Resend's POST /domains; a second create of the same name is refused.
+    async createDomain({ name, receiving = false } = {}) {
+      const failure = nextFailure("createDomain");
+      if (failure) throw new MailProviderError(failure.kind, failure.code, "fake failure", failure.category ? { category: failure.category } : {});
+      const domain = String(name || "").toLowerCase();
+      if ([...state.domains.values()].some((entry) => entry.name === domain)) throw new MailProviderError("PERMANENT", "RESEND_HTTP_403", "domain already registered", { status: 403, category: "PERMISSION_DENIED" });
+      const providerDomainId = `fake_dom_${crypto.randomUUID()}`;
+      const entry = { providerDomainId, name: domain, status: "NOT_STARTED", sendingStatus: "PENDING", receivingStatus: receiving ? "PENDING" : "DISABLED", spfStatus: "PENDING", dkimStatus: "PENDING", dmarcStatus: "NOT_REPORTED", records: [] };
+      state.domains.set(providerDomainId, entry);
+      return entry;
+    },
+    async verifyDomain(providerDomainId) {
+      const failure = nextFailure("verifyDomain");
+      if (failure) throw new MailProviderError(failure.kind, failure.code, "fake failure", failure.category ? { category: failure.category } : {});
+      const entry = state.domains.get(providerDomainId);
+      if (!entry) throw new MailProviderError("PERMANENT", "RESEND_HTTP_404", "unknown domain", { status: 404, category: "NOT_FOUND" });
+      return { providerDomainId, status: "PENDING" };
+    },
+    async findDomainByName(name) {
+      const domain = String(name || "").toLowerCase();
+      return [...state.domains.entries()].map(([providerDomainId, entry]) => ({ providerDomainId, ...entry })).find((entry) => entry.name === domain) || null;
     },
     async retrieveDeliveryEvents() {
       return [];

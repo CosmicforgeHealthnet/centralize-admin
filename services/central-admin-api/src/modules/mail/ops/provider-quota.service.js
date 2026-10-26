@@ -74,7 +74,7 @@ function quotaResetAt(kind, now = new Date()) {
 function quotaExhaustedError(kind, { now = new Date(), message = null, status = 429 } = {}) {
   const resetAt = quotaResetAt(kind, now);
   const seconds = Math.max(1, Math.ceil((resetAt.getTime() - new Date(now).getTime()) / 1000));
-  const error = new MailProviderError("RETRYABLE", kind === "MONTHLY" ? "RESEND_MONTHLY_QUOTA_EXCEEDED" : "RESEND_DAILY_QUOTA_EXCEEDED", message || `Provider ${kind.toLowerCase()} sending quota exhausted`, { status, retryAfterSeconds: seconds });
+  const error = new MailProviderError("RETRYABLE", kind === "MONTHLY" ? "RESEND_MONTHLY_QUOTA_EXCEEDED" : "RESEND_DAILY_QUOTA_EXCEEDED", message || `Provider ${kind.toLowerCase()} sending quota exhausted`, { status, retryAfterSeconds: seconds, category: "QUOTA_EXCEEDED", providerErrorName: kind === "MONTHLY" ? "monthly_quota_exceeded" : "daily_quota_exceeded", provider: "resend" });
   error.errorKind = "QUOTA_EXHAUSTED";
   error.quota = { kind, resetAt, deferSeconds: seconds };
   return error;

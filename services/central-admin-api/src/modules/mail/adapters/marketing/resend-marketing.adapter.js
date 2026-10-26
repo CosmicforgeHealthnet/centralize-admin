@@ -26,7 +26,8 @@
 // sending domain in the brand's own account (optional contract method).
 
 const { MailProviderError } = require("../mail-provider.contract");
-const { createResendAdapter, classifyStatus } = require("../resend.adapter");
+const { createResendAdapter } = require("../resend.adapter");
+const { resendHttpError, resendTransportError } = require("../resend-errors");
 const { normalizeBroadcastStatus } = require("./marketing-provider.contract");
 const { formatParty } = require("../../security/address.util");
 const { quotaErrorKind, quotaExhaustedError } = require("../../ops/provider-quota.service");
@@ -58,8 +59,8 @@ function createResendMarketingAdapter({ apiKey, config, fetchImpl = globalThis.f
     }
   }
 
-  async function call(method, path, { body, phase = "read", notFoundAsNull = false } = {}) {
-    if (!apiKey) throw new MailProviderError("NOT_CONFIGURED", "RESEND_NOT_CONFIGURED", "Resend marketing API key is not configured");
+  async function call(method, path, { body, phase = "read", notFoundAsNull = false, operation = null } = {}) {
+    if (!apiKey) throw new MailProviderError("NOT_CONFIGURED", "RESEND_NOT_CONFIGURED", "Resend marketing API key is not configured", { provider: "resend", operation });
     await acquire();
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -73,7 +74,7 @@ function createResendMarketingAdapter({ apiKey, config, fetchImpl = globalThis.f
         redirect: "error",
       });
     } catch (error) {
-      throw new MailProviderError(phase === "write" ? "AMBIGUOUS" : "RETRYABLE", error?.name === "AbortError" ? "PROVIDER_TIMEOUT" : "PROVIDER_NETWORK_ERROR", "Resend request did not complete");
+      throw resendTransportError(error, { phase, operation });
     } finally {
       clearTimeout(timer);
     }
@@ -91,9 +92,7 @@ function createResendMarketingAdapter({ apiKey, config, fetchImpl = globalThis.f
     if (!response.ok) {
       const quotaKind = quotaErrorKind(response.status, String(payload?.name || ""));
       if (quotaKind) throw quotaExhaustedError(quotaKind, { now: new Date(clock()), message: String(payload?.message || payload?.name).slice(0, 300) });
-      const retryAfter = Number(response.headers?.get?.("retry-after"));
-      const kind = classifyStatus(response.status, String(payload?.name || ""));
-      throw new MailProviderError(kind, `RESEND_HTTP_${response.status}`, String(payload?.message || payload?.name || `Resend returned ${response.status}`).slice(0, 300), { status: response.status, retryAfterSeconds: Number.isFinite(retryAfter) ? retryAfter : null });
+      throw resendHttpError(response, payload, { operation });
     }
     return payload;
   }

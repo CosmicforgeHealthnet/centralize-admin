@@ -8,17 +8,42 @@ const { MailProviderError, broadcastDisabled } = require("./mail-provider.contra
 const { formatParty, parseParty, parsePartyList } = require("../security/address.util");
 const { normalizeMessageId, parseReferences } = require("../security/header-safety");
 const { quotaErrorKind, quotaExhaustedError } = require("../ops/provider-quota.service");
+const { classifyStatus, resendHttpError, resendTransportError, rateLimitFromHeaders } = require("./resend-errors");
 
 const MAX_ATTACHMENT_DOWNLOAD_BYTES = 40 * 1024 * 1024;
+// Documented POST /emails limits: at most 50 addresses in `to`; attachments at
+// most 40 MB per email measured after Base64 encoding; Idempotency-Key 1-256
+// characters, kept 24 hours.
+const MAX_TO_RECIPIENTS = 50;
+const MAX_ENCODED_ATTACHMENT_BYTES = 40 * 1024 * 1024;
+const MAX_IDEMPOTENCY_KEY_LENGTH = 256;
+
+function base64Length(bytes) {
+  return Math.ceil(bytes / 3) * 4;
+}
 
 // Resend idempotency (documented): keys are kept for 24 hours; the same key +
 // same payload returns the original response without re-sending; the same key
 // + different payload fails with 409 invalid_idempotent_request; a request
 // still in flight with the same key fails with 409 concurrent_idempotent_requests.
-function classifyStatus(status, name = "") {
-  if (status === 429 || status >= 500) return "RETRYABLE";
-  if (status === 409) return name === "invalid_idempotent_request" ? "IDEMPOTENCY_CONFLICT" : "RETRYABLE";
-  return "PERMANENT";
+// Classification lives in resend-errors.js (status + error name -> kind/category).
+
+// Client-side pacing below the documented default (10 requests/s per team).
+// Per process only: a 429 from the provider still defers the job durably.
+function createRequestPacer(requestsPerSecond, { now = () => Date.now(), sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)) } = {}) {
+  if (!requestsPerSecond) return async () => {};
+  const interval = Math.ceil(1000 / Math.max(1, requestsPerSecond));
+  let next = 0;
+  return async function acquire() {
+    const at = now();
+    const wait = Math.max(0, next - at);
+    next = Math.max(at, next) + interval;
+    if (wait) await sleep(wait);
+  };
+}
+
+function validationError(code, message) {
+  return new MailProviderError("PERMANENT", code, message, { category: "VALIDATION_FAILED", operation: "sendMessage", provider: "resend" });
 }
 
 function headerValue(headers, name) {
@@ -58,8 +83,11 @@ function originalHeaderList(headers) {
     .flatMap(([name, value]) => (Array.isArray(value) ? value : [value]).map((entry) => ({ name, value: String(entry ?? "").slice(0, 8192) })));
 }
 
-function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () => Date.now(), quotaObserver = null }) {
+function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () => Date.now(), quotaObserver = null, sleep }) {
   const { apiKey, baseUrl, timeoutMs, attachmentHostAllowlist } = config.resend;
+  const pace = createRequestPacer(config.resend.requestsPerSecond ?? 0, { sleep });
+  // Last rate-limit headers seen (non-secret; exposed through healthProbe).
+  let lastRateLimit = null;
   // GAP 3: non-blocking quota hook (provider-quota.service observer). It is
   // called after every API response; it must never delay or fail a call.
   let observeQuota = quotaObserver;
@@ -73,11 +101,12 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
   }
 
   function requireConfigured() {
-    if (!apiKey) throw new MailProviderError("NOT_CONFIGURED", "RESEND_NOT_CONFIGURED", "Resend API key is not configured");
+    if (!apiKey) throw new MailProviderError("NOT_CONFIGURED", "RESEND_NOT_CONFIGURED", "Resend API key is not configured", { provider: "resend" });
   }
 
-  async function call(method, path, { body, idempotencyKey, phase = "read" } = {}) {
+  async function call(method, path, { body, idempotencyKey, phase = "read", operation = null } = {}) {
     requireConfigured();
+    await pace();
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     let response;
@@ -96,8 +125,7 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
       });
     } catch (error) {
       // A send that failed in transit may still have been accepted.
-      const kind = phase === "write" ? "AMBIGUOUS" : "RETRYABLE";
-      throw new MailProviderError(kind, error?.name === "AbortError" ? "PROVIDER_TIMEOUT" : "PROVIDER_NETWORK_ERROR", "Resend request did not complete");
+      throw resendTransportError(error, { phase, operation });
     } finally {
       clearTimeout(timer);
     }
@@ -111,24 +139,39 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
       }
     }
     observe(response, payload?.name || null);
+    lastRateLimit = rateLimitFromHeaders(response.headers) || lastRateLimit;
     if (!response.ok) {
-      const retryAfter = Number(response.headers?.get?.("retry-after"));
       const errorName = String(payload?.name || "");
       // 429 daily/monthly_quota_exceeded: a definitive refusal that lasts until
       // the documented reset, not a short rate-limit retry.
       const quotaKind = quotaErrorKind(response.status, errorName);
       if (quotaKind) throw quotaExhaustedError(quotaKind, { now: new Date(clock()), message: String(payload?.message || errorName).slice(0, 300) });
-      const kind = classifyStatus(response.status, errorName);
-      throw new MailProviderError(kind, kind === "IDEMPOTENCY_CONFLICT" ? "RESEND_IDEMPOTENCY_CONFLICT" : `RESEND_HTTP_${response.status}`, String(payload?.message || payload?.name || `Resend returned ${response.status}`).slice(0, 300), {
-        status: response.status,
-        retryAfterSeconds: Number.isFinite(retryAfter) ? retryAfter : null,
-      });
+      throw resendHttpError(response, payload, { operation });
     }
     return payload;
   }
 
+  // Rejected before any network call (nothing was submitted, so PERMANENT
+  // is exact). Business rules already enforce these; this is the last guard
+  // against a request the provider would refuse or truncate.
+  function assertSendable(request) {
+    if (!request || typeof request !== "object") throw validationError("SEND_REQUEST_INVALID", "Send request is missing");
+    const key = String(request.idempotencyKey || "");
+    if (!key || key.length > MAX_IDEMPOTENCY_KEY_LENGTH) throw validationError("IDEMPOTENCY_KEY_INVALID", "Idempotency key must be 1-256 characters");
+    if (!request.from?.address) throw validationError("FROM_REQUIRED", "From address is required");
+    if (!Array.isArray(request.to) || request.to.length === 0) throw validationError("TO_REQUIRED", "At least one To recipient is required");
+    if (request.to.length > MAX_TO_RECIPIENTS) throw validationError("TOO_MANY_RECIPIENTS", `At most ${MAX_TO_RECIPIENTS} To recipients per request`);
+    if (typeof request.subject !== "string") throw validationError("SUBJECT_REQUIRED", "Subject is required");
+    for (const [name, value] of Object.entries(request.headers || {})) {
+      if (/[\r\n]/.test(String(name)) || /[\r\n]/.test(String(value))) throw validationError("HEADER_INVALID", "Header contains a line break");
+    }
+    const encoded = (request.attachments || []).reduce((sum, attachment) => sum + base64Length(Buffer.byteLength(attachment.content || "")), 0);
+    if (encoded > MAX_ENCODED_ATTACHMENT_BYTES) throw validationError("ATTACHMENTS_TOO_LARGE", "Attachments exceed 40 MB after encoding");
+  }
+
   async function sendMessage(request) {
     requireConfigured();
+    assertSendable(request);
     const body = {
       from: formatParty(request.from),
       to: request.to.map(formatParty),
@@ -150,13 +193,13 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
           }
         : {}),
     };
-    const payload = await call("POST", "/emails", { body, idempotencyKey: request.idempotencyKey, phase: "write" });
-    if (!payload?.id) throw new MailProviderError("AMBIGUOUS", "RESEND_NO_ID", "Resend accepted the request without an id");
+    const payload = await call("POST", "/emails", { body, idempotencyKey: request.idempotencyKey, phase: "write", operation: "sendMessage" });
+    if (!payload?.id) throw new MailProviderError("AMBIGUOUS", "RESEND_NO_ID", "Resend accepted the request without an id", { operation: "sendMessage", provider: "resend" });
     return { providerMessageId: String(payload.id) };
   }
 
   async function fetchInboundMessage(providerEmailId) {
-    const payload = await call("GET", `/emails/receiving/${encodeURIComponent(providerEmailId)}`);
+    const payload = await call("GET", `/emails/receiving/${encodeURIComponent(providerEmailId)}`, { operation: "fetchInboundMessage" });
     const headers = payload?.headers || {};
     const from = parseParty(payload?.from) || parseParty(headerValue(headers, "from"));
     return {
@@ -258,7 +301,13 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
         controller.abort();
         throw new MailProviderError("PERMANENT", "ATTACHMENT_REDIRECT_REFUSED", "Attachment download redirected");
       }
-      if (!response.ok) throw new MailProviderError(classifyStatus(response.status), `ATTACHMENT_HTTP_${response.status}`, "Attachment download failed", { status: response.status });
+      if (!response.ok) {
+        // Signed download links expire: the CDN answers 403 for an expired
+        // signature, and a retry re-lists the attachments (fresh links).
+        // 404/410 stay PERMANENT (the object is gone).
+        if (response.status === 403) throw new MailProviderError("RETRYABLE", "ATTACHMENT_URL_EXPIRED", "Attachment download link expired", { status: response.status, category: "PROVIDER_UNAVAILABLE", operation: "downloadAttachment", provider: "resend" });
+        throw new MailProviderError(classifyStatus(response.status), `ATTACHMENT_HTTP_${response.status}`, "Attachment download failed", { status: response.status, operation: "downloadAttachment", provider: "resend" });
+      }
       const declared = Number(response.headers?.get?.("content-length"));
       if (Number.isFinite(declared) && declared > limit) {
         controller.abort();
@@ -267,15 +316,27 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
       return await readCapped(response, limit, controller);
     } catch (error) {
       if (error instanceof MailProviderError) throw error;
-      throw new MailProviderError("RETRYABLE", "ATTACHMENT_DOWNLOAD_FAILED", "Attachment download did not complete");
+      throw new MailProviderError("RETRYABLE", "ATTACHMENT_DOWNLOAD_FAILED", "Attachment download did not complete", { category: error?.name === "AbortError" ? "TIMEOUT" : "PROVIDER_UNAVAILABLE", operation: "downloadAttachment", provider: "resend" });
     } finally {
       clearTimeout(timer);
     }
   }
 
   async function fetchInboundAttachments(providerEmailId) {
-    const payload = await call("GET", `/emails/receiving/${encodeURIComponent(providerEmailId)}/attachments`);
-    const items = Array.isArray(payload?.data) ? payload.data : Array.isArray(payload) ? payload : [];
+    // Documented: GET /emails/receiving/{email_id}/attachments; without
+    // `limit` every attachment is returned; with it, pages use `after`.
+    const items = [];
+    let after = null;
+    for (let page = 0; page < 10; page += 1) {
+      const query = after ? `?limit=100&after=${encodeURIComponent(after)}` : page === 0 ? "" : null;
+      if (query === null) break;
+      const payload = await call("GET", `/emails/receiving/${encodeURIComponent(providerEmailId)}/attachments${query}`, { operation: "fetchInboundAttachments" });
+      const rows = Array.isArray(payload?.data) ? payload.data : Array.isArray(payload) ? payload : [];
+      items.push(...rows);
+      if (!payload?.has_more || !rows.length) break;
+      after = rows[rows.length - 1]?.id || null;
+      if (!after) break;
+    }
     return items.map((item) => ({
       providerAttachmentId: String(item.id || ""),
       filename: String(item.filename || "attachment").slice(0, 255),
@@ -283,27 +344,83 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
       sizeBytes: Number(item.size || 0),
       contentId: item.content_id ? String(item.content_id).replace(/[<>]/g, "").slice(0, 255) : null,
       inline: item.content_disposition === "inline",
+      expiresAt: item.expires_at ? new Date(item.expires_at) : null,
       download: (maxBytes) => download(item.download_url, maxBytes),
     }));
   }
 
-  async function validateDomain(providerDomainId) {
-    const payload = await call("GET", `/domains/${encodeURIComponent(providerDomainId)}`);
+  // Domain status values seen in the API: not_started, pending, verified,
+  // failed, temporary_failure, partially_verified (unknown values -> PENDING).
+  const DOMAIN_STATUS = { verified: "VERIFIED", failed: "FAILED", temporary_failure: "PENDING", pending: "PENDING", not_started: "NOT_STARTED", partially_verified: "PARTIAL", partially_failed: "PARTIAL" };
+  function mapDomain(payload) {
     const records = Array.isArray(payload?.records) ? payload.records : [];
-    const mapStatus = (value) => (value === "verified" ? "VERIFIED" : value === "failed" ? "FAILED" : value ? "PENDING" : "NOT_CONFIGURED");
-    const sendingRecords = records.filter((record) => ["SPF", "DKIM"].includes(String(record.record).toUpperCase()));
-    const receivingRecords = records.filter((record) => String(record.record).toUpperCase() === "RECEIVING_MX" || (String(record.type).toUpperCase() === "MX" && /inbound|receiv/i.test(String(record.value || ""))));
+    const kind = (record) => String(record.record || "").toUpperCase();
+    const sendingRecords = records.filter((record) => ["SPF", "DKIM"].includes(kind(record)));
+    const receivingRecords = records.filter((record) => ["RECEIVING", "RECEIVING_MX", "INBOUND"].includes(kind(record)) || (String(record.type).toUpperCase() === "MX" && /inbound|receiv/i.test(String(record.value || ""))));
     const aggregate = (list) => (!list.length ? "NOT_CONFIGURED" : list.every((record) => record.status === "verified") ? "VERIFIED" : list.some((record) => record.status === "failed") ? "FAILED" : "PENDING");
+    const recordStatus = (name) => {
+      const list = records.filter((record) => kind(record) === name);
+      return list.length ? aggregate(list) : "NOT_CONFIGURED";
+    };
+    const capabilities = payload?.capabilities && typeof payload.capabilities === "object" ? payload.capabilities : null;
     return {
-      status: mapStatus(payload?.status),
+      providerDomainId: payload?.id ? String(payload.id) : null,
+      name: payload?.name ? String(payload.name).toLowerCase() : null,
+      status: DOMAIN_STATUS[String(payload?.status || "").toLowerCase()] || (payload?.status ? "PENDING" : "NOT_CONFIGURED"),
       sendingStatus: aggregate(sendingRecords),
-      receivingStatus: aggregate(receivingRecords),
-      records: records.map((record) => ({ record: record.record, type: record.type, name: record.name, value: record.value, status: record.status, priority: record.priority ?? null })),
+      receivingStatus: capabilities && capabilities.receiving === "disabled" ? "DISABLED" : aggregate(receivingRecords),
+      spfStatus: recordStatus("SPF"),
+      dkimStatus: recordStatus("DKIM"),
+      // Resend publishes no DMARC record or DMARC check for a domain; DMARC
+      // alignment is verified from DNS by the domain owner (never assumed).
+      dmarcStatus: "NOT_REPORTED",
+      region: payload?.region ? String(payload.region) : null,
+      capabilities: capabilities ? { sending: capabilities.sending || null, receiving: capabilities.receiving || null } : null,
+      records: records.map((record) => ({ record: record.record, type: record.type, name: record.name, value: record.value, status: record.status, ttl: record.ttl ?? null, priority: record.priority ?? null })),
     };
   }
 
+  async function validateDomain(providerDomainId) {
+    const payload = await call("GET", `/domains/${encodeURIComponent(providerDomainId)}`, { operation: "validateDomain" });
+    return mapDomain(payload);
+  }
+
+  // POST /domains (documented). Not idempotent at the provider: callers look
+  // the domain up by name first (findDomainByName) and never blindly retry.
+  async function createDomain({ name, region = null, receiving = false } = {}) {
+    const domain = String(name || "").trim().toLowerCase();
+    if (!/^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(domain)) {
+      throw new MailProviderError("PERMANENT", "DOMAIN_NAME_INVALID", "Domain name is invalid", { category: "VALIDATION_FAILED", operation: "createDomain", provider: "resend" });
+    }
+    const body = { name: domain, ...(region ? { region: String(region) } : {}), capabilities: { sending: "enabled", receiving: receiving ? "enabled" : "disabled" } };
+    const payload = await call("POST", "/domains", { body, phase: "write", operation: "createDomain" });
+    if (!payload?.id) throw new MailProviderError("AMBIGUOUS", "RESEND_NO_ID", "Domain accepted without an id", { operation: "createDomain", provider: "resend" });
+    return mapDomain(payload);
+  }
+
+  // POST /domains/{id}/verify starts an asynchronous check (status becomes
+  // pending; domain.updated webhooks follow). Safe to repeat.
+  async function verifyDomain(providerDomainId) {
+    await call("POST", `/domains/${encodeURIComponent(providerDomainId)}/verify`, { phase: "write", operation: "verifyDomain" });
+    return { providerDomainId: String(providerDomainId), status: "PENDING" };
+  }
+
+  async function findDomainByName(name) {
+    const wanted = String(name || "").trim().toLowerCase();
+    let after = null;
+    for (let page = 0; page < 20; page += 1) {
+      const payload = await call("GET", `/domains?limit=100${after ? `&after=${encodeURIComponent(after)}` : ""}`, { operation: "findDomainByName" });
+      const rows = Array.isArray(payload?.data) ? payload.data : [];
+      const match = rows.find((row) => String(row?.name || "").toLowerCase() === wanted);
+      if (match?.id) return validateDomain(String(match.id));
+      if (!payload?.has_more || !rows.length) return null;
+      after = rows[rows.length - 1].id;
+    }
+    return null;
+  }
+
   async function retrieveDeliveryEvents(providerMessageId) {
-    const payload = await call("GET", `/emails/${encodeURIComponent(providerMessageId)}`);
+    const payload = await call("GET", `/emails/${encodeURIComponent(providerMessageId)}`, { operation: "retrieveDeliveryEvents" });
     const event = String(payload?.last_event || "").toLowerCase();
     const map = { sent: "SENT", delivered: "DELIVERED", delivery_delayed: "DELIVERY_DELAYED", bounced: "BOUNCED", complained: "COMPLAINED", failed: "FAILED", opened: "OPENED", clicked: "CLICKED" };
     return map[event] ? [{ type: map[event], occurredAt: payload?.created_at ? new Date(payload.created_at) : new Date(clock()), recipient: null }] : [];
@@ -315,7 +432,7 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
   async function listReceivedEmails({ limit = 100, after = null } = {}) {
     const query = new URLSearchParams({ limit: String(Math.min(Math.max(Number(limit) || 100, 1), 100)) });
     if (after) query.set("after", String(after));
-    const payload = await call("GET", `/emails/receiving?${query.toString()}`);
+    const payload = await call("GET", `/emails/receiving?${query.toString()}`, { operation: "listReceivedEmails" });
     const rows = Array.isArray(payload?.data) ? payload.data : [];
     return {
       items: rows.filter((row) => row?.id).map((row) => ({ providerEmailId: String(row.id), to: parsePartyList(row.to || []).parties.map((party) => party.address), createdAt: row.created_at ? new Date(row.created_at) : null })),
@@ -323,13 +440,16 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
     };
   }
 
+  // GET /domains?limit=1 (read-only). `status` distinguishes an unhealthy
+  // provider (UNAVAILABLE / DEGRADED) from a credential or scope problem.
   async function healthProbe() {
     const started = clock();
     try {
-      await call("GET", "/domains");
-      return { ok: true, latencyMs: clock() - started, detail: "reachable" };
+      await call("GET", "/domains?limit=1", { operation: "healthProbe" });
+      return { ok: true, status: "OK", latencyMs: clock() - started, detail: "reachable", rateLimit: lastRateLimit };
     } catch (error) {
-      return { ok: false, latencyMs: clock() - started, detail: error.code || "unreachable" };
+      const status = error?.kind === "NOT_CONFIGURED" ? "NOT_CONFIGURED" : ["AUTHENTICATION_FAILED", "PERMISSION_DENIED"].includes(error?.category) ? "MISCONFIGURED" : error?.category === "RATE_LIMITED" ? "DEGRADED" : "UNAVAILABLE";
+      return { ok: false, status, category: error?.category || null, latencyMs: clock() - started, detail: error.code || "unreachable", rateLimit: lastRateLimit };
     }
   }
 
@@ -343,12 +463,16 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
     fetchInboundMessage,
     fetchInboundAttachments,
     validateDomain,
+    createDomain,
+    verifyDomain,
+    findDomainByName,
     retrieveDeliveryEvents,
     healthProbe,
     listReceivedEmails,
+    rateLimitState: () => lastRateLimit,
     createBroadcast: broadcastDisabled,
     sendBroadcast: broadcastDisabled,
   };
 }
 
-module.exports = { createResendAdapter, classifyStatus };
+module.exports = { createResendAdapter, classifyStatus, createRequestPacer, MAX_TO_RECIPIENTS, MAX_ENCODED_ATTACHMENT_BYTES };
