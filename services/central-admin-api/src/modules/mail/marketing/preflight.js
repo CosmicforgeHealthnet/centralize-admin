@@ -11,8 +11,16 @@
 // `ok` on a check is `status !== "BLOCKED"`, and a preflight is ok when no
 // check is BLOCKED, so the pre-existing boolean semantics are unchanged.
 //
-// Provider facts come from the transactional adapter's validateDomain
-// (GET /domains/{id} for Resend): domain status and the SPF / DKIM records it
+// Provider facts come from the provider account that actually sends the
+// marketing mail (re-audit): a brand's marketing key may belong to another
+// Resend account than the transactional key. The registered
+// `marketingAccount(organizationId)` hook says whether that account is
+// separate and, if so, how to look the domain up there (resend marketing
+// adapter getDomainByName: GET /domains + GET /domains/{id}). A separate
+// account without a lookup reports provider_domain_verified / SPF / DKIM /
+// DMARC as UNKNOWN ("verified in the transactional account only"). Without the
+// hook (older callers) the transactional adapter's validateDomain
+// (GET /domains/{id}) is used: domain status and the SPF / DKIM records it
 // returns. Resend does not report DMARC; DMARC (and therefore alignment) is
 // UNKNOWN unless the provider returns a DMARC record. If the provider cannot
 // be reached, the stored dns_records of the last verification are shown but
@@ -82,7 +90,16 @@ async function withTimeout(promise, ms) {
   }
 }
 
-async function providerDomainState(domain, validateDomain, settings) {
+async function providerDomainState(domain, validateDomain, settings, lookupByName = null) {
+  if (lookupByName) {
+    try {
+      const result = await withTimeout(Promise.resolve(lookupByName(domain.domain)), settings.providerTimeoutMs);
+      if (!result) return { reachable: true, result: { status: "NOT_FOUND", sendingStatus: "NOT_CONFIGURED", records: [] }, notInAccount: true };
+      return { reachable: true, result };
+    } catch (error) {
+      return { reachable: false, reason: error?.code || "PROVIDER_UNREACHABLE" };
+    }
+  }
   if (!domain?.providerDomainId) return { reachable: false, reason: "NO_PROVIDER_DOMAIN_ID" };
   if (typeof validateDomain !== "function") return { reachable: false, reason: "PROVIDER_NOT_AVAILABLE" };
   try {
@@ -115,15 +132,34 @@ function recordCheck(id, label, list, live, lastCheckedAt) {
 }
 
 // Sending-domain checks: brand ownership, provider verification, SPF/DKIM/DMARC.
-async function domainChecks({ sender, organizationId, validateDomain, config }) {
+async function domainChecks({ sender, organizationId, validateDomain, marketingAccount = null, config }) {
   const settings = deliverabilityConfig(config);
   const checks = [];
   const domain = sender?.domain;
   if (!domain) return [check("sender_domain_brand_owned", "BLOCKED", "No sender domain"), check("provider_domain_verified", "UNKNOWN", "No sender domain")];
   checks.push(fromOk("sender_domain_brand_owned", domain.organizationId === organizationId, domain.organizationId === organizationId ? `${domain.domain} belongs to this brand` : `${domain.domain} belongs to another brand`));
-  const provider = await providerDomainState(domain, validateDomain, settings);
+  // Which provider account sends this brand's marketing mail.
+  let account = null;
+  if (typeof marketingAccount === "function") {
+    try {
+      account = (await withTimeout(Promise.resolve(marketingAccount(organizationId)), settings.providerTimeoutMs)) || null;
+    } catch (error) {
+      account = { separate: true, lookup: null, reason: error?.code || "MARKETING_ACCOUNT_UNKNOWN" };
+    }
+  }
+  if (account?.separate && typeof account.lookup !== "function") {
+    const why = `verified in the transactional account only; the brand's marketing provider account cannot be checked${account.reason ? ` (${account.reason})` : ""}`;
+    checks.push(check("provider_domain_verified", "UNKNOWN", `${domain.domain}: ${why}`));
+    checks.push(check("spf", "UNKNOWN", `SPF: ${why}`));
+    checks.push(check("dkim", "UNKNOWN", `DKIM: ${why}`));
+    checks.push(check("dmarc", "UNKNOWN", `DMARC: ${why}; verify the _dmarc TXT record in DNS`));
+    return checks;
+  }
+  const provider = await providerDomainState(domain, validateDomain, settings, account?.separate ? account.lookup : null);
   const live = provider.reachable;
-  if (!live) {
+  if (provider.notInAccount) {
+    checks.push(check("provider_domain_verified", "BLOCKED", `${domain.domain}: not found in the brand's marketing provider account (marketing mail is sent with the brand key)`));
+  } else if (!live) {
     checks.push(check("provider_domain_verified", "UNKNOWN", `${domain.domain}: provider verification unavailable (${provider.reason}); the local status ${domain.status}/${domain.sendingStatus} alone is not proof`));
   } else {
     const { status, sendingStatus } = provider.result;
@@ -169,16 +205,60 @@ async function reputationCheck({ client, config, organizationId, clock = () => n
       counts.total += row._count._all;
       if (counts[row.deliveryStatus] != null) counts[row.deliveryStatus] += row._count._all;
     }
-    if (counts.total < settings.minSample) return check("sender_reputation", "UNKNOWN", `Too little recent data: ${counts.total} sent in ${settings.windowDays} days (need ${settings.minSample})`, { metrics: { sent: counts.total, bounced: counts.BOUNCED, complained: counts.COMPLAINED } });
-    const bounceBps = (counts.BOUNCED * 10000) / counts.total;
+    // Re-audit: only hard (Permanent) bounces count. Recipient rows carry
+    // BOUNCED for soft and hard bounces alike; the bounce type is recorded as
+    // the brand suppression a hard bounce creates (marketing-events.processor:
+    // reason BOUNCED, source provider_hard_bounce). Soft bounces never create
+    // one, so BOUNCED rows without that evidence are soft and excluded.
+    let hardBounced = 0;
+    if (counts.BOUNCED) {
+      const [rows, runs] = await Promise.all([
+        client.marketingBroadcastRecipient.findMany({ where: { organizationId, status: "BOUNCED", createdAt: { gte: since } }, select: { email: true } }),
+        client.marketingAutomationStepRun.findMany({ where: { organizationId, deliveryStatus: "BOUNCED", createdAt: { gte: since } }, select: { recipientEmail: true } }),
+      ]);
+      const emails = [...rows.map((row) => row.email), ...runs.map((row) => row.recipientEmail)].filter(Boolean).map((email) => String(email).toLowerCase());
+      const unique = [...new Set(emails)];
+      const hard = unique.length ? await client.marketingSuppression.findMany({ where: { organizationId, reason: "BOUNCED", source: "provider_hard_bounce", email: { in: unique } }, select: { email: true } }) : [];
+      const hardSet = new Set(hard.map((row) => String(row.email).toLowerCase()));
+      hardBounced = Math.min(counts.BOUNCED, emails.filter((email) => hardSet.has(email)).length);
+    }
+    const softBounced = counts.BOUNCED - hardBounced;
+    const metrics = { sent: counts.total, bounced: hardBounced, hardBounced, softBounced, complained: counts.COMPLAINED };
+    if (counts.total < settings.minSample) return check("sender_reputation", "UNKNOWN", `Too little recent data: ${counts.total} sent in ${settings.windowDays} days (need ${settings.minSample})`, { metrics });
+    const bounceBps = (hardBounced * 10000) / counts.total;
     const complaintBps = (counts.COMPLAINED * 10000) / counts.total;
     const pct = (bps) => `${(bps / 100).toFixed(2)}%`;
-    const detail = `${settings.windowDays}d: ${counts.total} sent, bounce rate ${pct(bounceBps)}, complaint rate ${pct(complaintBps)} (warn ${pct(settings.bounceWarnBps)}/${pct(settings.complaintWarnBps)}, block ${pct(settings.bounceBlockBps)}/${pct(settings.complaintBlockBps)})`;
+    const detail = `${settings.windowDays}d: ${counts.total} sent, hard bounce rate ${pct(bounceBps)}${softBounced ? ` (${softBounced} soft bounce(s) not counted)` : ""}, complaint rate ${pct(complaintBps)} (warn ${pct(settings.bounceWarnBps)}/${pct(settings.complaintWarnBps)}, block ${pct(settings.bounceBlockBps)}/${pct(settings.complaintBlockBps)})`;
     const status = bounceBps > settings.bounceBlockBps || complaintBps > settings.complaintBlockBps ? "BLOCKED" : bounceBps > settings.bounceWarnBps || complaintBps > settings.complaintWarnBps ? "WARNING" : "PASS";
-    return check("sender_reputation", status, detail, { metrics: { sent: counts.total, bounced: counts.BOUNCED, complained: counts.COMPLAINED } });
+    return check("sender_reputation", status, detail, { metrics });
   } catch {
     return check("sender_reputation", "UNKNOWN", "Reputation data could not be read");
   }
+}
+
+// ---- provider quota ---------------------------------------------------------
+// Spec: BLOCKED while a quota exhaustion is in force, WARNING when observed
+// usage is at least 90% of a configured limit, UNKNOWN when nothing was
+// observed (or no limit is configured, so remaining is unknown).
+async function providerQuotaCheck({ organizationId, quotaState }) {
+  if (typeof quotaState !== "function") return check("provider_quota", "UNKNOWN", "Provider quota is not available here");
+  let state;
+  try {
+    state = await quotaState(organizationId);
+  } catch {
+    return check("provider_quota", "UNKNOWN", "Provider quota could not be read");
+  }
+  if (!state || state.status === "UNAVAILABLE") return check("provider_quota", "UNKNOWN", state?.reason || "Provider quota is not available");
+  const scope = state.scope ? ` (${state.scope})` : "";
+  if (state.exhausted) return check("provider_quota", "BLOCKED", `Provider ${String(state.exhaustedKind || "").toLowerCase() || "sending"} quota exhausted${scope} until ${state.exhaustedUntil}`, { quota: { scope: state.scope, exhaustedUntil: state.exhaustedUntil } });
+  if (state.status !== "OBSERVED") return check("provider_quota", "UNKNOWN", `No provider quota observed yet${scope}`);
+  const ratios = [];
+  if (state.dailyLimit && state.dailyUsed != null) ratios.push({ period: "daily", used: state.dailyUsed, limit: state.dailyLimit });
+  if (state.monthlyLimit && state.monthlyUsed != null) ratios.push({ period: "monthly", used: state.monthlyUsed, limit: state.monthlyLimit });
+  if (!ratios.length) return check("provider_quota", "UNKNOWN", `Usage observed${scope} but no plan limit is configured (MAIL_PROVIDER_*_LIMIT): remaining quota unknown`);
+  const describe = ratios.map((entry) => `${entry.period} ${entry.used}/${entry.limit}`).join(", ");
+  const high = ratios.filter((entry) => entry.used * 10 >= entry.limit * 9);
+  return check("provider_quota", high.length ? "WARNING" : "PASS", `${high.length ? "At least 90% of the provider quota used" : "Provider quota available"}${scope}: ${describe}`, { quota: { scope: state.scope, ratios } });
 }
 
 // ---- content -------------------------------------------------------------------
@@ -248,10 +328,12 @@ function contentChecks({ rendered, classification = "MARKETING", brandSettings =
 }
 
 // Shared by campaign preflight and automation steps.
-async function deliverabilityChecks({ client, config, organizationId, sender, rendered, classification = "MARKETING", brandSettings = null, clock, validateDomain }) {
+async function deliverabilityChecks({ client, config, organizationId, sender, rendered, classification = "MARKETING", brandSettings = null, clock, validateDomain, marketingAccount, quotaState }) {
   const checks = [];
-  if (sender) checks.push(...(await domainChecks({ sender, organizationId, validateDomain: validateDomain ?? deliverabilityFor(client).validateDomain, config })));
+  const registered = deliverabilityFor(client);
+  if (sender) checks.push(...(await domainChecks({ sender, organizationId, validateDomain: validateDomain ?? registered.validateDomain, marketingAccount: marketingAccount ?? registered.marketingAccount, config })));
   checks.push(await reputationCheck({ client, config, organizationId, clock }));
+  if ((quotaState ?? registered.quotaState) && !TRANSACTIONAL_CLASSES.has(classification)) checks.push(await providerQuotaCheck({ organizationId, quotaState: quotaState ?? registered.quotaState }));
   if (rendered) checks.push(...contentChecks({ rendered, classification, brandSettings, config }));
   return checks;
 }
@@ -445,7 +527,7 @@ function runTemplateQa({ version, classification = "MARKETING", approval = null,
 }
 
 module.exports = {
-  check, fromOk, summarize, preflightHash, deliverabilityConfig, registerDeliverability, deliverabilityFor,
+  check, fromOk, summarize, preflightHash, deliverabilityConfig, registerDeliverability, deliverabilityFor, providerQuotaCheck,
   domainChecks, reputationCheck, contentChecks, plaintextConsistency, linkTrackingCheck, deliverabilityChecks,
   lintEmailCompatibility, contrastRatio, runTemplateQa, QA_DISCLAIMER, STATUSES, COMPAT_RULES,
 };

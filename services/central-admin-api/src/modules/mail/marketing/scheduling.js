@@ -54,7 +54,7 @@ function zonedLocalToUtc(local, timeZone) {
     .filter((candidate) => formatLocal(wallClock(candidate, timeZone)) === wanted)
     .sort((a, b) => a - b);
   if (!matches.length) throw Object.assign(new Error(`${wanted} does not exist in ${timeZone} (daylight saving gap)`), { code: "SCHEDULE_TIME_NONEXISTENT" });
-  return { utc: new Date(matches[0]), ambiguous: matches.length > 1 };
+  return { utc: new Date(matches[0]), ambiguous: matches.length > 1, ...(matches.length > 1 ? { secondUtc: new Date(matches[matches.length - 1]) } : {}) };
 }
 
 function localDateParts(instantMs, timeZone) {
@@ -96,7 +96,9 @@ function nextOccurrence(schedule, afterMs) {
 // must still run, so
 // - a non-existent local time (spring-forward gap) shifts FORWARD by the gap
 //   length (02:30 on the New York gap day runs at 03:30 EDT);
-// - an ambiguous local time (fall-back overlap) uses the FIRST occurrence;
+// - an ambiguous local time (fall-back overlap) uses the FIRST occurrence,
+//   unless that is already before the base instant: then the SECOND
+//   occurrence on the same day (re-audit), never the next day;
 // - calendar arithmetic is done on the local date (Date.UTC day overflow), so
 //   month ends, Feb 29 and year ends roll over correctly.
 // ISO weekdays: 1 = Monday ... 7 = Sunday.
@@ -134,8 +136,8 @@ function localIso(instantMs, timeZone) {
  */
 function resolveLocalTime(local, timeZone) {
   try {
-    const { utc, ambiguous } = zonedLocalToUtc(local, timeZone);
-    return { utc, ambiguous, shiftedMinutes: 0 };
+    const { utc, ambiguous, secondUtc } = zonedLocalToUtc(local, timeZone);
+    return { utc, ambiguous, shiftedMinutes: 0, ...(secondUtc ? { secondUtc } : {}) };
   } catch (error) {
     if (error.code !== "SCHEDULE_TIME_NONEXISTENT") throw error;
   }
@@ -164,6 +166,10 @@ function nextLocalTimeAtOrAfter(afterMs, localTime, timeZone, days = null) {
     if (days && days.length && !days.includes(isoWeekday(year, month, day))) continue;
     const resolved = resolveLocalTime(`${year}-${pad2(month)}-${pad2(day)}T${localTime}`, timeZone);
     if (resolved.utc.getTime() >= afterMs) return resolved;
+    // Re-audit: an ambiguous local time (fall-back overlap) occurs twice; when
+    // the first occurrence is already past, the second one on the same day is
+    // the next instant (e.g. 01:30 EST after 01:45 EDT), not the next day.
+    if (resolved.secondUtc && resolved.secondUtc.getTime() >= afterMs) return { utc: resolved.secondUtc, ambiguous: true, shiftedMinutes: 0, occurrence: "SECOND" };
   }
   return null;
 }

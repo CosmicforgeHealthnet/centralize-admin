@@ -331,8 +331,12 @@ function createBroadcastService({ client, config, audit, jobs, stepUp, env = pro
       const { source } = resolveBrandApiKey(organization.slug, { env, config });
       const brandScope = source === "brand" ? quotaScopeFor(organization.slug, source) : null;
       if (brandScope) return await providerQuota.snapshot(brandScope, "resend");
-      if (await policy.canAdministerMail(client, user, "VIEW")) return { ...(await providerQuota.snapshot("account", config.provider === "fake" ? "fake" : "resend")), visibleBecause: "MAIL_ADMIN" };
-      return { status: "HIDDEN", reason: "This brand shares the company provider account; its quota is visible to mail administrators only." };
+      // Re-audit: a shared-account brand sends with the shared marketing key,
+      // whose observations are recorded under "marketing-shared" (not the
+      // transactional "account" scope). It spans brands: mail admins only.
+      const sharedScope = source === "shared" ? quotaScopeFor(organization.slug, source) : null;
+      if (await policy.canAdministerMail(client, user, "VIEW")) return { ...(sharedScope ? await providerQuota.snapshot(sharedScope, "resend") : await providerQuota.snapshot("account", config.provider === "fake" ? "fake" : "resend")), visibleBecause: "MAIL_ADMIN" };
+      return { status: "HIDDEN", reason: sharedScope ? "This brand shares the marketing provider account with other brands; its quota is visible to mail administrators only." : "This brand shares the company provider account; its quota is visible to mail administrators only." };
     } catch {
       return { status: "UNAVAILABLE", reason: "Quota could not be read." };
     }

@@ -103,9 +103,14 @@ test("domain checks: UNKNOWN when the provider is unavailable, BLOCKED when it r
 });
 
 test("reputation thresholds: UNKNOWN with little data, WARNING and BLOCKED above the configured rates", async () => {
-  const stub = (counts) => ({
-    marketingBroadcastRecipient: { groupBy: async () => Object.entries(counts).map(([status, n]) => ({ status, _count: { _all: n } })) },
-    marketingAutomationStepRun: { groupBy: async () => [] },
+  // Bounced rows; every bounce here is hard (a provider_hard_bounce suppression exists).
+  const stub = (counts, hardShare = 1) => ({
+    marketingBroadcastRecipient: {
+      groupBy: async () => Object.entries(counts).map(([status, n]) => ({ status, _count: { _all: n } })),
+      findMany: async () => Array.from({ length: counts.BOUNCED || 0 }, (_, index) => ({ email: `b${index}@reader.example` })),
+    },
+    marketingAutomationStepRun: { groupBy: async () => [], findMany: async () => [] },
+    marketingSuppression: { findMany: async ({ where }) => where.email.in.slice(0, Math.round(where.email.in.length * hardShare)).map((email) => ({ email })) },
   });
   const run = (counts, env) => preflight.reputationCheck({ client: stub(counts), config: config(env), organizationId: "org" });
   assert.equal((await run({ DELIVERED: 20, BOUNCED: 5 })).status, "UNKNOWN");
@@ -118,6 +123,14 @@ test("reputation thresholds: UNKNOWN with little data, WARNING and BLOCKED above
   assert.equal((await run({ DELIVERED: 30 }, { MAIL_MARKETING_REPUTATION_MIN_SAMPLE: "10" })).status, "PASS");
   const broken = await preflight.reputationCheck({ client: { marketingBroadcastRecipient: { groupBy: async () => { throw new Error("db"); } }, marketingAutomationStepRun: { groupBy: async () => [] } }, config: config(), organizationId: "org" });
   assert.equal(broken.status, "UNKNOWN");
+  // Re-audit: soft (Transient) bounces are not counted in the bounce rate.
+  const soft = await preflight.reputationCheck({ client: stub({ DELIVERED: 940, BOUNCED: 60 }, 0), config: config(), organizationId: "org" });
+  assert.equal(soft.status, "PASS", "60 soft bounces only");
+  assert.deepEqual([soft.metrics.hardBounced, soft.metrics.softBounced], [0, 60]);
+  assert.match(soft.detail, /hard bounce rate 0\.00% \(60 soft bounce\(s\) not counted\)/);
+  const mixed = await preflight.reputationCheck({ client: stub({ DELIVERED: 940, BOUNCED: 60 }, 0.5), config: config(), organizationId: "org" });
+  assert.equal(mixed.status, "WARNING", "30 hard bounces = 3%");
+  assert.equal(mixed.metrics.bounced, 30);
 });
 
 test("content checks: plaintext consistency, unsubscribe, identity, link tracking", () => {
@@ -197,4 +210,63 @@ test("template policy before migration 37: everything is MARKETING, nothing is q
   const throwing = createTemplatePolicy({ client: proxy, feature: { isReady: async () => { throw new Error("probe failed"); } } });
   assert.equal(await throwing.ready(), false);
   assert.deepEqual(touched, [], "no table is touched before the migration");
+});
+
+// Re-audit: marketing mail is sent with the brand key (possibly another
+// provider account), so the domain must be verified in that account.
+test("domain checks: verified in the marketing account, else UNKNOWN (transactional account only)", async () => {
+  const domain = { domain: "cosmicforge.example", organizationId: "org", providerDomainId: "tx_dom", status: "VERIFIED", sendingStatus: "VERIFIED", dnsRecords: [] };
+  const transactionalVerified = async () => ({ status: "VERIFIED", sendingStatus: "VERIFIED", records: [{ record: "SPF", status: "verified" }, { record: "DKIM", status: "verified" }] });
+  const byId = (checks) => Object.fromEntries(checks.map((entry) => [entry.id, entry]));
+  const only = byId(await preflight.domainChecks({ sender: { domain }, organizationId: "org", validateDomain: transactionalVerified, marketingAccount: async () => ({ separate: true, lookup: null }), config: config() }));
+  for (const id of ["provider_domain_verified", "spf", "dkim", "dmarc"]) {
+    assert.equal(only[id].status, "UNKNOWN", id);
+    assert.match(only[id].detail, /verified in the transactional account only/);
+  }
+  const looked = [];
+  const marketing = byId(await preflight.domainChecks({ sender: { domain }, organizationId: "org", validateDomain: transactionalVerified, marketingAccount: async () => ({ separate: true, lookup: async (name) => { looked.push(name); return { status: "FAILED", sendingStatus: "FAILED", records: [{ record: "DKIM", status: "failed" }] }; } }), config: config() }));
+  assert.deepEqual(looked, ["cosmicforge.example"]);
+  assert.equal(marketing.provider_domain_verified.status, "BLOCKED", "the marketing account's answer counts");
+  const absent = byId(await preflight.domainChecks({ sender: { domain }, organizationId: "org", validateDomain: transactionalVerified, marketingAccount: async () => ({ separate: true, lookup: async () => null }), config: config() }));
+  assert.equal(absent.provider_domain_verified.status, "BLOCKED");
+  const same = byId(await preflight.domainChecks({ sender: { domain }, organizationId: "org", validateDomain: transactionalVerified, marketingAccount: async () => ({ separate: false }), config: config() }));
+  assert.equal(same.provider_domain_verified.status, "PASS", "one account for both purposes");
+  const broken = byId(await preflight.domainChecks({ sender: { domain }, organizationId: "org", validateDomain: transactionalVerified, marketingAccount: async () => { throw new Error("db"); }, config: config() }));
+  assert.equal(broken.provider_domain_verified.status, "UNKNOWN");
+});
+
+test("provider quota check: BLOCKED while exhausted, WARNING at >= 90% of a configured limit, UNKNOWN when not observed", async () => {
+  const run = (state) => preflight.providerQuotaCheck({ organizationId: "org", quotaState: async () => state });
+  assert.equal((await run({ status: "UNKNOWN", scope: "brand:cf" })).status, "UNKNOWN");
+  assert.equal((await run({ status: "UNAVAILABLE", reason: "pre-37" })).status, "UNKNOWN");
+  assert.equal((await run({ status: "OBSERVED", scope: "brand:cf", dailyUsed: 10, dailyLimit: null, monthlyUsed: 10, monthlyLimit: null })).status, "UNKNOWN", "no configured limit: remaining unknown");
+  assert.equal((await run({ status: "OBSERVED", scope: "brand:cf", dailyUsed: 89, dailyLimit: 100 })).status, "PASS");
+  assert.equal((await run({ status: "OBSERVED", scope: "brand:cf", dailyUsed: 90, dailyLimit: 100 })).status, "WARNING");
+  assert.equal((await run({ status: "OBSERVED", scope: "brand:cf", monthlyUsed: 2700, monthlyLimit: 3000, dailyUsed: 1, dailyLimit: 100 })).status, "WARNING");
+  const blocked = await run({ status: "OBSERVED", scope: "brand:cf", exhausted: true, exhaustedKind: "MONTHLY", exhaustedUntil: "2026-11-01T00:00:00.000Z" });
+  assert.equal(blocked.status, "BLOCKED");
+  assert.equal(blocked.ok, false);
+  assert.equal((await preflight.providerQuotaCheck({ organizationId: "org", quotaState: async () => { throw new Error("x"); } })).status, "UNKNOWN");
+});
+
+test("resend marketing adapter: getDomainByName lists /domains then reads /domains/{id} with the brand key", async () => {
+  const { createResendMarketingAdapter } = require("../src/modules/mail/adapters/marketing/resend-marketing.adapter");
+  const calls = [];
+  const responses = [
+    { ok: true, status: 200, headers: new Headers(), text: async () => JSON.stringify({ data: [{ id: "d_other", name: "other.example" }, { id: "d_cf", name: "cosmicforge.example" }], has_more: false }) },
+    { ok: true, status: 200, headers: new Headers(), text: async () => JSON.stringify({ id: "d_cf", status: "verified", records: [{ record: "SPF", status: "verified" }, { record: "DKIM", status: "verified" }] }) },
+    { ok: true, status: 200, headers: new Headers(), text: async () => JSON.stringify({ data: [], has_more: false }) },
+  ];
+  const fetchImpl = async (url, init) => {
+    calls.push({ url, method: init.method, auth: init.headers.Authorization });
+    return responses.shift();
+  };
+  const cfg = loadMailConfig({ NODE_ENV: "test", MAIL_PROVIDER: "resend", RESEND_API_KEY: "re_tx_unit" });
+  const adapter = createResendMarketingAdapter({ apiKey: "re_brand_unit", config: cfg, fetchImpl, sleep: async () => {} });
+  const result = await adapter.getDomainByName("CosmicForge.example");
+  assert.equal(result.status, "VERIFIED");
+  assert.equal(result.sendingStatus, "VERIFIED");
+  assert.deepEqual(calls.map((entry) => [entry.method, new URL(entry.url).pathname]), [["GET", "/domains"], ["GET", "/domains/d_cf"]]);
+  assert.ok(calls.every((entry) => entry.auth === "Bearer re_brand_unit"), "the brand key, not the transactional key");
+  assert.equal(await adapter.getDomainByName("missing.example"), null);
 });

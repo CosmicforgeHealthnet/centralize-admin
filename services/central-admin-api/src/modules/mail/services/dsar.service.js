@@ -11,7 +11,8 @@
 //   read or changed.
 // - Access export: message metadata (no bodies), with BCC entries limited to
 //   the data subject's own; plus the organization's marketing contact,
-//   consent and suppression rows for the address.
+//   consent and suppression rows for the address, and (migration 37) its
+//   provider subscription states and provider re-subscription requests.
 // - Erasure is a dry run unless dryRun === false. For each matching message
 //   it removes the content objects (body, raw MIME, archived headers,
 //   attachments, search terms), blanks the subject/snippet/search text and
@@ -44,7 +45,7 @@ function iso(value) {
   return value ? new Date(value).toISOString() : null;
 }
 
-function createDsarService({ client, audit, stepUp, storage, features = null, deletions = null, clock = () => new Date() }) {
+function createDsarService({ client, audit, stepUp, storage, features = null, finalGap = null, deletions = null, clock = () => new Date() }) {
   async function validate(user, { organizationId, email, reason } = {}) {
     await policy.requireMailAdmin(client, user, "EDIT");
     if (!policy.isUuid(organizationId)) throw mailError("MAIL_VALIDATION_FAILED", { field: "organizationId" });
@@ -104,6 +105,38 @@ function createDsarService({ client, audit, stepUp, storage, features = null, de
       };
     } catch {
       marketing = null; // marketing tables not migrated in this environment
+    }
+    // Re-audit (migration 37): what the provider reported about the address
+    // and the provider re-subscription requests, for this organization's
+    // contacts only (never another brand's). null before migration 37.
+    if (marketing) {
+      let ready = false;
+      try {
+        ready = Boolean(finalGap && (await finalGap.isReady()));
+      } catch {
+        ready = false;
+      }
+      marketing.providerStates = null;
+      marketing.providerResubscriptions = null;
+      if (ready) {
+        try {
+          const contactIds = marketing.contacts.map((contact) => contact.id);
+          const [states, resubscriptions] = contactIds.length
+            ? await Promise.all([
+              client.marketingContactProviderState.findMany({ where: { organizationId, contactId: { in: contactIds } } }),
+              client.marketingProviderResubscription.findMany({ where: { organizationId, contactId: { in: contactIds } }, orderBy: { createdAt: "asc" } }),
+            ])
+            : [[], []];
+          marketing.providerStates = states.map((row) => ({ contactId: row.contactId, provider: row.provider, state: row.state, reason: row.reason, observedAt: iso(row.observedAt) }));
+          marketing.providerResubscriptions = resubscriptions.map((row) => {
+            const evidence = row.consentEvidence && typeof row.consentEvidence === "object" ? row.consentEvidence : {};
+            return { id: row.id, contactId: row.contactId, topic: row.topic, status: row.status, attempts: row.attempts, lastError: row.lastError, consentEvidence: { topic: evidence.topic || row.topic, source: evidence.source || null, policyVersion: evidence.policyVersion || null, doubleOptIn: Boolean(evidence.doubleOptIn), consentedAt: evidence.consentedAt || null, confirmedAt: evidence.confirmedAt || null, providerState: evidence.providerState || null }, createdAt: iso(row.createdAt), completedAt: iso(row.completedAt) };
+          });
+        } catch {
+          marketing.providerStates = null;
+          marketing.providerResubscriptions = null;
+        }
+      }
     }
     await audit.record({ actorAdminUserId: user.id, action: "MAIL_DSAR_EXPORTED", targetType: "dsar_subject", targetId: subjectHash(address).slice(0, 64), organizationId, metadata: { reference: reason, messages: messages.length, truncated, marketingContacts: marketing?.contacts.length ?? null } }, context);
     return { organizationId, email: address, generatedAt: clock().toISOString(), truncated, messages, marketing };

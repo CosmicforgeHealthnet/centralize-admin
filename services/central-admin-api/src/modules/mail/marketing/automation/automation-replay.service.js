@@ -31,6 +31,7 @@ const crypto = require("crypto");
 const { mailError } = require("../../mail.errors");
 const policy = require("../../authz/mail.policy");
 const { iso, pageLimit } = require("../../services/serializers");
+const { isDefinitiveProviderRejection } = require("../marketing-sender");
 
 const SCOPES = new Set(["STEP_RUN", "ENROLLMENT", "DEAD_LETTER_JOB"]);
 const MODES = new Set(["DRY_RUN", "EXECUTE"]);
@@ -245,7 +246,12 @@ function createAutomationReplayService({ client, config, audit, stepUp, jobs, fe
       }
       if (step.type !== "send_email" || run.stepType !== "send_email") return refuse("NON_SEND_STEP_NOT_REPLAYABLE");
       if (run.status === "RUNNING" && live) return refuse("STEP_IN_PROGRESS");
-      const unknown = run.status === "OUTCOME_UNKNOWN" || run.status === "RUNNING";
+      // A FAILED run that was attempted is only "never accepted" when its
+      // error is a known definitive provider rejection; otherwise (e.g. a
+      // database failure after acceptance) it is treated like an unknown
+      // outcome: same key, acknowledgement, idempotency window.
+      const failedUnproven = run.status === "FAILED" && Boolean(run.firstAttemptAt) && !isDefinitiveProviderRejection(run.errorCode);
+      const unknown = run.status === "OUTCOME_UNKNOWN" || run.status === "RUNNING" || failedUnproven;
       if (unknown) {
         const firstAttemptAt = run.firstAttemptAt || run.createdAt;
         const age = now().getTime() - new Date(firstAttemptAt).getTime();
@@ -253,6 +259,7 @@ function createAutomationReplayService({ client, config, audit, stepUp, jobs, fe
         plan.requiresAcknowledgement = true;
         plan.idempotency = { key: run.idempotencyKey, reused: true, firstAttemptAt: iso(firstAttemptAt), providerDeduplicatesUntil: new Date(new Date(firstAttemptAt).getTime() + windowMs()).toISOString() };
         plan.action = run.status === "RUNNING" ? "RECOVER_INTERRUPTED_SEND" : "RETRY_UNKNOWN_SEND";
+        if (failedUnproven) plan.idempotency.note = `The earlier failure (${run.errorCode || "unclassified"}) is not a definitive provider rejection, so the email may have been accepted; the same key is reused.`;
       } else {
         // FAILED (provider rejected or never reached) / SKIPPED (blocked):
         // no earlier attempt was accepted, so a fresh key is safe.
@@ -337,7 +344,7 @@ function createAutomationReplayService({ client, config, audit, stepUp, jobs, fe
           const key = reuse ? runRow.idempotencyKey : `auto:${enrollment.id}:${enrollment.stepCount}:r${replayId.slice(0, 8)}`;
           const reset = await tx.marketingAutomationStepRun.updateMany({
             where: { id: plan.stepRunId, status: plan.stepRunStatus, providerMessageId: null },
-            data: { status: "RUNNING", errorCode: null, idempotencyKey: key, ...(reuse ? {} : { firstAttemptAt: now() }), outcome: { ...(runRow.outcome || {}), replay: { replayId, previousStatus: runRow.status, previousErrorCode: runRow.errorCode, idempotencyKeyReused: reuse } } },
+            data: { status: "RUNNING", errorCode: null, idempotencyKey: key, ...(reuse ? {} : { firstAttemptAt: now() }), outcome: { ...(runRow.outcome || {}), keyUnattempted: !reuse, replay: { replayId, previousStatus: runRow.status, previousErrorCode: runRow.errorCode, idempotencyKeyReused: reuse } } },
           });
           if (reset.count !== 1) throw Object.assign(new Error("state changed"), { replayRefusal: "STATE_CHANGED" });
           outcome.idempotencyKey = key;

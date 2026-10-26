@@ -34,11 +34,19 @@
 //    FAILED. Retryable failures retry with backoff (attempts, next_attempt_at)
 //    through MARKETING_RESUBSCRIBE jobs and are reconciled on the next sync.
 // Audit metadata carries ids and statuses only (never an email address).
+// Re-audit: approve, the provider attempt (applyOne) and the manual
+// confirmation all run one guard (guardReasons): blockers() + the evidence
+// consent still GRANTED, double opt-in, confirmedAt equal to the evidence and
+// not withdrawn + the brand has its OWN provider account. Resend's unsubscribe
+// flag is account-global, so with MAIL_BROADCAST_ALLOW_SHARED_PROVIDER_ACCOUNT
+// one brand's double opt-in would clear another brand's unsubscribe: refused
+// with SHARED_PROVIDER_ACCOUNT unless the brand key is the brand's own.
 
 const crypto = require("crypto");
 const policy = require("../authz/mail.policy");
 const { mailError } = require("../mail.errors");
 const { isQuotaExhausted } = require("../ops/provider-quota.service");
+const { resolveBrandApiKey } = require("../adapters/marketing");
 
 const STATES = ["SUBSCRIBED", "UNSUBSCRIBED", "SUPPRESSED", "UNKNOWN"];
 const OPEN = ["PENDING_APPROVAL", "APPROVED"];
@@ -63,7 +71,7 @@ function iso(value) {
   return value ? new Date(value).toISOString() : null;
 }
 
-function createResubscriptionService({ client, config, features = null, audit, stepUp, jobs = null, marketingProviders, clock = () => new Date(), logger = null }) {
+function createResubscriptionService({ client, config, env = process.env, features = null, audit, stepUp, jobs = null, marketingProviders, clock = () => new Date(), logger = null }) {
   const ready = async () => {
     if (!features) return false;
     try {
@@ -157,6 +165,37 @@ function createResubscriptionService({ client, config, features = null, audit, s
     return [...new Set(reasons)];
   }
 
+  // Which provider account the brand's marketing key belongs to. The offline
+  // fake adapter may declare `accountSource` (tests); it defaults to "brand".
+  function accountSource(organization) {
+    if (!organization?.slug) return "none";
+    if (config.provider === "fake") {
+      const declared = marketingProviders(organization)?.accountSource;
+      return declared || "brand";
+    }
+    return resolveBrandApiKey(organization.slug, { env, config }).source;
+  }
+
+  // One guard for approve, applyOne and confirmManual.
+  async function guardReasons(db, row, { contact = null, organization = null } = {}) {
+    const evidence = row.consentEvidence || {};
+    const confirmedAt = evidence.confirmedAt ? new Date(evidence.confirmedAt) : null;
+    const theContact = contact || (await db.marketingContact.findUnique({ where: { id: row.contactId } }));
+    const reasons = theContact ? await blockers(db, { organizationId: row.organizationId, contact: theContact, confirmedAt }) : ["CONTACT_UNAVAILABLE"];
+    const consent = evidence.consentId ? await db.marketingConsent.findUnique({ where: { id: evidence.consentId } }) : null;
+    if (!consent || consent.contactId !== row.contactId || consent.status !== "GRANTED" || consent.withdrawnAt) reasons.push("CONSENT_NO_LONGER_GRANTED");
+    else if (!consent.doubleOptIn || !consent.confirmedAt || !confirmedAt || consent.confirmedAt.getTime() !== confirmedAt.getTime()) reasons.push("CONSENT_EVIDENCE_CHANGED");
+    const brand = organization || (await db.mailOrganization.findUnique({ where: { id: row.organizationId } }));
+    if (accountSource(brand) !== "brand") reasons.push("SHARED_PROVIDER_ACCOUNT");
+    return [...new Set(reasons)];
+  }
+
+  async function refuseGuarded(row, reasons, refusedBy, actor = null, context = {}) {
+    const moved = await client.marketingProviderResubscription.updateMany({ where: { id: row.id, status: row.status }, data: { status: "REFUSED", lastError: reasons.join(",").slice(0, 255), completedAt: clock(), nextAttemptAt: null, providerResult: { ...(row.providerResult && typeof row.providerResult === "object" ? row.providerResult : {}), refusedReasons: reasons, refusedBy } } });
+    if (moved.count === 1) await auditTransition({ ...row, status: "REFUSED" }, "MARKETING_RESUBSCRIPTION_REFUSED", { reasons, previousStatus: row.status, refusedBy }, actor, context);
+    return moved.count === 1;
+  }
+
   async function auditTransition(row, action, extra = {}, actor = null, context = {}, tx = undefined) {
     await audit.record({ actorAdminUserId: actor, action, targetType: "marketing_contact", targetId: row.contactId, organizationId: row.organizationId, metadata: { resubscriptionId: row.id, contactId: row.contactId, status: row.status, ...extra } }, context, tx);
   }
@@ -178,6 +217,7 @@ function createResubscriptionService({ client, config, features = null, audit, s
       const open = await client.marketingProviderResubscription.findFirst({ where: { contactId: contact.id, status: { in: OPEN } } });
       if (open) return { created: false, reason: "ALREADY_OPEN", id: open.id };
       const reasons = await blockers(client, { organizationId: contact.organizationId, contact, confirmedAt: consent.confirmedAt });
+      if (accountSource(await client.mailOrganization.findUnique({ where: { id: contact.organizationId } })) !== "brand") reasons.push("SHARED_PROVIDER_ACCOUNT");
       // Only a user unsubscribe can be lifted; provider suppressions (hard
       // bounce, complaint, provider suppression list) are never re-subscribed.
       if (state.state === "SUPPRESSED") reasons.unshift(state.reason === "COMPLAINT" ? "COMPLAINT" : state.reason === "HARD_BOUNCE" ? "HARD_BOUNCE" : "PROVIDER_SUPPRESSED");
@@ -281,6 +321,13 @@ function createResubscriptionService({ client, config, features = null, audit, s
       client.mailOrganization.findUnique({ where: { id: row.organizationId } }),
       client.marketingContact.findUnique({ where: { id: row.contactId } }),
     ]);
+    // Re-check right before the provider call (consent may have been
+    // withdrawn, a complaint or suppression may have arrived since approval).
+    const guard = await guardReasons(client, row, { contact, organization });
+    if (guard.length) {
+      await refuseGuarded(row, guard, "system_before_provider_call");
+      return client.marketingProviderResubscription.findUnique({ where: { id: row.id } });
+    }
     const provider = marketingProviders(organization);
     if (!config.providerResubscribeEnabled || typeof provider.resubscribeContact !== "function" || provider.resubscribeSupported === false) {
       await client.marketingProviderResubscription.updateMany({ where: { id: row.id, status: "APPROVED" }, data: { status: "UNSUPPORTED", nextAttemptAt: null, lastError: "PROVIDER_RESUBSCRIBE_NOT_ENABLED", providerResult: { message: UNSUPPORTED_MESSAGE, flag: "MAIL_MARKETING_PROVIDER_RESUBSCRIBE_ENABLED", flagEnabled: Boolean(config.providerResubscribeEnabled) } } });
@@ -390,14 +437,10 @@ function createResubscriptionService({ client, config, features = null, audit, s
     const row = await loadOwned(organizationId, id);
     if (row.status !== "PENDING_APPROVAL") throw mailError("MAIL_INVALID_TRANSITION", { from: row.status });
     if (row.requestedBy && row.requestedBy === user.id) throw mailError("MAIL_FORBIDDEN", { reason: "REQUESTER_CANNOT_APPROVE" });
-    const contact = await client.marketingContact.findUnique({ where: { id: row.contactId } });
-    const reasons = await blockers(client, { organizationId, contact, confirmedAt: row.consentEvidence?.confirmedAt ? new Date(row.consentEvidence.confirmedAt) : null });
-    const consent = row.consentEvidence?.consentId ? await client.marketingConsent.findUnique({ where: { id: row.consentEvidence.consentId } }) : null;
-    if (!consent || consent.status !== "GRANTED") reasons.push("CONSENT_NO_LONGER_GRANTED");
+    const reasons = await guardReasons(client, row);
     if (reasons.length) {
       // Consumes nothing: a refusal does not need a step-up.
-      await client.marketingProviderResubscription.updateMany({ where: { id, status: "PENDING_APPROVAL" }, data: { status: "REFUSED", lastError: reasons.join(",").slice(0, 255), completedAt: clock(), providerResult: { refusedReasons: reasons, refusedBy: "system_at_approval" } } });
-      await auditTransition({ ...row, status: "REFUSED" }, "MARKETING_RESUBSCRIPTION_REFUSED", { reasons }, user.id, context);
+      await refuseGuarded(row, reasons, "system_at_approval", user.id, context);
       throw mailError("MAIL_INVALID_TRANSITION", { reason: "RESUBSCRIPTION_BLOCKED", reasons });
     }
     await client.$transaction(async (tx) => {
@@ -431,8 +474,11 @@ function createResubscriptionService({ client, config, features = null, audit, s
     const row = await loadOwned(organizationId, id);
     if (!["UNSUPPORTED", "FAILED"].includes(row.status)) throw mailError("MAIL_INVALID_TRANSITION", { from: row.status });
     const contact = await client.marketingContact.findUnique({ where: { id: row.contactId } });
-    const reasons = await blockers(client, { organizationId, contact, confirmedAt: row.consentEvidence?.confirmedAt ? new Date(row.consentEvidence.confirmedAt) : null });
-    if (reasons.length) throw mailError("MAIL_INVALID_TRANSITION", { reason: "RESUBSCRIPTION_BLOCKED", reasons });
+    const reasons = await guardReasons(client, row, { contact });
+    if (reasons.length) {
+      await refuseGuarded(row, reasons, "system_at_manual_confirmation", user.id, context);
+      throw mailError("MAIL_INVALID_TRANSITION", { reason: "RESUBSCRIPTION_BLOCKED", reasons });
+    }
     await client.$transaction(async (tx) => {
       await stepUp.consume(tx, user, stepUpId, "MARKETING_RESUBSCRIBE_CONFIRM", context);
       await auditTransition(row, "MARKETING_RESUBSCRIPTION_MANUAL_CONFIRMATION", { note: note ? String(note).slice(0, 200) : null }, user.id, context, tx);

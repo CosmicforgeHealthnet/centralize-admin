@@ -38,9 +38,10 @@ test("fall back: ambiguous local times use the first occurrence", () => {
   const lordHowe = s.resolveLocalTime("2026-04-05T01:45", "Australia/Lord_Howe");
   assert.equal(lordHowe.utc.toISOString(), "2026-04-04T14:45:00.000Z", "first (+11:00) occurrence");
   assert.equal(lordHowe.ambiguous, true);
-  // After the first occurrence passed, the second one is never used: next day.
+  // Re-audit: after the first occurrence passed, the second one (01:30 EST,
+  // same day) is the next instant - not the next day.
   const next = s.nextLocalTimeAtOrAfter(at("2026-11-01T05:45:00Z"), "01:30", "America/New_York");
-  assert.equal(utc(next), "2026-11-02T06:30:00.000Z");
+  assert.equal(utc(next), "2026-11-01T06:30:00.000Z");
 });
 
 test("no DST: Africa/Lagos is a fixed UTC+1", () => {
@@ -163,4 +164,26 @@ test("definition validation: until/window options, invalid time zones, unchanged
   const audienceId = "33333333-3333-4333-8333-333333333333";
   assert.equal(validateTriggerConfig("SCHEDULE", { frequency: "daily", localTime: "09:00", timeZone: "recipient", audienceId }, definition).timeZone, "recipient");
   assert.throws(() => validateTriggerConfig("SCHEDULE", { frequency: "daily", localTime: "09:00", timeZone: "Mars/Olympus", audienceId }, definition), DefinitionError);
+});
+
+// Re-audit: an ambiguous local time occurs twice on the fall-back day. When
+// the first occurrence is already past, the second (same day) is next.
+test("fall back: the second occurrence of an ambiguous local time is used when the first is already past", () => {
+  const base = at("2026-11-01T05:45:00.000Z"); // 01:45 EDT, before the 02:00 -> 01:00 fall-back
+  const next = s.nextLocalTimeAtOrAfter(base, "01:30", "America/New_York");
+  assert.equal(next.utc.toISOString(), "2026-11-01T06:30:00.000Z", "01:30 EST on the same day, not the next day");
+  assert.equal(next.ambiguous, true);
+  assert.equal(next.occurrence, "SECOND");
+  assert.equal(s.localIso(next.utc.getTime(), "America/New_York"), "2026-11-01T01:30:00-05:00");
+  // Before the first occurrence: still the first one.
+  assert.equal(s.nextLocalTimeAtOrAfter(at("2026-11-01T05:00:00.000Z"), "01:30", "America/New_York").utc.toISOString(), "2026-11-01T05:30:00.000Z");
+  // After both: the next day.
+  assert.equal(s.nextLocalTimeAtOrAfter(at("2026-11-01T06:45:00.000Z"), "01:30", "America/New_York").utc.toISOString(), "2026-11-02T06:30:00.000Z");
+  // Delivery window opening at an ambiguous time.
+  const windowed = s.applyWindow(base, { start: "01:30", end: "01:40" }, "America/New_York");
+  assert.equal(windowed.deferred, true);
+  assert.equal(new Date(windowed.at).toISOString(), "2026-11-01T06:30:00.000Z");
+  // Delay "until 01:30" from 05:45Z.
+  const delay = s.computeDelayRunAt({ fromMs: base, step: { minutes: 0, until: { localTime: "01:30", timezone: "America/New_York" } }, contactTimeZone: null, brandTimeZone: null });
+  assert.equal(delay.runAt.toISOString(), "2026-11-01T06:30:00.000Z");
 });

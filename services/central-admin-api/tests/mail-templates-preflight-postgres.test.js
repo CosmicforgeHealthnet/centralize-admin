@@ -314,6 +314,49 @@ test("final gaps 1 + 7: template classification, deliverability preflight and te
     assert.equal(pending.ok, true);
   });
 
+  await t.test("re-audit: the domain is verified in the brand's marketing provider account; provider quota state is a preflight check", async () => {
+    const campaignId = state.honestCampaignId;
+    const run = async () => (await call("dave", "POST", `${mbase}/campaigns/${campaignId}/preflight`)).body.data;
+    const byId = (result) => Object.fromEntries(result.checks.map((entry) => [entry.id, entry]));
+    const previousDomain = harness.adapter.state.domains.get("fake_cosmicforge");
+    harness.adapter.state.domains.set("fake_cosmicforge", { status: "VERIFIED", sendingStatus: "VERIFIED", receivingStatus: "VERIFIED", records: [{ record: "SPF", status: "verified" }, { record: "DKIM", status: "verified" }] });
+    const transactional = (id) => harness.adapter.validateDomain(id);
+    try {
+      // Separate marketing account without a domain lookup: never a PASS from the transactional account.
+      registerDeliverability(client, { validateDomain: transactional, marketingAccount: async () => ({ separate: true, lookup: null, reason: "NO_DOMAIN_LOOKUP" }) });
+      const separate = byId(await run());
+      for (const id of ["provider_domain_verified", "spf", "dkim", "dmarc"]) {
+        assert.equal(separate[id].status, "UNKNOWN", id);
+        assert.match(separate[id].detail, /verified in the transactional account only/);
+      }
+      // With a lookup in the marketing account: its answer counts (not the transactional one).
+      const lookups = [];
+      registerDeliverability(client, { validateDomain: transactional, marketingAccount: async () => ({ separate: true, lookup: async (name) => { lookups.push(name); return { status: "PENDING", sendingStatus: "PENDING", records: [{ record: "DKIM", status: "pending" }] }; } }) });
+      const viaMarketing = byId(await run());
+      assert.deepEqual(lookups, [cf.domain.domain]);
+      assert.equal(viaMarketing.provider_domain_verified.status, "WARNING");
+      registerDeliverability(client, { validateDomain: transactional, marketingAccount: async () => ({ separate: true, lookup: async () => null }) });
+      const missing = byId(await run());
+      assert.equal(missing.provider_domain_verified.status, "BLOCKED");
+      assert.match(missing.provider_domain_verified.detail, /not found in the brand's marketing provider account/);
+
+      // Provider quota (real hooks of an app with a configured daily limit).
+      harness.build({ MAIL_PROVIDER_DAILY_LIMIT: "100" });
+      assert.equal(byId(await run()).provider_quota.status, "UNKNOWN", "nothing observed yet");
+      await client.mailProviderQuotaObservation.create({ data: { provider: "fake", scope: "account", observedAt: harness.clock(), dailyUsed: 95, source: "RESPONSE_HEADER" } });
+      const high = byId(await run());
+      assert.equal(high.provider_quota.status, "WARNING", high.provider_quota.detail);
+      await client.mailProviderQuotaObservation.create({ data: { provider: "fake", scope: "account", observedAt: new Date(harness.clock().getTime() + 1), source: "QUOTA_ERROR", exhaustedKind: "DAILY", exhaustedUntil: new Date(harness.clock().getTime() + 3600000) } });
+      const exhausted = await run();
+      assert.equal(byId(exhausted).provider_quota.status, "BLOCKED");
+      assert.equal(exhausted.ok, false);
+    } finally {
+      await client.mailProviderQuotaObservation.deleteMany({ where: { provider: "fake", scope: "account" } });
+      registerDeliverability(client, { validateDomain: transactional });
+      harness.adapter.state.domains.set("fake_cosmicforge", previousDomain);
+    }
+  });
+
   await t.test("approval binds the preflight hash and records the check summary", async () => {
     const audienceId = await audienceWith(["b1@reader.example"]);
     const campaign = await call("dave", "POST", `${mbase}/campaigns`, { name: "Bound", topic: "newsletter", templateVersionId: state.marketingVersionId, audienceId, senderAddressId: cf.sender.id });
@@ -333,6 +376,43 @@ test("final gaps 1 + 7: template classification, deliverability preflight and te
     assert.equal(audit.metadata.preflightConfirmedByReviewer, true);
     assert.equal(audit.metadata.preflightSummary.BLOCKED, 0);
     assert.ok(audit.metadata.preflightUnknown.includes("dmarc"));
+  });
+
+  await t.test("re-audit: without a reviewer hash, approval is bound to the submission-time preflight; none recorded -> PREFLIGHT_REVIEW_REQUIRED", async () => {
+    const audienceId = await audienceWith(["b2@reader.example"]);
+    const campaign = await call("dave", "POST", `${mbase}/campaigns`, { name: "Bound at submit", topic: "newsletter", templateVersionId: state.marketingVersionId, audienceId, senderAddressId: cf.sender.id });
+    const id = campaign.body.data.id;
+    assert.equal((await call("dave", "POST", `${mbase}/campaigns/${id}/submit`, { revision: 1 })).status, 200);
+    const snapshot = await client.marketingCampaignSnapshot.findUnique({ where: { campaignId_revision_kind: { campaignId: id, revision: 1, kind: "SUBMISSION" } } });
+    assert.match(snapshot.audienceSnapshot.preflightSha256, /^[0-9a-f]{64}$/, "the submission snapshot stores the preflight hash");
+    const previous = harness.adapter.state.domains.get("fake_cosmicforge");
+    harness.adapter.state.domains.set("fake_cosmicforge", { status: "PENDING", sendingStatus: "PENDING", receivingStatus: "VERIFIED", records: [] });
+    try {
+      const changed = await call("erin", "POST", `${mbase}/campaigns/${id}/approve`, { revision: 1, stepUpId: await stepUp("erin", "MARKETING_CAMPAIGN_APPROVAL") });
+      assert.equal(changed.status, 409, changed.text);
+      assert.equal(changed.body.errors[0].reason, "PREFLIGHT_CHANGED_SINCE_SUBMISSION");
+      harness.adapter.state.domains.set("fake_cosmicforge", previous);
+      const approved = await call("erin", "POST", `${mbase}/campaigns/${id}/approve`, { revision: 1, stepUpId: await stepUp("erin", "MARKETING_CAMPAIGN_APPROVAL") });
+      assert.equal(approved.status, 200, approved.text);
+      assert.equal((await client.mailAuditEvent.findFirst({ where: { action: "MARKETING_CAMPAIGN_APPROVED", targetId: id } })).metadata.preflightBoundTo, "SUBMISSION");
+
+      // Legacy submission without any recorded preflight hash (evidence rows
+      // are immutable: a pre-fix snapshot and a legacy-shaped audit record).
+      const legacyAudienceId = await audienceWith(["b3@reader.example"]);
+      const legacy = await call("dave", "POST", `${mbase}/campaigns`, { name: "Legacy submission", topic: "newsletter", templateVersionId: state.marketingVersionId, audienceId: legacyAudienceId, senderAddressId: cf.sender.id });
+      const legacyId = legacy.body.data.id;
+      await client.marketingCampaignSnapshot.create({ data: { campaignId: legacyId, revision: 1, kind: "SUBMISSION", templateVersionId: state.marketingVersionId, senderAddress: snapshot.senderAddress, subject: snapshot.subject, html: snapshot.html, text: snapshot.text, audienceSnapshot: { audienceId: legacyAudienceId, topic: "newsletter" }, eligibleCount: 1, excludedCount: 0, contentSha256: snapshot.contentSha256, createdBy: ids.dave } });
+      assert.equal((await call("dave", "POST", `${mbase}/campaigns/${legacyId}/submit`, { revision: 1 })).status, 200);
+      await client.mailAuditEvent.create({ data: { action: "MARKETING_CAMPAIGN_SUBMITTED", targetType: "marketing_campaign", targetId: legacyId, organizationId: cf.organization.id, metadata: { revision: 1, eligible: 1 }, createdAt: new Date("2099-01-01T00:00:00.000Z") } });
+      const required = await call("erin", "POST", `${mbase}/campaigns/${legacyId}/approve`, { revision: 1, stepUpId: await stepUp("erin", "MARKETING_CAMPAIGN_APPROVAL") });
+      assert.equal(required.status, 409, required.text);
+      assert.equal(required.body.errors[0].reason, "PREFLIGHT_REVIEW_REQUIRED");
+      const seen = (await call("erin", "POST", `${mbase}/campaigns/${legacyId}/preflight`)).body.data;
+      const reviewed = await call("erin", "POST", `${mbase}/campaigns/${legacyId}/approve`, { revision: 1, stepUpId: await stepUp("erin", "MARKETING_CAMPAIGN_APPROVAL"), preflightSha256: seen.preflightSha256 });
+      assert.notEqual(reviewed.body?.errors?.[0]?.reason, "PREFLIGHT_REVIEW_REQUIRED", reviewed.text);
+    } finally {
+      harness.adapter.state.domains.set("fake_cosmicforge", previous);
+    }
   });
 
   await t.test("template QA endpoint: previews, locale, accessibility, personalization, unsafe links, brand isolation", async () => {

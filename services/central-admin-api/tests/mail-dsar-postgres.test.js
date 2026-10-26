@@ -58,7 +58,12 @@ test("CosmicForge Mail DSAR export and erasure on real PostgreSQL", { timeout: 3
       state.unrelated = await makeMessage(state.supportBox, { from: "someone@else.example", subject: "Unrelated" });
       const contact = await client.marketingContact.create({ data: { organizationId: cf.organization.id, email: SUBJECT, firstName: "Jane", source: "WEB_FORM" } });
       await client.marketingConsent.create({ data: { contactId: contact.id, organizationId: cf.organization.id, topic: "newsletter", status: "GRANTED", source: "WEB_FORM", sourceEvidence: { reference: "form-1" }, policyVersion: "2026-10", consentedAt: harness.clock() } });
-      await client.marketingContact.create({ data: { organizationId: ka.organization.id, email: SUBJECT, source: "WEB_FORM" } });
+      const kaContact = await client.marketingContact.create({ data: { organizationId: ka.organization.id, email: SUBJECT, source: "WEB_FORM" } });
+      // Re-audit: provider state + re-subscription rows (migration 37), both brands.
+      await client.marketingContactProviderState.create({ data: { contactId: contact.id, organizationId: cf.organization.id, provider: "fake", state: "UNSUBSCRIBED", reason: "USER_UNSUBSCRIBE", observedAt: harness.clock() } });
+      await client.marketingProviderResubscription.create({ data: { organizationId: cf.organization.id, contactId: contact.id, topic: "newsletter", status: "PENDING_APPROVAL", consentEvidence: { consentId: crypto.randomUUID(), topic: "newsletter", source: "WEB_FORM", policyVersion: "2026-10", doubleOptIn: true, confirmedAt: harness.clock().toISOString() } } });
+      await client.marketingContactProviderState.create({ data: { contactId: kaContact.id, organizationId: ka.organization.id, provider: "fake", state: "SUPPRESSED", reason: "HARD_BOUNCE", observedAt: harness.clock() } });
+      await client.marketingProviderResubscription.create({ data: { organizationId: ka.organization.id, contactId: kaContact.id, topic: "offers", status: "REFUSED", consentEvidence: { topic: "offers" } } });
     });
 
     await t.test("non-admins are denied; step-up and a reason are required", async () => {
@@ -95,6 +100,12 @@ test("CosmicForge Mail DSAR export and erasure on real PostgreSQL", { timeout: 3
       assert.equal(data.marketing.contacts.length, 1, "only this organization's contact");
       assert.equal(data.marketing.contacts[0].consents.length, 1);
       assert.doesNotMatch(JSON.stringify(data.marketing), /confirmationTokenHash/);
+      // Re-audit: provider states and re-subscriptions of this organization only.
+      assert.deepEqual(data.marketing.providerStates.map((row) => [row.state, row.reason]), [["UNSUBSCRIBED", "USER_UNSUBSCRIBE"]]);
+      assert.equal(data.marketing.providerResubscriptions.length, 1);
+      assert.equal(data.marketing.providerResubscriptions[0].status, "PENDING_APPROVAL");
+      assert.equal(data.marketing.providerResubscriptions[0].consentEvidence.doubleOptIn, true);
+      assert.doesNotMatch(JSON.stringify(data.marketing), /HARD_BOUNCE|offers/, "another brand's provider rows are never exported");
     });
 
     await t.test("erasure: dry run by default, then execution; legal holds and other orgs untouched", async () => {
@@ -163,4 +174,33 @@ test("CosmicForge Mail DSAR export and erasure on real PostgreSQL", { timeout: 3
     await closeServer(server);
     await db.close();
   }
+});
+
+// Re-audit: before migration 37 the export works unchanged and reports the
+// provider rows as null (not available), never an error.
+test("DSAR export before migration 37: provider states / re-subscriptions are null, export still works", { timeout: 300000 }, async (t) => {
+  assert.ok(process.env.DATABASE_URL, "DATABASE_URL is required");
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const db = await openDatabase();
+  const { client } = db;
+  await client.$executeRawUnsafe(fs.readFileSync(path.join(__dirname, "..", "..", "..", "docs", "sql", "cosmicforge-mail-final-gap-closure-rollback.sql"), "utf8"));
+  const harness = createHarness(client);
+  const seeded = await seed(client, { clock: harness.clock });
+  for (const [userId, sessionId] of seeded.sessions) harness.state.sessions.set(userId, sessionId);
+  const { ids, brands } = seeded;
+  const { server, base } = await listen(harness.mountApp(harness.mail));
+  t.after(async () => {
+    await closeServer(server);
+    await db.close();
+  });
+  const call = caller(base, ids);
+  await client.marketingContact.create({ data: { organizationId: brands.cosmicforge.organization.id, email: SUBJECT, source: "WEB_FORM" } });
+  harness.advance(31000);
+  const stepUp = await call("ops", "POST", "/security/step-up", { code: totp(harness.clock), purpose: "MAIL_DSAR_EXPORT" });
+  const response = await call("ops", "POST", "/admin/dsar/export", { organizationId: brands.cosmicforge.organization.id, email: SUBJECT, reason: "DSAR ticket pre-37", stepUpId: stepUp.body.data.stepUpId });
+  assert.equal(response.status, 200, response.text);
+  assert.equal(response.body.data.marketing.contacts.length, 1);
+  assert.equal(response.body.data.marketing.providerStates, null);
+  assert.equal(response.body.data.marketing.providerResubscriptions, null);
 });

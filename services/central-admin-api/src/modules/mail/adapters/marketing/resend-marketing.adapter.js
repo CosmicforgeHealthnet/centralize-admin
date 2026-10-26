@@ -22,6 +22,8 @@
 // only when MAIL_MARKETING_PROVIDER_RESUBSCRIBE_ENABLED=true (confirmed with
 // Resend support); otherwise resubscribeContact refuses without a call.
 // GAP 3: quota headers / quota 429s are reported to a non-blocking observer.
+// Preflight: getDomainByName (GET /domains, GET /domains/{id}) verifies the
+// sending domain in the brand's own account (optional contract method).
 
 const { MailProviderError } = require("../mail-provider.contract");
 const { createResendAdapter, classifyStatus } = require("../resend.adapter");
@@ -189,6 +191,16 @@ function createResendMarketingAdapter({ apiKey, config, fetchImpl = globalThis.f
     async sendEmail(request) {
       await acquire();
       return transport.sendMessage(request);
+    },
+    // Re-audit (preflight): the sending domain as seen by THIS (brand)
+    // account. Documented read-only endpoints: GET /domains (list; name per
+    // item) and GET /domains/{id} (status + records, mapped like the
+    // transactional validateDomain). null when the account has no such domain.
+    async getDomainByName(domainName) {
+      const match = await findByName("/domains", String(domainName || "").toLowerCase());
+      if (!match?.id) return null;
+      await acquire();
+      return transport.validateDomain(String(match.id));
     },
     async healthProbe() {
       const started = clock();

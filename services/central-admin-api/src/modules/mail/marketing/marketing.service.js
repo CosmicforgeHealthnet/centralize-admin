@@ -14,7 +14,7 @@ const { renderTemplate, TemplateError, CLASSIFICATIONS } = require("./template-r
 const { scanLinks } = require("./link-scan");
 // Final gaps 1 + 7: template classification and deliverability preflight.
 const { templatePolicyFor, isTransactional, APPROVAL_ACTION, VERSION_TARGET } = require("./template-policy");
-const { fromOk, check: preflightCheck, summarize, preflightHash, domainChecks, reputationCheck, contentChecks, deliverabilityFor, runTemplateQa } = require("./preflight");
+const { fromOk, check: preflightCheck, summarize, preflightHash, domainChecks, reputationCheck, contentChecks, deliverabilityFor, providerQuotaCheck, runTemplateQa } = require("./preflight");
 const { isRestrictedHealthOrganization } = require("../authz/sending-gate");
 const { parseCsv, neutralizeCell, isFormula } = require("./csv");
 const { isValidTimeZone } = require("./scheduling");
@@ -988,8 +988,12 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     }
     add("reply_to_policy", replyOk, replyDetail);
     // Gap 7: provider verification, SPF/DKIM/DMARC, brand ownership, reputation.
-    if (sender) checks.push(...(await domainChecks({ sender, organizationId: campaign.organizationId, validateDomain: hooks.validateDomain || deliverabilityFor(client).validateDomain, config })));
+    // Re-audit: the domain is verified in the account that sends marketing
+    // mail (marketingAccount hook); provider quota state is a check too.
+    const registered = deliverabilityFor(client);
+    if (sender) checks.push(...(await domainChecks({ sender, organizationId: campaign.organizationId, validateDomain: hooks.validateDomain || registered.validateDomain, marketingAccount: hooks.marketingAccount || registered.marketingAccount, config })));
     checks.push(await reputationCheck({ client, config, organizationId: campaign.organizationId, clock }));
+    if (hooks.quotaState || registered.quotaState) checks.push(await providerQuotaCheck({ organizationId: campaign.organizationId, quotaState: hooks.quotaState || registered.quotaState }));
     const audience = campaign.audienceId ? await client.marketingAudience.findUnique({ where: { id: campaign.audienceId } }) : null;
     const segment = campaign.segmentId ? await client.marketingSegment.findUnique({ where: { id: campaign.segmentId } }) : null;
     let eligibility = { eligible: [], total: 0, excludedReasons: {} };
@@ -1066,7 +1070,7 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     const subject = result.rendered.subject;
     const contentSha256 = crypto.createHash("sha256").update(JSON.stringify({ subject, html, text, sender: result.sender.address, replyTo: campaign.replyTo, templateVersionId: result.version.id })).digest("hex");
     return tx.marketingCampaignSnapshot.create({
-      data: { campaignId: campaign.id, revision: campaign.revision, kind, templateVersionId: result.version.id, senderAddress: result.sender.address, replyTo: campaign.replyTo, subject, html, text, audienceSnapshot: { audienceId: campaign.audienceId, segmentId: campaign.segmentId, topic: campaign.topic, contactSetSha256: result.contactHash, contactCount: result.contactIds.length }, eligibleCount: result.eligibleCount, excludedCount: result.excludedCount, contentSha256, createdBy: user.id, createdAt: clock() },
+      data: { campaignId: campaign.id, revision: campaign.revision, kind, templateVersionId: result.version.id, senderAddress: result.sender.address, replyTo: campaign.replyTo, subject, html, text, audienceSnapshot: { audienceId: campaign.audienceId, segmentId: campaign.segmentId, topic: campaign.topic, contactSetSha256: result.contactHash, contactCount: result.contactIds.length, preflightSha256: result.preflightSha256 || null, preflightSummary: result.summary || null }, eligibleCount: result.eligibleCount, excludedCount: result.excludedCount, contentSha256, createdBy: user.id, createdAt: clock() },
     });
   }
 
@@ -1107,9 +1111,20 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     const expectedSet = contactSetSha256 ? String(contactSetSha256) : submitted?.audienceSnapshot?.contactSetSha256 || null;
     if (expectedSet && expectedSet !== result.contactHash) throw mailError("MAIL_INVALID_TRANSITION", { reason: contactSetSha256 ? "AUDIENCE_CHANGED_SINCE_REVIEW" : "AUDIENCE_CHANGED_SINCE_SUBMISSION", eligibleCount: result.eligibleCount, contactSetSha256: result.contactHash });
     if (eligibleCount != null && eligibleCount !== "" && Number(eligibleCount) !== result.eligibleCount) throw mailError("MAIL_INVALID_TRANSITION", { reason: "AUDIENCE_CHANGED_SINCE_REVIEW", eligibleCount: result.eligibleCount, contactSetSha256: result.contactHash });
-    // Gap 7: when the reviewer sends back the preflight hash, the check states
-    // must be the ones they reviewed (a new WARNING/UNKNOWN needs a fresh look).
-    if (preflightSha256 && String(preflightSha256) !== result.preflightSha256) throw mailError("MAIL_INVALID_TRANSITION", { reason: "PREFLIGHT_CHANGED_SINCE_REVIEW", preflightSha256: result.preflightSha256, summary: result.summary });
+    // Gap 7 + re-audit: the check states must be the ones the reviewer saw
+    // (hash sent back from preflight) or, when not sent, the ones recorded at
+    // submission (latest MARKETING_CAMPAIGN_SUBMITTED audit of this revision,
+    // else the SUBMISSION snapshot). Neither available -> a fresh review is
+    // required; a new WARNING/UNKNOWN always needs a fresh look.
+    if (preflightSha256) {
+      if (String(preflightSha256) !== result.preflightSha256) throw mailError("MAIL_INVALID_TRANSITION", { reason: "PREFLIGHT_CHANGED_SINCE_REVIEW", preflightSha256: result.preflightSha256, summary: result.summary });
+    } else {
+      const submittedAudit = await client.mailAuditEvent.findFirst({ where: { targetType: "marketing_campaign", targetId: campaignId, action: "MARKETING_CAMPAIGN_SUBMITTED" }, orderBy: { createdAt: "desc" }, select: { metadata: true } });
+      const auditHash = submittedAudit?.metadata?.revision === campaign.revision ? submittedAudit.metadata.preflightSha256 : null;
+      const submittedHash = auditHash || submitted?.audienceSnapshot?.preflightSha256 || null;
+      if (!submittedHash) throw mailError("MAIL_INVALID_TRANSITION", { reason: "PREFLIGHT_REVIEW_REQUIRED", preflightSha256: result.preflightSha256, summary: result.summary });
+      if (submittedHash !== result.preflightSha256) throw mailError("MAIL_INVALID_TRANSITION", { reason: "PREFLIGHT_CHANGED_SINCE_SUBMISSION", preflightSha256: result.preflightSha256, summary: result.summary });
+    }
     const row = await client.$transaction(async (tx) => {
       const consumed = await stepUp.consume(tx, user, stepUpId, "MARKETING_CAMPAIGN_APPROVAL", context);
       const submission = await tx.marketingCampaignSnapshot.findUnique({ where: { campaignId_revision_kind: { campaignId, revision: campaign.revision, kind: "SUBMISSION" } } });
@@ -1124,7 +1139,7 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
       for (let index = 0; index < result.contactIds.length; index += 1000) {
         await tx.marketingCampaignApprovedContact.createMany({ data: result.contactIds.slice(index, index + 1000).map((contactId) => ({ snapshotId: snapshot.id, contactId })), skipDuplicates: true });
       }
-      await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CAMPAIGN_APPROVED", targetType: "marketing_campaign", targetId: campaignId, organizationId, metadata: { revision: campaign.revision, snapshotId: snapshot.id, contentSha256: snapshot.contentSha256, snapshotSha256: snapshot.contentSha256, contactSetSha256: result.contactHash, eligibleCount: result.eligibleCount, audienceConfirmedByReviewer: Boolean(contactSetSha256), preflightSha256: result.preflightSha256, preflightConfirmedByReviewer: Boolean(preflightSha256), preflightSummary: result.summary, preflightWarnings: result.checks.filter((entry) => entry.status === "WARNING").map((entry) => entry.id), preflightUnknown: result.checks.filter((entry) => entry.status === "UNKNOWN").map((entry) => entry.id) } }, context, tx);
+      await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CAMPAIGN_APPROVED", targetType: "marketing_campaign", targetId: campaignId, organizationId, metadata: { revision: campaign.revision, snapshotId: snapshot.id, contentSha256: snapshot.contentSha256, snapshotSha256: snapshot.contentSha256, contactSetSha256: result.contactHash, eligibleCount: result.eligibleCount, audienceConfirmedByReviewer: Boolean(contactSetSha256), preflightSha256: result.preflightSha256, preflightConfirmedByReviewer: Boolean(preflightSha256), preflightBoundTo: preflightSha256 ? "REVIEW" : "SUBMISSION", preflightSummary: result.summary, preflightWarnings: result.checks.filter((entry) => entry.status === "WARNING").map((entry) => entry.id), preflightUnknown: result.checks.filter((entry) => entry.status === "UNKNOWN").map((entry) => entry.id) } }, context, tx);
       return tx.marketingEmailCampaign.findUnique({ where: { id: campaignId } });
     });
     return serializeCampaign(row);

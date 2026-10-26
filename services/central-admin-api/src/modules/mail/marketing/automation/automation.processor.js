@@ -307,7 +307,37 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
     let run = await client.marketingAutomationStepRun.findUnique({ where: { enrollmentId_sequence: { enrollmentId: enrollment.id, sequence: enrollment.stepCount } } });
     if (run?.status === "SUCCEEDED") return advance(enrollment, step.next); // crashed after a recorded send
     if (run && run.status !== "RUNNING") return finish(enrollment, "FAILED", run.errorCode || "STEP_NOT_RUNNABLE");
-    if (!run) run = await client.marketingAutomationStepRun.create({ data: { enrollmentId: enrollment.id, organizationId: organization.id, stepId: step.id, stepType: step.type, sequence: enrollment.stepCount, status: "RUNNING", idempotencyKey: `auto:${enrollment.id}:${enrollment.stepCount}`, recipientEmail: contact.email, templateVersionId: step.templateVersionId, firstAttemptAt: now(), createdAt: now(), ...(timing && Object.keys(timing).length ? { outcome: { timing } } : {}) } });
+    let createdNow = false;
+    let quotaReset = false;
+    if (!run) {
+      run = await client.marketingAutomationStepRun.create({ data: { enrollmentId: enrollment.id, organizationId: organization.id, stepId: step.id, stepType: step.type, sequence: enrollment.stepCount, status: "RUNNING", idempotencyKey: `auto:${enrollment.id}:${enrollment.stepCount}`, recipientEmail: contact.email, templateVersionId: step.templateVersionId, firstAttemptAt: now(), createdAt: now(), ...(timing && Object.keys(timing).length ? { outcome: { timing } } : {}) } });
+      createdNow = true;
+    } else if (run.providerMessageId) {
+      // Re-audit fix: an earlier attempt was accepted by the provider but the
+      // success could not be recorded. Finish recording, never send again.
+      await recordAccepted(run, { providerMessageId: run.providerMessageId }, enrollment, automation, step, organization);
+      return { providerMessageId: run.providerMessageId, recovered: "POST_SEND_RECORD" };
+    } else if (run.outcome?.keyUnattempted === true) {
+      // No attempt with this key can have reached the provider (every earlier
+      // attempt was a definitive quota refusal, or a replay issued a fresh
+      // key), so the provider idempotency window starts with this attempt.
+      run = await client.marketingAutomationStepRun.update({ where: { id: run.id }, data: { firstAttemptAt: now(), outcome: { ...(run.outcome || {}), keyUnattempted: false } } });
+      quotaReset = true;
+    } else {
+      // Re-audit fix: a RUNNING run may have reached the provider. Sends can
+      // wait hours or days (frequency cap, pauses, quota); once the first
+      // attempt is older than the idempotency window the provider no longer
+      // deduplicates, so the outcome is UNKNOWN and nothing is re-sent.
+      const firstAttemptAt = run.firstAttemptAt || run.createdAt;
+      if (firstAttemptAt && now().getTime() - new Date(firstAttemptAt).getTime() > (config.reconciliation?.idempotencyWindowHours || 23) * 3600000) {
+        await client.$transaction(async (tx) => {
+          await tx.marketingAutomationStepRun.update({ where: { id: run.id }, data: { status: "OUTCOME_UNKNOWN", errorCode: "RETRY_OUTSIDE_IDEMPOTENCY_WINDOW" } });
+          await finish(enrollment, "FAILED", "OUTCOME_UNKNOWN", tx);
+          await audit.record({ action: "MARKETING_AUTOMATION_OUTCOME_UNKNOWN", targetType: "marketing_automation", targetId: automation.id, organizationId: organization.id, outcome: "UNKNOWN", metadata: { enrollmentId: enrollment.id, reason: "RETRY_OUTSIDE_IDEMPOTENCY_WINDOW" } }, {}, tx);
+        });
+        return { failed: "RETRY_OUTSIDE_IDEMPOTENCY_WINDOW" };
+      }
+    }
     // An existing run keeps its key: an authorized replay of an
     // OUTCOME_UNKNOWN send reuses it so the provider deduplicates.
     const idempotencyKey = run.idempotencyKey || `auto:${enrollment.id}:${enrollment.stepCount}`;
@@ -316,8 +346,11 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
       { subject: step.subjectOverride || template.subject, preheader: template.preheader, blocks: template.blocks, brand: { ...(template.brand || {}), postalAddress: settings.postalAddress } },
       { data: { first_name: contact.firstName || "", last_name: contact.lastName || "", email: contact.email, unsubscribe_url: link, brand_name: organization.name } },
     );
+    // Only the provider call is inside this try: a database failure after
+    // provider acceptance must never be classified as a provider failure.
+    let result;
     try {
-      const result = await provider.sendEmail({
+      result = await provider.sendEmail({
         idempotencyKey,
         from: { address: sender.address, name: sender.displayName || organization.name },
         replyTo: { address: replyTo.address, name: null },
@@ -329,18 +362,16 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
         headers: unsubscribeHeaders(link),
         attachments: [],
       });
-      await client.$transaction(async (tx) => {
-        await tx.marketingAutomationStepRun.update({ where: { id: run.id }, data: { status: "SUCCEEDED", providerMessageId: result.providerMessageId, deliveryStatus: "PROVIDER_ACCEPTED" } });
-        if (usage) await usage.record(tx, { organizationId: organization.id, purpose: "MARKETING_AUTOMATION", accepted: 1, providerRequests: 1 });
-        await audit.record({ action: "MARKETING_AUTOMATION_EMAIL_HANDED_TO_PROVIDER", targetType: "marketing_automation", targetId: automation.id, organizationId: organization.id, metadata: { enrollmentId: enrollment.id, sequence: enrollment.stepCount } }, {}, tx);
-        await advance(enrollment, step.next, { tx });
-      });
-      return { providerMessageId: result.providerMessageId };
     } catch (error) {
       // Provider quota exhausted: hold until it resets (earlier sends in this
-      // job are deduplicated by their idempotency keys when it resumes).
+      // job are deduplicated by their idempotency keys when it resumes). A
+      // quota refusal is definitive (nothing was sent): when it is the only
+      // kind of attempt so far, the next attempt restarts the window.
       const quotaWait = quotaDeferSeconds(error, now());
-      if (quotaWait) return { defer: { seconds: quotaWait, code: "PROVIDER_QUOTA_EXHAUSTED" } };
+      if (quotaWait) {
+        await client.marketingAutomationStepRun.update({ where: { id: run.id }, data: { outcome: { ...(run.outcome || {}), lastAttempt: "QUOTA_REFUSED", keyUnattempted: createdNow || quotaReset } } });
+        return { defer: { seconds: quotaWait, code: "PROVIDER_QUOTA_EXHAUSTED" } };
+      }
       const verdict = classifySendError(error, { firstAttemptAt: run.firstAttemptAt, now: now(), windowHours: config.reconciliation.idempotencyWindowHours });
       if (verdict.outcome === "RETRY") throw Object.assign(new Error(error.message), { code: verdict.code, retryable: true, retryAfterSeconds: verdict.retryAfterSeconds ?? null });
       if (verdict.outcome === "DEFER") return { defer: { seconds: 3600, code: verdict.code } };
@@ -351,6 +382,27 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
       });
       return { failed: verdict.code };
     }
+    try {
+      await recordAccepted(run, result, enrollment, automation, step, organization);
+    } catch (dbError) {
+      // The provider accepted the email. Keep the run RUNNING with the
+      // provider message id (best effort) so a retry finishes recording
+      // without sending; a retry that cannot see the id reuses the same
+      // idempotency key inside the window (provider deduplicates).
+      await client.marketingAutomationStepRun.updateMany({ where: { id: run.id, status: "RUNNING" }, data: { providerMessageId: result.providerMessageId, outcome: { ...(run.outcome || {}), providerAcceptedAt: now().toISOString(), recordFailed: true } } }).catch(() => null);
+      logger?.warn?.(`[Marketing] automation step run ${run.id} accepted by the provider but not recorded (${dbError?.code || "db error"}); retrying`);
+      throw Object.assign(new Error("Provider accepted the email but the result could not be recorded"), { code: "POST_SEND_RECORD_FAILED", retryable: true });
+    }
+    return { providerMessageId: result.providerMessageId };
+  }
+
+  async function recordAccepted(run, result, enrollment, automation, step, organization) {
+    await client.$transaction(async (tx) => {
+      await tx.marketingAutomationStepRun.update({ where: { id: run.id }, data: { status: "SUCCEEDED", providerMessageId: result.providerMessageId, deliveryStatus: "PROVIDER_ACCEPTED" } });
+      if (usage) await usage.record(tx, { organizationId: organization.id, purpose: "MARKETING_AUTOMATION", accepted: 1, providerRequests: 1 });
+      await audit.record({ action: "MARKETING_AUTOMATION_EMAIL_HANDED_TO_PROVIDER", targetType: "marketing_automation", targetId: automation.id, organizationId: organization.id, metadata: { enrollmentId: enrollment.id, sequence: enrollment.stepCount } }, {}, tx);
+      await advance(enrollment, step.next, { tx });
+    });
   }
 
   async function processStep(job) {
@@ -412,8 +464,12 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
     if (!enrollment || !["ACTIVE", "WAITING"].includes(enrollment.status)) return;
     const run = await client.marketingAutomationStepRun.findUnique({ where: { enrollmentId_sequence: { enrollmentId: enrollment.id, sequence: enrollment.stepCount } } });
     await client.$transaction(async (tx) => {
-      if (run?.status === "RUNNING") await tx.marketingAutomationStepRun.update({ where: { id: run.id }, data: { status: "OUTCOME_UNKNOWN", errorCode: String(error?.code || "DEAD_LETTER").slice(0, 64) } });
-      await finish(enrollment, "FAILED", run?.status === "RUNNING" ? "OUTCOME_UNKNOWN" : "RETRIES_EXHAUSTED", tx);
+      // A RUNNING run with a provider message id was accepted (only the
+      // success record failed): it is SUCCEEDED, the enrollment replay then
+      // advances past it without re-sending.
+      if (run?.status === "RUNNING" && run.providerMessageId) await tx.marketingAutomationStepRun.update({ where: { id: run.id }, data: { status: "SUCCEEDED", deliveryStatus: run.deliveryStatus || "PROVIDER_ACCEPTED", errorCode: null } });
+      else if (run?.status === "RUNNING") await tx.marketingAutomationStepRun.update({ where: { id: run.id }, data: { status: "OUTCOME_UNKNOWN", errorCode: String(error?.code || "DEAD_LETTER").slice(0, 64) } });
+      await finish(enrollment, "FAILED", run?.status === "RUNNING" ? (run.providerMessageId ? "POST_SEND_RECORD_FAILED" : "OUTCOME_UNKNOWN") : "RETRIES_EXHAUSTED", tx);
     });
     logger?.warn?.(`[Marketing] automation enrollment ${enrollment.id} dead-lettered (${error?.code || "error"})`);
   }

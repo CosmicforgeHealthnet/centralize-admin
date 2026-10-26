@@ -529,6 +529,88 @@ test("final gap 4: automation test mode, replay / recovery and recipient time zo
     assert.equal(await client.marketingAutomationEnrollment.count({ where: { automationId: replayAutomation.id, contactId: contact.id } }), 1);
   });
 
+  // Re-audit regressions (duplicate-send safety).
+  await t.test("re-audit: a DB failure after provider acceptance keeps the run RUNNING with the message id and never resends", async () => {
+    const contact = await newContact("r-dbfail@reader.example");
+    await work(2);
+    // Real PostgreSQL fault: the success write (status -> SUCCEEDED) fails.
+    await client.$executeRawUnsafe(`CREATE OR REPLACE FUNCTION reaudit_fail_success() RETURNS trigger AS $$ BEGIN IF NEW.status = 'SUCCEEDED' AND NEW.recipient_email = 'r-dbfail@reader.example' THEN RAISE EXCEPTION 'injected post-send failure'; END IF; RETURN NEW; END $$ LANGUAGE plpgsql`);
+    await client.$executeRawUnsafe(`CREATE TRIGGER reaudit_fail_success BEFORE UPDATE ON marketing_automation_step_runs FOR EACH ROW EXECUTE FUNCTION reaudit_fail_success()`);
+    const sendsBefore = ctx.providerCalls.filter((name) => name === "sendEmail").length;
+    await automations.ingestProductEvent({ organizationId: cf.organization.id, eventType: "karryam.subscription.renewed", version: 1, eventId: `renew-dbf-${crypto.randomUUID()}`, contactEmail: contact.email, payload: { plan: "gold" } });
+    await work(1);
+    const enrollment = await client.marketingAutomationEnrollment.findFirst({ where: { automationId: replayAutomation.id, contactId: contact.id } });
+    const run = await client.marketingAutomationStepRun.findFirst({ where: { enrollmentId: enrollment.id } });
+    assert.equal(run.status, "RUNNING", "never FAILED after provider acceptance");
+    assert.ok(run.providerMessageId, "the provider message id is recorded");
+    assert.equal(run.outcome.recordFailed, true);
+    assert.equal(sentTo("r-dbfail@reader.example"), 1);
+    // A replay cannot issue a fresh key for it.
+    const plan = await replay("erin", { scope: "STEP_RUN", targetId: run.id, reason: "Check post-send failure" });
+    assert.equal(plan.body.data.plan.refusal.code, "PROVIDER_ACCEPTED");
+    await client.$executeRawUnsafe(`DROP TRIGGER reaudit_fail_success ON marketing_automation_step_runs`);
+    await work(3, 600000);
+    const settled = await client.marketingAutomationStepRun.findUnique({ where: { id: run.id } });
+    assert.equal(settled.status, "SUCCEEDED");
+    assert.equal(settled.providerMessageId, run.providerMessageId);
+    assert.equal((await client.marketingAutomationEnrollment.findUnique({ where: { id: enrollment.id } })).status, "COMPLETED");
+    assert.equal(ctx.providerCalls.filter((name) => name === "sendEmail").length - sendsBefore, 1, "the retry recorded the success without calling the provider again");
+    assert.equal(sentTo("r-dbfail@reader.example"), 1);
+
+    // A FAILED run whose error is not a definitive provider rejection (as the
+    // old code recorded DB errors) is replayed like an unknown outcome.
+    const legacy = await newContact("r-legacyfail@reader.example");
+    await work(2);
+    fake.failNext("sendEmail", "PERMANENT", "RESEND_HTTP_422");
+    const { run: legacyRun } = await fire(legacy);
+    await client.marketingAutomationStepRun.update({ where: { id: legacyRun.id }, data: { errorCode: "PROVIDER_REJECTED" } });
+    const legacyPlan = await replay("erin", { scope: "STEP_RUN", targetId: legacyRun.id, reason: "Unclassified failure" });
+    assert.equal(legacyPlan.body.data.plan.action, "RETRY_UNKNOWN_SEND");
+    assert.equal(legacyPlan.body.data.plan.idempotency.reused, true);
+    assert.equal(legacyPlan.body.data.plan.requiresAcknowledgement, true);
+    await client.marketingAutomationStepRun.update({ where: { id: legacyRun.id }, data: { firstAttemptAt: new Date(harness.clock().getTime() - 24 * 3600000) } });
+    const expired = await replay("erin", { scope: "STEP_RUN", targetId: legacyRun.id, reason: "Unclassified failure" });
+    assert.equal(expired.body.data.plan.refusal.code, "IDEMPOTENCY_WINDOW_EXPIRED", "never a fresh key for an unproven failure");
+  });
+
+  await t.test("re-audit: a RUNNING send older than the idempotency window becomes OUTCOME_UNKNOWN; quota refusals restart the window", async () => {
+    const contact = await newContact("r-stale@reader.example");
+    await work(2);
+    fake.failNext("sendEmail", "AMBIGUOUS", "PROVIDER_TIMEOUT", { acceptBeforeFailing: true });
+    await automations.ingestProductEvent({ organizationId: cf.organization.id, eventType: "karryam.subscription.renewed", version: 1, eventId: `renew-stale-${crypto.randomUUID()}`, contactEmail: contact.email, payload: { plan: "gold" } });
+    await work(1);
+    const enrollment = await client.marketingAutomationEnrollment.findFirst({ where: { automationId: replayAutomation.id, contactId: contact.id } });
+    const run = await client.marketingAutomationStepRun.findFirst({ where: { enrollmentId: enrollment.id } });
+    assert.equal(run.status, "RUNNING");
+    // The retry waited (pause / frequency cap / backlog) past the window.
+    await client.marketingAutomationStepRun.update({ where: { id: run.id }, data: { firstAttemptAt: new Date(harness.clock().getTime() - 24 * 3600000) } });
+    const sendsBefore = ctx.providerCalls.filter((name) => name === "sendEmail").length;
+    await work(3, 600000);
+    const stale = await client.marketingAutomationStepRun.findUnique({ where: { id: run.id } });
+    assert.equal(stale.status, "OUTCOME_UNKNOWN");
+    assert.equal(stale.errorCode, "RETRY_OUTSIDE_IDEMPOTENCY_WINDOW");
+    assert.equal(ctx.providerCalls.filter((name) => name === "sendEmail").length, sendsBefore, "not re-sent without provider dedupe");
+    assert.equal((await client.marketingAutomationEnrollment.findUnique({ where: { id: enrollment.id } })).exitReason, "OUTCOME_UNKNOWN");
+
+    // Quota refusal: definitive, nothing sent -> after a long wait it still sends once.
+    const quota = await newContact("r-quota@reader.example");
+    await work(2);
+    fake.failNext("sendEmail", "QUOTA_EXHAUSTED", "MONTHLY", { now: harness.clock() });
+    await automations.ingestProductEvent({ organizationId: cf.organization.id, eventType: "karryam.subscription.renewed", version: 1, eventId: `renew-quota-${crypto.randomUUID()}`, contactEmail: quota.email, payload: { plan: "gold" } });
+    await work(1);
+    const quotaEnrollment = await client.marketingAutomationEnrollment.findFirst({ where: { automationId: replayAutomation.id, contactId: quota.id } });
+    const quotaRun = await client.marketingAutomationStepRun.findFirst({ where: { enrollmentId: quotaEnrollment.id } });
+    assert.equal(quotaRun.status, "RUNNING");
+    assert.equal(quotaRun.outcome.lastAttempt, "QUOTA_REFUSED");
+    assert.equal(quotaRun.outcome.keyUnattempted, true);
+    harness.advance(25 * 3600000);
+    await work(3, 600000);
+    const sent = await client.marketingAutomationStepRun.findUnique({ where: { id: quotaRun.id } });
+    assert.equal(sent.status, "SUCCEEDED", JSON.stringify(sent));
+    assert.ok(sent.firstAttemptAt.getTime() > quotaRun.firstAttemptAt.getTime(), "the window restarted with the first real attempt");
+    assert.equal(sentTo("r-quota@reader.example"), 1);
+  });
+
   await t.test("brand isolation for recovery and replays", async () => {
     assert.equal((await call("kim", "GET", `${rbase}/recovery`)).status, 404);
     assert.equal((await call("kim", "GET", `${rbase}/replays`)).status, 404);

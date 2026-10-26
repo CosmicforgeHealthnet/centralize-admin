@@ -26,6 +26,17 @@ function classifySendError(error, { firstAttemptAt, now, windowHours }) {
   }
 }
 
+// Re-audit fix: error codes that prove the provider definitively rejected a
+// send (nothing was accepted). Only these make a FAILED step run safe to
+// retry with a fresh idempotency key; any other code on a run that was
+// attempted (a database error after acceptance, an unclassified exception,
+// "PROVIDER_REJECTED" as the generic fallback) may hide an accepted email.
+// Resend: 4xx other than 408 (timeout), 409 (idempotency) and 429 (rate/quota).
+function isDefinitiveProviderRejection(code) {
+  const match = /^RESEND_HTTP_(4\d\d)$/.exec(String(code || ""));
+  return Boolean(match) && !["408", "409", "429"].includes(match[1]);
+}
+
 function unsubscribeHeaders(url) {
   if (!url) return {};
   return { "List-Unsubscribe": `<${url}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" };
@@ -73,4 +84,4 @@ async function automationReplyTo(client, organizationId, step, sender) {
   return problem ? { address: null, problem } : { address: String(candidate).toLowerCase(), problem: null };
 }
 
-module.exports = { classifySendError, unsubscribeHeaders, brandSenderProblem, isBrandSender, replyToProblem, automationReplyTo, BRAND_SENDER_KINDS, SENDER_MAILBOX_SELECT };
+module.exports = { classifySendError, isDefinitiveProviderRejection, unsubscribeHeaders, brandSenderProblem, isBrandSender, replyToProblem, automationReplyTo, BRAND_SENDER_KINDS, SENDER_MAILBOX_SELECT };

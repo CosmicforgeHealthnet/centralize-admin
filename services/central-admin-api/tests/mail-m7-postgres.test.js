@@ -630,6 +630,33 @@ test("CosmicForge Mail M7 broadcasts and automation on real PostgreSQL", { timeo
         const limited = await call2("dave", "POST", path, {});
         assert.equal(limited.status, 429, "per-campaign hourly limit");
 
+        // Re-audit: a quota defer mid-loop never re-sends earlier recipients on resume.
+        const app5 = harness.build({ MAIL_MARKETING_TEST_SENDS_ENABLED: "true", MAIL_MARKETING_TEST_SENDS_PER_HOUR: "20" });
+        const { quotaExhaustedError } = require("../src/modules/mail/ops/provider-quota.service");
+        await app5.createWorker({ queues: ["MARKETING"] }).drain(); // earlier queued work first
+        const originalSend = fake.sendEmail;
+        const attempts = [];
+        fake.sendEmail = async (request) => {
+          attempts.push(request.to[0].address);
+          if (attempts.length === 2) throw quotaExhaustedError("MONTHLY", { now: harness.clock() });
+          return originalSend.call(fake, request);
+        };
+        try {
+          harness.advance(61000);
+          await app5.services.testSends.requestTestSend(await client.adminUser.findUnique({ where: { id: ids.dave } }), cf.organization.id, draft.body.data.id, { recipients: ["dave@staff.example.invalid", "fay@staff.example.invalid"] });
+          await app5.createWorker({ queues: ["MARKETING"] }).drain();
+          assert.deepEqual(attempts, ["dave@staff.example.invalid", "fay@staff.example.invalid"]);
+          const deferred = await client.mailOutboxJob.findFirst({ where: { kind: "MARKETING_TEST_SEND" }, orderBy: { createdAt: "desc" } });
+          assert.equal(deferred.status, "RETRY_SCHEDULED", JSON.stringify(deferred));
+          assert.ok(deferred.payload.sent["dave@staff.example.invalid"], "the accepted recipient is recorded on the job");
+          harness.advance(25 * 3600000);
+          await app5.createWorker({ queues: ["MARKETING"] }).drain();
+          assert.deepEqual(attempts, ["dave@staff.example.invalid", "fay@staff.example.invalid", "fay@staff.example.invalid"], "only the remaining recipient is sent on resume");
+          assert.equal((await client.mailOutboxJob.findUnique({ where: { id: deferred.id } })).status, "SUCCEEDED");
+        } finally {
+          fake.sendEmail = originalSend;
+        }
+
         // Emergency stop holds test sends too.
         const halted = harness.build({ MAIL_MARKETING_TEST_SENDS_ENABLED: "true", MAIL_EMERGENCY_STOP_MARKETING: "true" });
         await assert.rejects(halted.services.testSends.requestTestSend(await client.adminUser.findUnique({ where: { id: ids.dave } }), cf.organization.id, draft.body.data.id, {}), (error) => error.code === "MAIL_EMERGENCY_STOP");

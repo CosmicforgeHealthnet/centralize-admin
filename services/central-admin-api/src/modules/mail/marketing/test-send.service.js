@@ -106,7 +106,15 @@ function createTestSendService({ client, config, audit, jobs, marketingProviders
     }
     const rendered = renderTemplate({ subject: campaign.subjectOverride || version.subject, preheader: version.preheader, blocks: version.blocks, brand: { ...(version.brand || {}), ...(brandSettings?.postalAddress ? { postalAddress: brandSettings.postalAddress } : {}) } }, { data: SAMPLE });
     const results = [];
+    // Re-audit: recipients already accepted by the provider (recorded in the
+    // job payload per address) are skipped when the job resumes, e.g. after a
+    // quota defer that outlived the provider idempotency window.
+    const sent = { ...(job.payload?.sent && typeof job.payload.sent === "object" ? job.payload.sent : {}) };
     for (const [index, address] of to.entries()) {
+      if (sent[address]) {
+        results.push(sent[address]);
+        continue;
+      }
       try {
         const result = await provider.sendEmail({
           idempotencyKey: `${job.idempotencyKey}:${index}`,
@@ -121,6 +129,8 @@ function createTestSendService({ client, config, audit, jobs, marketingProviders
           attachments: [],
         });
         results.push(result.providerMessageId || null);
+        sent[address] = result.providerMessageId || `accepted:${index}`;
+        if (job.id) await client.mailOutboxJob.update({ where: { id: job.id }, data: { payload: { ...(job.payload || {}), sent } } }).catch(() => null);
       } catch (error) {
         // Provider quota exhausted: hold until it resets (earlier sends in this
         // job are deduplicated by their idempotency keys when it resumes).

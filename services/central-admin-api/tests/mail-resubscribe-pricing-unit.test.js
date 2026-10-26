@@ -232,3 +232,30 @@ test("pricing arithmetic: micros, decimals, no float drift", () => {
   assert.equal(microsToDecimal(900n * 3n), "0.002700");
   assert.equal(microsToDecimal(123456789n), "123.456789");
 });
+
+// Re-audit: Resend's unsubscribe is account-global, so a re-subscription is
+// only possible when the brand has its own provider account (brand key).
+test("re-subscription: refused (SHARED_PROVIDER_ACCOUNT) unless the brand uses its own provider key", async () => {
+  const { createResubscriptionService } = require("../src/modules/mail/marketing/resubscription.service");
+  const confirmedAt = new Date("2026-10-26T10:00:00.000Z");
+  const run = async (env) => {
+    const created = [];
+    const client = {
+      marketingConsent: { findUnique: async () => ({ id: "c1", contactId: "k1", organizationId: "o1", topic: "newsletter", status: "GRANTED", doubleOptIn: true, confirmedAt, consentedAt: confirmedAt, source: "WEB_FORM", policyVersion: "v1", sourceEvidence: null }) },
+      marketingContact: { findUnique: async () => ({ id: "k1", organizationId: "o1", email: "a@reader.example", status: "UNSUBSCRIBED" }) },
+      marketingContactProviderState: { findUnique: async () => ({ contactId: "k1", state: "UNSUBSCRIBED", reason: "USER_UNSUBSCRIBE", observedAt: new Date("2026-10-01T00:00:00.000Z") }) },
+      marketingProviderResubscription: { findFirst: async () => null, create: async ({ data }) => { created.push(data); return { id: "r1", ...data }; } },
+      marketingSuppression: { findMany: async () => [] },
+      mailOrganization: { findUnique: async () => ({ id: "o1", slug: "cosmicforge" }) },
+    };
+    const config = baseConfig({ MAIL_BROADCAST_ALLOW_SHARED_PROVIDER_ACCOUNT: "true", ...env });
+    const service = createResubscriptionService({ client, config, env, features: { isReady: async () => true }, audit: { record: async () => null }, stepUp: null, marketingProviders: () => ({}) });
+    await service.onDoubleOptInConfirmed({ consentId: "c1" });
+    return created[0];
+  };
+  const shared = await run({ RESEND_MARKETING_API_KEY: "re_shared_unit" });
+  assert.equal(shared.status, "REFUSED");
+  assert.match(shared.lastError, /SHARED_PROVIDER_ACCOUNT/);
+  const own = await run({ RESEND_MARKETING_API_KEY: "re_shared_unit", RESEND_MARKETING_API_KEY__COSMICFORGE: "re_brand_unit" });
+  assert.equal(own.status, "PENDING_APPROVAL");
+});

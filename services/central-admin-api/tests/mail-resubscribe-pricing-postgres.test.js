@@ -429,6 +429,63 @@ test("final gaps 2+3: re-subscription, provider state, pricing, cost estimates a
     assert.equal((await stateOf(mismatch.contact.id)).state, "UNSUBSCRIBED", "never marked SUBSCRIBED without verification");
   });
 
+  await t.test("re-audit: one guard in approve, the provider attempt and manual confirmation (consent, DOI evidence, shared provider account)", async () => {
+    const resubscribeCalls = (email) => fake.state.calls.filter((entry) => entry.operation === "resubscribeContact" && entry.contactId === fake.state.contacts.get(email)?.id).length;
+    // (a) consent withdrawn after approval, before the retried provider call.
+    const nia = await unsubscribedAndReconfirmed("nia@reader.example");
+    fake.failNext("resubscribeContact", "RETRYABLE", "FAKE_HTTP_503");
+    const approved = await on.call("erin", "POST", `${mbase}/resubscriptions/${nia.request.id}/approve`, { stepUpId: await stepUp("erin", "MARKETING_RESUBSCRIBE_APPROVE") });
+    assert.equal(approved.body.data.status, "APPROVED", approved.text);
+    const callsBefore = resubscribeCalls("nia@reader.example");
+    assert.equal((await call("dave", "POST", `${mbase}/contacts/${nia.contact.id}/consents/newsletter/withdraw`, { source: "admin" })).status, 200);
+    harness.advance(120000);
+    await work(1, 1000, onWorker);
+    const niaRow = await client.marketingProviderResubscription.findUnique({ where: { id: nia.request.id } });
+    assert.equal(niaRow.status, "REFUSED");
+    assert.match(niaRow.lastError, /CONSENT_NO_LONGER_GRANTED/);
+    assert.equal(niaRow.providerResult.refusedBy, "system_before_provider_call");
+    assert.equal(resubscribeCalls("nia@reader.example"), callsBefore, "no provider call after the withdrawal");
+    assert.equal(fake.state.contacts.get("nia@reader.example").unsubscribed, true);
+    assert.ok(await client.mailAuditEvent.findFirst({ where: { action: "MARKETING_RESUBSCRIPTION_REFUSED", targetId: nia.contact.id } }));
+
+    // (b) a later non-double-opt-in grant replaces the verified evidence.
+    const oli = await unsubscribedAndReconfirmed("oli@reader.example");
+    assert.equal(oli.request.status, "PENDING_APPROVAL");
+    await client.marketingConsent.update({ where: { id: oli.request.consentEvidence.consentId }, data: { source: "MANUAL", doubleOptIn: false, confirmedAt: null } });
+    const blocked = await on.call("erin", "POST", `${mbase}/resubscriptions/${oli.request.id}/approve`, { stepUpId: await stepUp("erin", "MARKETING_RESUBSCRIBE_APPROVE") });
+    assert.equal(blocked.status, 409, blocked.text);
+    assert.deepEqual(errorOf(blocked).reasons, ["CONSENT_EVIDENCE_CHANGED"]);
+    assert.equal((await client.marketingProviderResubscription.findUnique({ where: { id: oli.request.id } })).status, "REFUSED");
+
+    // (c) manual confirmation re-checks consent too.
+    const pia = await unsubscribedAndReconfirmed("pia@reader.example");
+    const unsupported = await call("erin", "POST", `${mbase}/resubscriptions/${pia.request.id}/approve`, { stepUpId: await stepUp("erin", "MARKETING_RESUBSCRIBE_APPROVE") });
+    assert.equal(unsupported.body.data.status, "UNSUPPORTED", unsupported.text);
+    assert.equal((await call("dave", "POST", `${mbase}/contacts/${pia.contact.id}/consents/newsletter/withdraw`, { source: "admin" })).status, 200);
+    fake.state.contacts.get("pia@reader.example").unsubscribed = false;
+    const manual = await call("erin", "POST", `${mbase}/resubscriptions/${pia.request.id}/confirm-manual`, { stepUpId: await stepUp("erin", "MARKETING_RESUBSCRIBE_CONFIRM") });
+    assert.equal(manual.status, 409, manual.text);
+    assert.deepEqual(errorOf(manual).reasons, ["CONSENT_NO_LONGER_GRANTED"]);
+    assert.equal((await client.marketingProviderResubscription.findUnique({ where: { id: pia.request.id } })).status, "REFUSED");
+    assert.notEqual((await stateOf(pia.contact.id)).state, "SUBSCRIBED");
+
+    // (d) shared provider account: Resend's unsubscribe is account-global.
+    const quin = await unsubscribedAndReconfirmed("quin@reader.example");
+    assert.equal(quin.request.status, "PENDING_APPROVAL");
+    fake.accountSource = "shared";
+    try {
+      const shared = await on.call("erin", "POST", `${mbase}/resubscriptions/${quin.request.id}/approve`, { stepUpId: await stepUp("erin", "MARKETING_RESUBSCRIBE_APPROVE") });
+      assert.equal(shared.status, 409, shared.text);
+      assert.deepEqual(errorOf(shared).reasons, ["SHARED_PROVIDER_ACCOUNT"]);
+      assert.equal(resubscribeCalls("quin@reader.example"), 0);
+      const ray = await unsubscribedAndReconfirmed("ray@reader.example");
+      assert.equal(ray.request.status, "REFUSED", "refused when the request is opened");
+      assert.match(ray.request.lastError, /SHARED_PROVIDER_ACCOUNT/);
+    } finally {
+      delete fake.accountSource;
+    }
+  });
+
   await t.test("provider quota: observations sampled per scope, limits only when configured, admin-only; quota exhaustion defers the dispatch until UTC midnight", async () => {
     const quota = harness.mail.services.providerQuota;
     quota.record("account", "fake", { headers: new Headers({ "x-resend-monthly-quota": "321", "x-resend-daily-quota": "12" }), status: 200 });
@@ -457,6 +514,30 @@ test("final gaps 2+3: re-subscription, provider state, pricing, cost estimates a
     const brandReport = await brandKey.call("dave", "GET", `${mbase}/campaigns/${campaign.id}/report`);
     assert.equal(brandReport.body.data.providerQuota.scope, "brand:cosmicforge", brandReport.text);
     assert.equal(brandReport.body.data.providerQuota.status, "UNKNOWN", "nothing observed for the brand account yet");
+    // Re-audit: a shared-marketing-account brand reports the "marketing-shared"
+    // scope (where its observations are recorded) with its own limits.
+    const sharedApp = harness.build({ RESEND_MARKETING_API_KEY: "re_test_shared_key_not_used", MAIL_BROADCAST_ALLOW_SHARED_PROVIDER_ACCOUNT: "true", MAIL_PROVIDER_DAILY_LIMIT__MARKETING_SHARED: "50", MAIL_PROVIDER_MONTHLY_LIMIT__MARKETING_SHARED: "1500" });
+    const sharedServer = await serve(sharedApp);
+    sharedApp.services.providerQuota.record("marketing-shared", "resend", { headers: new Headers({ "x-resend-monthly-quota": "40" }), status: 200 });
+    await sharedApp.services.providerQuota.flush();
+    const opsGrant = await client.adminSectionGrant.create({ data: { adminUserId: ids.ops, module: "mail-marketing", section: "cosmicforge", mode: "VIEW", grantedBy: ids.super } });
+    try {
+      const adminView = await sharedServer.call("ops", "GET", `${mbase}/campaigns/${campaign.id}/report`);
+      assert.equal(adminView.status, 200, adminView.text);
+      assert.equal(adminView.body.data.providerQuota.scope, "marketing-shared", adminView.text);
+      assert.equal(adminView.body.data.providerQuota.monthlyUsed, 40);
+      assert.equal(adminView.body.data.providerQuota.monthlyLimit, 1500);
+      assert.equal(adminView.body.data.providerQuota.dailyLimit, 50);
+      assert.equal(adminView.body.data.providerQuota.visibleBecause, "MAIL_ADMIN");
+      const brandView = await sharedServer.call("dave", "GET", `${mbase}/campaigns/${campaign.id}/report`);
+      assert.equal(brandView.body.data.providerQuota.status, "HIDDEN");
+      const sharedAdmin = (await sharedServer.call("ops", "GET", "/admin/provider-quota")).body.data.items.find((item) => item.scope === "marketing-shared");
+      assert.ok(sharedAdmin, "the shared marketing scope is listed for mail admins");
+      assert.equal(sharedAdmin.monthlyLimit, 1500);
+    } finally {
+      await client.adminSectionGrant.delete({ where: { id: opsGrant.id } });
+      await client.mailProviderQuotaObservation.deleteMany({ where: { scope: "marketing-shared" } });
+    }
 
     // 429 daily_quota_exceeded during sync: deferred to the reset, no attempt consumed.
     const quotaContact = await newContact("quota@reader.example");

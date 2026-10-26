@@ -121,6 +121,9 @@ function createProviderQuotaService({ client, config, env = process.env, feature
     if (scope === "account") return { daily: config?.providerLimits?.daily ?? null, monthly: config?.providerLimits?.monthly ?? null };
     const match = /^brand:(.+)$/.exec(scope);
     if (match) return { daily: positiveLimit(env[`MAIL_PROVIDER_DAILY_LIMIT__${slugEnv(match[1])}`]), monthly: positiveLimit(env[`MAIL_PROVIDER_MONTHLY_LIMIT__${slugEnv(match[1])}`]) };
+    // Re-audit: the shared marketing account (RESEND_MARKETING_API_KEY with
+    // MAIL_BROADCAST_ALLOW_SHARED_PROVIDER_ACCOUNT) has its own plan limits.
+    if (scope === "marketing-shared") return { daily: positiveLimit(env.MAIL_PROVIDER_DAILY_LIMIT__MARKETING_SHARED), monthly: positiveLimit(env.MAIL_PROVIDER_MONTHLY_LIMIT__MARKETING_SHARED) };
     return { daily: null, monthly: null };
   }
 
@@ -267,7 +270,8 @@ function createProviderQuotaService({ client, config, env = process.env, feature
     // Lazy: adapters/marketing requires this module.
     const { resolveBrandApiKey, quotaScopeFor } = require("../adapters/marketing");
     const organizations = await client.mailOrganization.findMany({ select: { slug: true }, take: 500 });
-    const brandScopes = organizations.map((org) => quotaScopeFor(org.slug, resolveBrandApiKey(org.slug, { env, config }).source)).filter((scope) => scope && scope.startsWith("brand:"));
+    // Brand scopes and (re-audit) the shared marketing account scope.
+    const brandScopes = [...new Set(organizations.map((org) => quotaScopeFor(org.slug, resolveBrandApiKey(org.slug, { env, config }).source)).filter(Boolean))];
     const observed = await client.mailProviderQuotaObservation.findMany({ distinct: ["provider", "scope"], select: { provider: true, scope: true }, take: 200 });
     const provider = config?.provider === "fake" ? "fake" : "resend";
     const scopes = new Map([[`${provider}:account`, { provider, scope: "account" }]]);

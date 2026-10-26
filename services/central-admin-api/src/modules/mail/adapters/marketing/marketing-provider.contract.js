@@ -31,6 +31,8 @@
 //     unsubscribe. Undocumented at Resend: only behind
 //     MAIL_MARKETING_PROVIDER_RESUBSCRIBE_ENABLED (default false).
 //   setQuotaObserver(fn), quotaScope            quota header capture (GAP 3)
+//   getDomainByName(name) -> { status, sendingStatus, records } | null
+//     the sending domain in this account (preflight; read-only GETs)
 //
 // Errors are MailProviderError (RETRYABLE | AMBIGUOUS | PERMANENT |
 // IDEMPOTENCY_CONFLICT | NOT_CONFIGURED), shared with the transport adapter.
