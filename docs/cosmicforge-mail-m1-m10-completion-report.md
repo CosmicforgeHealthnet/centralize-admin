@@ -10,6 +10,18 @@ against the code on `staging` for this report.
 current database. The live pilot is NOT yet approved: it needs the database,
 infrastructure, provider and owner steps in §9 and the live tests in §10.
 
+> **Update 2026-10-26.** Later work on `staging` changed some claims in this report. The current status is in
+> `docs/cosmicforge-mail-staging-e2e-acceptance.md` (decision: DEVELOPMENT COMPLETE, LIVE ACCEPTANCE BLOCKED).
+> - Two more additive migrations: 36 `20261102_mail_user_preferences.sql` and 37 `20261103_mail_final_gap_closure.sql`
+>   (new tables only, readiness-gated). Neither is applied to the shared staging DB.
+> - The eight code-level exceptions listed in the previous acceptance report are now implemented. These are:
+>   template classification, provider re-subscription, spend/quota reporting, automation test/replay/timezones,
+>   durable storage deletion, the IT quarantine view, deliverability preflight/template QA, and mixed-recipient header mode.
+>   Three provider-limited exceptions remain: mixed-recipient headers off pending approval, re-subscription through the
+>   provider off pending Resend confirmation, and billed spend unavailable.
+> - Mail offboarding now runs on every account disable path.
+> - Test totals in §5 are superseded: `test:mail` 398/398 and full backend 1379 pass / 0 fail / 3 skip.
+
 ## 1. Where the code is
 
 | Item | Value |
@@ -56,7 +68,7 @@ Every new feature checks its tables first. Until migration 35 is applied it answ
 
 ## 4. Database changes
 
-Existing migrations 1–33 were not changed; checksums are preserved. Two additive migrations were added:
+Existing migrations 1–33 were not changed; checksums are preserved. Two additive migrations were added (later work added 36 and 37; see the update note at the top):
 
 | Order | File | Content | Rollback |
 |---|---|---|---|
