@@ -29,7 +29,7 @@ jobs:
           persist-credentials: false
 
       - name: Test deployment scope classifier
-        run: bash scripts/ci/test-staging-api-change-scope.sh
+        run: bash infrastructure/scripts/test-staging-api-change-scope.sh
 
       - name: Classify exact push or manually selected release range
         id: scope
@@ -50,7 +50,7 @@ jobs:
             echo "::error::A full base and head commit SHA are required; refusing deployment classification."
             exit 1
           fi
-          api_changed="$(bash scripts/ci/staging-api-change-scope.sh "$base_sha" "$HEAD_SHA" "$GITHUB_WORKSPACE")"
+          api_changed="$(bash infrastructure/scripts/staging-api-change-scope.sh "$base_sha" "$HEAD_SHA" "$GITHUB_WORKSPACE")"
           echo "API deployment source changes detected: $api_changed"
           printf 'api_changed=%s\n' "$api_changed" >> "$GITHUB_OUTPUT"
 
