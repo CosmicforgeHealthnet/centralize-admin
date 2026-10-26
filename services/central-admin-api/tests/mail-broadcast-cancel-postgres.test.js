@@ -146,11 +146,14 @@ test("CosmicForge Mail broadcast cancellation semantics on real PostgreSQL", { t
       const dispatch = await client.marketingBroadcastDispatch.findFirst({ where: { campaign: { name: "Queued cancel" } } });
       const sentRows = await client.mailDeliveryEvent.findMany({ where: { messageId: null, eventType: "SENT", detail: { path: ["dispatchId"], equals: dispatch.id } } });
       assert.equal(sentRows.length, 2, "one SENT evidence row per recipient");
-      const replay = await client.mailDeliveryEvent.count({ where: { messageId: null, eventType: "SENT" } });
+      // Scoped to this dispatch: events of earlier subtests may still be
+      // processed by the work() ticks below under load.
+      const sentOf = () => client.mailDeliveryEvent.count({ where: { messageId: null, eventType: "SENT", detail: { path: ["dispatchId"], equals: dispatch.id } } });
+      const replay = await sentOf();
       const recipient = (await recipientsOf(dispatch.id))["q1@reader.example"];
       await event("email.sent", dispatch, recipient.email);
       await work(2);
-      assert.equal(await client.mailDeliveryEvent.count({ where: { messageId: null, eventType: "SENT" } }), replay, "SENT evidence is recorded once per recipient");
+      assert.equal(await sentOf(), replay, "SENT evidence is recorded once per recipient");
     });
 
     await t.test("HIGH: queued cancel with no observed sends is PARTIAL (provider cannot prove nothing was sent); recipients keep PROVIDER_ACCEPTED", async () => {
