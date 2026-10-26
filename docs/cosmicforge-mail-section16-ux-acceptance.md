@@ -12,7 +12,7 @@
 
 ### Deployment boundary found
 
-`.github/workflows/staging.yml` has a `push` trigger for `staging` without a path filter. Its `deploy-staging-api` job runs for a staging push, authenticates to the staging VPS, and replaces the `admin-server-staging-app-1` container. Therefore, pushing this frontend-only candidate would also trigger an API deployment/restart. The Section 16 instruction both requests a staging push and prohibits deployment/restarting services. No push was made. This is an actual repository workflow contradiction, not a Vercel check failure. GitHub Actions, Vercel deployment, and staging runtime checks cannot be reported for this local-only candidate.
+`.github/workflows/staging.yml` has a `push` trigger for `staging` without a path filter. Its `deploy-staging-api` job runs for a staging push, authenticates to the staging VPS, and replaces the `admin-server-staging-app-1` container. I also queried the repository's actual GitHub `Staging` environment: `protection_rules` is empty and `can_admins_bypass` is true, so the workflow has no required-reviewer gate. A push would therefore trigger the backend deployment/restart automatically if its jobs succeed. The Section 16 instruction both requests a staging push and prohibits deployment/restarting services. No push was made. This is an actual repository and environment-configuration contradiction, not a Vercel check failure. GitHub Actions, Vercel deployment, and staging runtime checks cannot be reported for this local-only candidate.
 
 ## 1. Design changes and visual review
 
@@ -76,7 +76,7 @@ All 22 screenshots under [`docs/cosmicforge-mail-section16/evidence`](./cosmicfo
 | Accessibility automation | PASS in the full suite: axe rules covering WCAG 2.0/2.1 A/AA on inbox, preferences, operations/integrations and IT Mail Admin. |
 | Manual keyboard / screen-reader review | NOT PERFORMED. Keyboard journey coverage is automated but partial; a human assistive-technology run remains required. |
 | Backend/API compatibility | No API contracts, backend files, migrations or endpoints changed. UI/API tests used deterministic mocks; no live staging backend was exercised. |
-| GitHub acceptance workflows | NOT RUN for the candidate because it was not pushed. |
+| GitHub acceptance workflows | NOT RUN for the candidate because it was not pushed. The queried GitHub Staging environment has no `protection_rules`; deployment would not wait for a reviewer. |
 | Vercel / staging deployment | NOT RUN. No candidate deployment was created or checked. |
 | Current branch state | Local branch is `staging`; `HEAD` and `origin/staging` matched at base `05d23695cfa6ea52376c77c03806d1e7549f0a57` before the local commit. |
 
