@@ -60,7 +60,7 @@ function createSupportService({ client, mailboxService, audit, notifications, en
     return output;
   }
 
-  async function queue(user, mailboxId, { status, assignee, cursor, limit } = {}) {
+  async function queue(user, mailboxId, { status, assignee, cursor, limit } = {}, context = {}) {
     const access = await policy.requireMailboxAccess(client, user, mailboxId, "READ");
     if (access.mailbox.type !== "SHARED") throw mailError("MAIL_INVALID_TRANSITION", { reason: "SHARED_MAILBOX_ONLY" });
     if (status && !STATUSES.has(status)) throw mailError("MAIL_VALIDATION_FAILED", { field: "status" });
@@ -69,7 +69,9 @@ function createSupportService({ client, mailboxService, audit, notifications, en
     if (assignee === "me") where.assignedToAdminUserId = user.id;
     else if (assignee === "unassigned") where.assignedToAdminUserId = null;
     else if (assignee) where.assignedToAdminUserId = String(assignee);
-    return mailboxService.listThreadsWhere(user, where, { cursor, limit });
+    const result = await mailboxService.listThreadsWhere(user, where, { cursor, limit });
+    await mailboxService.auditBreakGlassExposure(user, access, { action: "MAIL_BREAK_GLASS_QUEUE_LIST", targetType: "mailbox", targetId: mailboxId, metadata: { results: result.items.length } }, context);
+    return result;
   }
 
   async function assign(user, threadId, { assigneeAdminUserId }, context) {
@@ -121,11 +123,12 @@ function createSupportService({ client, mailboxService, audit, notifications, en
     return { locked: false };
   }
 
-  async function listNotes(user, threadId) {
-    await requireShared(user, threadId, "READ");
+  async function listNotes(user, threadId, context = {}) {
+    const access = await requireShared(user, threadId, "READ");
     const notes = await client.mailInternalNote.findMany({ where: { threadId, deletedAt: null }, orderBy: { createdAt: "asc" }, take: 500 });
     const authors = await client.adminUser.findMany({ where: { id: { in: [...new Set(notes.map((note) => note.authorAdminUserId))] } }, select: { id: true, name: true } });
     const byId = new Map(authors.map((author) => [author.id, author]));
+    await mailboxService.auditBreakGlassExposure(user, access, { action: "MAIL_BREAK_GLASS_NOTES_READ", targetType: "thread", targetId: access.thread.id, metadata: { notes: notes.length } }, context);
     return notes.map((note) => ({ id: note.id, body: decryptNote(note.encryptedBody), contentUnavailable: decryptNote(note.encryptedBody) === null, author: byId.get(note.authorAdminUserId) || { id: note.authorAdminUserId, name: "Former staff" }, mentions: note.mentions, createdAt: iso(note.createdAt) }));
   }
 
@@ -164,9 +167,11 @@ function createSupportService({ client, mailboxService, audit, notifications, en
     return { supportTicketRef: ref, ticketRefVerified: false };
   }
 
-  async function activity(user, threadId) {
-    const { thread } = await requireShared(user, threadId, "READ");
+  async function activity(user, threadId, context = {}) {
+    const access = await requireShared(user, threadId, "READ");
+    const { thread } = access;
     const events = await audit.list({ targetType: "thread", targetId: thread.id, limit: 100 });
+    await mailboxService.auditBreakGlassExposure(user, access, { action: "MAIL_BREAK_GLASS_ACTIVITY_READ", targetType: "thread", targetId: thread.id, metadata: { events: events.length } }, context);
     const actors = await client.adminUser.findMany({ where: { id: { in: [...new Set(events.map((event) => event.actorAdminUserId).filter(Boolean))] } }, select: { id: true, name: true } });
     const byId = new Map(actors.map((actor) => [actor.id, actor]));
     return events.map((event) => ({ id: event.id, action: event.action, actor: event.actorAdminUserId ? byId.get(event.actorAdminUserId) || { id: event.actorAdminUserId, name: "Former staff" } : null, metadata: event.metadata, createdAt: iso(event.createdAt) }));

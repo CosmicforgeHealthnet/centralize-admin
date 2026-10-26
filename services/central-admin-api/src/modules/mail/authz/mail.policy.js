@@ -89,17 +89,53 @@ async function findMembership(client, adminUserId, mailboxId, now = new Date()) 
   });
 }
 
-async function findBreakGlass(client, adminUserId, mailboxId, now = new Date()) {
-  return client.mailBreakGlassRequest.findFirst({
+// Break-glass access is re-validated on every request against fresh rows, not
+// just the request row: the requester must still be ACTIVE and still hold an
+// active mail/break-glass-request EDIT grant, and the approval must still be
+// valid (a recorded decision with a step-up by a different approver who is
+// still ACTIVE and still holds mail/break-glass-approve EDIT). Revoking either
+// grant, or deactivating either identity, ends access immediately rather than
+// at accessExpiresAt.
+async function holdsExplicitSection(client, adminUserId, section, mode, now) {
+  const grants = await activeSectionGrants(client, adminUserId, MAIL_MODULE, now);
+  return grants.some((grant) => (grant.section === section || grant.section === "*") && SECTION_MODE_RANK[grant.mode] >= SECTION_MODE_RANK[mode]);
+}
+
+async function breakGlassStillValid(client, row, now) {
+  if (!row || row.status !== "APPROVED" || row.revokedAt || !row.accessExpiresAt || row.accessExpiresAt <= now) return false;
+  if (!row.approverAdminUserId || !row.approverStepUpId || !row.decidedAt) return false;
+  if (row.approverAdminUserId === row.requesterAdminUserId) return false;
+  const people = await client.adminUser.findMany({
+    where: { id: { in: [row.requesterAdminUserId, row.approverAdminUserId] }, status: "ACTIVE" },
+    select: { id: true },
+  });
+  if (people.length !== 2) return false;
+  if (!(await holdsExplicitSection(client, row.requesterAdminUserId, "break-glass-request", "EDIT", now))) return false;
+  return holdsExplicitSection(client, row.approverAdminUserId, "break-glass-approve", "EDIT", now);
+}
+
+// All currently valid break-glass requests of a requester (optionally for one
+// mailbox), newest decision first. `include` is passed through to Prisma.
+async function findActiveBreakGlassRequests(client, adminUserId, { mailboxId, include, now = new Date() } = {}) {
+  const rows = await client.mailBreakGlassRequest.findMany({
     where: {
       requesterAdminUserId: adminUserId,
-      mailboxId,
+      ...(mailboxId ? { mailboxId } : {}),
       status: "APPROVED",
       revokedAt: null,
       accessExpiresAt: { gt: now },
     },
     orderBy: { decidedAt: "desc" },
+    ...(include ? { include } : {}),
   });
+  const valid = [];
+  for (const row of rows) if (await breakGlassStillValid(client, row, now)) valid.push(row);
+  return valid;
+}
+
+async function findBreakGlass(client, adminUserId, mailboxId, now = new Date()) {
+  const [row] = await findActiveBreakGlassRequests(client, adminUserId, { mailboxId, now });
+  return row || null;
 }
 
 // Resolves the caller's effective access to a mailbox or returns null.
@@ -241,6 +277,7 @@ module.exports = {
   canRequestProvisioningForOthers,
   requireMailAdmin,
   requireExplicitMailSection,
+  findActiveBreakGlassRequests,
   resolveMailboxAccess,
   requireMailboxAccess,
   requireThreadAccess,

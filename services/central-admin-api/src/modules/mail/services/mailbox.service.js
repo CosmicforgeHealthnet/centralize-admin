@@ -57,14 +57,19 @@ function createMailboxService({ client, config, store, audit, searchIndex = null
       where: { adminUserId: user.id, revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }], mailbox: { status: "ACTIVE" } },
       include: { mailbox: { include: { organization: true } } },
     });
-    const breakGlass = await client.mailBreakGlassRequest.findMany({
-      where: { requesterAdminUserId: user.id, status: "APPROVED", revokedAt: null, accessExpiresAt: { gt: now } },
-      include: { mailbox: { include: { organization: true } } },
-    });
+    // Same fresh validation as per-request access (grant + approval still valid).
+    const breakGlass = await policy.findActiveBreakGlassRequests(client, user.id, { include: { mailbox: { include: { organization: true } } }, now });
     const entries = new Map();
     for (const membership of memberships) entries.set(membership.mailboxId, { mailbox: membership.mailbox, role: membership.role, canSend: membership.canSend && membership.role !== "READER" });
     for (const grant of breakGlass) if (!entries.has(grant.mailboxId)) entries.set(grant.mailboxId, { mailbox: grant.mailbox, role: "READER", canSend: false, breakGlass: true });
     return [...entries.values()];
+  }
+
+  // Every exposure of mailbox content (subjects, snippets, notes, bodies)
+  // through break-glass is audited. Metadata only: never the content itself.
+  async function auditBreakGlassExposure(user, access, { action, targetType, targetId, metadata = {} }, context = {}) {
+    if (!access?.viaBreakGlass) return;
+    await audit.record({ actorAdminUserId: user.id, action, targetType, targetId, mailboxId: access.mailbox.id, metadata: { breakGlassRequestId: access.viaBreakGlass.id, ...metadata } }, context);
   }
 
   async function unreadCount(user, mailboxId) {
@@ -151,17 +156,22 @@ function createMailboxService({ client, config, store, audit, searchIndex = null
     return { items: await summarize(user, page), nextCursor: rows.length > take ? encodeCursor(page[page.length - 1]) : null };
   }
 
-  async function listThreads(user, mailboxId, { view = "inbox", labelId, cursor, limit } = {}) {
-    await policy.requireMailboxAccess(client, user, mailboxId, "READ");
+  async function listThreads(user, mailboxId, { view = "inbox", labelId, cursor, limit } = {}, context = {}) {
+    const access = await policy.requireMailboxAccess(client, user, mailboxId, "READ");
     const viewFilter = VIEWS[view];
     if (!viewFilter) throw mailError("MAIL_VALIDATION_FAILED", { field: "view" });
+    // label_id is a uuid column: reject malformed ids before they reach SQL.
+    if (labelId && !policy.isUuid(labelId)) throw mailError("MAIL_VALIDATION_FAILED", { field: "labelId" });
     const where = { mailboxId, ...viewFilter(user.id), ...(labelId ? { labels: { some: { labelId: String(labelId) } } } : {}) };
-    return pageThreads(user, where, { cursor, limit });
+    const result = await pageThreads(user, where, { cursor, limit });
+    await auditBreakGlassExposure(user, access, { action: "MAIL_BREAK_GLASS_THREAD_LIST", targetType: "mailbox", targetId: mailboxId, metadata: { view, labelFiltered: Boolean(labelId), results: result.items.length } }, context);
+    return result;
   }
 
-  async function getThread(user, threadId) {
-    const { thread } = await policy.requireThreadAccess(client, user, threadId, "READ");
-    const [summary] = await summarize(user, [thread]);
+  async function getThread(user, threadId, context = {}) {
+    const access = await policy.requireThreadAccess(client, user, threadId, "READ");
+    const [summary] = await summarize(user, [access.thread]);
+    await auditBreakGlassExposure(user, access, { action: "MAIL_BREAK_GLASS_THREAD_VIEW", targetType: "thread", targetId: access.thread.id }, context);
     return summary;
   }
 
@@ -381,7 +391,8 @@ function createMailboxService({ client, config, store, audit, searchIndex = null
     const beforeDate = before ? new Date(before) : null;
     if (afterDate && !Number.isNaN(afterDate.getTime())) conditions.push(Prisma.sql`m."created_at" >= ${afterDate}`);
     if (beforeDate && !Number.isNaN(beforeDate.getTime())) conditions.push(Prisma.sql`m."created_at" < ${beforeDate}`);
-    const label = labelId && policy.isUuid(labelId) ? String(labelId) : null;
+    if (labelId && !policy.isUuid(labelId)) throw mailError("MAIL_VALIDATION_FAILED", { field: "labelId" });
+    const label = labelId ? String(labelId) : null;
     if (label) conditions.push(Prisma.sql`EXISTS (SELECT 1 FROM "mail_thread_labels" l WHERE l."thread_id" = t."id" AND l."label_id" = ${label}::uuid)`);
     if (!query && !from && !to && !subject && !afterDate && !beforeDate && !label) throw mailError("MAIL_VALIDATION_FAILED", { field: "q" });
     // Ranked by the newest matching message created up to the snapshot (the
@@ -413,7 +424,9 @@ function createMailboxService({ client, config, store, audit, searchIndex = null
   async function suggestContacts(user, q) {
     const prefix = String(q || "").trim().toLowerCase().slice(0, 80);
     if (prefix.length < 2) return [];
-    const mailboxIds = (await accessibleMailboxes(user)).map((entry) => entry.mailbox.id);
+    // Correspondents come only from mailboxes the caller is a member of; a
+    // break-glass grant never feeds autocomplete (it is not an audited read).
+    const mailboxIds = (await accessibleMailboxes(user)).filter((entry) => !entry.breakGlass).map((entry) => entry.mailbox.id);
     const results = new Map();
     const staff = await client.mailAddress.findMany({
       where: { status: "ACTIVE", kind: { in: ["PRIMARY", "SHARED"] }, mailbox: { status: "ACTIVE" }, OR: [{ address: { startsWith: prefix } }, { displayName: { contains: prefix, mode: "insensitive" } }] },
@@ -444,7 +457,7 @@ function createMailboxService({ client, config, store, audit, searchIndex = null
     return pageThreads(user, where, page);
   }
 
-  return { listThreadsWhere, accessibleMailboxes, listMyMailboxes, getMailbox, listThreads, getThread, getMessages, setThreadState, moveThread, bulk, deleteThread, listLabels, createLabel, setThreadLabel, search, suggestContacts, unreadCount, primaryAddressFor };
+  return { auditBreakGlassExposure, listThreadsWhere, accessibleMailboxes, listMyMailboxes, getMailbox, listThreads, getThread, getMessages, setThreadState, moveThread, bulk, deleteThread, listLabels, createLabel, setThreadLabel, search, suggestContacts, unreadCount, primaryAddressFor };
 }
 
 module.exports = { createMailboxService, VIEWS };

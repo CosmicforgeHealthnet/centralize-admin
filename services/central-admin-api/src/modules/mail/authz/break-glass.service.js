@@ -5,7 +5,10 @@
 //   fresh step-up (purpose BREAK_GLASS_REQUEST);
 // - a different approver holds mail/break-glass-approve (EDIT), with a fresh
 //   step-up (purpose BREAK_GLASS_APPROVAL);
-// - access is READER-only, expires within at most 4 hours, and is audited.
+// - access is READER-only, expires within at most 4 hours, and is audited;
+// - access is re-validated on every request (mail.policy findBreakGlass):
+//   revoking the requester's or approver's grant, or deactivating either
+//   identity, ends access immediately.
 
 const { mailError } = require("../mail.errors");
 const { requireExplicitMailSection, hasSection, isUuid } = require("./mail.policy");
@@ -41,6 +44,14 @@ function createBreakGlassService({ client, stepUp, audit, clock = () => new Date
     if (existing.status !== "PENDING") throw mailError("MAIL_INVALID_TRANSITION", { from: existing.status });
     const minutes = Math.min(Math.max(Number(durationMinutes) || 60, 5), MAX_MINUTES);
     const now = clock();
+    if (approve) {
+      // A request whose requester has since lost the grant (or is no longer
+      // ACTIVE) cannot be approved; access is also re-checked on every read.
+      const requester = await client.adminUser.findUnique({ where: { id: existing.requesterAdminUserId }, select: { id: true, status: true } });
+      if (!requester || requester.status !== "ACTIVE" || !(await hasSection(client, requester, "mail", "break-glass-request", "EDIT", { now }))) {
+        throw mailError("MAIL_INVALID_TRANSITION", { reason: "REQUESTER_NO_LONGER_ELIGIBLE" });
+      }
+    }
     return client.$transaction(async (tx) => {
       const consumed = approve ? await stepUp.consume(tx, user, stepUpId, "BREAK_GLASS_APPROVAL", context) : null;
       const updated = await tx.mailBreakGlassRequest.updateMany({
