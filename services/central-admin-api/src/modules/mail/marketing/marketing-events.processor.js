@@ -24,6 +24,7 @@
 
 const { normalizeAddress } = require("../security/address.util");
 const { enforceWithdrawal, suppressAddress } = require("./consent-enforcement");
+const { correctCancelledWithEvidence } = require("./broadcast.processor");
 
 const EVENT_TO_STATUS = {
   "email.sent": "PROVIDER_ACCEPTED",
@@ -37,6 +38,20 @@ const EVENT_TO_STATUS = {
 };
 const RANK = { PENDING: 0, SYNCED: 1, OUTCOME_UNKNOWN: 1.5, PROVIDER_ACCEPTED: 2, DELAYED: 3, DELIVERED: 4, FAILED: 5, SUPPRESSED: 5, BOUNCED: 6, COMPLAINED: 7 };
 const FINAL_SKIP = new Set(["EXCLUDED", "CANCELLED", "UNSUBSCRIBED"]);
+// A recipient marked CANCELLED_AT_PROVIDER was handed to the provider before
+// the cancel; if the provider later reports that it produced the message
+// anyway, the event wins (cancellations do not undo sends). Recipients
+// cancelled before the send never reached the provider and stay skipped.
+const CANCELLED_AT_PROVIDER = "CANCELLED_AT_PROVIDER";
+// Event types that prove the provider produced the message for a recipient
+// (email.sent is recorded as SENT evidence: the recipient enum has no SENT
+// value and email.sent maps to PROVIDER_ACCEPTED).
+const SENT_EVIDENCE_EVENTS = new Set(["email.sent", "email.delivered", "email.delivery_delayed", "email.bounced", "email.complained"]);
+
+function skipsEvents(recipient) {
+  if (recipient.status === "CANCELLED") return recipient.exclusionReason !== CANCELLED_AT_PROVIDER;
+  return FINAL_SKIP.has(recipient.status);
+}
 
 // Statuses a new status may replace. Used as a conditional UPDATE predicate
 // so two concurrent events for one recipient can never regress its status:
@@ -88,11 +103,17 @@ function createMarketingEventsProcessor({ client, audit, resubscriptions = null,
     return null;
   }
 
-  // One evidence row per recipient: the report counts delivered from it.
-  async function recordDeliveryEvidence(tx, event, meta, dispatch, recipient) {
-    const existing = await tx.mailDeliveryEvent.findFirst({ where: { messageId: null, eventType: "DELIVERED", detail: { path: ["recipientId"], equals: recipient.id } }, select: { id: true } });
+  // One evidence row per recipient and type (DELIVERED, SENT): the report
+  // counts delivered and provider-sent from them, so neither falls when a
+  // later event replaces the recipient status.
+  async function recordDeliveryEvidence(tx, event, meta, dispatch, recipient, eventType = "DELIVERED") {
+    // Serialises concurrent events for the same recipient + type (two
+    // webhook deliveries of one event, or a sent/delivered pair processed in
+    // parallel) so the check-then-insert below stays one row per recipient.
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`marketing-evidence:${eventType}:${recipient.id}`}))`;
+    const existing = await tx.mailDeliveryEvent.findFirst({ where: { messageId: null, eventType, detail: { path: ["recipientId"], equals: recipient.id } }, select: { id: true } });
     if (existing) return;
-    await tx.mailDeliveryEvent.create({ data: { webhookEventId: event.id || null, providerMessageId: String(meta.data.email_id || `broadcast:${dispatch.id}`).slice(0, 255), recipient: recipient.email, eventType: "DELIVERED", occurredAt: meta.occurredAt, detail: { marketing: true, dispatchId: dispatch.id, recipientId: recipient.id } } });
+    await tx.mailDeliveryEvent.create({ data: { webhookEventId: event.id || null, providerMessageId: String(meta.data.email_id || `broadcast:${dispatch.id}`).slice(0, 255), recipient: recipient.email, eventType, occurredAt: meta.occurredAt, detail: { marketing: true, dispatchId: dispatch.id, recipientId: recipient.id } } });
   }
 
   async function handleBroadcastEvent(event) {
@@ -102,6 +123,7 @@ function createMarketingEventsProcessor({ client, audit, resubscriptions = null,
     if (meta.brandOrganizationId && meta.brandOrganizationId !== dispatch.organizationId) return { matched: 0, reason: "CROSS_BRAND_EVENT_REJECTED" };
     const status = EVENT_TO_STATUS[meta.type];
     let matched = 0;
+    let evidence = false;
     const observations = [];
     await client.$transaction(async (tx) => {
       for (const email of meta.recipients) {
@@ -112,12 +134,23 @@ function createMarketingEventsProcessor({ client, audit, resubscriptions = null,
         if (meta.type === "email.opened" && !recipient.openedAt) data.openedAt = meta.occurredAt;
         if (meta.type === "email.clicked" && !recipient.clickedAt) data.clickedAt = meta.occurredAt;
         await tx.marketingBroadcastRecipient.update({ where: { id: recipient.id }, data });
-        if (status && !FINAL_SKIP.has(recipient.status)) await tx.marketingBroadcastRecipient.updateMany({ where: { id: recipient.id, status: { in: replaceable(status) } }, data: { status } });
+        if (status && !skipsEvents(recipient)) {
+          if (recipient.status === "CANCELLED") {
+            // Cancelled at the provider, yet the provider produced the
+            // message: apply the event (rank is above any pre-send status).
+            if (SENT_EVIDENCE_EVENTS.has(meta.type) || status === "FAILED" || status === "SUPPRESSED") await tx.marketingBroadcastRecipient.updateMany({ where: { id: recipient.id, status: "CANCELLED", exclusionReason: CANCELLED_AT_PROVIDER }, data: { status, exclusionReason: null } });
+          } else await tx.marketingBroadcastRecipient.updateMany({ where: { id: recipient.id, status: { in: replaceable(status) } }, data: { status } });
+        }
         if (status === "DELIVERED") await recordDeliveryEvidence(tx, event, meta, dispatch, recipient);
+        if (meta.type === "email.sent") await recordDeliveryEvidence(tx, event, meta, dispatch, recipient, "SENT");
+        if (SENT_EVIDENCE_EVENTS.has(meta.type) && !(recipient.status === "CANCELLED" && recipient.exclusionReason !== CANCELLED_AT_PROVIDER)) evidence = true;
         if (status === "BOUNCED" || status === "COMPLAINED" || status === "SUPPRESSED") await suppress(tx, dispatch.organizationId, email, status, meta.data);
         const providerState = providerStateFor(status, meta.data, isHardBounce);
         if (providerState) observations.push({ organizationId: dispatch.organizationId, contactId: recipient.contactId, ...providerState, observedAt: meta.occurredAt });
       }
+      // A dispatch recorded CANCELLED after the provider handoff is
+      // re-evaluated: evidence of sending makes it PARTIAL.
+      if (evidence && dispatch.status === "CANCELLED") await correctCancelledWithEvidence(tx, audit, dispatch, { evidence: meta.type });
       if (matched) await audit.record({ action: `MARKETING_BROADCAST_EVENT_${String(meta.type).split(".")[1].toUpperCase()}`, targetType: "marketing_broadcast", targetId: dispatch.id, organizationId: dispatch.organizationId, metadata: { recipients: matched } }, {}, tx);
     });
     await observeAll(observations);

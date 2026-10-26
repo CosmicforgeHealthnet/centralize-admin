@@ -5,6 +5,12 @@
 // unsubscribed flag, segments, non-idempotent broadcasts with the
 // draft -> queued -> sent / canceled lifecycle, and Idempotency-Key semantics
 // for single emails. Never performs network I/O.
+// Cancellation (Resend POST /broadcasts/{id}/cancel, documented semantics):
+//   scheduled -> back to draft, nothing was sent;
+//   queued    -> canceled; mail still queued is never sent, mail already sent
+//                (progressBroadcast) stays sent and keeps producing events;
+//   anything else (draft, sent, canceled) -> 422, nothing changes.
+// DELETE /broadcasts/{id} works for draft / scheduled broadcasts only.
 
 const crypto = require("crypto");
 const { MailProviderError } = require("../mail-provider.contract");
@@ -49,6 +55,14 @@ function createFakeMarketingAdapter({ name = "fake", resubscribeSupported = true
     return result;
   }
 
+  const membersOf = (segmentId) => [...state.contacts.values()].filter((contact) => contact.segments.has(segmentId));
+  function takeUnsent(broadcast, count) {
+    const done = new Set(broadcast.sent.map((entry) => entry.email));
+    const next = membersOf(broadcast.segmentId).filter((contact) => !contact.unsubscribed && !done.has(contact.email)).slice(0, count).map((contact) => ({ email: contact.email, emailId: `fake_bc_${crypto.randomUUID()}`, contactId: contact.id }));
+    broadcast.sent.push(...next);
+    return next;
+  }
+
   const findContactById = (id) => [...state.contacts.values()].find((contact) => contact.id === id);
 
   const adapter = {
@@ -70,14 +84,27 @@ function createFakeMarketingAdapter({ name = "fake", resubscribeSupported = true
     segmentMembers(segmentId) {
       return [...state.contacts.values()].filter((contact) => contact.segments.has(segmentId));
     },
+    // Simulates the provider working through a queued broadcast: sends up to
+    // `count` not-yet-sent members and returns those emails (the caller
+    // posts their email.sent / email.delivered webhooks).
+    progressBroadcast(broadcastId, count = 1) {
+      const broadcast = state.broadcasts.get(broadcastId);
+      if (!broadcast || broadcast.status !== "QUEUED") return [];
+      return takeUnsent(broadcast, count);
+    },
     // Simulates the provider finishing a queued broadcast. Returns the emails
-    // the provider would have produced (unsubscribed contacts are skipped).
+    // the provider produced now (unsubscribed and already-sent are skipped).
     completeBroadcast(broadcastId) {
       const broadcast = state.broadcasts.get(broadcastId);
       if (!broadcast || broadcast.status !== "QUEUED") return [];
+      const rest = takeUnsent(broadcast, Number.MAX_SAFE_INTEGER);
       broadcast.status = "SENT";
       broadcast.sentAt = new Date();
-      return adapter.segmentMembers(broadcast.segmentId).filter((contact) => !contact.unsubscribed).map((contact) => ({ email: contact.email, emailId: `fake_bc_${crypto.randomUUID()}`, contactId: contact.id }));
+      return rest;
+    },
+    // Emails the provider produced for a broadcast (before any cancel).
+    sentEmails(broadcastId) {
+      return [...(state.broadcasts.get(broadcastId)?.sent || [])];
     },
     // Contract ----------------------------------------------------------
     async getContact(email) {
@@ -147,7 +174,7 @@ function createFakeMarketingAdapter({ name = "fake", resubscribeSupported = true
       return guarded("createBroadcast", async () => {
         record("createBroadcast", { name: input.name });
         if (!state.segments.get(input.segmentId)) throw new MailProviderError("PERMANENT", "RESEND_HTTP_422", "segment not found", { status: 422 });
-        const broadcast = { id: `fake_broadcast_${crypto.randomUUID()}`, ...input, status: "DRAFT", sendCalls: 0 };
+        const broadcast = { id: `fake_broadcast_${crypto.randomUUID()}`, ...input, status: "DRAFT", sendCalls: 0, sent: [] };
         state.broadcasts.set(broadcast.id, broadcast);
         return { id: broadcast.id };
       });
@@ -179,15 +206,25 @@ function createFakeMarketingAdapter({ name = "fake", resubscribeSupported = true
       return guarded("cancelBroadcast", async () => {
         record("cancelBroadcast", { broadcastId });
         const broadcast = state.broadcasts.get(broadcastId);
-        if (!broadcast || !["QUEUED", "SCHEDULED"].includes(broadcast.status)) throw new MailProviderError("PERMANENT", "RESEND_HTTP_422", "not cancelable", { status: 422 });
-        broadcast.status = broadcast.status === "SCHEDULED" ? "DRAFT" : "CANCELED";
+        if (!broadcast || broadcast.status === "DELETED") throw new MailProviderError("PERMANENT", "RESEND_HTTP_404", "unknown broadcast", { status: 404 });
+        if (!["QUEUED", "SCHEDULED"].includes(broadcast.status)) throw new MailProviderError("PERMANENT", "RESEND_HTTP_422", `broadcast is ${broadcast.status}; not cancelable`, { status: 422 });
+        // Scheduled: back to draft, nothing sent. Queued: what is still in
+        // the queue is dropped; already-sent mail is not recalled.
+        if (broadcast.status === "SCHEDULED") broadcast.status = "DRAFT";
+        else {
+          broadcast.status = "CANCELED";
+          broadcast.sentBeforeCancel = broadcast.sent.length;
+        }
+        broadcast.canceledAt = new Date();
       });
     },
     async deleteBroadcast(broadcastId) {
       return guarded("deleteBroadcast", async () => {
         record("deleteBroadcast", { broadcastId });
         const broadcast = state.broadcasts.get(broadcastId);
-        if (broadcast && ["DRAFT", "SCHEDULED"].includes(broadcast.status)) broadcast.status = "DELETED";
+        if (!broadcast || broadcast.status === "DELETED") throw new MailProviderError("PERMANENT", "RESEND_HTTP_404", "unknown broadcast", { status: 404 });
+        if (!["DRAFT", "SCHEDULED"].includes(broadcast.status)) throw new MailProviderError("PERMANENT", "RESEND_HTTP_422", `broadcast is ${broadcast.status}; only draft or scheduled broadcasts can be deleted`, { status: 422 });
+        broadcast.status = "DELETED";
       });
     },
     async sendEmail(request) {

@@ -22,7 +22,14 @@
 // Reconcile polls the provider until sent/canceled, then finalises.
 // Pause / disabled flag / emergency stop defer the job without consuming
 // attempts and without deleting anything. Cancellation before the send is
-// complete; after the send only unsent mail can be stopped.
+// complete; after the send only unsent mail can be stopped: a scheduled
+// broadcast that returns to draft is CANCELLED (provider proof that nothing
+// was sent); a queued broadcast cancelled at the provider is PARTIAL (mail
+// already sent is never recalled) and its accepted recipients keep receiving
+// provider events. Evidence arriving for a CANCELLED dispatch corrects it to
+// PARTIAL. Dispatch and campaign moves are compare-and-set against the legal
+// transition tables below; provider segment / draft broadcast are removed
+// once no further sending can happen.
 // GAP 2: sync skips contacts whose provider state is UNSUBSCRIBED/SUPPRESSED
 // (unless an APPLIED re-subscription is newer) without touching consent, and
 // a provider unsubscribe flag that contradicts a verified re-subscription is
@@ -34,9 +41,90 @@ const crypto = require("crypto");
 const { externalSendBlockReason } = require("../authz/sending-gate");
 const { isBrandSender, SENDER_MAILBOX_SELECT } = require("./marketing-sender");
 const { quotaDeferSeconds } = require("../ops/provider-quota.service");
+const { withMarketingContract } = require("../adapters/provider-contract");
+
+// Contract-wrapped provider (idempotent when the resolver already wrapped it).
+const contractOf = (provider) => withMarketingContract(provider);
 
 const TERMINAL = new Set(["COMPLETED", "PARTIAL", "FAILED", "CANCELLED", "OUTCOME_UNKNOWN"]);
 const SEND_UNKNOWN_AFTER_MS = 60 * 60 * 1000;
+
+// Legal status transitions (spec §20: DRAFT -> READY_FOR_REVIEW -> APPROVED
+// -> SCHEDULED | QUEUED -> SENDING -> COMPLETE | PARTIAL | FAILED |
+// CANCELLED). Each entry lists the statuses a target may be reached FROM;
+// every write is a compare-and-set on the current status. Terminal states
+// are never left, except CANCELLED -> PARTIAL when provider evidence shows
+// mail went out after all (cancellations do not undo delivered sends).
+// The campaign enum has no PAUSED value: a paused dispatch keeps its
+// campaign SCHEDULED/QUEUED and the pause is exposed on the dispatch.
+const CAMPAIGN_FROM = {
+  SCHEDULED: ["APPROVED", "QUEUED"],
+  QUEUED: ["SCHEDULED"],
+  SENDING: ["SCHEDULED", "QUEUED"],
+  COMPLETE: ["SCHEDULED", "QUEUED", "SENDING"],
+  PARTIAL: ["SCHEDULED", "QUEUED", "SENDING"],
+  FAILED: ["SCHEDULED", "QUEUED", "SENDING"],
+  CANCELLED: ["SCHEDULED", "QUEUED", "SENDING"],
+  OUTCOME_UNKNOWN: ["SCHEDULED", "QUEUED", "SENDING"],
+};
+const TERMINAL_CAMPAIGN = new Set(["COMPLETE", "PARTIAL", "FAILED", "CANCELLED", "OUTCOME_UNKNOWN", "REJECTED"]);
+const LIVE_DISPATCH = ["SCHEDULED", "QUEUED", "PREPARING", "SENDING", "PAUSED"];
+const DISPATCH_FROM = {
+  PREPARING: ["SCHEDULED", "QUEUED"],
+  SENDING: ["SCHEDULED", "QUEUED", "PREPARING"],
+  COMPLETED: LIVE_DISPATCH,
+  PARTIAL: LIVE_DISPATCH,
+  FAILED: LIVE_DISPATCH,
+  CANCELLED: LIVE_DISPATCH,
+  OUTCOME_UNKNOWN: LIVE_DISPATCH,
+};
+const DISPATCH_TO_CAMPAIGN = { PREPARING: "QUEUED", SENDING: "SENDING", COMPLETED: "COMPLETE", PARTIAL: "PARTIAL", FAILED: "FAILED", CANCELLED: "CANCELLED", OUTCOME_UNKNOWN: "OUTCOME_UNKNOWN" };
+// Recipient statuses that prove the provider produced the message.
+const SENT_EVIDENCE_STATUSES = ["DELIVERED", "DELAYED", "BOUNCED", "COMPLAINED"];
+
+// Compare-and-set of the campaign status. Returns true when the campaign is
+// (now) in `to`; an illegal move is refused, audited and logged.
+async function transitionCampaign(tx, audit, { campaignId, organizationId, dispatchId = null, to, correction = false, logger = null }) {
+  const from = correction && to === "PARTIAL" ? ["CANCELLED"] : CAMPAIGN_FROM[to] || [];
+  const moved = await tx.marketingEmailCampaign.updateMany({ where: { id: campaignId, status: { in: from } }, data: { status: to } });
+  if (moved.count === 1) return true;
+  const current = (await tx.marketingEmailCampaign.findUnique({ where: { id: campaignId }, select: { status: true } }))?.status || null;
+  if (current === to) return true;
+  const reason = TERMINAL_CAMPAIGN.has(current) ? "CAMPAIGN_TERMINAL" : "ILLEGAL_CAMPAIGN_TRANSITION";
+  await audit.record({ action: "MARKETING_CAMPAIGN_TRANSITION_REJECTED", targetType: "marketing_campaign", targetId: campaignId, organizationId, outcome: "FAILURE", metadata: { from: current, to, dispatchId, reason } }, {}, tx);
+  logger?.warn?.(`[Marketing] campaign ${campaignId} transition ${current} -> ${to} rejected (${reason})`);
+  return false;
+}
+
+// Provider evidence (sent / delivered / bounced / complained) arrived for a
+// dispatch recorded as CANCELLED after the provider handoff: mail did go
+// out, so the dispatch and campaign become PARTIAL. Idempotent.
+async function correctCancelledWithEvidence(tx, audit, dispatch, { evidence = null, logger = null } = {}) {
+  if (!dispatch?.providerSendAttemptAt) return false;
+  const moved = await tx.marketingBroadcastDispatch.updateMany({ where: { id: dispatch.id, status: "CANCELLED" }, data: { status: "PARTIAL" } });
+  if (moved.count !== 1) return false;
+  await transitionCampaign(tx, audit, { campaignId: dispatch.campaignId, organizationId: dispatch.organizationId, dispatchId: dispatch.id, to: "PARTIAL", correction: true, logger });
+  await audit.record({ action: "MARKETING_BROADCAST_CANCEL_CORRECTED", targetType: "marketing_broadcast", targetId: dispatch.id, organizationId: dispatch.organizationId, metadata: { from: "CANCELLED", to: "PARTIAL", evidence, note: "Provider evidence shows mail was sent before the cancellation took effect" } }, {}, tx);
+  return true;
+}
+
+// Recipients for whom the provider demonstrably produced a message: a
+// delivery-type status or a recorded SENT / DELIVERED evidence row.
+async function sentEvidenceCount(client, dispatchId) {
+  const rows = await client.$queryRaw`
+    SELECT COUNT(*)::int AS "count" FROM "marketing_broadcast_recipients" r
+    WHERE r."dispatch_id" = ${dispatchId}::uuid
+      AND (r."status"::text IN ('DELIVERED', 'DELAYED', 'BOUNCED', 'COMPLAINED')
+        OR EXISTS (SELECT 1 FROM "mail_delivery_events" e WHERE e."message_id" IS NULL AND e."event_type"::text IN ('SENT', 'DELIVERED') AND e."detail"->>'recipientId' = r."id"::text))`;
+  return Number(rows[0]?.count || 0);
+}
+
+async function evidencedRecipientIds(client, dispatchId) {
+  const rows = await client.$queryRaw`
+    SELECT DISTINCT e."detail"->>'recipientId' AS "id" FROM "mail_delivery_events" e
+    WHERE e."message_id" IS NULL AND e."event_type"::text IN ('SENT', 'DELIVERED') AND e."detail"->>'dispatchId' = ${dispatchId}`;
+  return rows.map((row) => row.id).filter(Boolean);
+}
 
 function snapshotHash(snapshot) {
   return crypto.createHash("sha256").update(JSON.stringify({ subject: snapshot.subject, html: snapshot.html, text: snapshot.text, sender: snapshot.senderAddress, replyTo: snapshot.replyTo, templateVersionId: snapshot.templateVersionId })).digest("hex");
@@ -74,6 +162,17 @@ function dispatchError(code, message, { retryable = false, retryAfterSeconds = n
   return Object.assign(new Error(message || code), { code, retryable, retryAfterSeconds });
 }
 
+// A provider error escaping a phase (lost create response, transient
+// segment call, ...) is retried: every phase resumes from persisted
+// progress and resolves ambiguity by name / status, never by re-posting.
+// MailProviderError.retryable is false for AMBIGUOUS / PERMANENT, which the
+// worker would otherwise treat as a terminal job failure and leave the
+// dispatch stuck; exhausted retries still reach onDeadLetter.
+function retryableProviderError(error) {
+  if (!(error?.name === "MailProviderError" || error?.kind) || error?.retryable === true) return error;
+  return dispatchError(String(error.code || "PROVIDER_ERROR").slice(0, 64), error.message, { retryable: true, retryAfterSeconds: error.retryAfterSeconds ?? 30 });
+}
+
 function createBroadcastProcessor({ client, config, audit, jobs, marketingProviders, eligibility, notifications, runtime = null, usage = null, resubscriptions = null, pricing = null, providerQuota = null, clock = () => new Date(), logger = null }) {
   const now = () => clock();
 
@@ -81,11 +180,21 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
     return (await client.marketingBrandSettings.findUnique({ where: { organizationId } })) || { dispatchPaused: false, maxBroadcastRecipients: config.broadcast.maxRecipients, dailyBroadcastCap: 1000 };
   }
 
+  // Guarded dispatch + campaign transition. Returns false (audited, nothing
+  // changed) when the dispatch is no longer in a state the move is legal from.
   async function setStatus(dispatch, status, extra = {}, tx = client) {
-    await tx.marketingBroadcastDispatch.update({ where: { id: dispatch.id }, data: { status, ...extra } });
-    const campaignStatus = { PREPARING: "QUEUED", SENDING: "SENDING", COMPLETED: "COMPLETE", PARTIAL: "PARTIAL", FAILED: "FAILED", CANCELLED: "CANCELLED", OUTCOME_UNKNOWN: "OUTCOME_UNKNOWN" }[status];
-    if (campaignStatus) await tx.marketingEmailCampaign.update({ where: { id: dispatch.campaignId }, data: { status: campaignStatus } });
+    const moved = await tx.marketingBroadcastDispatch.updateMany({ where: { id: dispatch.id, status: { in: DISPATCH_FROM[status] || [] } }, data: { status, ...extra } });
+    if (moved.count !== 1) {
+      const current = (await tx.marketingBroadcastDispatch.findUnique({ where: { id: dispatch.id }, select: { status: true } }))?.status || null;
+      await audit.record({ action: "MARKETING_BROADCAST_TRANSITION_REJECTED", targetType: "marketing_broadcast", targetId: dispatch.id, organizationId: dispatch.organizationId, outcome: "FAILURE", metadata: { from: current, to: status, reason: TERMINAL.has(current) ? "DISPATCH_TERMINAL" : "ILLEGAL_DISPATCH_TRANSITION" } }, {}, tx);
+      logger?.warn?.(`[Marketing] dispatch ${dispatch.id} transition ${current} -> ${status} rejected`);
+      if (current) dispatch.status = current;
+      return false;
+    }
+    const campaignStatus = DISPATCH_TO_CAMPAIGN[status];
+    if (campaignStatus) await transitionCampaign(tx, audit, { campaignId: dispatch.campaignId, organizationId: dispatch.organizationId, dispatchId: dispatch.id, to: campaignStatus, logger });
     Object.assign(dispatch, { status, ...extra });
+    return true;
   }
 
   async function notifyOwners(dispatch, title, subtitle) {
@@ -95,11 +204,13 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
   }
 
   async function fail(dispatch, code, message) {
-    await client.$transaction(async (tx) => {
-      await setStatus(dispatch, "FAILED", { lastErrorCode: code.slice(0, 64), lastErrorMessage: String(message || code).slice(0, 500), completedAt: now() }, tx);
+    const moved = await client.$transaction(async (tx) => {
+      if (!(await setStatus(dispatch, "FAILED", { lastErrorCode: code.slice(0, 64), lastErrorMessage: String(message || code).slice(0, 500), completedAt: now() }, tx))) return false;
       await tx.marketingBroadcastRecipient.updateMany({ where: { dispatchId: dispatch.id, status: { in: ["PENDING", "SYNCED"] } }, data: { status: "CANCELLED", exclusionReason: code.slice(0, 64) } });
       await audit.record({ action: "MARKETING_BROADCAST_FAILED", targetType: "marketing_broadcast", targetId: dispatch.id, organizationId: dispatch.organizationId, outcome: "FAILURE", metadata: { reason: code } }, {}, tx);
+      return true;
     });
+    if (!moved) return { skipped: "TRANSITION_REJECTED", status: dispatch.status };
     await notifyOwners(dispatch, "Broadcast failed before sending", `${code}: nothing was sent`);
     return { failed: code };
   }
@@ -112,7 +223,7 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
   async function cancelBeforeSend(dispatch, provider) {
     await cleanupProviderDraft(dispatch, provider);
     await client.$transaction(async (tx) => {
-      await setStatus(dispatch, "CANCELLED", { completedAt: now(), providerStatus: dispatch.providerBroadcastId ? "DELETED" : dispatch.providerStatus }, tx);
+      if (!(await setStatus(dispatch, "CANCELLED", { completedAt: now(), providerStatus: dispatch.providerBroadcastId ? "DELETED" : dispatch.providerStatus }, tx))) return;
       await tx.marketingBroadcastRecipient.updateMany({ where: { dispatchId: dispatch.id, status: { in: ["PENDING", "SYNCED"] } }, data: { status: "CANCELLED", exclusionReason: "CANCELLED_BEFORE_SEND" } });
       await audit.record({ action: "MARKETING_BROADCAST_CANCELLED", targetType: "marketing_broadcast", targetId: dispatch.id, organizationId: dispatch.organizationId, metadata: { phase: "before_send", sent: 0 } }, {}, tx);
     });
@@ -313,6 +424,8 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
 
   async function markAccepted(dispatch, providerStatus) {
     await client.$transaction(async (tx) => {
+      // Not moved (dispatch already terminal): the provider still accepted
+      // the send, so recipients and the reconcile job are recorded anyway.
       await setStatus(dispatch, "SENDING", { providerStatus }, tx);
       const accepted = await tx.marketingBroadcastRecipient.updateMany({ where: { dispatchId: dispatch.id, status: "SYNCED" }, data: { status: "PROVIDER_ACCEPTED", acceptedAt: now() } });
       if (usage) await usage.record(tx, { organizationId: dispatch.organizationId, purpose: "MARKETING_BROADCAST", accepted: accepted.count, providerRequests: 1 });
@@ -334,7 +447,11 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
         throw dispatchError(error?.code || "PROVIDER_STATUS_ERROR", "Broadcast status unreadable", { retryable: true });
       }
       if (remote && ["QUEUED", "SCHEDULED", "SENT"].includes(remote.status)) return markAccepted(dispatch, remote.status);
-      if (remote?.status === "CANCELED") return finalize(dispatch, "CANCELED");
+      if (remote?.status === "CANCELED") {
+        const result = await finalize(dispatch, "CANCELED");
+        if (!result.skipped) await cleanupProviderResources(dispatch, provider, "CANCELED");
+        return result;
+      }
       if (!remote || remote.status === "UNKNOWN") {
         if (now().getTime() - new Date(dispatch.providerSendAttemptAt).getTime() > SEND_UNKNOWN_AFTER_MS) return outcomeUnknown(dispatch, "SEND_STATUS_UNKNOWN");
         throw dispatchError("PROVIDER_STATUS_UNKNOWN", "Broadcast status unknown", { retryable: true });
@@ -363,7 +480,7 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
 
   async function outcomeUnknown(dispatch, reason) {
     await client.$transaction(async (tx) => {
-      await setStatus(dispatch, "OUTCOME_UNKNOWN", { lastErrorCode: reason, completedAt: now() }, tx);
+      if (!(await setStatus(dispatch, "OUTCOME_UNKNOWN", { lastErrorCode: reason, completedAt: now() }, tx))) return;
       await tx.marketingBroadcastRecipient.updateMany({ where: { dispatchId: dispatch.id, status: { in: ["SYNCED", "PROVIDER_ACCEPTED"] } }, data: { status: "OUTCOME_UNKNOWN" } });
       await audit.record({ action: "MARKETING_BROADCAST_OUTCOME_UNKNOWN", targetType: "marketing_broadcast", targetId: dispatch.id, organizationId: dispatch.organizationId, outcome: "UNKNOWN", metadata: { reason } }, {}, tx);
     });
@@ -371,34 +488,87 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
     return { outcomeUnknown: reason };
   }
 
-  async function finalize(dispatch, providerStatus) {
+  // providerStatus: SENT, or CANCELED with `nothingSent` true only when the
+  // provider proves no mail left (a scheduled broadcast returned to draft).
+  // A queued broadcast cancelled at the provider still sent whatever had
+  // already left the queue (Resend: sent emails are not recalled), so it is
+  // PARTIAL and its accepted recipients keep PROVIDER_ACCEPTED: later
+  // delivered / bounced / complained events are still applied to them.
+  async function finalize(dispatch, providerStatus, { nothingSent = false } = {}) {
     const counts = Object.fromEntries((await client.marketingBroadcastRecipient.groupBy({ by: ["status"], where: { dispatchId: dispatch.id }, _count: { _all: true } })).map((row) => [row.status, row._count._all]));
     const handed = ["PROVIDER_ACCEPTED", "DELIVERED", "DELAYED", "BOUNCED", "COMPLAINED", "SUPPRESSED"].reduce((sum, key) => sum + (counts[key] || 0), 0);
     // Same evidence-based definition as the report: delivered never falls
     // when a later complaint replaces a recipient's DELIVERED status.
     const delivered = await deliveredCount(client, dispatch.id);
-    // On cancel, PARTIAL means some mail demonstrably left the provider.
-    const attempted = delivered + (counts.DELAYED || 0) + (counts.BOUNCED || 0);
+    // Recipients the provider demonstrably produced mail for (sent /
+    // delivered evidence, delayed, bounced, complained).
+    const attempted = await sentEvidenceCount(client, dispatch.id);
     const syncFailures = counts.FAILED || 0;
+    const cancelled = providerStatus === "CANCELED";
     let status;
-    if (providerStatus === "CANCELED") status = attempted > 0 ? "PARTIAL" : "CANCELLED";
-    else status = handed === 0 ? "FAILED" : syncFailures > 0 ? "PARTIAL" : "COMPLETED";
+    let sentBeforeCancel = null;
+    if (cancelled) {
+      sentBeforeCancel = attempted > 0 ? "SOME" : nothingSent ? "NONE" : handed > 0 ? "UNKNOWN" : "NONE";
+      status = sentBeforeCancel === "NONE" ? "CANCELLED" : "PARTIAL";
+    } else status = handed === 0 ? "FAILED" : syncFailures > 0 ? "PARTIAL" : "COMPLETED";
     // providerSentAt is the time the provider reported completion (seen at
     // reconcile); reply attribution uses each recipient's acceptedAt instead.
     const sentAt = providerStatus === "SENT" ? now() : dispatch.providerSentAt;
-    await client.$transaction(async (tx) => {
-      await setStatus(dispatch, status, { providerStatus, providerSentAt: sentAt, completedAt: now() }, tx);
-      if (providerStatus === "CANCELED") await tx.marketingBroadcastRecipient.updateMany({ where: { dispatchId: dispatch.id, status: "PROVIDER_ACCEPTED" }, data: { status: "CANCELLED", exclusionReason: "CANCELLED_AT_PROVIDER" } });
-      await audit.record({ action: "MARKETING_BROADCAST_FINALIZED", targetType: "marketing_broadcast", targetId: dispatch.id, organizationId: dispatch.organizationId, metadata: { status, providerStatus, counts, delivered } }, {}, tx);
+    const storedProviderStatus = cancelled && nothingSent ? "DRAFT" : providerStatus;
+    let rewritten = 0;
+    const moved = await client.$transaction(async (tx) => {
+      if (!(await setStatus(dispatch, status, { providerStatus: storedProviderStatus, providerSentAt: sentAt, completedAt: now() }, tx))) return false;
+      // Only when the provider proves nothing was sent are accepted
+      // recipients marked cancelled; a recipient with sent/delivered
+      // evidence is never rewritten.
+      if (cancelled && nothingSent) {
+        const evidenced = await evidencedRecipientIds(tx, dispatch.id);
+        rewritten = (await tx.marketingBroadcastRecipient.updateMany({ where: { dispatchId: dispatch.id, status: "PROVIDER_ACCEPTED", ...(evidenced.length ? { id: { notIn: evidenced } } : {}) }, data: { status: "CANCELLED", exclusionReason: "CANCELLED_AT_PROVIDER" } })).count;
+      }
+      await audit.record({ action: "MARKETING_BROADCAST_FINALIZED", targetType: "marketing_broadcast", targetId: dispatch.id, organizationId: dispatch.organizationId, metadata: { status, providerStatus: storedProviderStatus, counts, delivered, ...(cancelled ? { sentBeforeCancel, sentEvidence: attempted, awaitingEvidence: nothingSent ? 0 : counts.PROVIDER_ACCEPTED || 0, cancelledRecipients: rewritten } : {}) } }, {}, tx);
+      return true;
     });
+    if (!moved) return { skipped: "TRANSITION_REJECTED", status: dispatch.status };
     // GAP 3: cost estimate, computed once (never recomputed on a pricing
     // change). Basis: recipients the provider accepted. Never blocks.
     if (pricing) {
       const provider = marketingProviders(await client.mailOrganization.findUnique({ where: { id: dispatch.organizationId } }).catch(() => null));
-      await pricing.recordDispatchCost({ dispatchId: dispatch.id, organizationId: dispatch.organizationId, provider: provider?.name === "fake" ? "fake" : "resend", basisCount: providerStatus === "CANCELED" ? attempted : handed, sentAt: sentAt || now() });
+      await pricing.recordDispatchCost({ dispatchId: dispatch.id, organizationId: dispatch.organizationId, provider: provider?.name === "fake" ? "fake" : "resend", basisCount: cancelled ? attempted : handed, sentAt: sentAt || now() });
     }
-    await notifyOwners(dispatch, status === "COMPLETED" ? "Broadcast handed to the provider" : `Broadcast ${status.toLowerCase()}`, "Delivery results continue to update from provider events.");
-    return { finalized: status };
+    await notifyOwners(dispatch, status === "COMPLETED" ? "Broadcast handed to the provider" : `Broadcast ${status.toLowerCase()}`, cancelled && status === "PARTIAL" ? "Cancelled at the provider; mail already sent cannot be recalled. Delivery results continue to update." : "Delivery results continue to update from provider events.");
+    return { finalized: status, ...(cancelled ? { sentBeforeCancel } : {}) };
+  }
+
+  // LOW-3: once no further sending can happen, provider-side resources are
+  // removed: a broadcast that is back in draft is deleted (DELETE
+  // /broadcasts/{id} accepts draft/scheduled only) and the per-dispatch
+  // segment is deleted. Best effort: never fails the dispatch; audited.
+  async function cleanupProviderResources(dispatch, provider, remoteStatus) {
+    const result = { remoteStatus, broadcastDeleted: false, segmentDeleted: false, errors: [] };
+    if (remoteStatus === "DRAFT" && dispatch.providerBroadcastId) {
+      try {
+        await provider.deleteBroadcast(dispatch.providerBroadcastId);
+        result.broadcastDeleted = true;
+      } catch (error) {
+        result.errors.push(`broadcast:${String(error?.code || "ERROR").slice(0, 40)}`);
+      }
+    }
+    if (dispatch.providerSegmentId && ["DRAFT", "CANCELED", "SENT"].includes(remoteStatus)) {
+      try {
+        await provider.deleteSegment(dispatch.providerSegmentId);
+        result.segmentDeleted = true;
+      } catch (error) {
+        result.errors.push(`segment:${String(error?.code || "ERROR").slice(0, 40)}`);
+      }
+    }
+    if (!result.broadcastDeleted && !result.segmentDeleted && !result.errors.length) return result;
+    try {
+      if (result.broadcastDeleted) await client.marketingBroadcastDispatch.update({ where: { id: dispatch.id }, data: { providerStatus: "DELETED" } });
+      await audit.record({ action: "MARKETING_BROADCAST_PROVIDER_CLEANUP", targetType: "marketing_broadcast", targetId: dispatch.id, organizationId: dispatch.organizationId, outcome: result.errors.length ? "FAILURE" : "SUCCESS", metadata: result });
+    } catch (error) {
+      logger?.warn?.(`[Marketing] cleanup audit for dispatch ${dispatch.id} failed (${error?.code || "error"})`);
+    }
+    return result;
   }
 
   async function loadContext(job) {
@@ -434,7 +604,7 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
       return await processDispatchContext(job, context);
     } catch (error) {
       if (quotaDeferSeconds(error, now())) return quotaDefer(context.dispatch, error);
-      throw error;
+      throw retryableProviderError(error);
     }
   }
 
@@ -463,9 +633,13 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
       if (dispatch.status === "SCHEDULED" || dispatch.status === "QUEUED") {
         // Guarded: a pause or cancel that landed since this job loaded the
         // dispatch wins; the job re-reads and defers / cancels next run.
-        const moved = await client.marketingBroadcastDispatch.updateMany({ where: { id: dispatch.id, status: dispatch.status, cancelRequestedAt: null }, data: { status: "PREPARING", lastErrorCode: null } });
-        if (moved.count !== 1) return { defer: { seconds: 1, code: "DISPATCH_STATE_CHANGED" } };
-        await client.marketingEmailCampaign.update({ where: { id: dispatch.campaignId }, data: { status: "QUEUED" } });
+        const moved = await client.$transaction(async (tx) => {
+          const changed = await tx.marketingBroadcastDispatch.updateMany({ where: { id: dispatch.id, status: dispatch.status, cancelRequestedAt: null }, data: { status: "PREPARING", lastErrorCode: null } });
+          if (changed.count !== 1) return false;
+          await transitionCampaign(tx, audit, { campaignId: dispatch.campaignId, organizationId: dispatch.organizationId, dispatchId: dispatch.id, to: "QUEUED", logger });
+          return true;
+        });
+        if (!moved) return { defer: { seconds: 1, code: "DISPATCH_STATE_CHANGED" } };
         Object.assign(dispatch, { status: "PREPARING", lastErrorCode: null });
       }
       const existing = await client.marketingBroadcastRecipient.count({ where: { dispatchId: dispatch.id } });
@@ -504,20 +678,34 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
   }
 
   async function processReconcile(job) {
+    try {
+      return await processReconcileContext(job);
+    } catch (error) {
+      throw retryableProviderError(error);
+    }
+  }
+
+  async function processReconcileContext(job) {
     const context = await loadContext(job);
     if (!context) return { skipped: true };
     const { dispatch, provider } = context;
     if (TERMINAL.has(dispatch.status)) return { skipped: dispatch.status };
     if (dispatch.status !== "SENDING") return { defer: { seconds: config.broadcast.reconcileIntervalSeconds, code: "NOT_SENDING_YET" } };
     if (dispatch.cancelRequestedAt && dispatch.providerStatus !== "CANCEL_REQUESTED") {
+      // Contract cancelBroadcast (Resend POST /broadcasts/{id}/cancel):
+      // scheduled -> draft (nothing sent); queued -> canceled (mail still in
+      // the queue is not sent, mail already sent is NOT recalled); sent ->
+      // refused. The status read below decides the final outcome.
+      let cancel;
       try {
-        await provider.cancelBroadcast(dispatch.providerBroadcastId);
+        cancel = await contractOf(provider).cancelBroadcast({ providerBroadcastId: dispatch.providerBroadcastId });
       } catch (error) {
         if (error?.kind !== "PERMANENT") throw dispatchError(error?.code || "PROVIDER_CANCEL_ERROR", error?.message, { retryable: true });
         // Not cancelable any more (already sent): fall through to status read.
+        cancel = { outcome: "CANCEL_REFUSED", providerStatus: null, sentBeforeCancel: "UNKNOWN", code: String(error.code || "").slice(0, 64) };
       }
       await client.marketingBroadcastDispatch.update({ where: { id: dispatch.id }, data: { providerStatus: "CANCEL_REQUESTED" } });
-      await audit.record({ action: "MARKETING_BROADCAST_CANCEL_SENT_TO_PROVIDER", targetType: "marketing_broadcast", targetId: dispatch.id, organizationId: dispatch.organizationId, metadata: { note: "Mail already sent cannot be recalled" } });
+      await audit.record({ action: "MARKETING_BROADCAST_CANCEL_SENT_TO_PROVIDER", targetType: "marketing_broadcast", targetId: dispatch.id, organizationId: dispatch.organizationId, metadata: { outcome: cancel.outcome, providerStatus: cancel.providerStatus, sentBeforeCancel: cancel.sentBeforeCancel, note: "Mail already sent cannot be recalled" } });
     }
     let remote;
     try {
@@ -526,14 +714,13 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
       throw dispatchError(error?.code || "PROVIDER_STATUS_ERROR", "Broadcast status unreadable", { retryable: true, retryAfterSeconds: config.broadcast.reconcileIntervalSeconds });
     }
     const status = remote?.status || "UNKNOWN";
-    if (status === "SENT" || status === "CANCELED") {
-      const result = await finalize(dispatch, status);
-      if (dispatch.providerSegmentId && status === "SENT") await provider.deleteSegment(dispatch.providerSegmentId).catch(() => {});
+    if (status === "SENT" || status === "CANCELED" || status === "DRAFT") {
+      // DRAFT: a cancelled schedule returned to draft; the provider proves
+      // nothing was sent. CANCELED: a queued broadcast was stopped; what had
+      // already been sent stays sent.
+      const result = await finalize(dispatch, status === "SENT" ? "SENT" : "CANCELED", { nothingSent: status === "DRAFT" });
+      if (!result.skipped) await cleanupProviderResources(dispatch, provider, status);
       return result;
-    }
-    if (status === "DRAFT") {
-      // A cancelled schedule returns to draft: nothing further will be sent.
-      return finalize(dispatch, "CANCELED");
     }
     if (now().getTime() - new Date(dispatch.providerSendAttemptAt).getTime() > config.broadcast.reconcileMaxHours * 3600000) return outcomeUnknown(dispatch, "PROVIDER_NEVER_COMPLETED");
     if (status !== dispatch.providerStatus && status !== "UNKNOWN" && dispatch.providerStatus !== "CANCEL_REQUESTED") await client.marketingBroadcastDispatch.update({ where: { id: dispatch.id }, data: { providerStatus: status } });
@@ -551,4 +738,4 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
   return { processDispatch, processReconcile, onDeadLetter, toProviderContent, snapshotHash };
 }
 
-module.exports = { createBroadcastProcessor, toProviderContent, snapshotHash, deliveredCount, TERMINAL_BROADCAST_STATUSES: TERMINAL };
+module.exports = { createBroadcastProcessor, toProviderContent, snapshotHash, deliveredCount, sentEvidenceCount, transitionCampaign, correctCancelledWithEvidence, CAMPAIGN_FROM, DISPATCH_FROM, TERMINAL_BROADCAST_STATUSES: TERMINAL };

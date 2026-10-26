@@ -277,7 +277,9 @@ test("CosmicForge Mail M7 broadcasts and automation on real PostgreSQL", { timeo
       assert.match(late.body.data.note, /cannot be recalled/);
       await work(3, 61000);
       const d2 = await dispatchOf(c2.id);
-      assert.equal(d2.status, "CANCELLED", JSON.stringify(d2));
+      // §20: cancelling a queued broadcast does not undo sends already made, so
+      // the outcome is PARTIAL unless the provider proves nothing was sent.
+      assert.equal(d2.status, "PARTIAL", JSON.stringify(d2));
       assert.ok(fake.state.calls.some((entry) => entry.operation === "cancelBroadcast" && entry.broadcastId === d2.providerBroadcastId));
 
       // Pause / resume a scheduled dispatch; brand pause defers without burning attempts.

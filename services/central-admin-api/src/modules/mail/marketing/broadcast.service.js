@@ -10,7 +10,7 @@ const policy = require("../authz/mail.policy");
 const { zonedLocalToUtc, isValidTimeZone } = require("./scheduling");
 const { describeBrandProvider, quotaScopeFor, resolveBrandApiKey } = require("../adapters/marketing");
 const { iso, decodeCursor, encodeCursor, pageLimit } = require("../services/serializers");
-const { TERMINAL_BROADCAST_STATUSES, deliveredCount } = require("./broadcast.processor");
+const { TERMINAL_BROADCAST_STATUSES, deliveredCount, sentEvidenceCount, transitionCampaign } = require("./broadcast.processor");
 const { isBrandSender, SENDER_MAILBOX_SELECT } = require("./marketing-sender");
 
 const PRE_SEND = new Set(["SCHEDULED", "QUEUED", "PREPARING", "PAUSED"]);
@@ -177,6 +177,7 @@ function createBroadcastService({ client, config, audit, jobs, stepUp, env = pro
       id: row.id, campaignId: row.campaignId, status: row.status, scheduledFor: iso(row.scheduledFor), timeZone: row.timeZone, localSendTime: row.localSendTime,
       provider: row.provider, providerStatus: row.providerStatus, providerHandoffAt: iso(row.providerSendAttemptAt), recipientCount: row.recipientCount, excludedCount: row.excludedCount,
       cancelRequestedAt: iso(row.cancelRequestedAt), pausedAt: iso(row.pausedAt), lastErrorCode: row.lastErrorCode, completedAt: iso(row.completedAt), createdAt: iso(row.createdAt), updatedAt: iso(row.updatedAt),
+      paused: row.status === "PAUSED",
     };
   }
 
@@ -204,7 +205,7 @@ function createBroadcastService({ client, config, audit, jobs, stepUp, env = pro
         immediate = moved.count === 1;
       }
       if (immediate) {
-        await tx.marketingEmailCampaign.update({ where: { id: campaignId }, data: { status: "CANCELLED" } });
+        await transitionCampaign(tx, audit, { campaignId, organizationId, dispatchId: dispatch.id, to: "CANCELLED" });
         await tx.marketingBroadcastRecipient.updateMany({ where: { dispatchId: dispatch.id, status: { in: ["PENDING", "SYNCED"] } }, data: { status: "CANCELLED", exclusionReason: "CANCELLED_BEFORE_SEND" } });
         await jobs.cancelPending(jobKey(dispatch.id), "BROADCAST_CANCELLED");
       }
@@ -231,7 +232,10 @@ function createBroadcastService({ client, config, audit, jobs, stepUp, env = pro
       if (current.status === "PAUSED") return serializeDispatch(current);
       throw mailError("MAIL_INVALID_TRANSITION", { from: current.status, reason: "CHANGED" });
     }
-    await audit.record({ actorAdminUserId: user.id, action: "MARKETING_BROADCAST_PAUSED", targetType: "marketing_broadcast", targetId: dispatch.id, organizationId }, context);
+    // The campaign enum has no PAUSED value (no migration): the campaign keeps
+    // SCHEDULED / QUEUED and the pause is exposed on the dispatch
+    // (status PAUSED, pausedAt) and as `paused` on the dispatch views.
+    await audit.record({ actorAdminUserId: user.id, action: "MARKETING_BROADCAST_PAUSED", targetType: "marketing_broadcast", targetId: dispatch.id, organizationId, metadata: { previousStatus: dispatch.status } }, context);
     return serializeDispatch(await client.marketingBroadcastDispatch.findUnique({ where: { id: dispatch.id } }));
   }
 
@@ -240,7 +244,13 @@ function createBroadcastService({ client, config, audit, jobs, stepUp, env = pro
     const dispatch = await requireDispatch(organizationId, campaignId);
     if (dispatch.status !== "PAUSED") throw mailError("MAIL_INVALID_TRANSITION", { from: dispatch.status });
     // Guarded: only a still-paused, not-cancelled dispatch is resumed.
-    const resumed = await client.marketingBroadcastDispatch.updateMany({ where: { id: dispatch.id, status: "PAUSED", cancelRequestedAt: null }, data: { status: "SCHEDULED", pausedAt: null, pausedBy: null } });
+    const resumed = await client.$transaction(async (tx) => {
+      const moved = await tx.marketingBroadcastDispatch.updateMany({ where: { id: dispatch.id, status: "PAUSED", cancelRequestedAt: null }, data: { status: "SCHEDULED", pausedAt: null, pausedBy: null } });
+      // A dispatch paused while PREPARING had moved its campaign to QUEUED;
+      // it is SCHEDULED again (guarded: a terminal campaign never moves).
+      if (moved.count === 1) await transitionCampaign(tx, audit, { campaignId, organizationId, dispatchId: dispatch.id, to: "SCHEDULED" });
+      return moved;
+    });
     if (resumed.count !== 1) {
       const current = await client.marketingBroadcastDispatch.findUnique({ where: { id: dispatch.id } });
       if (current.status === "SCHEDULED") return serializeDispatch(current);
@@ -262,7 +272,7 @@ function createBroadcastService({ client, config, audit, jobs, stepUp, env = pro
     await scope(user, organizationId, "VIEW");
     const campaign = await loadCampaign(organizationId, campaignId);
     if (!campaign.dispatch) return { dispatch: null, campaignStatus: campaign.status, dispatchEnabled: config.broadcastDispatchEnabled };
-    return { dispatch: serializeDispatch(campaign.dispatch), campaignStatus: campaign.status, counts: await countsFor(campaign.dispatch.id), dispatchEnabled: config.broadcastDispatchEnabled };
+    return { dispatch: serializeDispatch(campaign.dispatch), campaignStatus: campaign.status, campaignPaused: campaign.dispatch.status === "PAUSED", counts: await countsFor(campaign.dispatch.id), dispatchEnabled: config.broadcastDispatchEnabled };
   }
 
   // Honest reporting: provider acceptance is not delivery; opens and clicks
@@ -282,6 +292,9 @@ function createBroadcastService({ client, config, audit, jobs, stepUp, env = pro
     const replied = replies ? await replies.summary(dispatch) : null;
     // Delivered from evidence (stays monotonic when complaints arrive).
     const delivered = await deliveredCount(client, dispatch.id);
+    // Recipients with evidence the provider produced the message (email.sent
+    // evidence rows, delivered, delayed, bounced, complained).
+    const providerSent = await sentEvidenceCount(client, dispatch.id);
     const windowFrom = dispatch.providerSendAttemptAt || dispatch.providerSentAt || null;
     // GAP 3: delayed events. The window ends now; events are still expected
     // until EVENTS_SETTLE_HOURS after the provider finished sending.
@@ -293,7 +306,7 @@ function createBroadcastService({ client, config, audit, jobs, stepUp, env = pro
     return {
       dispatch: serializeDispatch(dispatch),
       counts,
-      totals: { handedToProvider, delivered, awaitingDeliveryEvidence: counts.PROVIDER_ACCEPTED, outcomeUnknown: counts.OUTCOME_UNKNOWN, excluded: dispatch.excludedCount },
+      totals: { handedToProvider, providerSent, delivered, awaitingDeliveryEvidence: counts.PROVIDER_ACCEPTED, outcomeUnknown: counts.OUTCOME_UNKNOWN, excluded: dispatch.excludedCount },
       // What every percentage is measured against, and over which period.
       denominators: {
         rates: "recipients handed to the provider (provider accepted, delivered, delayed, bounced, complained, suppressed)",
