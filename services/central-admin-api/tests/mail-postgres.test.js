@@ -226,9 +226,18 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       const aliasOfAlias = await call("mailAdmin", "POST", "/admin/addresses", { domainId: state.domainId, localPart: "ao", kind: "ALIAS", mailboxId: state.aliceBox, aliasOfAddressId: alias.body.data.id });
       assert.equal(aliasOfAlias.status, 409);
       assert.equal(aliasOfAlias.body.code, "MAIL_ALIAS_LOOP");
-      const addCarol = await call("mailAdmin", "POST", `/mailboxes/${state.supportBox}/members`, { adminUserId: ids.carol, role: "MEMBER", canSend: true });
+      // Admin-driven shared-mailbox grants need an MFA step-up (MAIL_MEMBERSHIP_GRANT).
+      await client.adminMfaEnrollment.upsert({ where: { adminUserId: ids.mailAdmin }, create: { adminUserId: ids.mailAdmin, enrolledAt: new Date(harness.clock().getTime() - 86400000), secretEncrypted: encryptSecret(decodeBase32(TOTP_SECRET), ids.mailAdmin), updatedAt: new Date() }, update: {} });
+      const grantStepUp = async () => {
+        harness.advance(31000);
+        const response = await call("mailAdmin", "POST", "/security/step-up", { code: totp(harness.clock), purpose: "MAIL_MEMBERSHIP_GRANT" });
+        assert.equal(response.status, 201, response.text);
+        return response.body.data.stepUpId;
+      };
+      assert.equal((await call("mailAdmin", "POST", `/mailboxes/${state.supportBox}/members`, { adminUserId: ids.carol, role: "MEMBER", canSend: true })).body.code, "MAIL_STEP_UP_REQUIRED");
+      const addCarol = await call("mailAdmin", "POST", `/mailboxes/${state.supportBox}/members`, { adminUserId: ids.carol, role: "MEMBER", canSend: true, stepUpId: await grantStepUp() });
       assert.equal(addCarol.status, 201, addCarol.text);
-      state.danMembership = (await call("mailAdmin", "POST", `/mailboxes/${state.supportBox}/members`, { adminUserId: ids.dan, role: "MEMBER", canSend: true })).body.data.id;
+      state.danMembership = (await call("mailAdmin", "POST", `/mailboxes/${state.supportBox}/members`, { adminUserId: ids.dan, role: "MEMBER", canSend: true, stepUpId: await grantStepUp() })).body.data.id;
     });
 
     await t.test("M1: SUPER and mail admins never gain private mailbox access; inactive identities are rejected", async () => {
@@ -542,6 +551,8 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       assert.equal(threads.status, 200);
       await call("frank", "GET", `/threads/${state.aliceThreadId}/messages`);
       assert.equal(await client.mailAuditEvent.count({ where: { action: "MAIL_BREAK_GLASS_READ", actorAdminUserId: ids.frank } }), 1);
+      // Every break-glass content exposure is audited, the thread list included.
+      assert.equal(await client.mailAuditEvent.count({ where: { action: "MAIL_BREAK_GLASS_THREAD_LIST", actorAdminUserId: ids.frank } }), 1);
       assert.equal((await call("frank", "POST", `/threads/${state.aliceThreadId}/move`, { folder: "TRASH" })).status, 403, "break-glass is read only");
       assert.equal((await call("frank", "POST", `/mailboxes/${state.aliceBox}/drafts`, { to: ["x@y.example"] })).status, 403);
       await client.mailBreakGlassRequest.update({ where: { id: request.body.data.id }, data: { accessExpiresAt: new Date(Date.now() - 1000) } });

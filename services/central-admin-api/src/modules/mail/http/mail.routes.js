@@ -87,13 +87,35 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
       return rateLimiter(req, res, next);
     };
 
+  // §19/§17.1: Mail responses hold private content (subjects, snippets,
+  // notes, contact PII). Default to no-store for every Mail response; routes
+  // that need a stricter or different policy set their own header later.
+  router.use((req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    next();
+  });
+
+  // §17/§19: tighter per-user limits on content-heavy reads (search, contact
+  // suggestions, raw MIME and attachment downloads) on top of the router-wide
+  // limit. Shared across replicas when the Mail limiter is available.
+  const routeLimit = (name, max) => (mail.rateLimiter
+    ? mail.rateLimiter.middleware({ name, max, keyOf: (request) => request.adminUser?.id || request.ip, onLimited: (request, response, done) => done(mailError("MAIL_RATE_LIMITED", { retryAfter: 60 })) })
+    : (req, res, next) => next());
+  const searchLimit = routeLimit("mail-search", 60);
+  const suggestLimit = routeLimit("mail-suggest", 120);
+  const rawLimit = routeLimit("mail-raw", 30);
+  const downloadLimit = routeLimit("mail-download", 120);
+
   router.get("/openapi.json", (req, res) => res.json(buildOpenApiDocument()));
 
   // ---- liveness / readiness (spec §20): public, booleans only ----
   router.get("/health/live", (req, res) => res.set("Cache-Control", "no-store").json({ success: true, data: { live: true } }));
   router.get("/health/ready", asyncHandler(async (req, res) => {
     const state = mail.readiness ? await mail.readiness() : { ready: true, enabled: config.enabled, checks: {} };
-    res.status(state.ready ? 200 : 503).set("Cache-Control", "no-store").json({ success: state.ready, data: state });
+    // Disabled Mail is the intended state, not an outage: 200 with
+    // ready:false/state DISABLED. An enabled Mail that is not ready is 503.
+    const status = state.ready || state.enabled === false ? 200 : 503;
+    res.status(status).set("Cache-Control", "no-store").json({ success: status === 200, data: state });
   }));
 
   // Every other Mail route: an enabled Mail without its schema answers an
@@ -185,11 +207,11 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
 
   // --------------------------------------------------------------- mailboxes / threads
   router.get("/mailboxes/:mailboxId", asyncHandler(async (req, res) => ok(res, await mailbox.getMailbox(user(req), req.params.mailboxId))));
-  router.get("/mailboxes/:mailboxId/threads", asyncHandler(async (req, res) => page(res, await mailbox.listThreads(user(req), req.params.mailboxId, req.query))));
+  router.get("/mailboxes/:mailboxId/threads", asyncHandler(async (req, res) => page(res, await mailbox.listThreads(user(req), req.params.mailboxId, req.query, ctx(req)))));
   router.post("/mailboxes/:mailboxId/threads/bulk", asyncHandler(async (req, res) => ok(res, await mailbox.bulk(user(req), req.params.mailboxId, body(req), ctx(req)))));
   router.get("/mailboxes/:mailboxId/labels", asyncHandler(async (req, res) => ok(res, await mailbox.listLabels(user(req), req.params.mailboxId))));
   router.post("/mailboxes/:mailboxId/labels", asyncHandler(async (req, res) => ok(res, await mailbox.createLabel(user(req), req.params.mailboxId, body(req)), { status: 201 })));
-  router.get("/mailboxes/:mailboxId/search", asyncHandler(async (req, res) => {
+  router.get("/mailboxes/:mailboxId/search", searchLimit, asyncHandler(async (req, res) => {
     res.setHeader("Cache-Control", "no-store");
     page(res, await mailbox.search(user(req), { ...req.query, mailboxId: req.params.mailboxId }, ctx(req)));
   }));
@@ -212,7 +234,7 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
     res.setHeader("Cache-Control", "no-store");
     ok(res, await mail.services.archive.originalHeaders(user(req), req.params.messageId, ctx(req)));
   }));
-  router.get("/messages/:messageId/raw", asyncHandler(async (req, res) => {
+  router.get("/messages/:messageId/raw", rawLimit, asyncHandler(async (req, res) => {
     const { content, sha256 } = await mail.services.archive.rawMime(user(req), req.params.messageId, ctx(req));
     res.setHeader("Content-Type", "message/rfc822");
     res.setHeader("Content-Disposition", `attachment; filename="message-${req.params.messageId}.eml"`);
@@ -222,9 +244,9 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
     res.setHeader("X-Content-SHA256", sha256);
     res.status(200).send(content);
   }));
-  router.get("/contacts/suggest", asyncHandler(async (req, res) => ok(res, await mailbox.suggestContacts(user(req), req.query.q))));
+  router.get("/contacts/suggest", suggestLimit, asyncHandler(async (req, res) => ok(res, await mailbox.suggestContacts(user(req), req.query.q))));
 
-  router.get("/threads/:threadId", asyncHandler(async (req, res) => ok(res, await mailbox.getThread(user(req), req.params.threadId))));
+  router.get("/threads/:threadId", asyncHandler(async (req, res) => ok(res, await mailbox.getThread(user(req), req.params.threadId, ctx(req)))));
   router.get("/threads/:threadId/messages", asyncHandler(async (req, res) => {
     res.setHeader("Cache-Control", "no-store");
     ok(res, await mailbox.getMessages(user(req), req.params.threadId, { remoteImages: req.query.remoteImages === "allow" ? "allow" : "block" }, ctx(req)));
@@ -244,14 +266,14 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
   }));
   router.patch("/drafts/:draftId", asyncHandler(async (req, res) => ok(res, await compose.updateDraft(user(req), req.params.draftId, body(req)))));
   router.delete("/drafts/:draftId", asyncHandler(async (req, res) => ok(res, await compose.discardDraft(user(req), req.params.draftId))));
-  router.post("/drafts/:draftId/attachments", uploadErrors(attachmentUpload.single("file")), asyncHandler(async (req, res) => ok(res, await compose.addAttachment(user(req), req.params.draftId, req.file), { status: 201 })));
+  router.post("/drafts/:draftId/attachments", uploadErrors(attachmentUpload.single("file")), asyncHandler(async (req, res) => ok(res, await compose.addAttachment(user(req), req.params.draftId, req.file, ctx(req)), { status: 201 })));
   router.delete("/drafts/:draftId/attachments/:attachmentId", asyncHandler(async (req, res) => ok(res, await compose.removeAttachment(user(req), req.params.draftId, req.params.attachmentId))));
   router.post("/drafts/:draftId/send", asyncHandler(async (req, res) => {
     const result = await compose.sendDraft(user(req), req.params.draftId, { revision: body(req).revision, replyToAddressId: body(req).replyToAddressId || null, idempotencyKey: req.get("Idempotency-Key") }, ctx(req));
     ok(res, result, { status: 202, message: result.status === "QUEUED" ? "Queued for sending" : "Delivered internally" });
   }));
   router.get("/messages/:messageId/status", asyncHandler(async (req, res) => ok(res, await compose.messageStatus(user(req), req.params.messageId))));
-  router.get("/attachments/:attachmentId/download", asyncHandler(async (req, res) => {
+  router.get("/attachments/:attachmentId/download", downloadLimit, asyncHandler(async (req, res) => {
     const { attachment, content } = await compose.downloadAttachment(user(req), req.params.attachmentId, ctx(req));
     const safeName = attachment.filename.replace(/[^A-Za-z0-9._ -]/g, "_");
     res.setHeader("Content-Type", "application/octet-stream");
@@ -264,15 +286,15 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
 
   // --------------------------------------------------------------- shared / support
   router.get("/support/mailboxes", asyncHandler(async (req, res) => ok(res, await support.supportMailboxes(user(req)))));
-  router.get("/mailboxes/:mailboxId/queue", asyncHandler(async (req, res) => page(res, await support.queue(user(req), req.params.mailboxId, req.query))));
+  router.get("/mailboxes/:mailboxId/queue", asyncHandler(async (req, res) => page(res, await support.queue(user(req), req.params.mailboxId, req.query, ctx(req)))));
   router.post("/threads/:threadId/assign", asyncHandler(async (req, res) => ok(res, await support.assign(user(req), req.params.threadId, body(req), ctx(req)))));
   router.post("/threads/:threadId/status", asyncHandler(async (req, res) => ok(res, await support.setStatus(user(req), req.params.threadId, body(req), ctx(req)))));
   router.post("/threads/:threadId/lock", asyncHandler(async (req, res) => ok(res, await support.lock(user(req), req.params.threadId, ctx(req)))));
   router.delete("/threads/:threadId/lock", asyncHandler(async (req, res) => ok(res, await support.unlock(user(req), req.params.threadId))));
-  router.get("/threads/:threadId/notes", asyncHandler(async (req, res) => ok(res, await support.listNotes(user(req), req.params.threadId))));
+  router.get("/threads/:threadId/notes", asyncHandler(async (req, res) => ok(res, await support.listNotes(user(req), req.params.threadId, ctx(req)))));
   router.post("/threads/:threadId/notes", asyncHandler(async (req, res) => ok(res, await support.addNote(user(req), req.params.threadId, body(req), ctx(req)), { status: 201 })));
   router.put("/threads/:threadId/ticket-link", asyncHandler(async (req, res) => ok(res, await support.setTicketLink(user(req), req.params.threadId, body(req), ctx(req)))));
-  router.get("/threads/:threadId/activity", asyncHandler(async (req, res) => ok(res, await support.activity(user(req), req.params.threadId))));
+  router.get("/threads/:threadId/activity", asyncHandler(async (req, res) => ok(res, await support.activity(user(req), req.params.threadId, ctx(req)))));
   router.get("/directory/staff", asyncHandler(async (req, res) => ok(res, await admin.staffDirectory(user(req), req.query.q))));
   router.get("/mailboxes/:mailboxId/members", asyncHandler(async (req, res) => ok(res, await admin.listMembers(user(req), req.params.mailboxId))));
   router.post("/mailboxes/:mailboxId/members", asyncHandler(async (req, res) => ok(res, await admin.addMember(user(req), req.params.mailboxId, body(req), ctx(req)), { status: 201 })));
@@ -289,7 +311,10 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
   router.post("/admin/organizations", asyncHandler(async (req, res) => ok(res, await admin.createOrganization(user(req), body(req), ctx(req)), { status: 201 })));
   router.get("/admin/domains", asyncHandler(async (req, res) => ok(res, await admin.listDomains(user(req)))));
   router.post("/admin/domains", asyncHandler(async (req, res) => ok(res, await admin.createDomain(user(req), body(req), ctx(req)), { status: 201 })));
-  router.post("/admin/domains/:domainId/verify", asyncHandler(async (req, res) => ok(res, await admin.verifyDomain(user(req), req.params.domainId, ctx(req)))));
+  // ?trigger=true (or body.trigger) first asks the provider to re-check
+  // (needs MAIL_PROVIDER_DOMAIN_MANAGEMENT_ENABLED + step-up MAIL_DOMAIN_PROVIDER_MANAGE).
+  router.post("/admin/domains/:domainId/verify", asyncHandler(async (req, res) => ok(res, await admin.verifyDomain(user(req), req.params.domainId, ctx(req), { trigger: body(req).trigger === true || req.query.trigger === "true", stepUpId: body(req).stepUpId }))));
+  router.post("/admin/domains/:domainId/provider-registration", asyncHandler(async (req, res) => ok(res, await admin.registerProviderDomain(user(req), req.params.domainId, body(req), ctx(req)))));
   router.get("/admin/addresses", asyncHandler(async (req, res) => ok(res, await admin.listAddresses(user(req), req.query))));
   router.post("/admin/addresses", asyncHandler(async (req, res) => ok(res, await admin.createAddress(user(req), body(req), ctx(req)), { status: 201 })));
   router.patch("/admin/addresses/:addressId", asyncHandler(async (req, res) => ok(res, await admin.updateAddressStatus(user(req), req.params.addressId, body(req), ctx(req)))));

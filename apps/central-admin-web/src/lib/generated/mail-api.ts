@@ -523,6 +523,7 @@ export const MAIL_OPERATIONS = {
   postAdminAddresses: { method: "POST", path: "/admin/addresses", status: 201 },
   postAdminAttachmentsRescan: { method: "POST", path: "/admin/attachments/{attachmentId}/rescan", status: 200 },
   postAdminDomains: { method: "POST", path: "/admin/domains", status: 201 },
+  postAdminDomainsProviderRegistration: { method: "POST", path: "/admin/domains/{domainId}/provider-registration", status: 200 },
   postAdminDomainsVerify: { method: "POST", path: "/admin/domains/{domainId}/verify", status: 200 },
   postAdminDsarErasure: { method: "POST", path: "/admin/dsar/erasure", status: 200 },
   postAdminDsarExport: { method: "POST", path: "/admin/dsar/export", status: 200 },
@@ -745,7 +746,7 @@ export interface MailResponses {
   getDraftsByDraftId: Draft;
   /** Liveness (public; no dependencies checked) */
   getHealthLive: Record<string, unknown>;
-  /** Readiness (public; booleans for schema, keyring, storage, infrastructure; 503 when an enabled Mail is not ready) */
+  /** Readiness (public; dependency states only: schema, encryption, storage, scanner, provider, webhooks, infrastructure, queue counts, session mode. Disabled Mail answers 200 with ready:false/state DISABLED; an enabled Mail that is not ready answers 503) */
   getHealthReady: Record<string, unknown>;
   /** Mailbox with sender identities */
   getMailboxesByMailboxId: MailboxDetail;
@@ -891,7 +892,9 @@ export interface MailResponses {
   postAdminAttachmentsRescan: Record<string, unknown>;
   /** Register domain */
   postAdminDomains: Record<string, unknown>;
-  /** Read provider verification status */
+  /** Register the domain at the provider or link the existing provider domain (MAIL_PROVIDER_DOMAIN_MANAGEMENT_ENABLED, allowlisted domain, step-up MAIL_DOMAIN_PROVIDER_MANAGE; never changes DNS) */
+  postAdminDomainsProviderRegistration: Record<string, unknown>;
+  /** Read provider verification status (stores SPF/DKIM/DMARC/receiving results; never lifts a SUSPENDED domain; links an existing provider domain by name; trigger=true asks the provider to re-check first: needs MAIL_PROVIDER_DOMAIN_MANAGEMENT_ENABLED + step-up MAIL_DOMAIN_PROVIDER_MANAGE) */
   postAdminDomainsVerify: Record<string, unknown>;
   /** GDPR DSAR erasure for an external address (dry run unless dryRun=false; legal holds skipped; step-up MAIL_DSAR_ERASURE) */
   postAdminDsarErasure: DsarErasure;
@@ -1136,6 +1139,15 @@ export interface MailRequestBodies {
     isRead?: boolean;
     isStarred?: boolean;
   };
+  postAdminDomainsProviderRegistration: {
+    stepUpId: string;
+    receiving?: boolean;
+    region?: string;
+  };
+  postAdminDomainsVerify: {
+    trigger?: boolean;
+    stepUpId?: string;
+  };
   postAdminDsarErasure: {
     organizationId: string;
     email: string;
@@ -1187,6 +1199,7 @@ export interface MailRequestBodies {
     adminUserId: string;
     role: "OWNER" | "MANAGER" | "MEMBER" | "READER";
     canSend?: boolean;
+    stepUpId?: string;
   };
   postMailboxesRules: MailRuleInput & { name: unknown; conditions: unknown; actions: unknown; };
   postMailboxesRulesReorder: {

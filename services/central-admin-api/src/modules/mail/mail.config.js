@@ -47,6 +47,10 @@ function loadMailConfig(env = process.env) {
     workerEnabled: enabled && flag(env.MAIL_WORKER_ENABLED),
     provider: String(env.MAIL_PROVIDER || "resend").trim().toLowerCase(),
     domainAllowlist: list(env.MAIL_DOMAIN_ALLOWLIST),
+    // §18/§19.8: provider-side domain registration (POST /domains) and
+    // verification triggers (POST /domains/{id}/verify) from the admin API.
+    // Reading verification status never needs it. Never changes DNS.
+    providerDomainManagementEnabled: enabled && flag(env.MAIL_PROVIDER_DOMAIN_MANAGEMENT_ENABLED),
     // Spec §19.7: organizations whose slug starts with one of these prefixes
     // never send through the provider. Lifting it needs the HealthNet owner's
     // and legal approval of a compliant provider (MAIL_RESTRICTED_HEALTH_PROVIDER_APPROVED).
@@ -61,6 +65,14 @@ function loadMailConfig(env = process.env) {
       previousWebhookSecret: String(env.RESEND_WEBHOOK_SECRET_PREVIOUS || ""),
       baseUrl: String(env.RESEND_API_BASE_URL || "https://api.resend.com").replace(/\/+$/, ""),
       timeoutMs: intInRange(env.RESEND_TIMEOUT_MS, 15000, 1000, 60000),
+      // Optional operator marker naming the environment the provider account
+      // / API key belongs to (never the key itself); must match the
+      // deployment environment when set.
+      keyEnvironment: String(env.MAIL_PROVIDER_ENVIRONMENT_TAG || env.RESEND_API_KEY_ENVIRONMENT || "").trim().toLowerCase(),
+      // Client-side pacing per worker process, below Resend's documented
+      // default of 10 requests/s per team (0 disables pacing). Provider 429s
+      // still defer jobs durably with retry-after.
+      requestsPerSecond: intInRange(env.RESEND_REQUESTS_PER_SECOND, 8, 0, 100),
       attachmentHostAllowlist: list(
         env.RESEND_ATTACHMENT_HOST_ALLOWLIST || "resend.com,resend.app,resend-attachments.com",
       ),
@@ -180,11 +192,25 @@ function loadMailConfig(env = process.env) {
       inboundGraceSeconds: intInRange(env.MAIL_INBOUND_RECONCILE_GRACE_SECONDS, 600, 60, 3600),
       inboundMaxPages: intInRange(env.MAIL_INBOUND_RECONCILE_MAX_PAGES, 5, 1, 50),
     },
+    // §17.1 private-mail session hardening. When required, an enabled Mail
+    // is not ready unless HQ sessions use httpOnly cookies (AUTH_SESSION_MODE
+    // cookie, or dual while old tabs drain if MAIL_SESSION_ALLOW_DUAL=true).
+    // Defaults: required in production, reported (not enforced) elsewhere.
+    session: {
+      requireHardened: env.MAIL_REQUIRE_HARDENED_SESSION === undefined || String(env.MAIL_REQUIRE_HARDENED_SESSION).trim() === "" ? deploymentEnvironment(env) === "production" : flag(env.MAIL_REQUIRE_HARDENED_SESSION),
+      allowDual: flag(env.MAIL_SESSION_ALLOW_DUAL),
+    },
     worker: {
       pollIntervalMs: intInRange(env.MAIL_WORKER_POLL_INTERVAL_MS, 2000, 200, 60000),
       concurrency: intInRange(env.MAIL_WORKER_CONCURRENCY, 4, 1, 32),
-      leaseSeconds: intInRange(env.MAIL_WORKER_LEASE_SECONDS, 120, 15, 900),
+      // A lease must outlive one provider call plus a margin, otherwise a
+      // slow (timed-out) request could be recovered and re-run by another
+      // worker while still in flight: clamped up to RESEND_TIMEOUT_MS + 30s
+      // (leaseClampedFrom reports the requested value when clamped).
+      ...workerLease(env),
       maxAttempts: intInRange(env.MAIL_WORKER_MAX_ATTEMPTS, 6, 1, 20),
+      // Graceful shutdown: how long stop() waits for in-flight jobs.
+      drainTimeoutMs: intInRange(env.MAIL_WORKER_DRAIN_TIMEOUT_MS, 30000, 1000, 600000),
     },
     unknownRecipientPolicy:
       String(env.MAIL_UNKNOWN_RECIPIENT_POLICY || "reject").trim().toLowerCase() === "quarantine"
@@ -335,6 +361,15 @@ function loadMailConfig(env = process.env) {
   return Object.freeze(config);
 }
 
+const WORKER_LEASE_MARGIN_SECONDS = 30;
+
+function workerLease(env) {
+  const requested = intInRange(env.MAIL_WORKER_LEASE_SECONDS, 120, 15, 900);
+  const providerTimeoutSeconds = Math.ceil(intInRange(env.RESEND_TIMEOUT_MS, 15000, 1000, 60000) / 1000);
+  const minimum = providerTimeoutSeconds + WORKER_LEASE_MARGIN_SECONDS;
+  return { leaseSeconds: Math.max(requested, minimum), leaseMinimumSeconds: minimum, leaseClampedFrom: requested < minimum ? requested : null };
+}
+
 // GAP 8: MAIL_MIXED_RECIPIENT_MODE validation. full-headers is refused
 // (mode stays external-only, reason reported) when no origin-header key is
 // available: MAIL_ORIGIN_HEADER_SECRET (>= 32 chars) or an env keyring.
@@ -415,6 +450,17 @@ function infrastructureViolations(config) {
       else if (config.kms.keyEnvironment !== environment) problems.push(`MAIL_KMS_KEY_ENVIRONMENT must be declared as ${environment} for a key ARN/id`);
     }
   }
+  // Provider identity (§18 staging proof): staging/production never run on
+  // the offline fake, a live capability needs its webhook secret, external
+  // sending/receiving needs an explicit domain allowlist, and an optional
+  // provider environment marker must match. Key values are never inspected
+  // or logged here.
+  if (strict) {
+    if (config.provider === "fake") problems.push(`${environment} refuses MAIL_PROVIDER=fake`);
+    if ((config.sendingEnabled || config.receivingEnabled) && !config.resend.webhookSecret) problems.push(`${environment} requires RESEND_WEBHOOK_SECRET when sending or receiving is enabled`);
+    if ((config.sendingEnabled || config.receivingEnabled) && !config.domainAllowlist.length) problems.push(`${environment} requires MAIL_DOMAIN_ALLOWLIST when sending or receiving is enabled`);
+  }
+  if (config.resend.keyEnvironment && config.resend.keyEnvironment !== environment) problems.push(`MAIL_PROVIDER_ENVIRONMENT_TAG / RESEND_API_KEY_ENVIRONMENT does not match the ${environment} deployment`);
   return problems;
 }
 

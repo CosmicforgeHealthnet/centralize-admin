@@ -20,6 +20,7 @@ const {
 const logger = require("./shared/utils/logger");
 const { requestContext } = require("./shared/middlewares/request-context.middleware");
 const { authenticate } = require("./shared/middlewares/auth.middleware");
+const { createMailJsonParsing } = require("./modules/mail/http/body-limits");
 
 const MAIL_API_PREFIX = "/api/mail/v1";
 const MAIL_WEBHOOK_PATH = `${MAIL_API_PREFIX}/webhooks/resend`;
@@ -30,6 +31,29 @@ const MAIL_INTEGRATION_PATH = `${MAIL_API_PREFIX}/integrations/v1/events`;
 function isMailRawPath(url) {
   const path = String(url || "").split("?")[0];
   return path === MAIL_WEBHOOK_PATH || path === MAIL_INTEGRATION_PATH || MAIL_BRAND_WEBHOOK_PATH.test(path);
+}
+
+const REDACTED_QUERY_KEYS = /^(q|query|token|code|state|access_token|refresh_token|id_token|signature|sig|key|password|email)$/i;
+const MAIL_TOKEN_PATH = new RegExp(`^(${MAIL_API_PREFIX.replace(/\//g, "\\/")}\\/public\\/(?:unsubscribe|consent\\/confirm|preferences)\\/)[^/?]+`);
+
+// Logged form of a request URL: capability tokens in Mail public paths and
+// sensitive query values are replaced, the rest kept for diagnosis.
+function redactLoggedUrl(url) {
+  const raw = String(url || "");
+  const [path, query] = raw.split(/\?(.*)/s, 2);
+  const safePath = path.replace(MAIL_TOKEN_PATH, "$1[redacted]");
+  if (!query) return safePath;
+  const params = new URLSearchParams(query);
+  for (const key of [...params.keys()]) if (REDACTED_QUERY_KEYS.test(key)) params.set(key, "[redacted]");
+  return `${safePath}?${params.toString()}`;
+}
+
+function loadMailBodyMaxBytes(env) {
+  try {
+    return require("./modules/mail").loadMailConfig(env).limits.bodyMaxBytes;
+  } catch {
+    return 1024 * 1024;
+  }
 }
 
 function isMailPath(url) {
@@ -116,7 +140,9 @@ app.use(
   // Mail: provider webhooks need the exact raw bytes for signature checks;
   // mail bodies need a larger (bounded) JSON limit than the 10kb default.
   const mailWebhookRawParser = express.raw({ type: "*/*", limit: "256kb" });
-  const mailJsonParser = express.json({ limit: "1mb" });
+  // §17.1: route-specific Mail limits (64 KB by default; drafts, signatures
+  // and marketing authoring up to MAIL_BODY_MAX_BYTES) + JSON shape checks.
+  const mailJsonParser = createMailJsonParsing({ bodyMaxBytes: mailHttp.application?.config?.limits?.bodyMaxBytes ?? loadMailBodyMaxBytes(env), prefix: MAIL_API_PREFIX });
 
   app.use((req, res, next) => {
     if (req.method === "POST" && isMailRawPath(req.originalUrl)) {
@@ -127,14 +153,7 @@ app.use(
         return next();
       });
     }
-    if (isMailPath(req.originalUrl)) {
-      return mailJsonParser(req, res, (error) => {
-        if (error?.type === "entity.too.large") {
-          return res.status(413).json({ success: false, code: "MAIL_PAYLOAD_TOO_LARGE", message: "Request body is too large" });
-        }
-        return next(error);
-      });
-    }
+    if (isMailPath(req.originalUrl)) return mailJsonParser(req, res, next);
     if (
       req.method === "POST" &&
       req.originalUrl?.startsWith("/api/v1/marketing/social/webhooks/")
@@ -181,7 +200,13 @@ app.use(
   });
 
   if (env.NODE_ENV !== "test") {
-    app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
+    // Access logs never contain capability tokens (unsubscribe / consent
+    // links) or private search terms: the logged URL is redacted.
+    morgan.token("safe-url", (req) => redactLoggedUrl(req.originalUrl || req.url));
+    const format = env.NODE_ENV === "production"
+      ? ':remote-addr - :remote-user [:date[clf]] ":method :safe-url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"'
+      : ":method :safe-url :status :response-time ms - :res[content-length]";
+    app.use(morgan(format));
   }
 
   // Raw Mail routes (provider webhooks, product integration events) have their
@@ -247,3 +272,4 @@ const app = createApp();
 module.exports = app;
 module.exports.createApp = createApp;
 module.exports.isMailRawPath = isMailRawPath;
+module.exports.redactLoggedUrl = redactLoggedUrl;

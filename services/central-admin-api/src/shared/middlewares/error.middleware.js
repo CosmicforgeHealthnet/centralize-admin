@@ -10,11 +10,26 @@ function boundedRetryAfter(value) {
   return String(Math.min(Math.max(Math.ceil((date.getTime() - Date.now()) / 1000), 1), 3600));
 }
 
+const MAIL_PATH = /^\/api\/mail\/v1(\/|$)/;
+
 const errorHandler = (err, req, res, next) => {
+  const correlationId = req.correlationId || res.locals.correlationId || null;
+  // Body parser failures are client errors, never 500s (malformed JSON,
+  // oversized or unsupported bodies). No parser detail is echoed back.
+  if (err?.type === "entity.parse.failed") {
+    return res.status(400).json({ success: false, code: "INVALID_JSON", retryable: false, message: "Request body is not valid JSON", correlationId });
+  }
+  if (err?.type === "entity.too.large") {
+    return res.status(413).json({ success: false, code: "PAYLOAD_TOO_LARGE", retryable: false, message: "Request body is too large", correlationId });
+  }
+  if (err?.type === "encoding.unsupported" || err?.type === "charset.unsupported" || err?.type === "request.aborted") {
+    return res.status(400).json({ success: false, code: "INVALID_REQUEST_BODY", retryable: false, message: "Request body could not be read", correlationId });
+  }
   // Known operational error
   if (err instanceof ApiError) {
     const fallbackCode = err.statusCode === 503 ? "DEPENDENCY_UNAVAILABLE"
       : err.statusCode === 404 ? "NOT_FOUND"
+      : err.statusCode === 401 ? "UNAUTHENTICATED"
       : err.statusCode === 403 ? "FORBIDDEN"
         : err.statusCode === 429 ? "RATE_LIMITED"
           : err.statusCode === 409 ? "INVALID_TRANSITION"
@@ -35,9 +50,13 @@ const errorHandler = (err, req, res, next) => {
 
   // Prisma unique constraint violation
   if (err.code === "P2002") {
+    // Mail never reveals column/constraint names; other modules keep their
+    // existing message (frontends display it) and gain a code.
     return res.status(409).json({
       success: false,
-      message: `${err.meta?.target?.join(", ")} already exists`,
+      code: "CONFLICT",
+      message: MAIL_PATH.test(String(req.originalUrl || "")) ? "This record already exists" : `${err.meta?.target?.join(", ")} already exists`,
+      correlationId,
     });
   }
 
@@ -55,8 +74,17 @@ const errorHandler = (err, req, res, next) => {
   if (err.code === "P2025") {
     return res.status(404).json({
       success: false,
+      code: "NOT_FOUND",
       message: "Record not found",
+      correlationId,
     });
+  }
+
+  // Malformed identifier reached the database (e.g. a non-UUID value for a
+  // UUID column): a client error, not a server failure.
+  if (err.code === "P2023" || err?.name === "PrismaClientValidationError") {
+    logger.warn?.("Rejected invalid query input", { code: err.code || err.name, correlationId });
+    return res.status(400).json({ success: false, code: "VALIDATION_ERROR", retryable: false, message: "Invalid request parameters", correlationId });
   }
 
   // Unknown error — log it but don't leak details to client

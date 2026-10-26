@@ -5,6 +5,7 @@
 
 const { loadMailConfig, infrastructureViolations } = require("./mail.config");
 const { createProviderAdapter } = require("./adapters");
+const { withTransportContract, withMarketingContract } = require("./adapters/provider-contract");
 const { createMailEncryption } = require("./security/mail-encryption.service");
 const { createMailStorage } = require("./storage/mail-storage");
 const { createAttachmentScanner } = require("./scanning/attachment-scanner");
@@ -63,6 +64,8 @@ const { createQuarantineService } = require("./services/quarantine.service");
 const { createOpsMonitor } = require("./ops/ops-monitor.service");
 const { createRolloutService } = require("./ops/rollout.service");
 const { createReadiness } = require("./ops/readiness");
+const { createDependencyReadiness } = require("./ops/dependency-readiness");
+const { assessMailSession } = require("./security/session-assessment");
 const { createRuntimeMetrics } = require("./ops/runtime-metrics");
 const { createInboundReconciler } = require("./pipelines/inbound-reconciler");
 const { createSharedRateLimiter } = require("./ops/shared-rate-limit");
@@ -132,7 +135,10 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const keyringReady = useKms ? unwrapKeyring({ config, encryption: resolvedEncryption, logger, kmsClient }) : Promise.resolve();
   const metrics = createRuntimeMetrics();
   const rateLimiter = createSharedRateLimiter({ client, features, metrics, logger, clock: () => clock().getTime() });
-  const resolvedAdapter = metrics.instrumentProvider(adapter || createProviderAdapter({ config }), "transactional");
+  // §18: every provider call goes through the provider-neutral contract
+  // (input validation, normalized results and error categories), then the
+  // metrics wrapper (provider errors by kind/category/status).
+  const resolvedAdapter = metrics.instrumentProvider(withTransportContract(adapter || createProviderAdapter({ config })), "transactional");
   // Gap 3: provider quota observations (non-blocking hook; migration 37).
   const providerQuota = createProviderQuotaService({ client, config, env, features: finalGapFeature, clock, logger });
   resolvedAdapter.setQuotaObserver?.(providerQuota.observer("account", resolvedAdapter.name === "fake" ? "fake" : "resend"));
@@ -170,7 +176,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const support = createSupportService({ client, mailboxService: mailbox, audit, notifications, encryption: resolvedEncryption, clock });
   // M7: per-brand marketing provider accounts, broadcasts and automation.
   const resolveMarketingProvider = createMarketingProviderResolver({ config, env, adapter: marketingAdapter, adapters: marketingAdapters, quotaObserver: providerQuota.observer });
-  const marketingProviders = (organization) => metrics.instrumentProvider(resolveMarketingProvider(organization), "marketing");
+  const marketingProviders = (organization) => metrics.instrumentProvider(withMarketingContract(resolveMarketingProvider(organization)), "marketing");
   // Gaps 2/3: re-subscription workflow and pricing (503 before migration 37).
   const resubscriptions = createResubscriptionService({ client, config, env, features: finalGapFeature, audit, stepUp, jobs, marketingProviders, clock, logger });
   const pricing = createPricingService({ client, features: finalGapFeature, audit, stepUp, clock, logger });
@@ -218,7 +224,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   // Re-audit fix 3: with migration 37 a rescan never releases (release is an IT quarantine decision).
   const attachmentReview = createAttachmentReviewService({ client, config, store, scanner: resolvedScanner, audit, feature: finalGapFeature });
 
-  const inbound = createInboundProcessor({ client, config, adapter: resolvedAdapter, store, scanner: resolvedScanner, audit, notifications, usage, archive, forwarding, campaignReplies, senderAuth: loadSenderAuthPolicy(env), clock, logger });
+  const inbound = createInboundProcessor({ client, config, adapter: resolvedAdapter, store, scanner: resolvedScanner, audit, notifications, jobs, usage, archive, forwarding, campaignReplies, senderAuth: loadSenderAuthPolicy(env), clock, logger });
   const outbound = createOutboundProcessor({ client, config, adapter: resolvedAdapter, store, audit, notifications, runtime, usage, forwarding, features: { finalGap: finalGapFeature }, clock });
   const marketingEvents = createMarketingEventsProcessor({ client, audit, resubscriptions, clock });
   const deliveryEvents = createDeliveryEventProcessor({ client, audit, notifications, marketingEvents, features: { finalGap: finalGapFeature } });
@@ -233,6 +239,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   // `health` is a hoisted function declaration below.
   const ops = createOpsMonitor({ client, config, notifications, health: () => health(), runtime, metrics, searchIndex, features, storageDeletions, clock, logger });
   const readiness = createReadiness({ client, config, ops, health: () => health() });
+  const dependencyReadiness = createDependencyReadiness({ config, schema, encryption: resolvedEncryption, storage, scanner: resolvedScanner, provider: resolvedAdapter, jobs, infrastructureViolations, sessionAssessment: () => assessMailSession({ env, config }), clock: () => clock().getTime() });
   const inboundReconciler = createInboundReconciler({ client, config, adapter: resolvedAdapter, jobs, audit, clock });
 
   function createWorker(options = {}) {
@@ -269,6 +276,8 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
         },
       },
       onDeadLetter: { SEND_MESSAGE: outbound.onDeadLetter, BROADCAST_DISPATCH: broadcastProcessor.onDeadLetter, BROADCAST_RECONCILE: broadcastProcessor.onDeadLetter, AUTOMATION_STEP: automationProcessor.onDeadLetter, RETENTION_RUN: retentionProcessor.onDeadLetter },
+      // Non-retryable FAILED outbound jobs get the same terminal cleanup.
+      onFailed: { SEND_MESSAGE: outbound.onTerminalFailure },
       // A MARKETING worker schedules one automation tick per minute bucket;
       // the idempotency key makes concurrent workers enqueue it once.
       queueFilter: config.rollout.enforced ? rollout.workerQueuesAllowed : null,
@@ -353,16 +362,12 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
     features,
     preferencesFeature,
     // Public readiness (booleans only; never secrets or migration names).
+    // §20: dependency-specific; a disabled Mail is reported DISABLED, never
+    // "ready"; §17.1: the session mode is reported and, when required, gates.
     readiness: async () => {
-      if (!config.enabled) return { ready: true, enabled: false, checks: {} };
-      const schemaState = await schema.check();
-      const checks = {
-        schema: schemaState.ready,
-        encryption: Boolean(resolvedEncryption.available),
-        storage: Boolean(storage.available),
-        infrastructure: infrastructureViolations(config).length === 0,
-      };
-      return { ready: Object.values(checks).every(Boolean), enabled: true, checks };
+      const state = await dependencyReadiness.evaluate();
+      if (state.enabled && state.session?.status === "BLOCKING") return { ...state, ready: false, state: "NOT_READY" };
+      return state;
     },
     ready: () => keyringReady,
   };
