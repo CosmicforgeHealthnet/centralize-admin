@@ -56,6 +56,19 @@ const MAIL_PREFERENCES_REQUIREMENTS = [
   { migration: "20261102_mail_user_preferences.sql", tables: ["mail_user_preferences"] },
 ];
 
+// Migration 37 (final gap closure). Probed on its own: a database at
+// migration 36 keeps every earlier feature.
+const MAIL_FINAL_GAP_REQUIREMENTS = [
+  {
+    migration: "20261103_mail_final_gap_closure.sql",
+    tables: [
+      "marketing_template_policies", "marketing_template_version_policies", "marketing_contact_provider_states", "marketing_provider_resubscriptions",
+      "mail_provider_pricing", "mail_provider_quota_observations", "marketing_dispatch_costs", "marketing_automation_replays",
+      "mail_storage_deletions", "mail_quarantine_decisions", "mail_message_provider_ids",
+    ],
+  },
+];
+
 function quoteLiteral(value) {
   if (!/^[a-z_][a-z0-9_]*$/.test(value)) throw new Error(`unsafe identifier ${value}`);
   return `'${value}'`;
@@ -117,4 +130,4 @@ function createMailSchemaReadiness({ client, logger = null, recheckMs = 30_000, 
   });
 }
 
-module.exports = { createMailSchemaReadiness, MAIL_SCHEMA_REQUIREMENTS, MAIL_FEATURE_REQUIREMENTS, MAIL_PREFERENCES_REQUIREMENTS };
+module.exports = { createMailSchemaReadiness, MAIL_SCHEMA_REQUIREMENTS, MAIL_FEATURE_REQUIREMENTS, MAIL_PREFERENCES_REQUIREMENTS, MAIL_FINAL_GAP_REQUIREMENTS };

@@ -4196,7 +4196,8 @@ model MailMailbox {
   breakGlass   MailBreakGlassRequest[]
   retention    MailRetentionPolicy[]
 
-  forwardingRules MailForwardingRule[]
+  forwardingRules     MailForwardingRule[]
+  quarantineDecisions MailQuarantineDecision[]
 
   @@unique([organizationId, ownerAdminUserId], map: "UQ_mail_mailboxes_personal_owner")
   @@index([organizationId, type, status], map: "IDX_mail_mailboxes_org_type_status")
@@ -4386,9 +4387,11 @@ model MailMessage {
   deliveryEvents MailDeliveryEvent[]
   outboxJobs     MailOutboxJob[]
 
-  searchIndex   MailMessageSearchIndex?
-  archive       MailMessageArchive?
-  campaignReply MarketingCampaignReply?
+  searchIndex         MailMessageSearchIndex?
+  archive             MailMessageArchive?
+  campaignReply       MarketingCampaignReply?
+  quarantineDecisions MailQuarantineDecision[]
+  providerId          MailMessageProviderId?
 
   @@unique([mailboxId, rfcMessageId], map: "UQ_mail_messages_mailbox_rfc_id")
   @@index([threadId, createdAt], map: "IDX_mail_messages_thread_created")
@@ -4528,9 +4531,10 @@ model MailAttachment {
   providerAttachmentId  String?                  @map("provider_attachment_id") @db.VarChar(255)
   createdAt             DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  mailbox MailMailbox  @relation(fields: [mailboxId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_attachments_mailbox")
-  message MailMessage? @relation(fields: [messageId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_attachments_message")
-  draft   MailDraft?   @relation(fields: [draftId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_mail_attachments_draft")
+  mailbox             MailMailbox              @relation(fields: [mailboxId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_attachments_mailbox")
+  message             MailMessage?             @relation(fields: [messageId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_attachments_message")
+  draft               MailDraft?               @relation(fields: [draftId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "FK_mail_attachments_draft")
+  quarantineDecisions MailQuarantineDecision[]
 
   @@index([messageId], map: "IDX_mail_attachments_message")
   @@index([draftId], map: "IDX_mail_attachments_draft")
@@ -4734,11 +4738,13 @@ model MarketingContact {
   createdAt      DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  organization          MailOrganization                @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_contacts_organization")
+  organization          MailOrganization                  @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_contacts_organization")
   consents              MarketingConsent[]
   audiences             MarketingAudienceContact[]
   broadcastRecipients   MarketingBroadcastRecipient[]
   automationEnrollments MarketingAutomationEnrollment[]
+  providerState         MarketingContactProviderState?
+  resubscriptions       MarketingProviderResubscription[]
 
   @@unique([organizationId, email], map: "UQ_marketing_contacts_org_email")
   @@index([organizationId, status], map: "IDX_marketing_contacts_org_status")
@@ -4853,6 +4859,7 @@ model MarketingEmailTemplate {
 
   organization MailOrganization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_email_studio_templates_organization")
   versions     MarketingTemplateVersion[]
+  policy       MarketingTemplatePolicy?
 
   @@unique([organizationId, name], map: "UQ_marketing_email_studio_templates_org_name")
   @@map("marketing_email_studio_templates")
@@ -4873,8 +4880,9 @@ model MarketingTemplateVersion {
   createdBy     String?  @map("created_by")
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  template  MarketingEmailTemplate   @relation(fields: [templateId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_template_versions_template")
+  template  MarketingEmailTemplate          @relation(fields: [templateId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_template_versions_template")
   campaigns MarketingEmailCampaign[]
+  policy    MarketingTemplateVersionPolicy?
 
   @@unique([templateId, version], map: "UQ_marketing_template_versions_template_version")
   @@map("marketing_email_template_versions")
@@ -5104,6 +5112,7 @@ model MarketingBroadcastDispatch {
 
   campaign   MarketingEmailCampaign        @relation(fields: [campaignId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_broadcast_dispatches_campaign")
   recipients MarketingBroadcastRecipient[]
+  cost       MarketingDispatchCost?
 
   @@index([organizationId, status], map: "IDX_marketing_broadcast_dispatches_org_status")
   @@index([providerBroadcastId], map: "IDX_marketing_broadcast_dispatches_provider_broadcast")
@@ -5163,6 +5172,7 @@ model MarketingAutomation {
   organization MailOrganization                @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_automations_organization")
   versions     MarketingAutomationVersion[]
   enrollments  MarketingAutomationEnrollment[]
+  replays      MarketingAutomationReplay[]
 
   @@unique([organizationId, name], map: "UQ_marketing_automations_org_name")
   @@map("marketing_automations")
@@ -5215,6 +5225,7 @@ model MarketingAutomationEnrollment {
   version    MarketingAutomationVersion   @relation(fields: [versionId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_automation_enrollments_version")
   contact    MarketingContact             @relation(fields: [contactId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_automation_enrollments_contact")
   stepRuns   MarketingAutomationStepRun[]
+  replays    MarketingAutomationReplay[]
 
   @@unique([automationId, dedupeKey], map: "UQ_marketing_automation_enrollments_dedupe")
   @@index([status, nextRunAt], map: "IDX_marketing_automation_enrollments_due")
@@ -5242,6 +5253,7 @@ model MarketingAutomationStepRun {
   updatedAt         DateTime                         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   enrollment MarketingAutomationEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_automation_step_runs_enrollment")
+  replays    MarketingAutomationReplay[]
 
   @@unique([enrollmentId, sequence], map: "UQ_marketing_automation_step_runs_sequence")
   @@index([providerMessageId], map: "IDX_marketing_automation_step_runs_provider_message")
@@ -5688,4 +5700,218 @@ model MailUserPreference {
 
   @@index([defaultSenderAddressId], map: "IDX_mail_user_preferences_default_sender")
   @@map("mail_user_preferences")
+}
+
+// ---------------------------------------------------------------------------
+// CosmicForge Mail final gap closure (migration 37). New tables only: code
+// deployed before the migration never selects anything that is missing.
+
+// Gap 1: template classification. MARKETING | TRANSACTIONAL | TRANSACTIONAL_SECURITY.
+// A template without a row is MARKETING (the behaviour before migration 37).
+model MarketingTemplatePolicy {
+  templateId     String   @id @map("template_id") @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  classification String   @db.VarChar(32)
+  changedBy      String   @map("changed_by")
+  reason         String?  @db.VarChar(500)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  template MarketingEmailTemplate @relation(fields: [templateId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_template_policies_template")
+
+  @@index([organizationId, classification], map: "IDX_marketing_template_policies_org_class")
+  @@map("marketing_template_policies")
+}
+
+// Classification snapshot per immutable template version (append-only).
+model MarketingTemplateVersionPolicy {
+  versionId      String   @id @map("version_id") @db.Uuid
+  classification String   @db.VarChar(32)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  version MarketingTemplateVersion @relation(fields: [versionId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_template_version_policies_version")
+
+  @@map("marketing_template_version_policies")
+}
+
+// Gap 2: provider-side subscription state and approved re-subscriptions.
+model MarketingContactProviderState {
+  contactId      String   @id @map("contact_id") @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  provider       String   @db.VarChar(32)
+  state          String   @db.VarChar(32)
+  reason         String?  @db.VarChar(64)
+  observedAt     DateTime @map("observed_at") @db.Timestamptz(6)
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  contact MarketingContact @relation(fields: [contactId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_contact_provider_states_contact")
+
+  @@index([organizationId, state], map: "IDX_marketing_contact_provider_states_org_state")
+  @@map("marketing_contact_provider_states")
+}
+
+model MarketingProviderResubscription {
+  id              String    @id @default(uuid()) @db.Uuid
+  organizationId  String    @map("organization_id") @db.Uuid
+  contactId       String    @map("contact_id") @db.Uuid
+  topic           String    @db.VarChar(64)
+  status          String    @db.VarChar(32)
+  consentEvidence Json      @map("consent_evidence")
+  requestedBy     String?   @map("requested_by")
+  approvedBy      String?   @map("approved_by")
+  providerResult  Json?     @map("provider_result")
+  attempts        Int       @default(0)
+  nextAttemptAt   DateTime? @map("next_attempt_at") @db.Timestamptz(6)
+  lastError       String?   @map("last_error") @db.VarChar(255)
+  completedAt     DateTime? @map("completed_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  contact MarketingContact @relation(fields: [contactId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_provider_resubscriptions_contact")
+
+  @@index([organizationId, status], map: "IDX_marketing_provider_resubscriptions_org_status")
+  @@index([contactId], map: "IDX_marketing_provider_resubscriptions_contact")
+  @@map("marketing_provider_resubscriptions")
+}
+
+// Gap 3: approved pricing, observed provider quota, per-dispatch cost estimates.
+model MailProviderPricing {
+  id              String    @id @default(uuid()) @db.Uuid
+  provider        String    @db.VarChar(32)
+  organizationId  String?   @map("organization_id") @db.Uuid
+  currency        String    @db.Char(3)
+  unitCostMicros  BigInt    @map("unit_cost_micros")
+  includedMonthly Int?      @map("included_monthly")
+  effectiveFrom   DateTime  @map("effective_from") @db.Timestamptz(6)
+  effectiveTo     DateTime? @map("effective_to") @db.Timestamptz(6)
+  source          String    @db.VarChar(32)
+  reference       String    @db.VarChar(200)
+  createdBy       String    @map("created_by")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  dispatchCosts MarketingDispatchCost[]
+
+  @@index([provider, effectiveFrom], map: "IDX_mail_provider_pricing_provider_from")
+  @@map("mail_provider_pricing")
+}
+
+model MailProviderQuotaObservation {
+  id             String    @id @default(uuid()) @db.Uuid
+  provider       String    @db.VarChar(32)
+  scope          String    @db.VarChar(64)
+  observedAt     DateTime  @map("observed_at") @db.Timestamptz(6)
+  dailyUsed      Int?      @map("daily_used")
+  monthlyUsed    Int?      @map("monthly_used")
+  dailyLimit     Int?      @map("daily_limit")
+  monthlyLimit   Int?      @map("monthly_limit")
+  source         String    @db.VarChar(32)
+  exhaustedKind  String?   @map("exhausted_kind") @db.VarChar(16)
+  exhaustedUntil DateTime? @map("exhausted_until") @db.Timestamptz(6)
+
+  @@index([provider, scope, observedAt], map: "IDX_mail_provider_quota_observations_scope_time")
+  @@map("mail_provider_quota_observations")
+}
+
+model MarketingDispatchCost {
+  dispatchId          String   @id @map("dispatch_id") @db.Uuid
+  organizationId      String   @map("organization_id") @db.Uuid
+  pricingId           String?  @map("pricing_id") @db.Uuid
+  basis               String   @db.VarChar(32)
+  basisCount          Int      @map("basis_count")
+  estimatedCostMicros BigInt?  @map("estimated_cost_micros")
+  currency            String?  @db.Char(3)
+  status              String   @db.VarChar(16)
+  computedAt          DateTime @map("computed_at") @db.Timestamptz(6)
+
+  dispatch MarketingBroadcastDispatch @relation(fields: [dispatchId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_dispatch_costs_dispatch")
+  pricing  MailProviderPricing?       @relation(fields: [pricingId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_dispatch_costs_pricing")
+
+  @@index([organizationId, computedAt], map: "IDX_marketing_dispatch_costs_org_time")
+  @@map("marketing_dispatch_costs")
+}
+
+// Gap 4: audited automation replay / recovery requests.
+model MarketingAutomationReplay {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  automationId   String    @map("automation_id") @db.Uuid
+  enrollmentId   String?   @map("enrollment_id") @db.Uuid
+  stepRunId      String?   @map("step_run_id") @db.Uuid
+  outboxJobId    String?   @map("outbox_job_id") @db.Uuid
+  scope          String    @db.VarChar(32)
+  mode           String    @db.VarChar(16)
+  status         String    @db.VarChar(16)
+  reason         String    @db.VarChar(500)
+  requestedBy    String    @map("requested_by")
+  result         Json?
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  executedAt     DateTime? @map("executed_at") @db.Timestamptz(6)
+
+  automation MarketingAutomation            @relation(fields: [automationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_automation_replays_automation")
+  enrollment MarketingAutomationEnrollment? @relation(fields: [enrollmentId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_automation_replays_enrollment")
+  stepRun    MarketingAutomationStepRun?    @relation(fields: [stepRunId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_marketing_automation_replays_step_run")
+
+  @@index([automationId, createdAt], map: "IDX_marketing_automation_replays_automation_time")
+  @@map("marketing_automation_replays")
+}
+
+// Gap 5: durable, retried object-storage deletions.
+model MailStorageDeletion {
+  id             String    @id @default(uuid()) @db.Uuid
+  objectKey      String    @map("object_key") @db.VarChar(512)
+  purpose        String    @db.VarChar(32)
+  reason         String    @db.VarChar(64)
+  sourceType     String?   @map("source_type") @db.VarChar(32)
+  sourceId       String?   @map("source_id") @db.VarChar(64)
+  organizationId String?   @map("organization_id") @db.Uuid
+  mailboxId      String?   @map("mailbox_id") @db.Uuid
+  status         String    @default("PENDING") @db.VarChar(16)
+  attempts       Int       @default(0)
+  nextAttemptAt  DateTime  @default(now()) @map("next_attempt_at") @db.Timestamptz(6)
+  leaseUntil     DateTime? @map("lease_until") @db.Timestamptz(6)
+  lastError      String?   @map("last_error") @db.VarChar(255)
+  requestedBy    String?   @map("requested_by")
+  completedAt    DateTime? @map("completed_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status, nextAttemptAt], map: "IDX_mail_storage_deletions_status_next")
+  @@index([objectKey], map: "IDX_mail_storage_deletions_object_key")
+  @@map("mail_storage_deletions")
+}
+
+// Gap 6: append-only record of IT quarantine decisions.
+model MailQuarantineDecision {
+  id           String   @id @default(uuid()) @db.Uuid
+  mailboxId    String   @map("mailbox_id") @db.Uuid
+  targetType   String   @map("target_type") @db.VarChar(16)
+  messageId    String?  @map("message_id") @db.Uuid
+  attachmentId String?  @map("attachment_id") @db.Uuid
+  decision     String   @db.VarChar(24)
+  reason       String   @db.VarChar(500)
+  scanEvidence Json?    @map("scan_evidence")
+  decidedBy    String   @map("decided_by")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  mailbox    MailMailbox     @relation(fields: [mailboxId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_quarantine_decisions_mailbox")
+  message    MailMessage?    @relation(fields: [messageId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_quarantine_decisions_message")
+  attachment MailAttachment? @relation(fields: [attachmentId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_quarantine_decisions_attachment")
+
+  @@index([mailboxId, createdAt], map: "IDX_mail_quarantine_decisions_mailbox_time")
+  @@index([messageId], map: "IDX_mail_quarantine_decisions_message")
+  @@index([attachmentId], map: "IDX_mail_quarantine_decisions_attachment")
+  @@map("mail_quarantine_decisions")
+}
+
+// Gap 8: Message-ID assigned by the provider when it differs from ours, so
+// replies and provider echoes still thread and deduplicate.
+model MailMessageProviderId {
+  messageId            String   @id @map("message_id") @db.Uuid
+  providerRfcMessageId String   @map("provider_rfc_message_id") @db.VarChar(998)
+  observedAt           DateTime @default(now()) @map("observed_at") @db.Timestamptz(6)
+
+  message MailMessage @relation(fields: [messageId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_mail_message_provider_ids_message")
+
+  @@index([providerRfcMessageId], map: "IDX_mail_message_provider_ids_rfc")
+  @@map("mail_message_provider_ids")
 }

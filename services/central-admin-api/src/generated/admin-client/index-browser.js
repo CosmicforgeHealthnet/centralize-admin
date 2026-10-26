@@ -3054,6 +3054,147 @@ exports.Prisma.MailUserPreferenceScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.MarketingTemplatePolicyScalarFieldEnum = {
+  templateId: 'templateId',
+  organizationId: 'organizationId',
+  classification: 'classification',
+  changedBy: 'changedBy',
+  reason: 'reason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingTemplateVersionPolicyScalarFieldEnum = {
+  versionId: 'versionId',
+  classification: 'classification',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MarketingContactProviderStateScalarFieldEnum = {
+  contactId: 'contactId',
+  organizationId: 'organizationId',
+  provider: 'provider',
+  state: 'state',
+  reason: 'reason',
+  observedAt: 'observedAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingProviderResubscriptionScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  contactId: 'contactId',
+  topic: 'topic',
+  status: 'status',
+  consentEvidence: 'consentEvidence',
+  requestedBy: 'requestedBy',
+  approvedBy: 'approvedBy',
+  providerResult: 'providerResult',
+  attempts: 'attempts',
+  nextAttemptAt: 'nextAttemptAt',
+  lastError: 'lastError',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MailProviderPricingScalarFieldEnum = {
+  id: 'id',
+  provider: 'provider',
+  organizationId: 'organizationId',
+  currency: 'currency',
+  unitCostMicros: 'unitCostMicros',
+  includedMonthly: 'includedMonthly',
+  effectiveFrom: 'effectiveFrom',
+  effectiveTo: 'effectiveTo',
+  source: 'source',
+  reference: 'reference',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MailProviderQuotaObservationScalarFieldEnum = {
+  id: 'id',
+  provider: 'provider',
+  scope: 'scope',
+  observedAt: 'observedAt',
+  dailyUsed: 'dailyUsed',
+  monthlyUsed: 'monthlyUsed',
+  dailyLimit: 'dailyLimit',
+  monthlyLimit: 'monthlyLimit',
+  source: 'source',
+  exhaustedKind: 'exhaustedKind',
+  exhaustedUntil: 'exhaustedUntil'
+};
+
+exports.Prisma.MarketingDispatchCostScalarFieldEnum = {
+  dispatchId: 'dispatchId',
+  organizationId: 'organizationId',
+  pricingId: 'pricingId',
+  basis: 'basis',
+  basisCount: 'basisCount',
+  estimatedCostMicros: 'estimatedCostMicros',
+  currency: 'currency',
+  status: 'status',
+  computedAt: 'computedAt'
+};
+
+exports.Prisma.MarketingAutomationReplayScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  automationId: 'automationId',
+  enrollmentId: 'enrollmentId',
+  stepRunId: 'stepRunId',
+  outboxJobId: 'outboxJobId',
+  scope: 'scope',
+  mode: 'mode',
+  status: 'status',
+  reason: 'reason',
+  requestedBy: 'requestedBy',
+  result: 'result',
+  createdAt: 'createdAt',
+  executedAt: 'executedAt'
+};
+
+exports.Prisma.MailStorageDeletionScalarFieldEnum = {
+  id: 'id',
+  objectKey: 'objectKey',
+  purpose: 'purpose',
+  reason: 'reason',
+  sourceType: 'sourceType',
+  sourceId: 'sourceId',
+  organizationId: 'organizationId',
+  mailboxId: 'mailboxId',
+  status: 'status',
+  attempts: 'attempts',
+  nextAttemptAt: 'nextAttemptAt',
+  leaseUntil: 'leaseUntil',
+  lastError: 'lastError',
+  requestedBy: 'requestedBy',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MailQuarantineDecisionScalarFieldEnum = {
+  id: 'id',
+  mailboxId: 'mailboxId',
+  targetType: 'targetType',
+  messageId: 'messageId',
+  attachmentId: 'attachmentId',
+  decision: 'decision',
+  reason: 'reason',
+  scanEvidence: 'scanEvidence',
+  decidedBy: 'decidedBy',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MailMessageProviderIdScalarFieldEnum = {
+  messageId: 'messageId',
+  providerRfcMessageId: 'providerRfcMessageId',
+  observedAt: 'observedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -4442,7 +4583,18 @@ exports.Prisma.ModelName = {
   MailForwardingRule: 'MailForwardingRule',
   MailRateLimitBucket: 'MailRateLimitBucket',
   MarketingCampaignReply: 'MarketingCampaignReply',
-  MailUserPreference: 'MailUserPreference'
+  MailUserPreference: 'MailUserPreference',
+  MarketingTemplatePolicy: 'MarketingTemplatePolicy',
+  MarketingTemplateVersionPolicy: 'MarketingTemplateVersionPolicy',
+  MarketingContactProviderState: 'MarketingContactProviderState',
+  MarketingProviderResubscription: 'MarketingProviderResubscription',
+  MailProviderPricing: 'MailProviderPricing',
+  MailProviderQuotaObservation: 'MailProviderQuotaObservation',
+  MarketingDispatchCost: 'MarketingDispatchCost',
+  MarketingAutomationReplay: 'MarketingAutomationReplay',
+  MailStorageDeletion: 'MailStorageDeletion',
+  MailQuarantineDecision: 'MailQuarantineDecision',
+  MailMessageProviderId: 'MailMessageProviderId'
 };
 
 /**

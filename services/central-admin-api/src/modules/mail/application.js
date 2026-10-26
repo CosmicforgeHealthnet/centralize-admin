@@ -53,7 +53,7 @@ const { createReadiness } = require("./ops/readiness");
 const { createRuntimeMetrics } = require("./ops/runtime-metrics");
 const { createInboundReconciler } = require("./pipelines/inbound-reconciler");
 const { createSharedRateLimiter } = require("./ops/shared-rate-limit");
-const { createMailSchemaReadiness, MAIL_FEATURE_REQUIREMENTS, MAIL_PREFERENCES_REQUIREMENTS } = require("./schema-readiness");
+const { createMailSchemaReadiness, MAIL_FEATURE_REQUIREMENTS, MAIL_PREFERENCES_REQUIREMENTS, MAIL_FINAL_GAP_REQUIREMENTS } = require("./schema-readiness");
 
 async function unwrapKeyring({ config, encryption, logger, kmsClient }) {
   const { resolveMailKeyring, createAwsKmsClient } = require("./security/kms-keyring");
@@ -99,6 +99,18 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
     requirements: MAIL_PREFERENCES_REQUIREMENTS,
     label: "Mail preferences",
     missingMessage: "[Mail] Preferences table not present: GET /me/preferences answers the defaults, saving preferences answers 503 and no notification is suppressed until migration 20261102_mail_user_preferences.sql is applied",
+  });
+  // Migration 37 (final gap closure: template classification, provider
+  // subscription state, pricing/quota, automation replay, durable storage
+  // deletions, quarantine decisions, provider Message-IDs). Probed on its own;
+  // each feature answers 503 MAIL_FEATURE_NOT_READY or keeps its pre-37
+  // behaviour until the migration is applied.
+  const finalGapFeature = createMailSchemaReadiness({
+    client,
+    logger,
+    requirements: MAIL_FINAL_GAP_REQUIREMENTS,
+    label: "Mail final gap-closure",
+    missingMessage: "[Mail] Final gap-closure tables not present: template classification, re-subscription, pricing and quota reporting, automation replay, the durable deletion queue, quarantine decisions and provider Message-ID aliases stay off until migration 20261103_mail_final_gap_closure.sql is applied",
   });
   const useKms = !encryption && config.kms?.provider === "aws-kms";
   const resolvedEncryption = encryption || createMailEncryption(useKms ? { deferred: true } : config.encryption);
@@ -244,6 +256,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
     rateLimiter,
     jobs,
     services: { mailbox, compose, admin, rules, forwarding, archive, support, marketing, stepUp, breakGlass, attachmentReview, broadcasts, automations, publicPreferences, confirmation, testSends, integrations, usage, retention, dsar, ops, rollout, readiness, preferences },
+    features: { finalGap: finalGapFeature },
     runtime,
     metrics,
     processors: { inbound, outbound, deliveryEvents, marketingEvents, broadcasts: broadcastProcessor, automations: automationProcessor, retention: retentionProcessor, inboundReconciler },

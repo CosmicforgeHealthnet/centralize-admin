@@ -142,6 +142,7 @@ it refuses a file whose checksum differs from `manifest.json`. All files are add
 | 34 | `20261031_account_setup_tokens.sql` | `364fa19c3b9bdd6844dcfe068a4f63e6952d8a6d631b354f0416317b9bf9a613` |
 | 35 | `20261101_mail_spec_gap_closure.sql` | `efc3c863c21ba0413a9d239ea53de50cf2837c3ba456caa622776ed65818f5b4` |
 | 36 | `20261102_mail_user_preferences.sql` | `f99c79176acf7a3f36e154d742ff487943e485413d88472a20731be1848ab3ea` |
+| 37 | `20261103_mail_final_gap_closure.sql` | `70952bf8a685cfe04e230b522fa103f343cdacd36c97c25b1dba5f04f350d8e6` |
 
 Migration 34 (account setup links, P0 security fix) is not Mail-specific: it
 replaces emailed temporary passwords for lab approval, HR invitations and
@@ -169,6 +170,19 @@ no preferred sender), `PUT /me/preferences` answers 503
 notification is suppressed (tested by
 `tests/mail-pre-preferences-migration.test.js`). Rollback:
 `docs/sql/cosmicforge-mail-user-preferences-rollback.sql` (run it first; the
+rollback drill does this).
+
+Migration 37 (final gap closure, acceptance report section F) adds eleven new
+tables and no columns on existing tables: `marketing_template_policies`,
+`marketing_template_version_policies` (append-only), `marketing_contact_provider_states`,
+`marketing_provider_resubscriptions`, `mail_provider_pricing`,
+`mail_provider_quota_observations`, `marketing_dispatch_costs`,
+`marketing_automation_replays`, `mail_storage_deletions`,
+`mail_quarantine_decisions` (append-only) and `mail_message_provider_ids`.
+Code deployed before it keeps every earlier feature: each new feature answers
+503 `MAIL_FEATURE_NOT_READY` or keeps its pre-37 behaviour (templates are
+MARKETING, no cost estimates, deletions attempted inline). Rollback:
+`docs/sql/cosmicforge-mail-final-gap-closure-rollback.sql` (run it first; the
 rollback drill does this).
 
 Pre-checks: `npm run db:replay:verify` (drift none) and `npm run mail:rollback:drill` on a disposable copy.
