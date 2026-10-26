@@ -10,6 +10,7 @@ import PermissionBoundary from "@/components/mail/PermissionBoundary";
 import StepUpDialog from "@/components/marketing/email-marketing/StepUpDialog";
 import { formatFullDate } from "@/components/mail/mail-utils";
 import { classifyMailError } from "@/lib/mail.service";
+import api from "@/lib/api";
 import {
   acknowledgeAlert,
   cancelRetention,
@@ -24,6 +25,7 @@ import {
   usageReport,
 } from "@/lib/mail-ops.service";
 import type { RetentionRun } from "@/types/mail-ops.types";
+import ProviderQuotaPanel from "@/components/it/ProviderQuotaPanel";
 
 const card = "rounded-lg border border-border bg-card p-4";
 const input = "w-full rounded-md border border-border bg-card px-3 py-2 text-[12px] outline-none focus:border-primary";
@@ -320,13 +322,114 @@ function Retention() {
   );
 }
 
+// ---- Final gap 5: durable storage deletion queue (migration 37) ----
+interface StorageDeletionRow { id: string; keyHash: string; purpose: string; reason: string; status: string; attempts: number; maxAttempts: number; nextAttemptAt: string | null; lastError: string | null; createdAt: string; completedAt: string | null }
+interface StorageDeletionList { counts: Record<string, number>; due: number; oldestDueSeconds: number; items: StorageDeletionRow[]; nextCursor: string | null }
+
+function StorageDeletions() {
+  const qc = useQueryClient();
+  const [status, setStatus] = useState("DEAD");
+  const [reason, setReason] = useState("");
+  const [msg, setMsg] = useState<string | null>(null);
+  const [requeueing, setRequeueing] = useState<StorageDeletionRow | null>(null);
+  const queue = useQuery({
+    queryKey: ["mail", "ops", "storage-deletions", status],
+    queryFn: async () => (await api.get<{ data: StorageDeletionList }>("/api/mail/v1/admin/storage-deletions", { params: status ? { status } : {} })).data.data,
+    retry: false,
+    refetchInterval: 60_000,
+  });
+  const refresh = () => qc.invalidateQueries({ queryKey: ["mail", "ops", "storage-deletions"] });
+  const cancel = useMutation({
+    mutationFn: async (row: StorageDeletionRow) => (await api.post(`/api/mail/v1/admin/storage-deletions/${row.id}/cancel`, { reason: reason.trim() })).data,
+    onSuccess: () => { setMsg("Deletion cancelled. The stored object is kept."); refresh(); },
+    onError: (e) => setMsg(classifyMailError(e).message),
+  });
+  const reasonOk = reason.trim().length >= 5;
+  const data = queue.data;
+  return (
+    <section className={card} aria-labelledby="ops-deletions-h">
+      <h2 id="ops-deletions-h" className="mb-1 text-[13px] font-semibold">Storage deletion queue</h2>
+      <p className="mb-2 text-[11px] text-muted-foreground">Stored mail objects are deleted through a durable queue: failures retry with backoff, then stop as dead for review. Objects still in use or under legal hold are never deleted. Only a short key fingerprint is shown.</p>
+      <PermissionBoundary isLoading={queue.isLoading} error={queue.error} compact forbiddenMessage="Mail operations are available to mail administrators only.">
+        {data && (
+          <div className="flex flex-col gap-2">
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+              {["PENDING", "RUNNING", "DONE", "DEAD", "CANCELLED"].map((key) => (
+                <div key={key} className={`rounded border p-2 ${key === "DEAD" && data.counts[key] ? "border-amber-500" : "border-border"}`}>
+                  <p className="text-[10px] text-muted-foreground">{key.toLowerCase()}</p>
+                  <p className="text-[14px] font-semibold">{data.counts[key] ?? 0}</p>
+                </div>
+              ))}
+              <div className="rounded border border-border p-2">
+                <p className="text-[10px] text-muted-foreground">Due now</p>
+                <p className="text-[14px] font-semibold">{data.due}{data.due ? ` (${seconds(data.oldestDueSeconds)})` : ""}</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-end gap-2">
+              <label className="text-[11px] text-muted-foreground">Show
+                <select value={status} onChange={(e) => setStatus(e.target.value)} className={input}>
+                  <option value="DEAD">Dead</option><option value="PENDING">Pending</option><option value="CANCELLED">Cancelled</option><option value="DONE">Done</option><option value="">All</option>
+                </select>
+              </label>
+              <label className="min-w-[220px] flex-1 text-[11px] text-muted-foreground">Reason for requeue / cancel (audited)
+                <input value={reason} onChange={(e) => setReason(e.target.value)} maxLength={500} className={input} />
+              </label>
+            </div>
+            <ul className="flex flex-col gap-1 text-[12px]">
+              {data.items.length === 0 && <li className="text-muted-foreground">No deletions with this status.</li>}
+              {data.items.map((row) => (
+                <li key={row.id} className="flex flex-wrap items-center gap-2 rounded border border-border p-2">
+                  <span className="font-mono text-[11px]">#{row.keyHash}</span>
+                  <span>{row.reason.replace(/_/g, " ").toLowerCase()}</span>
+                  <span className="font-semibold">{row.status}</span>
+                  <span className="text-muted-foreground">{row.attempts}/{row.maxAttempts} attempts{row.lastError ? ` · ${row.lastError}` : ""}</span>
+                  <span className="text-[11px] text-muted-foreground">{formatFullDate(row.createdAt)}</span>
+                  <span className="ml-auto flex gap-2">
+                    {(row.status === "DEAD" || (row.status === "CANCELLED" && row.lastError === "HELD")) && (
+                      <button type="button" className={ghost} disabled={!reasonOk} onClick={() => setRequeueing(row)} aria-label={`Requeue deletion ${row.keyHash}`}>Requeue…</button>
+                    )}
+                    {row.status === "PENDING" && (
+                      <button type="button" className={ghost} disabled={!reasonOk || cancel.isPending} onClick={() => cancel.mutate(row)} aria-label={`Cancel deletion ${row.keyHash}`}>Cancel</button>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </PermissionBoundary>
+      {msg && <p role="status" className="mt-1 text-[11px] text-muted-foreground">{msg}</p>}
+      {requeueing && (
+        <StepUpDialog
+          purpose="MAIL_STORAGE_DELETION_REQUEUE"
+          title={`Requeue deletion #${requeueing.keyHash}`}
+          onCancel={() => setRequeueing(null)}
+          onVerified={async (stepUpId) => {
+            const row = requeueing;
+            setRequeueing(null);
+            try {
+              await api.post(`/api/mail/v1/admin/storage-deletions/${row.id}/requeue`, { reason: reason.trim(), stepUpId });
+              setMsg("Deletion requeued.");
+              refresh();
+            } catch (e) {
+              setMsg(classifyMailError(e).message);
+            }
+          }}
+        />
+      )}
+    </section>
+  );
+}
+
 export default function MailOperations() {
   return (
     <div className="flex flex-col gap-4">
       <Health />
       <Alerts />
       <Usage />
+      <ProviderQuotaPanel />
       <Retention />
+      <StorageDeletions />
     </div>
   );
 }

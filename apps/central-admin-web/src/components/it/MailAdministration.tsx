@@ -15,15 +15,17 @@ import { formatFullDate } from "@/components/mail/mail-utils";
 import { classifyMailError } from "@/lib/mail.service";
 import * as adminApi from "@/lib/mail-admin.service";
 import MailForwardingAdmin from "@/components/it/MailForwardingAdmin";
+import MailQuarantine from "@/components/it/MailQuarantine";
 import type { AdminDomain, ProvisionRequest } from "@/types/mail-admin.types";
 
-type Tab = "domains" | "mailboxes" | "provisioning" | "grants" | "forwarding" | "holds" | "audit";
+type Tab = "domains" | "mailboxes" | "provisioning" | "grants" | "forwarding" | "quarantine" | "holds" | "audit";
 const TABS: { id: Tab; label: string }[] = [
   { id: "domains", label: "Domains" },
   { id: "mailboxes", label: "Shared mailboxes" },
   { id: "provisioning", label: "Provisioning" },
   { id: "grants", label: "Send-as grants" },
   { id: "forwarding", label: "Forwarding & recovery" },
+  { id: "quarantine", label: "Quarantine" },
   { id: "holds", label: "Legal holds & retention" },
   { id: "audit", label: "Audit & events" },
 ];
@@ -562,6 +564,7 @@ export default function MailAdministration() {
               {tab === "provisioning" && <Provisioning canEdit={canEdit} />}
               {tab === "grants" && <Grants canEdit={canEdit} />}
               {tab === "forwarding" && <MailForwardingAdmin canEdit={canEdit} />}
+              {tab === "quarantine" && <MailQuarantine canEdit={canEdit} />}
               {tab === "holds" && <Holds canEdit={canEdit} />}
               {tab === "audit" && <Audit />}
             </div>

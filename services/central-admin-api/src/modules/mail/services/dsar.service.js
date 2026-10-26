@@ -21,11 +21,17 @@
 //   Marketing consent/suppression evidence is kept (suppression must persist
 //   to honour the objection).
 // - Every call is audited with counts and a SHA-256 of the address only.
+// - Gap 5 (migration 37): the content objects of each erased message are
+//   enqueued for durable deletion (mail_storage_deletions) in the same
+//   transaction that erases the message, then deleted right after commit;
+//   objects whose deletion fails are retried by the deletion worker. Before
+//   migration 37 they are removed inline, best effort, as before.
 
 const crypto = require("crypto");
 const policy = require("../authz/mail.policy");
 const { mailError } = require("../mail.errors");
 const { normalizeAddress } = require("../security/address.util");
+const { objectReferenced } = require("../ops/storage-deletion.service");
 
 const REDACTED_ADDRESS = "redacted@dsar.invalid";
 const MAX_MESSAGES = 5000;
@@ -38,7 +44,7 @@ function iso(value) {
   return value ? new Date(value).toISOString() : null;
 }
 
-function createDsarService({ client, audit, stepUp, storage, features = null, clock = () => new Date() }) {
+function createDsarService({ client, audit, stepUp, storage, features = null, deletions = null, clock = () => new Date() }) {
   async function validate(user, { organizationId, email, reason } = {}) {
     await policy.requireMailAdmin(client, user, "EDIT");
     if (!policy.isUuid(organizationId)) throw mailError("MAIL_VALIDATION_FAILED", { field: "organizationId" });
@@ -122,13 +128,7 @@ function createDsarService({ client, audit, stepUp, storage, features = null, cl
   }
 
   async function stillReferenced(key) {
-    const [messages, attachments] = await Promise.all([
-      client.mailMessage.count({ where: { OR: [{ contentObjectKey: key }, { rawMimeObjectKey: key }] } }),
-      client.mailAttachment.count({ where: { storageKey: key } }),
-    ]);
-    if (messages || attachments) return true;
-    if (features && (await features.isReady())) return (await client.mailMessageArchive.count({ where: { OR: [{ headersObjectKey: key }, { rawMimeObjectKey: key }] } })) > 0;
-    return false;
+    return objectReferenced(client, key, { archivesReady: Boolean(features && (await features.isReady())) });
   }
 
   async function eraseMessage(tx, message, address) {
@@ -139,7 +139,8 @@ function createDsarService({ client, audit, stepUp, storage, features = null, cl
       await tx.mailMessageArchive.deleteMany({ where: { messageId: message.id } });
       await tx.mailMessageSearchIndex.deleteMany({ where: { messageId: message.id } });
     }
-    await tx.mailAttachment.deleteMany({ where: { messageId: message.id } });
+    if (deletions) await deletions.dropAttachments(tx, { messageId: message.id });
+    else await tx.mailAttachment.deleteMany({ where: { messageId: message.id } });
     await tx.mailMessageRecipient.updateMany({ where: { messageId: message.id, address }, data: { address: REDACTED_ADDRESS, name: null } });
     await tx.mailDeliveryEvent.updateMany({ where: { messageId: message.id, recipient: address }, data: { recipient: null } });
     const fromSubject = message.fromAddress === address;
@@ -182,7 +183,22 @@ function createDsarService({ client, audit, stepUp, storage, features = null, cl
       else erasable.push(message);
     }
     const result = { organizationId, dryRun, candidates: messages.length, erasable: erasable.length, erased: 0, skippedHeld, truncated: rows.length > MAX_MESSAGES, objectsRemoved: 0, objectsKeptShared: 0, objectRemoveFailed: 0 };
-    if (!dryRun) {
+    if (!dryRun && deletions) {
+      const plans = [];
+      for (const message of erasable) {
+        plans.push(await client.$transaction(async (tx) => {
+          const removed = await eraseMessage(tx, message, address);
+          return deletions.enqueue(tx, removed, { purpose: "DSAR", reason: "DSAR_ERASURE", sourceType: "message", sourceId: message.id, organizationId, mailboxId: message.mailboxId, requestedBy: user.id });
+        }));
+        result.erased += 1;
+      }
+      for (const plan of plans) {
+        const settled = await deletions.settle(plan);
+        result.objectsRemoved += settled.removed;
+        result.objectsKeptShared += settled.shared + settled.held;
+        result.objectRemoveFailed += settled.failed;
+      }
+    } else if (!dryRun) {
       const keys = new Set();
       for (const message of erasable) {
         const removed = await client.$transaction(async (tx) => eraseMessage(tx, message, address));

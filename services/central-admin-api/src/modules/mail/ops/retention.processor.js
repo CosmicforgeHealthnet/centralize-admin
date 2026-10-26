@@ -31,6 +31,14 @@
 //   REDACT   (webhook payloads) replace the stored provider payload.
 //   system DELETE removes append-only integration rows inside a purge
 //            transaction (SET LOCAL cosmicforge.mail_retention_purge = 'on').
+//
+// Gap 5 (migration 37): storage objects are not removed inline. Their keys are
+// enqueued in mail_storage_deletions in the SAME transaction that drops the
+// last row referencing them, then settled right after commit; anything left
+// (storage outage) is retried by the deletion worker with backoff. Before
+// migration 37 the previous inline, best-effort removal is kept.
+
+const { objectReferenced } = require("./storage-deletion.service");
 
 const ACTIVE_JOB_STATUSES = ["PENDING", "LEASED", "RETRY_SCHEDULED", "RECONCILING"];
 
@@ -43,7 +51,7 @@ function addCounts(counts, delta) {
   return next;
 }
 
-function createRetentionProcessor({ client, config, audit, storage, features = null, clock = () => new Date(), logger = null }) {
+function createRetentionProcessor({ client, config, audit, storage, features = null, deletions = null, clock = () => new Date(), logger = null }) {
   const now = () => clock();
 
   async function holdsFor(organizationId) {
@@ -94,7 +102,7 @@ function createRetentionProcessor({ client, config, audit, storage, features = n
     await tx.mailDeliveryEvent.deleteMany({ where: { messageId: { in: messageIds } } });
     await tx.mailOutboxJob.deleteMany({ where: { messageId: { in: messageIds }, status: { notIn: ACTIVE_JOB_STATUSES } } });
     await tx.mailMessageRecipient.deleteMany({ where: { messageId: { in: messageIds } } });
-    await tx.mailAttachment.deleteMany({ where: { id: { in: attachments.map((attachment) => attachment.id) } } });
+    await dropAttachmentRows(tx, { id: { in: attachments.map((attachment) => attachment.id) } });
     await tx.mailDraft.deleteMany({ where: { id: { in: draftIds } } });
     await tx.mailUserThreadState.deleteMany({ where: { threadId: thread.id } });
     await tx.mailThreadLabel.deleteMany({ where: { threadId: thread.id } });
@@ -111,15 +119,33 @@ function createRetentionProcessor({ client, config, audit, storage, features = n
   // references it, so purging one mailbox never destroys another mailbox's
   // content (including content under a legal hold).
   async function stillReferenced(key) {
-    const [message, attachment] = await Promise.all([
-      client.mailMessage.count({ where: { OR: [{ contentObjectKey: key }, { rawMimeObjectKey: key }] } }),
-      client.mailAttachment.count({ where: { storageKey: key } }),
-    ]);
-    if (message || attachment) return true;
-    if (features && (await features.isReady())) {
-      return (await client.mailMessageArchive.count({ where: { OR: [{ headersObjectKey: key }, { rawMimeObjectKey: key }] } })) > 0;
+    return objectReferenced(client, key, { archivesReady: Boolean(features && (await features.isReady())) });
+  }
+
+  // Gap 5: attachment rows go through the deletion service (rows with an
+  // append-only quarantine decision are tombstoned, not deleted).
+  async function dropAttachmentRows(tx, where) {
+    if (deletions) return deletions.dropAttachments(tx, where);
+    return (await tx.mailAttachment.deleteMany({ where })).count;
+  }
+
+  // Inside the purge transaction: enqueue the keys whose last reference this
+  // transaction dropped (legacy inline plan without a deletion service).
+  async function queueObjects(tx, keys, meta) {
+    if (!deletions) return { mode: "legacy", keys: [...new Set(keys.filter(Boolean))] };
+    return deletions.enqueue(tx, keys, { purpose: "RETENTION", ...meta });
+  }
+
+  // After commit. Never throws: a failure leaves the rows queued for retry.
+  async function settleObjects(plan) {
+    if (plan.mode === "legacy") return removeObjects(plan.keys);
+    try {
+      const result = await deletions.settle(plan);
+      return { removed: result.removed, failed: result.failed, shared: result.shared + result.held };
+    } catch (error) {
+      logger?.warn?.(`[MailRetention] storage deletion settle failed (${error?.code || "error"})`);
+      return { removed: 0, failed: plan.keys.length, shared: plan.shared || 0 };
     }
-    return false;
   }
 
   async function removeObjects(keys) {
@@ -185,10 +211,11 @@ function createRetentionProcessor({ client, config, audit, storage, features = n
       }
       const result = await client.$transaction(async (tx) => {
         const purged = await purgeThread(tx, thread);
+        purged.plan = await queueObjects(tx, purged.keys, { reason: "RETENTION_PURGE", sourceType: "retention_run", sourceId: run.id, organizationId: run.organizationId, mailboxId: thread.mailboxId });
         await tx.mailRetentionRun.update({ where: { id: run.id }, data: { cursor } });
         return purged;
       });
-      const objects = await removeObjects(result.keys);
+      const objects = await settleObjects(result.plan);
       delta = addCounts(delta, { purgedThreads: 1, purgedMessages: result.messages, purgedAttachments: result.attachments, purgedAttachmentBytes: result.bytes, storageObjectsRemoved: objects.removed, storageRemoveFailed: objects.failed, storageObjectsKeptShared: objects.shared });
     }
     if (threads.length && delta.candidates) delta.newestCandidateAt = threads[threads.length - 1].lastMessageAt.toISOString();
@@ -231,16 +258,16 @@ function createRetentionProcessor({ client, config, audit, storage, features = n
       let cursor = drafts.length ? { phase: "drafts", id: drafts[drafts.length - 1].id } : { phase: "attachments" };
       if (execute && drafts.length) {
         const ids = drafts.map((draft) => draft.id);
-        const keys = await client.$transaction(async (tx) => {
+        const plan = await client.$transaction(async (tx) => {
           const attachments = await tx.mailAttachment.findMany({ where: { draftId: { in: ids }, messageId: null }, select: { id: true, storageKey: true } });
-          await tx.mailAttachment.deleteMany({ where: { id: { in: attachments.map((attachment) => attachment.id) } } });
+          await dropAttachmentRows(tx, { id: { in: attachments.map((attachment) => attachment.id) } });
           // Draft attachment rows already copied onto a sent message only lose the draft link.
           await tx.mailAttachment.updateMany({ where: { draftId: { in: ids } }, data: { draftId: null } });
           await tx.mailDraft.deleteMany({ where: { id: { in: ids } } });
           await tx.mailRetentionRun.update({ where: { id: run.id }, data: { cursor } });
-          return attachments.map((attachment) => attachment.storageKey).filter(Boolean);
+          return queueObjects(tx, attachments.map((attachment) => attachment.storageKey), { reason: "RETENTION_DRAFT_SWEEP", sourceType: "retention_run", sourceId: run.id, organizationId: run.organizationId });
         });
-        const objects = await removeObjects([...new Set(keys)]);
+        const objects = await settleObjects(plan);
         delta = addCounts(delta, { purgedDrafts: ids.length, storageObjectsRemoved: objects.removed, storageRemoveFailed: objects.failed, storageObjectsKeptShared: objects.shared });
       }
       if (drafts.length < take) cursor = { phase: "attachments" };
@@ -252,11 +279,12 @@ function createRetentionProcessor({ client, config, audit, storage, features = n
     delta = { orphanAttachmentCandidates: orphans.length };
     const cursor = orphans.length ? { phase: "attachments", id: orphans[orphans.length - 1].id } : run.cursor;
     if (execute && orphans.length) {
-      await client.$transaction(async (tx) => {
-        await tx.mailAttachment.deleteMany({ where: { id: { in: orphans.map((row) => row.id) }, messageId: null, draftId: null } });
+      const plan = await client.$transaction(async (tx) => {
+        await dropAttachmentRows(tx, { id: { in: orphans.map((row) => row.id) }, messageId: null, draftId: null });
         await tx.mailRetentionRun.update({ where: { id: run.id }, data: { cursor } });
+        return queueObjects(tx, orphans.map((row) => row.storageKey), { reason: "RETENTION_ORPHAN_SWEEP", sourceType: "retention_run", sourceId: run.id, organizationId: run.organizationId });
       });
-      const objects = await removeObjects([...new Set(orphans.map((row) => row.storageKey).filter(Boolean))]);
+      const objects = await settleObjects(plan);
       delta = addCounts(delta, { purgedOrphanAttachments: orphans.length, storageObjectsRemoved: objects.removed, storageRemoveFailed: objects.failed, storageObjectsKeptShared: objects.shared });
     }
     return { delta, cursor, done: orphans.length < take };

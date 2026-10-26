@@ -40,7 +40,9 @@ function createAttachmentReviewService({ client, config, store, scanner, audit }
       metadata: { from: attachment.scanStatus, to: verdict.scanStatus, scanner: scanner.name },
     }, context);
     if (changed.count !== 1) throw mailError("MAIL_INVALID_TRANSITION", { resource: "attachment" });
-    return { id: attachment.id, scanStatus: verdict.scanStatus, quarantined: verdict.quarantined, downloadable: !verdict.quarantined && verdict.scanStatus === "CLEAN" };
+    // previousScanStatus/scanDetail/scanner: scan evidence for the IT
+    // quarantine decision log (gap 6); never content.
+    return { id: attachment.id, scanStatus: verdict.scanStatus, quarantined: verdict.quarantined, downloadable: !verdict.quarantined && verdict.scanStatus === "CLEAN", previousScanStatus: attachment.scanStatus, scanDetail: verdict.scanDetail || null, scanner: scanner.name };
   }
 
   return { rescanAttachment };

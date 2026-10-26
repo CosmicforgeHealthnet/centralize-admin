@@ -20,7 +20,7 @@ const PROVIDER_DEGRADED = /^(RESEND_HTTP_(429|5\d\d)|PROVIDER_(TIMEOUT|NETWORK_E
 // "unusual exports"). Counted per actor per hour; never the content itself.
 const EXPORT_ACTIONS = ["MAIL_ATTACHMENT_DOWNLOADED", "MAIL_RAW_MIME_DOWNLOADED", "MAIL_ORIGINAL_HEADERS_READ", "MAIL_BREAK_GLASS_READ", "MAIL_BREAK_GLASS_ATTACHMENT_DOWNLOAD", "MAIL_BREAK_GLASS_RAW_DOWNLOAD", "MAIL_BREAK_GLASS_HEADERS_READ", "MAIL_BREAK_GLASS_SEARCH"];
 
-function createOpsMonitor({ client, config, notifications, health = async () => ({}), runtime = null, metrics = null, searchIndex = null, features = null, clock = () => new Date(), logger = null }) {
+function createOpsMonitor({ client, config, notifications, health = async () => ({}), runtime = null, metrics = null, searchIndex = null, features = null, storageDeletions = null, clock = () => new Date(), logger = null }) {
   const now = () => clock();
   const thresholds = config.ops.thresholds;
 
@@ -119,6 +119,8 @@ function createOpsMonitor({ client, config, notifications, health = async () => 
       inboundUnrecovered24h: unrecovered24h.reduce((sum, row) => sum + Number(row.metadata?.count || 0), 0),
       process: metrics ? { authDenials: metrics.total("auth_denials"), providerErrors: metrics.total("provider_errors"), rateLimitFallbacks: metrics.total("rate_limit_fallback") } : null,
       features: features ? { gapClosureSchema: await features.isReady() } : null,
+      // Gap 5: durable storage deletion queue (null before migration 37).
+      storageDeletions: storageDeletions ? await storageDeletions.stats().catch(() => null) : null,
       openAlerts: openAlerts.map(serializeAlert),
     };
   }
@@ -164,6 +166,8 @@ function createOpsMonitor({ client, config, notifications, health = async () => 
     for (const row of snap.exports1h?.byActor || []) push("MAIL_UNUSUAL_EXPORT", "critical", { key: row.actorAdminUserId, actorAdminUserId: row.actorAdminUserId, count: row.count, threshold: thresholds.exportsPerActorHour });
     if ((snap.scanning24h?.failures || 0) >= thresholds.scannerFailures24h) push("MAIL_SCANNER_FAILURES", "warning", { failures24h: snap.scanning24h.failures });
     if (snap.inboundUnrecovered24h > 0) push("MAIL_INBOUND_UNRECOVERED", "critical", { count: snap.inboundUnrecovered24h });
+    if (snap.storageDeletions?.dead > 0) push("MAIL_STORAGE_DELETIONS_DEAD", "warning", { dead: snap.storageDeletions.dead });
+    if (snap.storageDeletions?.due && snap.storageDeletions.oldestDueSeconds > thresholds.queueOldestPendingSeconds) push("MAIL_STORAGE_DELETION_BACKLOG", "warning", { due: snap.storageDeletions.due, oldestDueSeconds: snap.storageDeletions.oldestDueSeconds });
     if (snap.process?.rateLimitFallbacks > 0) push("MAIL_RATE_LIMIT_DEGRADED", "warning", { fallbacks: snap.process.rateLimitFallbacks });
     if (snap.runtimeHalt?.staffMail || snap.runtimeHalt?.marketing) push("MAIL_EMERGENCY_STOP_ACTIVE", "warning", { key: "halt", staffMail: snap.runtimeHalt.staffMail, marketing: snap.runtimeHalt.marketing });
     if (healthReport.storage && healthReport.storage.ok === false && config.enabled) push("MAIL_STORAGE_UNHEALTHY", "critical", { detail: healthReport.storage.detail });
@@ -265,6 +269,10 @@ function createOpsMonitor({ client, config, notifications, health = async () => 
     metric("cf_mail_scanner_failures_24h", "Attachments whose malware scan failed or had no scanner (24h)", "gauge", [[null, snap.scanning24h.failures]]);
     metric("cf_mail_inbound_unrecovered_24h", "Inbound emails whose processing failed even after reconciliation (24h)", "gauge", [[null, snap.inboundUnrecovered24h]]);
     if (metrics) metric("cf_mail_rate_limit_fallback_total", "Requests limited by the process-local fallback (shared limiter unavailable)", "counter", metrics.samples("rate_limit_fallback"));
+    if (snap.storageDeletions) {
+      metric("cf_mail_storage_deletions", "Durable storage deletions by status", "gauge", Object.entries(snap.storageDeletions.byStatus).map(([status, value]) => [{ status }, value]));
+      metric("cf_mail_storage_deletion_oldest_due_seconds", "Age of the oldest due storage deletion", "gauge", [[null, snap.storageDeletions.oldestDueSeconds]]);
+    }
     metric("cf_mail_halted", "1 when an emergency stop halts the purpose", "gauge", [[{ purpose: "staff" }, snap.runtimeHalt?.staffMail ? 1 : 0], [{ purpose: "marketing" }, snap.runtimeHalt?.marketing ? 1 : 0]]);
     return `${lines.join("\n")}\n`;
   }
