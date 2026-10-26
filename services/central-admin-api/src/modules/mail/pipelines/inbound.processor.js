@@ -10,7 +10,22 @@
 // 3. unknown local recipients follow MAIL_UNKNOWN_RECIPIENT_POLICY:
 //    reject = record and drop; quarantine = record and end the job as
 //    FAILED(INBOUND_UNKNOWN_RECIPIENT_QUARANTINED) so an operator can requeue
-//    it after provisioning the address (nothing is stored or shown to staff)
+//    it after provisioning the address (nothing is stored or shown to staff).
+//    In a mixed message (some recipients known) the known ones get their copy
+//    and, under quarantine, the unknown ones are held in a separate
+//    PROCESS_INBOUND job restricted to them (payload.onlyRecipients), which
+//    ends FAILED(INBOUND_UNKNOWN_RECIPIENT_QUARANTINED) the same way and is
+//    requeued by an operator after provisioning. Unknown recipients never
+//    get a copy.
+//    Routing depends on the domain being ours, not SUSPENDED and not having
+//    receiving DISABLED at the provider; the overall (sending) verification
+//    result never matters (a failing DKIM record must not lose inbound
+//    mail). Recipients on one of our domains that is not receiving are held:
+//    when nobody else gets the mail the job ends
+//    FAILED(INBOUND_DOMAIN_NOT_RECEIVING) (requeueable, reported by the
+//    reconciler as unrecovered), never SUCCEEDED with nothing delivered.
+//    Receiving disabled (MAIL_RECEIVING_ENABLED=false) defers the job without
+//    consuming an attempt.
 // 4. assess sender authentication (provider-verified SPF/DKIM/DMARC only)
 // 5. scan + encrypt attachments, encrypt body and archive original headers
 //    (and raw MIME when approved) once; create one copy per mailbox (BCC
@@ -53,7 +68,25 @@ function isConcurrentDuplicate(error) {
   return /rfc_message_id|rfcMessageId/.test(fields);
 }
 
-function createInboundProcessor({ client, config, adapter, store, scanner, audit, notifications, usage = null, archive = null, forwarding = null, campaignReplies = null, senderAuth = loadSenderAuthPolicy({}), clock = () => new Date(), logger = null }) {
+// A domain we own receives mail unless an operator suspended it or receiving
+// is disabled for it at the provider. Sending verification (SPF/DKIM, the
+// provider's overall status) is irrelevant for routing.
+function domainReceives(row) {
+  return row.status !== "SUSPENDED" && row.receivingStatus !== "DISABLED";
+}
+
+const UNKNOWN_HOLD_SOURCE = "unknown-recipient-hold";
+
+// The worker increments attemptCount when it claims a job and dead-letters a
+// retryable failure once attemptCount >= maxAttempts: that run is the last.
+function finalAttempt(job) {
+  const attempt = Number(job?.attemptCount);
+  const max = Number(job?.maxAttempts);
+  return Number.isFinite(attempt) && Number.isFinite(max) && max > 0 && attempt >= max;
+}
+const RECEIVING_DISABLED_DEFER_SECONDS = 300;
+
+function createInboundProcessor({ client, config, adapter, store, scanner, audit, notifications, jobs = null, usage = null, archive = null, forwarding = null, campaignReplies = null, senderAuth = loadSenderAuthPolicy({}), clock = () => new Date(), logger = null }) {
   // Verification works in every mode, so echoes of mail sent before a switch
   // back to external-only are still recognised.
   const origin = originHeaderFromConfig(config);
@@ -91,19 +124,31 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
     return echoes;
   }
 
-  async function ownDomains() {
-    const rows = await client.mailDomain.findMany({ select: { domain: true } });
-    return new Set(rows.map((row) => row.domain.toLowerCase()));
+  // Every domain we own (`all`) and the subset currently receiving mail.
+  async function ownDomainState() {
+    const rows = await client.mailDomain.findMany({ select: { domain: true, status: true, receivingStatus: true } });
+    const all = new Set();
+    const receiving = new Set();
+    for (const row of rows) {
+      const name = row.domain.toLowerCase();
+      all.add(name);
+      if (domainReceives(row)) receiving.add(name);
+    }
+    return { all, receiving };
   }
 
+  // `domains`: an ownDomainState() result (a plain Set of domain names is
+  // accepted too and treated as all receiving).
   async function resolveRecipients(addresses, domains = null) {
     const normalized = [...new Set(addresses.map(normalizeAddress).filter(Boolean))];
-    if (!normalized.length) return { local: [], unknown: [] };
-    const ours = domains || (await ownDomains());
-    const candidates = normalized.filter((address) => ours.has(address.split("@")[1]));
-    if (!candidates.length) return { local: [], unknown: [] };
+    if (!normalized.length) return { local: [], unknown: [], domainHeld: [] };
+    const state = domains instanceof Set ? { all: domains, receiving: domains } : domains || (await ownDomainState());
+    const ours = normalized.filter((address) => state.all.has(address.split("@")[1]));
+    const candidates = ours.filter((address) => state.receiving.has(address.split("@")[1]));
+    const domainHeld = ours.filter((address) => !state.receiving.has(address.split("@")[1]));
+    if (!candidates.length) return { local: [], unknown: [], domainHeld };
     const rows = await client.mailAddress.findMany({
-      where: { address: { in: candidates }, status: "ACTIVE", mailboxId: { not: null }, mailbox: { status: "ACTIVE" }, domain: { status: { in: ["VERIFIED", "PENDING_VERIFICATION"] } } },
+      where: { address: { in: candidates }, status: "ACTIVE", mailboxId: { not: null }, mailbox: { status: "ACTIVE" }, domain: { status: { not: "SUSPENDED" }, receivingStatus: { not: "DISABLED" } } },
       include: { mailbox: true },
     });
     const known = new Map(rows.map((row) => [row.address, row]));
@@ -115,7 +160,7 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
       seenMailboxes.add(row.mailboxId);
       local.push(row);
     }
-    return { local, unknown: candidates.filter((address) => !known.has(address)) };
+    return { local, unknown: candidates.filter((address) => !known.has(address)), domainHeld };
   }
 
   async function mailboxUsageBytes(mailboxId) {
@@ -124,33 +169,57 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
   }
 
   async function process(job) {
-    if (!config.receivingEnabled) throw new PipelineError("MAIL_RECEIVING_DISABLED", "receiving disabled", { retryable: true });
+    // Receiving switched off: try again later without consuming an attempt
+    // (a disabled flag must never dead-letter received mail).
+    if (!config.receivingEnabled) return { defer: { seconds: RECEIVING_DISABLED_DEFER_SECONDS, code: "MAIL_RECEIVING_DISABLED", message: "receiving disabled" } };
     const providerEmailId = String(job.payload?.providerEmailId || "");
     if (!providerEmailId) throw new PipelineError("INBOUND_PAYLOAD_INVALID", "missing provider email id", { retryable: false });
 
     const inbound = await adapter.fetchInboundMessage(providerEmailId);
     if (!inbound.from?.address) throw new PipelineError("INBOUND_SENDER_INVALID", "sender missing or invalid", { retryable: false });
 
-    const domains = await ownDomains();
+    const domainState = await ownDomainState();
+    const domains = domainState.all;
     // Every address the email was delivered for (To, Cc, Bcc/envelope).
     // Only our own domains are considered; BCC data never becomes visible.
-    const envelope = [...(job.payload?.to || []), ...(inbound.to || []).map((party) => party.address), ...(inbound.cc || []).map((party) => party.address), ...(inbound.envelopeRecipients || [])];
-    const resolved = await resolveRecipients(envelope, domains);
-    const { unknown } = resolved;
+    let envelope = [...(job.payload?.to || []), ...(inbound.to || []).map((party) => party.address), ...(inbound.cc || []).map((party) => party.address), ...(inbound.envelopeRecipients || [])];
+    // A held unknown-recipient job only (re)tries the recipients it holds.
+    const restricted = Array.isArray(job.payload?.onlyRecipients) ? new Set(job.payload.onlyRecipients.map(normalizeAddress).filter(Boolean)) : null;
+    if (restricted) envelope = envelope.map(normalizeAddress).filter((address) => address && restricted.has(address));
+    const isHoldJob = job.payload?.source === UNKNOWN_HOLD_SOURCE;
+    const resolved = await resolveRecipients(envelope, domainState);
+    const { unknown, domainHeld } = resolved;
     let { local } = resolved;
+    const quarantine = config.unknownRecipientPolicy === "quarantine";
+    const senderDomain = inbound.from.address.split("@")[1];
+    const domainsOf = (list) => [...new Set(list.map((address) => address.split("@")[1]))].slice(0, 10);
+    if (domainHeld.length) {
+      await audit.record({ action: "MAIL_INBOUND_DOMAIN_NOT_RECEIVING", targetType: "webhook_event", targetId: job.webhookEventId, outcome: "DENIED", metadata: { heldCount: domainHeld.length, domains: domainsOf(domainHeld), providerEmailId, senderDomain, delivering: local.length > 0 } });
+    }
+    let held = null;
+    if (unknown.length && quarantine && local.length && !isHoldJob) held = await holdUnknownRecipients({ job, providerEmailId, unknown });
     if (unknown.length) {
       await audit.record({
-        action: config.unknownRecipientPolicy === "quarantine" ? "MAIL_INBOUND_UNKNOWN_RECIPIENT_QUARANTINED" : "MAIL_INBOUND_UNKNOWN_RECIPIENT_REJECTED",
+        action: quarantine ? "MAIL_INBOUND_UNKNOWN_RECIPIENT_QUARANTINED" : "MAIL_INBOUND_UNKNOWN_RECIPIENT_REJECTED",
         targetType: "webhook_event",
         targetId: job.webhookEventId,
         outcome: "DENIED",
-        metadata: { unknownCount: unknown.length, domains: [...new Set(unknown.map((address) => address.split("@")[1]))].slice(0, 10), providerEmailId, senderDomain: inbound.from.address.split("@")[1] },
+        metadata: { unknownCount: unknown.length, domains: domainsOf(unknown), providerEmailId, senderDomain, mixed: local.length > 0, ...(held ? { heldJobId: held.id } : {}) },
       });
     }
     if (!local.length) {
-      if (unknown.length && config.unknownRecipientPolicy === "quarantine") throw new PipelineError("INBOUND_UNKNOWN_RECIPIENT_QUARANTINED", "no provisioned recipient; held for operator review", { retryable: false });
+      if (unknown.length && quarantine) throw new PipelineError("INBOUND_UNKNOWN_RECIPIENT_QUARANTINED", "no provisioned recipient; held for operator review", { retryable: false });
+      // Mail for one of our domains that is not receiving (suspended, or
+      // receiving disabled) is never counted as processed: FAILED and
+      // requeueable once the domain receives again.
+      if (domainHeld.length) throw new PipelineError("INBOUND_DOMAIN_NOT_RECEIVING", "recipient domain is not receiving; held for operator review", { retryable: false });
       return { delivered: 0, unknown: unknown.length };
     }
+    const finish = (result) => {
+      // A hold job that still has unknown recipients keeps holding them.
+      if (isHoldJob && quarantine && unknown.length) throw new PipelineError("INBOUND_UNKNOWN_RECIPIENT_QUARANTINED", "some recipients are still not provisioned; held for operator review", { retryable: false });
+      return { ...result, ...(held ? { heldUnknown: unknown.length } : {}), ...(domainHeld.length ? { domainHeld: domainHeld.length } : {}) };
+    };
 
     // Sender authentication: provider-verified results only.
     const assessment = assessSenderAuthentication(inbound, { settings: senderAuth, internalDomains: domains });
@@ -166,22 +235,44 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
         await audit.record({ action: "MAIL_INBOUND_PROVIDER_ECHO_DEDUPED", targetType: "message", targetId: echo.sourceId, mailboxId, metadata: { via: echo.via, providerEmailId } });
       }
       local = local.filter((target) => !echoes.has(target.mailboxId));
-      if (!local.length) return { delivered: 0, unknown: unknown.length, duplicate: true, echo: echoes.size };
+      if (!local.length) return finish({ delivered: 0, unknown: unknown.length, duplicate: true, echo: echoes.size });
     }
     // Replays (webhook retry, reconciliation) of an email every mailbox
     // already has: nothing to store. Checked before any object is written.
     const existingCopies = await client.mailMessage.count({ where: { mailboxId: { in: local.map((target) => target.mailboxId) }, rfcMessageId } });
-    if (existingCopies >= local.length) return { delivered: 0, unknown: unknown.length, duplicate: true };
+    if (existingCopies >= local.length) return finish({ delivered: 0, unknown: unknown.length, duplicate: true });
 
     // Objects written by this job; removed again if no mailbox copy ends up
     // referencing them (duplicate race, quota rejection or a failure).
     const writtenKeys = [];
+    let result;
     try {
-      return await deliver({ job, inbound, providerEmailId, local, unknown, domains, assessment, rfcMessageId, writtenKeys });
+      result = await deliver({ job, inbound, providerEmailId, local, unknown, domains, assessment, rfcMessageId, writtenKeys });
     } catch (error) {
       await discardUnreferenced(writtenKeys);
       throw error;
     }
+    return finish(result);
+  }
+
+  // Quarantine policy, mixed message: the unknown recipients are held in
+  // their own job (restricted to them). It runs once, finds them still
+  // unknown and ends FAILED(INBOUND_UNKNOWN_RECIPIENT_QUARANTINED), exactly
+  // like an all-unknown message; an operator requeues it after provisioning.
+  // Idempotent per provider email (webhook retries / reconciliation).
+  async function holdUnknownRecipients({ job, providerEmailId, unknown }) {
+    if (!jobs) return null;
+    const { job: holdJob } = await jobs.enqueue(null, {
+      queue: "INBOUND",
+      kind: "PROCESS_INBOUND",
+      idempotencyKey: `inbound:unknown-hold:${providerEmailId}`.slice(0, 160),
+      payload: { providerEmailId, to: unknown.slice(0, 100), onlyRecipients: unknown.slice(0, 100), source: UNKNOWN_HOLD_SOURCE, heldFromJobId: job.id || null },
+      maxAttempts: config.worker?.maxAttempts || 6,
+    }).catch(async (error) => {
+      if (error?.code !== "P2002") throw error;
+      return { job: await client.mailOutboxJob.findUnique({ where: { idempotencyKey: `inbound:unknown-hold:${providerEmailId}`.slice(0, 160) } }) };
+    });
+    return holdJob;
   }
 
   async function stillReferenced(key) {
@@ -224,8 +315,13 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
           // Same cap as the policy check below, so the download stops early.
           buffer = await attachment.download(maxBytes);
         } catch (error) {
-          if (error.kind === "RETRYABLE") throw new PipelineError("ATTACHMENT_DOWNLOAD_RETRY", "attachment download failed", { retryable: true });
-          storedAttachments.push({ meta: attachment, failed: true, reason: error.code === "ATTACHMENT_TOO_LARGE" ? "POLICY_SIZE_LIMIT" : error.code || "DOWNLOAD_FAILED" });
+          // Retryable (e.g. ATTACHMENT_URL_EXPIRED: the retry re-lists the
+          // attachments with fresh signed links) - except on the job's final
+          // attempt: the message is then delivered with this attachment
+          // recorded as failed instead of dead-lettering the whole email.
+          if (error.kind === "RETRYABLE" && !finalAttempt(job)) throw new PipelineError("ATTACHMENT_DOWNLOAD_RETRY", "attachment download failed", { retryable: true });
+          storedAttachments.push({ meta: attachment, failed: true, reason: error.code === "ATTACHMENT_TOO_LARGE" ? "POLICY_SIZE_LIMIT" : String(error.code || "DOWNLOAD_FAILED").slice(0, 64) });
+          if (error.kind === "RETRYABLE") await audit.record({ action: "MAIL_INBOUND_ATTACHMENT_GIVEN_UP", targetType: "webhook_event", targetId: job.webhookEventId, outcome: "FAILURE", metadata: { providerEmailId, code: String(error.code || "RETRYABLE").slice(0, 64), attempt: job.attemptCount } });
           continue;
         }
         const verdict = await evaluateAttachment(scanner, { filename: attachment.filename, contentType: attachment.contentType, buffer, maxBytes });
@@ -354,4 +450,4 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
   return { process, resolveRecipients };
 }
 
-module.exports = { createInboundProcessor, PipelineError };
+module.exports = { createInboundProcessor, PipelineError, domainReceives, UNKNOWN_HOLD_SOURCE };

@@ -16,12 +16,18 @@ function createInboundReconciler({ client, config, adapter, jobs, audit, clock =
   // recipient held for review): handled. DEAD_LETTER/CANCELLED mean transient
   // failures ran out of attempts: not processed.
   const UNSUCCESSFUL = new Set(["DEAD_LETTER", "CANCELLED"]);
+  // FAILED codes that are NOT a handled outcome: the mail was addressed to
+  // one of our domains that was not receiving (suspended / receiving
+  // disabled). Nothing was delivered, so it is reported, never "processed".
+  const HELD_FAILURES = new Set(["INBOUND_DOMAIN_NOT_RECEIVING"]);
+  const unsuccessful = (job) => UNSUCCESSFUL.has(job.status) || (job.status === "FAILED" && HELD_FAILURES.has(job.lastErrorCode));
 
   // What do we already know about this provider email?
   //   DELIVERED   a local copy exists
   //   IN_FLIGHT   a processing job is pending/running
   //   PROCESSED   a job succeeded (e.g. every recipient was unknown/rejected)
-  //               or failed permanently by design (operators requeue those)
+  //               or failed permanently by design (operators requeue those);
+  //               INBOUND_DOMAIN_NOT_RECEIVING failures are NOT processed
   //   UNRECOVERED every job for it failed or dead-lettered and no copy exists:
   //               a received webhook is NOT proof of processing
   //   UNKNOWN     no record at all
@@ -31,12 +37,12 @@ function createInboundReconciler({ client, config, adapter, jobs, audit, clock =
     const events = await client.mailWebhookEvent.findMany({ where: { eventType: "email.received", payload: { path: ["data", "email_id"], equals: providerEmailId } }, select: { id: true, status: true }, take: 10 });
     const jobs = await client.mailOutboxJob.findMany({
       where: { kind: "PROCESS_INBOUND", OR: [{ idempotencyKey: `inbound:reconcile:${providerEmailId}` }, ...(events.length ? [{ webhookEventId: { in: events.map((event) => event.id) } }] : [])] },
-      select: { id: true, status: true, idempotencyKey: true },
+      select: { id: true, status: true, idempotencyKey: true, lastErrorCode: true },
     });
     if (jobs.some((job) => IN_FLIGHT.has(job.status))) return "IN_FLIGHT";
-    if (jobs.some((job) => job.status === "SUCCEEDED" || job.status === "FAILED")) return "PROCESSED";
-    if (jobs.length && jobs.every((job) => UNSUCCESSFUL.has(job.status))) {
-      return { state: "UNRECOVERED", reconcileAttempted: jobs.some((job) => job.idempotencyKey === `inbound:reconcile:${providerEmailId}`) };
+    if (jobs.some((job) => job.status === "SUCCEEDED" || (job.status === "FAILED" && !unsuccessful(job)))) return "PROCESSED";
+    if (jobs.length && jobs.every(unsuccessful)) {
+      return { state: "UNRECOVERED", reconcileAttempted: jobs.some((job) => job.idempotencyKey === `inbound:reconcile:${providerEmailId}`), domainHeld: jobs.some((job) => job.status === "FAILED" && HELD_FAILURES.has(job.lastErrorCode)) };
     }
     // An accepted event without a job (pre-queue records) is handled unless
     // it was itself marked failed.
@@ -56,6 +62,7 @@ function createInboundReconciler({ client, config, adapter, jobs, audit, clock =
     let recovered = 0;
     let retried = 0;
     let unrecovered = 0;
+    let domainHeld = 0;
     const unrecoveredIds = [];
     let complete = false;
     while (pages < settings.inboundMaxPages) {
@@ -77,6 +84,7 @@ function createInboundReconciler({ client, config, adapter, jobs, audit, clock =
           // cause) instead of counting the email as processed.
           if (known.reconcileAttempted) {
             unrecovered += 1;
+            if (known.domainHeld) domainHeld += 1;
             if (unrecoveredIds.length < 20) unrecoveredIds.push(item.providerEmailId);
             continue;
           }
@@ -102,9 +110,9 @@ function createInboundReconciler({ client, config, adapter, jobs, audit, clock =
     }
     await audit.record({ action: "MAIL_INBOUND_RECONCILED", targetType: "reconciliation", outcome: recovered || unrecovered ? "PARTIAL" : "SUCCESS", metadata: { scanned, recovered, retried, unrecovered, pages, complete } });
     if (unrecovered) {
-      await audit.record({ action: "MAIL_INBOUND_UNRECOVERED", targetType: "reconciliation", outcome: "FAILURE", metadata: { count: unrecovered, providerEmailIds: unrecoveredIds } });
+      await audit.record({ action: "MAIL_INBOUND_UNRECOVERED", targetType: "reconciliation", outcome: "FAILURE", metadata: { count: unrecovered, domainHeld, providerEmailIds: unrecoveredIds } });
     }
-    return { scanned, recovered, retried, unrecovered, pages, complete };
+    return { scanned, recovered, retried, unrecovered, domainHeld, pages, complete };
   }
 
   return { process };

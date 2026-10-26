@@ -43,16 +43,139 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
   }
 
   // ---------------------------------------------------------------- domains
+  // Domain lifecycle (§18, §19.8). Mail never changes DNS. Local states:
+  //   PENDING_VERIFICATION / VERIFIED / FAILED follow the provider's overall
+  //   verification result; SUSPENDED is an operator kill-switch that no
+  //   provider re-check ever changes (the provider results are still stored).
+  // Per-record results (SPF, DKIM, DMARC, receiving) are derived from the
+  // stored dnsRecords array plus sending/receivingStatus (no extra column);
+  // DMARC is never reported by Resend and stays NOT_REPORTED unless a DMARC
+  // record is present.
+  const DOMAIN_MANAGE_PURPOSE = "MAIL_DOMAIN_PROVIDER_MANAGE";
+  const REGION = /^[a-z]{2}-[a-z]+-\d{1,2}$/;
+
+  function recordAggregate(records, name) {
+    const list = (Array.isArray(records) ? records : []).filter((record) => String(record?.record || "").toUpperCase() === name || (name === "DMARC" && String(record?.name || "").toLowerCase().startsWith("_dmarc")));
+    if (!list.length) return name === "DMARC" ? "NOT_REPORTED" : "NOT_CONFIGURED";
+    const statuses = list.map((record) => String(record.status || "").toLowerCase());
+    if (statuses.every((value) => value === "verified")) return "VERIFIED";
+    if (statuses.some((value) => value === "failed")) return "FAILED";
+    return "PENDING";
+  }
+
+  // Per-domain check results for API responses and audit metadata.
+  function domainChecks(row, providerResult = null) {
+    const records = providerResult?.records ?? row?.dnsRecords;
+    return {
+      sending: providerResult?.sendingStatus || row?.sendingStatus || "NOT_CONFIGURED",
+      receiving: providerResult?.receivingStatus || row?.receivingStatus || "NOT_CONFIGURED",
+      spf: providerResult?.spfStatus && providerResult.spfStatus !== "NOT_REPORTED" ? providerResult.spfStatus : recordAggregate(records, "SPF"),
+      dkim: providerResult?.dkimStatus && providerResult.dkimStatus !== "NOT_REPORTED" ? providerResult.dkimStatus : recordAggregate(records, "DKIM"),
+      dmarc: recordAggregate(records, "DMARC"),
+      ...(providerResult ? { providerStatus: providerResult.status || null, region: providerResult.region || null } : {}),
+      receivesMail: Boolean(row) && row.status !== "SUSPENDED" && (providerResult?.receivingStatus || row.receivingStatus) !== "DISABLED",
+    };
+  }
+
+  function withChecks(row, providerResult = null) {
+    return { ...row, checks: domainChecks(row, providerResult) };
+  }
+
+  function providerManagementEnabled() {
+    if (!config.providerDomainManagementEnabled) {
+      throw mailError("MAIL_FEATURE_DISABLED", { status: 409, feature: "provider-domain-management", reason: "MAIL_PROVIDER_DOMAIN_MANAGEMENT_DISABLED" }, "Provider domain management is not enabled (MAIL_PROVIDER_DOMAIN_MANAGEMENT_ENABLED).");
+    }
+  }
+
+  function providerMethod(name) {
+    if (typeof adapter?.[name] !== "function") throw mailError("MAIL_PROVIDER_UNAVAILABLE", { status: 501, reason: "NOT_SUPPORTED", operation: name }, "The configured mail provider does not support this operation.");
+    return adapter[name];
+  }
+
+  function providerFailure(error, operation) {
+    if (error?.statusCode) return error; // already a Mail API error
+    const category = error?.category || null;
+    if (error?.kind === "NOT_CONFIGURED" || category === "NOT_CONFIGURED") return mailError("MAIL_PROVIDER_UNAVAILABLE", { reason: "NOT_CONFIGURED", operation });
+    if (category === "NOT_SUPPORTED") return mailError("MAIL_PROVIDER_UNAVAILABLE", { status: 501, reason: "NOT_SUPPORTED", operation });
+    if (category === "VALIDATION_FAILED") return mailError("MAIL_VALIDATION_FAILED", { reason: "PROVIDER_REJECTED", operation, providerCode: String(error?.code || "").slice(0, 64) });
+    return mailError("MAIL_PROVIDER_UNAVAILABLE", { reason: error?.code || "PROVIDER_ERROR", category, operation });
+  }
+
+  function localStatusFor(domain, result) {
+    // An operator suspension is never lifted by a provider (re-)check.
+    if (domain.status === "SUSPENDED") return "SUSPENDED";
+    return result.status === "VERIFIED" ? "VERIFIED" : result.status === "FAILED" ? "FAILED" : "PENDING_VERIFICATION";
+  }
+
+  function capability(value) {
+    return ["NOT_CONFIGURED", "PENDING", "VERIFIED", "FAILED", "DISABLED"].includes(value) ? value : value ? "PENDING" : "NOT_CONFIGURED";
+  }
+
+  async function storeProviderResult(domain, result, { providerDomainId = undefined } = {}) {
+    const status = localStatusFor(domain, result);
+    const data = {
+      status,
+      sendingStatus: capability(result.sendingStatus),
+      receivingStatus: capability(result.receivingStatus),
+      // dnsRecords stays an array (web UI and marketing preflight read it).
+      dnsRecords: Array.isArray(result.records) ? result.records : [],
+      lastCheckedAt: clock(),
+      verifiedAt: status === "VERIFIED" ? domain.verifiedAt || clock() : status === "SUSPENDED" ? domain.verifiedAt : null,
+      ...(providerDomainId !== undefined ? { providerDomainId } : {}),
+    };
+    if (providerDomainId !== undefined) {
+      // Link only if nobody linked it meanwhile.
+      const updated = await client.mailDomain.updateMany({ where: { id: domain.id, providerDomainId: null }, data });
+      if (updated.count !== 1) {
+        const current = await client.mailDomain.findUnique({ where: { id: domain.id } });
+        if (current?.providerDomainId !== providerDomainId) throw mailError("MAIL_INVALID_TRANSITION", { reason: "PROVIDER_DOMAIN_ALREADY_LINKED" });
+        await client.mailDomain.update({ where: { id: domain.id }, data: { ...data, providerDomainId: undefined } });
+      }
+      return client.mailDomain.findUnique({ where: { id: domain.id } });
+    }
+    return client.mailDomain.update({ where: { id: domain.id }, data });
+  }
+
+  async function assertProviderIdUnclaimed(domain, providerDomainId) {
+    const other = await client.mailDomain.findFirst({ where: { providerDomainId, id: { not: domain.id } }, select: { id: true } });
+    if (other) throw mailError("MAIL_INVALID_TRANSITION", { reason: "PROVIDER_DOMAIN_LINKED_ELSEWHERE" });
+  }
+
+  // Read-only provider lookup by name (GET /domains); null when the provider
+  // has no such domain or cannot list domains.
+  async function lookupByName(domain) {
+    if (typeof adapter?.findDomainByName !== "function") return null;
+    let found;
+    try {
+      found = await adapter.findDomainByName(domain.domain);
+    } catch (error) {
+      if (error?.kind === "NOT_CONFIGURED" || ["NOT_CONFIGURED", "NOT_SUPPORTED", "NOT_FOUND"].includes(error?.category)) return null;
+      throw providerFailure(error, "findDomainByName");
+    }
+    if (!found?.providerDomainId || (found.name && String(found.name).toLowerCase() !== domain.domain)) return null;
+    return found;
+  }
+
+  async function loadDomain(domainId) {
+    const domain = policy.isUuid(domainId) ? await client.mailDomain.findUnique({ where: { id: domainId } }) : null;
+    if (!domain) throw mailError("MAIL_NOT_FOUND", { resource: "domain" });
+    return domain;
+  }
+
   async function listDomains(user) {
     await admin(user, "VIEW");
-    return client.mailDomain.findMany({ orderBy: { domain: "asc" }, include: { organization: { select: { id: true, slug: true, name: true } } } });
+    const rows = await client.mailDomain.findMany({ orderBy: { domain: "asc" }, include: { organization: { select: { id: true, slug: true, name: true } } } });
+    return rows.map((row) => withChecks(row));
   }
 
   async function createDomain(user, { organizationId, domain, providerDomainId }, context) {
     await admin(user);
     const normalized = normalizeDomain(domain);
     if (!normalized) throw mailError("MAIL_VALIDATION_FAILED", { field: "domain" });
-    if (config.domainAllowlist.length && !config.domainAllowlist.includes(normalized)) throw mailError("MAIL_VALIDATION_FAILED", { field: "domain", reason: "NOT_ALLOWLISTED" });
+    // Fail closed: a registered domain immediately counts as one of our
+    // receiving domains, so registration needs an explicit allowlist.
+    if (!config.domainAllowlist.length) throw mailError("MAIL_VALIDATION_FAILED", { field: "domain", reason: "ALLOWLIST_EMPTY" });
+    if (!config.domainAllowlist.includes(normalized)) throw mailError("MAIL_VALIDATION_FAILED", { field: "domain", reason: "NOT_ALLOWLISTED" });
     if (!policy.isUuid(organizationId) || !(await client.mailOrganization.findUnique({ where: { id: organizationId } }))) throw mailError("MAIL_VALIDATION_FAILED", { field: "organizationId" });
     if (providerDomainId && !/^[A-Za-z0-9_-]{1,128}$/.test(String(providerDomainId))) throw mailError("MAIL_VALIDATION_FAILED", { field: "providerDomainId" });
     const row = await client.mailDomain.create({ data: { organizationId, domain: normalized, providerDomainId: providerDomainId || null, createdBy: user.id } }).catch((error) => {
@@ -63,25 +186,93 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
     return row;
   }
 
-  // Reads verification state from the provider. Never changes DNS/MX.
-  async function verifyDomain(user, domainId, context) {
+  // Reads verification state from the provider (GET /domains/{id}). Never
+  // changes DNS/MX. Without a stored provider id a read-only lookup by name
+  // links an existing provider domain. With options.trigger (provider domain
+  // management enabled + MFA step-up) the provider is first asked to re-check
+  // (POST /domains/{id}/verify, asynchronous).
+  async function verifyDomain(user, domainId, context = {}, options = {}) {
     await admin(user);
-    const domain = policy.isUuid(domainId) ? await client.mailDomain.findUnique({ where: { id: domainId } }) : null;
-    if (!domain) throw mailError("MAIL_NOT_FOUND", { resource: "domain" });
-    if (!domain.providerDomainId) throw mailError("MAIL_VALIDATION_FAILED", { field: "providerDomainId", reason: "REQUIRED_FOR_VERIFICATION" });
+    let domain = await loadDomain(domainId);
+    const trigger = options.trigger === true || options.trigger === "true";
+    if (trigger) {
+      providerManagementEnabled();
+      providerMethod("verifyDomain");
+    }
+    let linked = false;
+    if (!domain.providerDomainId) {
+      const found = await lookupByName(domain);
+      if (!found) throw mailError("MAIL_VALIDATION_FAILED", { field: "providerDomainId", reason: "REQUIRED_FOR_VERIFICATION" });
+      await assertProviderIdUnclaimed(domain, found.providerDomainId);
+      domain = await storeProviderResult(domain, found, { providerDomainId: found.providerDomainId });
+      linked = true;
+      await audit.record({ actorAdminUserId: user.id, action: "MAIL_DOMAIN_PROVIDER_LINKED", targetType: "domain", targetId: domain.id, organizationId: domain.organizationId, metadata: { providerDomainId: found.providerDomainId, via: "lookup-by-name" } }, context);
+    }
+    if (trigger) {
+      await client.$transaction(async (tx) => stepUp.consume(tx, user, options.stepUpId, DOMAIN_MANAGE_PURPOSE, context));
+      try {
+        await adapter.verifyDomain(domain.providerDomainId);
+      } catch (error) {
+        throw providerFailure(error, "verifyDomain");
+      }
+      await audit.record({ actorAdminUserId: user.id, action: "MAIL_DOMAIN_VERIFICATION_TRIGGERED", targetType: "domain", targetId: domain.id, organizationId: domain.organizationId, metadata: { providerDomainId: domain.providerDomainId } }, context);
+    }
     let result;
     try {
       result = await adapter.validateDomain(domain.providerDomainId);
     } catch (error) {
       throw mailError("MAIL_PROVIDER_UNAVAILABLE", { reason: error.code || "PROVIDER_ERROR" });
     }
-    const status = result.status === "VERIFIED" ? "VERIFIED" : result.status === "FAILED" ? "FAILED" : "PENDING_VERIFICATION";
-    const row = await client.mailDomain.update({
-      where: { id: domain.id },
-      data: { status, sendingStatus: result.sendingStatus, receivingStatus: result.receivingStatus, dnsRecords: result.records, lastCheckedAt: clock(), verifiedAt: status === "VERIFIED" ? domain.verifiedAt || clock() : null },
-    });
-    await audit.record({ actorAdminUserId: user.id, action: "MAIL_DOMAIN_VERIFICATION_CHECKED", targetType: "domain", targetId: domain.id, organizationId: domain.organizationId, metadata: { status, sending: result.sendingStatus, receiving: result.receivingStatus } }, context);
-    return row;
+    const row = await storeProviderResult(domain, result);
+    const checks = domainChecks(row, result);
+    await audit.record({ actorAdminUserId: user.id, action: "MAIL_DOMAIN_VERIFICATION_CHECKED", targetType: "domain", targetId: domain.id, organizationId: domain.organizationId, metadata: { status: row.status, providerStatus: result.status || null, suspended: row.status === "SUSPENDED", sending: result.sendingStatus, receiving: result.receivingStatus, spf: checks.spf, dkim: checks.dkim, dmarc: checks.dmarc, triggered: trigger, linked } }, context);
+    return { ...row, checks, verificationTriggered: trigger, providerLinked: linked };
+  }
+
+  // Provider-side registration (POST /domains), server-side only: Mail admin
+  // + MFA step-up, behind MAIL_PROVIDER_DOMAIN_MANAGEMENT_ENABLED. The domain
+  // must be registered locally and on MAIL_DOMAIN_ALLOWLIST. POST /domains is
+  // not idempotent, so an existing provider domain of the same name is
+  // linked instead of created, and an ambiguous create (timeout, unknown
+  // outcome, conflict) is resolved by looking the name up before anything is
+  // retried. DNS is never changed: the returned records are for the operator.
+  async function registerProviderDomain(user, domainId, { stepUpId, receiving = false, region = null } = {}, context = {}) {
+    await admin(user);
+    providerManagementEnabled();
+    const create = providerMethod("createDomain");
+    providerMethod("findDomainByName");
+    const domain = await loadDomain(domainId);
+    if (!config.domainAllowlist.length || !config.domainAllowlist.includes(domain.domain)) throw mailError("MAIL_VALIDATION_FAILED", { field: "domain", reason: config.domainAllowlist.length ? "NOT_ALLOWLISTED" : "ALLOWLIST_EMPTY" });
+    if (domain.status === "SUSPENDED") throw mailError("MAIL_INVALID_TRANSITION", { reason: "DOMAIN_SUSPENDED" });
+    if (domain.providerDomainId) throw mailError("MAIL_INVALID_TRANSITION", { reason: "PROVIDER_DOMAIN_ALREADY_LINKED" });
+    const cleanRegion = region == null || region === "" ? null : String(region).trim().toLowerCase();
+    if (cleanRegion && !REGION.test(cleanRegion)) throw mailError("MAIL_VALIDATION_FAILED", { field: "region" });
+    await client.$transaction(async (tx) => stepUp.consume(tx, user, stepUpId, DOMAIN_MANAGE_PURPOSE, context));
+
+    let outcome = "LINKED_EXISTING";
+    let result = await lookupByName(domain);
+    if (!result) {
+      try {
+        result = await create.call(adapter, { name: domain.domain, region: cleanRegion, receiving: receiving === true || receiving === "true" });
+        outcome = "CREATED";
+      } catch (error) {
+        const ambiguous = error?.kind === "AMBIGUOUS" || ["OUTCOME_UNKNOWN", "TIMEOUT", "CONFLICT"].includes(error?.category) || error?.kind === "IDEMPOTENCY_CONFLICT";
+        if (!ambiguous) throw providerFailure(error, "createDomain");
+        // The create may have happened: look before anyone retries.
+        result = await lookupByName(domain);
+        if (!result) {
+          await audit.record({ actorAdminUserId: user.id, action: "MAIL_DOMAIN_PROVIDER_REGISTRATION_UNKNOWN", targetType: "domain", targetId: domain.id, organizationId: domain.organizationId, outcome: "FAILURE", metadata: { category: error?.category || null, code: String(error?.code || "").slice(0, 64) } }, context);
+          throw mailError("MAIL_PROVIDER_UNAVAILABLE", { reason: "OUTCOME_UNKNOWN", operation: "createDomain" }, "The provider did not confirm the registration. Retry: the domain is looked up by name before anything is created again.");
+        }
+        outcome = "LINKED_AFTER_AMBIGUOUS_CREATE";
+      }
+    }
+    if (!result?.providerDomainId) throw mailError("MAIL_PROVIDER_UNAVAILABLE", { reason: "PROVIDER_NO_ID", operation: "createDomain" });
+    await assertProviderIdUnclaimed(domain, result.providerDomainId);
+    const row = await storeProviderResult(domain, result, { providerDomainId: result.providerDomainId });
+    const checks = domainChecks(row, result);
+    await audit.record({ actorAdminUserId: user.id, action: "MAIL_DOMAIN_PROVIDER_REGISTERED", targetType: "domain", targetId: domain.id, organizationId: domain.organizationId, metadata: { outcome, providerDomainId: result.providerDomainId, status: row.status, providerStatus: result.status || null, sending: checks.sending, receiving: checks.receiving, spf: checks.spf, dkim: checks.dkim, dmarc: checks.dmarc, region: result.region || cleanRegion } }, context);
+    return { ...row, checks, registration: outcome };
   }
 
   // ---------------------------------------------------------------- addresses
@@ -148,13 +339,32 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
     return row;
   }
 
-  async function updateAddressStatus(user, addressId, { status }, context) {
+  // Address state machine (§20):
+  //   ACTIVE <-> SUSPENDED, ACTIVE | SUSPENDED -> RETIRED; RETIRED is terminal
+  //   (a retired address is never reused); a no-op transition is refused.
+  //   An address cannot become ACTIVE while its domain is SUSPENDED.
+  // Creation (createAddressTx) is allowed on PENDING_VERIFICATION and FAILED
+  // domains on purpose: addresses are prepared before/while DNS is verified.
+  // Inbound routing then follows the domain's receiving state and external
+  // sending stays blocked by the sending gate until the domain is VERIFIED;
+  // only a SUSPENDED domain refuses new addresses.
+  const ADDRESS_TRANSITIONS = Object.freeze({ ACTIVE: ["SUSPENDED", "RETIRED"], SUSPENDED: ["ACTIVE", "RETIRED"], RETIRED: [] });
+
+  async function updateAddressStatus(user, addressId, { status } = {}, context) {
     await admin(user);
-    if (!["ACTIVE", "SUSPENDED", "RETIRED"].includes(status)) throw mailError("MAIL_VALIDATION_FAILED", { field: "status" });
+    if (!Object.prototype.hasOwnProperty.call(ADDRESS_TRANSITIONS, status)) throw mailError("MAIL_VALIDATION_FAILED", { field: "status" });
     const existing = policy.isUuid(addressId) ? await client.mailAddress.findUnique({ where: { id: addressId } }) : null;
     if (!existing) throw mailError("MAIL_NOT_FOUND", { resource: "address" });
-    if (existing.status === "RETIRED") throw mailError("MAIL_INVALID_TRANSITION", { from: "RETIRED" });
-    const row = await client.mailAddress.update({ where: { id: addressId }, data: { status, retiredAt: status === "RETIRED" ? clock() : null } });
+    if (existing.status === status) throw mailError("MAIL_INVALID_TRANSITION", { from: existing.status, to: status, reason: "NO_OP" });
+    if (!ADDRESS_TRANSITIONS[existing.status]?.includes(status)) throw mailError("MAIL_INVALID_TRANSITION", { from: existing.status, to: status });
+    if (status === "ACTIVE") {
+      const domain = await client.mailDomain.findUnique({ where: { id: existing.domainId }, select: { status: true } });
+      if (!domain || domain.status === "SUSPENDED") throw mailError("MAIL_INVALID_TRANSITION", { from: existing.status, to: status, reason: "DOMAIN_SUSPENDED" });
+    }
+    // Compare-and-set on the state we validated (concurrent changes lose).
+    const changed = await client.mailAddress.updateMany({ where: { id: addressId, status: existing.status }, data: { status, retiredAt: status === "RETIRED" ? clock() : null } });
+    if (changed.count !== 1) throw mailError("MAIL_INVALID_TRANSITION", { from: "CHANGED" });
+    const row = await client.mailAddress.findUnique({ where: { id: addressId } });
     await audit.record({ actorAdminUserId: user.id, action: "MAIL_ADDRESS_STATUS_CHANGED", targetType: "address", targetId: addressId, mailboxId: row.mailboxId, metadata: { from: existing.status, to: status } }, context);
     return row;
   }
@@ -227,6 +437,13 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
   // mailboxes only: they can never add anyone (including themselves) to a
   // PERSONAL mailbox, which would bypass personal mailbox privacy.
   async function authorizeMembershipChange(user, mailboxId) {
+    return (await membershipAuthority(user, mailboxId)).mailbox;
+  }
+
+  // Who may change memberships, and by which authority: `manager` (an
+  // OWNER/MANAGER member, or the personal mailbox owner) or `admin` (a mail
+  // administrator acting on a SHARED mailbox without being its manager).
+  async function membershipAuthority(user, mailboxId) {
     policy.assertActiveIdentity(user);
     const mailbox = policy.isUuid(mailboxId) ? await client.mailMailbox.findUnique({ where: { id: mailboxId } }) : null;
     if (!mailbox) throw mailError("MAIL_NOT_FOUND", { resource: "mailbox" });
@@ -234,9 +451,10 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
     const isManager = access && !access.viaBreakGlass && policy.roleSatisfies(access.role, "MANAGER");
     if (mailbox.type === "PERSONAL") {
       if (!access || access.role !== "OWNER" || mailbox.ownerAdminUserId !== user.id) throw mailError("MAIL_FORBIDDEN", { reason: "PERSONAL_MAILBOX_OWNER_ONLY" });
-      return mailbox;
+      return { mailbox, access, via: "manager" };
     }
-    if (isManager || (await policy.canAdministerMail(client, user, "EDIT"))) return mailbox;
+    if (isManager) return { mailbox, access, via: "manager" };
+    if (await policy.canAdministerMail(client, user, "EDIT")) return { mailbox, access, via: "admin" };
     throw mailError(access ? "MAIL_FORBIDDEN" : "MAIL_NOT_FOUND", { resource: "mailbox", reason: "MANAGER_REQUIRED" });
   }
 
@@ -246,18 +464,29 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
     return rows.map((row) => ({ id: row.id, adminUser: row.adminUser, role: row.role, canSend: row.canSend, expiresAt: iso(row.expiresAt), createdAt: iso(row.createdAt) }));
   }
 
-  async function addMember(user, mailboxId, { adminUserId, role, canSend, expiresAt, reason }, context) {
-    const mailbox = await authorizeMembershipChange(user, mailboxId);
+  // Separation of duties: nobody grants or elevates their OWN membership
+  // (SUPER and mail admins included; another administrator or the mailbox
+  // owner/manager must do it), and an administrator granting access to a
+  // SHARED mailbox they do not manage needs a fresh MFA step-up
+  // (MAIL_MEMBERSHIP_GRANT). Mailbox managers adding other people are
+  // unchanged.
+  async function addMember(user, mailboxId, { adminUserId, role, canSend, expiresAt, reason, stepUpId } = {}, context = {}) {
+    const { mailbox, via } = await membershipAuthority(user, mailboxId);
     if (!ROLES.has(role) || role === "OWNER") throw mailError("MAIL_VALIDATION_FAILED", { field: "role" });
     const member = await client.adminUser.findUnique({ where: { id: String(adminUserId || "") }, select: { id: true, status: true } });
     if (!member || member.status !== "ACTIVE") throw mailError("MAIL_VALIDATION_FAILED", { field: "adminUserId", reason: "ACTIVE_EMPLOYEE_REQUIRED" });
+    if (member.id === user.id) {
+      await audit.record({ actorAdminUserId: user.id, action: "MAIL_MEMBERSHIP_SELF_GRANT_REFUSED", targetType: "mailbox", targetId: mailbox.id, mailboxId: mailbox.id, outcome: "DENIED", metadata: { role, via } }, context);
+      throw mailError("MAIL_FORBIDDEN", { reason: "SELF_GRANT_NOT_ALLOWED" }, "You cannot grant mailbox access to yourself. Ask another administrator or the mailbox owner.");
+    }
     const expiry = expiresAt ? new Date(expiresAt) : null;
     if (expiry && (Number.isNaN(expiry.getTime()) || expiry <= clock())) throw mailError("MAIL_VALIDATION_FAILED", { field: "expiresAt" });
     const row = await client.$transaction(async (tx) => {
+      if (via === "admin") await stepUp.consume(tx, user, stepUpId, "MAIL_MEMBERSHIP_GRANT", context);
       await tx.mailMembership.updateMany({ where: { mailboxId, adminUserId: member.id, revokedAt: null }, data: { revokedAt: clock(), revokedBy: user.id } });
       return tx.mailMembership.create({ data: { mailboxId, adminUserId: member.id, role, canSend: Boolean(canSend) && role !== "READER", grantedBy: user.id, expiresAt: expiry, reason: reason ? String(reason).slice(0, 500) : null } });
     });
-    await audit.record({ actorAdminUserId: user.id, action: "MAIL_MEMBERSHIP_GRANTED", targetType: "membership", targetId: row.id, mailboxId, metadata: { member: member.id, role, canSend: row.canSend } }, context);
+    await audit.record({ actorAdminUserId: user.id, action: "MAIL_MEMBERSHIP_GRANTED", targetType: "membership", targetId: row.id, mailboxId, metadata: { member: member.id, role, canSend: row.canSend, via, stepUp: via === "admin" } }, context);
     await notifications.notifyUsers([member.id], { icon: "check", title: `You were added to ${mailbox.name}`, subtitle: `Role: ${role.toLowerCase()}` });
     return row;
   }
@@ -679,7 +908,7 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
   return {
     requeueJob,
     listAuditEvents, listWebhookEvents, listDeliveryEvents, listJobs,
-    listOrganizations, createOrganization, listDomains, createDomain, verifyDomain,
+    listOrganizations, createOrganization, listDomains, createDomain, verifyDomain, registerProviderDomain,
     listAddresses, createAddress, updateAddressStatus, listMailboxes, createMailbox, setMailboxStatus,
     staffDirectory, listMembers, addMember, revokeMember, updateMailboxSettings, listSenderGrants, grantSender, revokeSender, offboardUser, offboardForAccountLifecycle,
     provisioningCapabilities, listProvisionRequests, createProvisionRequest, createOnboardingProvisionRequest, decideProvisionRequest,

@@ -282,7 +282,14 @@ function createForwardingService({ client, config, features, store, jobs, audit,
           }
           continue;
         }
-        // EXTERNAL
+        // EXTERNAL. The policy list is re-checked on every execution: an
+        // operator narrowing MAIL_FORWARDING_EXTERNAL_ALLOWED_DOMAINS stops
+        // existing ACTIVE rules at once (the rule itself stays as approved,
+        // so widening the list again needs no new approval).
+        if (!externalAllowed(rule.targetAddress)) {
+          await skip("EXTERNAL_DOMAIN_NOT_ALLOWED");
+          continue;
+        }
         const sender = await primarySender(mailbox, rule.requestedBy);
         if (sender.blocked) {
           await skip(sender.blocked);
@@ -344,8 +351,11 @@ function createForwardingService({ client, config, features, store, jobs, audit,
   async function ruleStillActive(idempotencyKey) {
     const match = /^fwd:\d+:([0-9a-f-]{36}):/.exec(String(idempotencyKey || ""));
     if (!match) return true;
-    const rule = await client.mailForwardingRule.findUnique({ where: { id: match[1] }, select: { status: true } });
-    return rule?.status === "ACTIVE";
+    const rule = await client.mailForwardingRule.findUnique({ where: { id: match[1] }, select: { status: true, targetKind: true, targetAddress: true } });
+    if (rule?.status !== "ACTIVE") return false;
+    // A forward queued before the external allow-list was narrowed is not sent.
+    if (rule.targetKind === "EXTERNAL" && !externalAllowed(rule.targetAddress)) return false;
+    return true;
   }
 
   function forwardHeaders(idempotencyKey) {
@@ -354,7 +364,7 @@ function createForwardingService({ client, config, features, store, jobs, audit,
     return { "Auto-Submitted": "auto-forwarded", "X-CosmicForge-Forwarded-Hops": String(Number(match[1])) };
   }
 
-  return { list, request, adminList, decide, disable, disableForMailbox, disableForRequester, forwardInbound, ruleStillActive, forwardHeaders, inboundHops };
+  return { list, request, adminList, decide, disable, disableForMailbox, disableForRequester, forwardInbound, ruleStillActive, forwardHeaders, inboundHops, externalAllowed };
 }
 
 module.exports = { createForwardingService, serializeRule, inboundHops };

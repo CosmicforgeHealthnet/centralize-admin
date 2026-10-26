@@ -54,6 +54,10 @@ const PURPOSES = new Set([
   "MAIL_STORAGE_DELETION_CANCEL",
   "MAIL_QUARANTINE_RELEASE",
   "MAIL_QUARANTINE_DELETE",
+  // Provider-side domain registration / verification trigger (§18, §19.8).
+  "MAIL_DOMAIN_PROVIDER_MANAGE",
+  // An administrator (not a mailbox manager) granting shared-mailbox access.
+  "MAIL_MEMBERSHIP_GRANT",
 ]);
 
 // Shared-MFA error codes -> Mail error codes (same envelope, Mail semantics).
