@@ -4,19 +4,19 @@
 **Specification:** `CosmicForge_Mail_Implementation_Specification.pdf`, Section 16
 **Repository / branch:** `CosmicforgeHealthnet/centralize-admin`, `staging`
 **Base:** `05d23695cfa6ea52376c77c03806d1e7549f0a57` (matched `origin/staging` at last fetch)
-**Local candidate:** Section 16 commits plus the tested API deployment path guard; GitHub results are recorded after the publish.
+**Published / tested UI code head:** `4debf946099514aa807159a14637863af05cbc75` (the later acceptance-report update is documentation-only).
 
 ## Result
 
-**SECTION 16 CODE COMPLETE — MANUAL ACCEPTANCE PENDING** for the frontend changes in this review. The app builds, the full offline browser suite passes, responsive screenshots were inspected, and modified files pass focused lint. This is not a staging deployment or end-to-end production-data certification. Manual screen-reader review and staging verification remain outstanding.
+**SECTION 16 CODE COMPLETE — MANUAL ACCEPTANCE PENDING** for the frontend changes in this review. The app builds, the full offline browser suite passes, responsive screenshots were inspected, and modified files pass focused lint. The staging frontend is published to its separate Vercel staging project. The VPS API was not deployed or restarted by this push. This is not end-to-end production-data certification; manual screen-reader review remains outstanding.
 
 ### Deployment safety and Vercel behavior
 
 The previous workflow ran its SSH/image/recreate jobs on every staging push. `.github/workflows/staging.yml` now classifies the exact base-to-head commit range with `infrastructure/scripts/staging-api-change-scope.sh`. Only `services/central-admin-api/**`, `Dockerfile` or `.dockerignore` source/build inputs can set `api_changed=true`; docs, test paths/names, frontend paths and workflow edits are ignored. Renames are disabled for diff classification so a moved/deleted backend source file is not hidden. Invalid/missing SHAs and non-ancestor ranges fail classification closed. The workflow modification plus Section 16 frontend changes therefore classifies false. All three privileged jobs (`verify-staging-ssh`, `build-staging-image`, `deploy-staging-api`) explicitly require a successful classifier result, successful backend verification and staging ref. Manual backend dispatch remains available only with the staging ref and a required full `api_release_base_sha` input; a separately approved backend-source push follows the existing verification/deployment path.
 
-The classifier test suite passes frontend-only, docs-only, API tests-only, workflow-only, workflow-plus-frontend, backend-source, migration, Dockerfile, `.dockerignore`, mixed-change, and malformed-SHA cases. `actionlint` v1.7.12 passes. GitHub's actual `Staging` environment still has `protection_rules=[]` and `can_admins_bypass=true`; that is not used as the frontend-only gate because the SSH job is skipped before it can access the environment or secret. Backend-source staging pushes remain governed by the existing verified CI deployment path.
+The classifier test suite passes frontend-only, docs-only, API tests-only, workflow-only, workflow-plus-frontend, backend-source, migration, Dockerfile, `.dockerignore`, mixed-change, and malformed-SHA cases. `actionlint` v1.7.12 passes. On the actual Section 16 push and the final guarded head, GitHub logged `api_changed=false` and marked all three staging API jobs skipped. GitHub's actual `Staging` environment still has `protection_rules=[]` and `can_admins_bypass=true`; the frontend-only gate is the job condition, which skips SSH before the job can access the environment or secret. Backend-source staging pushes remain governed by the existing verified CI deployment path.
 
-Vercel's authenticated project inventory shows a separate `centralize-admin-staging` project and staging-domain alias, distinct from the main `centralize-admin` project and its production domain. The staging project's recent deployment metadata is for Git ref `staging` and the existing `origin/staging` SHA. A push to `staging` will automatically deploy that staging frontend project. This frontend staging deployment is within the requested staging publication; it does not deploy the staging API or touch the separate main Vercel project. The candidate deployment and GitHub job skip results are recorded after the push below.
+Vercel's authenticated project inventory shows a separate `centralize-admin-staging` project and staging-domain alias, distinct from the main `centralize-admin` project and its production domain. The staging project automatically deployed commit `4debf946099514aa807159a14637863af05cbc75` and reports it `READY`. The separate main project has no deployment for this SHA. This is the requested staging frontend publication; it did not deploy the staging API or touch the main Vercel project.
 
 ## 1. Design changes and visual review
 
@@ -82,9 +82,12 @@ All 22 screenshots under [`docs/cosmicforge-mail-section16/evidence`](./cosmicfo
 | Workflow syntax / expressions | PASS: `actionlint` v1.7.12 on `.github/workflows/staging.yml`. |
 | Manual keyboard / screen-reader review | NOT PERFORMED. Keyboard journey coverage is automated but partial; a human assistive-technology run remains required. |
 | Backend/API compatibility | No API contracts, backend files, migrations or endpoints changed. UI/API tests used deterministic mocks; no live staging backend was exercised. |
-| GitHub acceptance workflows | Pending push; verify-staging-ssh/image/deploy jobs must show skipped for the candidate. The Staging environment has no `protection_rules`, so classifier guards are required. |
-| Vercel / staging deployment | Staging Vercel project is Git-connected to the `staging` ref and auto-deploys on push; candidate deployment result pending. Main Vercel project is separate. |
-| Current branch state | Pending final publish; base `origin/staging` SHA was `05d23695cfa6ea52376c77c03806d1e7549f0a57`. |
+| Staging API deployment guard | PASS on the original Section 16 push `04f0ef61...` and final code head `4debf946...`: scope classifier succeeded with `api_changed=false`; `verify-staging-ssh`, `build-staging-image` and `deploy-staging-api` were all skipped. No Actions SSH, image publication or container recreation ran. This confirms this push did not restart or replace the API container; separate out-of-band VPS activity is not observable through the repository workflow. |
+| Frontend CI | PASS on exact UI code head `4debf946099514aa807159a14637863af05cbc75`: [lint/typecheck/build and Mail E2E run](https://github.com/CosmicforgeHealthnet/centralize-admin/actions/runs/40351828963). E2E uses mocked APIs. |
+| Staging API / backend CI | PASS: [staging workflow run](https://github.com/CosmicforgeHealthnet/centralize-admin/actions/runs/40351749983) completed verification and skipped its three privileged jobs; [Social Operations CI](https://github.com/CosmicforgeHealthnet/centralize-admin/actions/runs/40351749980) passed. |
+| Monorepo / container compatibility CI | PASS: [layout and local compatibility image build](https://github.com/CosmicforgeHealthnet/centralize-admin/actions/runs/40351750076). The image was not pushed or deployed. The first attempt at `04f0ef61...` failed the layout rule because new files occupied the reserved root `scripts/` path; moving them into `infrastructure/scripts/` fixed it, and the final-head run passed. |
+| Vercel / staging frontend | PASS: deployment [`dpl_FXVRbwxsGSfdNmX9v6iCeAHkEQ8M`](https://vercel.com/cosmicforgedevteamgmailcoms-projects/centralize-admin-staging/FXVRbwxsGSfdNmX9v6iCeAHkEQ8M) for `4debf946...` is `READY` in the separate `centralize-admin-staging` project. No main-project deployment for this SHA. |
+| Current branch state | `origin/staging` matched `4debf946099514aa807159a14637863af05cbc75` at verification; the report evidence update is a documentation-only follow-up. |
 
 ### Changed contracts and migrations
 
@@ -94,9 +97,8 @@ All 22 screenshots under [`docs/cosmicforge-mail-section16/evidence`](./cosmicfo
 
 ### Outstanding acceptance items
 
-1. Verify the actual GitHub candidate run shows `verify-staging-ssh`, `build-staging-image` and `deploy-staging-api` skipped, then verify the running API container was not restarted/replaced.
-2. Complete a human keyboard-only critical journey and a manual screen-reader review with an appropriate assistive-technology setup.
-3. Verify offline draft persistence/recovery and end-to-end individual/bulk read, star, archive and trash actions against an authorized staging test mailbox.
-4. Perform real-user usability review and page-wide viewport checks beyond the explicit compose width sweep.
+1. Complete a human keyboard-only critical journey and a manual screen-reader review with an appropriate assistive-technology setup.
+2. Verify offline draft persistence/recovery and end-to-end individual/bulk read, star, archive and trash actions against an authorized staging test mailbox.
+3. Perform real-user usability review and page-wide viewport checks beyond the explicit compose width sweep.
 
 No Admin capability, Mail sending, DNS, shared database migration, production service or production data was enabled or modified.
