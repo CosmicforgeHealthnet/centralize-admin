@@ -14,13 +14,21 @@
 //       cap, brand daily cap and the sending gate at the moment of sending
 // Paused automations, disabled flags, brand pause and emergency stop defer
 // work without consuming attempts or deleting anything.
+// Gap 4 (recipient timezone + DST): delay steps may wait until a local time
+// and/or a delivery window; send steps may carry a delivery window; schedules
+// may use timeZone "recipient". The zone is the contact's
+// attributes.timezone, else the brand default, else UTC - the fallback is
+// recorded on the step run outcome. A missed window (worker down) sends once
+// at the next opening; lateness is recorded, nothing is "caught up".
 
+const { quotaDeferSeconds } = require("../../ops/provider-quota.service");
 const { externalSendBlockReason } = require("../../authz/sending-gate");
 const { renderTemplate } = require("../template-renderer");
 const { unsubscribeUrl } = require("../unsubscribe-token");
 const { classifySendError, unsubscribeHeaders, brandSenderProblem, automationReplyTo, SENDER_MAILBOX_SELECT } = require("../marketing-sender");
 const { evaluateCondition } = require("./definition");
-const { nextOccurrence } = require("../scheduling");
+const { templatePolicyFor } = require("../template-policy");
+const { nextOccurrence, computeDelayRunAt, applyWindow, resolveZone, contactTimeZoneOf, recipientScheduleRunAt, scheduleForOccurrences, localIso, zoneSummary } = require("../scheduling");
 
 function createAutomationProcessor({ client, config, audit, jobs, marketingProviders, eligibility, runtime = null, usage = null, clock = () => new Date(), logger = null }) {
   const now = () => clock();
@@ -29,7 +37,8 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
   const stepKey = (enrollment) => `auto-step:${enrollment.id}:${enrollment.stepCount}:${enrollment.nextRunAt ? new Date(enrollment.nextRunAt).getTime() : 0}`;
 
   async function enqueueStep(tx, enrollment, at = now()) {
-    await jobs.enqueue(tx, { queue: "MARKETING", kind: "AUTOMATION_STEP", idempotencyKey: stepKey(enrollment), payload: { enrollmentId: enrollment.id, sequence: enrollment.stepCount, organizationId: enrollment.organizationId }, maxAttempts: 12, nextAttemptAt: at });
+    // dueAt: when the step was meant to run (lateness is measured from it).
+    await jobs.enqueue(tx, { queue: "MARKETING", kind: "AUTOMATION_STEP", idempotencyKey: stepKey(enrollment), payload: { enrollmentId: enrollment.id, sequence: enrollment.stepCount, organizationId: enrollment.organizationId, ...(enrollment.nextRunAt ? { dueAt: new Date(enrollment.nextRunAt).toISOString() } : {}) }, maxAttempts: 12, nextAttemptAt: at });
   }
 
   async function enroll(tx, automation, contactId, { dedupeKey, triggerEventId = null, context = null }) {
@@ -86,8 +95,11 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
       if (!version) continue;
       const since = (automation.lastScheduledRunAt || automation.updatedAt).getTime();
       let due = null;
+      // timeZone "recipient": occurrences start in the earliest zone; each
+      // contact's first step then waits for its own local time (processStep).
+      const occurrenceSchedule = scheduleForOccurrences(version.triggerConfig);
       for (let cursor = since, guard = 0; guard < 400; guard += 1) {
-        const next = nextOccurrence(version.triggerConfig, cursor);
+        const next = nextOccurrence(occurrenceSchedule, cursor);
         if (!next || next.getTime() > now().getTime()) break;
         due = next;
         cursor = next.getTime();
@@ -110,7 +122,7 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
         let blocked = null;
         let added = 0;
         for (const contact of batch) {
-          const result = await enroll(tx, { ...automation, enrollmentLimit: Number.MAX_SAFE_INTEGER }, contact.id, { dedupeKey: `${prefix}${contact.id}` });
+          const result = await enroll(tx, { ...automation, enrollmentLimit: Number.MAX_SAFE_INTEGER }, contact.id, { dedupeKey: `${prefix}${contact.id}`, context: version.triggerConfig.timeZone === "recipient" ? { schedule: { occurrence: due.toISOString(), timeZone: "recipient" } } : null });
           if (result.enrolled) added += 1;
           // At the active-enrollment ceiling: stop and retry next tick.
           if (result.skipped === "MAX_ACTIVE_ENROLLMENTS" || result.skipped === "NO_PUBLISHED_VERSION") { blocked = result.skipped; break; }
@@ -151,16 +163,50 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
     return { enrollment: status, reason };
   }
 
-  async function advance(enrollment, nextStepId, { delayMinutes = 0, tx = client } = {}) {
+  async function advance(enrollment, nextStepId, { delayMinutes = 0, runAt: explicitRunAt = null, tx = client } = {}) {
     const stepCount = enrollment.stepCount + 1;
     if (!nextStepId) {
       await tx.marketingAutomationEnrollment.update({ where: { id: enrollment.id }, data: { stepCount, currentStepId: null, status: "COMPLETED", nextRunAt: null, completedAt: now() } });
       return { enrollment: "COMPLETED" };
     }
-    const runAt = new Date(now().getTime() + delayMinutes * 60000);
-    const updated = await tx.marketingAutomationEnrollment.update({ where: { id: enrollment.id }, data: { currentStepId: nextStepId, stepCount, status: delayMinutes ? "WAITING" : "ACTIVE", nextRunAt: delayMinutes ? runAt : null } });
-    if (!delayMinutes) await enqueueStep(tx, updated);
-    return { advanced: nextStepId, delayMinutes };
+    const runAt = explicitRunAt ? new Date(explicitRunAt) : new Date(now().getTime() + delayMinutes * 60000);
+    const waiting = runAt.getTime() > now().getTime();
+    const updated = await tx.marketingAutomationEnrollment.update({ where: { id: enrollment.id }, data: { currentStepId: nextStepId, stepCount, status: waiting ? "WAITING" : "ACTIVE", nextRunAt: waiting ? runAt : null } });
+    if (!waiting) await enqueueStep(tx, updated);
+    return { advanced: nextStepId, delayMinutes, ...(waiting ? { until: runAt.toISOString() } : {}) };
+  }
+
+  async function brandTimeZone(organizationId) {
+    const settings = await client.marketingBrandSettings.findUnique({ where: { organizationId }, select: { defaultTimeZone: true } });
+    return settings?.defaultTimeZone || null;
+  }
+
+  async function waitUntil(enrollment, runAt, deferral) {
+    const context = { ...(enrollment.context || {}), ...(deferral ? { lastDeferral: deferral } : {}) };
+    await client.marketingAutomationEnrollment.update({ where: { id: enrollment.id }, data: { status: "WAITING", nextRunAt: runAt, context } });
+  }
+
+  // Delivery timing of a send step that has not been attempted yet: a
+  // delivery window defers to the next opening (once); lateness against the
+  // intended time is recorded on the step run.
+  async function sendTiming(job, enrollment, step, contact, organizationId, scheduleTiming) {
+    const dueAt = job.payload?.dueAt ? new Date(job.payload.dueAt).getTime() : scheduleTiming?.runAt ? scheduleTiming.runAt.getTime() : null;
+    const timing = { ...(scheduleTiming ? { schedule: { localDate: scheduleTiming.localDate, localRunAt: scheduleTiming.localRunAt, timeZone: scheduleTiming.timeZone, timeZoneSource: scheduleTiming.timeZoneSource, timeZoneFallback: scheduleTiming.timeZoneFallback, ...(scheduleTiming.fallbackReason ? { fallbackReason: scheduleTiming.fallbackReason } : {}) } } : {}) };
+    if (dueAt) {
+      timing.dueAt = new Date(dueAt).toISOString();
+      timing.latenessSeconds = Math.max(0, Math.round((now().getTime() - dueAt) / 1000));
+    }
+    if (enrollment.context?.lastDeferral?.stepId === step.id && enrollment.context.lastDeferral.sequence === enrollment.stepCount) timing.deferral = enrollment.context.lastDeferral;
+    if (!step.window) return { timing };
+    const zone = resolveZone({ spec: step.window.timezone || "recipient", contactTimeZone: contactTimeZoneOf(contact), brandTimeZone: await brandTimeZone(organizationId) });
+    Object.assign(timing, { window: { start: step.window.start, end: step.window.end, days: step.window.days || null }, ...zoneSummary(zone), localSendAt: localIso(now().getTime(), zone.timeZone) });
+    const windowed = applyWindow(now().getTime(), step.window, zone.timeZone);
+    if (!windowed.deferred) return { timing };
+    const opening = new Date(windowed.at);
+    // Missed: a window opening came and went while the step was due (worker
+    // down / backlog). It still sends once, at the next opening.
+    const missed = dueAt != null && applyWindow(dueAt, step.window, zone.timeZone).at < now().getTime() - 60000;
+    return { wait: opening, deferral: { stepId: step.id, sequence: enrollment.stepCount, reason: missed ? "WINDOW_MISSED" : "OUTSIDE_WINDOW", at: now().toISOString(), until: opening.toISOString(), localUntil: localIso(windowed.at, zone.timeZone), ...(missed ? { missedBySeconds: Math.round((now().getTime() - dueAt) / 1000) } : {}), ...zoneSummary(zone) } };
   }
 
   async function haltReason(automation, organizationId) {
@@ -202,8 +248,20 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
     return tx.marketingAutomationStepRun.update({ where: { id: existing.id }, data: { status: "OUTCOME_UNKNOWN", errorCode, outcome: { ...(existing.outcome || {}), blockedAfterAttempt: status } } });
   }
 
-  async function runSend(job, enrollment, automation, version, step, contact, organization) {
+  async function runSend(job, enrollment, automation, version, step, contact, organization, scheduleTiming = null) {
     const topic = version.definition.topic;
+    // Window gating only before the first attempt: a retry of an attempt
+    // that may have reached the provider keeps its idempotency window.
+    const attempted = await client.marketingAutomationStepRun.findUnique({ where: { enrollmentId_sequence: { enrollmentId: enrollment.id, sequence: enrollment.stepCount } }, select: { id: true } });
+    let timing = null;
+    if (!attempted) {
+      const gate = await sendTiming(job, enrollment, step, contact, organization.id, scheduleTiming);
+      if (gate.wait) {
+        await waitUntil(enrollment, gate.wait, gate.deferral);
+        return { waiting: "DELIVERY_WINDOW", until: gate.wait.toISOString() };
+      }
+      timing = gate.timing;
+    }
     const consent = await client.marketingConsent.findUnique({ where: { contactId_topic: { contactId: contact.id, topic } } });
     const suppressed = await client.marketingSuppression.findFirst({ where: { email: contact.email, liftedAt: null, OR: [{ organizationId: organization.id }, { organizationId: null }] } });
     const consentOk = consent && consent.status === "GRANTED" && (!consent.doubleOptIn || consent.confirmedAt);
@@ -233,20 +291,26 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
     const provider = marketingProviders(organization);
     const senderOk = !brandSenderProblem(sender, organization.id);
     const replyTo = senderOk ? await automationReplyTo(client, organization.id, step, sender) : { address: null, problem: null };
-    const blocked = !template || template.template.organizationId !== organization.id ? "TEMPLATE_UNAVAILABLE" : !senderOk ? "SENDER_NOT_AUTHORIZED" : replyTo.problem ? "REPLY_TO_NOT_AUTHORIZED" : externalSendBlockReason({ config, providerReady: () => provider.configured !== false && provider.name !== "unconfigured", domain: sender.domain });
+    // Template classification (gap 1): a version snapshotted as
+    // transactional (or otherwise unusable for marketing) never sends here.
+    const templateProblem = template && template.template.organizationId === organization.id ? await templatePolicyFor(client).usabilityProblem(template, { purpose: "MARKETING", organizationId: organization.id }) : null;
+    const blocked = !template || template.template.organizationId !== organization.id ? "TEMPLATE_UNAVAILABLE" : templateProblem ? templateProblem : !senderOk ? "SENDER_NOT_AUTHORIZED" : replyTo.problem ? "REPLY_TO_NOT_AUTHORIZED" : externalSendBlockReason({ config, providerReady: () => provider.configured !== false && provider.name !== "unconfigured", domain: sender.domain });
     if (blocked) {
       if (blocked === "MAIL_PROVIDER_NOT_CONFIGURED" || blocked === "MAIL_SENDING_DISABLED") return { defer: { seconds: 3600, code: blocked } };
       await client.$transaction(async (tx) => {
         await recordBlockedRun(tx, enrollment, organization, step, contact, "FAILED", blocked);
         await finish(enrollment, "FAILED", blocked, tx);
+        if (templateProblem) await audit.record({ action: "MARKETING_AUTOMATION_SEND_BLOCKED", targetType: "marketing_automation", targetId: automation.id, organizationId: organization.id, outcome: "DENIED", metadata: { enrollmentId: enrollment.id, reason: blocked, templateVersionId: step.templateVersionId } }, {}, tx);
       });
       return { failed: blocked };
     }
-    const idempotencyKey = `auto:${enrollment.id}:${enrollment.stepCount}`;
     let run = await client.marketingAutomationStepRun.findUnique({ where: { enrollmentId_sequence: { enrollmentId: enrollment.id, sequence: enrollment.stepCount } } });
     if (run?.status === "SUCCEEDED") return advance(enrollment, step.next); // crashed after a recorded send
     if (run && run.status !== "RUNNING") return finish(enrollment, "FAILED", run.errorCode || "STEP_NOT_RUNNABLE");
-    if (!run) run = await client.marketingAutomationStepRun.create({ data: { enrollmentId: enrollment.id, organizationId: organization.id, stepId: step.id, stepType: step.type, sequence: enrollment.stepCount, status: "RUNNING", idempotencyKey, recipientEmail: contact.email, templateVersionId: step.templateVersionId, firstAttemptAt: now(), createdAt: now() } });
+    if (!run) run = await client.marketingAutomationStepRun.create({ data: { enrollmentId: enrollment.id, organizationId: organization.id, stepId: step.id, stepType: step.type, sequence: enrollment.stepCount, status: "RUNNING", idempotencyKey: `auto:${enrollment.id}:${enrollment.stepCount}`, recipientEmail: contact.email, templateVersionId: step.templateVersionId, firstAttemptAt: now(), createdAt: now(), ...(timing && Object.keys(timing).length ? { outcome: { timing } } : {}) } });
+    // An existing run keeps its key: an authorized replay of an
+    // OUTCOME_UNKNOWN send reuses it so the provider deduplicates.
+    const idempotencyKey = run.idempotencyKey || `auto:${enrollment.id}:${enrollment.stepCount}`;
     const link = unsubscribeUrl(config, { organizationId: organization.id, contactId: contact.id, topic });
     const rendered = renderTemplate(
       { subject: step.subjectOverride || template.subject, preheader: template.preheader, blocks: template.blocks, brand: { ...(template.brand || {}), postalAddress: settings.postalAddress } },
@@ -273,6 +337,10 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
       });
       return { providerMessageId: result.providerMessageId };
     } catch (error) {
+      // Provider quota exhausted: hold until it resets (earlier sends in this
+      // job are deduplicated by their idempotency keys when it resumes).
+      const quotaWait = quotaDeferSeconds(error, now());
+      if (quotaWait) return { defer: { seconds: quotaWait, code: "PROVIDER_QUOTA_EXHAUSTED" } };
       const verdict = classifySendError(error, { firstAttemptAt: run.firstAttemptAt, now: now(), windowHours: config.reconciliation.idempotencyWindowHours });
       if (verdict.outcome === "RETRY") throw Object.assign(new Error(error.message), { code: verdict.code, retryable: true, retryAfterSeconds: verdict.retryAfterSeconds ?? null });
       if (verdict.outcome === "DEFER") return { defer: { seconds: 3600, code: verdict.code } };
@@ -300,6 +368,17 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
     const contact = await client.marketingContact.findUnique({ where: { id: enrollment.contactId } });
     const organization = await client.mailOrganization.findUnique({ where: { id: enrollment.organizationId } });
     if (!contact || contact.organizationId !== organization.id) return finish(enrollment, "FAILED", "CONTACT_UNAVAILABLE");
+    // Recipient-timezone schedule: the first step waits for the occurrence's
+    // local time in the contact's zone.
+    let scheduleTiming = null;
+    if (enrollment.stepCount === 0 && enrollment.context?.schedule?.occurrence && version.triggerConfig?.timeZone === "recipient") {
+      const zone = resolveZone({ spec: "recipient", contactTimeZone: contactTimeZoneOf(contact), brandTimeZone: await brandTimeZone(organization.id) });
+      scheduleTiming = recipientScheduleRunAt(enrollment.context.schedule.occurrence, version.triggerConfig, zone);
+      if (scheduleTiming.runAt.getTime() > now().getTime() + 1000) {
+        await waitUntil(enrollment, scheduleTiming.runAt, null);
+        return { waiting: "RECIPIENT_LOCAL_TIME", until: scheduleTiming.runAt.toISOString() };
+      }
+    }
     const record = (status, outcome) => client.marketingAutomationStepRun.create({ data: { enrollmentId: enrollment.id, organizationId: organization.id, stepId: step.id, stepType: step.type, sequence: enrollment.stepCount, status, outcome, createdAt: now() } }).catch((error) => {
       if (error?.code !== "P2002") throw error;
     });
@@ -307,16 +386,22 @@ function createAutomationProcessor({ client, config, audit, jobs, marketingProvi
       case "exit":
         await record("SUCCEEDED", null);
         return finish(enrollment, "COMPLETED", "EXIT_STEP");
-      case "delay":
-        await record("SUCCEEDED", { minutes: step.minutes });
-        return advance(enrollment, step.next, { delayMinutes: step.minutes });
+      case "delay": {
+        if (!step.until && !step.window) {
+          await record("SUCCEEDED", { minutes: step.minutes });
+          return advance(enrollment, step.next, { delayMinutes: step.minutes });
+        }
+        const timed = computeDelayRunAt({ fromMs: now().getTime(), step, contactTimeZone: contactTimeZoneOf(contact), brandTimeZone: await brandTimeZone(organization.id) });
+        await record("SUCCEEDED", { minutes: step.minutes, runAt: timed.runAt.toISOString(), baseRunAt: timed.baseRunAt.toISOString(), localRunAt: timed.localRunAt, timeZone: timed.timeZone, timeZoneSource: timed.timeZoneSource, timeZoneFallback: timed.timeZoneFallback, ...(timed.fallbackReason ? { fallbackReason: timed.fallbackReason } : {}), ambiguous: timed.ambiguous, shiftedMinutes: timed.shiftedMinutes, windowDeferred: timed.windowDeferred });
+        return advance(enrollment, step.next, { runAt: timed.runAt });
+      }
       case "condition": {
         const result = evaluateCondition(step.condition, { contact, eventPayload: enrollment.context?.event || {}, engagement: await engagementOf(enrollment.id) });
         await record("SUCCEEDED", { result });
         return advance(enrollment, result ? step.then : step.else);
       }
       case "send_email":
-        return runSend(job, enrollment, automation, version, step, contact, organization);
+        return runSend(job, enrollment, automation, version, step, contact, organization, scheduleTiming);
       default:
         return finish(enrollment, "FAILED", "UNKNOWN_STEP_TYPE");
     }

@@ -510,6 +510,21 @@ test("CosmicForge Mail M7 broadcasts and automation on real PostgreSQL", { timeo
       assert.equal(lateRun.status, "OUTCOME_UNKNOWN", JSON.stringify(lateRun));
       assert.equal((await client.marketingAutomationEnrollment.findUnique({ where: { id: lateRun.enrollmentId } })).exitReason, "OUTCOME_UNKNOWN");
       fake.state.failures.length = 0;
+      // Provider quota exhausted: the step is held until the reset, never failed.
+      const quotaBuyer = await newContact("quota-buyer@reader.example");
+      await work(2, 61000);
+      fake.failNext("sendEmail", "QUOTA_EXHAUSTED", "DAILY", { now: harness.clock() });
+      await automations.ingestProductEvent({ organizationId: cf.organization.id, eventType: "karryam.booking.completed", version: 1, eventId: "bk-4", contactEmail: quotaBuyer.email });
+      await work(2, 61000);
+      const heldJob = await client.mailOutboxJob.findFirst({ where: { kind: "AUTOMATION_STEP", lastErrorCode: "PROVIDER_QUOTA_EXHAUSTED" } });
+      assert.ok(heldJob, "automation step deferred for the quota reset");
+      assert.equal(heldJob.status, "RETRY_SCHEDULED");
+      const heldRun = await client.marketingAutomationStepRun.findFirst({ where: { recipientEmail: "quota-buyer@reader.example", stepType: "send_email", enrollment: { automationId: product.body.data.id } } });
+      assert.notEqual(heldRun?.status, "FAILED");
+      harness.advance(25 * 3600000);
+      await work(3, 61000);
+      const sentRun = await client.marketingAutomationStepRun.findFirst({ where: { recipientEmail: "quota-buyer@reader.example", stepType: "send_email", enrollment: { automationId: product.body.data.id } } });
+      assert.equal(sentRun.status, "SUCCEEDED", JSON.stringify(sentRun));
 
       // Cross-brand: kim cannot read or act on cosmicforge automations.
       assert.equal((await call("kim", "GET", `${mbase}/automations/${welcomeId}`)).status, 404);

@@ -79,9 +79,13 @@ function createAutomationService({ client, config, audit, stepUp, clock = () => 
   // a shared mailbox, postal address, template renders). Run at submit and
   // again at approval. Accessibility findings are reported, not blocking
   // (as for campaigns).
+  // Gaps 1 + 7: also the shared deliverability preflight (../preflight.js)
+  // and the template classification gate; only BLOCKED checks fail.
   async function preflightSteps(organizationId, definition) {
+    const shared = require("../preflight");
+    const templatePolicy = require("../template-policy").templatePolicyFor(client);
     const checks = [];
-    const add = (step, id, ok, detail) => checks.push({ id: `${step.id}:${id}`, ok, detail });
+    const add = (step, id, ok, detail) => checks.push({ id: `${step.id}:${id}`, ok, status: ok ? "PASS" : "BLOCKED", detail });
     const brandSettings = await client.marketingBrandSettings.findUnique({ where: { organizationId } });
     for (const step of definition.steps.filter((entry) => entry.type === "send_email")) {
       add(step, "postal_address", Boolean(brandSettings?.postalAddress), brandSettings?.postalAddress ? "Postal address included in the footer" : "Set the brand postal address in Email Marketing settings");
@@ -102,12 +106,16 @@ function createAutomationService({ client, config, audit, stepUp, clock = () => 
         add(step, "template", false, "Select a template version of this brand");
         continue;
       }
+      const templateProblem = await templatePolicy.usabilityProblem(version, { purpose: "MARKETING", organizationId });
+      add(step, "template_classification", !templateProblem, templateProblem ? `Only MARKETING template versions can be used by automations (${templateProblem})` : "MARKETING template version");
       try {
         const rendered = renderTemplate({ subject: step.subjectOverride || version.subject, preheader: version.preheader, blocks: version.blocks, brand: { ...(version.brand || {}), ...(brandSettings?.postalAddress ? { postalAddress: brandSettings.postalAddress } : {}) } });
         add(step, "template_renders", true, `${rendered.variables.length} variables`);
         const links = scanLinks(rendered.html);
         add(step, "links_safe", links.ok, links.ok ? `${links.linkCount} link(s) checked` : links.issues.slice(0, 5).map((issue) => `${issue.kind}: ${issue.detail}`).join("; "));
-        if (rendered.accessibility?.length) checks.push({ id: `${step.id}:accessibility`, ok: true, advisory: true, detail: rendered.accessibility.map((entry) => entry.detail).join(" ") });
+        if (rendered.accessibility?.length) checks.push({ id: `${step.id}:accessibility`, ok: true, status: "WARNING", advisory: true, detail: rendered.accessibility.map((entry) => entry.detail).join(" ") });
+        const extra = await shared.deliverabilityChecks({ client, config, organizationId, sender: sender && !senderProblem ? sender : null, rendered, classification: "MARKETING", brandSettings, clock });
+        for (const entry of extra) checks.push({ ...entry, id: `${step.id}:${entry.id}` });
       } catch (error) {
         add(step, "template_renders", false, error.code || "render failed");
       }

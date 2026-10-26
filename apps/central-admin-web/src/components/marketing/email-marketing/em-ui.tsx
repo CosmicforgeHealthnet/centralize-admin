@@ -61,6 +61,12 @@ const TONES: Record<string, string> = {
   FAILED: "bg-red-50 text-red-700",
   CANCELLED: "bg-muted text-muted-foreground",
   OUTCOME_UNKNOWN: "bg-orange-50 text-orange-700",
+  // Automation replay / recovery states.
+  PLANNED: "bg-sky-50 text-sky-700",
+  EXECUTED: "bg-emerald-50 text-emerald-700",
+  REFUSED: "bg-red-50 text-red-700",
+  INTERRUPTED: "bg-orange-50 text-orange-700",
+  STALLED: "bg-amber-50 text-amber-700",
   PROVIDER_ACCEPTED: "bg-sky-50 text-sky-700",
   DELIVERED: "bg-emerald-50 text-emerald-700",
   DELAYED: "bg-amber-50 text-amber-700",

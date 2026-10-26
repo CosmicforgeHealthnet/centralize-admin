@@ -162,16 +162,19 @@ function createMailJobRepository({ client, clock = () => new Date(), random = Ma
   // back to PENDING with a fresh attempt budget, and its provider webhook event
   // is reopened so lag/backlog reflect it again. Callers decide which kinds may
   // be replayed (never outbound sends: their outcome may be unknown).
-  async function requeue(jobId) {
+  // `tx` (optional, gap 4): requeue inside the caller's transaction, e.g. an
+  // automation replay that also resets the enrollment atomically.
+  async function requeue(jobId, { tx = null } = {}) {
+    const db = tx || client;
     const now = clock();
-    const job = await client.mailOutboxJob.findUnique({ where: { id: jobId } });
+    const job = await db.mailOutboxJob.findUnique({ where: { id: jobId } });
     if (!job) return null;
-    const result = await client.mailOutboxJob.updateMany({
+    const result = await db.mailOutboxJob.updateMany({
       where: { id: jobId, status: { in: ["DEAD_LETTER", "FAILED"] } },
       data: { status: "PENDING", attemptCount: 0, nextAttemptAt: now, completedAt: null, leaseOwner: null, leaseExpiresAt: null, lastErrorCode: "REQUEUED", lastErrorMessage: `requeued after ${job.status}` },
     });
     if (result.count !== 1) return { job, requeued: false };
-    if (job.webhookEventId) await client.mailWebhookEvent.updateMany({ where: { id: job.webhookEventId, status: "FAILED" }, data: { status: "RECEIVED", processedAt: null } });
+    if (job.webhookEventId) await db.mailWebhookEvent.updateMany({ where: { id: job.webhookEventId, status: "FAILED" }, data: { status: "RECEIVED", processedAt: null } });
     return { job: { ...job, status: "PENDING" }, requeued: true };
   }
 

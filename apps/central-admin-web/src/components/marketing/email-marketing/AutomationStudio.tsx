@@ -27,6 +27,9 @@ import {
 import { useAuthStore } from "@/stores/auth.store";
 import type { Automation, AutomationDefinition, AutomationStep, AutomationTrigger, MarketingOrganization } from "@/types/mail-marketing.types";
 import StepUpDialog from "./StepUpDialog";
+import AutomationReplayPanel from "./AutomationReplayPanel";
+import AutomationTestPanel from "./AutomationTestPanel";
+import AutomationTimingFields from "./AutomationTimingFields";
 import { EmBadge, EmCard, EmField, EmMessage, emBtn, emBtnOutline, emInput } from "./em-ui";
 
 const TRIGGERS: { value: AutomationTrigger; label: string; help: string }[] = [
@@ -94,14 +97,16 @@ function StepEditor({ step, steps, onChange, onRemove, templates, senders, disab
               </select>
             </EmField>
             {nextSelect("Then", step.next, (next) => onChange({ ...step, next }))}
+            <AutomationTimingFields stepId={step.id} allowUntil={false} window={step.window} disabled={disabled} onChange={({ window }) => onChange({ ...step, window })} />
           </>
         )}
         {step.type === "delay" && (
           <>
-            <EmField label="Wait (minutes)" hint="1 minute to 90 days">
-              <input type="number" min={1} max={129600} value={step.minutes} onChange={(e) => onChange({ ...step, minutes: Number(e.target.value) })} className={emInput} disabled={disabled} />
+            <EmField label="Wait (minutes)" hint={step.until || step.window ? "0 to 90 days, then the local time / window below" : "1 minute to 90 days"}>
+              <input type="number" min={step.until || step.window ? 0 : 1} max={129600} value={step.minutes} onChange={(e) => onChange({ ...step, minutes: Number(e.target.value) })} className={emInput} disabled={disabled} />
             </EmField>
             {nextSelect("Then", step.next, (next) => onChange({ ...step, next }))}
+            <AutomationTimingFields stepId={step.id} allowUntil until={step.until} window={step.window} disabled={disabled} onChange={({ until, window }) => onChange({ ...step, until, window })} />
           </>
         )}
         {step.type === "condition" && (
@@ -262,8 +267,11 @@ function AutomationDetail({ org, automationId }: { org: MarketingOrganization; a
                     <EmField label="Local time">
                       <input type="time" value={String(trig.localTime ?? "09:00")} onChange={(e) => setTrigger({ ...trig, localTime: e.target.value })} className={emInput} disabled={!editable} />
                     </EmField>
-                    <EmField label="Time zone">
-                      <input value={String(trig.timeZone ?? "UTC")} onChange={(e) => setTrigger({ ...trig, timeZone: e.target.value })} className={emInput} disabled={!editable} />
+                    <EmField label="Time zone" hint={'IANA name, or "recipient" to send at the local time in each contact\'s zone'}>
+                      <input value={String(trig.timeZone ?? "UTC")} onChange={(e) => setTrigger({ ...trig, timeZone: e.target.value })} className={emInput} disabled={!editable} list="au-timezones" />
+                      <datalist id="au-timezones">
+                        {["recipient", "UTC", "Africa/Lagos", "Europe/London", "America/New_York"].map((z) => <option key={z} value={z} />)}
+                      </datalist>
                     </EmField>
                   </>
                 )}
@@ -316,6 +324,9 @@ function AutomationDetail({ org, automationId }: { org: MarketingOrganization; a
               )}
             </EmCard>
           )}
+
+          {versions.length > 0 && <AutomationTestPanel key={`test-${versions.length}`} org={org} automation={automation} versions={versions} />}
+          <AutomationReplayPanel org={org} automation={automation} />
 
           <EmCard title="Versions" id="au-versions">
             <ul className="flex flex-col gap-1 text-[12px]">

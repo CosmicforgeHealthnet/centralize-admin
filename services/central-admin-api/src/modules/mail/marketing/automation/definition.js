@@ -3,13 +3,16 @@
 // Versioned automation definitions: a bounded, acyclic graph of steps.
 //   { topic, entryStepId, steps: [
 //       { id, type: "send_email", templateVersionId, senderAddressId, subjectOverride?, replyTo?, next },
-//       { id, type: "delay", minutes, next },
+//       { id, type: "delay", minutes, until?, window?, next },
+//       (send_email may also carry window?)
+//   until  = { localTime: "HH:mm", timezone: "recipient" | "brand" | <IANA> }
+//   window = { start: "HH:mm", end: "HH:mm", days?: [1..7 ISO weekdays], timezone?: same as until }
 //       { id, type: "condition", condition: { field, op, value }, then, else },
 //       { id, type: "exit" } ] }
 // Trigger configs:
 //   CONSENT_GRANTED { topic }                     (must equal definition.topic)
 //   PRODUCT_EVENT   { eventType, version }        (approved registry only)
-//   SCHEDULE        { frequency, localTime, timeZone, weekday?, dayOfMonth?, audienceId, segmentId? }
+//   SCHEDULE        { frequency, localTime, timeZone (IANA or "recipient"), weekday?, dayOfMonth?, audienceId, segmentId? }
 
 const crypto = require("crypto");
 const { approvedEvent } = require("./event-registry");
@@ -24,6 +27,47 @@ const EMAIL = /^[^\s@<>"']{1,64}@[a-z0-9.-]{1,253}\.[a-z]{2,}$/i;
 const MAX_STEPS = 30;
 const MAX_SEND_STEPS = 10;
 const MAX_DELAY_MINUTES = 90 * 24 * 60;
+const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+// Gap 4: optional recipient-timezone delivery controls. Only present keys are
+// kept, so definitions without them hash exactly as before.
+function validZoneSpec(value) {
+  return value === "recipient" || value === "brand" || isValidTimeZone(value);
+}
+
+function cleanUntil(input, at, errors) {
+  if (input == null) return null;
+  if (typeof input !== "object") {
+    errors.push({ field: `${at}.until` });
+    return null;
+  }
+  if (!HHMM.test(String(input.localTime || ""))) errors.push({ field: `${at}.until.localTime`, reason: "HH:MM_REQUIRED" });
+  const timezone = input.timezone == null || input.timezone === "" ? "recipient" : String(input.timezone);
+  if (!validZoneSpec(timezone)) errors.push({ field: `${at}.until.timezone`, reason: "IANA_TIMEZONE_OR_RECIPIENT_OR_BRAND" });
+  return { localTime: String(input.localTime || ""), timezone };
+}
+
+function cleanWindow(input, at, errors) {
+  if (input == null) return null;
+  if (typeof input !== "object") {
+    errors.push({ field: `${at}.window` });
+    return null;
+  }
+  const start = String(input.start || "");
+  const end = String(input.end || "");
+  if (!HHMM.test(start)) errors.push({ field: `${at}.window.start`, reason: "HH:MM_REQUIRED" });
+  if (!HHMM.test(end)) errors.push({ field: `${at}.window.end`, reason: "HH:MM_REQUIRED" });
+  if (HHMM.test(start) && HHMM.test(end) && start >= end) errors.push({ field: `${at}.window`, reason: "START_MUST_BE_BEFORE_END" });
+  let days = null;
+  if (input.days != null) {
+    const raw = Array.isArray(input.days) ? input.days.map(Number) : [];
+    if (!raw.length || raw.some((day) => !Number.isInteger(day) || day < 1 || day > 7)) errors.push({ field: `${at}.window.days`, reason: "ISO_WEEKDAYS_1_TO_7" });
+    days = [...new Set(raw.filter((day) => Number.isInteger(day) && day >= 1 && day <= 7))].sort((a, b) => a - b);
+  }
+  const timezone = input.timezone == null || input.timezone === "" ? "recipient" : String(input.timezone);
+  if (!validZoneSpec(timezone)) errors.push({ field: `${at}.window.timezone`, reason: "IANA_TIMEZONE_OR_RECIPIENT_OR_BRAND" });
+  return { start, end, ...(days ? { days } : {}), timezone };
+}
 
 class DefinitionError extends Error {
   constructor(errors) {
@@ -54,12 +98,19 @@ function validateDefinition(input) {
         // replyTo is optional; when absent the sender address must itself
         // route to a shared mailbox (checked against the brand at submit).
         if (step.replyTo != null && step.replyTo !== "" && !EMAIL.test(String(step.replyTo))) errors.push({ field: `${at}.replyTo` });
-        clean.push({ id, type: "send_email", templateVersionId: String(step.templateVersionId), senderAddressId: String(step.senderAddressId), subjectOverride: step.subjectOverride ? String(step.subjectOverride).replace(/[\r\n]+/g, " ").slice(0, 998) : null, ...(step.replyTo ? { replyTo: String(step.replyTo).trim().toLowerCase().slice(0, 320) } : {}), next: ref(step.next) });
+        {
+          const window = cleanWindow(step.window, at, errors);
+          clean.push({ id, type: "send_email", templateVersionId: String(step.templateVersionId), senderAddressId: String(step.senderAddressId), subjectOverride: step.subjectOverride ? String(step.subjectOverride).replace(/[\r\n]+/g, " ").slice(0, 998) : null, ...(step.replyTo ? { replyTo: String(step.replyTo).trim().toLowerCase().slice(0, 320) } : {}), ...(window ? { window } : {}), next: ref(step.next) });
+        }
         break;
       case "delay": {
-        const minutes = Number(step.minutes);
-        if (!Number.isInteger(minutes) || minutes < 1 || minutes > MAX_DELAY_MINUTES) errors.push({ field: `${at}.minutes`, reason: `1-${MAX_DELAY_MINUTES}` });
-        clean.push({ id, type: "delay", minutes, next: ref(step.next) });
+        const until = cleanUntil(step.until, at, errors);
+        const window = cleanWindow(step.window, at, errors);
+        // With a local "until" time or a window the fixed part may be 0.
+        const min = until || window ? 0 : 1;
+        const minutes = step.minutes == null && (until || window) ? 0 : Number(step.minutes);
+        if (!Number.isInteger(minutes) || minutes < min || minutes > MAX_DELAY_MINUTES) errors.push({ field: `${at}.minutes`, reason: `${min}-${MAX_DELAY_MINUTES}` });
+        clean.push({ id, type: "delay", minutes, ...(until ? { until } : {}), ...(window ? { window } : {}), next: ref(step.next) });
         break;
       }
       case "condition": {
@@ -126,7 +177,9 @@ function validateTriggerConfig(triggerType, input, definition) {
     const frequency = String(config.frequency || "");
     if (!["daily", "weekly", "monthly"].includes(frequency)) errors.push({ field: "triggerConfig.frequency" });
     if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(String(config.localTime || ""))) errors.push({ field: "triggerConfig.localTime" });
-    if (!isValidTimeZone(config.timeZone)) errors.push({ field: "triggerConfig.timeZone" });
+    // "recipient": each contact receives the occurrence at the local time in
+    // their own zone (contact attributes.timezone -> brand default -> UTC).
+    if (config.timeZone !== "recipient" && !isValidTimeZone(config.timeZone)) errors.push({ field: "triggerConfig.timeZone" });
     if (frequency === "weekly" && !(Number.isInteger(Number(config.weekday)) && Number(config.weekday) >= 0 && Number(config.weekday) <= 6)) errors.push({ field: "triggerConfig.weekday" });
     if (frequency === "monthly" && !(Number.isInteger(Number(config.dayOfMonth)) && Number(config.dayOfMonth) >= 1 && Number(config.dayOfMonth) <= 28)) errors.push({ field: "triggerConfig.dayOfMonth" });
     if (!UUID.test(String(config.audienceId || ""))) errors.push({ field: "triggerConfig.audienceId" });
