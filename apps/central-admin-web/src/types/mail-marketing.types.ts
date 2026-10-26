@@ -175,6 +175,9 @@ export interface TemplateVersion {
   contentSha256: string;
   createdAt: string;
   createdBy?: string | null;
+  /** Final gap 1: classification snapshot taken when the version was created. */
+  classification?: TemplateClassification;
+  approval?: TemplateVersionApproval | null;
 }
 
 export interface EmailTemplate {
@@ -185,6 +188,10 @@ export interface EmailTemplate {
   latestVersion: number;
   legacyTemplateId: string | null;
   versions?: TemplateVersion[];
+  /** Final gap 1: current template class (MARKETING before migration 37). */
+  classification?: TemplateClassification;
+  classificationAvailable?: boolean;
+  classificationReason?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -250,7 +257,9 @@ export type CampaignInput = Partial<
 
 export interface PreflightResult {
   ok: boolean;
-  checks: { id: string; ok: boolean; detail: string }[];
+  checks: { id: string; ok: boolean; detail: string; status?: PreflightStatus }[];
+  summary?: Record<PreflightStatus, number>;
+  preflightSha256?: string;
   eligibleCount: number;
   excludedCount: number;
 }
@@ -363,8 +372,8 @@ export interface MarketingOverview {
 // ── M7: automation ────────────────────────────────────────────────────────
 export type AutomationTrigger = "CONSENT_GRANTED" | "PRODUCT_EVENT" | "SCHEDULE";
 export type AutomationStep =
-  | { id: string; type: "send_email"; templateVersionId: string; senderAddressId: string; subjectOverride?: string | null; next: string | null }
-  | { id: string; type: "delay"; minutes: number; next: string | null }
+  | { id: string; type: "send_email"; templateVersionId: string; senderAddressId: string; subjectOverride?: string | null; window?: AutomationWindow; next: string | null }
+  | { id: string; type: "delay"; minutes: number; until?: AutomationUntil; window?: AutomationWindow; next: string | null }
   | { id: string; type: "condition"; condition: { field: string; op: string; value: string | string[] | null }; then: string | null; else: string | null }
   | { id: string; type: "exit" };
 
@@ -419,9 +428,251 @@ export interface AutomationEnrollment {
   createdAt: string;
 }
 
+// ---- final gap 4: recipient time zones, automation test mode, replay / recovery
+/** "recipient" (contact attributes.timezone -> brand default -> UTC), "brand", or an IANA name. */
+export type AutomationZoneSpec = "recipient" | "brand" | string;
+export interface AutomationUntil { localTime: string; timezone?: AutomationZoneSpec }
+/** ISO weekdays 1 = Monday ... 7 = Sunday. */
+export interface AutomationWindow { start: string; end: string; days?: number[]; timezone?: AutomationZoneSpec }
+
+export interface AutomationTestInput {
+  contactId?: string;
+  contact?: { email: string; firstName?: string; lastName?: string; timezone?: string; consentStatus?: "GRANTED" | "WITHDRAWN" | "NONE" | "PENDING_CONFIRMATION" };
+  event?: { topic?: string; origin?: string; eventType?: string; version?: number; eventId?: string; payload?: Record<string, unknown> };
+  now?: string;
+  engagement?: { previous_send_delivered?: boolean; previous_send_opened?: boolean; previous_send_clicked?: boolean };
+}
+
+export interface AutomationTestPathEntry {
+  sequence: number;
+  stepId: string;
+  type: AutomationStep["type"];
+  at: string;
+  localAt: string;
+  action?: "WOULD_SEND" | "WOULD_EXIT" | "WOULD_FAIL";
+  reason?: string;
+  next?: string | null;
+  // delay
+  minutes?: number;
+  runAt?: string;
+  localRunAt?: string;
+  timeZone?: string;
+  timeZoneSource?: string | null;
+  timeZoneFallback?: boolean | null;
+  fallbackReason?: string | null;
+  ambiguous?: boolean;
+  shiftedMinutes?: number;
+  windowDeferred?: boolean;
+  // condition
+  condition?: { field: string; op: string; value: unknown };
+  result?: boolean;
+  branch?: "then" | "else";
+  simulatedEngagement?: boolean;
+  // send
+  holds?: { reason: string; until: string; localUntil?: string }[];
+  sendAt?: string;
+  localSendAt?: string;
+  template?: { versionId: string; version: number; templateName: string; classification: string | null; classificationAvailable: boolean };
+  personalization?: { subject?: string; text?: string; variables?: string[]; missingVariables?: string[]; error?: string };
+  warnings?: string[];
+}
+
+export interface AutomationTestResult {
+  mode: "TEST";
+  sideEffects: "NONE";
+  simulatedNow: string;
+  automation: { id: string; name: string; status: string; triggerType: AutomationTrigger };
+  version: { id: string; version: number; status: string; definitionSha256: string };
+  validation: { ok: boolean; errors: { field: string; reason?: string }[] };
+  contact: { kind: "REAL" | "SYNTHETIC"; id: string | null; email: string; timeZone: string; timeZoneSource: string; timeZoneFallback: boolean; fallbackReason?: string; storedTimeZone: string | null; brandDefaultTimeZone: string | null };
+  trigger: { type: AutomationTrigger; matches: boolean; reason: string | null; nextOccurrence?: string | null; recipientLocalRunAt?: string; simulatedEvent?: { droppedFields?: string[] } & Record<string, unknown>; duplicate?: { eventIdSeen: boolean; alreadyEnrolled: boolean; note: string | null } };
+  eligibility: {
+    automationStatus: string;
+    executionEnabled: boolean;
+    contactStatus: string;
+    consent: { topic: string; status: string; ok: boolean; simulated: boolean };
+    suppression: { suppressed: boolean; reason: string | null; scope: string | null };
+    frequencyCap: { hours: number; lastMarketingSendAt: string | null };
+    enrollmentCap: { limit: number; priorEnrollments: number; ok: boolean };
+    maxActiveEnrollments: { limit: number; active: number; ok: boolean };
+    wouldEnroll: boolean;
+    enrollmentBlockers: string[];
+    sendBlockers: string[];
+  };
+  path: AutomationTestPathEntry[];
+  expected: { outcome: string; reason: string | null; sends: number; wouldEnroll: boolean; summary: string };
+}
+
+export type AutomationReplayScope = "STEP_RUN" | "ENROLLMENT" | "DEAD_LETTER_JOB";
+export interface AutomationRecoveryRun { id: string; enrollmentId: string; stepId: string; stepType: string; sequence: number; status: string; errorCode: string | null; providerMessageId: string | null; firstAttemptAt: string | null; updatedAt: string; recipientEmail: string | null }
+export interface AutomationRecoveryEnrollment { id: string; contactId: string; status: string; exitReason: string | null; currentStepId: string | null; stepCount: number; updatedAt: string }
+export interface AutomationRecoveryJob { id: string; status: string; enrollmentId: string; sequence: number; attemptCount: number; lastErrorCode: string | null; idempotencyKey: string; completedAt: string | null }
+interface RecoveryPage<T> { items: T[]; more: boolean }
+export interface AutomationRecovery {
+  failedStepRuns: RecoveryPage<AutomationRecoveryRun>;
+  interruptedStepRuns: RecoveryPage<AutomationRecoveryRun>;
+  failedEnrollments: RecoveryPage<AutomationRecoveryEnrollment>;
+  stalledEnrollments: RecoveryPage<AutomationRecoveryEnrollment>;
+  deadLetterJobs: RecoveryPage<AutomationRecoveryJob>;
+  idempotencyWindowHours: number;
+}
+export interface AutomationReplayPlan {
+  scope: AutomationReplayScope;
+  action: string | null;
+  enrollmentId: string;
+  versionId: string;
+  version: number | null;
+  stepId: string | null;
+  stepRunId: string | null;
+  outboxJobId: string | null;
+  idempotency: { key: string | null; reused: boolean; firstAttemptAt?: string; providerDeduplicatesUntil?: string; note?: string } | null;
+  requiresAcknowledgement: boolean;
+  checks: { contactStatus: string; consent: { status: string; ok: boolean }; suppressed: boolean; frequencyCapHoldsUntil: string | null } | null;
+  refusal: { code: string; message: string } | null;
+  steps: string[];
+}
+export interface AutomationReplay { id: string; scope: AutomationReplayScope; mode: "DRY_RUN" | "EXECUTE"; status: "PLANNED" | "EXECUTED" | "REFUSED" | "FAILED"; reason: string; requestedBy: string; enrollmentId: string | null; stepRunId: string | null; outboxJobId: string | null; result: { plan?: AutomationReplayPlan; outcome?: Record<string, unknown> } | null; createdAt: string; executedAt: string | null }
+export interface AutomationReplayResponse { replay: AutomationReplay; plan: AutomationReplayPlan; executable?: boolean; requires?: string[]; outcome?: { action: string; jobId: string; idempotencyKey?: string; idempotencyKeyReused?: boolean } }
+
 export interface ApprovedProductEvent {
   eventType: string;
   versions: number[];
   product: string;
   fields: string[];
+}
+
+// ---- final gaps 1 + 7: template classification, deliverability preflight, template QA
+export type TemplateClassification = "MARKETING" | "TRANSACTIONAL" | "TRANSACTIONAL_SECURITY";
+export type PreflightStatus = "PASS" | "WARNING" | "BLOCKED" | "UNKNOWN";
+
+export interface TemplateVersionApproval {
+  approved: boolean;
+  approvedBy: string | null;
+  approvedAt: string | null;
+}
+
+export interface TemplateClassificationChange {
+  templateId: string;
+  classification: TemplateClassification;
+  changed: boolean;
+  newVersion: { id: string; version: number; contentSha256: string; classification: TemplateClassification } | null;
+}
+
+export interface QaCheck {
+  id: string;
+  ok: boolean;
+  status: PreflightStatus;
+  detail: string;
+}
+
+export interface TemplateQaReport {
+  versionId: string;
+  version: number;
+  classification: TemplateClassification;
+  disclaimer: string;
+  locale: string;
+  sampleContact: Record<string, string>;
+  formatted: { date: string; number: string; currency: string };
+  brandTokens: Record<string, unknown> | null;
+  renders: {
+    subject: string;
+    desktop: { width: number; html: string };
+    mobile: { width: number; html: string };
+    dark: { html: string; supportsDarkMode: boolean; simulated: boolean };
+    plaintext: string;
+  } | null;
+  checks: QaCheck[];
+  summary: Record<PreflightStatus, number>;
+  compatibility: { id: string; status: PreflightStatus; detail: string }[];
+  approval: TemplateVersionApproval | null;
+}
+
+// ── Final gaps 2/3: provider subscription state, re-subscriptions, estimated spend, provider quota ──
+export type ProviderSubscriptionState = "SUBSCRIBED" | "UNSUBSCRIBED" | "SUPPRESSED" | "UNKNOWN";
+export interface ContactProviderState {
+  contactId?: string;
+  state: ProviderSubscriptionState;
+  reason: string | null;
+  provider?: string | null;
+  observedAt: string | null;
+}
+export type ResubscriptionStatus = "PENDING_APPROVAL" | "APPROVED" | "APPLIED" | "UNSUPPORTED" | "FAILED" | "REFUSED" | "CANCELLED";
+export interface ProviderResubscription {
+  id: string;
+  organizationId: string;
+  contactId: string;
+  email: string | null;
+  topic: string;
+  status: ResubscriptionStatus;
+  evidence: { consentId: string | null; topic: string; source: string | null; policyVersion: string | null; consentedAt: string | null; confirmedAt: string | null; doubleOptIn: boolean; providerState: { state: string; reason: string | null; observedAt: string | null } | null };
+  approvedBy: string | null;
+  attempts: number;
+  nextAttemptAt: string | null;
+  lastError: string | null;
+  providerResult: Record<string, unknown> | null;
+  completedAt: string | null;
+  createdAt: string | null;
+  operatorMessage: string | null;
+  providerState?: ContactProviderState;
+}
+export interface ResubscriptionList {
+  items: ProviderResubscription[];
+  flags: { providerResubscribeEnabled: boolean };
+}
+export interface ReportSpend {
+  status: "ESTIMATED" | "UNAVAILABLE";
+  amount: string | null;
+  currency: string | null;
+  basis: string;
+  basisCount: number | null;
+  pricingSource: string | null;
+  pricingReference: string | null;
+  pricingEffectiveFrom: string | null;
+  unitCost: string | null;
+  computedAt: string | null;
+  label: string;
+  reason: string | null;
+  includedAllowanceNote: string | null;
+  billed: null;
+  billedStatus: "UNAVAILABLE";
+  billedReason: string;
+}
+export interface ProviderQuotaSnapshot {
+  scope?: string;
+  provider?: string;
+  status: "OBSERVED" | "UNKNOWN" | "HIDDEN" | "UNAVAILABLE";
+  reason?: string;
+  dailyUsed?: number | null;
+  monthlyUsed?: number | null;
+  dailyLimit?: number | null;
+  monthlyLimit?: number | null;
+  remaining?: { daily: number | null; monthly: number | null };
+  remainingStatus?: "KNOWN" | "UNKNOWN";
+  observedAt?: string | null;
+  source?: string | null;
+  exhausted?: boolean;
+  exhaustedKind?: "DAILY" | "MONTHLY" | null;
+  exhaustedUntil?: string | null;
+  rateLimit?: { limit: number | null; remaining: number | null; resetSeconds: number | null; observedAt: string } | null;
+  notes?: string[];
+}
+export interface ReportWindowExtras {
+  window?: { from: string | null; to: string | null; note: string };
+  reportWindowEnd?: string;
+  eventsSettleUntil?: string | null;
+  eventsStillArriving?: boolean;
+  eventsSettleHours?: number;
+  sent?: { count: number; denominator: string };
+  accepted?: { count: number; denominator: string };
+  delivered?: { count: number; denominator: string };
+  [key: string]: unknown;
+}
+// Interface merging: optional report/overview fields added by migration 37.
+export interface BroadcastReport {
+  spend?: ReportSpend | null;
+  providerQuota?: ProviderQuotaSnapshot | null;
+  denominators?: ReportWindowExtras;
+}
+export interface MarketingOverview {
+  spend?: { available: boolean; label: string; estimated?: { currency: string; amount: string; dispatches: number; acceptedRecipients: number }[]; unavailableDispatches?: number; billed?: null; billedStatus?: "UNAVAILABLE"; window?: { from: string; to: string; basis: string } } | null;
 }

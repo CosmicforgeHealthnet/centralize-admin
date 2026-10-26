@@ -190,6 +190,13 @@ function loadMailConfig(env = process.env) {
       String(env.MAIL_UNKNOWN_RECIPIENT_POLICY || "reject").trim().toLowerCase() === "quarantine"
         ? "quarantine"
         : "reject",
+    // GAP 8 (spec 11.8) mixed internal/external recipients. See
+    // docs/cosmicforge-mail-mixed-recipients.md. "external-only" (default)
+    // gives the provider only external recipients; "full-headers" gives it the
+    // complete visible To/Cc and drops the provider's echoes to our own
+    // addresses. full-headers needs the receiving cutover + product/security
+    // approval, and is refused (stays external-only) without an origin key.
+    mixedRecipients: mixedRecipientConfig(env),
     stepUpTtlSeconds: intInRange(env.MAIL_STEP_UP_TTL_SECONDS, 300, 60, 900),
     publicAppUrl: String(env.MAIL_PUBLIC_APP_URL || env.FRONTEND_URL || ""),
     // Public base for unsubscribe / preference links (the API origin).
@@ -204,6 +211,24 @@ function loadMailConfig(env = process.env) {
       maxRecipients: intInRange(env.MAIL_MARKETING_TEST_SEND_MAX_RECIPIENTS, 5, 1, 10),
       perCampaignPerHour: intInRange(env.MAIL_MARKETING_TEST_SENDS_PER_HOUR, 10, 1, 50),
     },
+    // ---- final gap 7: marketing deliverability preflight (reporting only;
+    // nothing here enables sending). Rates in basis points (200 = 2%).
+    // Click tracking is not readable through the adapters: "on"/"off" is an
+    // operator declaration, anything else = UNKNOWN.
+    marketingDeliverability: {
+      windowDays: intInRange(env.MAIL_MARKETING_REPUTATION_WINDOW_DAYS, 30, 1, 365),
+      minSample: intInRange(env.MAIL_MARKETING_REPUTATION_MIN_SAMPLE, 100, 1, 1000000),
+      bounceWarnBps: intInRange(env.MAIL_MARKETING_BOUNCE_WARN_BPS, 200, 0, 10000),
+      bounceBlockBps: intInRange(env.MAIL_MARKETING_BOUNCE_BLOCK_BPS, 500, 0, 10000),
+      complaintWarnBps: intInRange(env.MAIL_MARKETING_COMPLAINT_WARN_BPS, 10, 0, 10000),
+      complaintBlockBps: intInRange(env.MAIL_MARKETING_COMPLAINT_BLOCK_BPS, 30, 0, 10000),
+      providerClickTracking: ["on", "off"].includes(String(env.MAIL_MARKETING_PROVIDER_CLICK_TRACKING || "").trim().toLowerCase()) ? String(env.MAIL_MARKETING_PROVIDER_CLICK_TRACKING).trim().toLowerCase() : null,
+      // Extra link domains allowed in TRANSACTIONAL_SECURITY templates (the
+      // brand's own mail domains are always allowed).
+      securityLinkDomains: list(env.MAIL_MARKETING_SECURITY_LINK_DOMAINS),
+      providerTimeoutMs: intInRange(env.MAIL_MARKETING_PREFLIGHT_PROVIDER_TIMEOUT_MS, 5000, 500, 30000),
+    },
+    // ---- end final gap 7
     // Queues served by this worker process. MARKETING is opt-in so the
     // transactional worker never runs marketing jobs unless deployed to.
     workerQueues: (() => {
@@ -251,6 +276,16 @@ function loadMailConfig(env = process.env) {
         PRODUCT_DELIVERY_EVENTS: optionalDays(env.MAIL_RETENTION_PRODUCT_DELIVERY_EVENT_DAYS),
       },
     },
+    // Final gap 5: durable storage deletion queue (migration 37). Retries use
+    // bounded exponential backoff with full jitter; exhausted rows go DEAD.
+    storageDeletion: {
+      maxAttempts: intInRange(env.MAIL_STORAGE_DELETION_MAX_ATTEMPTS, 12, 1, 100),
+      baseSeconds: intInRange(env.MAIL_STORAGE_DELETION_BACKOFF_BASE_SECONDS, 30, 1, 3600),
+      capSeconds: intInRange(env.MAIL_STORAGE_DELETION_BACKOFF_CAP_SECONDS, 21600, 60, 604800),
+      batchSize: intInRange(env.MAIL_STORAGE_DELETION_BATCH_SIZE, 100, 1, 1000),
+      leaseSeconds: intInRange(env.MAIL_STORAGE_DELETION_LEASE_SECONDS, 300, 30, 3600),
+      intervalSeconds: intInRange(env.MAIL_STORAGE_DELETION_INTERVAL_SECONDS, 300, 30, 86400),
+    },
     // M9 operations: alert evaluation and the token-protected metrics endpoint.
     ops: {
       alertsEnabled: env.MAIL_OPS_ALERTS_ENABLED === undefined ? true : flag(env.MAIL_OPS_ALERTS_ENABLED),
@@ -287,8 +322,36 @@ function loadMailConfig(env = process.env) {
       all: flag(env.MAIL_EMERGENCY_STOP_ALL),
       marketing: flag(env.MAIL_EMERGENCY_STOP_ALL) || flag(env.MAIL_EMERGENCY_STOP_MARKETING),
     },
+    // GAP 2/3 (final gap closure): provider re-subscription + provider quota.
+    // Re-subscribing a contact at Resend (PATCH unsubscribed=false) is not
+    // documented by Resend: OFF unless confirmed with Resend support.
+    providerResubscribeEnabled: flag(env.MAIL_MARKETING_PROVIDER_RESUBSCRIBE_ENABLED),
+    // Account plan sending limits (optional; UNKNOWN when unset).
+    providerLimits: {
+      monthly: /^\d{1,9}$/.test(String(env.MAIL_PROVIDER_MONTHLY_LIMIT ?? "").trim()) && Number(env.MAIL_PROVIDER_MONTHLY_LIMIT) > 0 ? Number(env.MAIL_PROVIDER_MONTHLY_LIMIT) : null,
+      daily: /^\d{1,9}$/.test(String(env.MAIL_PROVIDER_DAILY_LIMIT ?? "").trim()) && Number(env.MAIL_PROVIDER_DAILY_LIMIT) > 0 ? Number(env.MAIL_PROVIDER_DAILY_LIMIT) : null,
+    },
   };
   return Object.freeze(config);
+}
+
+// GAP 8: MAIL_MIXED_RECIPIENT_MODE validation. full-headers is refused
+// (mode stays external-only, reason reported) when no origin-header key is
+// available: MAIL_ORIGIN_HEADER_SECRET (>= 32 chars) or an env keyring.
+function mixedRecipientConfig(env) {
+  const { originKeyAvailable, MIN_SECRET_LENGTH } = require("./security/origin-header");
+  const requestedMode = String(env.MAIL_MIXED_RECIPIENT_MODE || "external-only").trim().toLowerCase();
+  const rawSecret = String(env.MAIL_ORIGIN_HEADER_SECRET || "");
+  const originSecret = rawSecret.length >= MIN_SECRET_LENGTH ? rawSecret : "";
+  let mode = "external-only";
+  let refusedReason = null;
+  if (!["external-only", "full-headers"].includes(requestedMode)) refusedReason = "MAIL_MIXED_RECIPIENT_MODE_UNKNOWN";
+  else if (requestedMode === "full-headers") {
+    const available = originKeyAvailable({ secret: originSecret, encryptionKeys: env.MAIL_ENCRYPTION_KEYS || "", activeKey: env.MAIL_ENCRYPTION_ACTIVE_KEY || "", kmsProvider: env.MAIL_KMS_PROVIDER || "env" });
+    if (available) mode = "full-headers";
+    else refusedReason = "MAIL_ORIGIN_HEADER_SECRET_MISSING";
+  }
+  return Object.freeze({ requestedMode, mode, refusedReason, originSecret, secretTooShort: rawSecret.length > 0 && !originSecret });
 }
 
 function optionalDays(value) {
@@ -369,6 +432,8 @@ function publicStatus(config) {
     kmsProvider: config.kms.provider,
     deploymentEnvironment: config.deploymentEnvironment,
     unknownRecipientPolicy: config.unknownRecipientPolicy,
+    // GAP 8: mixed-recipient header mode (never the secret).
+    mixedRecipients: { mode: config.mixedRecipients.mode, requestedMode: config.mixedRecipients.requestedMode, refusedReason: config.mixedRecipients.refusedReason },
     search: { metadataOnly: !config.search.bodies, bodySearch: config.search.bodies ? "keyed-blind-index" : "disabled", bodySearchRequestedWithoutKey: config.search.bodyRequested && !config.search.bodies, bodyIndexingRequestRefused: config.search.bodyIndexingRequestRefused },
     archive: { headers: config.archive.storeHeaders, rawMime: config.archive.storeRawMime },
     forwarding: { externalAllowedDomains: config.forwarding.externalAllowedDomains.length },

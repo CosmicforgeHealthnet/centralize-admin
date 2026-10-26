@@ -28,6 +28,16 @@ const PURPOSES = new Set([
   "MARKETING_CAMPAIGN_APPROVAL",
   "MARKETING_AUTOMATION_PUBLISH",
   "MARKETING_BROADCAST_OVERRIDE",
+  // Final gap 1: template classification changes and security template approvals.
+  "MARKETING_TEMPLATE_CLASSIFY",
+  "MARKETING_TEMPLATE_APPROVE",
+  // Final gap 4: executing an automation replay / recovery.
+  "MARKETING_AUTOMATION_REPLAY",
+  // Final gaps 2/3: provider re-subscription approval / manual confirmation,
+  // approved provider pricing changes and dispatch cost re-estimates.
+  "MARKETING_RESUBSCRIBE_APPROVE",
+  "MARKETING_RESUBSCRIBE_CONFIRM",
+  "MAIL_PRICING_CHANGE",
   "MAIL_EXPORT",
   "MAIL_RETENTION_EXECUTE",
   "MAIL_EMERGENCY_STOP_RELEASE",
@@ -38,6 +48,10 @@ const PURPOSES = new Set([
   "MAIL_ARCHIVE_EXPORT",
   "MAIL_DSAR_EXPORT",
   "MAIL_DSAR_ERASURE",
+  // Final gaps 5/6: requeue of dead storage deletions, IT quarantine actions.
+  "MAIL_STORAGE_DELETION_REQUEUE",
+  "MAIL_QUARANTINE_RELEASE",
+  "MAIL_QUARANTINE_DELETE",
 ]);
 
 // Shared-MFA error codes -> Mail error codes (same envelope, Mail semantics).

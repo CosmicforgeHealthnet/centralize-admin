@@ -37,16 +37,29 @@ const { createBroadcastService } = require("./marketing/broadcast.service");
 const { createBroadcastProcessor } = require("./marketing/broadcast.processor");
 const { createAutomationService } = require("./marketing/automation/automation.service");
 const { createAutomationProcessor } = require("./marketing/automation/automation.processor");
+// Final gap 4: automation test mode and replay / recovery.
+const { createAutomationTestService } = require("./marketing/automation/automation-test.service");
+const { createAutomationReplayService } = require("./marketing/automation/automation-replay.service");
 const { createConfirmationService } = require("./marketing/confirmation.service");
 const { createTestSendService } = require("./marketing/test-send.service");
+// Final gaps 1 + 7: template classification policy and deliverability preflight.
+const { createTemplatePolicy, registerTemplatePolicy } = require("./marketing/template-policy");
+const { registerDeliverability } = require("./marketing/preflight");
 const { createCampaignReplies } = require("./marketing/campaign-replies");
 const { createMarketingEventsProcessor } = require("./marketing/marketing-events.processor");
 const { createPublicPreferencesService } = require("./marketing/public-preferences.service");
 const { createIntegrationService } = require("./integrations/integration.service");
 const { createRuntimeControls } = require("./ops/runtime-controls");
 const { createUsageService } = require("./ops/usage.service");
+// Final gaps 2/3: provider re-subscription, provider quota, approved pricing.
+const { createResubscriptionService } = require("./marketing/resubscription.service");
+const { createProviderQuotaService } = require("./ops/provider-quota.service");
+const { createPricingService } = require("./ops/pricing.service");
 const { createRetentionService } = require("./ops/retention.service");
 const { createRetentionProcessor } = require("./ops/retention.processor");
+// Final gaps 5/6: durable storage deletions and IT quarantine management.
+const { createStorageDeletionService } = require("./ops/storage-deletion.service");
+const { createQuarantineService } = require("./services/quarantine.service");
 const { createOpsMonitor } = require("./ops/ops-monitor.service");
 const { createRolloutService } = require("./ops/rollout.service");
 const { createReadiness } = require("./ops/readiness");
@@ -120,16 +133,26 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const metrics = createRuntimeMetrics();
   const rateLimiter = createSharedRateLimiter({ client, features, metrics, logger, clock: () => clock().getTime() });
   const resolvedAdapter = metrics.instrumentProvider(adapter || createProviderAdapter({ config }), "transactional");
+  // Gap 3: provider quota observations (non-blocking hook; migration 37).
+  const providerQuota = createProviderQuotaService({ client, config, env, features: finalGapFeature, clock, logger });
+  resolvedAdapter.setQuotaObserver?.(providerQuota.observer("account", resolvedAdapter.name === "fake" ? "fake" : "resend"));
   const storage = createMailStorage({ config, encryption: resolvedEncryption, backend: storageBackend, logger });
   const resolvedScanner = createAttachmentScanner({ config, scanner, logger });
   const audit = createMailAudit({ client });
   const notifications = createMailNotifications({ client, logger, preferencesReady: preferencesFeature.isReady });
   const preferences = createPreferencesService({ client, feature: preferencesFeature, audit, clock, logger });
-  const store = createMessageStore({ client, storage, config, encryption: resolvedEncryption });
+  // GAP 8: a refused MAIL_MIXED_RECIPIENT_MODE is reported once; Mail keeps
+  // the safe external-only behaviour.
+  if (config.mixedRecipients?.refusedReason) logger.warn?.(`[Mail] MAIL_MIXED_RECIPIENT_MODE=${config.mixedRecipients.requestedMode} refused (${config.mixedRecipients.refusedReason}); sending stays external-only`);
+  // GAP 8: features.finalGap gates provider Message-ID alias lookups.
+  const store = createMessageStore({ client, storage, config, encryption: resolvedEncryption, features: { finalGap: finalGapFeature } });
   const searchIndex = createSearchIndex({ client, config, features, store, audit, logger, clock });
   store.useSearchIndex(searchIndex);
   const jobs = createMailJobRepository({ client, clock });
   const stepUp = createStepUpService({ client, config, clock, audit, mfa, authSchema, env, logger });
+  // Gap 5: every object deletion goes through mail_storage_deletions (migration 37; inline before).
+  const storageDeletions = createStorageDeletionService({ client, config, storage, audit, stepUp, feature: finalGapFeature, archiveFeature: features, clock, logger });
+  store.useStorageDeletions(storageDeletions);
   const breakGlass = createBreakGlassService({ client, stepUp, audit, clock });
   const mailbox = createMailboxService({ client, config, store, audit, searchIndex });
   // M9: kill switch and usage/quota accounting shared by every send path.
@@ -139,37 +162,54 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   runtime.use(rollout.resolver);
   const usage = createUsageService({ client, audit, env, clock });
   const providerReady = () => resolvedAdapter.name !== "unconfigured";
-  const compose = createComposeService({ client, config, store, encryption: resolvedEncryption, scanner: resolvedScanner, jobs, audit, notifications, preferences, providerReady, runtime, usage, clock });
+  const compose = createComposeService({ client, config, store, encryption: resolvedEncryption, scanner: resolvedScanner, jobs, audit, notifications, preferences, providerReady, runtime, usage, deletions: storageDeletions, clock });
   const forwarding = createForwardingService({ client, config, features, store, jobs, audit, stepUp, notifications, providerReady, runtime, usage, clock, logger });
   const archive = createMessageArchive({ client, config, storage, features, audit, logger });
   const admin = createMailAdminService({ client, config, adapter: resolvedAdapter, audit, notifications, jobs, stepUp, forwarding, clock });
   const rules = createMailRulesService({ client, audit });
   const support = createSupportService({ client, mailboxService: mailbox, audit, notifications, encryption: resolvedEncryption, clock });
   // M7: per-brand marketing provider accounts, broadcasts and automation.
-  const resolveMarketingProvider = createMarketingProviderResolver({ config, env, adapter: marketingAdapter, adapters: marketingAdapters });
+  const resolveMarketingProvider = createMarketingProviderResolver({ config, env, adapter: marketingAdapter, adapters: marketingAdapters, quotaObserver: providerQuota.observer });
   const marketingProviders = (organization) => metrics.instrumentProvider(resolveMarketingProvider(organization), "marketing");
-  const confirmation = createConfirmationService({ client, config, audit, jobs, encryption: resolvedEncryption, marketingProviders, runtime, usage, clock });
-  const testSends = createTestSendService({ client, config, audit, jobs, marketingProviders, runtime, usage, clock });
-  const marketing = createMarketingService({ client, config, audit, stepUp, clock, hooks: { onConfirmationRequired: confirmation.onConfirmationRequired, quotaCheck: (organizationId, count) => usage.check(organizationId, "MARKETING_BROADCAST", count) } });
+  // Gaps 2/3: re-subscription workflow and pricing (503 before migration 37).
+  const resubscriptions = createResubscriptionService({ client, config, features: finalGapFeature, audit, stepUp, jobs, marketingProviders, clock, logger });
+  const pricing = createPricingService({ client, features: finalGapFeature, audit, stepUp, clock, logger });
+  const confirmation = createConfirmationService({ client, config, audit, jobs, encryption: resolvedEncryption, marketingProviders, runtime, usage, resubscriptions, clock });
+  // Gaps 1 + 7: one template policy (gated on migration 37) shared by every
+  // marketing send path; preflight reads provider domain state through the
+  // transactional adapter (read-only GET; UNKNOWN when unreachable).
+  const templatePolicy = registerTemplatePolicy(client, createTemplatePolicy({ client, feature: finalGapFeature, logger }));
+  const validateDomain = (providerDomainId) => resolvedAdapter.validateDomain(providerDomainId);
+  registerDeliverability(client, { validateDomain });
+  const testSends = createTestSendService({ client, config, audit, jobs, marketingProviders, runtime, usage, clock, templatePolicy });
+  const marketing = createMarketingService({ client, config, audit, stepUp, clock, templatePolicy, hooks: { onConfirmationRequired: confirmation.onConfirmationRequired, quotaCheck: (organizationId, count) => usage.check(organizationId, "MARKETING_BROADCAST", count), validateDomain } });
+  // Gap 2: a verified double opt-in may open a provider re-subscription request.
+  marketing.confirmConsent = confirmation.withResubscriptionHook(marketing.confirmConsent);
   const campaignReplies = createCampaignReplies({ client, config, features, audit, clock });
-  const broadcasts = createBroadcastService({ client, config, audit, jobs, stepUp, env, replies: campaignReplies, clock });
+  const broadcasts = createBroadcastService({ client, config, audit, jobs, stepUp, env, replies: campaignReplies, pricing, providerQuota, clock });
   const automations = createAutomationService({ client, config, audit, stepUp, clock });
+  // Final gap 4: test mode writes nothing but audit (works before migration
+  // 37); replay needs marketing_automation_replays (503 before migration 37).
+  const automationTests = createAutomationTestService({ client, config, audit, clock });
+  const automationReplays = createAutomationReplayService({ client, config, audit, stepUp, jobs, feature: finalGapFeature, clock });
   const publicPreferences = createPublicPreferencesService({ client, config, audit, marketing, clock });
   const integrations = createIntegrationService({ client, config, audit, stepUp, automations, notifications, rollout, rateLimiter, env, clock, logger });
   const attachmentReview = createAttachmentReviewService({ client, config, store, scanner: resolvedScanner, audit });
 
   const inbound = createInboundProcessor({ client, config, adapter: resolvedAdapter, store, scanner: resolvedScanner, audit, notifications, usage, archive, forwarding, campaignReplies, senderAuth: loadSenderAuthPolicy(env), clock, logger });
-  const outbound = createOutboundProcessor({ client, config, adapter: resolvedAdapter, store, audit, notifications, runtime, usage, forwarding, clock });
-  const marketingEvents = createMarketingEventsProcessor({ client, audit, clock });
-  const deliveryEvents = createDeliveryEventProcessor({ client, audit, notifications, marketingEvents });
-  const broadcastProcessor = createBroadcastProcessor({ client, config, audit, jobs, marketingProviders, eligibility: marketing.eligibleContacts, notifications, runtime, usage, clock, logger });
+  const outbound = createOutboundProcessor({ client, config, adapter: resolvedAdapter, store, audit, notifications, runtime, usage, forwarding, features: { finalGap: finalGapFeature }, clock });
+  const marketingEvents = createMarketingEventsProcessor({ client, audit, resubscriptions, clock });
+  const deliveryEvents = createDeliveryEventProcessor({ client, audit, notifications, marketingEvents, features: { finalGap: finalGapFeature } });
+  const broadcastProcessor = createBroadcastProcessor({ client, config, audit, jobs, marketingProviders, eligibility: marketing.eligibleContacts, notifications, runtime, usage, resubscriptions, pricing, providerQuota, clock, logger });
   const automationProcessor = createAutomationProcessor({ client, config, audit, jobs, marketingProviders, eligibility: marketing.eligibleContacts, runtime, usage, clock, logger });
 
   const retention = createRetentionService({ client, config, audit, jobs, stepUp, clock });
-  const retentionProcessor = createRetentionProcessor({ client, config, audit, storage, features, clock, logger });
-  const dsar = createDsarService({ client, audit, stepUp, storage, features, clock });
+  const retentionProcessor = createRetentionProcessor({ client, config, audit, storage, features, deletions: storageDeletions, clock, logger });
+  const dsar = createDsarService({ client, audit, stepUp, storage, features, deletions: storageDeletions, clock });
+  // Gap 6: IT quarantine (list read-only before migration 37; actions 503).
+  const quarantine = createQuarantineService({ client, audit, stepUp, feature: finalGapFeature, archiveFeature: features, deletions: storageDeletions, attachmentReview, notifications, clock, logger });
   // `health` is a hoisted function declaration below.
-  const ops = createOpsMonitor({ client, config, notifications, health: () => health(), runtime, metrics, searchIndex, features, clock, logger });
+  const ops = createOpsMonitor({ client, config, notifications, health: () => health(), runtime, metrics, searchIndex, features, storageDeletions, clock, logger });
   const readiness = createReadiness({ client, config, ops, health: () => health() });
   const inboundReconciler = createInboundReconciler({ client, config, adapter: resolvedAdapter, jobs, audit, clock });
 
@@ -188,9 +228,17 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
         AUTOMATION_STEP: automationProcessor.processStep,
         MARKETING_CONFIRMATION_EMAIL: confirmation.process,
         RETENTION_RUN: retentionProcessor.processRun,
+        // Gap 5: executes due storage deletions; continues while batches are full.
+        STORAGE_DELETION_RUN: async () => {
+          const result = await storageDeletions.processDue();
+          if (result.claimed >= storageDeletions.settings.batchSize) return { defer: { seconds: 1, code: "STORAGE_DELETION_IN_PROGRESS" } };
+          return result;
+        },
         OPS_EVALUATE: ops.processEvaluate,
         RECONCILE_INBOUND: inboundReconciler.process,
         MARKETING_TEST_SEND: testSends.process,
+        // Gap 2: provider re-subscription retries.
+        MARKETING_RESUBSCRIBE: resubscriptions.process,
         // Re-enqueues itself while more messages need (re)indexing.
         SEARCH_INDEX_BACKFILL: async () => {
           const result = await searchIndex.backfill();
@@ -216,6 +264,11 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
           await once({ queue: "INBOUND", kind: "RECONCILE_INBOUND", idempotencyKey: `inbound-reconcile:${bucket}`, maxAttempts: 3 });
         }
         // M9: one ops evaluation per interval bucket across all EVENTS workers.
+        // Gap 5: one storage deletion run per interval bucket, only when work is due.
+        if (queues.includes("EVENTS") && (await storageDeletions.hasDue().catch(() => false))) {
+          const bucket = Math.floor(clock().getTime() / (storageDeletions.settings.intervalSeconds * 1000));
+          await once({ queue: "EVENTS", kind: "STORAGE_DELETION_RUN", idempotencyKey: `storage-deletion:${bucket}`, maxAttempts: 3 });
+        }
         if (queues.includes("EVENTS") && config.ops.alertsEnabled) {
           const bucket = Math.floor(clock().getTime() / (config.ops.evaluateIntervalSeconds * 1000));
           await once({ queue: "EVENTS", kind: "OPS_EVALUATE", idempotencyKey: `ops-evaluate:${bucket}`, maxAttempts: 2 });
@@ -255,8 +308,8 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
     searchIndex,
     rateLimiter,
     jobs,
-    services: { mailbox, compose, admin, rules, forwarding, archive, support, marketing, stepUp, breakGlass, attachmentReview, broadcasts, automations, publicPreferences, confirmation, testSends, integrations, usage, retention, dsar, ops, rollout, readiness, preferences },
-    features: { finalGap: finalGapFeature },
+    services: { mailbox, compose, admin, rules, forwarding, archive, support, marketing, stepUp, breakGlass, attachmentReview, broadcasts, automations, automationTests, automationReplays, publicPreferences, confirmation, testSends, integrations, usage, retention, dsar, ops, rollout, readiness, preferences, storageDeletions, quarantine, resubscriptions, pricing, providerQuota },
+    finalGapFeature,
     runtime,
     metrics,
     processors: { inbound, outbound, deliveryEvents, marketingEvents, broadcasts: broadcastProcessor, automations: automationProcessor, retention: retentionProcessor, inboundReconciler },

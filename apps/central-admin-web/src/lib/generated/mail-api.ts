@@ -257,6 +257,137 @@ export interface MailPreferences {
   updatedAt?: string | null;
 }
 
+export interface TemplateClassification {
+  templateId: string;
+  classification: "MARKETING" | "TRANSACTIONAL" | "TRANSACTIONAL_SECURITY";
+  reason?: string | null;
+  changedBy?: string | null;
+  updatedAt?: string | null;
+  allowed?: Array<string>;
+}
+
+export interface TemplateClassificationChange {
+  templateId: string;
+  classification: "MARKETING" | "TRANSACTIONAL" | "TRANSACTIONAL_SECURITY";
+  changed: boolean;
+  newVersion?: {
+    id?: string;
+    version?: number;
+    contentSha256?: string;
+    classification?: string;
+  } | null;
+}
+
+export interface PreflightCheck {
+  id: string;
+  ok: boolean;
+  status: "PASS" | "WARNING" | "BLOCKED" | "UNKNOWN";
+  detail?: string;
+}
+
+export interface TemplateQaReport {
+  versionId: string;
+  version?: number;
+  classification: "MARKETING" | "TRANSACTIONAL" | "TRANSACTIONAL_SECURITY";
+  disclaimer: string;
+  locale?: string;
+  sampleContact?: Record<string, unknown>;
+  formatted?: Record<string, unknown>;
+  brandTokens?: Record<string, unknown> | null;
+  renders?: {
+    subject?: string;
+    desktop?: Record<string, unknown>;
+    mobile?: Record<string, unknown>;
+    dark?: Record<string, unknown>;
+    plaintext?: string;
+  } | null;
+  checks: Array<PreflightCheck>;
+  summary: Record<string, unknown>;
+  compatibility?: Array<Record<string, unknown>>;
+  approval?: Record<string, unknown> | null;
+}
+
+export interface AutomationTestResult {
+  mode: "TEST";
+  sideEffects: "NONE";
+  simulatedNow?: string;
+  automation?: Record<string, unknown>;
+  version?: Record<string, unknown>;
+  validation: {
+    ok?: boolean;
+    errors?: Array<Record<string, unknown>>;
+  };
+  contact: {
+    kind?: "REAL" | "SYNTHETIC";
+    timeZone?: string;
+    timeZoneSource?: "RECIPIENT" | "BRAND_DEFAULT" | "BRAND" | "EXPLICIT" | "UTC";
+    timeZoneFallback?: boolean;
+  };
+  trigger: {
+    type?: string;
+    matches?: boolean;
+    reason?: string | null;
+  };
+  eligibility: Record<string, unknown>;
+  path: Array<{
+    sequence?: number;
+    stepId?: string;
+    type?: string;
+    at?: string;
+    localAt?: string;
+  }>;
+  expected: {
+    outcome?: string;
+    sends?: number;
+    wouldEnroll?: boolean;
+    summary?: string;
+  };
+}
+
+export interface Resubscription {
+  id: string;
+  organizationId?: string;
+  contactId: string;
+  email?: string | null;
+  topic?: string;
+  status: "PENDING_APPROVAL" | "APPROVED" | "APPLIED" | "UNSUPPORTED" | "FAILED" | "REFUSED" | "CANCELLED";
+  evidence?: Record<string, unknown>;
+  approvedBy?: string | null;
+  attempts?: number;
+  nextAttemptAt?: string | null;
+  lastError?: string | null;
+  providerResult?: Record<string, unknown> | null;
+  completedAt?: string | null;
+  operatorMessage?: string | null;
+  providerState?: {
+    state?: "SUBSCRIBED" | "UNSUBSCRIBED" | "SUPPRESSED" | "UNKNOWN";
+    reason?: string | null;
+    observedAt?: string | null;
+  };
+}
+
+export interface ResubscriptionList {
+  items: Array<Resubscription>;
+  flags?: {
+    providerResubscribeEnabled?: boolean;
+  };
+}
+
+export interface ProviderPricing {
+  id: string;
+  provider: string;
+  organizationId?: string | null;
+  currency: string;
+  unitCostMicros: number;
+  unitCost?: string;
+  includedMonthly?: number | null;
+  effectiveFrom: string;
+  effectiveTo?: string | null;
+  source: "CONTRACT" | "PRICE_LIST" | "INVOICE";
+  reference: string;
+  label?: "estimated (not billed)";
+}
+
 export interface Error {
   success?: false;
   code?: string;
@@ -269,6 +400,7 @@ export interface Error {
 // ── Operations ──────────────────────────────────────────────────────────
 export const MAIL_OPERATIONS = {
   deleteAdminIntegrationsSendersBySenderId: { method: "DELETE", path: "/admin/integrations/{integrationId}/senders/{senderId}", status: 200 },
+  deleteAdminPricingByPricingId: { method: "DELETE", path: "/admin/pricing/{pricingId}", status: 200 },
   deleteAdminRolloutCohortsMembersByAdminUserId: { method: "DELETE", path: "/admin/rollout/cohorts/{cohortId}/members/{adminUserId}", status: 200 },
   deleteAdminSenderGrantsByGrantId: { method: "DELETE", path: "/admin/sender-grants/{grantId}", status: 200 },
   deleteDraftsAttachmentsByAttachmentId: { method: "DELETE", path: "/drafts/{draftId}/attachments/{attachmentId}", status: 200 },
@@ -294,6 +426,11 @@ export const MAIL_OPERATIONS = {
   getAdminOpsAlerts: { method: "GET", path: "/admin/ops/alerts", status: 200 },
   getAdminOpsSnapshot: { method: "GET", path: "/admin/ops/snapshot", status: 200 },
   getAdminOrganizations: { method: "GET", path: "/admin/organizations", status: 200 },
+  getAdminPricing: { method: "GET", path: "/admin/pricing", status: 200 },
+  getAdminProviderQuota: { method: "GET", path: "/admin/provider-quota", status: 200 },
+  getAdminQuarantine: { method: "GET", path: "/admin/quarantine", status: 200 },
+  getAdminQuarantineAttachmentsByAttachmentId: { method: "GET", path: "/admin/quarantine/attachments/{attachmentId}", status: 200 },
+  getAdminQuarantineMessagesByMessageId: { method: "GET", path: "/admin/quarantine/messages/{messageId}", status: 200 },
   getAdminRetentionCapabilities: { method: "GET", path: "/admin/retention/capabilities", status: 200 },
   getAdminRetentionPolicies: { method: "GET", path: "/admin/retention-policies", status: 200 },
   getAdminRetentionRuns: { method: "GET", path: "/admin/retention/runs", status: 200 },
@@ -304,6 +441,7 @@ export const MAIL_OPERATIONS = {
   getAdminSearchIndex: { method: "GET", path: "/admin/search-index", status: 200 },
   getAdminSenderGrants: { method: "GET", path: "/admin/sender-grants", status: 200 },
   getAdminStatus: { method: "GET", path: "/admin/status", status: 200 },
+  getAdminStorageDeletions: { method: "GET", path: "/admin/storage-deletions", status: 200 },
   getAdminUsage: { method: "GET", path: "/admin/usage", status: 200 },
   getAdminWebhookEvents: { method: "GET", path: "/admin/webhook-events", status: 200 },
   getAttachmentsDownload: { method: "GET", path: "/attachments/{attachmentId}/download", status: 200 },
@@ -330,6 +468,8 @@ export const MAIL_OPERATIONS = {
   getMarketingAutomationsByAutomationId: { method: "GET", path: "/marketing/{orgId}/automations/{automationId}", status: 200 },
   getMarketingAutomationsEnrollments: { method: "GET", path: "/marketing/{orgId}/automations/{automationId}/enrollments", status: 200 },
   getMarketingAutomationsHistory: { method: "GET", path: "/marketing/{orgId}/automations/{automationId}/history", status: 200 },
+  getMarketingAutomationsRecovery: { method: "GET", path: "/marketing/{orgId}/automations/{automationId}/recovery", status: 200 },
+  getMarketingAutomationsReplays: { method: "GET", path: "/marketing/{orgId}/automations/{automationId}/replays", status: 200 },
   getMarketingCampaigns: { method: "GET", path: "/marketing/{orgId}/campaigns", status: 200 },
   getMarketingCampaignsByCampaignId: { method: "GET", path: "/marketing/{orgId}/campaigns/{campaignId}", status: 200 },
   getMarketingCampaignsDispatch: { method: "GET", path: "/marketing/{orgId}/campaigns/{campaignId}/dispatch", status: 200 },
@@ -339,16 +479,20 @@ export const MAIL_OPERATIONS = {
   getMarketingCampaignsSnapshotsBySnapshotId: { method: "GET", path: "/marketing/{orgId}/campaigns/{campaignId}/snapshots/{snapshotId}", status: 200 },
   getMarketingContacts: { method: "GET", path: "/marketing/{orgId}/contacts", status: 200 },
   getMarketingContactsByContactId: { method: "GET", path: "/marketing/{orgId}/contacts/{contactId}", status: 200 },
+  getMarketingContactsProviderState: { method: "GET", path: "/marketing/{orgId}/contacts/{contactId}/provider-state", status: 200 },
   getMarketingLegacyTemplates: { method: "GET", path: "/marketing/{orgId}/legacy-templates", status: 200 },
   getMarketingOrganizations: { method: "GET", path: "/marketing/organizations", status: 200 },
+  getMarketingProviderStates: { method: "GET", path: "/marketing/{orgId}/provider-states", status: 200 },
   getMarketingReportsOverview: { method: "GET", path: "/marketing/{orgId}/reports/overview", status: 200 },
   getMarketingReportsSuppressions: { method: "GET", path: "/marketing/{orgId}/reports/suppressions", status: 200 },
+  getMarketingResubscriptions: { method: "GET", path: "/marketing/{orgId}/resubscriptions", status: 200 },
   getMarketingSegmentsPreview: { method: "GET", path: "/marketing/{orgId}/segments/{segmentId}/preview", status: 200 },
   getMarketingSenderIdentities: { method: "GET", path: "/marketing/{orgId}/sender-identities", status: 200 },
   getMarketingSettings: { method: "GET", path: "/marketing/{orgId}/settings", status: 200 },
   getMarketingSuppressions: { method: "GET", path: "/marketing/{orgId}/suppressions", status: 200 },
   getMarketingTemplates: { method: "GET", path: "/marketing/{orgId}/templates", status: 200 },
   getMarketingTemplatesByTemplateId: { method: "GET", path: "/marketing/{orgId}/templates/{templateId}", status: 200 },
+  getMarketingTemplatesClassification: { method: "GET", path: "/marketing/{orgId}/templates/{templateId}/classification", status: 200 },
   getMeEntitlements: { method: "GET", path: "/me/entitlements", status: 200 },
   getMeMailboxes: { method: "GET", path: "/me/mailboxes", status: 200 },
   getMePreferences: { method: "GET", path: "/me/preferences", status: 200 },
@@ -367,6 +511,7 @@ export const MAIL_OPERATIONS = {
   getThreadsNotes: { method: "GET", path: "/threads/{threadId}/notes", status: 200 },
   patchAdminAddressesByAddressId: { method: "PATCH", path: "/admin/addresses/{addressId}", status: 200 },
   patchAdminIntegrationsByIntegrationId: { method: "PATCH", path: "/admin/integrations/{integrationId}", status: 200 },
+  patchAdminPricingByPricingId: { method: "PATCH", path: "/admin/pricing/{pricingId}", status: 200 },
   patchDraftsByDraftId: { method: "PATCH", path: "/drafts/{draftId}", status: 200 },
   patchMailboxesSettings: { method: "PATCH", path: "/mailboxes/{mailboxId}/settings", status: 200 },
   patchMarketingAudiencesByAudienceId: { method: "PATCH", path: "/marketing/{orgId}/audiences/{audienceId}", status: 200 },
@@ -397,6 +542,15 @@ export const MAIL_OPERATIONS = {
   postAdminMailboxesSuspend: { method: "POST", path: "/admin/mailboxes/{mailboxId}/suspend", status: 200 },
   postAdminOpsAlertsAcknowledge: { method: "POST", path: "/admin/ops/alerts/{alertId}/acknowledge", status: 200 },
   postAdminOrganizations: { method: "POST", path: "/admin/organizations", status: 201 },
+  postAdminPricing: { method: "POST", path: "/admin/pricing", status: 201 },
+  postAdminPricingDispatchCostsReEstimate: { method: "POST", path: "/admin/pricing/dispatch-costs/{dispatchId}/re-estimate", status: 200 },
+  postAdminQuarantineAttachmentsDelete: { method: "POST", path: "/admin/quarantine/attachments/{attachmentId}/delete", status: 200 },
+  postAdminQuarantineAttachmentsReject: { method: "POST", path: "/admin/quarantine/attachments/{attachmentId}/reject", status: 200 },
+  postAdminQuarantineAttachmentsRelease: { method: "POST", path: "/admin/quarantine/attachments/{attachmentId}/release", status: 200 },
+  postAdminQuarantineAttachmentsRescan: { method: "POST", path: "/admin/quarantine/attachments/{attachmentId}/rescan", status: 200 },
+  postAdminQuarantineMessagesDelete: { method: "POST", path: "/admin/quarantine/messages/{messageId}/delete", status: 200 },
+  postAdminQuarantineMessagesReject: { method: "POST", path: "/admin/quarantine/messages/{messageId}/reject", status: 200 },
+  postAdminQuarantineMessagesRelease: { method: "POST", path: "/admin/quarantine/messages/{messageId}/release", status: 200 },
   postAdminRetentionPolicies: { method: "POST", path: "/admin/retention-policies", status: 201 },
   postAdminRetentionRuns: { method: "POST", path: "/admin/retention/runs", status: 201 },
   postAdminRetentionRunsCancel: { method: "POST", path: "/admin/retention/runs/{runId}/cancel", status: 200 },
@@ -407,6 +561,8 @@ export const MAIL_OPERATIONS = {
   postAdminRolloutRulesRevoke: { method: "POST", path: "/admin/rollout/rules/{ruleId}/revoke", status: 200 },
   postAdminSearchIndexBackfill: { method: "POST", path: "/admin/search-index/backfill", status: 202 },
   postAdminSenderGrants: { method: "POST", path: "/admin/sender-grants", status: 201 },
+  postAdminStorageDeletionsCancel: { method: "POST", path: "/admin/storage-deletions/{deletionId}/cancel", status: 200 },
+  postAdminStorageDeletionsRequeue: { method: "POST", path: "/admin/storage-deletions/{deletionId}/requeue", status: 200 },
   postAdminUsersOffboard: { method: "POST", path: "/admin/users/{adminUserId}/offboard", status: 200 },
   postBreakGlassRequests: { method: "POST", path: "/break-glass/requests", status: 201 },
   postBreakGlassRequestsApprove: { method: "POST", path: "/break-glass/requests/{requestId}/approve", status: 200 },
@@ -430,9 +586,11 @@ export const MAIL_OPERATIONS = {
   postMarketingAutomationsActivate: { method: "POST", path: "/marketing/{orgId}/automations/{automationId}/activate", status: 200 },
   postMarketingAutomationsArchive: { method: "POST", path: "/marketing/{orgId}/automations/{automationId}/archive", status: 200 },
   postMarketingAutomationsPause: { method: "POST", path: "/marketing/{orgId}/automations/{automationId}/pause", status: 200 },
+  postMarketingAutomationsReplays: { method: "POST", path: "/marketing/{orgId}/automations/{automationId}/replays", status: 200 },
   postMarketingAutomationsVersionsApprove: { method: "POST", path: "/marketing/{orgId}/automations/{automationId}/versions/{versionId}/approve", status: 200 },
   postMarketingAutomationsVersionsReject: { method: "POST", path: "/marketing/{orgId}/automations/{automationId}/versions/{versionId}/reject", status: 200 },
   postMarketingAutomationsVersionsSubmit: { method: "POST", path: "/marketing/{orgId}/automations/{automationId}/versions/{versionId}/submit", status: 200 },
+  postMarketingAutomationsVersionsTest: { method: "POST", path: "/marketing/{orgId}/automations/{automationId}/versions/{versionId}/test", status: 200 },
   postMarketingCampaigns: { method: "POST", path: "/marketing/{orgId}/campaigns", status: 201 },
   postMarketingCampaignsApprove: { method: "POST", path: "/marketing/{orgId}/campaigns/{campaignId}/approve", status: 200 },
   postMarketingCampaignsCancel: { method: "POST", path: "/marketing/{orgId}/campaigns/{campaignId}/cancel", status: 200 },
@@ -449,11 +607,16 @@ export const MAIL_OPERATIONS = {
   postMarketingContactsImport: { method: "POST", path: "/marketing/{orgId}/contacts/import", status: 200 },
   postMarketingDispatchPause: { method: "POST", path: "/marketing/{orgId}/dispatch/pause", status: 200 },
   postMarketingDispatchResume: { method: "POST", path: "/marketing/{orgId}/dispatch/resume", status: 200 },
+  postMarketingResubscriptionsApprove: { method: "POST", path: "/marketing/{orgId}/resubscriptions/{resubscriptionId}/approve", status: 200 },
+  postMarketingResubscriptionsConfirmManual: { method: "POST", path: "/marketing/{orgId}/resubscriptions/{resubscriptionId}/confirm-manual", status: 200 },
+  postMarketingResubscriptionsRefuse: { method: "POST", path: "/marketing/{orgId}/resubscriptions/{resubscriptionId}/refuse", status: 200 },
   postMarketingSuppressions: { method: "POST", path: "/marketing/{orgId}/suppressions", status: 201 },
   postMarketingSuppressionsLift: { method: "POST", path: "/marketing/{orgId}/suppressions/{suppressionId}/lift", status: 200 },
   postMarketingTemplates: { method: "POST", path: "/marketing/{orgId}/templates", status: 201 },
   postMarketingTemplatesRender: { method: "POST", path: "/marketing/{orgId}/templates/render", status: 200 },
   postMarketingTemplatesVersions: { method: "POST", path: "/marketing/{orgId}/templates/{templateId}/versions", status: 201 },
+  postMarketingTemplatesVersionsApprove: { method: "POST", path: "/marketing/{orgId}/templates/{templateId}/versions/{versionId}/approve", status: 200 },
+  postMarketingTemplatesVersionsQa: { method: "POST", path: "/marketing/{orgId}/templates/{templateId}/versions/{versionId}/qa", status: 200 },
   postProvisioningRequests: { method: "POST", path: "/provisioning/requests", status: 201 },
   postProvisioningRequestsApprove: { method: "POST", path: "/provisioning/requests/{requestId}/approve", status: 200 },
   postProvisioningRequestsReject: { method: "POST", path: "/provisioning/requests/{requestId}/reject", status: 200 },
@@ -470,6 +633,7 @@ export const MAIL_OPERATIONS = {
   postWebhooksResendBrandBySlug: { method: "POST", path: "/webhooks/resend/brand/{slug}", status: 200 },
   putAdminQuotas: { method: "PUT", path: "/admin/quotas", status: 200 },
   putMarketingAutomationsDraft: { method: "PUT", path: "/marketing/{orgId}/automations/{automationId}/draft", status: 200 },
+  putMarketingTemplatesClassification: { method: "PUT", path: "/marketing/{orgId}/templates/{templateId}/classification", status: 200 },
   putMePreferences: { method: "PUT", path: "/me/preferences", status: 200 },
   putThreadsLabelsByLabelId: { method: "PUT", path: "/threads/{threadId}/labels/{labelId}", status: 200 },
   putThreadsTicketLink: { method: "PUT", path: "/threads/{threadId}/ticket-link", status: 200 },
@@ -481,6 +645,8 @@ export type MailOperationId = keyof typeof MAIL_OPERATIONS;
 export interface MailResponses {
   /** Revoke a sender authorization */
   deleteAdminIntegrationsSendersBySenderId: Record<string, unknown>;
+  /** Delete a pricing row no estimate uses (step-up MAIL_PRICING_CHANGE) */
+  deleteAdminPricingByPricingId: Record<string, unknown>;
   /** Offboard a staff member from a cohort */
   deleteAdminRolloutCohortsMembersByAdminUserId: Record<string, unknown>;
   /** Revoke send-as */
@@ -531,6 +697,16 @@ export interface MailResponses {
   getAdminOpsSnapshot: Record<string, unknown>;
   /** Organizations/brands */
   getAdminOrganizations: Record<string, unknown>;
+  /** Approved provider pricing rows (estimates only; no billing API) */
+  getAdminPricing: Record<string, unknown>;
+  /** Observed provider quota per account scope (headers / quota errors; limits only when configured; UNKNOWN otherwise) */
+  getAdminProviderQuota: Record<string, unknown>;
+  /** Quarantined messages or attachments (kind=messages|attachments; safe metadata only, never content) */
+  getAdminQuarantine: Record<string, unknown>;
+  /** Quarantined attachment detail with decision history (metadata only) */
+  getAdminQuarantineAttachmentsByAttachmentId: Record<string, unknown>;
+  /** Quarantined message detail with decision history (metadata only) */
+  getAdminQuarantineMessagesByMessageId: Record<string, unknown>;
   /** Retention execution flag and configured system periods */
   getAdminRetentionCapabilities: Record<string, unknown>;
   /** Retention policies */
@@ -551,6 +727,8 @@ export interface MailResponses {
   getAdminSenderGrants: Record<string, unknown>;
   /** Mail configuration status (no secrets) */
   getAdminStatus: Record<string, unknown>;
+  /** Durable storage deletion queue: counts by status and rows (key hash prefix only) */
+  getAdminStorageDeletions: Record<string, unknown>;
   /** Usage by brand and purpose (counts only; cost only if operator-configured) */
   getAdminUsage: Record<string, unknown>;
   /** Provider webhook events (no payloads) with processing lag */
@@ -603,6 +781,10 @@ export interface MailResponses {
   getMarketingAutomationsEnrollments: Record<string, unknown>;
   /** Audit history or one enrollment's step runs */
   getMarketingAutomationsHistory: Record<string, unknown>;
+  /** Failed, interrupted, stalled and dead-lettered runs of the automation */
+  getMarketingAutomationsRecovery: Record<string, unknown>;
+  /** Replay / recovery history (dry runs, executions, refusals) */
+  getMarketingAutomationsReplays: Record<string, unknown>;
   /** Campaigns */
   getMarketingCampaigns: Record<string, unknown>;
   /** Campaign */
@@ -621,14 +803,20 @@ export interface MailResponses {
   getMarketingContacts: Record<string, unknown>;
   /** Contact */
   getMarketingContactsByContactId: Record<string, unknown>;
+  /** Provider subscription state and re-subscription history of a contact */
+  getMarketingContactsProviderState: Record<string, unknown>;
   /** Existing marketing_email_templates (read-only) */
   getMarketingLegacyTemplates: Record<string, unknown>;
   /** Brands accessible for marketing */
   getMarketingOrganizations: Record<string, unknown>;
+  /** Provider subscription state of up to 200 contacts (contactIds=a,b) */
+  getMarketingProviderStates: Record<string, unknown>;
   /** Brand dashboard: campaigns, recipients, suppressions, automations, jobs */
   getMarketingReportsOverview: Record<string, unknown>;
   /** Suppression report */
   getMarketingReportsSuppressions: Record<string, unknown>;
+  /** Provider re-subscription queue (requests after a verified double opt-in) with provider state */
+  getMarketingResubscriptions: ResubscriptionList;
   /** Segment preview */
   getMarketingSegmentsPreview: Record<string, unknown>;
   /** Approved brand sender identities */
@@ -641,6 +829,8 @@ export interface MailResponses {
   getMarketingTemplates: Record<string, unknown>;
   /** Template with versions */
   getMarketingTemplatesByTemplateId: Record<string, unknown>;
+  /** Template classification (MARKETING | TRANSACTIONAL | TRANSACTIONAL_SECURITY) */
+  getMarketingTemplatesClassification: TemplateClassification;
   /** Mail entitlements for the caller */
   getMeEntitlements: Entitlements;
   /** Mailboxes the caller may open */
@@ -677,6 +867,8 @@ export interface MailResponses {
   patchAdminAddressesByAddressId: Record<string, unknown>;
   /** Update allowed event / trigger types */
   patchAdminIntegrationsByIntegrationId: Record<string, unknown>;
+  /** Set or clear effectiveTo of a pricing row (step-up MAIL_PRICING_CHANGE; stored estimates are not recomputed) */
+  patchAdminPricingByPricingId: ProviderPricing;
   /** Update draft (requires revision; 409 on conflict) */
   patchDraftsByDraftId: Draft;
   /** Mailbox settings */
@@ -737,6 +929,24 @@ export interface MailResponses {
   postAdminOpsAlertsAcknowledge: Record<string, unknown>;
   /** Create organization */
   postAdminOrganizations: Record<string, unknown>;
+  /** Create a pricing row (mail admin + step-up MAIL_PRICING_CHANGE; CONTRACT|PRICE_LIST|INVOICE + reference; no overlapping periods; 422 when invalid) */
+  postAdminPricing: ProviderPricing;
+  /** Explicitly re-estimate a dispatch cost with the pricing effective at its send time (audited; step-up MAIL_PRICING_CHANGE) */
+  postAdminPricingDispatchCostsReEstimate: Record<string, unknown>;
+  /** Delete an attachment's object via the deletion queue (step-up MAIL_QUARANTINE_DELETE) */
+  postAdminQuarantineAttachmentsDelete: Record<string, unknown>;
+  /** Reject an attachment: remove its object via the deletion queue (step-up MAIL_QUARANTINE_DELETE) */
+  postAdminQuarantineAttachmentsReject: Record<string, unknown>;
+  /** Release an attachment whose latest scan is CLEAN (step-up MAIL_QUARANTINE_RELEASE; reason) */
+  postAdminQuarantineAttachmentsRelease: Record<string, unknown>;
+  /** Rescan an unscanned/failed attachment and record the decision (never releases INFECTED) */
+  postAdminQuarantineAttachmentsRescan: Record<string, unknown>;
+  /** Delete a quarantined message: tombstone + durable object deletion (legal hold refused; step-up MAIL_QUARANTINE_DELETE) */
+  postAdminQuarantineMessagesDelete: Record<string, unknown>;
+  /** Reject a quarantined message: tombstone + durable object deletion (legal hold refused; step-up MAIL_QUARANTINE_DELETE) */
+  postAdminQuarantineMessagesReject: Record<string, unknown>;
+  /** Release a message to its mailbox members (not MALWARE, all attachments CLEAN; step-up MAIL_QUARANTINE_RELEASE; reason) */
+  postAdminQuarantineMessagesRelease: Record<string, unknown>;
   /** Create retention policy */
   postAdminRetentionPolicies: Record<string, unknown>;
   /** Start a retention DRY RUN for a policy or system category */
@@ -757,6 +967,10 @@ export interface MailResponses {
   postAdminSearchIndexBackfill: Record<string, unknown>;
   /** Grant send-as */
   postAdminSenderGrants: Record<string, unknown>;
+  /** Cancel a PENDING storage deletion (object is kept; reason) */
+  postAdminStorageDeletionsCancel: Record<string, unknown>;
+  /** Requeue a DEAD (or hold-cancelled) storage deletion (step-up MAIL_STORAGE_DELETION_REQUEUE; reason) */
+  postAdminStorageDeletionsRequeue: Record<string, unknown>;
   /** Offboard employee (history retained) */
   postAdminUsersOffboard: Record<string, unknown>;
   /** Request break-glass */
@@ -803,12 +1017,16 @@ export interface MailResponses {
   postMarketingAutomationsArchive: Record<string, unknown>;
   /** Pause execution */
   postMarketingAutomationsPause: Record<string, unknown>;
+  /** Plan (DRY_RUN) or execute (EXECUTE: approver + step-up MARKETING_AUTOMATION_REPLAY) a replay of a step run, enrollment or dead-lettered job */
+  postMarketingAutomationsReplays: Record<string, unknown>;
   /** Publish (distinct approver + step-up MARKETING_AUTOMATION_PUBLISH) */
   postMarketingAutomationsVersionsApprove: Record<string, unknown>;
   /** Reject version */
   postMarketingAutomationsVersionsReject: Record<string, unknown>;
   /** Submit version for review */
   postMarketingAutomationsVersionsSubmit: Record<string, unknown>;
+  /** Test a version against a real or synthetic contact (read-only: validation, trigger match, path, delays in UTC + recipient time, personalization, consent) */
+  postMarketingAutomationsVersionsTest: AutomationTestResult;
   /** Create campaign draft */
   postMarketingCampaigns: Record<string, unknown>;
   /** Approve (distinct reviewer, not an editor or template author since the last approval; step-up; body contactSetSha256/eligibleCount bind the audience the reviewer saw) */
@@ -841,6 +1059,12 @@ export interface MailResponses {
   postMarketingDispatchPause: Record<string, unknown>;
   /** Resume brand dispatch (approver + step-up MARKETING_BROADCAST_OVERRIDE) */
   postMarketingDispatchResume: Record<string, unknown>;
+  /** Approve a re-subscription (brand approver + step-up MARKETING_RESUBSCRIBE_APPROVE); provider call only with MAIL_MARKETING_PROVIDER_RESUBSCRIBE_ENABLED, else UNSUPPORTED */
+  postMarketingResubscriptionsApprove: Resubscription;
+  /** Confirm the manual provider re-subscription (step-up MARKETING_RESUBSCRIBE_CONFIRM); verified by reading the provider contact */
+  postMarketingResubscriptionsConfirmManual: Resubscription;
+  /** Refuse a re-subscription (brand approver; reason required) */
+  postMarketingResubscriptionsRefuse: Resubscription;
   /** Suppress address */
   postMarketingSuppressions: Record<string, unknown>;
   /** Lift manual/bounce suppression */
@@ -851,6 +1075,10 @@ export interface MailResponses {
   postMarketingTemplatesRender: Record<string, unknown>;
   /** Create immutable version */
   postMarketingTemplatesVersions: Record<string, unknown>;
+  /** Approve a transactional template version (distinct approver + MFA step-up; required for TRANSACTIONAL_SECURITY) */
+  postMarketingTemplatesVersionsApprove: Record<string, unknown>;
+  /** Template QA: desktop/mobile/dark/plaintext previews and static checks (no URL is fetched) */
+  postMarketingTemplatesVersionsQa: TemplateQaReport;
   /** Request mailbox/address/alias/grant */
   postProvisioningRequests: Record<string, unknown>;
   /** Approve and provision */
@@ -883,6 +1111,8 @@ export interface MailResponses {
   putAdminQuotas: Record<string, unknown>;
   /** Create/update the editable draft version */
   putMarketingAutomationsDraft: Record<string, unknown>;
+  /** Change template classification (TRANSACTIONAL*: brand approver + MFA step-up + reason; creates a new version when versions exist) */
+  putMarketingTemplatesClassification: TemplateClassificationChange;
   /** Update the caller's Mail preferences (503 MAIL_FEATURE_NOT_READY before migration 36) */
   putMePreferences: MailPreferences;
   /** Attach label */
@@ -966,6 +1196,35 @@ export interface MailRequestBodies {
     threadIds: Array<string>;
     action: "archive" | "trash" | "spam" | "inbox" | "read" | "unread" | "star" | "unstar";
   };
+  postMarketingAutomationsReplays: {
+    scope: "STEP_RUN" | "ENROLLMENT" | "DEAD_LETTER_JOB";
+    targetId: string;
+    mode?: "DRY_RUN" | "EXECUTE";
+    reason: string;
+    stepUpId?: string;
+    acknowledgeUnknownOutcome?: boolean;
+  };
+  postMarketingAutomationsVersionsTest: {
+    contactId?: string;
+    contact?: {
+      email: string;
+      firstName?: string;
+      lastName?: string;
+      timezone?: string;
+      attributes?: Record<string, unknown>;
+      consentStatus?: "GRANTED" | "WITHDRAWN" | "NONE" | "PENDING_CONFIRMATION";
+    };
+    event?: {
+      topic?: string;
+      origin?: string;
+      eventType?: string;
+      version?: number;
+      eventId?: string;
+      payload?: Record<string, unknown>;
+    };
+    now?: string;
+    engagement?: Record<string, unknown>;
+  };
   postProvisioningRequests: {
     organizationId?: string;
     type: "PERSONAL_MAILBOX" | "SHARED_MAILBOX" | "ALIAS" | "SENDER_GRANT";
@@ -989,6 +1248,11 @@ export interface MailRequestBodies {
   postThreadsStatus: {
     status: "OPEN" | "PENDING" | "RESOLVED" | "CLOSED";
     revision: number;
+  };
+  putMarketingTemplatesClassification: {
+    classification: "MARKETING" | "TRANSACTIONAL" | "TRANSACTIONAL_SECURITY";
+    reason: string;
+    stepUpId?: string;
   };
   putMePreferences: {
     defaultSenderAddressId?: string | null;

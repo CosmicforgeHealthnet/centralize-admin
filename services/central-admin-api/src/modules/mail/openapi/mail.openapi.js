@@ -139,6 +139,11 @@ const PATHS = [
   ["get", "/marketing/{orgId}/legacy-templates", "Existing marketing_email_templates (read-only)", any],
   ["get", "/marketing/{orgId}/templates/{templateId}", "Template with versions", any],
   ["post", "/marketing/{orgId}/templates/{templateId}/versions", "Create immutable version", any],
+  // Final gaps 1 + 7 (classification endpoints answer 503 MAIL_FEATURE_NOT_READY before migration 37)
+  ["get", "/marketing/{orgId}/templates/{templateId}/classification", "Template classification (MARKETING | TRANSACTIONAL | TRANSACTIONAL_SECURITY)", one("TemplateClassification")],
+  ["put", "/marketing/{orgId}/templates/{templateId}/classification", "Change template classification (TRANSACTIONAL*: brand approver + MFA step-up + reason; creates a new version when versions exist)", one("TemplateClassificationChange")],
+  ["post", "/marketing/{orgId}/templates/{templateId}/versions/{versionId}/approve", "Approve a transactional template version (distinct approver + MFA step-up; required for TRANSACTIONAL_SECURITY)", any],
+  ["post", "/marketing/{orgId}/templates/{templateId}/versions/{versionId}/qa", "Template QA: desktop/mobile/dark/plaintext previews and static checks (no URL is fetched)", one("TemplateQaReport")],
   ["get", "/marketing/{orgId}/campaigns", "Campaigns", any],
   ["post", "/marketing/{orgId}/campaigns", "Create campaign draft", any],
   ["get", "/marketing/{orgId}/campaigns/{campaignId}", "Campaign", any],
@@ -178,6 +183,11 @@ const PATHS = [
   ["post", "/marketing/{orgId}/automations/{automationId}/archive", "Archive and cancel active enrollments", any],
   ["get", "/marketing/{orgId}/automations/{automationId}/enrollments", "Enrollments (paginated)", any],
   ["get", "/marketing/{orgId}/automations/{automationId}/history", "Audit history or one enrollment's step runs", any],
+  // Final gap 4: automation test mode (no sends, no enrollments, no jobs) and replay / recovery (503 MAIL_FEATURE_NOT_READY before migration 37)
+  ["post", "/marketing/{orgId}/automations/{automationId}/versions/{versionId}/test", "Test a version against a real or synthetic contact (read-only: validation, trigger match, path, delays in UTC + recipient time, personalization, consent)", one("AutomationTestResult")],
+  ["get", "/marketing/{orgId}/automations/{automationId}/recovery", "Failed, interrupted, stalled and dead-lettered runs of the automation", any],
+  ["get", "/marketing/{orgId}/automations/{automationId}/replays", "Replay / recovery history (dry runs, executions, refusals)", any],
+  ["post", "/marketing/{orgId}/automations/{automationId}/replays", "Plan (DRY_RUN) or execute (EXECUTE: approver + step-up MARKETING_AUTOMATION_REPLAY) a replay of a step run, enrollment or dead-lettered job", any],
   // M7 public recipient endpoints (signed tokens; HTML)
   ["get", "/public/unsubscribe/{token}", "Preference / unsubscribe page", any],
   ["post", "/public/unsubscribe/{token}", "Unsubscribe (form or RFC 8058 one-click)", any],
@@ -211,6 +221,20 @@ const PATHS = [
   ["post", "/admin/retention/runs/{runId}/cancel", "Cancel a queued or running retention run", any],
   ["post", "/admin/dsar/export", "GDPR DSAR access export for one address in one organization (metadata only; step-up MAIL_DSAR_EXPORT)", envelope(ref("DsarExport"))],
   ["post", "/admin/dsar/erasure", "GDPR DSAR erasure for an external address (dry run unless dryRun=false; legal holds skipped; step-up MAIL_DSAR_ERASURE)", envelope(ref("DsarErasure"))],
+  // Final gaps 5/6 (migration 37; 503 MAIL_FEATURE_NOT_READY before it, quarantine lists stay read-only)
+  ["get", "/admin/storage-deletions", "Durable storage deletion queue: counts by status and rows (key hash prefix only)", any],
+  ["post", "/admin/storage-deletions/{deletionId}/requeue", "Requeue a DEAD (or hold-cancelled) storage deletion (step-up MAIL_STORAGE_DELETION_REQUEUE; reason)", any],
+  ["post", "/admin/storage-deletions/{deletionId}/cancel", "Cancel a PENDING storage deletion (object is kept; reason)", any],
+  ["get", "/admin/quarantine", "Quarantined messages or attachments (kind=messages|attachments; safe metadata only, never content)", any],
+  ["get", "/admin/quarantine/messages/{messageId}", "Quarantined message detail with decision history (metadata only)", any],
+  ["get", "/admin/quarantine/attachments/{attachmentId}", "Quarantined attachment detail with decision history (metadata only)", any],
+  ["post", "/admin/quarantine/messages/{messageId}/release", "Release a message to its mailbox members (not MALWARE, all attachments CLEAN; step-up MAIL_QUARANTINE_RELEASE; reason)", any],
+  ["post", "/admin/quarantine/messages/{messageId}/reject", "Reject a quarantined message: tombstone + durable object deletion (legal hold refused; step-up MAIL_QUARANTINE_DELETE)", any],
+  ["post", "/admin/quarantine/messages/{messageId}/delete", "Delete a quarantined message: tombstone + durable object deletion (legal hold refused; step-up MAIL_QUARANTINE_DELETE)", any],
+  ["post", "/admin/quarantine/attachments/{attachmentId}/rescan", "Rescan an unscanned/failed attachment and record the decision (never releases INFECTED)", any],
+  ["post", "/admin/quarantine/attachments/{attachmentId}/release", "Release an attachment whose latest scan is CLEAN (step-up MAIL_QUARANTINE_RELEASE; reason)", any],
+  ["post", "/admin/quarantine/attachments/{attachmentId}/reject", "Reject an attachment: remove its object via the deletion queue (step-up MAIL_QUARANTINE_DELETE)", any],
+  ["post", "/admin/quarantine/attachments/{attachmentId}/delete", "Delete an attachment's object via the deletion queue (step-up MAIL_QUARANTINE_DELETE)", any],
   // M10 rollout
   ["get", "/admin/rollout", "Rollout rules, cohorts and emergency stops for this environment", any],
   ["get", "/admin/rollout/readiness", "Progressive rollout gates (automated PASS/FAIL + MANUAL sign-offs)", any],
@@ -222,6 +246,19 @@ const PATHS = [
   ["get", "/admin/rollout/pilot/{adminUserId}", "Pilot readiness checklist for one staff member", any],
   ["post", "/admin/emergency-stops", "Activate an emergency stop (ALL, MARKETING or ORGANIZATION); immediate", any],
   ["post", "/admin/emergency-stops/{stopId}/release", "Release an emergency stop (step-up MAIL_EMERGENCY_STOP_RELEASE)", any],
+  // Final gaps 2/3 (migration 37; 503 MAIL_FEATURE_NOT_READY until applied)
+  ["get", "/marketing/{orgId}/resubscriptions", "Provider re-subscription queue (requests after a verified double opt-in) with provider state", envelope(ref("ResubscriptionList"))],
+  ["post", "/marketing/{orgId}/resubscriptions/{resubscriptionId}/approve", "Approve a re-subscription (brand approver + step-up MARKETING_RESUBSCRIBE_APPROVE); provider call only with MAIL_MARKETING_PROVIDER_RESUBSCRIBE_ENABLED, else UNSUPPORTED", one("Resubscription")],
+  ["post", "/marketing/{orgId}/resubscriptions/{resubscriptionId}/refuse", "Refuse a re-subscription (brand approver; reason required)", one("Resubscription")],
+  ["post", "/marketing/{orgId}/resubscriptions/{resubscriptionId}/confirm-manual", "Confirm the manual provider re-subscription (step-up MARKETING_RESUBSCRIBE_CONFIRM); verified by reading the provider contact", one("Resubscription")],
+  ["get", "/marketing/{orgId}/contacts/{contactId}/provider-state", "Provider subscription state and re-subscription history of a contact", any],
+  ["get", "/marketing/{orgId}/provider-states", "Provider subscription state of up to 200 contacts (contactIds=a,b)", any],
+  ["get", "/admin/provider-quota", "Observed provider quota per account scope (headers / quota errors; limits only when configured; UNKNOWN otherwise)", any],
+  ["get", "/admin/pricing", "Approved provider pricing rows (estimates only; no billing API)", any],
+  ["post", "/admin/pricing", "Create a pricing row (mail admin + step-up MAIL_PRICING_CHANGE; CONTRACT|PRICE_LIST|INVOICE + reference; no overlapping periods; 422 when invalid)", one("ProviderPricing")],
+  ["patch", "/admin/pricing/{pricingId}", "Set or clear effectiveTo of a pricing row (step-up MAIL_PRICING_CHANGE; stored estimates are not recomputed)", one("ProviderPricing")],
+  ["delete", "/admin/pricing/{pricingId}", "Delete a pricing row no estimate uses (step-up MAIL_PRICING_CHANGE)", any],
+  ["post", "/admin/pricing/dispatch-costs/{dispatchId}/re-estimate", "Explicitly re-estimate a dispatch cost with the pricing effective at its send time (audited; step-up MAIL_PRICING_CHANGE)", any],
 ];
 
 const SCHEMAS = {
@@ -244,6 +281,17 @@ const SCHEMAS = {
   OriginalHeaders: { type: "object", properties: { available: { type: "boolean" }, headers: { type: "array", items: { type: "object", properties: { name: { type: "string" }, value: { type: "string" } } } }, rawMime: { type: "object", properties: { status: { enum: ["STORED", "NOT_REQUESTED", "UNAVAILABLE", "TOO_LARGE", "FAILED"] }, sizeBytes: { type: ["integer", "null"] } } } } },
   SearchIndexStatus: { type: "object", properties: { enabled: { type: "boolean" }, unindexed: { type: ["integer", "null"] }, oldestUnindexedAt: { type: ["string", "null"] }, staleKeyVersion: { type: ["integer", "null"] }, activeKeyVersion: { type: ["string", "null"] } } },
   MailPreferences: { type: "object", required: ["available", "notificationsEnabled", "defaultSenderAddressId", "senderOptions"], properties: { available: { type: "boolean", description: "false until migration 36 is applied (defaults shown, saving answers 503)" }, notificationsEnabled: { type: "boolean", description: "In-app new-mail notices; failure and security notices are always sent" }, defaultSenderAddressId: { type: ["string", "null"], format: "uuid" }, senderOptions: { type: "array", items: { type: "object", required: ["addressId", "address", "mailboxId"], properties: { addressId: { type: "string", format: "uuid" }, address: { type: "string" }, displayName: { type: ["string", "null"] }, kind: { type: "string" }, mailboxId: { type: "string", format: "uuid" }, mailboxName: { type: "string" } } } }, updatedAt: { type: ["string", "null"], format: "date-time" } } },
+  // ---- final gaps 1 + 7
+  TemplateClassification: { type: "object", required: ["templateId", "classification"], properties: { templateId: { type: "string", format: "uuid" }, classification: { enum: ["MARKETING", "TRANSACTIONAL", "TRANSACTIONAL_SECURITY"] }, reason: { type: ["string", "null"] }, changedBy: { type: ["string", "null"] }, updatedAt: { type: ["string", "null"] }, allowed: { type: "array", items: { type: "string" } } } },
+  TemplateClassificationChange: { type: "object", required: ["templateId", "classification", "changed"], properties: { templateId: { type: "string", format: "uuid" }, classification: { enum: ["MARKETING", "TRANSACTIONAL", "TRANSACTIONAL_SECURITY"] }, changed: { type: "boolean" }, newVersion: { type: ["object", "null"], properties: { id: { type: "string", format: "uuid" }, version: { type: "integer" }, contentSha256: { type: "string" }, classification: { type: "string" } } } } },
+  PreflightCheck: { type: "object", required: ["id", "ok", "status"], properties: { id: { type: "string" }, ok: { type: "boolean", description: "false only when status is BLOCKED" }, status: { enum: ["PASS", "WARNING", "BLOCKED", "UNKNOWN"] }, detail: { type: "string" } } },
+  TemplateQaReport: { type: "object", required: ["versionId", "classification", "disclaimer", "checks", "summary"], properties: { versionId: { type: "string", format: "uuid" }, version: { type: "integer" }, classification: { enum: ["MARKETING", "TRANSACTIONAL", "TRANSACTIONAL_SECURITY"] }, disclaimer: { type: "string", description: "Browser previews do not prove rendering in every email client" }, locale: { type: "string" }, sampleContact: { type: "object" }, formatted: { type: "object" }, brandTokens: { type: ["object", "null"] }, renders: { type: ["object", "null"], properties: { subject: { type: "string" }, desktop: { type: "object" }, mobile: { type: "object" }, dark: { type: "object" }, plaintext: { type: "string" } } }, checks: { type: "array", items: ref("PreflightCheck") }, summary: { type: "object" }, compatibility: { type: "array", items: { type: "object" } }, approval: { type: ["object", "null"] } } },
+  // Final gap 4: automation test-mode result (read-only evaluation).
+  AutomationTestResult: { type: "object", required: ["mode", "sideEffects", "validation", "contact", "trigger", "eligibility", "path", "expected"], properties: { mode: { const: "TEST" }, sideEffects: { const: "NONE" }, simulatedNow: { type: "string", format: "date-time" }, automation: { type: "object" }, version: { type: "object" }, validation: { type: "object", properties: { ok: { type: "boolean" }, errors: { type: "array", items: { type: "object" } } } }, contact: { type: "object", properties: { kind: { enum: ["REAL", "SYNTHETIC"] }, timeZone: { type: "string" }, timeZoneSource: { enum: ["RECIPIENT", "BRAND_DEFAULT", "BRAND", "EXPLICIT", "UTC"] }, timeZoneFallback: { type: "boolean" } } }, trigger: { type: "object", properties: { type: { type: "string" }, matches: { type: "boolean" }, reason: { type: ["string", "null"] } } }, eligibility: { type: "object" }, path: { type: "array", items: { type: "object", properties: { sequence: { type: "integer" }, stepId: { type: "string" }, type: { type: "string" }, at: { type: "string" }, localAt: { type: "string" } } } }, expected: { type: "object", properties: { outcome: { type: "string" }, sends: { type: "integer" }, wouldEnroll: { type: "boolean" }, summary: { type: "string" } } } } },
+  // Final gaps 2/3
+  Resubscription: { type: "object", required: ["id", "contactId", "status"], properties: { id: { type: "string", format: "uuid" }, organizationId: { type: "string", format: "uuid" }, contactId: { type: "string", format: "uuid" }, email: { type: ["string", "null"] }, topic: { type: "string" }, status: { enum: ["PENDING_APPROVAL", "APPROVED", "APPLIED", "UNSUPPORTED", "FAILED", "REFUSED", "CANCELLED"] }, evidence: { type: "object" }, approvedBy: { type: ["string", "null"] }, attempts: { type: "integer" }, nextAttemptAt: { type: ["string", "null"] }, lastError: { type: ["string", "null"] }, providerResult: { type: ["object", "null"] }, completedAt: { type: ["string", "null"] }, operatorMessage: { type: ["string", "null"] }, providerState: { type: "object", properties: { state: { enum: ["SUBSCRIBED", "UNSUBSCRIBED", "SUPPRESSED", "UNKNOWN"] }, reason: { type: ["string", "null"] }, observedAt: { type: ["string", "null"] } } } } },
+  ResubscriptionList: { type: "object", required: ["items"], properties: { items: { type: "array", items: ref("Resubscription") }, flags: { type: "object", properties: { providerResubscribeEnabled: { type: "boolean" } } } } },
+  ProviderPricing: { type: "object", required: ["id", "provider", "currency", "unitCostMicros", "effectiveFrom", "source", "reference"], properties: { id: { type: "string", format: "uuid" }, provider: { type: "string" }, organizationId: { type: ["string", "null"] }, currency: { type: "string", pattern: "^[A-Z]{3}$" }, unitCostMicros: { type: "integer", minimum: 0 }, unitCost: { type: "string" }, includedMonthly: { type: ["integer", "null"] }, effectiveFrom: { type: "string", format: "date-time" }, effectiveTo: { type: ["string", "null"] }, source: { enum: ["CONTRACT", "PRICE_LIST", "INVOICE"] }, reference: { type: "string" }, label: { const: "estimated (not billed)" } } },
   Error: { type: "object", properties: { success: { const: false }, code: { type: "string" }, retryable: { type: "boolean" }, message: { type: "string" }, errors: { type: "array", items: { type: "object" } }, correlationId: { type: ["string", "null"] } } },
 };
 
@@ -259,6 +307,8 @@ const CREATED = [
   "post /marketing/{orgId}/audiences", "post /marketing/{orgId}/audiences/{audienceId}/segments", "post /marketing/{orgId}/templates",
   "post /marketing/{orgId}/templates/{templateId}/versions", "post /marketing/{orgId}/campaigns", "post /marketing/{orgId}/campaigns/{campaignId}/schedule",
   "post /marketing/{orgId}/automations",
+  // final gap 3
+  "post /admin/pricing",
 ];
 const ACCEPTED = ["post /drafts/{draftId}/send", "post /admin/search-index/backfill", "post /marketing/{orgId}/campaigns/{campaignId}/test-send"];
 const SUCCESS_STATUS = Object.fromEntries([...CREATED.map((key) => [key, "201"]), ...ACCEPTED.map((key) => [key, "202"])]);
@@ -292,9 +342,13 @@ const REQUEST_BODIES = {
   "put /me/preferences": { type: "object", additionalProperties: false, minProperties: 1, properties: { defaultSenderAddressId: { type: ["string", "null"], format: "uuid", description: "Must be one of the caller's current sender identities; null clears it" }, notificationsEnabled: { type: "boolean" } } },
   "post /admin/dsar/export": { type: "object", required: ["organizationId", "email", "reason", "stepUpId"], properties: { organizationId: uuid, email: { type: "string", format: "email" }, reason: { type: "string", minLength: 5, maxLength: 500 }, stepUpId: { type: "string" } } },
   "post /admin/dsar/erasure": { type: "object", required: ["organizationId", "email", "reason", "stepUpId"], properties: { organizationId: uuid, email: { type: "string", format: "email" }, reason: { type: "string", minLength: 5, maxLength: 500 }, stepUpId: { type: "string" }, dryRun: { type: "boolean" } } },
+  // Final gap 4
+  "post /marketing/{orgId}/automations/{automationId}/versions/{versionId}/test": { type: "object", properties: { contactId: uuid, contact: { type: "object", required: ["email"], properties: { email: { type: "string", format: "email" }, firstName: str(120), lastName: str(120), timezone: { type: "string", maxLength: 64, description: "IANA time zone (validated)" }, attributes: { type: "object" }, consentStatus: { enum: ["GRANTED", "WITHDRAWN", "NONE", "PENDING_CONFIRMATION"] } } }, event: { type: "object", properties: { topic: str(64), origin: str(16), eventType: str(96), version: { type: "integer" }, eventId: str(160), payload: { type: "object" } } }, now: { type: "string", format: "date-time" }, engagement: { type: "object" } } },
+  "post /marketing/{orgId}/automations/{automationId}/replays": { type: "object", required: ["scope", "targetId", "reason"], properties: { scope: { enum: ["STEP_RUN", "ENROLLMENT", "DEAD_LETTER_JOB"] }, targetId: uuid, mode: { enum: ["DRY_RUN", "EXECUTE"] }, reason: { type: "string", minLength: 5, maxLength: 500 }, stepUpId: { type: "string" }, acknowledgeUnknownOutcome: { type: "boolean" } } },
   "post /admin/jobs/{jobId}/requeue": { type: "object", required: ["reason", "stepUpId"], properties: { reason: { type: "string", minLength: 5, maxLength: 500 }, stepUpId: { type: "string" } } },
   "post /provisioning/requests": { type: "object", required: ["type"], properties: { organizationId: { type: "string" }, type: { enum: ["PERSONAL_MAILBOX", "SHARED_MAILBOX", "ALIAS", "SENDER_GRANT"] }, requestedAddress: { type: "string" }, justification: str(1000) } },
   "post /security/step-up": { type: "object", required: ["code", "purpose"], properties: { code: { type: "string", pattern: "^[0-9]{6}$" }, purpose: { type: "string" } } },
+  "put /marketing/{orgId}/templates/{templateId}/classification": { type: "object", required: ["classification", "reason"], properties: { classification: { enum: ["MARKETING", "TRANSACTIONAL", "TRANSACTIONAL_SECURITY"] }, reason: { type: "string", minLength: 5, maxLength: 500 }, stepUpId: { type: "string", description: "MFA step-up (purpose MARKETING_TEMPLATE_CLASSIFY); required when TRANSACTIONAL* is involved" } } },
   "post /break-glass/requests": { type: "object", required: ["mailboxId", "reason"], properties: { mailboxId: uuid, reason: str(1000), ticketRef: str(128), durationMinutes: { type: "integer" }, stepUpId: { type: "string" } } },
 };
 

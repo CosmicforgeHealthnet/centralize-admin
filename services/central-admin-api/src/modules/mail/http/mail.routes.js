@@ -334,6 +334,13 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
   router.post("/admin/ops/alerts/:alertId/acknowledge", asyncHandler(async (req, res) => ok(res, await ops.acknowledge(user(req), req.params.alertId, mail.audit, ctx(req)))));
   router.get("/admin/usage", asyncHandler(async (req, res) => ok(res, await usage.report(user(req), req.query))));
   router.put("/admin/quotas", asyncHandler(async (req, res) => ok(res, await usage.setLimit(user(req), body(req), ctx(req)))));
+  // ---- Final gap 3: provider quota + approved pricing (503 before migration 37) ----
+  router.get("/admin/provider-quota", asyncHandler(async (req, res) => ok(res, await mail.services.providerQuota.adminQuota(user(req)))));
+  router.get("/admin/pricing", asyncHandler(async (req, res) => ok(res, await mail.services.pricing.list(user(req), req.query))));
+  router.post("/admin/pricing", asyncHandler(async (req, res) => ok(res, await mail.services.pricing.create(user(req), body(req), ctx(req)), { status: 201 })));
+  router.patch("/admin/pricing/:pricingId", asyncHandler(async (req, res) => ok(res, await mail.services.pricing.setEffectiveTo(user(req), req.params.pricingId, body(req), ctx(req)))));
+  router.delete("/admin/pricing/:pricingId", asyncHandler(async (req, res) => ok(res, await mail.services.pricing.remove(user(req), req.params.pricingId, body(req), ctx(req)))));
+  router.post("/admin/pricing/dispatch-costs/:dispatchId/re-estimate", asyncHandler(async (req, res) => ok(res, await mail.services.pricing.reEstimate(user(req), req.params.dispatchId, body(req), ctx(req)))));
   router.get("/admin/retention/capabilities", asyncHandler(async (req, res) => {
     await policy.requireMailAdmin(mail.client, user(req), "VIEW");
     ok(res, retention.capabilities());
@@ -378,6 +385,29 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
     res.setHeader("Cache-Control", "no-store");
     ok(res, await mail.services.dsar.eraseSubject(user(req), body(req), ctx(req)));
   }));
+  // ---- Final gaps 5/6 (migration 37): durable storage deletions, IT quarantine
+  router.get("/admin/storage-deletions", asyncHandler(async (req, res) => ok(res, await mail.services.storageDeletions.list(user(req), req.query))));
+  router.post("/admin/storage-deletions/:deletionId/requeue", asyncHandler(async (req, res) => ok(res, await mail.services.storageDeletions.requeue(user(req), req.params.deletionId, body(req), ctx(req)))));
+  router.post("/admin/storage-deletions/:deletionId/cancel", asyncHandler(async (req, res) => ok(res, await mail.services.storageDeletions.cancel(user(req), req.params.deletionId, body(req), ctx(req)))));
+  router.get("/admin/quarantine", asyncHandler(async (req, res) => {
+    res.setHeader("Cache-Control", "no-store");
+    page(res, await mail.services.quarantine.list(user(req), req.query));
+  }));
+  router.get("/admin/quarantine/messages/:messageId", asyncHandler(async (req, res) => {
+    res.setHeader("Cache-Control", "no-store");
+    ok(res, await mail.services.quarantine.messageDetail(user(req), req.params.messageId));
+  }));
+  router.get("/admin/quarantine/attachments/:attachmentId", asyncHandler(async (req, res) => {
+    res.setHeader("Cache-Control", "no-store");
+    ok(res, await mail.services.quarantine.attachmentDetail(user(req), req.params.attachmentId));
+  }));
+  router.post("/admin/quarantine/messages/:messageId/release", asyncHandler(async (req, res) => ok(res, await mail.services.quarantine.releaseMessage(user(req), req.params.messageId, body(req), ctx(req)))));
+  router.post("/admin/quarantine/messages/:messageId/reject", asyncHandler(async (req, res) => ok(res, await mail.services.quarantine.rejectMessage(user(req), req.params.messageId, body(req), ctx(req)))));
+  router.post("/admin/quarantine/messages/:messageId/delete", asyncHandler(async (req, res) => ok(res, await mail.services.quarantine.deleteMessage(user(req), req.params.messageId, body(req), ctx(req)))));
+  router.post("/admin/quarantine/attachments/:attachmentId/rescan", asyncHandler(async (req, res) => ok(res, await mail.services.quarantine.rescanAttachment(user(req), req.params.attachmentId, body(req), ctx(req)))));
+  router.post("/admin/quarantine/attachments/:attachmentId/release", asyncHandler(async (req, res) => ok(res, await mail.services.quarantine.releaseAttachment(user(req), req.params.attachmentId, body(req), ctx(req)))));
+  router.post("/admin/quarantine/attachments/:attachmentId/reject", asyncHandler(async (req, res) => ok(res, await mail.services.quarantine.rejectAttachment(user(req), req.params.attachmentId, body(req), ctx(req)))));
+  router.post("/admin/quarantine/attachments/:attachmentId/delete", asyncHandler(async (req, res) => ok(res, await mail.services.quarantine.deleteAttachment(user(req), req.params.attachmentId, body(req), ctx(req)))));
   router.get("/admin/retention-policies", asyncHandler(async (req, res) => ok(res, await admin.listRetentionPolicies(user(req)))));
   router.post("/admin/retention-policies", asyncHandler(async (req, res) => ok(res, await admin.createRetentionPolicy(user(req), body(req), ctx(req)), { status: 201 })));
 
@@ -418,6 +448,11 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
   m.get("/:orgId/legacy-templates", asyncHandler(async (req, res) => ok(res, await marketing.legacyTemplates(user(req), req.params.orgId))));
   m.get("/:orgId/templates/:templateId", asyncHandler(async (req, res) => ok(res, await marketing.getTemplate(user(req), req.params.orgId, req.params.templateId))));
   m.post("/:orgId/templates/:templateId/versions", asyncHandler(async (req, res) => ok(res, await marketing.createTemplateVersion(user(req), req.params.orgId, req.params.templateId, body(req), ctx(req)), { status: 201 })));
+  // ---- final gaps 1 + 7: template classification, version approval, QA
+  m.get("/:orgId/templates/:templateId/classification", asyncHandler(async (req, res) => ok(res, await marketing.getClassification(user(req), req.params.orgId, req.params.templateId))));
+  m.put("/:orgId/templates/:templateId/classification", asyncHandler(async (req, res) => ok(res, await marketing.setClassification(user(req), req.params.orgId, req.params.templateId, body(req), ctx(req)))));
+  m.post("/:orgId/templates/:templateId/versions/:versionId/approve", asyncHandler(async (req, res) => ok(res, await marketing.approveTemplateVersion(user(req), req.params.orgId, req.params.templateId, req.params.versionId, body(req), ctx(req)))));
+  m.post("/:orgId/templates/:templateId/versions/:versionId/qa", asyncHandler(async (req, res) => ok(res, await marketing.templateQa(user(req), req.params.orgId, req.params.templateId, req.params.versionId, body(req)))));
   m.get("/:orgId/campaigns", asyncHandler(async (req, res) => ok(res, await marketing.listCampaigns(user(req), req.params.orgId, req.query))));
   m.post("/:orgId/campaigns", asyncHandler(async (req, res) => ok(res, await marketing.createCampaign(user(req), req.params.orgId, body(req), ctx(req)), { status: 201 })));
   m.get("/:orgId/campaigns/:campaignId", asyncHandler(async (req, res) => ok(res, await marketing.getCampaign(user(req), req.params.orgId, req.params.campaignId))));
@@ -461,6 +496,20 @@ function createMailRouter({ mail, authenticate, rateLimitMax = 300 }) {
   m.post("/:orgId/automations/:automationId/archive", asyncHandler(async (req, res) => ok(res, await automations.archive(user(req), req.params.orgId, req.params.automationId, ctx(req)))));
   m.get("/:orgId/automations/:automationId/enrollments", asyncHandler(async (req, res) => page(res, await automations.enrollments(user(req), req.params.orgId, req.params.automationId, req.query))));
   m.get("/:orgId/automations/:automationId/history", asyncHandler(async (req, res) => ok(res, await automations.history(user(req), req.params.orgId, req.params.automationId, req.query.enrollmentId))));
+  // ---- Final gap 4: automation test mode (read-only) and replay / recovery
+  // (503 MAIL_FEATURE_NOT_READY before migration 37) ----
+  const { automationTests, automationReplays } = mail.services;
+  m.post("/:orgId/automations/:automationId/versions/:versionId/test", asyncHandler(async (req, res) => ok(res, await automationTests.run(user(req), req.params.orgId, req.params.automationId, req.params.versionId, body(req), ctx(req)))));
+  m.get("/:orgId/automations/:automationId/recovery", asyncHandler(async (req, res) => ok(res, await automationReplays.recovery(user(req), req.params.orgId, req.params.automationId, req.query))));
+  m.get("/:orgId/automations/:automationId/replays", asyncHandler(async (req, res) => ok(res, await automationReplays.history(user(req), req.params.orgId, req.params.automationId, req.query))));
+  m.post("/:orgId/automations/:automationId/replays", asyncHandler(async (req, res) => ok(res, await automationReplays.request(user(req), req.params.orgId, req.params.automationId, body(req), ctx(req)))));
+  // ---- Final gap 2: provider subscription state + re-subscriptions (503 before migration 37) ----
+  m.get("/:orgId/resubscriptions", asyncHandler(async (req, res) => ok(res, await mail.services.resubscriptions.list(user(req), req.params.orgId, req.query))));
+  m.post("/:orgId/resubscriptions/:resubscriptionId/approve", asyncHandler(async (req, res) => ok(res, await mail.services.resubscriptions.approve(user(req), req.params.orgId, req.params.resubscriptionId, body(req), ctx(req)))));
+  m.post("/:orgId/resubscriptions/:resubscriptionId/refuse", asyncHandler(async (req, res) => ok(res, await mail.services.resubscriptions.refuse(user(req), req.params.orgId, req.params.resubscriptionId, body(req), ctx(req)))));
+  m.post("/:orgId/resubscriptions/:resubscriptionId/confirm-manual", asyncHandler(async (req, res) => ok(res, await mail.services.resubscriptions.confirmManual(user(req), req.params.orgId, req.params.resubscriptionId, body(req), ctx(req)))));
+  m.get("/:orgId/contacts/:contactId/provider-state", asyncHandler(async (req, res) => ok(res, await mail.services.resubscriptions.contactState(user(req), req.params.orgId, req.params.contactId))));
+  m.get("/:orgId/provider-states", asyncHandler(async (req, res) => ok(res, await mail.services.resubscriptions.contactStates(user(req), req.params.orgId, req.query))));
   router.use("/marketing", m);
 
   return router;
