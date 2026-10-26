@@ -7,7 +7,11 @@
 // consent, suppression or approval. Every send passes the same provider gate
 // as broadcasts (allowlist, verified domain, restricted-health block,
 // emergency stop) and is audited. Job kind MARKETING_TEST_SEND.
+// Gap 1: campaign test sends use MARKETING template versions only (the
+// campaign's version is re-checked at request and at dispatch). Transactional
+// templates are previewed through template QA / render preview instead.
 
+const { quotaDeferSeconds } = require("../ops/provider-quota.service");
 const crypto = require("crypto");
 const { mailError } = require("../mail.errors");
 const policy = require("../authz/mail.policy");
@@ -15,6 +19,7 @@ const { externalSendBlockReason } = require("../authz/sending-gate");
 const { normalizeAddress } = require("../security/address.util");
 const { renderTemplate } = require("./template-renderer");
 const { classifySendError, isBrandSender, SENDER_MAILBOX_SELECT } = require("./marketing-sender");
+const { templatePolicyFor } = require("./template-policy");
 
 const SAMPLE = { first_name: "Ada", last_name: "Lovelace", email: "test@example.invalid", unsubscribe_url: "https://example.invalid/unsubscribe-disabled-for-test-sends" };
 
@@ -23,7 +28,8 @@ const SAMPLE = { first_name: "Ada", last_name: "Lovelace", email: "test@example.
 // sends count toward the brand's provider usage.
 const PURPOSE = "MARKETING_BROADCAST";
 
-function createTestSendService({ client, config, audit, jobs, marketingProviders, runtime = null, usage = null, clock = () => new Date() }) {
+function createTestSendService({ client, config, audit, jobs, marketingProviders, runtime = null, usage = null, clock = () => new Date(), templatePolicy = null }) {
+  const templates = templatePolicy || templatePolicyFor(client);
   async function requestTestSend(user, organizationId, campaignId, { recipients } = {}, context = {}) {
     if (!config.marketingEnabled) throw mailError("MAIL_MARKETING_DISABLED");
     await policy.requireMarketingScope(client, user, organizationId, "EDIT");
@@ -32,6 +38,7 @@ function createTestSendService({ client, config, audit, jobs, marketingProviders
     const campaign = policy.isUuid(campaignId) ? await client.marketingEmailCampaign.findUnique({ where: { id: campaignId } }) : null;
     if (!campaign || campaign.organizationId !== organizationId) throw mailError("MAIL_NOT_FOUND", { resource: "campaign" });
     if (!campaign.templateVersionId || !campaign.senderAddressId) throw mailError("MAIL_VALIDATION_FAILED", { field: "campaign", reason: "TEMPLATE_AND_SENDER_REQUIRED" });
+    await templates.assertTemplateUsable(campaign.templateVersionId, { purpose: "MARKETING", organizationId });
     const halt = runtime ? await runtime.haltReason(PURPOSE, { organizationId, adminUserId: user.id }) : null;
     if (halt) throw mailError(halt.startsWith("MAIL_ROLLOUT_") ? halt : "MAIL_EMERGENCY_STOP", { reason: halt });
 
@@ -91,7 +98,8 @@ function createTestSendService({ client, config, audit, jobs, marketingProviders
     ]);
     const senderOk = isBrandSender(sender, organizationId);
     const provider = marketingProviders(organization);
-    const blocked = !version || version.template.organizationId !== organizationId ? "TEMPLATE_UNAVAILABLE" : !senderOk ? "SENDER_NOT_AUTHORIZED" : externalSendBlockReason({ config, providerReady: () => provider.configured !== false && provider.name !== "unconfigured", domain: sender.domain });
+    const templateProblem = version ? await templates.usabilityProblem(version, { purpose: "MARKETING", organizationId }) : "TEMPLATE_UNAVAILABLE";
+    const blocked = !version || version.template.organizationId !== organizationId ? "TEMPLATE_UNAVAILABLE" : templateProblem ? templateProblem : !senderOk ? "SENDER_NOT_AUTHORIZED" : externalSendBlockReason({ config, providerReady: () => provider.configured !== false && provider.name !== "unconfigured", domain: sender.domain });
     if (blocked) {
       await audit.record({ action: "MARKETING_TEST_SEND_BLOCKED", targetType: "marketing_campaign", targetId: campaignId, organizationId, outcome: "FAILURE", metadata: { reason: blocked } });
       return { skipped: blocked };
@@ -114,6 +122,10 @@ function createTestSendService({ client, config, audit, jobs, marketingProviders
         });
         results.push(result.providerMessageId || null);
       } catch (error) {
+        // Provider quota exhausted: hold until it resets (earlier sends in this
+        // job are deduplicated by their idempotency keys when it resumes).
+        const quotaWait = quotaDeferSeconds(error, clock());
+        if (quotaWait) return { defer: { seconds: quotaWait, code: "PROVIDER_QUOTA_EXHAUSTED" } };
         const verdict = classifySendError(error, { firstAttemptAt: job.createdAt, now: clock(), windowHours: config.reconciliation.idempotencyWindowHours });
         if (verdict.outcome === "RETRY") throw Object.assign(new Error(error.message), { code: verdict.code, retryable: true, retryAfterSeconds: verdict.retryAfterSeconds ?? null });
         await audit.record({ action: "MARKETING_TEST_SEND_FAILED", targetType: "marketing_campaign", targetId: campaignId, organizationId, outcome: verdict.outcome === "UNKNOWN" ? "UNKNOWN" : "FAILURE", metadata: { reason: verdict.code } });

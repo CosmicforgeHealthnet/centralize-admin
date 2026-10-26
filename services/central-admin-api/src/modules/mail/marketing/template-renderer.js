@@ -2,7 +2,21 @@
 
 // Email-safe, table-based renderer for Marketing Email Studio blocks. All
 // user text is escaped; only a fixed set of personalization variables is
-// allowed; links/images must be https; an unsubscribe link is always present.
+// allowed; links/images must be https; an unsubscribe link is always present
+// for MARKETING templates.
+//
+// Template classification (gap 1): MARKETING (default) keeps the mandatory
+// unsubscribe + consent + postal address footer. TRANSACTIONAL and
+// TRANSACTIONAL_SECURITY render a service footer without the marketing
+// unsubscribe text and refuse:
+// - promotional blocks: the reserved promotional block types (hero, promo,
+//   coupon, product; not part of the builder) and clickable image banners
+//   (an image block with href);
+// - marketing-only personalization ({{unsubscribe_url}}).
+// TRANSACTIONAL_SECURITY additionally refuses remote images (image blocks and
+// a brand logo), links (buttons or URLs in text) outside the allow-listed
+// brand domains, promotional copy, and an empty plaintext part.
+// MARKETING output and its contentSha256 are byte-for-byte unchanged.
 
 const crypto = require("crypto");
 const { escapeHtml } = require("../security/html-sanitizer");
@@ -12,6 +26,17 @@ const BLOCK_TYPES = new Set(["heading", "text", "button", "image", "divider", "s
 const VARIABLE = /\{\{\s*([a-zA-Z0-9_.-]+)\s*\}\}/g;
 const COLOR = /^#[0-9a-fA-F]{6}$/;
 const MAX_BLOCKS = 60;
+const CLASSIFICATIONS = ["MARKETING", "TRANSACTIONAL", "TRANSACTIONAL_SECURITY"];
+const TRANSACTIONAL_CLASSES = new Set(["TRANSACTIONAL", "TRANSACTIONAL_SECURITY"]);
+// Reserved promotional block types: not offered by the builder (so MARKETING
+// rejects them as UNSUPPORTED), refused with an explicit reason for
+// transactional templates.
+const PROMOTIONAL_BLOCK_TYPES = new Set(["hero", "promo", "coupon", "product"]);
+const MARKETING_ONLY_VARIABLES = new Set(["unsubscribe_url"]);
+// Heuristic promotional-copy detector (English). Refused in
+// TRANSACTIONAL_SECURITY, reported by template QA for TRANSACTIONAL.
+const PROMOTIONAL_COPY = /\b(sale|discount|coupon|promo(?:tion|tional)?(?:\s+code)?|voucher|% off|\d+\s?% off|limited[- ]time|buy now|shop now|order now|free shipping|special offer|deal of|exclusive offer|upgrade now|subscribe now|black friday|cyber monday)\b/i;
+const URL_IN_TEXT = /https?:\/\/[^\s<>"')]+/gi;
 
 class TemplateError extends Error {
   constructor(code, details) {
@@ -59,11 +84,59 @@ function normalizeBrand(brand = {}) {
   };
 }
 
-function validateBlocks(blocks) {
+function hostAllowed(host, allowedDomains) {
+  const value = String(host || "").toLowerCase();
+  return allowedDomains.some((domain) => value === domain || value.endsWith(`.${domain}`));
+}
+
+function hostOfUrl(value) {
+  try {
+    return new URL(value).hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+function hasPromotionalCopy(value) {
+  return PROMOTIONAL_COPY.test(String(value || ""));
+}
+
+// Classification content policy for transactional templates (see header).
+function classificationErrors(blocks, { classification, allowedLinkDomains = [], brand = {}, subject = "", preheader = "" }) {
+  if (!TRANSACTIONAL_CLASSES.has(classification)) return [];
+  const errors = [];
+  const security = classification === "TRANSACTIONAL_SECURITY";
+  const domains = [...new Set(allowedLinkDomains.map((entry) => String(entry || "").trim().toLowerCase()).filter(Boolean))];
+  const checkLink = (value, field) => {
+    const host = hostOfUrl(value);
+    if (!host || !hostAllowed(host, domains)) errors.push({ field, reason: "EXTERNAL_LINK_NOT_ALLOWED", host: host || null });
+  };
+  (Array.isArray(blocks) ? blocks : []).forEach((block, index) => {
+    if (!block) return;
+    if (PROMOTIONAL_BLOCK_TYPES.has(block.type)) return errors.push({ field: `blocks[${index}].type`, reason: "PROMOTIONAL_BLOCK_NOT_ALLOWED" });
+    if (block.type === "image" && block.href) errors.push({ field: `blocks[${index}].href`, reason: "PROMOTIONAL_BLOCK_NOT_ALLOWED", detail: "clickable image banner" });
+    if (!security) return;
+    if (block.type === "image") errors.push({ field: `blocks[${index}].src`, reason: "REMOTE_IMAGE_NOT_ALLOWED" });
+    if (block.type === "button" && !/^\{\{/.test(String(block.url || "").trim())) checkLink(block.url, `blocks[${index}].url`);
+    for (const key of ["text", "label"]) {
+      if (typeof block[key] !== "string") continue;
+      if (hasPromotionalCopy(block[key])) errors.push({ field: `blocks[${index}].${key}`, reason: "PROMOTIONAL_COPY_NOT_ALLOWED" });
+      for (const match of block[key].matchAll(URL_IN_TEXT)) checkLink(match[0], `blocks[${index}].${key}`);
+    }
+  });
+  if (security) {
+    if (brand?.logoUrl) errors.push({ field: "brand.logoUrl", reason: "REMOTE_IMAGE_NOT_ALLOWED" });
+    if (hasPromotionalCopy(subject) || hasPromotionalCopy(preheader)) errors.push({ field: "subject", reason: "PROMOTIONAL_COPY_NOT_ALLOWED" });
+  }
+  return errors;
+}
+
+function validateBlocks(blocks, { classification = "MARKETING" } = {}) {
   const errors = [];
   if (!Array.isArray(blocks) || !blocks.length) errors.push({ field: "blocks", reason: "REQUIRED" });
   else if (blocks.length > MAX_BLOCKS) errors.push({ field: "blocks", reason: "TOO_MANY" });
   (Array.isArray(blocks) ? blocks : []).forEach((block, index) => {
+    if (block && PROMOTIONAL_BLOCK_TYPES.has(block.type) && TRANSACTIONAL_CLASSES.has(classification)) return; // reported by classificationErrors
     if (!block || !BLOCK_TYPES.has(block.type)) return errors.push({ field: `blocks[${index}].type`, reason: "UNSUPPORTED" });
     const text = (value, max) => typeof value === "string" && value.trim().length > 0 && value.length <= max;
     if (block.type === "heading" && !text(block.text, 300)) errors.push({ field: `blocks[${index}].text` });
@@ -92,10 +165,13 @@ function accessibilityChecks(blocks, subject) {
   return warnings;
 }
 
-function renderTemplate({ subject, preheader, blocks, brand }, { data = null } = {}) {
-  const errors = validateBlocks(blocks);
+function renderTemplate({ subject, preheader, blocks, brand }, { data = null, classification = "MARKETING", allowedLinkDomains = [] } = {}) {
+  if (!CLASSIFICATIONS.includes(classification)) throw new TemplateError("MAIL_VALIDATION_FAILED", [{ field: "classification", reason: "UNSUPPORTED" }]);
+  const transactional = TRANSACTIONAL_CLASSES.has(classification);
+  const errors = validateBlocks(blocks, { classification });
   const cleanSubject = String(subject || "").replace(/[\r\n]+/g, " ").trim().slice(0, 998);
   if (!cleanSubject) errors.push({ field: "subject", reason: "REQUIRED" });
+  errors.push(...classificationErrors(blocks, { classification, allowedLinkDomains, brand, subject: cleanSubject, preheader }));
   if (errors.length) throw new TemplateError("MAIL_VALIDATION_FAILED", errors);
   const resolvedBrand = normalizeBrand(brand);
   const variables = new Set();
@@ -104,6 +180,8 @@ function renderTemplate({ subject, preheader, blocks, brand }, { data = null } =
   for (const block of blocks) ["text", "label", "url", "alt"].forEach((key) => collectVariables(block[key], variables));
   const unknown = [...variables].filter((name) => !ALLOWED_VARIABLES.has(name));
   if (unknown.length) throw new TemplateError("MAIL_TEMPLATE_INVALID_VARIABLE", unknown.map((name) => ({ variable: name })));
+  const marketingOnly = transactional ? [...variables].filter((name) => MARKETING_ONLY_VARIABLES.has(name)) : [];
+  if (marketingOnly.length) throw new TemplateError("MAIL_TEMPLATE_INVALID_VARIABLE", marketingOnly.map((name) => ({ variable: name, reason: "MARKETING_ONLY_VARIABLE" })));
 
   const htmlParts = [];
   const textParts = [];
@@ -148,16 +226,23 @@ function renderTemplate({ subject, preheader, blocks, brand }, { data = null } =
         break;
     }
   }
-  // Mandatory unsubscribe footer (cannot be removed by template authors).
-  htmlParts.push(`<tr><td style="padding:16px 32px 28px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#6B7280;">You are receiving this because you opted in to {{brand_name}} updates. <a href="{{unsubscribe_url}}" style="color:${p.primaryColor};">Unsubscribe</a>${p.postalAddress ? `<br>${escapeHtml(p.postalAddress)}` : ""}</td></tr>`);
-  textParts.push("You are receiving this because you opted in to {{brand_name}} updates.", "Unsubscribe: {{unsubscribe_url}}", ...(p.postalAddress ? [p.postalAddress] : []));
-  variables.add("unsubscribe_url");
+  if (transactional) {
+    // Service footer: company identity, no marketing consent/unsubscribe text.
+    htmlParts.push(`<tr><td style="padding:16px 32px 28px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#6B7280;">This is a service message from {{brand_name}} about your account or request.${p.postalAddress ? `<br>${escapeHtml(p.postalAddress)}` : ""}</td></tr>`);
+    textParts.push("This is a service message from {{brand_name}} about your account or request.", ...(p.postalAddress ? [p.postalAddress] : []));
+  } else {
+    // Mandatory unsubscribe footer (cannot be removed by template authors).
+    htmlParts.push(`<tr><td style="padding:16px 32px 28px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#6B7280;">You are receiving this because you opted in to {{brand_name}} updates. <a href="{{unsubscribe_url}}" style="color:${p.primaryColor};">Unsubscribe</a>${p.postalAddress ? `<br>${escapeHtml(p.postalAddress)}` : ""}</td></tr>`);
+    textParts.push("You are receiving this because you opted in to {{brand_name}} updates.", "Unsubscribe: {{unsubscribe_url}}", ...(p.postalAddress ? [p.postalAddress] : []));
+    variables.add("unsubscribe_url");
+  }
   variables.add("brand_name");
 
-  const logo = p.logoUrl ? `<tr><td style="padding:24px 32px 8px;"><img src="${escapeHtml(p.logoUrl)}" alt="${escapeHtml(p.name)}" height="36" style="display:block;border:0;"></td></tr>` : "";
+  const logo = p.logoUrl && classification !== "TRANSACTIONAL_SECURITY" ? `<tr><td style="padding:24px 32px 8px;"><img src="${escapeHtml(p.logoUrl)}" alt="${escapeHtml(p.name)}" height="36" style="display:block;border:0;"></td></tr>` : "";
   const pre = preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;">${escapeHtml(String(preheader).slice(0, 255))}</div>` : "";
   let html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(cleanSubject)}</title></head><body style="margin:0;padding:0;background:${p.backgroundColor};">${pre}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${p.backgroundColor};"><tr><td align="center" style="padding:24px 12px;"><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#ffffff;border-radius:12px;">${logo}${htmlParts.join("")}</table></td></tr></table></body></html>`;
   let text = textParts.join("\n").trim();
+  if (classification === "TRANSACTIONAL_SECURITY" && !text) throw new TemplateError("MAIL_VALIDATION_FAILED", [{ field: "text", reason: "PLAINTEXT_REQUIRED" }]);
   let renderedSubject = cleanSubject;
   if (data) {
     const values = { brand_name: p.name, ...data };
@@ -170,8 +255,13 @@ function renderTemplate({ subject, preheader, blocks, brand }, { data = null } =
     text = substitute(text, false);
     renderedSubject = substitute(renderedSubject, false).replace(/[\r\n]+/g, " ");
   }
-  const contentSha256 = crypto.createHash("sha256").update(JSON.stringify({ subject: cleanSubject, preheader: preheader || null, blocks, brand: resolvedBrand })).digest("hex");
-  return { subject: renderedSubject, html, text, variables: [...variables].sort(), brand: resolvedBrand, warnings: [], accessibility: accessibilityChecks(blocks, cleanSubject), contentSha256 };
+  // MARKETING hashes exactly as before; other classes bind the class too.
+  const hashInput = { subject: cleanSubject, preheader: preheader || null, blocks, brand: resolvedBrand, ...(transactional ? { classification } : {}) };
+  const contentSha256 = crypto.createHash("sha256").update(JSON.stringify(hashInput)).digest("hex");
+  return { subject: renderedSubject, html, text, variables: [...variables].sort(), brand: resolvedBrand, warnings: [], accessibility: accessibilityChecks(blocks, cleanSubject), contentSha256, classification };
 }
 
-module.exports = { renderTemplate, validateBlocks, TemplateError, ALLOWED_VARIABLES, safeUrl };
+module.exports = {
+  renderTemplate, validateBlocks, classificationErrors, hasPromotionalCopy, hostAllowed, TemplateError, ALLOWED_VARIABLES, safeUrl,
+  CLASSIFICATIONS, TRANSACTIONAL_CLASSES, PROMOTIONAL_BLOCK_TYPES, MARKETING_ONLY_VARIABLES, VARIABLE,
+};

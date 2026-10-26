@@ -10,10 +10,14 @@ const crypto = require("crypto");
 const { mailError } = require("../mail.errors");
 const policy = require("../authz/mail.policy");
 const { normalizeAddress } = require("../security/address.util");
-const { renderTemplate, TemplateError } = require("./template-renderer");
+const { renderTemplate, TemplateError, CLASSIFICATIONS } = require("./template-renderer");
 const { scanLinks } = require("./link-scan");
+// Final gaps 1 + 7: template classification and deliverability preflight.
+const { templatePolicyFor, isTransactional, APPROVAL_ACTION, VERSION_TARGET } = require("./template-policy");
+const { fromOk, check: preflightCheck, summarize, preflightHash, domainChecks, reputationCheck, contentChecks, deliverabilityFor, runTemplateQa } = require("./preflight");
 const { isRestrictedHealthOrganization } = require("../authz/sending-gate");
 const { parseCsv, neutralizeCell, isFormula } = require("./csv");
+const { isValidTimeZone } = require("./scheduling");
 const { iso, decodeCursor, encodeCursor, pageLimit } = require("../services/serializers");
 const { isBrandSender, replyToProblem, SENDER_MAILBOX_SELECT } = require("./marketing-sender");
 
@@ -42,6 +46,12 @@ function cleanAttributes(attributes) {
   for (const [key, value] of Object.entries(attributes).slice(0, 30)) {
     if (!/^[a-zA-Z][a-zA-Z0-9_]{0,40}$/.test(key)) continue;
     if (["string", "number", "boolean"].includes(typeof value)) output[key] = typeof value === "string" ? neutralizeCell(value).slice(0, 500) : value;
+  }
+  // Final gap 4: attributes.timezone drives recipient-local automation
+  // delivery; it must be an IANA zone (422 otherwise). Empty clears it.
+  if (output.timezone !== undefined) {
+    if (output.timezone === "") delete output.timezone;
+    else if (!isValidTimeZone(String(output.timezone))) throw mailError("MAIL_VALIDATION_FAILED", { field: "attributes.timezone", reason: "INVALID_IANA_TIMEZONE", status: 422 });
   }
   return output;
 }
@@ -93,7 +103,8 @@ async function recordConsentGranted(tx, { organizationId, contactId, consent, at
   });
 }
 
-function createMarketingService({ client, config, audit, stepUp, clock = () => new Date(), hooks = {} }) {
+function createMarketingService({ client, config, audit, stepUp, clock = () => new Date(), hooks = {}, templatePolicy = null }) {
+  const templates = templatePolicy || templatePolicyFor(client);
   const scope = (user, organizationId, need) => {
     if (!config.marketingEnabled) throw mailError("MAIL_MARKETING_DISABLED");
     return policy.requireMarketingScope(client, user, organizationId, need);
@@ -328,6 +339,9 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
       const firstName = column("first_name") >= 0 ? cells[column("first_name")] : null;
       const lastName = column("last_name") >= 0 ? cells[column("last_name")] : null;
       if (isFormula(firstName) || isFormula(lastName)) { invalid("FORMULA_NOT_ALLOWED"); continue; }
+      // Final gap 4: optional `timezone` column (IANA); invalid -> row error.
+      const timezone = column("timezone") >= 0 ? String(cells[column("timezone")] || "").trim() : "";
+      if (timezone && !isValidTimeZone(timezone)) { invalid("INVALID_TIMEZONE"); continue; }
       const consentedAtRaw = column("consented_at") >= 0 ? cells[column("consented_at")] : null;
       const consentedAt = consentedAtRaw ? new Date(consentedAtRaw) : null;
       if (consentedAtRaw && (Number.isNaN(consentedAt.getTime()) || consentedAt > clock())) { invalid("INVALID_CONSENT_TIMESTAMP"); continue; }
@@ -341,7 +355,8 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
           if (priorConsent?.status === "WITHDRAWN") return { status: "SKIPPED", reason: "CONSENT_PREVIOUSLY_WITHDRAWN" };
           if (priorConsent?.status === "PENDING_CONFIRMATION") return { status: "SKIPPED", reason: "CONSENT_PENDING_CONFIRMATION" };
           if (!commit) return { status: existing ? "UPDATED" : "CREATED" };
-          const contact = existing || (await tx.marketingContact.create({ data: { organizationId, email, firstName: cleanName(firstName), lastName: cleanName(lastName), source: "import", createdBy: user.id } }));
+          const contact = existing || (await tx.marketingContact.create({ data: { organizationId, email, firstName: cleanName(firstName), lastName: cleanName(lastName), ...(timezone ? { attributes: { timezone } } : {}), source: "import", createdBy: user.id } }));
+          if (existing && timezone && existing.attributes?.timezone !== timezone) await tx.marketingContact.update({ where: { id: existing.id }, data: { attributes: { ...(existing.attributes || {}), timezone } } });
           const evidence = { ...baseConsent.evidence, importLine: line, importFileName: name, importFileSha256: sha, importPreviewedBy: preview.actorAdminUserId, importApprovedBy: user.id, consentedAtKnown: Boolean(consentedAt) };
           if (!priorConsent) await upsertConsentTx(tx, user, organizationId, contact, { ...baseConsent, consentedAt, evidence }, { origin: "IMPORT" });
           if (audience) await tx.marketingAudienceContact.upsert({ where: { audienceId_contactId: { audienceId: audience.id, contactId: contact.id } }, create: { audienceId: audience.id, contactId: contact.id, addedBy: user.id }, update: {} });
@@ -584,11 +599,37 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     }
   }
 
+  // Link domains a TRANSACTIONAL_SECURITY template may point to: the brand's
+  // own mail domains plus MAIL_MARKETING_SECURITY_LINK_DOMAINS.
+  async function allowedLinkDomains(organizationId) {
+    const rows = await client.mailDomain.findMany({ where: { organizationId }, select: { domain: true } });
+    return [...new Set([...rows.map((row) => String(row.domain).toLowerCase()), ...(config.marketingDeliverability?.securityLinkDomains || [])])];
+  }
+
+  function parseClassification(value) {
+    const wanted = value == null || value === "" ? "MARKETING" : String(value);
+    if (!CLASSIFICATIONS.includes(wanted)) throw mailError("MAIL_VALIDATION_FAILED", { field: "classification", reason: "UNSUPPORTED", allowed: CLASSIFICATIONS });
+    return wanted;
+  }
+
+  function classificationReason(reason) {
+    const text = String(reason || "").replace(/[\u0000-\u001f\u007f<>]/g, " ").trim();
+    if (text.length < 5) throw mailError("MAIL_VALIDATION_FAILED", { field: "reason", reason: "REASON_REQUIRED" });
+    return text.slice(0, 500);
+  }
+
+  function serializeApproval(approval) {
+    return approval ? { approved: approval.approved, approvedBy: approval.approvedBy, approvedAt: iso(approval.approvedAt) } : null;
+  }
+
   async function renderPreview(user, organizationId, input) {
     const scoped = await scope(user, organizationId, "VIEW");
-    const sample = { first_name: "Ada", last_name: "Lovelace", email: "ada@example.invalid", unsubscribe_url: "https://example.invalid/unsubscribe", ...(input.sampleData && typeof input.sampleData === "object" ? Object.fromEntries(Object.entries(input.sampleData).map(([key, value]) => [key, String(value).slice(0, 200)])) : {}) };
-    const rendered = renderOrThrow({ subject: input.subject, preheader: input.preheader, blocks: input.blocks, brand: { name: scoped.name, ...(input.brand || {}) } }, { data: sample });
-    return { subject: rendered.subject, html: rendered.html, text: rendered.text, variables: rendered.variables, warnings: rendered.warnings, accessibility: rendered.accessibility };
+    // Preview is the one path every classification may use.
+    const classification = parseClassification(input.classification);
+    const sample = { first_name: "Ada", last_name: "Lovelace", email: "ada@example.invalid", ...(isTransactional(classification) ? {} : { unsubscribe_url: "https://example.invalid/unsubscribe" }), ...(input.sampleData && typeof input.sampleData === "object" ? Object.fromEntries(Object.entries(input.sampleData).map(([key, value]) => [key, String(value).slice(0, 200)])) : {}) };
+    const linkDomains = classification === "TRANSACTIONAL_SECURITY" ? await allowedLinkDomains(organizationId) : [];
+    const rendered = renderOrThrow({ subject: input.subject, preheader: input.preheader, blocks: input.blocks, brand: { name: scoped.name, ...(input.brand || {}) } }, { data: sample, classification, allowedLinkDomains: linkDomains });
+    return { subject: rendered.subject, html: rendered.html, text: rendered.text, variables: rendered.variables, warnings: rendered.warnings, accessibility: rendered.accessibility, classification };
   }
 
   async function loadTemplate(organizationId, templateId) {
@@ -597,50 +638,190 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     return template;
   }
 
+  async function loadTemplateVersion(templateId, versionId) {
+    const version = policy.isUuid(versionId) ? await client.marketingTemplateVersion.findUnique({ where: { id: versionId }, include: { template: true } }) : null;
+    if (!version || version.templateId !== templateId) throw mailError("MAIL_NOT_FOUND", { resource: "template_version" });
+    return version;
+  }
+
   async function listTemplates(user, organizationId) {
     await scope(user, organizationId, "VIEW");
     const rows = await client.marketingEmailTemplate.findMany({ where: { organizationId }, orderBy: { updatedAt: "desc" } });
-    return rows.map((row) => ({ id: row.id, name: row.name, description: row.description, status: row.status, latestVersion: row.latestVersion, legacyTemplateId: row.legacyTemplateId, updatedAt: iso(row.updatedAt) }));
+    const { map, available } = await templates.templateClassifications(rows.map((row) => row.id));
+    return rows.map((row) => ({ id: row.id, name: row.name, description: row.description, status: row.status, latestVersion: row.latestVersion, legacyTemplateId: row.legacyTemplateId, updatedAt: iso(row.updatedAt), classification: map.get(row.id) || "MARKETING", classificationAvailable: available }));
   }
 
-  async function createTemplate(user, organizationId, { name, description, legacyTemplateId }, context) {
-    await scope(user, organizationId, "EDIT");
+  async function createTemplate(user, organizationId, { name, description, legacyTemplateId, classification, reason, stepUpId }, context) {
+    const scoped = await scope(user, organizationId, "EDIT");
+    const wanted = parseClassification(classification);
+    const transactional = isTransactional(wanted);
     const title = cleanName(name, 160);
     if (!title) throw mailError("MAIL_VALIDATION_FAILED", { field: "name" });
-    const row = await client.marketingEmailTemplate.create({ data: { organizationId, name: title, description: description ? String(description).slice(0, 2000) : null, legacyTemplateId: legacyTemplateId ? String(legacyTemplateId).slice(0, 64) : null, createdBy: user.id } }).catch((error) => {
+    const data = { organizationId, name: title, description: description ? String(description).slice(0, 2000) : null, legacyTemplateId: legacyTemplateId ? String(legacyTemplateId).slice(0, 64) : null, createdBy: user.id };
+    const duplicate = (error) => {
       if (error.code === "P2002") throw mailError("MAIL_VALIDATION_FAILED", { field: "name", reason: "DUPLICATE" });
       throw error;
-    });
-    await audit.record({ actorAdminUserId: user.id, action: "MARKETING_TEMPLATE_CREATED", targetType: "marketing_template", targetId: row.id, organizationId }, context);
-    return { id: row.id, name: row.name, description: row.description, latestVersion: 0 };
+    };
+    if (!transactional) {
+      const row = await client.marketingEmailTemplate.create({ data }).catch(duplicate);
+      await audit.record({ actorAdminUserId: user.id, action: "MARKETING_TEMPLATE_CREATED", targetType: "marketing_template", targetId: row.id, organizationId }, context);
+      return { id: row.id, name: row.name, description: row.description, latestVersion: 0, classification: "MARKETING" };
+    }
+    // A transactional template: brand approver + MFA step-up + reason.
+    if (!scoped.canApprove) throw mailError("MAIL_FORBIDDEN", { reason: "MARKETING_APPROVER_REQUIRED" });
+    await templates.requireReady();
+    const why = classificationReason(reason);
+    const row = await client.$transaction(async (tx) => {
+      await stepUp.consume(tx, user, stepUpId, "MARKETING_TEMPLATE_CLASSIFY", context);
+      const created = await tx.marketingEmailTemplate.create({ data });
+      await tx.marketingTemplatePolicy.create({ data: { templateId: created.id, organizationId, classification: wanted, changedBy: user.id, reason: why } });
+      await audit.record({ actorAdminUserId: user.id, action: "MARKETING_TEMPLATE_CREATED", targetType: "marketing_template", targetId: created.id, organizationId }, context, tx);
+      await audit.record({ actorAdminUserId: user.id, action: "MARKETING_TEMPLATE_CLASSIFIED", targetType: "marketing_template", targetId: created.id, organizationId, metadata: { from: null, to: wanted, reason: why, stepUp: true } }, context, tx);
+      return created;
+    }).catch(duplicate);
+    return { id: row.id, name: row.name, description: row.description, latestVersion: 0, classification: wanted };
   }
 
   async function getTemplate(user, organizationId, templateId) {
     await scope(user, organizationId, "VIEW");
     const template = await loadTemplate(organizationId, templateId);
     const versions = await client.marketingTemplateVersion.findMany({ where: { templateId }, orderBy: { version: "desc" }, take: 100 });
+    const current = await templates.templateClassification(templateId);
+    const classes = await templates.versionClassifications(versions.map((version) => version.id));
+    const serialized = [];
+    for (const version of versions) {
+      const classification = classes.get(version.id) || "MARKETING";
+      serialized.push({ id: version.id, version: version.version, subject: version.subject, preheader: version.preheader, blocks: version.blocks, brand: version.brand, variables: version.variables, contentSha256: version.contentSha256, createdBy: version.createdBy, createdAt: iso(version.createdAt), classification, approval: isTransactional(classification) ? serializeApproval(await templates.versionApproval(version)) : null });
+    }
     return {
       id: template.id,
       name: template.name,
       description: template.description,
       latestVersion: template.latestVersion,
       legacyTemplateId: template.legacyTemplateId,
-      versions: versions.map((version) => ({ id: version.id, version: version.version, subject: version.subject, preheader: version.preheader, blocks: version.blocks, brand: version.brand, variables: version.variables, contentSha256: version.contentSha256, createdBy: version.createdBy, createdAt: iso(version.createdAt) })),
+      classification: current.classification,
+      classificationAvailable: current.available,
+      classificationReason: current.reason,
+      classificationChangedBy: current.changedBy,
+      classificationUpdatedAt: iso(current.updatedAt),
+      versions: serialized,
     };
+  }
+
+  // Serialises template-level changes (new versions, reclassification).
+  async function lockTemplate(tx, templateId) {
+    await tx.$queryRaw`SELECT "id" FROM "marketing_email_studio_templates" WHERE "id" = ${templateId}::uuid FOR UPDATE`;
+  }
+
+  async function createVersionTx(tx, user, organizationId, templateId, input, brandName, classification, linkDomains) {
+    const rendered = renderOrThrow({ subject: input.subject, preheader: input.preheader, blocks: input.blocks, brand: { ...(brandName ? { name: brandName } : {}), ...(input.brand || {}) } }, { classification, allowedLinkDomains: linkDomains });
+    const bumped = await tx.marketingEmailTemplate.update({ where: { id: templateId }, data: { latestVersion: { increment: 1 } } });
+    const version = await tx.marketingTemplateVersion.create({
+      data: { templateId, version: bumped.latestVersion, subject: rendered.subject, preheader: input.preheader ? String(input.preheader).slice(0, 255) : null, blocks: input.blocks, brand: rendered.brand, html: rendered.html, text: rendered.text, variables: rendered.variables, contentSha256: rendered.contentSha256, createdBy: user.id },
+    });
+    // Append-only classification snapshot of this immutable version.
+    await templates.snapshotVersion(tx, version.id, classification);
+    return { version, rendered };
   }
 
   async function createTemplateVersion(user, organizationId, templateId, input, context) {
     const scoped = await scope(user, organizationId, "EDIT");
     await loadTemplate(organizationId, templateId);
-    const rendered = renderOrThrow({ subject: input.subject, preheader: input.preheader, blocks: input.blocks, brand: { name: scoped.name, ...(input.brand || {}) } });
-    const version = await client.$transaction(async (tx) => {
-      const bumped = await tx.marketingEmailTemplate.update({ where: { id: templateId }, data: { latestVersion: { increment: 1 } } });
-      return tx.marketingTemplateVersion.create({
-        data: { templateId, version: bumped.latestVersion, subject: rendered.subject, preheader: input.preheader ? String(input.preheader).slice(0, 255) : null, blocks: input.blocks, brand: rendered.brand, html: rendered.html, text: rendered.text, variables: rendered.variables, contentSha256: rendered.contentSha256, createdBy: user.id },
-      });
+    const preliminary = await templates.templateClassification(templateId);
+    const linkDomains = preliminary.classification === "TRANSACTIONAL_SECURITY" ? await allowedLinkDomains(organizationId) : [];
+    const { version, rendered, classification } = await client.$transaction(async (tx) => {
+      if (preliminary.available) await lockTemplate(tx, templateId);
+      // Re-read under the lock: a concurrent reclassification wins or waits.
+      const current = preliminary.available ? (await templates.templateClassification(templateId, tx)).classification : "MARKETING";
+      const domains = current === "TRANSACTIONAL_SECURITY" && !linkDomains.length ? await allowedLinkDomains(organizationId) : linkDomains;
+      return { ...(await createVersionTx(tx, user, organizationId, templateId, input, scoped.name, current, domains)), classification: current };
     });
-    await audit.record({ actorAdminUserId: user.id, action: "MARKETING_TEMPLATE_VERSION_CREATED", targetType: "marketing_template", targetId: templateId, organizationId, metadata: { version: version.version, contentSha256: version.contentSha256 } }, context);
-    return { id: version.id, version: version.version, contentSha256: version.contentSha256, accessibility: rendered.accessibility };
+    await audit.record({ actorAdminUserId: user.id, action: "MARKETING_TEMPLATE_VERSION_CREATED", targetType: "marketing_template", targetId: templateId, organizationId, metadata: { version: version.version, versionSha256: version.contentSha256, classification } }, context);
+    return { id: version.id, version: version.version, contentSha256: version.contentSha256, accessibility: rendered.accessibility, classification };
+  }
+
+  // ---- final gap 1: classification -------------------------------------
+  async function getClassification(user, organizationId, templateId) {
+    await scope(user, organizationId, "VIEW");
+    await templates.requireReady();
+    await loadTemplate(organizationId, templateId);
+    const current = await templates.templateClassification(templateId);
+    return { templateId, classification: current.classification, reason: current.reason, changedBy: current.changedBy, updatedAt: iso(current.updatedAt), allowed: CLASSIFICATIONS };
+  }
+
+  // Any change into or out of TRANSACTIONAL* needs a brand approver, an MFA
+  // step-up and a reason. Existing versions keep their snapshot; when the
+  // template has versions, the change creates a new version (the latest
+  // content re-rendered under the new class), so an approved version never
+  // changes meaning and the new class is enforced on real content.
+  async function setClassification(user, organizationId, templateId, { classification, reason, stepUpId } = {}, context) {
+    const scoped = await scope(user, organizationId, "VIEW");
+    await templates.requireReady();
+    await loadTemplate(organizationId, templateId);
+    const wanted = parseClassification(classification);
+    const why = classificationReason(reason);
+    const current = await templates.templateClassification(templateId);
+    const privileged = isTransactional(wanted) || isTransactional(current.classification);
+    if (privileged && !scoped.canApprove) throw mailError("MAIL_FORBIDDEN", { reason: "MARKETING_APPROVER_REQUIRED" });
+    if (!privileged && !scoped.canAuthor) throw mailError("MAIL_FORBIDDEN", { reason: "MARKETING_AUTHOR_REQUIRED" });
+    if (current.classification === wanted) return { templateId, classification: wanted, changed: false, newVersion: null };
+    const linkDomains = wanted === "TRANSACTIONAL_SECURITY" ? await allowedLinkDomains(organizationId) : [];
+    const result = await client.$transaction(async (tx) => {
+      if (privileged) await stepUp.consume(tx, user, stepUpId, "MARKETING_TEMPLATE_CLASSIFY", context);
+      await lockTemplate(tx, templateId);
+      const before = (await templates.templateClassification(templateId, tx)).classification;
+      if (before !== current.classification) throw mailError("MAIL_DRAFT_REVISION_CONFLICT", { reason: "CLASSIFICATION_CHANGED", currentClassification: before });
+      const frozen = await templates.freezeExistingVersions(tx, templateId);
+      await tx.marketingTemplatePolicy.upsert({ where: { templateId }, create: { templateId, organizationId, classification: wanted, changedBy: user.id, reason: why }, update: { classification: wanted, changedBy: user.id, reason: why } });
+      const versions = await tx.marketingTemplateVersion.findMany({ where: { templateId }, orderBy: { version: "desc" }, select: { id: true, subject: true, preheader: true, blocks: true, brand: true } });
+      const approvedVersions = versions.length ? await tx.marketingCampaignSnapshot.count({ where: { kind: "APPROVAL", templateVersionId: { in: versions.map((version) => version.id) } } }) : 0;
+      let created = null;
+      if (versions.length) {
+        const latest = versions[0];
+        created = (await createVersionTx(tx, user, organizationId, templateId, { subject: latest.subject, preheader: latest.preheader, blocks: latest.blocks, brand: latest.brand }, null, wanted, linkDomains)).version;
+        await audit.record({ actorAdminUserId: user.id, action: "MARKETING_TEMPLATE_VERSION_CREATED", targetType: "marketing_template", targetId: templateId, organizationId, metadata: { version: created.version, versionSha256: created.contentSha256, classification: wanted, reason: "RECLASSIFIED" } }, context, tx);
+      }
+      await audit.record({ actorAdminUserId: user.id, action: "MARKETING_TEMPLATE_CLASSIFIED", targetType: "marketing_template", targetId: templateId, organizationId, metadata: { from: before, to: wanted, reason: why, stepUp: privileged, newVersion: created?.version ?? null, versionsFrozen: frozen, approvedCampaignSnapshots: approvedVersions } }, context, tx);
+      return created;
+    });
+    return { templateId, classification: wanted, changed: true, newVersion: result ? { id: result.id, version: result.version, contentSha256: result.contentSha256, classification: wanted } : null };
+  }
+
+  // Template version approval (required before a TRANSACTIONAL_SECURITY
+  // version is usable): a brand approver who did not author the version,
+  // with an MFA step-up, after the version passes QA content checks.
+  async function approveTemplateVersion(user, organizationId, templateId, versionId, { stepUpId, comment } = {}, context) {
+    await scope(user, organizationId, "APPROVE");
+    await templates.requireReady();
+    await loadTemplate(organizationId, templateId);
+    const version = await loadTemplateVersion(templateId, versionId);
+    const classification = await templates.versionClassification(version.id);
+    if (!isTransactional(classification)) throw mailError("MAIL_INVALID_TRANSITION", { reason: "TEMPLATE_APPROVAL_NOT_REQUIRED", classification });
+    if (version.createdBy === user.id) throw mailError("MAIL_FORBIDDEN", { reason: "REVIEWER_AUTHORED_TEMPLATE_VERSION" });
+    const existing = await templates.versionApproval(version);
+    if (existing.approved) return { versionId: version.id, classification, ...serializeApproval(existing), duplicate: true };
+    const brandSettings = await client.marketingBrandSettings.findUnique({ where: { organizationId } });
+    const qa = runTemplateQa({ version, classification, approval: { approved: true }, brandSettings, config, allowedLinkDomains: classification === "TRANSACTIONAL_SECURITY" ? await allowedLinkDomains(organizationId) : [], clock });
+    const blocked = qa.checks.filter((entry) => entry.status === "BLOCKED");
+    if (blocked.length) throw mailError("MAIL_PREFLIGHT_FAILED", { checks: blocked });
+    await client.$transaction(async (tx) => {
+      await stepUp.consume(tx, user, stepUpId, "MARKETING_TEMPLATE_APPROVE", context);
+      await audit.record({ actorAdminUserId: user.id, action: APPROVAL_ACTION, targetType: VERSION_TARGET, targetId: version.id, organizationId, metadata: { templateId, version: version.version, classification, versionSha256: version.contentSha256, author: version.createdBy, comment: comment ? String(comment).slice(0, 500) : null } }, context, tx);
+    });
+    const approval = await templates.versionApproval(version);
+    return { versionId: version.id, classification, ...serializeApproval(approval), duplicate: false };
+  }
+
+  // ---- final gap 7: template QA ----------------------------------------
+  async function templateQa(user, organizationId, templateId, versionId, { locale, sampleData } = {}) {
+    await scope(user, organizationId, "VIEW");
+    await loadTemplate(organizationId, templateId);
+    const version = await loadTemplateVersion(templateId, versionId);
+    const classification = await templates.versionClassification(version.id);
+    const approval = isTransactional(classification) ? await templates.versionApproval(version) : null;
+    const brandSettings = await client.marketingBrandSettings.findUnique({ where: { organizationId } });
+    const report = runTemplateQa({ version, classification, approval, brandSettings, config, allowedLinkDomains: classification === "TRANSACTIONAL_SECURITY" ? await allowedLinkDomains(organizationId) : [], locale, sampleData, clock });
+    return { ...report, approval: serializeApproval(approval) };
   }
 
   // Legacy (pre-Mail) marketing email templates are read-only references.
@@ -686,6 +867,9 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     if (input.templateVersionId) {
       const version = policy.isUuid(input.templateVersionId) ? await client.marketingTemplateVersion.findUnique({ where: { id: input.templateVersionId }, include: { template: true } }) : null;
       if (!version || version.template.organizationId !== organizationId) throw mailError("MAIL_VALIDATION_FAILED", { field: "templateVersionId" });
+      // Gap 1: a transactional template version can never be sent to a
+      // marketing audience (no consent bypass).
+      await templates.assertTemplateUsable(version, { purpose: "MARKETING", organizationId });
     }
     if (input.audienceId) await loadAudience(organizationId, input.audienceId).catch(() => { throw mailError("MAIL_VALIDATION_FAILED", { field: "audienceId" }); });
     if (input.segmentId) {
@@ -770,11 +954,19 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     return serializeCampaign(row);
   }
 
+  // Every check carries status PASS | WARNING | BLOCKED | UNKNOWN (gap 7);
+  // `ok` stays "not BLOCKED" so existing callers keep their semantics.
   async function preflight(campaign) {
     const checks = [];
-    const add = (id, ok, detail) => checks.push({ id, ok, detail });
+    const add = (id, ok, detail) => checks.push(fromOk(id, ok, detail));
     const version = campaign.templateVersionId ? await client.marketingTemplateVersion.findUnique({ where: { id: campaign.templateVersionId }, include: { template: true } }) : null;
     add("template", Boolean(version && version.template.organizationId === campaign.organizationId), version ? `Template version ${version.version}` : "Select an approved template version");
+    if (version && version.template.organizationId === campaign.organizationId) {
+      // Gap 1: the version's classification snapshot decides (never the
+      // template's current class).
+      const problem = await templates.usabilityProblem(version, { purpose: "MARKETING", organizationId: campaign.organizationId });
+      add("template_classification", !problem, problem ? `Only MARKETING template versions can be sent to a marketing audience (${problem})` : "MARKETING template version (consent, unsubscribe and identity footer enforced)");
+    }
     const sender = campaign.senderAddressId ? await client.mailAddress.findUnique({ where: { id: campaign.senderAddressId }, include: { domain: { include: { organization: { select: { id: true, slug: true } } } }, mailbox: SENDER_MAILBOX_SELECT } }) : null;
     const senderOk = isBrandSender(sender, campaign.organizationId);
     add("sender_identity", senderOk, sender ? (senderOk ? sender.address : "Sender must be an active brand (non-personal) address") : "Select an approved sender identity");
@@ -795,6 +987,9 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
       replyDetail = replyOk ? campaign.replyTo : `Reply-To must be an active shared mailbox address of this brand (${problem})`;
     }
     add("reply_to_policy", replyOk, replyDetail);
+    // Gap 7: provider verification, SPF/DKIM/DMARC, brand ownership, reputation.
+    if (sender) checks.push(...(await domainChecks({ sender, organizationId: campaign.organizationId, validateDomain: hooks.validateDomain || deliverabilityFor(client).validateDomain, config })));
+    checks.push(await reputationCheck({ client, config, organizationId: campaign.organizationId, clock }));
     const audience = campaign.audienceId ? await client.marketingAudience.findUnique({ where: { id: campaign.audienceId } }) : null;
     const segment = campaign.segmentId ? await client.marketingSegment.findUnique({ where: { id: campaign.segmentId } }) : null;
     let eligibility = { eligible: [], total: 0, excludedReasons: {} };
@@ -823,12 +1018,24 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
         add("template_renders", true, `${rendered.variables.length} variables`);
         const links = scanLinks(rendered.html);
         add("links_safe", links.ok, links.ok ? `${links.linkCount} link(s) checked` : links.issues.slice(0, 5).map((issue) => `${issue.kind}: ${issue.detail}`).join("; "));
+        checks.push(...contentChecks({ rendered, classification: "MARKETING", brandSettings, config }));
       } catch (error) {
         add("template_renders", false, error.code || "render failed");
       }
     }
+    checks.push(approvalsStateCheck(campaign));
     const contactHash = crypto.createHash("sha256").update(eligibility.eligible.map((contact) => contact.id).sort().join(",")).digest("hex");
-    return { ok: checks.every((check) => check.ok), checks, eligibleCount: eligibility.eligible.length, excludedCount: eligibility.total - eligibility.eligible.length, excluded: eligibility.excludedReasons, version, sender, rendered, contactHash, contactIds: eligibility.eligible.map((contact) => contact.id) };
+    return { ok: checks.every((check) => check.ok), checks, summary: summarize(checks), preflightSha256: preflightHash(checks), eligibleCount: eligibility.eligible.length, excludedCount: eligibility.total - eligibility.eligible.length, excluded: eligibility.excludedReasons, version, sender, rendered, contactHash, contactIds: eligibility.eligible.map((contact) => contact.id) };
+  }
+
+  // Required approvals: two-person campaign review (enforced in approve()).
+  function approvalsStateCheck(campaign) {
+    if (campaign.status === "READY_FOR_REVIEW") return preflightCheck("approvals_state", "PASS", "Awaiting approval by a brand reviewer who did not author or edit it (MFA required)");
+    if (campaign.status === "APPROVED") {
+      const expired = campaign.approvedAt && clock().getTime() - new Date(campaign.approvedAt).getTime() > config.broadcast.approvalTtlDays * 86400000;
+      return preflightCheck("approvals_state", expired ? "WARNING" : "PASS", expired ? `Approval is older than ${config.broadcast.approvalTtlDays} days: dispatch will refuse it; resubmit` : "Approved");
+    }
+    return preflightCheck("approvals_state", "PASS", "Submit for review: a different brand approver must approve with MFA");
   }
 
   async function runPreflight(user, organizationId, campaignId) {
@@ -836,7 +1043,8 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     const result = await preflight(await loadCampaign(organizationId, campaignId));
     // contactSetSha256 identifies the exact recipient set; the approver sends
     // it back so approval binds the audience they reviewed.
-    return { ok: result.ok, checks: result.checks, eligibleCount: result.eligibleCount, excludedCount: result.excludedCount, excluded: result.excluded, contactSetSha256: result.contactHash };
+    // preflightSha256 binds the approval to the check states the reviewer saw.
+    return { ok: result.ok, checks: result.checks, summary: result.summary, preflightSha256: result.preflightSha256, eligibleCount: result.eligibleCount, excludedCount: result.excludedCount, excluded: result.excluded, contactSetSha256: result.contactHash };
   }
 
   // Everyone who authored or changed the campaign since its last approval
@@ -874,13 +1082,13 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
       if (updated.count !== 1) throw mailError("MAIL_DRAFT_REVISION_CONFLICT", { currentRevision: null });
       const existing = await tx.marketingCampaignSnapshot.findUnique({ where: { campaignId_revision_kind: { campaignId, revision: campaign.revision, kind: "SUBMISSION" } } });
       if (!existing) await createSnapshot(tx, user, campaign, result, "SUBMISSION");
-      await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CAMPAIGN_SUBMITTED", targetType: "marketing_campaign", targetId: campaignId, organizationId, metadata: { revision: campaign.revision, eligible: result.eligibleCount } }, context, tx);
+      await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CAMPAIGN_SUBMITTED", targetType: "marketing_campaign", targetId: campaignId, organizationId, metadata: { revision: campaign.revision, eligible: result.eligibleCount, preflightSha256: result.preflightSha256, preflightSummary: result.summary } }, context, tx);
       return tx.marketingEmailCampaign.findUnique({ where: { id: campaignId } });
     });
     return serializeCampaign(row);
   }
 
-  async function approve(user, organizationId, campaignId, { revision, stepUpId, comment, contactSetSha256, eligibleCount }, context) {
+  async function approve(user, organizationId, campaignId, { revision, stepUpId, comment, contactSetSha256, eligibleCount, preflightSha256 }, context) {
     await scope(user, organizationId, "APPROVE");
     const campaign = await loadCampaign(organizationId, campaignId);
     if (campaign.status !== "READY_FOR_REVIEW") throw mailError("MAIL_INVALID_TRANSITION", { from: campaign.status });
@@ -899,6 +1107,9 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     const expectedSet = contactSetSha256 ? String(contactSetSha256) : submitted?.audienceSnapshot?.contactSetSha256 || null;
     if (expectedSet && expectedSet !== result.contactHash) throw mailError("MAIL_INVALID_TRANSITION", { reason: contactSetSha256 ? "AUDIENCE_CHANGED_SINCE_REVIEW" : "AUDIENCE_CHANGED_SINCE_SUBMISSION", eligibleCount: result.eligibleCount, contactSetSha256: result.contactHash });
     if (eligibleCount != null && eligibleCount !== "" && Number(eligibleCount) !== result.eligibleCount) throw mailError("MAIL_INVALID_TRANSITION", { reason: "AUDIENCE_CHANGED_SINCE_REVIEW", eligibleCount: result.eligibleCount, contactSetSha256: result.contactHash });
+    // Gap 7: when the reviewer sends back the preflight hash, the check states
+    // must be the ones they reviewed (a new WARNING/UNKNOWN needs a fresh look).
+    if (preflightSha256 && String(preflightSha256) !== result.preflightSha256) throw mailError("MAIL_INVALID_TRANSITION", { reason: "PREFLIGHT_CHANGED_SINCE_REVIEW", preflightSha256: result.preflightSha256, summary: result.summary });
     const row = await client.$transaction(async (tx) => {
       const consumed = await stepUp.consume(tx, user, stepUpId, "MARKETING_CAMPAIGN_APPROVAL", context);
       const submission = await tx.marketingCampaignSnapshot.findUnique({ where: { campaignId_revision_kind: { campaignId, revision: campaign.revision, kind: "SUBMISSION" } } });
@@ -913,7 +1124,7 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
       for (let index = 0; index < result.contactIds.length; index += 1000) {
         await tx.marketingCampaignApprovedContact.createMany({ data: result.contactIds.slice(index, index + 1000).map((contactId) => ({ snapshotId: snapshot.id, contactId })), skipDuplicates: true });
       }
-      await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CAMPAIGN_APPROVED", targetType: "marketing_campaign", targetId: campaignId, organizationId, metadata: { revision: campaign.revision, snapshotId: snapshot.id, contentSha256: snapshot.contentSha256, contactSetSha256: result.contactHash, eligibleCount: result.eligibleCount, audienceConfirmedByReviewer: Boolean(contactSetSha256) } }, context, tx);
+      await audit.record({ actorAdminUserId: user.id, action: "MARKETING_CAMPAIGN_APPROVED", targetType: "marketing_campaign", targetId: campaignId, organizationId, metadata: { revision: campaign.revision, snapshotId: snapshot.id, contentSha256: snapshot.contentSha256, snapshotSha256: snapshot.contentSha256, contactSetSha256: result.contactHash, eligibleCount: result.eligibleCount, audienceConfirmedByReviewer: Boolean(contactSetSha256), preflightSha256: result.preflightSha256, preflightConfirmedByReviewer: Boolean(preflightSha256), preflightSummary: result.summary, preflightWarnings: result.checks.filter((entry) => entry.status === "WARNING").map((entry) => entry.id), preflightUnknown: result.checks.filter((entry) => entry.status === "UNKNOWN").map((entry) => entry.id) } }, context, tx);
       return tx.marketingEmailCampaign.findUnique({ where: { id: campaignId } });
     });
     return serializeCampaign(row);
@@ -964,6 +1175,7 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
     organizations, senderIdentities, createContact, listContacts, getContact, updateContact, recordConsent, withdrawConsent, confirmConsent, importCsv,
     listSuppressions, createSuppression, liftSuppression, listAudiences, createAudience, getAudience, updateAudience, changeAudienceMembers,
     createSegment, listSegments, previewSegment, renderPreview, listTemplates, createTemplate, getTemplate, createTemplateVersion, legacyTemplates,
+    getClassification, setClassification, approveTemplateVersion, templateQa, templatePolicy: templates,
     listCampaigns, createCampaign, getCampaign, updateCampaign, runPreflight, submit, approve, reject, history, snapshot, eligibleContacts,
   };
 }

@@ -7,9 +7,15 @@ import PermissionBoundary from "@/components/mail/PermissionBoundary";
 import SafeHtmlFrame from "@/components/mail/SafeHtmlFrame";
 import { formatFullDate } from "@/components/mail/mail-utils";
 import { classifyMailError } from "@/lib/mail.service";
-import { createTemplateVersion, fetchTemplate, renderTemplate } from "@/lib/mail-marketing.service";
-import type { Block, Brand, MarketingOrganization, RenderResult, TemplateVersion } from "@/types/mail-marketing.types";
+import { approveTemplateVersion, createTemplateVersion, fetchTemplate, renderTemplate } from "@/lib/mail-marketing.service";
+import { useAuthStore } from "@/stores/auth.store";
+import type { Block, Brand, MarketingOrganization, RenderResult, TemplateClassification, TemplateVersion } from "@/types/mail-marketing.types";
 import { EmCard, EmField, EmMessage, emBtn, emBtnOutline, emInput } from "./em-ui";
+// Final gaps 1 + 7: classification control, version approval, template QA.
+import StepUpDialog from "./StepUpDialog";
+import TemplateClassificationControl from "./TemplateClassificationControl";
+import TemplateQaPanel from "./TemplateQaPanel";
+import { ClassificationBadge } from "./QaStatusBadge";
 
 const VARIABLES = ["first_name", "last_name", "email", "brand_name", "unsubscribe_url"];
 
@@ -64,6 +70,8 @@ function BlockFields({ block, onChange }: { block: Block; onChange: (b: Block) =
 
 export default function TemplateEditor({ org, templateId }: { org: MarketingOrganization; templateId: string }) {
   const qc = useQueryClient();
+  const me = useAuthStore((s) => s.user);
+  const [approving, setApproving] = useState<TemplateVersion | null>(null);
   const key = ["mail", "marketing", org.id, "template", templateId];
   const q = useQuery({ queryKey: key, queryFn: () => fetchTemplate(org.id, templateId), gcTime: 300000, retry: false });
   const [subject, setSubject] = useState("");
@@ -99,7 +107,7 @@ export default function TemplateEditor({ org, templateId }: { org: MarketingOrga
   }, [q.data]);
 
   const preview = useMutation({
-    mutationFn: () => renderTemplate(org.id, { subject, blocks, brand, sampleData: { first_name: "Ada", last_name: "Lovelace", email: "ada@example.com" } }),
+    mutationFn: () => renderTemplate(org.id, { subject, blocks, brand, classification: q.data?.classification ?? "MARKETING", sampleData: { first_name: "Ada", last_name: "Lovelace", email: "ada@example.com" } }),
     onSuccess: (r) => {
       setRender(r);
       setRenderError(null);
@@ -119,6 +127,19 @@ export default function TemplateEditor({ org, templateId }: { org: MarketingOrga
       qc.invalidateQueries({ queryKey: ["mail", "marketing", org.id, "templates"] });
     },
     onError: (e) => setMsg({ text: classifyMailError(e).message, tone: "error" }),
+  });
+
+  const approveVersion = useMutation({
+    mutationFn: ({ version, stepUpId }: { version: TemplateVersion; stepUpId: string }) => approveTemplateVersion(org.id, templateId, version.id, { stepUpId }),
+    onSuccess: () => {
+      setApproving(null);
+      setMsg({ text: "Version approved.", tone: "info" });
+      qc.invalidateQueries({ queryKey: key });
+    },
+    onError: (e) => {
+      setApproving(null);
+      setMsg({ text: classifyMailError(e).message, tone: "error" });
+    },
   });
 
   const update = (i: number, b: Block) => setBlocks((bs) => bs.map((x, j) => (j === i ? b : x)));
@@ -150,6 +171,10 @@ export default function TemplateEditor({ org, templateId }: { org: MarketingOrga
   const canEdit = org.canAuthor;
   const versions = [...(q.data.versions ?? [])].sort((a, b) => b.version - a.version);
   const a11y = Array.isArray(render?.accessibility) ? render?.accessibility : [];
+  const classification: TemplateClassification = q.data.classification ?? "MARKETING";
+  // {{unsubscribe_url}} is a marketing-only variable.
+  const variables = classification === "MARKETING" ? VARIABLES : VARIABLES.filter((v) => v !== "unsubscribe_url");
+  const qaVersion = versions.find((v) => v.version === loadedVersion) ?? versions[0] ?? null;
 
   return (
     <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_1fr]">
@@ -164,9 +189,22 @@ export default function TemplateEditor({ org, templateId }: { org: MarketingOrga
             <EmField label="Logo URL (https)"><input value={brand.logoUrl ?? ""} disabled={!canEdit} onChange={(e) => setBrand((b) => ({ ...b, logoUrl: e.target.value || undefined }))} className={emInput} /></EmField>
           </div>
           <div className="mt-3">
+            <TemplateClassificationControl
+              org={org}
+              templateId={templateId}
+              classification={classification}
+              available={q.data.classificationAvailable !== false}
+              onChanged={() => {
+                setLoadedVersion(null);
+                qc.invalidateQueries({ queryKey: key });
+                qc.invalidateQueries({ queryKey: ["mail", "marketing", org.id, "templates"] });
+              }}
+            />
+          </div>
+          <div className="mt-3">
             <p className="mb-1 text-[11px] font-semibold text-muted-foreground">Personalization variables (inserted into the focused block, or subject)</p>
             <div className="flex flex-wrap gap-1">
-              {VARIABLES.map((v) => (
+              {variables.map((v) => (
                 <button key={v} type="button" disabled={!canEdit} onClick={() => insertVariable(v)} className="rounded-full border border-border px-2 py-0.5 font-mono text-[11px] hover:bg-muted">
                   {`{{${v}}}`}
                 </button>
@@ -225,7 +263,17 @@ export default function TemplateEditor({ org, templateId }: { org: MarketingOrga
               {versions.map((v) => (
                 <li key={v.id} className="flex items-center gap-2 border-t border-border py-1">
                   <span className="font-semibold">v{v.version}</span>
+                  {v.classification && <ClassificationBadge value={v.classification} />}
                   <span className="flex-1 truncate">{v.subject}</span>
+                  {v.classification && v.classification !== "MARKETING" && (
+                    v.approval?.approved ? (
+                      <span className="text-[11px] text-emerald-700">Approved</span>
+                    ) : org.canApprove && v.createdBy !== me?.id ? (
+                      <button type="button" className="text-primary hover:underline" onClick={() => setApproving(v)}>Approve</button>
+                    ) : (
+                      <span className="text-[11px] text-amber-700">{v.classification === "TRANSACTIONAL_SECURITY" ? "Needs second approver" : "Not approved"}</span>
+                    )
+                  )}
                   <span className="text-muted-foreground">{formatFullDate(v.createdAt)}</span>
                   <button type="button" className="text-primary hover:underline" onClick={() => loadVersion(v)}>Load</button>
                 </li>
@@ -235,6 +283,7 @@ export default function TemplateEditor({ org, templateId }: { org: MarketingOrga
         </EmCard>
       </div>
 
+      <div className="flex flex-col gap-4">
       <EmCard
         title="Preview"
         id="te-preview"
@@ -254,7 +303,7 @@ export default function TemplateEditor({ org, templateId }: { org: MarketingOrga
           <div className="flex flex-col gap-3">
             <div className={device === "mobile" ? "mx-auto w-[375px] max-w-full" : "w-full"}>
               {previewTab === "html" ? (
-                <SafeHtmlFrame html={render.html} title="Email preview" minHeight={480} allowRemoteImages />
+                <SafeHtmlFrame html={render.html} title="Email preview" minHeight={480} allowRemoteImages={classification !== "TRANSACTIONAL_SECURITY"} />
               ) : (
                 <pre className="max-h-[480px] overflow-auto whitespace-pre-wrap rounded border border-border p-3 font-mono text-[12px]">{render.text}</pre>
               )}
@@ -277,6 +326,16 @@ export default function TemplateEditor({ org, templateId }: { org: MarketingOrga
           </div>
         )}
       </EmCard>
+      <TemplateQaPanel key={qaVersion?.id ?? "none"} org={org} templateId={templateId} version={qaVersion} />
+      </div>
+      {approving && (
+        <StepUpDialog
+          purpose="MARKETING_TEMPLATE_APPROVE"
+          title={`Approve template version v${approving.version}`}
+          onCancel={() => setApproving(null)}
+          onVerified={(stepUpId) => approveVersion.mutateAsync({ version: approving, stepUpId }).then(() => undefined)}
+        />
+      )}
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Lock, XCircle } from "lucide-react";
+import { Lock } from "lucide-react";
 import PermissionBoundary from "@/components/mail/PermissionBoundary";
 import { formatFullDate } from "@/components/mail/mail-utils";
 import { classifyMailError } from "@/lib/mail.service";
@@ -26,6 +26,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import type { Campaign, CampaignInput, MarketingOrganization } from "@/types/mail-marketing.types";
 import StepUpDialog from "./StepUpDialog";
 import CampaignDispatchPanel from "./CampaignDispatchPanel";
+import { QaStatusBadge, checkStatus } from "./QaStatusBadge";
 import { EmBadge, EmCard, EmField, EmMessage, emBtn, emBtnOutline, emInput } from "./em-ui";
 
 const EDITABLE: Campaign["status"][] = ["DRAFT", "REJECTED", "READY_FOR_REVIEW", "APPROVED"];
@@ -92,7 +93,12 @@ export default function CampaignDetail({ org, campaignId }: { org: MarketingOrga
   const versionOptions = useMemo(
     () =>
       templateDetails.flatMap((q) =>
-        (q.data?.versions ?? []).map((v) => ({ id: v.id, label: `${q.data?.name} · v${v.version} · ${v.subject}` })),
+        (q.data?.versions ?? []).map((v) => ({
+          id: v.id,
+          // Gap 1: transactional versions can never be sent to a marketing audience.
+          marketing: (v.classification ?? "MARKETING") === "MARKETING",
+          label: `${q.data?.name} · v${v.version} · ${v.subject}${(v.classification ?? "MARKETING") === "MARKETING" ? "" : " · transactional (not for campaigns)"}`,
+        })),
       ),
     [templateDetails],
   );
@@ -161,6 +167,8 @@ export default function CampaignDetail({ org, campaignId }: { org: MarketingOrga
         // Binds the approval to the recipient set shown in the last preflight.
         contactSetSha256: preflight?.contactSetSha256,
         eligibleCount: preflight?.eligibleCount,
+        // Gap 7: and to the preflight check states the reviewer saw.
+        preflightSha256: preflight?.preflightSha256,
       }),
     onSuccess: () => {
       setStepUpOpen(false);
@@ -271,7 +279,7 @@ export default function CampaignDetail({ org, campaignId }: { org: MarketingOrga
             <select value={form.templateVersionId ?? ""} disabled={!canEdit} onChange={(e) => set("templateVersionId", e.target.value || null)} className={emInput}>
               <option value="">Select a template version</option>
               {versionOptions.map((v) => (
-                <option key={v.id} value={v.id}>{v.label}</option>
+                <option key={v.id} value={v.id} disabled={!v.marketing && v.id !== form.templateVersionId}>{v.label}</option>
               ))}
             </select>
           </EmField>
@@ -334,12 +342,25 @@ export default function CampaignDetail({ org, campaignId }: { org: MarketingOrga
         ) : (
           <>
             <p className={`mb-2 text-[12px] font-semibold ${preflight.ok ? "text-emerald-700" : "text-red-600"}`}>
-              {preflight.ok ? "All checks passed." : "Some checks failed."} Eligible: {preflight.eligibleCount} · Excluded: {preflight.excludedCount}
+              {!preflight.ok
+                ? "Some checks failed: fix the blocked checks before review."
+                : preflight.checks.every((c) => checkStatus(c) === "PASS")
+                  ? "All checks passed."
+                  : "No blocking issues. Review the warnings and unknown checks."}{" "}
+              Eligible: {preflight.eligibleCount} · Excluded: {preflight.excludedCount}
             </p>
-            <ul className="flex flex-col gap-1 text-[12px]">
+            <div className="mb-2 flex flex-wrap gap-3 text-[11px]" aria-label="Preflight summary">
+              {(["BLOCKED", "WARNING", "UNKNOWN", "PASS"] as const).map((s) => (
+                <span key={s} className="inline-flex items-center gap-1">
+                  <QaStatusBadge status={s} /> {preflight.summary?.[s] ?? preflight.checks.filter((c) => checkStatus(c) === s).length}
+                </span>
+              ))}
+            </div>
+            <p className="mb-2 text-[11px] text-muted-foreground">Unknown means the check could not be verified (for example the provider was unreachable); it is never counted as a pass.</p>
+            <ul className="flex flex-col gap-1 text-[12px]" aria-label="Preflight checks">
               {preflight.checks.map((c) => (
                 <li key={c.id} className="flex items-start gap-2">
-                  {c.ok ? <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 text-emerald-600" aria-label="Passed" /> : <XCircle className="mt-0.5 h-3.5 w-3.5 text-red-600" aria-label="Failed" />}
+                  <QaStatusBadge status={checkStatus(c)} />
                   <span><span className="font-semibold">{c.id}</span> — {c.detail}</span>
                 </li>
               ))}
