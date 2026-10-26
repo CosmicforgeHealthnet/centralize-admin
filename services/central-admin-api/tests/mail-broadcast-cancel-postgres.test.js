@@ -146,14 +146,20 @@ test("CosmicForge Mail broadcast cancellation semantics on real PostgreSQL", { t
       const dispatch = await client.marketingBroadcastDispatch.findFirst({ where: { campaign: { name: "Queued cancel" } } });
       const sentRows = await client.mailDeliveryEvent.findMany({ where: { messageId: null, eventType: "SENT", detail: { path: ["dispatchId"], equals: dispatch.id } } });
       assert.equal(sentRows.length, 2, "one SENT evidence row per recipient");
-      // Scoped to this dispatch: events of earlier subtests may still be
-      // processed by the work() ticks below under load.
-      const sentOf = () => client.mailDeliveryEvent.count({ where: { messageId: null, eventType: "SENT", detail: { path: ["dispatchId"], equals: dispatch.id } } });
-      const replay = await sentOf();
-      const recipient = (await recipientsOf(dispatch.id))["q1@reader.example"];
+      // The replayed recipient must keep exactly one SENT row. The check is
+      // per recipient: under load, other provider events of this dispatch
+      // (e.g. a late email.sent for another recipient emitted before the
+      // cancel landed) can be processed by the same work() ticks.
+      const rowsOf = async () => (await client.mailDeliveryEvent.findMany({ where: { messageId: null, eventType: "SENT", detail: { path: ["dispatchId"], equals: dispatch.id } } })).map((row) => row.recipient);
+      // Replay for a recipient that already has SENT evidence (the provider
+      // queue order is not fixed, so it is not always q1).
+      const recipient = { email: sentRows[0].recipient };
+      assert.equal((await rowsOf()).filter((email) => email === recipient.email).length, 1);
       await event("email.sent", dispatch, recipient.email);
       await work(2);
-      assert.equal(await sentOf(), replay, "SENT evidence is recorded once per recipient");
+      const after = await rowsOf();
+      assert.equal(after.filter((email) => email === recipient.email).length, 1, `SENT evidence is recorded once per recipient: ${JSON.stringify(after)}`);
+      assert.equal(new Set(after).size, after.length, `never two SENT rows for one recipient: ${JSON.stringify(after)}`);
     });
 
     await t.test("HIGH: queued cancel with no observed sends is PARTIAL (provider cannot prove nothing was sent); recipients keep PROVIDER_ACCEPTED", async () => {
