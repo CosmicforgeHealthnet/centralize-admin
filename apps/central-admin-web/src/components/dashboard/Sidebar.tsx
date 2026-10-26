@@ -99,14 +99,21 @@ export function useNavPermissions(): NavPermissions {
   const ents = useEntitlements();
   const mail = ents.data;
   const mailEnabled = !!mail?.mailEnabled;
+  // The separate staging Vercel project may expose the normal Mail navigation
+  // to privileged reviewers before the Mail backend has been activated.
+  // This is presentation-only: the existing Mail APIs still enforce readiness
+  // and mailbox permissions, and no sending/receiving feature flag is changed.
+  const stagingMailNavForAdmins =
+    process.env.NEXT_PUBLIC_STAGING_MAIL_NAV_ENABLED === "true" && privileged;
   const showMail =
-    mailEnabled &&
+    stagingMailNavForAdmins ||
+    (mailEnabled &&
     (mail.mailboxes.length > 0 ||
       !!mail.canViewAdministration ||
       mail.canManageDomains ||
       mail.canApproveProvisioning ||
       mail.canManageSharedMembership ||
-      mail.marketing.length > 0);
+      mail.marketing.length > 0));
   const modules = new Set((grants.data?.grants ?? []).map((grant) => grant.module));
   return {
     ready: privileged || (!!user && !grants.isLoading && !ents.isLoading),
