@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -55,5 +56,27 @@ func TestSendSignsAndClassifies(t *testing.T) {
 	result, err = bad.Send(context.Background(), event)
 	if err == nil || result.Retryable || result.Status != 401 {
 		t.Fatalf("401 must not be retryable, got %+v", result)
+	}
+}
+
+func TestEnvelopeMarshalsIdempotencyKeyAndTimestamp(t *testing.T) {
+	at := time.Date(2025, 10, 24, 23, 59, 58, 123456789, time.UTC)
+	body, err := json.Marshal(Envelope{ContractVersion: 1, Product: "karryam", Organization: "karryam", EventID: "e", EventType: "ops.alert", EventVersion: 1, IdempotencyKey: "driver-hauling-service:booking.completed:b-1", OccurredAt: Timestamp(at), Data: map[string]string{}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := `{"contractVersion":1,"product":"karryam","organization":"karryam","eventId":"e","eventType":"ops.alert","eventVersion":1,"idempotencyKey":"driver-hauling-service:booking.completed:b-1","occurredAt":"2025-10-24T23:59:58.123456789Z","data":{}}`
+	if string(body) != want {
+		t.Fatalf("got %s", body)
+	}
+}
+
+func TestBackoffIsJitteredAndBounded(t *testing.T) {
+	rnd := rand.New(rand.NewSource(1))
+	for attempt := 1; attempt <= 10; attempt++ {
+		d := Backoff(attempt, rnd)
+		if d < time.Second || d > 30*time.Minute+time.Second {
+			t.Fatalf("attempt %d: %s out of bounds", attempt, d)
+		}
 	}
 }

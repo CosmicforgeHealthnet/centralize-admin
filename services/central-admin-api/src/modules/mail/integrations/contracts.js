@@ -17,7 +17,10 @@
 // fail-closed. RESTRICTED_HEALTH integrations (HealthNet) may only send
 // ops.alert@1 with no personal data at all; their summary is a fixed code.
 
+const crypto = require("crypto");
+
 const SUPPORTED_CONTRACT_VERSIONS = new Set([1]);
+const RESERVED_EVENT_ID_PREFIXES = Object.freeze(["rejected:", "idem:"]);
 const EVENT_TYPES = Object.freeze({
   "mail.delivery_status": { versions: [1] },
   "marketing.trigger": { versions: [1] },
@@ -81,6 +84,8 @@ function parseEnvelope(body) {
     occurredAt: requireString(body, "occurredAt", null, "envelope", { max: 40 }),
   };
   envelope.eventVersion = body.eventVersion;
+  // HQ stores rejection and idempotency-key marker rows under these prefixes.
+  if (RESERVED_EVENT_ID_PREFIXES.some((prefix) => envelope.eventId.startsWith(prefix))) throw new ContractError("MAIL_VALIDATION_FAILED", 422, { field: "envelope.eventId", reason: "RESERVED_EVENT_ID_PREFIX" });
   const type = EVENT_TYPES[envelope.eventType];
   if (!type) throw new ContractError("MAIL_INTEGRATION_UNSUPPORTED_EVENT", 422, { eventType: envelope.eventType });
   if (!type.versions.includes(envelope.eventVersion)) throw new ContractError("MAIL_INTEGRATION_UNSUPPORTED_VERSION", 422, { eventType: envelope.eventType, supported: type.versions });
@@ -139,4 +144,20 @@ function parseOpsAlert(data, { restricted }) {
   return { severity, code: requireString(data, "code", /^[A-Z][A-Z0-9_]{2,63}$/, "data", { max: 64 }), summary: summary.replace(/[\u0000-\u001f<>]/g, " "), component: requireString(data, "component", /^[a-z0-9][a-z0-9-]{0,63}$/, "data", { max: 64 }) };
 }
 
-module.exports = { parseEnvelope, parseDeliveryStatus, parseMarketingTrigger, parseOpsAlert, ContractError, RESTRICTED_ALERT_SUMMARIES, EVENT_TYPES, SUPPORTED_CONTRACT_VERSIONS, DELIVERY_STATUSES, prohibitedKeys };
+// Idempotency keys (contract v1): a producer may retry one logical event
+// with a fresh eventId as long as it reuses idempotencyKey. Two deliveries
+// with the same key are the same event when this fingerprint matches; it
+// covers everything except eventId and occurredAt (which retries may
+// regenerate). A different fingerprint under the same key is a 409 conflict.
+function stableStringify(value) {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+  return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
+}
+
+function idempotencyFingerprint(envelope) {
+  const material = { product: envelope.product, organization: envelope.organization, eventType: envelope.eventType, eventVersion: envelope.eventVersion, correlationId: envelope.correlationId || null, data: envelope.data };
+  return crypto.createHash("sha256").update(stableStringify(material)).digest("hex");
+}
+
+module.exports = { idempotencyFingerprint, RESERVED_EVENT_ID_PREFIXES, parseEnvelope, parseDeliveryStatus, parseMarketingTrigger, parseOpsAlert, ContractError, RESTRICTED_ALERT_SUMMARIES, EVENT_TYPES, SUPPORTED_CONTRACT_VERSIONS, DELIVERY_STATUSES, prohibitedKeys };

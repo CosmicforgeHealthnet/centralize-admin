@@ -20,7 +20,8 @@ const { mailError } = require("../mail.errors");
 const policy = require("../authz/mail.policy");
 const { iso } = require("../services/serializers");
 const { verifyServiceRequest, parseServiceSecrets } = require("./service-auth");
-const { parseEnvelope, parseDeliveryStatus, parseMarketingTrigger, parseOpsAlert, ContractError } = require("./contracts");
+const { parseEnvelope, parseDeliveryStatus, parseMarketingTrigger, parseOpsAlert, ContractError, idempotencyFingerprint } = require("./contracts");
+const compat = require("./karryam-compat");
 const { approvedEvent } = require("../marketing/automation/event-registry");
 const { enforceWithdrawal } = require("../marketing/consent-enforcement");
 const { isRestrictedHealthOrganization } = require("../authz/sending-gate");
@@ -28,6 +29,20 @@ const { isRestrictedHealthOrganization } = require("../authz/sending-gate");
 const PURPOSES = new Set(["TRANSACTIONAL", "MARKETING_TRIGGER", "OPERATIONAL_ALERT"]);
 const CLASSIFICATIONS = new Set(["STANDARD", "RESTRICTED_HEALTH"]);
 const EVENT_TYPES_FOR = { STANDARD: ["mail.delivery_status", "marketing.trigger", "ops.alert"], RESTRICTED_HEALTH: ["ops.alert"] };
+// Idempotency-key marker rows (contract v1 `idempotencyKey`): stored in the
+// same append-only table under a reserved eventId prefix ("idem:"), so the
+// existing (integration, eventId) unique index enforces one logical event per
+// key without a schema change. Excluded from health and event listings.
+const MARKER_EVENT_TYPE = "integration.idempotency_key";
+const MARKER_PREFIX = "idem:";
+const IDEMPOTENCY_NAMESPACE = "3d9e4c2a-7b1f-5a6e-8d0c-1f2e3a4b5c6d";
+const NOT_MARKER = { NOT: { eventId: { startsWith: MARKER_PREFIX } } };
+
+function idempotencyMarker(integrationId, envelope) {
+  if (!envelope.idempotencyKey) return null;
+  const id = compat.uuidV5(envelope.idempotencyKey, compat.uuidV5(`idempotency:${integrationId}`, IDEMPOTENCY_NAMESPACE));
+  return { eventId: `${MARKER_PREFIX}${id}`, fingerprint: idempotencyFingerprint(envelope) };
+}
 
 function createIntegrationService({ client, config, audit, stepUp, automations, notifications, rollout = null, rateLimiter = null, env = process.env, clock = () => new Date(), logger = null }) {
   const secrets = () => parseServiceSecrets(env.MAIL_INTEGRATION_SERVICE_SECRETS);
@@ -94,13 +109,13 @@ function createIntegrationService({ client, config, audit, stepUp, automations, 
     return { kind: "delivery_status", status: data.status, marketingSuppressed };
   }
 
-  async function handleTrigger(integration, organization, envelope) {
+  async function handleTrigger(integration, organization, envelope, marker = null) {
     const data = parseMarketingTrigger(envelope.data);
     const registered = approvedEvent(data.triggerType, data.triggerVersion);
     if (!registered || registered.product !== integration.product || !integration.allowedTriggerTypes.includes(`${data.triggerType}@${data.triggerVersion}`)) {
       throw new ContractError("MAIL_INTEGRATION_FORBIDDEN_CONTENT", 403, { reason: "TRIGGER_NOT_APPROVED_FOR_INTEGRATION" });
     }
-    const result = await automations.ingestProductEvent({ organizationId: organization.id, eventType: data.triggerType, version: data.triggerVersion, eventId: `${integration.product}:${envelope.eventId}`, contactEmail: data.contactEmail, occurredAt: envelope.occurredAtDate, payload: data.attributes });
+    const result = await automations.ingestProductEvent({ organizationId: organization.id, eventType: data.triggerType, version: data.triggerVersion, eventId: `${integration.product}:${marker ? marker.eventId : envelope.eventId}`, contactEmail: data.contactEmail, occurredAt: envelope.occurredAtDate, payload: data.attributes });
     return { kind: "marketing_trigger", matchedContact: result.matchedContact, droppedFields: result.droppedFields };
   }
 
@@ -118,6 +133,20 @@ function createIntegrationService({ client, config, audit, stepUp, automations, 
       await notifications.notifyUsers([...new Set(admins.map((row) => row.adminUserId))], { icon: data.severity === "critical" ? "xcircle" : "alert", title: `[${integration.product}] ${data.severity}: ${data.code}`, subtitle: data.summary }).catch(() => {});
     };
     return { outcome: { kind: "ops_alert", code: data.code, severity: data.severity, component: data.component, notified: shouldNotify }, notify };
+  }
+
+  // A product may never send as an HQ identity (staff personal address, HQ
+  // mailbox) or any address not authorised for it. Every refused sender claim
+  // is audited (metadata only); HQ-managed addresses are named so security
+  // can see which staff identity was claimed.
+  async function auditSenderRejection(integration, details, shape, context) {
+    const claimed = typeof (details.claimedSender || details.sender) === "string" ? String(details.claimedSender || details.sender).toLowerCase().slice(0, 320) : null;
+    const address = claimed ? await client.mailAddress.findUnique({ where: { address: claimed }, include: { mailbox: { select: { type: true } } } }).catch(() => null) : null;
+    const staffIdentity = Boolean(address && (address.kind === "PRIMARY" || address.mailbox?.type === "PERSONAL"));
+    await audit.record({
+      actorAdminUserId: null, action: "MAIL_INTEGRATION_SENDER_REJECTED", targetType: "mail_integration", targetId: integration.id, organizationId: integration.organizationId, outcome: "DENIED",
+      metadata: { product: integration.product, serviceName: integration.serviceName, shape, reason: details.reason || "SENDER_NOT_AUTHORIZED_FOR_INTEGRATION", field: details.field || "data.sender", senderDomain: claimed && claimed.includes("@") ? claimed.split("@")[1] : null, hqManagedAddress: Boolean(address), staffIdentity, senderAddress: address ? claimed : null },
+    }, context).catch(() => {});
   }
 
   // Raw-body HTTP handler: POST /api/mail/v1/integrations/v1/events
@@ -139,7 +168,10 @@ function createIntegrationService({ client, config, audit, stepUp, automations, 
     const notRolledOut = rollout ? await rollout.decide("PRODUCT_INTEGRATION", { organizationId: integration.organizationId }) : null;
     if (notRolledOut) return reply(503, "MAIL_ROLLOUT_NOT_ENABLED", { retryAfter: 300, reason: notRolledOut });
     const payloadSha256 = crypto.createHash("sha256").update(rawBody).digest("hex");
+    const context = { requestId: req.correlationId || null, ipAddress: req.ip || null };
     let envelope;
+    let marker = null;
+    let shape = "contract.v1";
     try {
       let body;
       try {
@@ -147,8 +179,17 @@ function createIntegrationService({ client, config, audit, stepUp, automations, 
       } catch {
         throw new ContractError("MAIL_VALIDATION_FAILED", 422, { field: "body", reason: "INVALID_JSON" });
       }
-      envelope = parseEnvelope(body);
       const organization = await client.mailOrganization.findUnique({ where: { id: integration.organizationId } });
+      // Karryam's native notifications.Request shape: only for the Karryam
+      // integration with the explicit compat flag (karryam-compat.js).
+      if (compat.isLegacyKarryamShape(body)) {
+        shape = compat.SHAPE;
+        const decision = compat.compatDecision(integration, env);
+        if (!decision.allowed) throw compat.notEnabledError(decision.reason);
+        if (!organization) throw new ContractError("MAIL_INTEGRATION_SCOPE_MISMATCH", 403, {});
+        body = compat.normalizeKarryamRequest(body, { integration, organization, now: clock() }).envelope;
+      }
+      envelope = parseEnvelope(body);
       // Spoofing: a service may only speak for its own product and brand.
       if (envelope.product !== integration.product || !organization || envelope.organization !== organization.slug) throw new ContractError("MAIL_INTEGRATION_SCOPE_MISMATCH", 403, {});
       // A restricted-health brand is treated as restricted whatever the row says.
@@ -159,25 +200,45 @@ function createIntegrationService({ client, config, audit, stepUp, automations, 
         if (existing.payloadSha256 !== payloadSha256) throw new ContractError("MAIL_INTEGRATION_EVENT_CONFLICT", 409, { eventId: envelope.eventId });
         return reply(202, null, { accepted: true, duplicate: true, eventId: envelope.eventId });
       }
+      // Same logical event retried under a fresh eventId (same idempotencyKey).
+      marker = idempotencyMarker(integration.id, envelope);
+      if (marker) {
+        const prior = await client.mailProductIntegrationEvent.findUnique({ where: { integrationId_eventId: { integrationId: integration.id, eventId: marker.eventId } } });
+        if (prior) {
+          if (prior.payloadSha256 !== marker.fingerprint) throw new ContractError("MAIL_INTEGRATION_IDEMPOTENCY_CONFLICT", 409, { idempotencyKey: envelope.idempotencyKey });
+          return reply(202, null, { accepted: true, duplicate: true, eventId: prior.outcome?.eventId || envelope.eventId });
+        }
+      }
+      const eventRow = (outcome) => ({ integrationId: integration.id, eventId: envelope.eventId, eventType: envelope.eventType, eventVersion: envelope.eventVersion, correlationId: envelope.correlationId, payloadSha256, status: "ACCEPTED", outcome, occurredAt: envelope.occurredAtDate, receivedAt: clock() });
+      const markerRow = marker ? { integrationId: integration.id, eventId: marker.eventId, eventType: MARKER_EVENT_TYPE, eventVersion: envelope.eventVersion, correlationId: envelope.correlationId, payloadSha256: marker.fingerprint, status: "ACCEPTED", outcome: { kind: "idempotency_key", eventId: envelope.eventId, eventType: envelope.eventType }, occurredAt: envelope.occurredAtDate, receivedAt: clock() } : null;
       let outcome;
       if (envelope.eventType === "mail.delivery_status") {
         outcome = await client.$transaction(async (tx) => {
+          if (markerRow) await tx.mailProductIntegrationEvent.create({ data: markerRow });
           const result = await handleDelivery(tx, integration, organization, envelope);
-          await tx.mailProductIntegrationEvent.create({ data: { integrationId: integration.id, eventId: envelope.eventId, eventType: envelope.eventType, eventVersion: envelope.eventVersion, correlationId: envelope.correlationId, payloadSha256, status: "ACCEPTED", outcome: result, occurredAt: envelope.occurredAtDate, receivedAt: clock() } });
+          await tx.mailProductIntegrationEvent.create({ data: eventRow(result) });
           return result;
         });
       } else {
         let afterStore = null;
-        if (envelope.eventType === "marketing.trigger") outcome = await handleTrigger(integration, organization, envelope);
+        if (envelope.eventType === "marketing.trigger") outcome = await handleTrigger(integration, organization, envelope, marker);
         else ({ outcome, notify: afterStore } = await handleAlert(integration, envelope, { restricted: classification === "RESTRICTED_HEALTH" }));
-        await client.mailProductIntegrationEvent.create({ data: { integrationId: integration.id, eventId: envelope.eventId, eventType: envelope.eventType, eventVersion: envelope.eventVersion, correlationId: envelope.correlationId, payloadSha256, status: "ACCEPTED", outcome, occurredAt: envelope.occurredAtDate, receivedAt: clock() } });
+        if (markerRow) {
+          await client.$transaction(async (tx) => {
+            await tx.mailProductIntegrationEvent.create({ data: markerRow });
+            await tx.mailProductIntegrationEvent.create({ data: eventRow(outcome) });
+          });
+        } else {
+          await client.mailProductIntegrationEvent.create({ data: eventRow(outcome) });
+        }
         if (afterStore) await afterStore();
       }
       await client.mailProductIntegration.update({ where: { id: integration.id }, data: { lastEventAt: clock() } });
-      return reply(202, null, { accepted: true, duplicate: false, eventId: envelope.eventId, outcome: { kind: outcome.kind } });
+      return reply(202, null, { accepted: true, duplicate: false, eventId: envelope.eventId, outcome: { kind: outcome.kind }, ...(shape !== "contract.v1" ? { normalizedFrom: shape } : {}) });
     } catch (error) {
-      // Lost a race with a concurrent first delivery of the same eventId: only
-      // an identical payload is a duplicate; a different one is a conflict.
+      // Lost a race with a concurrent first delivery of the same eventId (or
+      // idempotencyKey): only an identical payload is a duplicate; a different
+      // one is a conflict.
       if (error?.code === "P2002" && envelope?.eventId) {
         const winner = await client.mailProductIntegrationEvent.findUnique({ where: { integrationId_eventId: { integrationId: integration.id, eventId: envelope.eventId } } }).catch(() => null);
         if (winner && winner.payloadSha256 === payloadSha256) return reply(202, null, { accepted: true, duplicate: true, eventId: envelope.eventId });
@@ -185,12 +246,20 @@ function createIntegrationService({ client, config, audit, stepUp, automations, 
           await recordRejection(integration, envelope, payloadSha256, "MAIL_INTEGRATION_EVENT_CONFLICT", { eventId: envelope.eventId });
           return reply(409, "MAIL_INTEGRATION_EVENT_CONFLICT", { eventId: envelope.eventId });
         }
+        const markerWinner = marker ? await client.mailProductIntegrationEvent.findUnique({ where: { integrationId_eventId: { integrationId: integration.id, eventId: marker.eventId } } }).catch(() => null) : null;
+        if (markerWinner && markerWinner.payloadSha256 === marker.fingerprint) return reply(202, null, { accepted: true, duplicate: true, eventId: markerWinner.outcome?.eventId || envelope.eventId });
+        if (markerWinner) {
+          await recordRejection(integration, envelope, payloadSha256, "MAIL_INTEGRATION_IDEMPOTENCY_CONFLICT", { idempotencyKey: envelope.idempotencyKey });
+          return reply(409, "MAIL_INTEGRATION_IDEMPOTENCY_CONFLICT", { idempotencyKey: envelope.idempotencyKey });
+        }
       }
       if (error instanceof ContractError || error?.code === "MAIL_INTEGRATION_FORBIDDEN_CONTENT") {
         const code = error.code;
         const status = error.status || 422;
-        await recordRejection(integration, envelope, payloadSha256, code, error.details || {});
-        return reply(status, code, error.details || {});
+        const { spoof, claimedSender, ...details } = error.details || {};
+        await recordRejection(integration, envelope, payloadSha256, code, details);
+        if (code === "MAIL_SENDER_NOT_AUTHORIZED") await auditSenderRejection(integration, { ...details, claimedSender }, shape, context);
+        return reply(status, code, details);
       }
       logger?.error?.(`[MailIntegration] ingestion failed: ${error?.code || error?.message}`);
       return reply(503, "MAIL_STORAGE_UNAVAILABLE");
@@ -346,7 +415,7 @@ function createIntegrationService({ client, config, audit, stepUp, automations, 
     const day = new Date(now - 86400000);
     const week = new Date(now - 7 * 86400000);
     const [events, errors, delivery24, delivery7, categories] = await Promise.all([
-      client.mailProductIntegrationEvent.groupBy({ by: ["eventType", "status"], where: { integrationId: id, receivedAt: { gt: day } }, _count: { _all: true } }),
+      client.mailProductIntegrationEvent.groupBy({ by: ["eventType", "status"], where: { integrationId: id, receivedAt: { gt: day }, ...NOT_MARKER }, _count: { _all: true } }),
       client.mailProductIntegrationEvent.groupBy({ by: ["errorCode"], where: { integrationId: id, status: "REJECTED", receivedAt: { gt: week } }, _count: { _all: true } }),
       client.mailProductDeliveryEvent.groupBy({ by: ["status"], where: { integrationId: id, occurredAt: { gt: day } }, _count: { _all: true } }),
       client.mailProductDeliveryEvent.groupBy({ by: ["status"], where: { integrationId: id, occurredAt: { gt: week } }, _count: { _all: true } }),
@@ -368,7 +437,7 @@ function createIntegrationService({ client, config, audit, stepUp, automations, 
   async function events(user, id, { status, limit } = {}) {
     const row = await load(id);
     await viewScope(user, row);
-    const rows = await client.mailProductIntegrationEvent.findMany({ where: { integrationId: id, ...(status ? { status: String(status) } : {}) }, orderBy: { receivedAt: "desc" }, take: Math.min(Math.max(Number(limit) || 50, 1), 200) });
+    const rows = await client.mailProductIntegrationEvent.findMany({ where: { integrationId: id, ...NOT_MARKER, ...(status ? { status: String(status) } : {}) }, orderBy: { receivedAt: "desc" }, take: Math.min(Math.max(Number(limit) || 50, 1), 200) });
     return rows.map((entry) => ({ id: entry.id, eventId: entry.eventId.startsWith("rejected:") ? null : entry.eventId, eventType: entry.eventType, eventVersion: entry.eventVersion, correlationId: entry.correlationId, status: entry.status, errorCode: entry.errorCode, outcome: entry.outcome, occurredAt: iso(entry.occurredAt), receivedAt: iso(entry.receivedAt) }));
   }
 

@@ -245,6 +245,47 @@ test("CosmicForge Mail M8 product integration on real PostgreSQL", { timeout: 30
       assert.equal(last.status, 429);
       await closeServer(limitedServer.server);
     });
+
+    // Contract v1 idempotencyKey (previously parsed but unused) and
+    // staff-sender spoofing audit.
+    await t.test("idempotencyKey: dedupes across fresh eventIds (also concurrently); conflicting payload is 409", async () => {
+      const key = `kg-outbox-${crypto.randomUUID()}`;
+      const data = { productMessageId: `msg-${crypto.randomUUID().slice(0, 8)}`, status: "DELIVERED" };
+      const first = await karryam(envelope({ idempotencyKey: key }, data));
+      assert.equal(first.status, 202, JSON.stringify(first.body));
+      const retried = await karryam(envelope({ idempotencyKey: key, occurredAt: new Date(harness.clock().getTime() + 1000).toISOString() }, data));
+      assert.equal(retried.body.data.duplicate, true, "fresh eventId + same key = same event");
+      assert.equal(retried.body.data.eventId, first.body.data.eventId);
+      const conflict = await karryam(envelope({ idempotencyKey: key }, { ...data, status: "BOUNCED" }));
+      assert.equal(conflict.status, 409);
+      assert.equal(conflict.body.code, "MAIL_INTEGRATION_IDEMPOTENCY_CONFLICT");
+      assert.equal(await client.mailProductDeliveryEvent.count({ where: { productMessageId: data.productMessageId } }), 1);
+      // Concurrent first deliveries under different eventIds: exactly one wins.
+      const raceKey = `kg-outbox-${crypto.randomUUID()}`;
+      const raceData = { productMessageId: `msg-${crypto.randomUUID().slice(0, 8)}` };
+      const results = await Promise.all(Array.from({ length: 5 }, () => karryam(envelope({ idempotencyKey: raceKey }, raceData))));
+      assert.ok(results.every((result) => result.status === 202), JSON.stringify(results.map((result) => result.status)));
+      assert.equal(results.filter((result) => !result.body.data.duplicate).length, 1);
+      assert.equal(await client.mailProductDeliveryEvent.count({ where: { productMessageId: raceData.productMessageId } }), 1);
+      // Reserved prefixes cannot be used by producers.
+      assert.equal((await karryam(envelope({ eventId: "idem:forged" }))).body.errors[0].reason, "RESERVED_EVENT_ID_PREFIX");
+    });
+
+    await t.test("a product can never report mail as a staff identity or HQ mailbox; attempts are audited", async () => {
+      const response = await karryam(envelope({}, { sender: "kg.owner@karryam.example" }));
+      assert.equal(response.status, 403);
+      assert.equal(response.body.code, "MAIL_SENDER_NOT_AUTHORIZED");
+      const audit = await client.mailAuditEvent.findFirst({ where: { action: "MAIL_INTEGRATION_SENDER_REJECTED", targetId: kgId }, orderBy: { createdAt: "desc" } });
+      assert.ok(audit, "audited");
+      assert.equal(audit.metadata.staffIdentity, true);
+      assert.equal(audit.metadata.senderAddress, "kg.owner@karryam.example");
+      const external = await karryam(envelope({}, { sender: "someone@elsewhere.example" }));
+      assert.equal(external.body.code, "MAIL_SENDER_NOT_AUTHORIZED");
+      const last = await client.mailAuditEvent.findFirst({ where: { action: "MAIL_INTEGRATION_SENDER_REJECTED", targetId: kgId }, orderBy: { createdAt: "desc" } });
+      assert.equal(last.metadata.hqManagedAddress, false);
+      assert.equal(last.metadata.senderAddress, null, "unknown addresses are recorded by domain only");
+      assert.equal(last.metadata.senderDomain, "elsewhere.example");
+    });
   } finally {
     await closeServer(server);
     await db.close();

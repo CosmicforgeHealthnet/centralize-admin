@@ -39,6 +39,8 @@ so producers cannot silently send data HQ has not reviewed.
 | 403 | `MAIL_INTEGRATION_SCOPE_MISMATCH` | no | Envelope `product`/`organization` is not the integration's own. |
 | 403 | `MAIL_INTEGRATION_FORBIDDEN_CONTENT` (`EVENT_TYPE_NOT_ALLOWED`) | no | Event type not allowed for this integration/classification. |
 | 409 | `MAIL_INTEGRATION_EVENT_CONFLICT` | no | Same `eventId`, different payload. |
+| 409 | `MAIL_INTEGRATION_IDEMPOTENCY_CONFLICT` | no | Same `idempotencyKey` (per integration), different payload. A retry with the same key and payload under a new `eventId` answers 202 `duplicate:true` with the original `eventId`. |
+| 422 | `MAIL_INTEGRATION_LEGACY_SHAPE_NOT_ENABLED` | no | Native Karryam `notifications.Request` shape sent while the compat allowlist (`MAIL_INTEGRATION_KARRYAM_COMPAT_SERVICES`) does not include the service, or the integration is not Karryam. See `docs/cosmicforge-mail-karryam-handoff.md`. |
 | 413 | `MAIL_INTEGRATION_BODY_TOO_LARGE` | no | Over `MAIL_INTEGRATION_MAX_BODY_BYTES`. |
 | 422 | `MAIL_INTEGRATION_FORBIDDEN_CONTENT` / `UNKNOWN_FIELDS` / `UNSUPPORTED_*` / `MAIL_VALIDATION_FAILED` | no | Contract violation. Recorded as a rejection (no payload stored, only its SHA-256). |
 | 429 | `MAIL_RATE_LIMITED` | yes | Per-integration limit (`MAIL_INTEGRATION_RATE_PER_MINUTE`). |
