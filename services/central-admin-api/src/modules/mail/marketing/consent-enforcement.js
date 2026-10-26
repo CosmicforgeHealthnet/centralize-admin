@@ -34,10 +34,15 @@ async function enforceWithdrawal(tx, { organizationId, contactId = null, email =
   let suppressionCreated = false;
   if (allTopics || reason === "COMPLAINED") {
     const suppressionReason = reason === "COMPLAINED" ? "COMPLAINED" : reason === "BOUNCED" ? "BOUNCED" : "UNSUBSCRIBED";
-    const active = await tx.marketingSuppression.findFirst({ where: { organizationId, email: address, liftedAt: null, reason: suppressionReason } });
+    // One active suppression per brand and address (UQ_marketing_email_suppressions_active):
+    // an existing one is kept, except that a complaint replaces a weaker
+    // reason (a complaint must never become liftable).
+    const active = await tx.marketingSuppression.findFirst({ where: { organizationId, email: address, liftedAt: null } });
     if (!active) {
       await tx.marketingSuppression.create({ data: { organizationId, email: address, reason: suppressionReason, source: String(source).slice(0, 64) } });
       suppressionCreated = true;
+    } else if (suppressionReason === "COMPLAINED" && !["COMPLAINED", "LEGAL"].includes(active.reason)) {
+      await tx.marketingSuppression.update({ where: { id: active.id }, data: { reason: "COMPLAINED", source: String(source).slice(0, 64) } });
     }
     if (contact) {
       const status = suppressionReason === "COMPLAINED" ? "COMPLAINED" : suppressionReason === "BOUNCED" ? "BOUNCED" : "UNSUBSCRIBED";
@@ -72,7 +77,8 @@ async function enforceWithdrawal(tx, { organizationId, contactId = null, email =
 async function suppressAddress(tx, { organizationId, email, reason = "BOUNCED", source, contactStatus = "BOUNCED" }) {
   const address = email ? String(email).toLowerCase() : null;
   if (!organizationId || !address) return { applied: false, reason: "UNKNOWN_CONTACT" };
-  const active = await tx.marketingSuppression.findFirst({ where: { organizationId, email: address, liftedAt: null, reason } });
+  // Any active brand suppression already stops mail (one per brand+address).
+  const active = await tx.marketingSuppression.findFirst({ where: { organizationId, email: address, liftedAt: null } });
   if (!active) await tx.marketingSuppression.create({ data: { organizationId, email: address, reason, source: String(source).slice(0, 64) } });
   await tx.marketingContact.updateMany({ where: { organizationId, email: address, status: "ACTIVE" }, data: { status: contactStatus } });
   return { applied: true, suppressionCreated: !active };

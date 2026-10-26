@@ -10,6 +10,7 @@
 const crypto = require("crypto");
 const { externalSendBlockReason } = require("../authz/sending-gate");
 const { classifySendError, isBrandSender, SENDER_MAILBOX_SELECT } = require("./marketing-sender");
+const { quotaDeferSeconds } = require("../ops/provider-quota.service");
 
 const PURPOSE = "marketing-doi-token";
 
@@ -17,7 +18,24 @@ function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
 }
 
-function createConfirmationService({ client, config, audit, jobs, encryption, marketingProviders, runtime = null, usage = null, clock = () => new Date() }) {
+function createConfirmationService({ client, config, audit, jobs, encryption, marketingProviders, runtime = null, usage = null, resubscriptions = null, clock = () => new Date() }) {
+  // GAP 2: wraps marketing.confirmConsent so that every verified double
+  // opt-in (JSON and landing-page confirmations) is offered to the
+  // re-subscription workflow AFTER the confirmation committed. The hook never
+  // throws and never changes the confirmation outcome.
+  function withResubscriptionHook(confirmConsent) {
+    return async function confirmConsentWithResubscription(token) {
+      let pendingConsentId = null;
+      if (resubscriptions && /^[A-Za-z0-9_-]{20,64}$/.test(String(token || ""))) {
+        const hash = crypto.createHash("sha256").update(String(token)).digest("hex");
+        pendingConsentId = (await client.marketingConsent.findFirst({ where: { confirmationTokenHash: hash, status: "PENDING_CONFIRMATION" }, select: { id: true } }).catch(() => null))?.id || null;
+      }
+      const result = await confirmConsent(token);
+      if (pendingConsentId) await resubscriptions.onDoubleOptInConfirmed({ consentId: pendingConsentId }).catch(() => null);
+      return result;
+    };
+  }
+
   // Hook used by the marketing service inside the consent transaction.
   async function onConfirmationRequired(tx, { organizationId, contact, consent, token }) {
     if (!config.confirmationEmailsEnabled) return { queued: false, reason: "CONFIRMATION_EMAILS_DISABLED" };
@@ -75,6 +93,9 @@ function createConfirmationService({ client, config, audit, jobs, encryption, ma
       await audit.record({ action: "MARKETING_CONFIRMATION_EMAIL_HANDED_TO_PROVIDER", targetType: "marketing_contact", targetId: contact.id, organizationId, metadata: { topic: consent.topic } });
       return { providerMessageId: result.providerMessageId };
     } catch (error) {
+      // GAP 3: provider quota exhausted -> wait for the documented reset.
+      const quotaWait = quotaDeferSeconds(error, clock());
+      if (quotaWait) return { defer: { seconds: quotaWait, code: "PROVIDER_QUOTA_EXHAUSTED" } };
       const verdict = classifySendError(error, { firstAttemptAt: job.createdAt, now: clock(), windowHours: config.reconciliation.idempotencyWindowHours });
       if (verdict.outcome === "RETRY") throw Object.assign(new Error(error.message), { code: verdict.code, retryable: true, retryAfterSeconds: verdict.retryAfterSeconds ?? null });
       if (verdict.outcome === "DEFER") return { defer: { seconds: 3600, code: verdict.code } };
@@ -83,7 +104,7 @@ function createConfirmationService({ client, config, audit, jobs, encryption, ma
     }
   }
 
-  return { onConfirmationRequired, process };
+  return { onConfirmationRequired, process, withResubscriptionHook };
 }
 
 module.exports = { createConfirmationService };

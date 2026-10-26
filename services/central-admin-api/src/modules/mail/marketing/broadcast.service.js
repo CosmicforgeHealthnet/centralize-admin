@@ -8,7 +8,7 @@
 const { mailError } = require("../mail.errors");
 const policy = require("../authz/mail.policy");
 const { zonedLocalToUtc, isValidTimeZone } = require("./scheduling");
-const { describeBrandProvider } = require("../adapters/marketing");
+const { describeBrandProvider, quotaScopeFor, resolveBrandApiKey } = require("../adapters/marketing");
 const { iso, decodeCursor, encodeCursor, pageLimit } = require("../services/serializers");
 const { TERMINAL_BROADCAST_STATUSES, deliveredCount } = require("./broadcast.processor");
 const { isBrandSender, SENDER_MAILBOX_SELECT } = require("./marketing-sender");
@@ -16,7 +16,11 @@ const { isBrandSender, SENDER_MAILBOX_SELECT } = require("./marketing-sender");
 const PRE_SEND = new Set(["SCHEDULED", "QUEUED", "PREPARING", "PAUSED"]);
 const DELIVERY_STATUSES = ["PROVIDER_ACCEPTED", "DELIVERED", "DELAYED", "BOUNCED", "COMPLAINED", "FAILED", "SUPPRESSED", "UNSUBSCRIBED", "OUTCOME_UNKNOWN", "CANCELLED", "EXCLUDED", "PENDING", "SYNCED"];
 
-function createBroadcastService({ client, config, audit, jobs, stepUp, env = process.env, replies = null, clock = () => new Date() }) {
+// Provider events (delivered, bounced, complained) keep arriving after the
+// provider reports a broadcast as sent; the report flags that period.
+const EVENTS_SETTLE_HOURS = 72;
+
+function createBroadcastService({ client, config, audit, jobs, stepUp, env = process.env, replies = null, pricing = null, providerQuota = null, clock = () => new Date() }) {
   const scope = (user, organizationId, need) => {
     if (!config.marketingEnabled) throw mailError("MAIL_MARKETING_DISABLED");
     return policy.requireMarketingScope(client, user, organizationId, need);
@@ -279,6 +283,13 @@ function createBroadcastService({ client, config, audit, jobs, stepUp, env = pro
     // Delivered from evidence (stays monotonic when complaints arrive).
     const delivered = await deliveredCount(client, dispatch.id);
     const windowFrom = dispatch.providerSendAttemptAt || dispatch.providerSentAt || null;
+    // GAP 3: delayed events. The window ends now; events are still expected
+    // until EVENTS_SETTLE_HOURS after the provider finished sending.
+    const settleFrom = dispatch.providerSentAt || dispatch.completedAt || windowFrom;
+    const settleUntil = settleFrom ? new Date(new Date(settleFrom).getTime() + EVENTS_SETTLE_HOURS * 3600000) : null;
+    const eventsStillArriving = Boolean(windowFrom) && (!settleUntil || settleUntil > clock());
+    const spend = pricing ? await pricing.dispatchSpend(dispatch) : null;
+    const quota = await reportQuota(user, organizationId);
     return {
       dispatch: serializeDispatch(dispatch),
       counts,
@@ -288,7 +299,18 @@ function createBroadcastService({ client, config, audit, jobs, stepUp, env = pro
         rates: "recipients handed to the provider (provider accepted, delivered, delayed, bounced, complained, suppressed)",
         delivered: "recipients with delivery evidence (delivered event or a later complaint)",
         window: { from: iso(windowFrom), to: iso(dispatch.completedAt) || iso(clock()), note: "From provider handoff until the report was generated; events keep arriving after completion." },
+        // GAP 3: report window end and the delayed-event flag.
+        reportWindowEnd: iso(clock()),
+        eventsSettleUntil: iso(settleUntil),
+        eventsStillArriving,
+        eventsSettleHours: EVENTS_SETTLE_HOURS,
+        sent: { count: handedToProvider, denominator: "recipients handed to the provider" },
+        accepted: { count: handedToProvider, denominator: "recipients the provider accepted (same set as handed to the provider)" },
+        delivered: { count: delivered, denominator: "recipients handed to the provider", basis: "delivery evidence" },
       },
+      // GAP 3: estimated spend (never billed spend) and provider quota.
+      spend,
+      providerQuota: quota,
       rates: { deliveredPercent: rate(delivered), bouncePercent: rate(counts.BOUNCED), complaintPercent: rate(counts.COMPLAINED), openPercentIndicative: rate(opened), clickPercentIndicative: rate(clicked), replyPercent: replied ? rate(replied.replied) : null },
       // Spec 13.3 "replied": evidence-based attribution (null until migration 35).
       replied,
@@ -296,6 +318,24 @@ function createBroadcastService({ client, config, audit, jobs, stepUp, env = pro
       exclusions: exclusions.map((row) => ({ reason: row.exclusionReason, count: row._count._all })),
       timeline: events.map((event) => ({ action: event.action, actor: event.actorAdminUserId, outcome: event.outcome, metadata: event.metadata, at: iso(event.createdAt) })).reverse(),
     };
+  }
+
+  // Provider quota is account-level. A brand sees it only when it has its own
+  // provider account (brand scope); otherwise only mail admins see the
+  // account scope. Never throws.
+  async function reportQuota(user, organizationId) {
+    if (!providerQuota) return null;
+    try {
+      if (!(await providerQuota.ready())) return { status: "UNAVAILABLE", reason: "Quota reporting is not available until the final gap-closure migration is applied." };
+      const organization = await client.mailOrganization.findUnique({ where: { id: organizationId }, select: { slug: true } });
+      const { source } = resolveBrandApiKey(organization.slug, { env, config });
+      const brandScope = source === "brand" ? quotaScopeFor(organization.slug, source) : null;
+      if (brandScope) return await providerQuota.snapshot(brandScope, "resend");
+      if (await policy.canAdministerMail(client, user, "VIEW")) return { ...(await providerQuota.snapshot("account", config.provider === "fake" ? "fake" : "resend")), visibleBecause: "MAIL_ADMIN" };
+      return { status: "HIDDEN", reason: "This brand shares the company provider account; its quota is visible to mail administrators only." };
+    } catch {
+      return { status: "UNAVAILABLE", reason: "Quota could not be read." };
+    }
   }
 
   async function listRecipients(user, organizationId, campaignId, { status, cursor, limit } = {}) {
@@ -342,6 +382,8 @@ function createBroadcastService({ client, config, audit, jobs, stepUp, env = pro
       subscriptions: { subscribed: consentCounts.GRANTED || 0, pendingConfirmation: consentCounts.PENDING_CONFIRMATION || 0, optedOut: consentCounts.WITHDRAWN || 0, denominator: "consent records (one per contact and topic) of this brand", window: "current state, all time" },
       windows: { recipientsLast30Days: { from: since.toISOString(), to: clock().toISOString(), denominator: "broadcast recipient rows created in the window, by status" } },
       flags: { broadcastDispatchEnabled: config.broadcastDispatchEnabled, automationEnabled: config.automationEnabled, emergencyStop: config.emergencyStop.marketing },
+      // GAP 3: estimated (not billed) spend of this brand's dispatches only.
+      spend: pricing ? await pricing.brandSpendSummary(organizationId, since) : null,
     };
   }
 

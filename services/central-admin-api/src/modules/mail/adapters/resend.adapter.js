@@ -7,6 +7,7 @@
 const { MailProviderError, broadcastDisabled } = require("./mail-provider.contract");
 const { formatParty, parseParty, parsePartyList } = require("../security/address.util");
 const { normalizeMessageId, parseReferences } = require("../security/header-safety");
+const { quotaErrorKind, quotaExhaustedError } = require("../ops/provider-quota.service");
 
 const MAX_ATTACHMENT_DOWNLOAD_BYTES = 40 * 1024 * 1024;
 
@@ -57,8 +58,19 @@ function originalHeaderList(headers) {
     .flatMap(([name, value]) => (Array.isArray(value) ? value : [value]).map((entry) => ({ name, value: String(entry ?? "").slice(0, 8192) })));
 }
 
-function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () => Date.now() }) {
+function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () => Date.now(), quotaObserver = null }) {
   const { apiKey, baseUrl, timeoutMs, attachmentHostAllowlist } = config.resend;
+  // GAP 3: non-blocking quota hook (provider-quota.service observer). It is
+  // called after every API response; it must never delay or fail a call.
+  let observeQuota = quotaObserver;
+  function observe(response, errorName) {
+    if (!observeQuota) return;
+    try {
+      observeQuota({ headers: response.headers, status: response.status, errorName });
+    } catch {
+      // recording quota is best effort
+    }
+  }
 
   function requireConfigured() {
     if (!apiKey) throw new MailProviderError("NOT_CONFIGURED", "RESEND_NOT_CONFIGURED", "Resend API key is not configured");
@@ -98,9 +110,14 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
         payload = null;
       }
     }
+    observe(response, payload?.name || null);
     if (!response.ok) {
       const retryAfter = Number(response.headers?.get?.("retry-after"));
       const errorName = String(payload?.name || "");
+      // 429 daily/monthly_quota_exceeded: a definitive refusal that lasts until
+      // the documented reset, not a short rate-limit retry.
+      const quotaKind = quotaErrorKind(response.status, errorName);
+      if (quotaKind) throw quotaExhaustedError(quotaKind, { now: new Date(clock()), message: String(payload?.message || errorName).slice(0, 300) });
       const kind = classifyStatus(response.status, errorName);
       throw new MailProviderError(kind, kind === "IDEMPOTENCY_CONFLICT" ? "RESEND_IDEMPOTENCY_CONFLICT" : `RESEND_HTTP_${response.status}`, String(payload?.message || payload?.name || `Resend returned ${response.status}`).slice(0, 300), {
         status: response.status,
@@ -318,6 +335,10 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
 
   return {
     name: "resend",
+    quotaScope: "account",
+    setQuotaObserver(fn) {
+      observeQuota = typeof fn === "function" ? fn : null;
+    },
     sendMessage,
     fetchInboundMessage,
     fetchInboundAttachments,

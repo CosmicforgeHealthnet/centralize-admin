@@ -9,6 +9,7 @@ import {
   createContact,
   createSuppression,
   fetchAudiences,
+  fetchContactProviderStates,
   fetchContacts,
   fetchSuppressions,
   importContacts,
@@ -19,6 +20,7 @@ import {
 } from "@/lib/mail-marketing.service";
 import type { ConsentSource, MarketingOrganization } from "@/types/mail-marketing.types";
 import { EmBadge, EmCard, EmField, EmMessage, emBtn, emBtnOutline, emInput } from "./em-ui";
+import ResubscriptionsPanel from "./ResubscriptionsPanel";
 
 const SOURCES: ConsentSource[] = ["WEB_FORM", "EVENT", "MANUAL", "API", "IMPORT"];
 
@@ -259,13 +261,25 @@ function Suppressions({ org }: { org: MarketingOrganization }) {
 
 export default function ContactsPanel({ org }: { org: MarketingOrganization }) {
   const qc = useQueryClient();
-  const [tab, setTab] = useState<"contacts" | "add" | "import" | "suppressions">("contacts");
+  const [tab, setTab] = useState<"contacts" | "add" | "import" | "suppressions" | "resubscriptions">("contacts");
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const key = ["mail", "marketing", org.id, "contacts", query];
   const q = useQuery({ queryKey: key, queryFn: () => fetchContacts(org.id, { q: query || undefined }), gcTime: 300000, retry: false });
   const refresh = () => qc.invalidateQueries({ queryKey: ["mail", "marketing", org.id, "contacts"] });
+  // Final gap 2: what the provider says about each listed contact (hidden
+  // until the Mail database update that stores it is applied).
+  const contactIds = (q.data?.items ?? []).map((c) => c.id);
+  const providerStates = useQuery({
+    queryKey: ["mail", "marketing", org.id, "provider-states", contactIds.join(",")],
+    queryFn: () => fetchContactProviderStates(org.id, contactIds),
+    enabled: contactIds.length > 0,
+    gcTime: 300000,
+    retry: false,
+  });
+  const providerStateOf = new Map((providerStates.data?.items ?? []).map((row) => [row.contactId, row]));
+  const showProviderState = providerStates.isSuccess;
   const withdraw = useMutation({
     mutationFn: ({ contactId, topic }: { contactId: string; topic: string }) => withdrawConsent(org.id, contactId, topic),
     onSuccess: () => { setMsg("Consent withdrawn."); refresh(); },
@@ -277,6 +291,7 @@ export default function ContactsPanel({ org }: { org: MarketingOrganization }) {
     ...(org.canAuthor ? [{ id: "add" as const, label: "Add contact" }] : []),
     ...(org.canAuthor || org.canApprove ? [{ id: "import" as const, label: "CSV import" }] : []),
     { id: "suppressions" as const, label: "Suppressions" },
+    { id: "resubscriptions" as const, label: "Re-subscriptions" },
   ];
 
   return (
@@ -298,6 +313,7 @@ export default function ContactsPanel({ org }: { org: MarketingOrganization }) {
       {tab === "add" && <AddContact org={org} onDone={refresh} />}
       {tab === "import" && <ImportContacts org={org} onDone={refresh} />}
       {tab === "suppressions" && <Suppressions org={org} />}
+      {tab === "resubscriptions" && <ResubscriptionsPanel org={org} />}
       {tab === "contacts" && (
         <div className="flex flex-col gap-2">
           <form role="search" className="flex gap-2" onSubmit={(e) => { e.preventDefault(); setQuery(search.trim()); }}>
@@ -312,13 +328,18 @@ export default function ContactsPanel({ org }: { org: MarketingOrganization }) {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-[12px]">
-                  <thead className="text-muted-foreground"><tr><th className="py-1">Email</th><th>Name</th><th>Status</th><th>Consents</th></tr></thead>
+                  <thead className="text-muted-foreground"><tr><th className="py-1">Email</th><th>Name</th><th>Status</th>{showProviderState && <th>Provider</th>}<th>Consents</th></tr></thead>
                   <tbody>
                     {(q.data?.items ?? []).map((c) => (
                       <tr key={c.id} className="border-t border-border align-top">
                         <td className="py-1.5">{c.email}</td>
                         <td>{[c.firstName, c.lastName].filter(Boolean).join(" ") || "—"}</td>
                         <td><EmBadge value={c.status} /></td>
+                        {showProviderState && (
+                          <td title={providerStateOf.get(c.id)?.reason ? `Provider reason: ${providerStateOf.get(c.id)?.reason}` : "What the email provider reports for this contact"}>
+                            <EmBadge value={providerStateOf.get(c.id)?.state ?? "UNKNOWN"} />
+                          </td>
+                        )}
                         <td>
                           <ul className="flex flex-col gap-1">
                             {c.consents.length === 0 && <li className="text-muted-foreground">No consent recorded (not eligible)</li>}

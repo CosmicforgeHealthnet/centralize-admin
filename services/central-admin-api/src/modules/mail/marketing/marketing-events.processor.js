@@ -13,6 +13,14 @@
 // brand-endpoint event can only affect its own brand. Delivery evidence is
 // kept as a mail_delivery_events row so "delivered" never falls when a later
 // complaint or bounce replaces the recipient status.
+// GAP 2: the provider's view of each contact is also recorded
+// (marketing_contact_provider_states, via resubscriptions.observe, after the
+// consent transaction commits): hard bounce -> SUPPRESSED/HARD_BOUNCE,
+// complaint -> SUPPRESSED/COMPLAINT, provider suppression ->
+// SUPPRESSED/PROVIDER_SUPPRESSED, contact.updated unsubscribed ->
+// UNSUBSCRIBED/USER_UNSUBSCRIBE. Soft bounces change nothing. A provider
+// unsubscribe that occurred before an APPLIED re-subscription is stale and
+// no longer withdraws the newer, verified consent (audited, not silent).
 
 const { normalizeAddress } = require("../security/address.util");
 const { enforceWithdrawal, suppressAddress } = require("./consent-enforcement");
@@ -37,7 +45,21 @@ function replaceable(status) {
   return Object.keys(RANK).filter((key) => RANK[key] <= RANK[status]);
 }
 
-function createMarketingEventsProcessor({ client, audit, clock = () => new Date() }) {
+// Provider state implied by a delivery status (null = no change).
+function providerStateFor(status, data, isHardBounce) {
+  if (status === "BOUNCED") return isHardBounce(data) ? { state: "SUPPRESSED", reason: "HARD_BOUNCE" } : null;
+  if (status === "COMPLAINED") return { state: "SUPPRESSED", reason: "COMPLAINT" };
+  if (status === "SUPPRESSED") return { state: "SUPPRESSED", reason: "PROVIDER_SUPPRESSED" };
+  return null;
+}
+
+function createMarketingEventsProcessor({ client, audit, resubscriptions = null, clock = () => new Date() }) {
+  // Runs after the caller's transaction committed; never throws.
+  async function observeAll(observations) {
+    if (!resubscriptions) return;
+    for (const entry of observations) await resubscriptions.observe(entry).catch(() => null);
+  }
+
   function eventMeta(event) {
     const payload = event.payload || {};
     const data = payload.data || {};
@@ -80,6 +102,7 @@ function createMarketingEventsProcessor({ client, audit, clock = () => new Date(
     if (meta.brandOrganizationId && meta.brandOrganizationId !== dispatch.organizationId) return { matched: 0, reason: "CROSS_BRAND_EVENT_REJECTED" };
     const status = EVENT_TO_STATUS[meta.type];
     let matched = 0;
+    const observations = [];
     await client.$transaction(async (tx) => {
       for (const email of meta.recipients) {
         const recipient = await tx.marketingBroadcastRecipient.findFirst({ where: { dispatchId: dispatch.id, email } });
@@ -92,9 +115,12 @@ function createMarketingEventsProcessor({ client, audit, clock = () => new Date(
         if (status && !FINAL_SKIP.has(recipient.status)) await tx.marketingBroadcastRecipient.updateMany({ where: { id: recipient.id, status: { in: replaceable(status) } }, data: { status } });
         if (status === "DELIVERED") await recordDeliveryEvidence(tx, event, meta, dispatch, recipient);
         if (status === "BOUNCED" || status === "COMPLAINED" || status === "SUPPRESSED") await suppress(tx, dispatch.organizationId, email, status, meta.data);
+        const providerState = providerStateFor(status, meta.data, isHardBounce);
+        if (providerState) observations.push({ organizationId: dispatch.organizationId, contactId: recipient.contactId, ...providerState, observedAt: meta.occurredAt });
       }
       if (matched) await audit.record({ action: `MARKETING_BROADCAST_EVENT_${String(meta.type).split(".")[1].toUpperCase()}`, targetType: "marketing_broadcast", targetId: dispatch.id, organizationId: dispatch.organizationId, metadata: { recipients: matched } }, {}, tx);
     });
+    await observeAll(observations);
     return { matched };
   }
 
@@ -111,6 +137,8 @@ function createMarketingEventsProcessor({ client, audit, clock = () => new Date(
       if ((status === "BOUNCED" || status === "COMPLAINED" || status === "SUPPRESSED") && run.recipientEmail) await suppress(tx, run.organizationId, run.recipientEmail, status, meta.data);
       await audit.record({ action: `MARKETING_AUTOMATION_EVENT_${String(meta.type).split(".")[1].toUpperCase()}`, targetType: "marketing_automation_step_run", targetId: run.id, organizationId: run.organizationId }, {}, tx);
     });
+    const providerState = providerStateFor(status, meta.data, isHardBounce);
+    if (providerState && run.recipientEmail) await observeAll([{ organizationId: run.organizationId, email: run.recipientEmail, ...providerState, observedAt: meta.occurredAt }]);
     return { matched: 1 };
   }
 
@@ -133,16 +161,30 @@ function createMarketingEventsProcessor({ client, audit, clock = () => new Date(
     const scoped = meta.brandOrganizationId ? rows : rows.filter((row) => providerContactId && row.providerContactId === providerContactId);
     const organizations = meta.brandOrganizationId && !scoped.length && email ? [{ organizationId: meta.brandOrganizationId, email }] : scoped;
     let applied = 0;
+    let superseded = 0;
+    // The event's own creation time (kept across webhook retries) is when the
+    // provider recorded the unsubscribe.
+    const unsubscribedAt = Number.isNaN(meta.occurredAt.getTime()) ? clock() : meta.occurredAt;
     for (const row of organizations) {
+      const contactId = row.contactId || (await client.marketingContact.findUnique({ where: { organizationId_email: { organizationId: row.organizationId, email: String(row.email || email || "").toLowerCase() } }, select: { id: true } }).catch(() => null))?.id || null;
+      const newer = resubscriptions ? await resubscriptions.supersededBy(row.organizationId, contactId, unsubscribedAt) : null;
+      if (newer) {
+        superseded += 1;
+        await audit.record({ action: "MARKETING_PROVIDER_UNSUBSCRIBE_SUPERSEDED", targetType: "marketing_contact", targetId: contactId, organizationId: row.organizationId, metadata: { contactId, resubscriptionId: newer.id, unsubscribedAt: unsubscribedAt.toISOString(), resubscribedAt: newer.completedAt.toISOString() } });
+        continue;
+      }
+      let withdrawnContactId = null;
       await client.$transaction(async (tx) => {
         const result = await enforceWithdrawal(tx, { organizationId: row.organizationId, email: row.email || email, reason: "UNSUBSCRIBED", source: "provider_unsubscribe", now: clock() });
         if (result.applied) {
           applied += 1;
+          withdrawnContactId = result.contactId;
           await audit.record({ action: "MARKETING_PROVIDER_UNSUBSCRIBE_APPLIED", targetType: "marketing_contact", targetId: result.contactId, organizationId: row.organizationId, metadata: { withdrawn: result.withdrawn, enrollmentsExited: result.enrollmentsExited } }, {}, tx);
         }
       });
+      if (withdrawnContactId) await observeAll([{ organizationId: row.organizationId, contactId: withdrawnContactId, state: "UNSUBSCRIBED", reason: "USER_UNSUBSCRIBE", observedAt: unsubscribedAt }]);
     }
-    return { matched: applied };
+    return { matched: applied, ...(superseded ? { superseded } : {}) };
   }
 
   // Returns null when the event is not marketing-related (transactional path continues).

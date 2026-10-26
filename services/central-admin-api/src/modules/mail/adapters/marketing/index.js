@@ -26,8 +26,17 @@ function resolveBrandApiKey(slug, { env = process.env, config }) {
   return { apiKey: "", source: "none" };
 }
 
+// Quota scope of a brand's provider account (GAP 3): a brand key is its own
+// account ("brand:<slug>"); the shared key is one account for all brands.
+function quotaScopeFor(slug, source) {
+  if (source === "brand") return `brand:${String(slug).toLowerCase()}`.slice(0, 64);
+  if (source === "shared") return "marketing-shared";
+  return null;
+}
+
 // Returns (organization) -> adapter. Adapters are cached per brand.
-function createMarketingProviderResolver({ config, env = process.env, fetchImpl, adapter = null, adapters = null }) {
+// quotaObserver(scope, provider) -> hook, wired into real Resend adapters.
+function createMarketingProviderResolver({ config, env = process.env, fetchImpl, adapter = null, adapters = null, quotaObserver = null }) {
   const cache = new Map();
   return function forOrganization(organization) {
     if (!organization?.slug) return unconfiguredMarketingAdapter("Unknown brand");
@@ -38,8 +47,11 @@ function createMarketingProviderResolver({ config, env = process.env, fetchImpl,
     if (config.provider === "fake") {
       resolved = process.env.NODE_ENV === "production" ? unconfiguredMarketingAdapter("fake provider is not allowed in production") : createFakeMarketingAdapter();
     } else {
-      const { apiKey } = resolveBrandApiKey(organization.slug, { env, config });
-      resolved = apiKey ? createResendMarketingAdapter({ apiKey, config, fetchImpl }) : unconfiguredMarketingAdapter(`No marketing provider key for brand ${organization.slug}`);
+      const { apiKey, source } = resolveBrandApiKey(organization.slug, { env, config });
+      const quotaScope = quotaScopeFor(organization.slug, source);
+      resolved = apiKey
+        ? createResendMarketingAdapter({ apiKey, config, fetchImpl, quotaScope, quotaObserver: quotaObserver && quotaScope ? quotaObserver(quotaScope, "resend") : null })
+        : unconfiguredMarketingAdapter(`No marketing provider key for brand ${organization.slug}`);
     }
     assertMarketingAdapter(resolved);
     cache.set(organization.slug, resolved);
@@ -53,4 +65,4 @@ function describeBrandProvider(slug, { env = process.env, config }) {
   return { configured: source !== "none" || config.provider === "fake", credentialSource: config.provider === "fake" ? "fake" : source, credentialEnvName: brandKeyName(slug) };
 }
 
-module.exports = { createMarketingProviderResolver, resolveBrandApiKey, describeBrandProvider, brandKeyName, createFakeMarketingAdapter };
+module.exports = { createMarketingProviderResolver, resolveBrandApiKey, describeBrandProvider, brandKeyName, createFakeMarketingAdapter, quotaScopeFor };

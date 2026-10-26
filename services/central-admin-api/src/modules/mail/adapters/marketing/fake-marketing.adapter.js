@@ -9,7 +9,7 @@
 const crypto = require("crypto");
 const { MailProviderError } = require("../mail-provider.contract");
 
-function createFakeMarketingAdapter({ name = "fake" } = {}) {
+function createFakeMarketingAdapter({ name = "fake", resubscribeSupported = true } = {}) {
   const state = {
     contacts: new Map(), // email -> { id, email, firstName, lastName, unsubscribed, segments:Set }
     segments: new Map(), // id -> { id, name, deleted }
@@ -18,6 +18,9 @@ function createFakeMarketingAdapter({ name = "fake" } = {}) {
     byIdempotency: new Map(),
     failures: [],
     calls: [],
+    // GAP 2 test knob: the provider accepts the PATCH but the contact stays
+    // unsubscribed (verification mismatch).
+    ignoreResubscribe: false,
   };
 
   function record(operation, detail) {
@@ -34,6 +37,12 @@ function createFakeMarketingAdapter({ name = "fake" } = {}) {
   // acceptBeforeFailing: the provider performs the write, then the response is lost (ambiguous).
   async function guarded(operation, perform) {
     const failure = nextFailure(operation);
+    // GAP 3: failNext(op, "QUOTA_EXHAUSTED", "DAILY"|"MONTHLY", { now }) models
+    // Resend's 429 daily_quota_exceeded / monthly_quota_exceeded.
+    if (failure?.kind === "QUOTA_EXHAUSTED") {
+      const { quotaExhaustedError } = require("../../ops/provider-quota.service");
+      throw quotaExhaustedError(failure.code === "MONTHLY" ? "MONTHLY" : "DAILY", { now: failure.now || new Date() });
+    }
     if (failure && !failure.acceptBeforeFailing) throw new MailProviderError(failure.kind, failure.code, `fake ${operation} failure`, { retryAfterSeconds: failure.retryAfterSeconds ?? null });
     const result = await perform();
     if (failure) throw new MailProviderError(failure.kind, failure.code, `fake ${operation} lost response`);
@@ -45,7 +54,10 @@ function createFakeMarketingAdapter({ name = "fake" } = {}) {
   const adapter = {
     name,
     configured: true,
+    quotaScope: null,
+    resubscribeSupported,
     state,
+    setQuotaObserver() {},
     failNext(operation, kind, code = "FAKE_FAILURE", options = {}) {
       state.failures.push({ operation, kind, code, ...options });
     },
@@ -82,6 +94,17 @@ function createFakeMarketingAdapter({ name = "fake" } = {}) {
         if (state.contacts.has(key)) throw new MailProviderError("PERMANENT", "RESEND_HTTP_409", "contact already exists", { status: 409 });
         const contact = { id: `fake_contact_${crypto.randomUUID()}`, email: key, firstName: firstName || null, lastName: lastName || null, unsubscribed: false, segments: new Set(segmentIds) };
         state.contacts.set(key, contact);
+        return { id: contact.id };
+      });
+    },
+    // GAP 2: models PATCH /contacts/{id} {unsubscribed:false}.
+    async resubscribeContact(contactId) {
+      return guarded("resubscribeContact", async () => {
+        record("resubscribeContact", { contactId });
+        if (!resubscribeSupported) throw new MailProviderError("PERMANENT", "PROVIDER_RESUBSCRIBE_NOT_ENABLED", "fake provider without re-subscription");
+        const contact = findContactById(contactId);
+        if (!contact) throw new MailProviderError("PERMANENT", "RESEND_HTTP_404", "unknown contact", { status: 404 });
+        if (!state.ignoreResubscribe) contact.unsubscribed = false;
         return { id: contact.id };
       });
     },
@@ -169,6 +192,10 @@ function createFakeMarketingAdapter({ name = "fake" } = {}) {
     },
     async sendEmail(request) {
       const failure = nextFailure("sendEmail");
+      if (failure?.kind === "QUOTA_EXHAUSTED") {
+        const { quotaExhaustedError } = require("../../ops/provider-quota.service");
+        throw quotaExhaustedError(failure.code === "MONTHLY" ? "MONTHLY" : "DAILY", { now: failure.now || new Date() });
+      }
       if (failure && !failure.acceptBeforeFailing) throw new MailProviderError(failure.kind, failure.code, "fake sendEmail failure");
       if (state.byIdempotency.has(request.idempotencyKey)) return { providerMessageId: state.byIdempotency.get(request.idempotencyKey) };
       const providerMessageId = `fake_mkt_${crypto.randomUUID()}`;

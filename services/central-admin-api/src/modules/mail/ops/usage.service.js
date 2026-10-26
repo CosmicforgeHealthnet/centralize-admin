@@ -136,7 +136,14 @@ function createUsageService({ client, audit, env = process.env, clock = () => ne
       since: since.toISOString(),
       summary,
       limits: limits.map((limit) => ({ ...limit, updatedAt: limit.updatedAt.toISOString() })),
-      cost: costRates ? { currency: costRates.currency, source: "MAIL_COST_RATES (operator-provided)" } : { currency: null, source: null, note: "No prices configured. Counts only; multiply by your contracted provider rates." },
+      cost: {
+        ...(costRates ? { currency: costRates.currency, source: "MAIL_COST_RATES (operator-provided)" } : { currency: null, source: null, note: "No prices configured. Counts only; multiply by your contracted provider rates." }),
+        // GAP 3: any amount here is an estimate; the provider has no billing API.
+        label: "estimated (not billed)",
+        billed: null,
+        billedStatus: "UNAVAILABLE",
+        pricing: "Approved provider pricing (MFA step-up) and per-dispatch estimates: GET /admin/pricing.",
+      },
     };
   }
 

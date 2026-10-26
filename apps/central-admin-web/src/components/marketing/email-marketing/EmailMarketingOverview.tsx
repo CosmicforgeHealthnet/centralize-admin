@@ -6,6 +6,7 @@ import PermissionBoundary from "@/components/mail/PermissionBoundary";
 import { fetchAudiences, fetchCampaigns, fetchTemplates } from "@/lib/mail-marketing.service";
 import type { CampaignStatus, MarketingOrganization } from "@/types/mail-marketing.types";
 import AnalyticsFoundation from "./AnalyticsFoundation";
+import OverviewSpendCard from "./OverviewSpendCard";
 import { EmBadge, EmCard } from "./em-ui";
 import { useOrgHref } from "./EmailMarketingShell";
 
@@ -65,6 +66,7 @@ export default function EmailMarketingOverview({ org }: { org: MarketingOrganiza
         </PermissionBoundary>
       </EmCard>
       <AnalyticsFoundation org={org} />
+      <OverviewSpendCard org={org} />
     </div>
   );
 }

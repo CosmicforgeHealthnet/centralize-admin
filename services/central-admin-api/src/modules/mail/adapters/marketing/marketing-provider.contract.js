@@ -26,6 +26,11 @@
 //   sendEmail(request) -> { providerMessageId }   (same shape as the Mail
 //   transport sendMessage; uses the provider Idempotency-Key)
 // healthProbe() -> { ok, latencyMs, detail }
+// Optional (GAP 2/3; not required so older test doubles stay valid):
+//   resubscribeContact(contactId) -> { id }   clears the provider-side global
+//     unsubscribe. Undocumented at Resend: only behind
+//     MAIL_MARKETING_PROVIDER_RESUBSCRIBE_ENABLED (default false).
+//   setQuotaObserver(fn), quotaScope            quota header capture (GAP 3)
 //
 // Errors are MailProviderError (RETRYABLE | AMBIGUOUS | PERMANENT |
 // IDEMPOTENCY_CONFLICT | NOT_CONFIGURED), shared with the transport adapter.
@@ -69,6 +74,7 @@ function unconfiguredMarketingAdapter(reason) {
   };
   const adapter = { name: "unconfigured", configured: false };
   for (const method of MARKETING_METHODS) adapter[method] = fail;
+  adapter.resubscribeContact = fail;
   adapter.healthProbe = async () => ({ ok: false, latencyMs: 0, detail: reason });
   return adapter;
 }

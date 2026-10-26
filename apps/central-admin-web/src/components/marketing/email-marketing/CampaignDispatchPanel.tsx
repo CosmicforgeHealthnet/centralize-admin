@@ -18,6 +18,7 @@ import {
 } from "@/lib/mail-marketing.service";
 import type { Campaign, MarketingOrganization } from "@/types/mail-marketing.types";
 import { BROADCAST_STATUS_HELP, EmBadge, EmCard, EmField, EmMessage, emBtn, emBtnOutline, emInput } from "./em-ui";
+import CampaignCostPanel from "./CampaignCostPanel";
 
 const ACTIVE = new Set(["SCHEDULED", "QUEUED", "PREPARING", "SENDING", "PAUSED"]);
 const FALLBACK_ZONES = ["UTC", "Africa/Lagos", "Africa/Accra", "Africa/Nairobi", "Africa/Johannesburg", "Europe/London", "Europe/Berlin", "America/New_York", "America/Los_Angeles", "Asia/Dubai"];
@@ -242,6 +243,7 @@ export default function CampaignDispatchPanel({ org, campaign }: { org: Marketin
               {reportQ.data.exclusions.length > 0 && (
                 <p className="mt-1 text-muted-foreground">Excluded: {reportQ.data.exclusions.map((e) => `${e.reason.replace(/_/g, " ").toLowerCase()} ${e.count}`).join(" · ")}</p>
               )}
+              <CampaignCostPanel report={reportQ.data} />
             </section>
           )}
 

@@ -17,11 +17,17 @@
 // - default rate limit 10 requests/s per team; 429 carries retry-after.
 // Because contacts are account-global, each brand should use its own Resend
 // account/key (see adapters/marketing/index.js).
+// GAP 2: re-subscription. Resend documents PATCH /contacts/{id} with
+// `unsubscribed: true` only; sending `false` is NOT documented. It is sent
+// only when MAIL_MARKETING_PROVIDER_RESUBSCRIBE_ENABLED=true (confirmed with
+// Resend support); otherwise resubscribeContact refuses without a call.
+// GAP 3: quota headers / quota 429s are reported to a non-blocking observer.
 
 const { MailProviderError } = require("../mail-provider.contract");
 const { createResendAdapter, classifyStatus } = require("../resend.adapter");
 const { normalizeBroadcastStatus } = require("./marketing-provider.contract");
 const { formatParty } = require("../../security/address.util");
+const { quotaErrorKind, quotaExhaustedError } = require("../../ops/provider-quota.service");
 
 function createRateLimiter(requestsPerSecond, { now = () => Date.now(), sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)) } = {}) {
   const interval = Math.ceil(1000 / Math.max(1, requestsPerSecond));
@@ -34,12 +40,21 @@ function createRateLimiter(requestsPerSecond, { now = () => Date.now(), sleep = 
   };
 }
 
-function createResendMarketingAdapter({ apiKey, config, fetchImpl = globalThis.fetch, clock = () => Date.now(), sleep }) {
+function createResendMarketingAdapter({ apiKey, config, fetchImpl = globalThis.fetch, clock = () => Date.now(), sleep, quotaObserver = null, quotaScope = null }) {
   const { baseUrl, timeoutMs } = config.resend;
   const acquire = createRateLimiter(config.broadcast.providerRequestsPerSecond, { sleep });
   // Single marketing emails reuse the hardened transport implementation
   // (Idempotency-Key, 409 classification, timeouts) with the brand key.
-  const transport = createResendAdapter({ config: { ...config, resend: { ...config.resend, apiKey } }, fetchImpl, clock });
+  const transport = createResendAdapter({ config: { ...config, resend: { ...config.resend, apiKey } }, fetchImpl, clock, quotaObserver });
+  let observeQuota = quotaObserver;
+  function observe(response, errorName) {
+    if (!observeQuota) return;
+    try {
+      observeQuota({ headers: response.headers, status: response.status, errorName });
+    } catch {
+      // best effort
+    }
+  }
 
   async function call(method, path, { body, phase = "read", notFoundAsNull = false } = {}) {
     if (!apiKey) throw new MailProviderError("NOT_CONFIGURED", "RESEND_NOT_CONFIGURED", "Resend marketing API key is not configured");
@@ -69,8 +84,11 @@ function createResendMarketingAdapter({ apiKey, config, fetchImpl = globalThis.f
         payload = null;
       }
     }
+    observe(response, payload?.name || null);
     if (response.status === 404 && notFoundAsNull) return null;
     if (!response.ok) {
+      const quotaKind = quotaErrorKind(response.status, String(payload?.name || ""));
+      if (quotaKind) throw quotaExhaustedError(quotaKind, { now: new Date(clock()), message: String(payload?.message || payload?.name).slice(0, 300) });
       const retryAfter = Number(response.headers?.get?.("retry-after"));
       const kind = classifyStatus(response.status, String(payload?.name || ""));
       throw new MailProviderError(kind, `RESEND_HTTP_${response.status}`, String(payload?.message || payload?.name || `Resend returned ${response.status}`).slice(0, 300), { status: response.status, retryAfterSeconds: Number.isFinite(retryAfter) ? retryAfter : null });
@@ -96,20 +114,32 @@ function createResendMarketingAdapter({ apiKey, config, fetchImpl = globalThis.f
   return {
     name: "resend",
     configured: true,
+    quotaScope,
+    resubscribeSupported: Boolean(config.providerResubscribeEnabled),
+    setQuotaObserver(fn) {
+      observeQuota = typeof fn === "function" ? fn : null;
+      transport.setQuotaObserver(observeQuota);
+    },
     async getContact(email) {
       const payload = await call("GET", `/contacts/${enc(email)}`, { notFoundAsNull: true });
       if (!payload?.id) return null;
       return { id: String(payload.id), email: String(payload.email || email).toLowerCase(), unsubscribed: payload.unsubscribed === true };
     },
     async createContact({ email, firstName, lastName, segmentIds = [] }) {
-      // `unsubscribed` is deliberately omitted: CosmicForge never re-subscribes
-      // a contact at the provider.
+      // `unsubscribed` is deliberately omitted: a provider unsubscribe is only
+      // ever lifted by an approved re-subscription (resubscribeContact).
       const payload = await call("POST", "/contacts", {
         phase: "write",
         body: { email, ...(firstName ? { first_name: firstName } : {}), ...(lastName ? { last_name: lastName } : {}), ...(segmentIds.length ? { segments: segmentIds.map((id) => ({ id })) } : {}) },
       });
       if (!payload?.id) throw new MailProviderError("AMBIGUOUS", "RESEND_NO_ID", "Contact accepted without an id");
       return { id: String(payload.id) };
+    },
+    // GAP 2: undocumented provider behaviour, flag-gated (see header).
+    async resubscribeContact(contactId) {
+      if (!config.providerResubscribeEnabled) throw new MailProviderError("PERMANENT", "PROVIDER_RESUBSCRIBE_NOT_ENABLED", "Provider re-subscription is not enabled (MAIL_MARKETING_PROVIDER_RESUBSCRIBE_ENABLED)");
+      await call("PATCH", `/contacts/${enc(contactId)}`, { phase: "write", body: { unsubscribed: false } });
+      return { id: String(contactId) };
     },
     async addContactToSegment(contactId, segmentId) {
       await call("POST", `/contacts/${enc(contactId)}/segments/${enc(segmentId)}`, { phase: "write" });

@@ -23,10 +23,17 @@
 // Pause / disabled flag / emergency stop defer the job without consuming
 // attempts and without deleting anything. Cancellation before the send is
 // complete; after the send only unsent mail can be stopped.
+// GAP 2: sync skips contacts whose provider state is UNSUBSCRIBED/SUPPRESSED
+// (unless an APPLIED re-subscription is newer) without touching consent, and
+// a provider unsubscribe flag that contradicts a verified re-subscription is
+// flagged (audited) instead of silently withdrawing the newer consent.
+// GAP 3: a provider quota exhaustion defers the job until the documented
+// reset (not a short retry); finalize stores the dispatch cost estimate.
 
 const crypto = require("crypto");
 const { externalSendBlockReason } = require("../authz/sending-gate");
 const { isBrandSender, SENDER_MAILBOX_SELECT } = require("./marketing-sender");
+const { quotaDeferSeconds } = require("../ops/provider-quota.service");
 
 const TERMINAL = new Set(["COMPLETED", "PARTIAL", "FAILED", "CANCELLED", "OUTCOME_UNKNOWN"]);
 const SEND_UNKNOWN_AFTER_MS = 60 * 60 * 1000;
@@ -67,7 +74,7 @@ function dispatchError(code, message, { retryable = false, retryAfterSeconds = n
   return Object.assign(new Error(message || code), { code, retryable, retryAfterSeconds });
 }
 
-function createBroadcastProcessor({ client, config, audit, jobs, marketingProviders, eligibility, notifications, runtime = null, usage = null, clock = () => new Date(), logger = null }) {
+function createBroadcastProcessor({ client, config, audit, jobs, marketingProviders, eligibility, notifications, runtime = null, usage = null, resubscriptions = null, pricing = null, providerQuota = null, clock = () => new Date(), logger = null }) {
   const now = () => clock();
 
   async function brandSettings(organizationId) {
@@ -124,6 +131,10 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
     const approval = approvals.find((entry) => entry.decision === "APPROVED" && entry.snapshotId === snapshot.id);
     if (!approval || approvals.some((entry) => entry.decision === "INVALIDATED" && entry.createdAt > approval.createdAt)) return { error: ["APPROVAL_INVALIDATED", "Approval is no longer valid"] };
     if (now().getTime() - approval.createdAt.getTime() > config.broadcast.approvalTtlDays * 86400000) return { error: ["APPROVAL_EXPIRED", `Approval is older than ${config.broadcast.approvalTtlDays} days`] };
+    // Gap 1: dispatch-time re-check of the approved version's classification
+    // snapshot (a transactional version never reaches a marketing audience).
+    const templateProblem = await require("./template-policy").templatePolicyFor(client).usabilityProblem(snapshot.templateVersionId, { purpose: "MARKETING", organizationId: organization.id });
+    if (templateProblem) return { error: [templateProblem, `Template version is not usable for marketing: ${templateProblem}`] };
     const sender = await client.mailAddress.findUnique({ where: { address: snapshot.senderAddress }, include: { domain: { include: { organization: { select: { id: true, slug: true } } } }, mailbox: SENDER_MAILBOX_SELECT } });
     if (!isBrandSender(sender, organization.id)) return { error: ["SENDER_NOT_AUTHORIZED", "Sender identity is no longer an active brand identity"] };
     const blocked = externalSendBlockReason({ config, providerReady: () => provider.configured !== false && provider.name !== "unconfigured", domain: sender.domain });
@@ -204,25 +215,48 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
     const batch = await client.marketingBroadcastRecipient.findMany({ where: { dispatchId: dispatch.id, status: "PENDING" }, orderBy: { id: "asc" }, take: config.broadcast.syncBatchSize, include: { contact: { select: { firstName: true, lastName: true } } } });
     if (!batch.length) return { remaining: 0 };
     const allowed = await stillEligible(dispatch.organizationId, campaign.topic, batch.map((row) => row.contactId));
+    // GAP 2: provider says it will not deliver (state recorded earlier).
+    const providerBlocked = resubscriptions ? await resubscriptions.providerExclusions(dispatch.organizationId, batch.map((row) => row.contactId)) : new Map();
     for (const recipient of batch) {
       if (!allowed.has(recipient.contactId)) {
         await client.marketingBroadcastRecipient.update({ where: { id: recipient.id }, data: { status: "EXCLUDED", exclusionReason: "WITHDRAWN_BEFORE_SEND" } });
         continue;
       }
+      const blocked = providerBlocked.get(recipient.contactId);
+      if (blocked) {
+        // Consent is not touched: it was handled when the state was observed.
+        await client.marketingBroadcastRecipient.update({ where: { id: recipient.id }, data: { status: "EXCLUDED", exclusionReason: blocked.state === "SUPPRESSED" ? "PROVIDER_SUPPRESSED" : "PROVIDER_UNSUBSCRIBED" } });
+        continue;
+      }
       try {
         const remote = await provider.getContact(recipient.email);
         if (remote?.unsubscribed) {
+          // A verified, APPLIED re-subscription with no unsubscribe observed
+          // since: the flag contradicts it. Exclude (the provider would not
+          // deliver) and flag it for the operator; never silently withdraw
+          // the newer consent.
+          const applied = resubscriptions ? await resubscriptions.supersededBy(dispatch.organizationId, recipient.contactId, new Date(0)) : null;
+          const state = applied ? await client.marketingContactProviderState.findUnique({ where: { contactId: recipient.contactId } }).catch(() => null) : null;
+          if (applied && (!state || state.state !== "UNSUBSCRIBED" || state.observedAt <= applied.completedAt)) {
+            await client.marketingBroadcastRecipient.update({ where: { id: recipient.id }, data: { status: "EXCLUDED", exclusionReason: "PROVIDER_STATE_MISMATCH", providerContactId: remote.id } });
+            await audit.record({ action: "MARKETING_PROVIDER_STATE_MISMATCH", targetType: "marketing_contact", targetId: recipient.contactId, organizationId: dispatch.organizationId, outcome: "UNKNOWN", metadata: { contactId: recipient.contactId, resubscriptionId: applied.id, dispatchId: dispatch.id, note: "Provider reports unsubscribed after a verified re-subscription; consent kept, recipient excluded" } });
+            await resubscriptions.observe({ organizationId: dispatch.organizationId, contactId: recipient.contactId, state: "UNSUBSCRIBED", reason: "USER_UNSUBSCRIBE", observedAt: now() });
+            continue;
+          }
           // Provider-side unsubscribe for this brand's account: honour it here.
           const { enforceWithdrawal } = require("./consent-enforcement");
           await client.$transaction((tx) => enforceWithdrawal(tx, { organizationId: dispatch.organizationId, contactId: recipient.contactId, reason: "UNSUBSCRIBED", source: "provider_unsubscribe", now: now() }));
           await client.marketingBroadcastRecipient.update({ where: { id: recipient.id }, data: { status: "UNSUBSCRIBED", exclusionReason: "PROVIDER_UNSUBSCRIBED", providerContactId: remote.id } });
+          if (resubscriptions) await resubscriptions.observe({ organizationId: dispatch.organizationId, contactId: recipient.contactId, state: "UNSUBSCRIBED", reason: "USER_UNSUBSCRIBE", observedAt: now() });
           continue;
         }
+        if (remote && resubscriptions) await resubscriptions.observe({ organizationId: dispatch.organizationId, contactId: recipient.contactId, state: "SUBSCRIBED", reason: null, observedAt: now() });
         let providerContactId = remote?.id;
         if (remote) await provider.addContactToSegment(remote.id, dispatch.providerSegmentId);
         else providerContactId = (await provider.createContact({ email: recipient.email, firstName: recipient.contact?.firstName, lastName: recipient.contact?.lastName, segmentIds: [dispatch.providerSegmentId] })).id;
         await client.marketingBroadcastRecipient.update({ where: { id: recipient.id }, data: { status: "SYNCED", providerContactId, syncedAt: now() } });
       } catch (error) {
+        if (quotaDeferSeconds(error, now())) throw error;
         if (error?.kind === "PERMANENT") {
           await client.marketingBroadcastRecipient.update({ where: { id: recipient.id }, data: { status: "FAILED", exclusionReason: String(error.code || "SYNC_FAILED").slice(0, 64) } });
           continue;
@@ -320,6 +354,8 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
         await cleanupProviderDraft(dispatch, provider);
         return fail(dispatch, String(error.code || "PROVIDER_REJECTED"), error.message);
       }
+      // A quota refusal is definitive; the next run re-reads the status first.
+      if (quotaDeferSeconds(error, now())) throw error;
       throw dispatchError(error?.code || "PROVIDER_SEND_AMBIGUOUS", "Send outcome unknown; will reconcile by status", { retryable: true, retryAfterSeconds: 30 });
     }
     return markAccepted(dispatch, "QUEUED");
@@ -355,6 +391,12 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
       if (providerStatus === "CANCELED") await tx.marketingBroadcastRecipient.updateMany({ where: { dispatchId: dispatch.id, status: "PROVIDER_ACCEPTED" }, data: { status: "CANCELLED", exclusionReason: "CANCELLED_AT_PROVIDER" } });
       await audit.record({ action: "MARKETING_BROADCAST_FINALIZED", targetType: "marketing_broadcast", targetId: dispatch.id, organizationId: dispatch.organizationId, metadata: { status, providerStatus, counts, delivered } }, {}, tx);
     });
+    // GAP 3: cost estimate, computed once (never recomputed on a pricing
+    // change). Basis: recipients the provider accepted. Never blocks.
+    if (pricing) {
+      const provider = marketingProviders(await client.mailOrganization.findUnique({ where: { id: dispatch.organizationId } }).catch(() => null));
+      await pricing.recordDispatchCost({ dispatchId: dispatch.id, organizationId: dispatch.organizationId, provider: provider?.name === "fake" ? "fake" : "resend", basisCount: providerStatus === "CANCELED" ? attempted : handed, sentAt: sentAt || now() });
+    }
     await notifyOwners(dispatch, status === "COMPLETED" ? "Broadcast handed to the provider" : `Broadcast ${status.toLowerCase()}`, "Delivery results continue to update from provider events.");
     return { finalized: status };
   }
@@ -377,11 +419,37 @@ function createBroadcastProcessor({ client, config, audit, jobs, marketingProvid
     if (job?.lease?.lost) throw dispatchError("LEASE_LOST", "Job lease was lost; another worker continues", { retryable: true });
   }
 
+  // GAP 3: provider quota exhausted -> defer until the documented reset
+  // (midnight UTC / first of next month) without consuming attempts.
+  async function quotaDefer(dispatch, error) {
+    const seconds = quotaDeferSeconds(error, now());
+    await client.marketingBroadcastDispatch.update({ where: { id: dispatch.id }, data: { lastErrorCode: String(error.code || "PROVIDER_QUOTA_EXHAUSTED").slice(0, 64) } }).catch(() => {});
+    return { defer: { seconds, code: "PROVIDER_QUOTA_EXHAUSTED", message: `until ${new Date(error.quota.resetAt).toISOString()}` } };
+  }
+
   async function processDispatch(job) {
     const context = await loadContext(job);
     if (!context) return { skipped: true };
+    try {
+      return await processDispatchContext(job, context);
+    } catch (error) {
+      if (quotaDeferSeconds(error, now())) return quotaDefer(context.dispatch, error);
+      throw error;
+    }
+  }
+
+  async function processDispatchContext(job, context) {
     const { dispatch, organization, provider, settings } = context;
     if (TERMINAL.has(dispatch.status) || dispatch.status === "SENDING") return { skipped: dispatch.status };
+    if (providerQuota && provider.quotaScope && !dispatch.cancelRequestedAt) {
+      const exhausted = await providerQuota.exhaustedUntil(provider.quotaScope);
+      if (exhausted?.until) {
+        await client.marketingBroadcastDispatch.update({ where: { id: dispatch.id }, data: { lastErrorCode: "PROVIDER_QUOTA_EXHAUSTED" } });
+        return { defer: { seconds: Math.min(Math.max(Math.ceil((new Date(exhausted.until).getTime() - now().getTime()) / 1000), 1), 86400), code: "PROVIDER_QUOTA_EXHAUSTED" } };
+      }
+    }
+    // GAP 2: retry due re-subscriptions of this brand before syncing.
+    if (resubscriptions && !dispatch.providerSendAttemptAt) await resubscriptions.reconcileDue(dispatch.organizationId);
     if (dispatch.cancelRequestedAt && !dispatch.providerSendAttemptAt) return cancelBeforeSend(dispatch, provider);
     if (dispatch.status === "PAUSED") return { defer: { seconds: 300, code: "DISPATCH_PAUSED" } };
     const halted = haltReason(settings) || (runtime ? await runtime.haltReason("MARKETING_BROADCAST", { organizationId: dispatch.organizationId }) : null);
