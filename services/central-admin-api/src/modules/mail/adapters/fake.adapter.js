@@ -30,9 +30,13 @@ function createFakeAdapter() {
       const failure = nextFailure("sendMessage");
       // failNext("sendMessage", "QUOTA_EXHAUSTED", "DAILY"|"MONTHLY", { now })
       // models Resend's 429 daily_quota_exceeded / monthly_quota_exceeded.
+      // `now` may be a clock function: the provider computes the reset from
+      // the moment of the request, which in a test can be later than the
+      // moment failNext() was called (e.g. after the harness clock moved).
       if (failure?.kind === "QUOTA_EXHAUSTED") {
         const { quotaExhaustedError } = require("../ops/provider-quota.service");
-        throw quotaExhaustedError(failure.code === "MONTHLY" ? "MONTHLY" : "DAILY", { now: failure.now || new Date() });
+        const now = typeof failure.now === "function" ? failure.now() : failure.now || new Date();
+        throw quotaExhaustedError(failure.code === "MONTHLY" ? "MONTHLY" : "DAILY", { now });
       }
       if (failure && !failure.acceptBeforeFailing) throw new MailProviderError(failure.kind, failure.code, "fake failure", failure.category ? { category: failure.category } : {});
       // Provider-side idempotency mirrors Resend's Idempotency-Key semantics.
