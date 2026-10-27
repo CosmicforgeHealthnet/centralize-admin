@@ -19,12 +19,26 @@
 // reserved sender (MAIL_RESERVED_SENDER_ADDRESSES), or is not an address CA
 // has ever provisioned, is not CA's: it is acknowledged (200, ignored) and
 // nothing about it (recipient addresses included) is stored or queued.
-// Inbound mail (email.received), broadcast events and contact events are not
-// affected; an event without `from` is processed as before.
+//
+// Ownership rules on the company endpoint (brand endpoints are per-account and
+// keep the reserved/provisioned check only):
+//   - outbound email.*: the sender's domain must be on MAIL_DOMAIN_ALLOWLIST
+//     (broadcasts included: other brands' and HealthNet's senders never are);
+//     a reserved or never-provisioned sender is foreign; an event without a
+//     usable `from` is CA's only if its email id is one CA sent.
+//   - email.received: only the event's allowlisted recipients (to/cc/bcc) are
+//     stored for routing; other parties' addresses never are. The event is
+//     not refused on its listed recipients (a Bcc'd delivery may list only the
+//     header To); the inbound processor enforces exact-address ownership
+//     before anything is stored.
+//   - an ownership lookup that fails is not acknowledged (503, the provider
+//     retries) so a possibly foreign event is never stored by default.
+// Contact events are not affected.
 
 const crypto = require("crypto");
 const { verifyResendWebhook } = require("./resend-webhook.verifier");
 const { reservedSenderSet, eventSenderAddress } = require("../security/reserved-senders");
+const { parseParty } = require("../security/address.util");
 
 const SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
 
@@ -62,16 +76,54 @@ function storedPayload(payload, providerEmailId, brandOrganizationId) {
 function createResendWebhookHandler({ client, config, jobs, audit, logger, clock = () => Date.now(), env = process.env, brandMode = false, schemaReady = null }) {
   const reservedSenders = reservedSenderSet(config);
 
+  const ownedDomains = new Set((config.domainAllowlist || []).map((domain) => String(domain).toLowerCase()));
+  const ownedAddress = (address) => Boolean(address) && ownedDomains.has(address.split("@")[1]);
+
+  // Every recipient address an event lists (strings, "Name <a@b>" or objects).
+  function eventRecipients(data) {
+    const values = [];
+    for (const field of ["to", "cc", "bcc"]) {
+      const value = data?.[field];
+      for (const entry of Array.isArray(value) ? value : value ? [value] : []) {
+        const party = parseParty(entry);
+        if (party) values.push(party.address);
+      }
+    }
+    return [...new Set(values)];
+  }
+
   // Reason an outbound email event belongs to another system, or null.
+  // Throws when ownership cannot be established (the caller answers 503).
   async function foreignSenderReason(payload) {
     const type = String(payload.type || "");
-    if (!type.startsWith("email.") || type === "email.received" || payload.data?.broadcast_id) return null;
+    if (!type.startsWith("email.") || type === "email.received") return null;
+    const isBroadcast = Boolean(payload.data?.broadcast_id);
     const sender = eventSenderAddress(payload.data?.from);
-    if (!sender) return null;
+    if (!sender) {
+      if (brandMode || isBroadcast) return null;
+      const providerId = String(payload.data?.email_id || payload.data?.id || "").slice(0, 255);
+      if (!providerId) return null; // rejected as invalid (400) further down
+      const matches = await Promise.all([
+        client.mailMessage.findFirst({ where: { providerMessageId: providerId }, select: { id: true } }),
+        client.mailMessageRecipient.findFirst({ where: { providerMessageId: providerId }, select: { id: true } }),
+        client.marketingBroadcastRecipient.findFirst({ where: { providerEmailId: providerId }, select: { id: true } }),
+        client.marketingAutomationStepRun.findFirst({ where: { providerMessageId: providerId }, select: { id: true } }),
+      ]);
+      return matches.some(Boolean) ? null : "SENDER_MISSING_NOT_CA";
+    }
     if (reservedSenders.has(sender)) return "RESERVED_SENDER";
-    // Lookup failures fall through to the normal (durable) path.
-    const known = await client.mailAddress.findUnique({ where: { address: sender }, select: { id: true } }).catch(() => ({ id: null }));
+    if (!brandMode && !ownedAddress(sender)) return "SENDER_DOMAIN_NOT_OWNED";
+    if (isBroadcast) return null;
+    const known = await client.mailAddress.findUnique({ where: { address: sender }, select: { id: true } });
     return known ? null : "SENDER_NOT_PROVISIONED";
+  }
+
+  // For email.received: only the allowlisted recipients the event lists.
+  // An event is never refused on this list alone: a Bcc'd delivery to one of
+  // our addresses may list only the other party's header To. Ownership is
+  // enforced by the inbound processor before anything is stored.
+  function inboundOwnedRecipients(payload) {
+    return eventRecipients(payload.data).filter(ownedAddress);
   }
 
   // Each target carries its current secret and, during a rotation grace
@@ -115,9 +167,20 @@ function createResendWebhookHandler({ client, config, jobs, audit, logger, clock
 
     const isInbound = payload.type === "email.received";
     if (isInbound && brandMode) return res.status(200).json({ success: true, ignored: true });
-    const foreign = isInbound ? null : await foreignSenderReason(payload);
+    let foreign = null;
+    let inboundRecipients = null;
+    if (isInbound) {
+      if (!brandMode) inboundRecipients = inboundOwnedRecipients(payload);
+    } else {
+      try {
+        foreign = await foreignSenderReason(payload);
+      } catch (error) {
+        logger?.error?.(`[MailWebhook] ownership lookup failed: ${error?.code || error?.message}`);
+        return res.status(503).json({ success: false, code: "MAIL_STORAGE_UNAVAILABLE", message: "Event not accepted" });
+      }
+    }
     if (foreign) {
-      logger?.info?.(`[MailWebhook] ignored ${String(payload.type).slice(0, 40)} from a non-CA sender (${foreign})`);
+      logger?.info?.(`[MailWebhook] ignored ${String(payload.type).slice(0, 40)} for another system (${foreign})`);
       return res.status(200).json({ success: true, ignored: true, reason: "FOREIGN_SENDER" });
     }
     if (isInbound && !config.receivingEnabled) return res.status(503).json({ success: false, code: "MAIL_RECEIVING_DISABLED", message: "Receiving is not enabled" });
@@ -127,6 +190,17 @@ function createResendWebhookHandler({ client, config, jobs, audit, logger, clock
     const payloadSha256 = crypto.createHash("sha256").update(rawBody).digest("hex");
     // Store only routing metadata from the event; content is fetched later.
     const stored = storedPayload(payload, providerEmailId, target.organizationId);
+    // Inbound: keep only our own recipients (a Bcc'd department address
+    // included); other parties' addresses are never stored.
+    if (inboundRecipients) {
+      stored.data.to = inboundRecipients.slice(0, 100);
+      delete stored.data.cc;
+      delete stored.data.bcc;
+      // Lists none of our addresses: likely another product's mail. Keep
+      // nothing about its parties (the processor reads the sender from the
+      // provider, not from here).
+      if (!inboundRecipients.length) stored.data.from = null;
+    }
     // Brand events are namespaced so two provider accounts can never collide.
     const providerKey = brandMode ? `resend:${req.params.slug}` : "resend";
     try {
