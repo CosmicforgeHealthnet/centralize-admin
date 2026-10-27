@@ -1151,7 +1151,9 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
       harness.adapter.sendMessage = async (req) => {
         const result = await original(req);
         if (req.to.some((party) => party.address === "early@partner.example")) {
-          const hook = await webhook("email.delivered", { email_id: result.providerMessageId, to: ["early@partner.example"] });
+          // Real provider events always carry the sender; before acceptance
+          // commits it is the only thing that marks the event as CA's.
+          const hook = await webhook("email.delivered", { email_id: result.providerMessageId, from: "Alice Okafor <alice@cosmicforge.example>", to: ["early@partner.example"] });
           const event = await client.mailWebhookEvent.findFirst({ where: { providerEventId: hook.id } });
           await harness.mail.processors.deliveryEvents.process({ webhookEventId: event.id });
           await client.mailOutboxJob.updateMany({ where: { webhookEventId: event.id }, data: { status: "SUCCEEDED" } });
