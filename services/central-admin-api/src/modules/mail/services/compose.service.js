@@ -28,6 +28,7 @@ const { sanitizeEmailHtml, htmlToText, escapeHtml } = require("../security/html-
 const { evaluateAttachment } = require("../scanning/attachment-scanner");
 const { serializeAttachment, iso } = require("./serializers");
 const { externalSendBlockReason, SEND_BLOCK_REASONS } = require("../authz/sending-gate");
+const { unapprovedRecipients } = require("../security/shared-account");
 const { purposeForMailbox } = require("../ops/runtime-controls");
 const { scanLinks } = require("../marketing/link-scan");
 
@@ -441,6 +442,13 @@ function createComposeService({ client, config, store, encryption, scanner, jobs
       const purpose = purposeForMailbox(mailbox);
       const halted = runtime ? await runtime.haltReason(purpose, { organizationId: mailbox.organizationId, mailboxId: mailbox.id, domainId: senderAddress?.domainId, adminUserId: user.id }) : null;
       if (halted) throw mailError(halted.startsWith("MAIL_ROLLOUT_") ? halted : "MAIL_EMERGENCY_STOP", { reason: halted });
+      // Shared provider account: a test allowlist (staging) limits who can be
+      // mailed at all. The provider contract enforces it again before sending.
+      const notApproved = unapprovedRecipients(config.testRecipients, { to: externalRecipients });
+      if (notApproved.length) {
+        const addresses = notApproved.slice(0, 10);
+        throw mailError("MAIL_VALIDATION_FAILED", { field: "to", reason: "RECIPIENT_NOT_APPROVED", addresses, status: 422 }, `Cannot send to ${addresses.join(", ")}: only approved test recipients can be mailed from this environment.`);
+      }
       // Addresses the provider reported as bounced/complained for this brand.
       const suppressed = await client.marketingSuppression.findMany({ where: { organizationId: mailbox.organizationId, email: { in: externalRecipients.map((party) => party.address) }, liftedAt: null, reason: { in: ["BOUNCED", "COMPLAINED"] } }, select: { email: true } });
       if (suppressed.length) {

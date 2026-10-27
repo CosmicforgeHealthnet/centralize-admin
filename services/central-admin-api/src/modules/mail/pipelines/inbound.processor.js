@@ -182,6 +182,8 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
     // Receiving switched off: try again later without consuming an attempt
     // (a disabled flag must never dead-letter received mail).
     if (!config.receivingEnabled) return { defer: { seconds: RECEIVING_DISABLED_DEFER_SECONDS, code: "MAIL_RECEIVING_DISABLED", message: "receiving disabled" } };
+    // Another deployment owns inbound mail (shared provider account): hold, never process.
+    if (config.inbound && !config.inbound.ownedHere) return { defer: { seconds: RECEIVING_DISABLED_DEFER_SECONDS, code: "MAIL_INBOUND_NOT_ACTIVE_HERE", message: "inbound mail is handled by another deployment" } };
     const providerEmailId = String(job.payload?.providerEmailId || "");
     if (!providerEmailId) throw new PipelineError("INBOUND_PAYLOAD_INVALID", "missing provider email id", { retryable: false });
 

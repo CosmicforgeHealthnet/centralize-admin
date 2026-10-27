@@ -138,7 +138,9 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   // §18: every provider call goes through the provider-neutral contract
   // (input validation, normalized results and error categories), then the
   // metrics wrapper (provider errors by kind/category/status).
-  const resolvedAdapter = metrics.instrumentProvider(withTransportContract(adapter || createProviderAdapter({ config })), "transactional");
+  // Shared Resend account: test-recipient allowlist + cf_app/cf_env tags on every send.
+  const sharedAccountGuards = { recipientPolicy: config.testRecipients, providerTags: config.providerTags };
+  const resolvedAdapter = metrics.instrumentProvider(withTransportContract(adapter || createProviderAdapter({ config }), sharedAccountGuards), "transactional");
   // Gap 3: provider quota observations (non-blocking hook; migration 37).
   const providerQuota = createProviderQuotaService({ client, config, env, features: finalGapFeature, clock, logger });
   resolvedAdapter.setQuotaObserver?.(providerQuota.observer("account", resolvedAdapter.name === "fake" ? "fake" : "resend"));
@@ -176,7 +178,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const support = createSupportService({ client, mailboxService: mailbox, audit, notifications, encryption: resolvedEncryption, clock });
   // M7: per-brand marketing provider accounts, broadcasts and automation.
   const resolveMarketingProvider = createMarketingProviderResolver({ config, env, adapter: marketingAdapter, adapters: marketingAdapters, quotaObserver: providerQuota.observer });
-  const marketingProviders = (organization) => metrics.instrumentProvider(withMarketingContract(resolveMarketingProvider(organization)), "marketing");
+  const marketingProviders = (organization) => metrics.instrumentProvider(withMarketingContract(resolveMarketingProvider(organization), sharedAccountGuards), "marketing");
   // Gaps 2/3: re-subscription workflow and pricing (503 before migration 37).
   const resubscriptions = createResubscriptionService({ client, config, env, features: finalGapFeature, audit, stepUp, jobs, marketingProviders, clock, logger });
   const pricing = createPricingService({ client, features: finalGapFeature, audit, stepUp, clock, logger });
@@ -290,7 +292,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
           await once({ queue: "MARKETING", kind: "AUTOMATION_TICK", idempotencyKey: `automation-tick:${bucket}`, maxAttempts: 2 });
         }
         // Inbound reconciliation (§10.8): one run per interval bucket.
-        if (queues.includes("INBOUND") && config.receivingEnabled && config.reconciliation.enabled) {
+        if (queues.includes("INBOUND") && config.receivingEnabled && config.reconciliation.enabled && config.inbound?.ownedHere !== false) {
           const bucket = Math.floor(clock().getTime() / (config.reconciliation.inboundIntervalSeconds * 1000));
           await once({ queue: "INBOUND", kind: "RECONCILE_INBOUND", idempotencyKey: `inbound-reconcile:${bucket}`, maxAttempts: 3 });
         }

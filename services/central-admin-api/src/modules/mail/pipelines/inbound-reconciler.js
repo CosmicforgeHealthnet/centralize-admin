@@ -52,6 +52,9 @@ function createInboundReconciler({ client, config, adapter, jobs, audit, clock =
 
   async function process() {
     if (!config.receivingEnabled || !settings.enabled) return { skipped: "RECONCILIATION_DISABLED" };
+    // With one provider account, listing received mail would also pull the
+    // other deployment's inbound mail: only the inbound owner reconciles.
+    if (config.inbound && !config.inbound.ownedHere) return { skipped: "INBOUND_NOT_ACTIVE_HERE" };
     if (typeof adapter.listReceivedEmails !== "function") return { skipped: "PROVIDER_LIST_UNSUPPORTED" };
     const now = clock().getTime();
     const lookback = now - settings.inboundLookbackHours * 3600 * 1000;

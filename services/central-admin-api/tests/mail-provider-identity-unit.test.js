@@ -13,6 +13,10 @@ const stagingOk = {
   MAIL_SENDING_ENABLED: "true",
   MAIL_RECEIVING_ENABLED: "true",
   MAIL_DEPLOYMENT_ENV: "staging",
+  // Shared Resend account: staging sends only to approved test recipients
+  // and declares which deployment owns inbound mail.
+  MAIL_TEST_RECIPIENT_ALLOWLIST: "@approved.example",
+  MAIL_INBOUND_ACTIVE_ENVIRONMENT: "staging",
   MAIL_PROVIDER: "resend",
   RESEND_API_KEY: "re_test_not_a_real_key_value",
   RESEND_WEBHOOK_SECRET: "whsec_dGVzdA==",

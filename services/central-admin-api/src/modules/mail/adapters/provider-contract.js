@@ -21,6 +21,7 @@
 // recipients computed by CosmicForge).
 
 const { MailProviderError } = require("./mail-provider.contract");
+const { unapprovedRecipients, withProviderTags } = require("../security/shared-account");
 
 const PROVIDER_ID = /^[A-Za-z0-9_.:@-]{1,255}$/;
 const DOMAIN_STATES = new Set(["VERIFIED", "PENDING", "FAILED", "NOT_STARTED", "PARTIAL", "NOT_CONFIGURED", "DISABLED"]);
@@ -135,7 +136,20 @@ const MARKETING_RULES = {
   }, (result) => result],
 };
 
-function wrapAdapter(adapter, rules, { clock = () => Date.now() } = {}) {
+// Shared-account guards (security/shared-account.js), applied to every send
+// before the adapter is called: a recipient outside an active test allowlist
+// is refused (PERMANENT, nothing submitted) and CA's cf_app / cf_env tags are
+// added so delivery events can be attributed to the right deployment.
+const SEND_OPERATIONS = new Set(["sendMessage", "sendEmail"]);
+
+function applySendGuards(prop, args, { recipientPolicy, providerTags }) {
+  if (!SEND_OPERATIONS.has(prop)) return args;
+  const refused = unapprovedRecipients(recipientPolicy, args[0]);
+  if (refused.length) throw invalid(prop, "RECIPIENT_NOT_APPROVED", `${refused.length} recipient(s) are not on MAIL_TEST_RECIPIENT_ALLOWLIST`);
+  return [withProviderTags(args[0], providerTags), ...args.slice(1)];
+}
+
+function wrapAdapter(adapter, rules, { clock = () => Date.now(), recipientPolicy = null, providerTags = null } = {}) {
   if (!adapter || typeof adapter !== "object" || adapter.__providerContract) return adapter;
   const cache = new Map();
   return new Proxy(adapter, {
@@ -159,6 +173,8 @@ function wrapAdapter(adapter, rules, { clock = () => Date.now() } = {}) {
           }
         }
         if (validate) validate(args);
+        if (prop === "sendBroadcast" && recipientPolicy?.active) throw invalid(prop, "BROADCAST_BLOCKED_BY_TEST_ALLOWLIST", "Broadcasts cannot be sent while MAIL_TEST_RECIPIENT_ALLOWLIST is active");
+        args = applySendGuards(prop, args, { recipientPolicy, providerTags });
         let result;
         try {
           result = await current.apply(target, args);
@@ -181,7 +197,7 @@ function withTransportContract(adapter, options) {
 // adapter calls. CosmicForge stays the record of consent: syncAudience only
 // accepts contacts the caller has already proven eligible, and never lifts a
 // provider-side unsubscribe.
-function marketingOperations(provider) {
+function marketingOperations(provider, { recipientPolicy = null } = {}) {
   // queueBroadcast: send (or schedule) a provider broadcast that was created
   // as a draft. Broadcast calls are not idempotent at the provider, so the
   // status is read first and a broadcast that already left draft is never
@@ -233,6 +249,7 @@ function marketingOperations(provider) {
     const segment = requireId("syncAudience", segmentId, "segmentId");
     for (const contact of add) {
       if (!contact?.email || contact.consentVerified !== true) throw invalid("syncAudience", "CONTACT_NOT_ELIGIBLE", "Only consent-verified contacts can be synchronised");
+      if (unapprovedRecipients(recipientPolicy, { to: [{ address: contact.email }] }).length) throw invalid("syncAudience", "RECIPIENT_NOT_APPROVED", "A contact is not on MAIL_TEST_RECIPIENT_ALLOWLIST");
     }
     const result = { added: 0, created: 0, removed: 0, providerUnsubscribed: [] };
     for (const contact of add) {
@@ -262,7 +279,7 @@ function marketingOperations(provider) {
 function withMarketingContract(adapter, options) {
   if (!adapter || typeof adapter !== "object" || adapter.__providerContract) return adapter;
   const wrapped = wrapAdapter(adapter, MARKETING_RULES, options);
-  const composite = marketingOperations(wrapped);
+  const composite = marketingOperations(wrapped, options);
   return new Proxy(wrapped, {
     get(target, prop, receiver) {
       if (Object.prototype.hasOwnProperty.call(composite, prop)) return composite[prop];
@@ -275,9 +292,9 @@ function withMarketingContract(adapter, options) {
 // whole surface (readiness, ops tooling, contract tests). Marketing
 // operations take the brand organization because each brand may use its own
 // provider account.
-function createMailProviderContract({ transport, marketingFor, clock = () => Date.now() }) {
-  const mail = withTransportContract(transport, { clock });
-  const marketing = (organization) => withMarketingContract(marketingFor(organization), { clock });
+function createMailProviderContract({ transport, marketingFor, clock = () => Date.now(), guards = {} }) {
+  const mail = withTransportContract(transport, { clock, ...guards });
+  const marketing = (organization) => withMarketingContract(marketingFor(organization), { clock, ...guards });
   return {
     sendMessage: (request) => mail.sendMessage(request),
     fetchInboundMessage: (providerEmailId) => mail.fetchInboundMessage(providerEmailId),
