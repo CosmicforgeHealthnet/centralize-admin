@@ -1,0 +1,151 @@
+name: Staging Mail Activation (approval-gated)
+
+# Staged, approval-gated activation of CosmicForge Mail on staging.
+#
+# Phase 1 (this file): READ-ONLY inspection of the staging database, storage,
+# encryption, ClamAV, workers and Mail configuration. It changes nothing: no
+# migration, no flag, no provider (Resend) call, no storage write, no restart.
+# Later phases (migrations, provisioning, enabling flags) are added only after
+# the inspection results are reviewed and approved, each as its own reviewed
+# change to this workflow.
+#
+# Approval gate: the job runs in the `staging-mail-activation` environment.
+# That environment must be created in GitHub with required reviewers and its
+# own STAGING_SSH_KEY secret before the first run. If it does not exist, GitHub
+# creates it unprotected and without the secret, and the job stops at the key
+# check without connecting anywhere.
+
+on:
+  workflow_dispatch:
+    inputs:
+      phase:
+        description: Activation phase (only the read-only inspection exists)
+        type: choice
+        options: [inspect]
+        default: inspect
+      confirm:
+        description: 'Type exactly: inspect staging read-only'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging-mail-activation
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    name: Check request (branch, phase, confirmation)
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Refuse anything but a confirmed inspection from staging
+        shell: bash
+        env:
+          REF: ${{ github.ref }}
+          PHASE: ${{ inputs.phase }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+          [[ "$REF" == "refs/heads/staging" ]] || { echo "Run from the staging branch only."; exit 1; }
+          [[ "$PHASE" == "inspect" ]] || { echo "Only the read-only inspection phase exists."; exit 1; }
+          [[ "$CONFIRM" == "inspect staging read-only" ]] || { echo "Confirmation text does not match."; exit 1; }
+
+  inspect:
+    name: Read-only Mail inspection on staging
+    needs: guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment: staging-mail-activation
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: staging
+          persist-credentials: false
+
+      - name: Inspect containers and Mail dependencies (no changes)
+        shell: bash
+        env:
+          STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          key="$(mktemp)"; hosts="$(mktemp)"
+          trap 'rm -f "$key" "$hosts"' EXIT
+          printf '%s\n' "$STAGING_SSH_KEY" > "$key"
+          test -s "$key" || { echo "STAGING_SSH_KEY is not set in the staging-mail-activation environment."; exit 1; }
+          ssh-keyscan -T 10 -t ed25519 173.249.30.55 2>/dev/null > "$hosts"
+          test -s "$hosts"
+          [[ "$(ssh-keygen -l -E sha256 -f "$hosts" | awk '{print $2}')" == "SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ" ]]
+          remote() {
+            ssh -T -i "$key" -o IdentitiesOnly=yes -o BatchMode=yes \
+              -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$hosts" \
+              cf-staging-deploy@173.249.30.55 "$@"
+          }
+
+          # Containers: names, state and image tag only. A Mail worker is a
+          # separate container running src/mail-worker.js; none is expected yet.
+          remote 'docker ps -a --filter name=admin-server-staging --format "{{.Names}}\t{{.State}}\t{{.Status}}\t{{.Image}}"' > containers.tsv
+          app_running="$(awk -F'\t' '$1=="admin-server-staging-app-1" && $2=="running"' containers.tsv | wc -l)"
+          worker_total="$(awk -F'\t' 'tolower($1) ~ /worker/' containers.tsv | wc -l)"
+          worker_running="$(awk -F'\t' 'tolower($1) ~ /worker/ && $2=="running"' containers.tsv | wc -l)"
+          [[ "$app_running" == "1" ]] || { echo "Staging app container is not running; stopping."; cat containers.tsv; exit 1; }
+
+          # Mail inspection inside the running app container, using the
+          # deployed code and environment. The script prints states, counts and
+          # setting names only (scripts/mail/activation-inspect.js).
+          remote 'timeout 120 docker exec -i -e INSPECT_APP_ROOT=/app -w /app admin-server-staging-app-1 node -' \
+            < services/central-admin-api/scripts/mail/activation-inspect.js > inspection.out
+          line="$(grep -m1 '^MAIL_ACTIVATION_INSPECTION ' inspection.out || true)"
+          if [[ -z "$line" ]]; then
+            echo "Inspection did not produce a report:"; grep -m1 '^MAIL_ACTIVATION_INSPECTION_FAILED ' inspection.out || true; exit 1
+          fi
+          printf '%s\n' "${line#MAIL_ACTIVATION_INSPECTION }" > inspection.json
+          jq --argjson total "$worker_total" --argjson running "$worker_running" \
+            '. + {workers: {containers: $total, running: $running}}' inspection.json > report.json
+
+      - name: Summarise
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s report.json || exit 0
+          {
+            echo "## Staging Mail inspection (read-only)"
+            echo
+            echo "| Check | Result |"
+            echo "|---|---|"
+            jq -r '
+              "| All Mail flags off | \(.allMailFlagsOff) |",
+              "| Effective (enabled/sending/receiving/worker) | \(.effective.enabled)/\(.effective.sending)/\(.effective.receiving)/\(.effective.worker) |",
+              "| Mail worker containers (running/total) | \(.workers.running)/\(.workers.containers) |",
+              "| Database is cosmicforge_admin / session read-only | \(.database.isAdminDatabase)/\(.database.sessionReadOnly) |",
+              "| Mail schema core / 35 / 36 / 37 complete | \(.database.mailSchema.core.complete)/\(.database.mailSchema.gapClosure35.complete)/\(.database.mailSchema.preferences36.complete)/\(.database.mailSchema.finalGap37.complete) |",
+              "| Ledger applied / manifest; checksum mismatches | \(.database.ledger.appliedCount)/\(.database.ledger.manifestMigrations); \(.database.ledger.checksumMismatches | length) |",
+              "| Ledger has Mail orders 27-37 | \(.database.ledger.mailOrders27to37Applied) |",
+              "| Encryption keyring entries (wrapped) / active key in keyring | \(.encryption.keyringEntries) (\(.encryption.wrappedEntries)) / \(.encryption.activeKeyInKeyring) |",
+              "| Storage provider / bucket set / endpoint TCP | \(.storage.provider) / \(.storage.bucketSet) / \(.storage.endpointTcp) |",
+              "| KMS provider / key set / endpoint TCP | \(.kms.provider) / \(.kms.keyIdSet) / \(.kms.endpointTcp) |",
+              "| Scanner provider / clamd PING | \(.scanner.provider) / \(.scanner.health) |",
+              "| Resend key / webhook secret present | \(.providerKeyPresent) / \(.secretsPresent.RESEND_WEBHOOK_SECRET) |",
+              "| Config violations now / if activated | \(.currentViolations | length) / \(.activationViolations | length) |"' report.json
+            echo
+            echo "**Blockers before activation:**"
+            jq -r 'if (.blockers | length) == 0 then "- none" else .blockers[] | "- \(.)" end' report.json
+            echo
+            echo "**Violations if activated:**"
+            jq -r 'if (.activationViolations | length) == 0 then "- none" else .activationViolations[] | "- \(.)" end' report.json
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the report for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-mail-inspection
+          path: |
+            report.json
+            containers.tsv
+          if-no-files-found: ignore
+          retention-days: 14
