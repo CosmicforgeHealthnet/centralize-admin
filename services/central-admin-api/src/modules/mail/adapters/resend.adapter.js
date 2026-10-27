@@ -182,6 +182,7 @@ function createResendAdapter({ config, fetchImpl = globalThis.fetch, clock = () 
       html: request.html || undefined,
       text: request.text || undefined,
       headers: request.headers || {},
+      ...(Array.isArray(request.tags) && request.tags.length ? { tags: request.tags.map((tag) => ({ name: String(tag.name), value: String(tag.value) })) } : {}),
       ...(request.attachments?.length
         ? {
             attachments: request.attachments.map((attachment) => ({

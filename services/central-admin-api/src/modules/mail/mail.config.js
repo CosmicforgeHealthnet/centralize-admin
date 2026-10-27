@@ -55,6 +55,19 @@ function loadMailConfig(env = process.env) {
     // they sent are acknowledged without being stored. See
     // docs/cosmicforge-mail-karryam-resend-activation.md.
     ...reservedSenderConfig(env),
+    // One Resend account and API key serve staging and production, so the
+    // two deployments must never act on each other's traffic:
+    // - testRecipients: when set, external delivery is limited to these
+    //   addresses / domains (MAIL_TEST_RECIPIENT_ALLOWLIST; "a@b.com",
+    //   "@b.com" or "b.com"). Required on staging when sending is enabled.
+    // - inbound: only the deployment named by MAIL_INBOUND_ACTIVE_ENVIRONMENT
+    //   (the one the single webhook points at) accepts or reconciles inbound
+    //   mail. Required on staging/production when receiving is enabled.
+    // - providerTags: every CA send carries cf_app/cf_env tags so delivery
+    //   events for the other deployment's mail are ignored.
+    testRecipients: testRecipientConfig(env),
+    inbound: inboundOwnershipConfig(env),
+    providerTags: Object.freeze({ app: "cosmicforge-mail", environment: deploymentEnvironment(env) }),
     // §18/§19.8: provider-side domain registration (POST /domains) and
     // verification triggers (POST /domains/{id}/verify) from the admin API.
     // Reading verification status never needs it. Never changes DNS.
@@ -375,6 +388,32 @@ function reservedSenderConfig(env) {
   return { reservedSenders: Object.freeze(addresses), reservedSendersInvalid: Object.freeze(invalid) };
 }
 
+function testRecipientConfig(env) {
+  const { normalizeAddress, normalizeDomain } = require("./security/address.util");
+  const addresses = [];
+  const domains = [];
+  const invalid = [];
+  for (const raw of String(env.MAIL_TEST_RECIPIENT_ALLOWLIST ?? "").split(",").map((entry) => entry.trim()).filter(Boolean)) {
+    if (raw.includes("@") && !raw.startsWith("@")) {
+      const address = normalizeAddress(raw);
+      if (address) addresses.push(address);
+      else invalid.push(raw.slice(0, 80));
+    } else {
+      const domain = normalizeDomain(raw.replace(/^@/, ""));
+      if (domain) domains.push(domain);
+      else invalid.push(raw.slice(0, 80));
+    }
+  }
+  return Object.freeze({ active: addresses.length + domains.length > 0, addresses: Object.freeze([...new Set(addresses)]), domains: Object.freeze([...new Set(domains)]), invalid: Object.freeze(invalid) });
+}
+
+function inboundOwnershipConfig(env) {
+  const raw = String(env.MAIL_INBOUND_ACTIVE_ENVIRONMENT ?? "").trim().toLowerCase();
+  const activeEnvironment = DEPLOYMENT_ENVIRONMENTS.has(raw) ? raw : null;
+  const here = deploymentEnvironment(env);
+  return Object.freeze({ activeEnvironment, declared: Boolean(raw), invalid: Boolean(raw) && !activeEnvironment, ownedHere: !raw || activeEnvironment === here });
+}
+
 const WORKER_LEASE_MARGIN_SECONDS = 30;
 
 function workerLease(env) {
@@ -473,7 +512,13 @@ function infrastructureViolations(config) {
     if (config.provider === "fake") problems.push(`${environment} refuses MAIL_PROVIDER=fake`);
     if ((config.sendingEnabled || config.receivingEnabled) && !config.resend.webhookSecret) problems.push(`${environment} requires RESEND_WEBHOOK_SECRET when sending or receiving is enabled`);
     if ((config.sendingEnabled || config.receivingEnabled) && !config.domainAllowlist.length) problems.push(`${environment} requires MAIL_DOMAIN_ALLOWLIST when sending or receiving is enabled`);
+    // Shared Resend account: never let two deployments compete for inbound
+    // mail, and keep staging test traffic to approved recipients.
+    if (config.receivingEnabled && !config.inbound.declared) problems.push(`${environment} requires MAIL_INBOUND_ACTIVE_ENVIRONMENT when receiving is enabled`);
+    if (environment === "staging" && config.sendingEnabled && !config.testRecipients.active) problems.push("staging requires MAIL_TEST_RECIPIENT_ALLOWLIST when sending is enabled");
   }
+  if (config.inbound.invalid) problems.push("MAIL_INBOUND_ACTIVE_ENVIRONMENT must be development, test, staging or production");
+  if (config.testRecipients.invalid.length) problems.push(`MAIL_TEST_RECIPIENT_ALLOWLIST has ${config.testRecipients.invalid.length} invalid entr${config.testRecipients.invalid.length === 1 ? "y" : "ies"}`);
   if (config.resend.keyEnvironment && config.resend.keyEnvironment !== environment) problems.push(`MAIL_PROVIDER_ENVIRONMENT_TAG / RESEND_API_KEY_ENVIRONMENT does not match the ${environment} deployment`);
   return problems;
 }
@@ -510,6 +555,8 @@ function publicStatus(config) {
     deploymentEnvironment: config.deploymentEnvironment,
     unknownRecipientPolicy: config.unknownRecipientPolicy,
     reservedSenders: config.reservedSenders.length,
+    testRecipientAllowlist: config.testRecipients.active ? config.testRecipients.addresses.length + config.testRecipients.domains.length : 0,
+    inbound: { activeEnvironment: config.inbound.activeEnvironment, ownedHere: config.inbound.ownedHere },
     // GAP 8: mixed-recipient header mode (never the secret).
     mixedRecipients: { mode: config.mixedRecipients.mode, requestedMode: config.mixedRecipients.requestedMode, refusedReason: config.mixedRecipients.refusedReason },
     search: { metadataOnly: !config.search.bodies, bodySearch: config.search.bodies ? "keyed-blind-index" : "disabled", bodySearchRequestedWithoutKey: config.search.bodyRequested && !config.search.bodies, bodyIndexingRequestRefused: config.search.bodyIndexingRequestRefused },
