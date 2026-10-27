@@ -34,11 +34,23 @@
 //   - an ownership lookup that fails is not acknowledged (503, the provider
 //     retries) so a possibly foreign event is never stored by default.
 // Contact events are not affected.
+//
+// The same account and key also serve the other CA deployment (staging vs
+// production), so, after signature verification:
+//   - an email event tagged cf_app=cosmicforge-mail with another cf_env is
+//     acknowledged and not stored (OTHER_DEPLOYMENT);
+//   - a broadcast event whose broadcast_id CA never dispatched (e.g. a
+//     campaign sent from the provider dashboard) is acknowledged and not
+//     stored (FOREIGN_BROADCAST);
+//   - email.received is refused with 503 unless this deployment owns inbound
+//     mail (MAIL_INBOUND_ACTIVE_ENVIRONMENT), so the provider retries and,
+//     after a webhook cutover, delivers to the owner instead.
 
 const crypto = require("crypto");
 const { verifyResendWebhook } = require("./resend-webhook.verifier");
 const { reservedSenderSet, eventSenderAddress } = require("../security/reserved-senders");
 const { parseParty } = require("../security/address.util");
+const { taggedForOtherDeployment } = require("../security/shared-account");
 
 const SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
 
@@ -97,6 +109,7 @@ function createResendWebhookHandler({ client, config, jobs, audit, logger, clock
   async function foreignSenderReason(payload) {
     const type = String(payload.type || "");
     if (!type.startsWith("email.") || type === "email.received") return null;
+    if (taggedForOtherDeployment(payload.data, config.providerTags)) return "OTHER_DEPLOYMENT";
     const isBroadcast = Boolean(payload.data?.broadcast_id);
     const sender = eventSenderAddress(payload.data?.from);
     if (!sender) {
@@ -113,7 +126,12 @@ function createResendWebhookHandler({ client, config, jobs, audit, logger, clock
     }
     if (reservedSenders.has(sender)) return "RESERVED_SENDER";
     if (!brandMode && !ownedAddress(sender)) return "SENDER_DOMAIN_NOT_OWNED";
-    if (isBroadcast) return null;
+    // An owned-domain broadcast is CA's only if CA dispatched it (a campaign
+    // sent from the provider dashboard is not).
+    if (isBroadcast) {
+      const dispatch = await client.marketingBroadcastDispatch.findFirst({ where: { providerBroadcastId: String(payload.data.broadcast_id).slice(0, 128) }, select: { id: true } });
+      return dispatch ? null : "FOREIGN_BROADCAST";
+    }
     const known = await client.mailAddress.findUnique({ where: { address: sender }, select: { id: true } });
     return known ? null : "SENDER_NOT_PROVISIONED";
   }
@@ -181,9 +199,10 @@ function createResendWebhookHandler({ client, config, jobs, audit, logger, clock
     }
     if (foreign) {
       logger?.info?.(`[MailWebhook] ignored ${String(payload.type).slice(0, 40)} for another system (${foreign})`);
-      return res.status(200).json({ success: true, ignored: true, reason: "FOREIGN_SENDER" });
+      return res.status(200).json({ success: true, ignored: true, reason: foreign === "OTHER_DEPLOYMENT" || foreign === "FOREIGN_BROADCAST" ? foreign : "FOREIGN_SENDER" });
     }
     if (isInbound && !config.receivingEnabled) return res.status(503).json({ success: false, code: "MAIL_RECEIVING_DISABLED", message: "Receiving is not enabled" });
+    if (isInbound && config.inbound && !config.inbound.ownedHere) return res.status(503).json({ success: false, code: "MAIL_INBOUND_NOT_ACTIVE_HERE", message: "Inbound mail is handled by another deployment" });
     const providerEmailId = String(payload.data.email_id || payload.data.id || "").slice(0, 255);
     if (!providerEmailId) return res.status(400).json({ success: false, code: "MAIL_VALIDATION_FAILED", message: "Event has no email id" });
 
