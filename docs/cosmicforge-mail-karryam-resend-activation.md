@@ -29,9 +29,16 @@ GET https://stagingca.cosmicforge-healthnet.com/api/mail/v1/health/ready  -> 200
  "session":{"mode":"legacy","hardened":false,"required":false,"status":"WARNING","reason":"JS_READABLE_ACCESS_TOKEN"}}
 ```
 
-`https://api.cosmicforge-healthnet.com` could not be reached from the build sandbox (connection reset), so it is
-**not confirmed** which code it runs. Register the staging webhook against `stagingca.cosmicforge-healthnet.com`
-(section 6.4) unless the infrastructure owner confirms otherwise.
+Deployed staging service (verified 2026-10-27): `stagingca.cosmicforge-healthnet.com` resolves to `173.249.30.55`,
+the Contabo host that `.github/workflows/staging.yml` deploys to (Compose project `admin-server-staging`, service `app`,
+`/var/www/admin-server-staging`, local port 4001). The deploy job itself checks HTTPS login CORS on `stagingca`, so the
+webhook URL in section 6.4 reaches that service. `api.cosmicforge-healthnet.com` resolves to a **different host**
+(`72.61.20.94`) and refused connections from the sandbox: never use it for the staging webhook.
+
+How staging is changed (from `docs/STAGING-AUTO-DEPLOY-2026-10-24.md`): a push to `staging` with backend changes
+builds an image and recreates **only** the `app` container. CI never runs migrations, never edits the host's Compose
+env file (root-owned directory) and never creates other containers. Everything below that needs a migration, a new
+env value or a new container (worker, ClamAV) needs an operator with host and database-owner access.
 
 ## 1. Target architecture
 
@@ -345,6 +352,26 @@ KarryGo is unaffected by every CA action above: it sends through Resend SMTP dir
 | 8 | Approved external test recipients; live smoke tests (section 8) | Product / IT |
 | 9 | Session hardening (`AUTH_SESSION_MODE=cookie`) | Security |
 | 10 | Confirm which code `api.cosmicforge-healthnet.com` serves before using it for any Mail webhook | Infrastructure |
+
+## 12a. Activation attempt, 2026-10-27 (what was and was not possible)
+
+Done: PR #21 reviewed, the web app builds at its head, the staging hostname verified (above), and the Vercel
+failure diagnosed (below). Not possible from the agent environment, so left exactly as it was:
+
+| Step | Why it stopped | Needed |
+|---|---|---|
+| Migration ledger 27-37, backup, apply | No SSH to the Contabo host; the DB is the Compose container `admin-server-staging-db-1`; no DB-owner approval recorded | Host operator + DB owner run section 3.1 inside the host (e.g. `docker exec` into `app`) |
+| S3 + KMS | The sandbox AWS credentials are rejected (`InvalidClientTokenId`); no bucket or key exists | Infrastructure applies `infrastructure/mail/storage/terraform` with a real staging account |
+| ClamAV | Needs a container on the staging host's private network | Host operator: `infrastructure/mail/clamav/docker-compose.yml` |
+| Mail worker | No worker service exists in the host Compose file; CI only recreates `app` | Host operator adds a `mail-worker` service (same image, `npm run mail:worker`, same env file) |
+| Mail env and Resend secrets | Env lives in the root-owned host directory; no Resend key or webhook secret was given to the agent (and must not be) | Host operator installs them privately |
+| `mail:provision:karryam` | Needs the staging DB (inside the host) and a real Mail admin id | Mail admin, after migrations |
+| Webhook registration, smoke tests | Depend on all of the above | Resend owner, approved test accounts |
+
+Vercel: the failing status is the `centralize-admin` project (repository root, no Root Directory), which fails for
+any commit with `NEXT_NO_VERSION`. The `centralize-admin-staging` project (Root Directory `apps/central-admin-web`)
+is Ready for the same commit. Fix in Vercel by the project owner: set Root Directory to `apps/central-admin-web`,
+or turn off preview builds for that project. Do not add a root `next` dependency.
 
 ## 13. Verification performed for this change (offline)
 
