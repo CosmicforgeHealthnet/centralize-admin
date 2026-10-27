@@ -10,6 +10,8 @@
 //   outcome is UNKNOWN and is never retried automatically;
 // - provider acceptance is recorded as PROVIDER_ACCEPTED, never as delivered.
 
+const { isReservedSender } = require("../security/reserved-senders");
+
 function classifySendError(error, { firstAttemptAt, now, windowHours }) {
   const outsideWindow = firstAttemptAt && now.getTime() - new Date(firstAttemptAt).getTime() > windowHours * 3600000;
   switch (error?.kind) {
@@ -54,6 +56,8 @@ const SENDER_MAILBOX_SELECT = { select: { type: true, purpose: true, status: tru
 function brandSenderProblem(address, organizationId) {
   if (!address || address.organizationId !== organizationId) return "SENDER_NOT_FOUND";
   if (address.status !== "ACTIVE") return "SENDER_INACTIVE";
+  // Owned by another system (e.g. KarryGo's no-reply@): never a CA sender.
+  if (isReservedSender(address.address)) return "RESERVED_SENDER";
   if (!BRAND_SENDER_KINDS.includes(address.kind)) return "PERSONAL_SENDER";
   if (address.mailboxId && address.mailbox?.type !== "SHARED") return "PERSONAL_MAILBOX_SENDER";
   return null;
@@ -70,6 +74,7 @@ async function replyToProblem(client, organizationId, replyTo) {
   const address = replyTo ? await client.mailAddress.findUnique({ where: { address: String(replyTo).toLowerCase() }, include: { mailbox: SENDER_MAILBOX_SELECT } }) : null;
   if (!address || address.organizationId !== organizationId) return "REPLY_TO_NOT_BRAND_ADDRESS";
   if (address.status !== "ACTIVE") return "REPLY_TO_INACTIVE";
+  if (isReservedSender(address.address)) return "REPLY_TO_RESERVED";
   if (!address.mailboxId || address.mailbox?.type !== "SHARED" || address.mailbox?.status !== "ACTIVE") return "REPLY_TO_NOT_SHARED_MAILBOX";
   return null;
 }

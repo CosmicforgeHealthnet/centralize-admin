@@ -123,6 +123,11 @@ Enable in this order, one flag per change, each with its own approval:
 Production MX/DNS, `marketing@karryam.com`, existing SMTP/Gmail/cPanel senders and
 HealthNet clinical email are explicitly out of scope.
 
+> **Superseded for Karryam (2026-10-27):** the approved target is now one Resend domain, `karryam.com`
+> (root sending + root MX receiving), with `info@`, `support@`, `marketing@` and `partnership@` as CA shared
+> mailboxes and `no-reply@karryam.com` reserved for the KarryGo Notification Service. Follow
+> `docs/cosmicforge-mail-karryam-resend-activation.md` for that setup; the DB steps above are unchanged.
+
 ## Addendum: migrations 28-33 (Stage A, M7-M10)
 
 Apply in manifest order, after 27, in the same approved change window and only after a verified backup.

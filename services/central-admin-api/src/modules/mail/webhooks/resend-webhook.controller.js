@@ -11,9 +11,20 @@
 // stored event, so marketing events from one brand's provider account can
 // never change another brand's contacts, consents or reports. Brand endpoints
 // never accept inbound mail (email.received).
+//
+// One provider account, several senders (Resend Free allows one webhook
+// endpoint): the KarryGo Notification Service sends OTPs and other automated
+// mail as no-reply@karryam.com through the same account, so its email.*
+// events reach this endpoint too. An outbound email event whose `from` is a
+// reserved sender (MAIL_RESERVED_SENDER_ADDRESSES), or is not an address CA
+// has ever provisioned, is not CA's: it is acknowledged (200, ignored) and
+// nothing about it (recipient addresses included) is stored or queued.
+// Inbound mail (email.received), broadcast events and contact events are not
+// affected; an event without `from` is processed as before.
 
 const crypto = require("crypto");
 const { verifyResendWebhook } = require("./resend-webhook.verifier");
+const { reservedSenderSet, eventSenderAddress } = require("../security/reserved-senders");
 
 const SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
 
@@ -49,6 +60,20 @@ function storedPayload(payload, providerEmailId, brandOrganizationId) {
 }
 
 function createResendWebhookHandler({ client, config, jobs, audit, logger, clock = () => Date.now(), env = process.env, brandMode = false, schemaReady = null }) {
+  const reservedSenders = reservedSenderSet(config);
+
+  // Reason an outbound email event belongs to another system, or null.
+  async function foreignSenderReason(payload) {
+    const type = String(payload.type || "");
+    if (!type.startsWith("email.") || type === "email.received" || payload.data?.broadcast_id) return null;
+    const sender = eventSenderAddress(payload.data?.from);
+    if (!sender) return null;
+    if (reservedSenders.has(sender)) return "RESERVED_SENDER";
+    // Lookup failures fall through to the normal (durable) path.
+    const known = await client.mailAddress.findUnique({ where: { address: sender }, select: { id: true } }).catch(() => ({ id: null }));
+    return known ? null : "SENDER_NOT_PROVISIONED";
+  }
+
   // Each target carries its current secret and, during a rotation grace
   // period, the previous one (spec §19.3).
   async function resolveTarget(req) {
@@ -90,6 +115,11 @@ function createResendWebhookHandler({ client, config, jobs, audit, logger, clock
 
     const isInbound = payload.type === "email.received";
     if (isInbound && brandMode) return res.status(200).json({ success: true, ignored: true });
+    const foreign = isInbound ? null : await foreignSenderReason(payload);
+    if (foreign) {
+      logger?.info?.(`[MailWebhook] ignored ${String(payload.type).slice(0, 40)} from a non-CA sender (${foreign})`);
+      return res.status(200).json({ success: true, ignored: true, reason: "FOREIGN_SENDER" });
+    }
     if (isInbound && !config.receivingEnabled) return res.status(503).json({ success: false, code: "MAIL_RECEIVING_DISABLED", message: "Receiving is not enabled" });
     const providerEmailId = String(payload.data.email_id || payload.data.id || "").slice(0, 255);
     if (!providerEmailId) return res.status(400).json({ success: false, code: "MAIL_VALIDATION_FAILED", message: "Event has no email id" });

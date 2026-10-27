@@ -47,6 +47,14 @@ function loadMailConfig(env = process.env) {
     workerEnabled: enabled && flag(env.MAIL_WORKER_ENABLED),
     provider: String(env.MAIL_PROVIDER || "resend").trim().toLowerCase(),
     domainAllowlist: list(env.MAIL_DOMAIN_ALLOWLIST),
+    // Addresses on our domains that another system sends from directly
+    // through the provider (e.g. the KarryGo Notification Service's
+    // no-reply@karryam.com). CA never sends as them (staff, sender grants,
+    // marketing), they never get a human mailbox, inbound mail to them is
+    // discarded (audited, never held or stored) and provider events for mail
+    // they sent are acknowledged without being stored. See
+    // docs/cosmicforge-mail-karryam-resend-activation.md.
+    ...reservedSenderConfig(env),
     // §18/§19.8: provider-side domain registration (POST /domains) and
     // verification triggers (POST /domains/{id}/verify) from the admin API.
     // Reading verification status never needs it. Never changes DNS.
@@ -361,6 +369,12 @@ function loadMailConfig(env = process.env) {
   return Object.freeze(config);
 }
 
+function reservedSenderConfig(env) {
+  const { parseReservedSenders } = require("./security/reserved-senders");
+  const { addresses, invalid } = parseReservedSenders(env.MAIL_RESERVED_SENDER_ADDRESSES);
+  return { reservedSenders: Object.freeze(addresses), reservedSendersInvalid: Object.freeze(invalid) };
+}
+
 const WORKER_LEASE_MARGIN_SECONDS = 30;
 
 function workerLease(env) {
@@ -464,6 +478,18 @@ function infrastructureViolations(config) {
   return problems;
 }
 
+// Address-policy rules checked by `npm run mail:config:validate` (they do not
+// change storage availability). Values are addresses, never secrets.
+function addressPolicyViolations(config) {
+  const problems = [];
+  if (config.reservedSendersInvalid.length) problems.push(`MAIL_RESERVED_SENDER_ADDRESSES has ${config.reservedSendersInvalid.length} invalid entr${config.reservedSendersInvalid.length === 1 ? "y" : "ies"}`);
+  for (const address of config.reservedSenders) {
+    const domain = address.split("@")[1];
+    if (!config.domainAllowlist.includes(domain)) problems.push(`MAIL_RESERVED_SENDER_ADDRESSES entry ${address} is not on a MAIL_DOMAIN_ALLOWLIST domain`);
+  }
+  return problems;
+}
+
 function providerConfigured(config) {
   return config.provider === "resend" && Boolean(config.resend.apiKey);
 }
@@ -483,6 +509,7 @@ function publicStatus(config) {
     kmsProvider: config.kms.provider,
     deploymentEnvironment: config.deploymentEnvironment,
     unknownRecipientPolicy: config.unknownRecipientPolicy,
+    reservedSenders: config.reservedSenders.length,
     // GAP 8: mixed-recipient header mode (never the secret).
     mixedRecipients: { mode: config.mixedRecipients.mode, requestedMode: config.mixedRecipients.requestedMode, refusedReason: config.mixedRecipients.refusedReason },
     search: { metadataOnly: !config.search.bodies, bodySearch: config.search.bodies ? "keyed-blind-index" : "disabled", bodySearchRequestedWithoutKey: config.search.bodyRequested && !config.search.bodies, bodyIndexingRequestRefused: config.search.bodyIndexingRequestRefused },
@@ -507,4 +534,4 @@ function publicStatus(config) {
   };
 }
 
-module.exports = { loadMailConfig, providerConfigured, publicStatus, flag, infrastructureViolations, ENVIRONMENT_MARKERS };
+module.exports = { loadMailConfig, providerConfigured, publicStatus, flag, infrastructureViolations, addressPolicyViolations, ENVIRONMENT_MARKERS };

@@ -26,6 +26,11 @@
 //    reconciler as unrecovered), never SUCCEEDED with nothing delivered.
 //    Receiving disabled (MAIL_RECEIVING_ENABLED=false) defers the job without
 //    consuming an attempt.
+//    Reserved senders (MAIL_RESERVED_SENDER_ADDRESSES, e.g. KarryGo's
+//    no-reply@karryam.com) are an explicit no-reply policy, independent of
+//    MAIL_UNKNOWN_RECIPIENT_POLICY: their copy is discarded and
+//    MAIL_INBOUND_RESERVED_ADDRESS_DISCARDED is audited (counts and domains
+//    only). They are never held, never delivered and never auto-answered.
 // 4. assess sender authentication (provider-verified SPF/DKIM/DMARC only)
 // 5. scan + encrypt attachments, encrypt body and archive original headers
 //    (and raw MIME when approved) once; create one copy per mailbox (BCC
@@ -51,6 +56,7 @@ const { evaluateAttachment } = require("../scanning/attachment-scanner");
 const { applyRules } = require("../services/mail-rules");
 const { assessSenderAuthentication, authResultsRecord, loadSenderAuthPolicy } = require("../security/sender-auth");
 const { originHeaderFromConfig } = require("../security/origin-header");
+const { reservedSenderSet } = require("../security/reserved-senders");
 
 class PipelineError extends Error {
   constructor(code, message, { retryable = true } = {}) {
@@ -90,6 +96,7 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
   // Verification works in every mode, so echoes of mail sent before a switch
   // back to external-only are still recognised.
   const origin = originHeaderFromConfig(config);
+  const reservedSenders = reservedSenderSet(config);
 
   // GAP 8: which target mailboxes received this inbound as a provider echo
   // of a message we sent (and already delivered locally)?
@@ -141,12 +148,15 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
   // accepted too and treated as all receiving).
   async function resolveRecipients(addresses, domains = null) {
     const normalized = [...new Set(addresses.map(normalizeAddress).filter(Boolean))];
-    if (!normalized.length) return { local: [], unknown: [], domainHeld: [] };
+    if (!normalized.length) return { local: [], unknown: [], domainHeld: [], reserved: [] };
     const state = domains instanceof Set ? { all: domains, receiving: domains } : domains || (await ownDomainState());
-    const ours = normalized.filter((address) => state.all.has(address.split("@")[1]));
+    const ownAll = normalized.filter((address) => state.all.has(address.split("@")[1]));
+    // No-reply policy: reserved senders never receive, whatever their domain state.
+    const reserved = ownAll.filter((address) => reservedSenders.has(address));
+    const ours = ownAll.filter((address) => !reservedSenders.has(address));
     const candidates = ours.filter((address) => state.receiving.has(address.split("@")[1]));
     const domainHeld = ours.filter((address) => !state.receiving.has(address.split("@")[1]));
-    if (!candidates.length) return { local: [], unknown: [], domainHeld };
+    if (!candidates.length) return { local: [], unknown: [], domainHeld, reserved };
     const rows = await client.mailAddress.findMany({
       where: { address: { in: candidates }, status: "ACTIVE", mailboxId: { not: null }, mailbox: { status: "ACTIVE" }, domain: { status: { not: "SUSPENDED" }, receivingStatus: { not: "DISABLED" } } },
       include: { mailbox: true },
@@ -160,7 +170,7 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
       seenMailboxes.add(row.mailboxId);
       local.push(row);
     }
-    return { local, unknown: candidates.filter((address) => !known.has(address)), domainHeld };
+    return { local, unknown: candidates.filter((address) => !known.has(address)), domainHeld, reserved };
   }
 
   async function mailboxUsageBytes(mailboxId) {
@@ -188,11 +198,14 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
     if (restricted) envelope = envelope.map(normalizeAddress).filter((address) => address && restricted.has(address));
     const isHoldJob = job.payload?.source === UNKNOWN_HOLD_SOURCE;
     const resolved = await resolveRecipients(envelope, domainState);
-    const { unknown, domainHeld } = resolved;
+    const { unknown, domainHeld, reserved } = resolved;
     let { local } = resolved;
     const quarantine = config.unknownRecipientPolicy === "quarantine";
     const senderDomain = inbound.from.address.split("@")[1];
     const domainsOf = (list) => [...new Set(list.map((address) => address.split("@")[1]))].slice(0, 10);
+    if (reserved.length) {
+      await audit.record({ action: "MAIL_INBOUND_RESERVED_ADDRESS_DISCARDED", targetType: "webhook_event", targetId: job.webhookEventId, outcome: "DENIED", metadata: { discardedCount: reserved.length, domains: domainsOf(reserved), providerEmailId, senderDomain, delivering: local.length > 0 } });
+    }
     if (domainHeld.length) {
       await audit.record({ action: "MAIL_INBOUND_DOMAIN_NOT_RECEIVING", targetType: "webhook_event", targetId: job.webhookEventId, outcome: "DENIED", metadata: { heldCount: domainHeld.length, domains: domainsOf(domainHeld), providerEmailId, senderDomain, delivering: local.length > 0 } });
     }
@@ -213,12 +226,12 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
       // receiving disabled) is never counted as processed: FAILED and
       // requeueable once the domain receives again.
       if (domainHeld.length) throw new PipelineError("INBOUND_DOMAIN_NOT_RECEIVING", "recipient domain is not receiving; held for operator review", { retryable: false });
-      return { delivered: 0, unknown: unknown.length };
+      return { delivered: 0, unknown: unknown.length, ...(reserved.length ? { discardedReserved: reserved.length } : {}) };
     }
     const finish = (result) => {
       // A hold job that still has unknown recipients keeps holding them.
       if (isHoldJob && quarantine && unknown.length) throw new PipelineError("INBOUND_UNKNOWN_RECIPIENT_QUARANTINED", "some recipients are still not provisioned; held for operator review", { retryable: false });
-      return { ...result, ...(held ? { heldUnknown: unknown.length } : {}), ...(domainHeld.length ? { domainHeld: domainHeld.length } : {}) };
+      return { ...result, ...(held ? { heldUnknown: unknown.length } : {}), ...(domainHeld.length ? { domainHeld: domainHeld.length } : {}), ...(reserved.length ? { discardedReserved: reserved.length } : {}) };
     };
 
     // Sender authentication: provider-verified results only.
