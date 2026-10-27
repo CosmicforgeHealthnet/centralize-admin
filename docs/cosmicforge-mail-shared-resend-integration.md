@@ -45,7 +45,7 @@ Using the same key and webhook in two CA deployments plus KarryGo created three 
 
 Delivery: the allowlist, the tags on sends and the worker-side inbound ownership (deferral + no reconciliation)
 are in this change. The **webhook-side** rules (`OTHER_DEPLOYMENT`, `FOREIGN_BROADCAST`, 503 for a non-owner) are
-in a separate follow-up PR stacked on the parallel webhook-hardening branch `claude/eager-tesla-itid0x`
+in CA PR #23, stacked on the parallel webhook-hardening CA PR #24 (branch `claude/eager-tesla-itid0x`)
 (commit `09ccdca`: sender domain must be allowlisted, sender-less events must match a CA email id, 503 when the
 ownership lookup fails, minimised inbound recipient storage). Merge that branch first, then the follow-up.
 
@@ -62,6 +62,7 @@ Webhook classification after the signature check, once both are merged (first ma
 | `email.received` on a deployment that is not the inbound owner | 503 `MAIL_INBOUND_NOT_ACTIVE_HERE`, not stored |
 | everything else | stored + job, 200 (existing) |
 | inbound mail addressed only to `no-reply@karryam.com` | processed and discarded, audited (PR #21) |
+| inbound mail for a domain registered in CA but **not** on `MAIL_DOMAIN_ALLOWLIST` (e.g. a HealthNet domain) | routed like an external domain: no copy, no hold, no unknown-recipient audit (worker, this change) |
 
 Unverified until the first live test: whether Resend echoes `tags` in webhook payloads. If it does not, the
 `OTHER_DEPLOYMENT` rule is a no-op and the remaining rules still apply (an untagged event for the other deployment
@@ -103,12 +104,16 @@ starve OTP delivery.
 
 - Notification Service `SMTPEmailSender`: compatible with Resend SMTP as is (implicit TLS on 465 or STARTTLS on
   587, TLS >= 1.2, PLAIN auth, display-name From, Date header, 5xx = permanent, others retried, timeout).
-  Note: `NOTIFICATION_SMTP_TLS_MODE=none` is still accepted by config validation; it would send the API key in
-  clear text. Never use it with Resend (flagged, not changed).
+  `NOTIFICATION_SMTP_TLS_MODE=none` could not leak the key even before this change: Go's `net/smtp` `PlainAuth`
+  refuses to send credentials over an unencrypted connection to a non-loopback host. It now also fails at
+  `Ready()` with a clear reason unless the host is loopback (KarryGo PR #21). Partner Web only accepts `tls`
+  or `starttls`.
 - Notification Service records the provider message id as the literal `smtp`; Resend SMTP event correlation back
   to KarryGo deliveries is not available (documented on the KarryGo branch). CA never treats these events as its own.
-- Partner Web `smtp_otp_sender.go`: compatible, but its message had **no Date or Message-ID header**. Fixed in a
-  separate KarryGo PR (no config, sender or OTP logic change).
+- Partner Web `smtp_otp_sender.go`: its message had **no Date or Message-ID header** (fixed in KarryGo PR #21),
+  and it fell back to the SMTP username (`resend`) as the sender (fixed by the parallel KarryGo PR #22, which
+  also parses `Name <address>`). The two PRs touch different functions of the same file and were verified
+  together: combined tree builds and both suites pass.
 - No code in KarryGo (or cfmeet) consumes Resend webhooks; CA is the only webhook consumer in these repositories.
 
 ## 6. Before configuring (or re-pointing) the single webhook
@@ -158,3 +163,70 @@ Migrations 27-37 applied and verified; private S3-compatible storage + KMS; Clam
 and variables in section 4; provisioning (`mail:provision:karryam`) and staff memberships; the webhook step in
 section 6. Then controlled tests per `docs/cosmicforge-mail-karryam-resend-activation.md` §8 with the approved
 recipients only.
+
+## 9. Security review status (2026-10-27)
+
+| Gap | Status |
+|---|---|
+| SMTP must not expose the Resend API key over an unencrypted connection | Closed. Go `net/smtp` never sends PLAIN credentials unencrypted to a non-loopback host; Notification Service now refuses `TLS_MODE=none` for a remote host at `Ready()`; Partner Web accepts only `tls`/`starttls`. The KarryGo key is Sending Access only; CA's Full Access key is never used for SMTP. |
+| Provider webhook tags need live verification | **Open, by design.** The `OTHER_DEPLOYMENT` rule only fires when Resend echoes `cf_app`/`cf_env` in event `data.tags`. Verify with the first staging send: the stored `mail_webhook_events.payload` (or Resend's event log) must show the tags. Until verified, no rule relies on them for anything but discarding; untagged events fall through to the sender/domain/email-id rules. |
+| Cross-domain inbound must not leak into the wrong mailbox | Closed. Routing is exact-address only (no catch-all); the webhook stores only allowlisted recipients (PR #24); the worker now routes only domains that are registered **and** allowlisted (this change), so a HealthNet or retired domain gets no copy even if registered in CA. Each mailbox receives one copy; Bcc never leaks between copies. |
+| HealthNet and marketing event ownership isolated | Closed. Outbound events from non-allowlisted sender domains (HealthNet, `marketing.karryam.com`) and broadcasts CA never dispatched are acknowledged and not stored (PR #24, PR #23); HealthNet can never send (`SENDER_ORGANIZATION_RESTRICTED_HEALTH`) and is not routed inbound. Residual (accepted, documented in PR #24): if HealthNet ever enables Resend **receiving** on this account, its mail is fetched into CA worker memory, then discarded without storage. Keep HealthNet off this account's receiving. |
+
+## 10. Handover to the infrastructure (GitHub Actions) workstream
+
+Names only. Store values in the protected `staging` environment now and, separately, in `production` only after
+promotion is approved. Never print them in workflow logs (`::add-mask::`), artifacts, command lines or PRs.
+
+**Merge order before any CA deploy:** CA PR #24 -> CA PR #22 -> CA PR #23 (refresh #23 from `staging` after #22).
+KarryGo: PR #22 and PR #21 are independent (verified combined).
+
+**CA protected secrets (staging):**
+
+| Secret | Purpose |
+|---|---|
+| `RESEND_API_KEY` | `CosmicForge Admin Mail` (Full Access) |
+| `RESEND_WEBHOOK_SECRET` | signing secret of the single webhook (install before pointing it at staging) |
+| `MAIL_ENCRYPTION_KEYS` (+ `MAIL_ENCRYPTION_ACTIVE_KEY`) | KMS-wrapped data keys from `npm run mail:kms:generate-data-key` |
+| `MAIL_S3_ACCESS_KEY_ID`, `MAIL_S3_SECRET_ACCESS_KEY` (or an instance role) | private bucket access |
+| `MAIL_KMS_ACCESS_KEY_ID`, `MAIL_KMS_SECRET_ACCESS_KEY` (if not the S3 pair) | KMS access |
+| `MAIL_METRICS_TOKEN` (>= 32 chars, optional) | `/api/mail/v1/ops/metrics` |
+| Not needed now: `MAIL_MARKETING_UNSUBSCRIBE_SECRET`, `MAIL_INTEGRATION_HASH_SECRET`, `MAIL_INTEGRATION_SERVICE_SECRETS`, `MAIL_ORIGIN_HEADER_SECRET` | marketing, product integrations, full-headers mode stay off |
+
+**CA variables (staging, non-secret):** `MAIL_DEPLOYMENT_ENV=staging`, `MAIL_PROVIDER=resend`,
+`MAIL_PROVIDER_ENVIRONMENT_TAG=staging` (optional), `MAIL_DOMAIN_ALLOWLIST=karryam.com`,
+`MAIL_RESERVED_SENDER_ADDRESSES=no-reply@karryam.com`, `MAIL_TEST_RECIPIENT_ALLOWLIST=<approved test inboxes>`,
+`MAIL_INBOUND_ACTIVE_ENVIRONMENT=staging`, `MAIL_UNKNOWN_RECIPIENT_POLICY=reject`,
+`MAIL_MIXED_RECIPIENT_MODE=external-only`, `MAIL_PROVIDER_DAILY_LIMIT`/`MAIL_PROVIDER_MONTHLY_LIMIT` (plan limits),
+`MAIL_STORAGE_PROVIDER=s3`, `MAIL_S3_BUCKET` (name contains `staging`/`stg`), `MAIL_S3_REGION`, `MAIL_S3_ENDPOINT`
+(https, optional), `MAIL_S3_SSE`, `MAIL_S3_SSE_KMS_KEY_ID`, `MAIL_KMS_PROVIDER=aws-kms`, `MAIL_KMS_KEY_ID`
+(staging alias, or ARN + `MAIL_KMS_KEY_ENVIRONMENT=staging`), `MAIL_KMS_REGION`, `MAIL_SCANNER_PROVIDER=clamd`,
+`MAIL_CLAMD_HOST`, `MAIL_CLAMD_PORT`, `MAIL_PUBLIC_API_URL=https://stagingca.cosmicforge-healthnet.com`,
+`MAIL_PUBLIC_APP_URL=<staging web origin>`, worker: `MAIL_WORKER_QUEUES=outbound,inbound,events`.
+Flags stay **off** (`MAIL_ENABLED`, `MAIL_SENDING_ENABLED`, `MAIL_RECEIVING_ENABLED`, `MAIL_WORKER_ENABLED`,
+`MAIL_MARKETING_ENABLED`, `MAIL_RECONCILIATION_ENABLED`, `MAIL_PROVIDER_DOMAIN_MANAGEMENT_ENABLED`) until the
+owner approves each activation step.
+
+**KarryGo protected secrets (KarryGo deployment, not CA):** `NOTIFICATION_SMTP_PASSWORD` and (if Partner Web is
+deployed) `PARTNER_SMTP_PASSWORD` = the `KarryGo Notifications` (Sending Access) key. Variables:
+`NOTIFICATION_EMAIL_PROVIDER=smtp`, `NOTIFICATION_SMTP_HOST=smtp.resend.com`, `NOTIFICATION_SMTP_PORT=465`,
+`NOTIFICATION_SMTP_TLS_MODE=tls`, `NOTIFICATION_SMTP_USERNAME=resend`,
+`NOTIFICATION_EMAIL_FROM=Karryam <no-reply@karryam.com>`, and the `PARTNER_SMTP_*` equivalents. Never CA's key.
+
+**Readiness checks the workflow should run and report (read-only first):**
+
+1. `npm run db:manifest:verify` -> `migrations=37 checksum_failures=0`.
+2. `npm run db:admin:guard` (inside the staging `app` container) -> `database=cosmicforge_admin`, never a product DB.
+3. Ledger: `SELECT file FROM social_manual_migrations` covers manifest orders 27-37; then `npm run db:schema:assert`.
+4. `MAIL_DEPLOYMENT_ENV=staging npm run mail:config:validate` -> `"violations":[]` and flags as intended.
+5. `MAIL_S3_LIVE_ENDPOINT=... MAIL_KMS_LIVE_KEY_ID=... npm run test:mail:s3-kms-live` -> pass.
+6. `MAIL_CLAMD_LIVE_HOST=... npm run test:mail:clamd-live` -> pass (official signatures loaded).
+7. Worker container running `npm run mail:worker` with the same image/env; liveness log line present; exactly one replica.
+8. `GET https://stagingca.cosmicforge-healthnet.com/api/mail/v1/health/ready`: `DISABLED` while `MAIL_ENABLED=false`;
+   after enabling, `ready:true` with `schema`, `encryption`, `storage`, `infrastructure` `OK` (and `provider`,
+   `webhooks` `OK` once sending/receiving are on).
+9. Provisioning (after migrations): `npm run mail:provision:karryam` dry run, then `--apply --actor=<real Mail admin id>`,
+   re-run must show every step `EXISTS`.
+10. Before any webhook step: Resend dashboard inventory of the existing webhook (section 6). The webhook is **not**
+    created or redirected by this workstream until the owner approves.
+

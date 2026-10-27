@@ -26,6 +26,12 @@
 //    reconciler as unrecovered), never SUCCEEDED with nothing delivered.
 //    Receiving disabled (MAIL_RECEIVING_ENABLED=false) defers the job without
 //    consuming an attempt.
+//    Only domains that are registered AND on the current MAIL_DOMAIN_ALLOWLIST
+//    are routed. A registered domain outside the allowlist (e.g. a HealthNet
+//    domain while one Resend account is shared, or a domain retired from the
+//    allowlist) is treated like any external domain: no copy, not held, not
+//    reported as an unknown local recipient. Sender-spoof detection still
+//    knows every registered domain.
 //    Reserved senders (MAIL_RESERVED_SENDER_ADDRESSES, e.g. KarryGo's
 //    no-reply@karryam.com) are an explicit no-reply policy, independent of
 //    MAIL_UNKNOWN_RECIPIENT_POLICY: their copy is discarded and
@@ -131,17 +137,23 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
     return echoes;
   }
 
-  // Every domain we own (`all`) and the subset currently receiving mail.
+  // Every domain we own (`all`, used for spoof detection), the subset routed
+  // for inbound mail (`routed`: registered and on MAIL_DOMAIN_ALLOWLIST) and,
+  // of those, the ones currently receiving.
+  const routedAllowlist = new Set((config.domainAllowlist || []).map((domain) => String(domain).toLowerCase()));
   async function ownDomainState() {
     const rows = await client.mailDomain.findMany({ select: { domain: true, status: true, receivingStatus: true } });
     const all = new Set();
+    const routed = new Set();
     const receiving = new Set();
     for (const row of rows) {
       const name = row.domain.toLowerCase();
       all.add(name);
+      if (!routedAllowlist.has(name)) continue;
+      routed.add(name);
       if (domainReceives(row)) receiving.add(name);
     }
-    return { all, receiving };
+    return { all, routed, receiving };
   }
 
   // `domains`: an ownDomainState() result (a plain Set of domain names is
@@ -149,8 +161,9 @@ function createInboundProcessor({ client, config, adapter, store, scanner, audit
   async function resolveRecipients(addresses, domains = null) {
     const normalized = [...new Set(addresses.map(normalizeAddress).filter(Boolean))];
     if (!normalized.length) return { local: [], unknown: [], domainHeld: [], reserved: [] };
-    const state = domains instanceof Set ? { all: domains, receiving: domains } : domains || (await ownDomainState());
-    const ownAll = normalized.filter((address) => state.all.has(address.split("@")[1]));
+    const state = domains instanceof Set ? { all: domains, routed: domains, receiving: domains } : domains || (await ownDomainState());
+    const routedDomains = state.routed || state.all;
+    const ownAll = normalized.filter((address) => routedDomains.has(address.split("@")[1]));
     // No-reply policy: reserved senders never receive, whatever their domain state.
     const reserved = ownAll.filter((address) => reservedSenders.has(address));
     const ours = ownAll.filter((address) => !reservedSenders.has(address));
