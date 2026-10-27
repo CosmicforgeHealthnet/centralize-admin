@@ -398,9 +398,22 @@ test("Karryam shared + personal mailboxes and the reserved no-reply identity on 
     const hnDomain = await client.mailDomain.create({ data: { organizationId: s.healthnet.id, domain: "healthnet.example", status: "VERIFIED", sendingStatus: "VERIFIED", receivingStatus: "VERIFIED" } });
     const hnBox = await client.mailMailbox.create({ data: { organizationId: s.healthnet.id, type: "SHARED", purpose: "SUPPORT", name: "HealthNet Care" } });
     await client.mailAddress.create({ data: { organizationId: s.healthnet.id, domainId: hnDomain.id, mailboxId: hnBox.id, localPart: "care", address: "care@healthnet.example", kind: "SHARED", status: "ACTIVE" } });
-    // Mail addressed to both brands: each mailbox gets its own copy only.
+    // Mail addressed to both brands: only the allowlisted (Karryam) mailbox
+    // gets a copy. A registered domain outside MAIL_DOMAIN_ALLOWLIST is
+    // routed like an external domain: no copy, no hold, no unknown-recipient audit.
+    const unknownAudits = () => client.mailAuditEvent.count({ where: { action: { startsWith: "MAIL_INBOUND_UNKNOWN" } } });
+    const auditsBefore = await unknownAudits();
     const both = await harness.mail.processors.inbound.process(inbound("cross_brand", [`support@${DOMAIN}`, "care@healthnet.example"]));
-    assert.equal(both.delivered, 2);
+    assert.equal(both.delivered, 1);
+    assert.equal(both.unknown, 0, "the HealthNet address is not one of our routed domains");
+    assert.equal(await client.mailMessage.count({ where: { mailboxId: hnBox.id, providerMessageId: "cross_brand" } }), 0);
+    assert.equal(await client.mailMessage.count({ where: { mailboxId: s.boxes.support, providerMessageId: "cross_brand" } }), 1);
+    const hnOnly = await harness.mail.processors.inbound.process(inbound("hn_only", ["care@healthnet.example"]));
+    assert.deepEqual([hnOnly.delivered, hnOnly.unknown], [0, 0]);
+    assert.equal(await unknownAudits(), auditsBefore);
+    // Routing follows the allowlist: only an explicit allowlist entry routes it.
+    const hnRouted = harness.build({ MAIL_DOMAIN_ALLOWLIST: `cosmicforge.example,karryam.example,${DOMAIN},healthnet.example` });
+    assert.equal((await hnRouted.processors.inbound.process(inbound("hn_routed", ["care@healthnet.example"]))).delivered, 1);
     assert.equal((await call("dave", "GET", `/mailboxes/${hnBox.id}`)).status, 404, "Karryam staff never see HealthNet mailboxes");
     // HealthNet can never send through the Karryam provider setup.
     const domain = await client.mailDomain.findUnique({ where: { id: hnDomain.id }, include: { organization: true } });
