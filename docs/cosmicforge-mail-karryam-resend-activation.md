@@ -89,6 +89,32 @@ and the admin API already supported four shared mailboxes under one domain. Thre
 Plus: `MAIL_RESERVED_SENDER_ADDRESSES` config (validated by `npm run mail:config:validate`), an idempotent provisioning
 procedure (`src/modules/mail/ops/brand-mail-provisioning.js`, `npm run mail:provision:karryam`), and two test suites.
 
+## 2a. Shared-webhook ownership rules (hardened 2026-10-27, second pass)
+
+The `FOREIGN_SENDER` filter from section 2 had paths that still stored other systems' data. Closed on the
+company endpoint (`/webhooks/resend`; brand endpoints are per-account and keep the section 2 behaviour):
+
+| Path that bypassed the filter | Now |
+|---|---|
+| Outbound event with no `from` (or an unparseable one) | CA's only if its email id is one CA sent (`mail_messages`, `mail_message_recipients`, broadcast recipients, automation step runs); otherwise ignored, nothing stored |
+| Broadcast events (`broadcast_id`) skipped the filter entirely | Sender domain must be on `MAIL_DOMAIN_ALLOWLIST` (e.g. `marketing.karryam.com` and HealthNet senders are not) |
+| A provisioned address on a non-allowlisted domain | Ignored (`SENDER_DOMAIN_NOT_OWNED`); lookalike domains (`karryam.com.evil.example`) too |
+| Ownership lookup failed: event stored anyway | 503, not acknowledged (Resend retries); nothing stored |
+| `email.received` stored every listed To address | Only allowlisted recipients from To/Cc/Bcc are stored (a Bcc'd department now routes); if none is listed, the sender is not stored either |
+
+Not changed, deliberately: an `email.received` event is **not refused** on its listed recipients, because a message
+Bcc'd to `support@` can list only the external header To. The worker still fetches such a message from Resend and
+then stores nothing unless an exact ACTIVE CA address receives it. So if HealthNet (`cosmicforge-healthnet.com`)
+ever enables Resend **receiving** on this same account, its inbound mail would be fetched into CA worker memory and
+discarded. Today HealthNet should not have receiving on this account; confirm in Resend -> Domains. If it ever
+needs receiving, move it to its own Resend account (see 6.4a). Once a real Resend `email.received` payload confirms
+that Bcc/envelope recipients are always listed, the event can be refused before fetch.
+
+Tests: `tests/mail-shared-webhook-isolation-unit.test.js` (every subscribed KarryGo event type x five `from` shapes
+with Cc/Bcc, HealthNet and other-brand senders, broadcasts, missing/invalid `from`, lookup failure, inbound
+minimisation, bad signature) and new cases in `tests/mail-karryam-mailboxes-postgres.test.js` (HealthNet inbound
+end to end: no addresses stored, nothing delivered, no unknown-recipient audit).
+
 ## 3. Non-Resend prerequisites (must be done first; owners in section 12)
 
 ### 3.1 Staging Central Admin database: migrations 27-37 (DB owner)
@@ -250,6 +276,24 @@ old MX values written down for rollback (section 10).
   and Resend retries/marks failures.
 - Because the account has one endpoint, staging and production CA cannot both receive. Moving to production later
   means re-pointing this URL (and installing the same secret there).
+
+### 6.4a Live (production) webhook: state on 2026-10-27
+
+- `api.cosmicforge-healthnet.com` (72.61.20.94) is not the staging host. `.github/workflows/production.yml` is
+  manual (`workflow_dispatch`), runs `docker-compose pull && up -d` in `/var/www/admin-server` on `PROD_HOST`, and
+  **runs no migrations**. Its last run was 2026-08-14 from `main`.
+- `main` contains **no Mail module** (`git ls-tree origin/main` has no `modules/mail/`) and still uses the old root
+  `src/` layout. `staging` is 128 commits ahead, including the monorepo move, HealthNet Admin, migrations 27-37 and
+  all Mail work. So `https://api.cosmicforge-healthnet.com/api/mail/v1/webhooks/resend` is almost certainly not
+  served today. Do not register the webhook there until a production release has been done and
+  `GET https://api.cosmicforge-healthnet.com/api/mail/v1/health/ready` answers from the Mail module.
+- A production release is a promotion of all of `staging`, not a Mail patch: production DB backup, migration
+  ledger check and the 27-37 (and any other pending) migrations by the DB owner, the production compose file updated
+  for the new image layout, then a manual `production.yml` dispatch from the reviewed ref. It needs the production
+  owner's approval; the agent did not trigger it.
+- The one Resend endpoint can point at staging **or** production, never both. Inventory the existing endpoint
+  first (Resend -> Webhooks): if one exists, update its URL and events in place (keep its consumers' events) rather
+  than deleting and recreating it, and install its `whsec_` secret as `RESEND_WEBHOOK_SECRET` on the target.
 
 ### 6.5 Keys and secrets
 
