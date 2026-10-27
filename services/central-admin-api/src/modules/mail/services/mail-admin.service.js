@@ -10,6 +10,7 @@ const policy = require("../authz/mail.policy");
 const { normalizeDomain, normalizeLocalPart, normalizeAddress, cleanDisplayName } = require("../security/address.util");
 const { sanitizeEmailHtml } = require("../security/html-sanitizer");
 const { iso } = require("./serializers");
+const { reservedSenderSet } = require("../security/reserved-senders");
 const { MailWebhookStatus, MailDeliveryEventType, MailJobStatus, MailJobQueue } = require("../../../generated/admin-client");
 
 const ROLES = new Set(["OWNER", "MANAGER", "MEMBER", "READER"]);
@@ -317,6 +318,10 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
       await assertNoAliasLoop(tx, aliasOfAddressId, mailboxId);
     }
     const address = `${local}@${domain.domain}`;
+    // A reserved sender (owned by another system, e.g. KarryGo's no-reply@)
+    // can only be reserved here as a SYSTEM address with no mailbox: never a
+    // shared inbox, a personal address or an alias anyone could send as.
+    if (reservedSenderSet(config).has(address) && (kind !== "SYSTEM" || mailboxId)) throw mailError("MAIL_VALIDATION_FAILED", { field: "localPart", reason: "RESERVED_ADDRESS_SYSTEM_ONLY" });
     try {
       return await tx.mailAddress.create({
         data: { organizationId: domain.organizationId, domainId: domain.id, mailboxId: mailboxId || null, localPart: local, address, kind, status, aliasOfAddressId: kind === "ALIAS" ? aliasOfAddressId : null, displayName: cleanDisplayName(displayName), createdBy: user.id },
@@ -542,6 +547,9 @@ function createMailAdminService({ client, config, adapter, audit, notifications,
     ]);
     if (!mailbox || !address || !member || member.status !== "ACTIVE") throw mailError("MAIL_VALIDATION_FAILED", { field: "grant" });
     if (address.organizationId !== mailbox.organizationId || address.status !== "ACTIVE") throw mailError("MAIL_VALIDATION_FAILED", { field: "addressId" });
+    // Automated/system identities (no-reply@ and other reserved senders) are
+    // never delegated to people.
+    if (address.kind === "SYSTEM" || reservedSenderSet(config).has(address.address)) throw mailError("MAIL_FORBIDDEN", { reason: "SYSTEM_IDENTITY_NOT_GRANTABLE" });
     // Sending as a personal identity requires that person's own delegation.
     if (address.kind === "PRIMARY" && address.mailboxId !== mailbox.id) throw mailError("MAIL_FORBIDDEN", { reason: "PERSONAL_IDENTITY_DELEGATION_OWNER_ONLY" });
     const membership = await db.mailMembership.findFirst({ where: { mailboxId, adminUserId: member.id, revokedAt: null } });

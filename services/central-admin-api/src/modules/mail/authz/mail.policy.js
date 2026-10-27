@@ -15,6 +15,7 @@
 // - Resources the caller cannot see are reported as 404 to avoid enumeration.
 
 const { mailError } = require("../mail.errors");
+const { reservedSenderSet } = require("../security/reserved-senders");
 
 const ROLE_RANK = { READER: 1, MEMBER: 2, MANAGER: 3, OWNER: 4 };
 const CAPABILITY_MIN_ROLE = {
@@ -210,8 +211,15 @@ async function listSenderIdentities(client, user, access, { now = new Date() } =
     include: { address: true },
   });
   const byId = new Map();
-  // Mailbox-owned identities plus explicit, unexpired sender grants.
-  for (const address of [...addresses, ...grants.map((grant) => grant.address)]) byId.set(address.id, address);
+  // Mailbox-owned identities plus explicit, unexpired sender grants. SYSTEM
+  // addresses (automated product identities such as no-reply@) and reserved
+  // senders owned by another system are never staff identities, even if an
+  // older grant points at one.
+  const reserved = reservedSenderSet();
+  for (const address of [...addresses, ...grants.map((grant) => grant.address)]) {
+    if (address.kind === "SYSTEM" || reserved.has(address.address)) continue;
+    byId.set(address.id, address);
+  }
   return [...byId.values()].map((address) => ({
     addressId: address.id,
     address: address.address,

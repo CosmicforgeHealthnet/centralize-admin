@@ -20,6 +20,7 @@ const { parseCsv, neutralizeCell, isFormula } = require("./csv");
 const { isValidTimeZone } = require("./scheduling");
 const { iso, decodeCursor, encodeCursor, pageLimit } = require("../services/serializers");
 const { isBrandSender, replyToProblem, SENDER_MAILBOX_SELECT } = require("./marketing-sender");
+const { isReservedSender } = require("../security/reserved-senders");
 
 const CONSENT_SOURCES = new Set(["WEB_FORM", "IMPORT", "MANUAL", "API", "EVENT"]);
 const TOPIC = /^[a-z0-9][a-z0-9_-]{1,63}$/;
@@ -840,7 +841,8 @@ function createMarketingService({ client, config, audit, stepUp, clock = () => n
   async function senderIdentities(user, organizationId) {
     await scope(user, organizationId, "VIEW");
     // Aliases on a PERSONAL mailbox are a person's address, never a brand sender.
-    const rows = await client.mailAddress.findMany({ where: { organizationId, status: "ACTIVE", kind: { in: ["SHARED", "SYSTEM", "ALIAS"] }, OR: [{ mailboxId: null }, { mailbox: { type: "SHARED" } }] }, include: { domain: true, mailbox: { select: { purpose: true, name: true, type: true } } }, orderBy: { address: "asc" } });
+    const rows = (await client.mailAddress.findMany({ where: { organizationId, status: "ACTIVE", kind: { in: ["SHARED", "SYSTEM", "ALIAS"] }, OR: [{ mailboxId: null }, { mailbox: { type: "SHARED" } }] }, include: { domain: true, mailbox: { select: { purpose: true, name: true, type: true } } }, orderBy: { address: "asc" } }))
+      .filter((row) => !isReservedSender(row.address));
     return rows.map((row) => ({ addressId: row.id, address: row.address, displayName: row.displayName, kind: row.kind, mailboxName: row.mailbox?.name || null, purpose: row.mailbox?.purpose || null, domainVerifiedForSending: row.domain.status === "VERIFIED" && row.domain.sendingStatus === "VERIFIED" }));
   }
 
