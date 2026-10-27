@@ -355,6 +355,27 @@ test("Karryam shared + personal mailboxes and the reserved no-reply identity on 
     assert.equal(forged.status, 401, "signature is checked before anything else");
     const noId = await webhook("email.delivered", { from: `support@${DOMAIN}`, to: ["customer@client.example"] });
     assert.equal(noId.status, 400);
+
+    // No From and an email id CA never sent: not CA's, not stored.
+    const before2 = await events();
+    const noFrom = await webhook("email.delivered", { email_id: `kg_${crypto.randomUUID()}`, to: ["rider@gmail.example"] });
+    assert.equal(noFrom.body.reason, "FOREIGN_SENDER");
+    // Another brand's broadcast and a HealthNet sender: not CA's domains.
+    const broadcast = await webhook("email.delivered", { email_id: "mk_1", broadcast_id: "bc_not_ours", from: "news@marketing.karryam.com", to: ["fan@gmail.example"] });
+    assert.equal(broadcast.body.reason, "FOREIGN_SENDER");
+    assert.equal(await events(), before2);
+
+    // HealthNet inbound mail on the shared account: acknowledged, no party
+    // addresses kept, nothing delivered, no unknown-recipient audit.
+    harness.adapter.addInbound("hn_inbound", { from: { address: "patient@gmail.example", name: "Patient" }, to: [{ address: "records@cosmicforge-healthnet.com", name: null }], cc: [], envelopeRecipients: ["records@cosmicforge-healthnet.com"], subject: "My results", html: null, text: "private", rfcMessageId: "<hn@gmail.example>", inReplyTo: null, references: [], receivedAt: harness.clock() }, []);
+    const auditsBefore = await client.mailAuditEvent.count({ where: { action: { startsWith: "MAIL_INBOUND_UNKNOWN" } } });
+    const hn = await webhook("email.received", { email_id: "hn_inbound", from: "patient@gmail.example", to: ["records@cosmicforge-healthnet.com"] });
+    assert.equal(hn.status, 200);
+    const stored = await client.mailWebhookEvent.findFirst({ where: { providerEventId: hn.id } });
+    assert.ok(!JSON.stringify(stored.payload).includes("cosmicforge-healthnet.com") && !JSON.stringify(stored.payload).includes("patient@"));
+    await drain();
+    assert.equal(await client.mailMessage.count({ where: { providerMessageId: "hn_inbound" } }), 0);
+    assert.equal(await client.mailAuditEvent.count({ where: { action: { startsWith: "MAIL_INBOUND_UNKNOWN" } } }), auditsBefore, "another domain is never reported as an unknown local recipient");
   });
 
   await t.test("14: provider 429 retries with the same key and quota exhaustion defers without failing", async () => {
