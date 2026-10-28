@@ -853,7 +853,11 @@ fi
 # Read-only production preview so a production blocker is known up front.
 mkdir -m 700 "$backup_dir/production-preview"
 if identity_ok production; then
-  info "production preview: identity OK, state $(env_state production "$backup_dir/production-preview/inspect.json") (read-only; production is changed only after STAGING_LOGIN_OK)"
+  prod_preview_state="$(env_state production "$backup_dir/production-preview/inspect.json")"
+  info "production preview: identity OK, state $prod_preview_state (read-only; production is changed only after STAGING_LOGIN_OK)"
+  if [[ "$prod_preview_state" == unknown ]]; then
+    info "production preview blockers (key names only): $(json_field problems < "$backup_dir/production-preview/inspect.json")"
+  fi
 else
   info 'production preview: identity checks currently fail; production will be refused until fixed (staging can still proceed)'
 fi
