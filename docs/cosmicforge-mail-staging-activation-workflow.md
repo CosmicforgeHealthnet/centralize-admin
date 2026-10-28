@@ -1,7 +1,6 @@
-# CosmicForge Mail: staging activation workflow
+# CosmicForge Mail: staging infrastructure inspection workflow
 
-`.github/workflows/mail-activation-staging.yml` activates Mail on staging in reviewed, approval-gated
-phases through GitHub Actions. Nobody needs direct VPS access. Only phase 1 exists.
+`.github/workflows/mail-activation-staging.yml` currently performs **only a read-only inspection** through the existing `staging` GitHub environment and its existing restricted `STAGING_SSH_KEY`. No new environment, SSH key or required reviewer is needed. It does not activate Mail, run migrations, install infrastructure, or alter Resend.
 
 ## Phase 1: read-only inspection (`phase=inspect`)
 
@@ -25,22 +24,17 @@ text, and config violations have addresses, URLs and host names redacted. `tests
 checks that no secret, key, bucket, address or host value appears in its output, including when a database
 connection or the script itself fails.
 
-### Before the first run (infrastructure owner)
+### How the first inspection runs
 
-1. Create the GitHub environment **`staging-mail-activation`**:
-   - add required reviewers (the approval gate);
-   - set deployment branches to `staging` only;
-   - add the `STAGING_SSH_KEY` secret (the `cf-staging-deploy` key).
+1. After the workflow change is merged into `staging`, the **Staging Mail Inspection (existing staging environment)** job runs automatically once because the workflow file changed. It uses the existing `staging` environment and restricted deployment SSH key already proved by the normal Admin API pipeline.
+2. To run it again manually, choose `staging` in GitHub Actions → *Staging Mail Inspection (existing staging environment)*, select `inspect`, and type `inspect staging read-only`.
+3. Read the GitHub Actions job summary and the `staging-mail-inspection` artifact. The result reports missing prerequisites but does not install or enable them. The infrastructure operator must independently verify a database backup, migrations 27–37, S3/KMS, scanner, worker, staging-only secrets, safe recipient allowlist, and provider/webhook state before an activation workflow is authored.
 
-   If the environment is missing, GitHub creates an unprotected one without the secret. The job then
-   stops at the key check without connecting anywhere.
-2. Run the workflow from `staging`: Actions → *Staging Mail Activation (approval-gated)*, with phase
-   `inspect` and the confirmation text `inspect staging read-only`.
-3. A required reviewer approves the environment deployment, and the job runs.
+**The normal API auto-deployment is separate and already uses the `staging` environment.** This inspection does not redeploy the backend or modify the container.
 
 ## Later phases (not implemented)
 
-Each later phase is added as its own reviewed PR, and only after the inspection results are reviewed:
+Later infrastructure steps require explicit safety checks and a separate reviewed implementation after the inspection results are known:
 1. backup, then apply the Mail migrations 27-37 with the existing `db:admin:prepare` path;
 2. a live storage/KMS read-write check;
 3. provisioning;
