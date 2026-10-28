@@ -89,7 +89,7 @@ assert u.hostname=='db' and unquote(u.path.lstrip('/'))==sys.argv[2], 'source DB
 PY
   # Never proceed if a destination already exists (e.g. a previous attempt).
   if docker exec "$db" sh -c 'exec psql -X -qAt -U "${POSTGRES_USER:-postgres}" -d postgres -c "SELECT datname FROM pg_database"' \
-      | grep -Fxq cosmicforge_admin; then
+      | grep -Fx cosmicforge_admin >/dev/null; then
     echo "BLOCKED: cosmicforge_admin already exists in $db; not overwriting." >&2
     return 1
   fi
