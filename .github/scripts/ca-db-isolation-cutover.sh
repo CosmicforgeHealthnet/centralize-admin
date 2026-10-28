@@ -188,6 +188,27 @@ SQL
   echo "Database copy verified: $(wc -l < "$dir/counts-$source.txt") public tables; all row counts and schema definitions match."
 }
 
+# Secret values are never printed or persisted, only a SHA-256 digest in
+# root-only cutover backups. Database name is masked, credentials are not.
+app_env_fingerprint() {
+  docker exec "$1" node -e '
+    const crypto = require("node:crypto");
+    const keys = Object.keys(process.env).filter(k =>
+      /SECRET|TOKEN|PASSWORD|API_KEY|CREDENTIAL|DATABASE_URL|PRIVATE_KEY|SMTP_/i.test(k)).sort();
+    const values = keys.map(k => {
+      let v = process.env[k];
+      if (k === "DATABASE_URL") {
+        const u = new URL(v);
+        u.pathname = "/__DATABASE_NAME_IGNORED__";
+        v = u.toString();
+      }
+      return [k, v];
+    });
+    process.stdout.write(crypto.createHash("sha256")
+      .update(JSON.stringify(values)).digest("hex") + "\n");
+  '
+}
+
 verify_app() {
   local app="$1" dest="$2"
   local attempt
@@ -237,6 +258,12 @@ switch_one() {
   mkdir -m 700 "$dir"
   cp -p "$root/.env" "$dir/original.env"
   chmod 600 "$dir/original.env"
+  # Before/after secret fingerprint catches Compose '$' interpolation drift.
+  app_env_fingerprint "$app" > "$dir/original-app-secrets.sha256"
+
+  # Verify the image is held fixed across the recreation.
+  local running_image_at_start
+  running_image_at_start="$(docker inspect -f '{{.Image}}' "$app")"
 
   # From this point, a failure auto-restores the CA app's old environment.
   active_root="$root"
@@ -325,6 +352,14 @@ finally:
 PY
   compose_up "$mode" "$root"
   verify_app "$app" cosmicforge_admin
+  if ! cmp -s "$dir/original-app-secrets.sha256" <(app_env_fingerprint "$app"); then
+    echo 'BLOCKED: application credentials changed during Compose recreation; rolling back.' >&2
+    return 1
+  fi
+  if [[ "$(docker inspect -f '{{.Image}}' "$app")" != "$running_image_at_start" ]]; then
+    echo 'BLOCKED: the running application image changed during cutover; rolling back.' >&2
+    return 1
+  fi
 
   # This environment now runs on its new DB; don't auto-rollback on later env failure.
   active_root=''
