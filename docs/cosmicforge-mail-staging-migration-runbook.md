@@ -131,8 +131,21 @@ HealthNet clinical email are explicitly out of scope.
 ## Addendum: migrations 28-33 (Stage A, M7-M10)
 
 Apply in manifest order, after 27, in the same approved change window and only after a verified backup.
-`npm run db:admin:prepare` applies pending files in order and records each in `social_manual_migrations`;
-it refuses a file whose checksum differs from `manifest.json`. All files are additive. Rollback:
+
+> **Correction (2026-10-28):** `npm run db:admin:prepare` does **not** apply these files. It applies only its
+> hard-coded list of 13 Social Operations / Marketing / Advertising files (`APPROVED_ADMIN_DATABASE_MIGRATIONS`
+> in `scripts/social-operations/prepare-admin-database.js`). No tool in the repository applies orders 27-37;
+> they are applied with the section 4 procedure (`psql --single-transaction`, then one ledger row per file
+> with the `manifest.json` checksum), one file at a time, in order.
+>
+> **Staging's ledger is empty (0/37 rows)**, so it cannot say which earlier files are in place. Its schema was
+> built with `prisma db push`, which creates the objects without ledger rows. Before 27 is applied, read the
+> `migration-state.json` artifact of the read-only **CA DB cutover preflight** workflow: it lists, per manifest
+> order, whether the objects that file creates exist in the live database (names only). Orders 27-37 must be
+> `absent` and 1-26 `present` / `no_sentinel`. A `partial` result is a real gap (typically a partial unique index
+> Prisma cannot express) and is checked with `npm run db:schema:assert` on a restored copy before anything is
+> applied. Ledger rows for 1-26 are written only after `prisma migrate diff` against a restored copy reports no
+> drift; never record a file as applied on name evidence alone. All files are additive. Rollback:
 `docs/sql/cosmicforge-mail-m7-m10-rollback.sql` (rehearsed by `npm run mail:rollback:drill`).
 
 | Order | File | sha256 (manifest) |

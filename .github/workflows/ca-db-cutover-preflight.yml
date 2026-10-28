@@ -17,6 +17,7 @@ on:
       - .github/workflows/ca-db-cutover-preflight.yml
       - .github/scripts/ca-db-cutover-preflight.py
       - .github/scripts/ca-db-isolation-cutover.sh
+      - .github/scripts/ca-migration-state.py
   workflow_dispatch:
 
 permissions:
@@ -70,6 +71,13 @@ jobs:
           printf '%s\n' "${line#CA_DB_CUTOVER_PREFLIGHT }" | jq --arg sha "$CUTOVER_SHA256" --arg commit "$GITHUB_SHA" \
             '. + {cutoverScriptSha256: $sha, commit: $commit}' > preflight.json
 
+      - name: Classify manifest migrations against the live schema (names only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -I .github/scripts/ca-migration-state.py preflight.json \
+            services/central-admin-api/prisma/manual-migrations > migration-state.json
+
       - name: Summarise
         if: always()
         shell: bash
@@ -100,6 +108,15 @@ jobs:
             echo
             echo "**Problems:**"
             jq -r 'if (.problems | length) == 0 then "- none" else .problems[] | "- \(.)" end' preflight.json
+            if test -s migration-state.json; then
+              echo
+              echo "## Manual migrations vs live schema (object names only)"
+              echo
+              jq -r '
+                "Database `\(.database)`, ledger table present: \(.ledgerTablePresent), ledger rows: \(.ledgerRows)", "",
+                "| Objects | Manifest orders |", "|---|---|",
+                (.summary | to_entries[] | "| \(.key) | \(.value | map(tostring) | join(", ")) |")' migration-state.json
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Keep the report
@@ -107,6 +124,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ca-db-cutover-preflight
-          path: preflight.json
+          path: |
+            preflight.json
+            migration-state.json
           if-no-files-found: ignore
           retention-days: 30

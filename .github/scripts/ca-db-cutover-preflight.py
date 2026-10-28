@@ -202,6 +202,31 @@ except (ValueError, IndexError):
 report['appConnectedDatabase'] = app_check.get('connected')
 report['appPrismaAndHealthOk'] = bool(app_check.get('connected')) and bool(app_check.get('health'))
 
+# Schema object NAMES of the database the app uses (no row data), so the runner
+# can tell which manifest migrations are already present when the migration
+# ledger is empty. Classified on the runner by ca-migration-state.py.
+schema_db = report.get('appConnectedDatabase') if report.get('appConnectedDatabase') in (SOURCE, DEST) else SOURCE
+names_sql = r"""
+SELECT 't:' || tablename FROM pg_tables WHERE schemaname = 'public'
+UNION ALL SELECT 'y:' || t.typname FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace
+  WHERE n.nspname = 'public' AND t.typtype IN ('e', 'd')
+UNION ALL SELECT 'i:' || indexname FROM pg_indexes WHERE schemaname = 'public'
+UNION ALL SELECT 'c:' || table_name || '.' || column_name FROM information_schema.columns WHERE table_schema = 'public';
+"""
+raw = psql(schema_db, names_sql)
+ledger_present = psql(schema_db, "SELECT to_regclass('public.social_manual_migrations') IS NOT NULL;") == 't'
+ledger_raw = psql(schema_db, "SELECT file || ':' || sha256 FROM public.social_manual_migrations;") if ledger_present else ''
+names = {'tables': [], 'types': [], 'indexes': [], 'columns': [], 'ledger': sorted((ledger_raw or '').splitlines())}
+key = {'t': 'tables', 'y': 'types', 'i': 'indexes', 'c': 'columns'}
+for line in (raw or '').splitlines():
+    kind, _, value = line.partition(':')
+    if kind in key and value:
+        names[key[kind]].append(value)
+for v in names.values():
+    v.sort()
+report['schemaNames'] = {'database': schema_db, 'ledgerTablePresent': ledger_present, **names} if raw else None
+report['schemaNamesRead'] = bool(raw)
+
 report['state'] = ('already_on_cosmicforge_admin' if report.get('appConnectedDatabase') == DEST else
                    'on_legacy_source' if report.get('appConnectedDatabase') == SOURCE else 'unknown')
 report['readyForRootCutover'] = not report['problems'] and report['appPrismaAndHealthOk']

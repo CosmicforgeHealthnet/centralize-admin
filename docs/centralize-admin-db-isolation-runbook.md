@@ -90,3 +90,11 @@ change to the script (`.github/workflows/ca-db-cutover-test.yml`).
 The read-only staging preflight (`.github/workflows/ca-db-cutover-preflight.yml`) runs over the existing
 staging deploy connection on every change to the script and reports, without values, whether staging is
 ready for this run.
+
+## Mail schema state (read-only, same workflow)
+
+The same preflight run also writes `migration-state.json`. It is built on the runner from the object names the
+server returned and the repository's `prisma/manual-migrations` files. No database is contacted for it. Per
+manifest order it reports `present` / `partial` / `absent` / `no_sentinel` and whether the ledger records the
+file with the manifest checksum. It is evidence for the Mail migration decision, not a migration:
+nothing is applied or recorded by it. See the correction in `docs/cosmicforge-mail-staging-migration-runbook.md`.
