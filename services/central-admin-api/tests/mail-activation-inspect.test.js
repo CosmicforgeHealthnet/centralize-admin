@@ -81,6 +81,7 @@ test("helpers: failures become fixed codes and violations are redacted", () => {
   assert.equal(errorCode(leaky), "ECONNREFUSED");
   assert.equal(errorCode(new Error("password=hunter2")), "INSPECTION_ERROR", "message-only errors never surface");
   assert.equal(errorCode({ code: "bad code with spaces password=hunter2" }), "INSPECTION_ERROR");
+  assert.equal(errorCode({ code: "TOPSECRETTOKEN1234" }), "INSPECTION_ERROR", "arbitrary code values must never leak");
   const redacted = redactViolation("MAIL_RESERVED_SENDER_ADDRESSES entry secret.sender@leak.example is not on a MAIL_DOMAIN_ALLOWLIST domain; endpoint https://kms.internal.example/x host db.internal.example");
   assert.ok(!/secret\.sender|leak\.example|internal\.example/.test(redacted), redacted);
   assert.match(redacted, /MAIL_RESERVED_SENDER_ADDRESSES entry \[address\] is not on a MAIL_DOMAIN_ALLOWLIST domain/);
