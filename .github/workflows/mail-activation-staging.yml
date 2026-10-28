@@ -116,7 +116,7 @@ jobs:
           trap 'rm -f "$key" "$hosts"; rm -rf "$schema_tmp"' EXIT
           if remote 'docker exec admin-server-staging-db-1 sh -c '\''exec pg_dump -U "$POSTGRES_USER" --schema-only --no-owner --no-acl -d rtc_db_staging'\''' > "$schema_tmp/original.sql" &&
              remote 'docker exec admin-server-staging-db-1 sh -c '\''exec pg_dump -U "$POSTGRES_USER" --schema-only --no-owner --no-acl -d cosmicforge_admin_restore_check'\''' > "$schema_tmp/restore.sql"; then
-            if ! python3 services/central-admin-api/scripts/mail/schema-diff-summary.py \
+            if ! python3 .github/scripts/staging-db-schema-diff-summary.py \
               "$schema_tmp/original.sql" "$schema_tmp/restore.sql" > schema-diff.json; then
               echo "Staging schema comparison failed closed; no database changes."
             fi
