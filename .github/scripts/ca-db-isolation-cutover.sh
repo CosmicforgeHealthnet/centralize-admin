@@ -5,8 +5,15 @@
 set -Eeuo pipefail
 umask 077
 
+recover_staging_clone=false
 if [[ "${1:-}" != '--apply-both' || "$(id -u)" -ne 0 ]]; then
   echo 'Usage (as root, during maintenance): bash ca-db-isolation-cutover.sh --apply-both' >&2
+  exit 2
+fi
+if [[ "${2:-}" == '--recover-failed-staging-clone' && -z "${3:-}" ]]; then
+  recover_staging_clone=true
+elif [[ -n "${2:-}" ]]; then
+  echo 'Unexpected arguments; only --recover-failed-staging-clone is supported.' >&2
   exit 2
 fi
 
@@ -87,12 +94,66 @@ if len(value)>1 and value[0] in "'\"" and value[-1]==value[0]: value=value[1:-1]
 u=urlsplit(value)
 assert u.hostname=='db' and unquote(u.path.lstrip('/'))==sys.argv[2], 'source DB does not match expected CA app target'
 PY
-  # Never proceed if a destination already exists (e.g. a previous attempt).
+  # Refuse unexpected existing destinations. A *single*, explicitly opted-in
+  # staging recovery may preserve the failed attempt's disconnected clone.
   if docker exec "$db" sh -c 'exec psql -X -qAt -U "${POSTGRES_USER:-postgres}" -d postgres -c "SELECT datname FROM pg_database"' \
       | grep -Fx cosmicforge_admin >/dev/null; then
-    echo "BLOCKED: cosmicforge_admin already exists in $db; not overwriting." >&2
+    if [[ "$project" != admin-server-staging || "$recover_staging_clone" != true ]]; then
+      echo "BLOCKED: cosmicforge_admin already exists in $db; not overwriting." >&2
+      return 1
+    fi
+    echo 'Existing staging clone found: will verify, rename and preserve before creating a fresh one.'
+  fi
+  # Compose must resolve to the exact image already used by the CA app.
+  # Do not accidentally deploy a new mutable :latest image during a DB cutover.
+  local running_image tagged_image resolved_image
+  running_image="$(docker inspect -f '{{.Image}}' "$app")"
+  tagged_image="$(docker inspect -f '{{.Config.Image}}' "$app")"
+  resolved_image="$(docker image inspect -f '{{.Id}}' "$tagged_image")"
+  if [[ "$resolved_image" != "$running_image" ]]; then
+    echo 'BLOCKED: Compose image tag differs from running app image.' >&2
     return 1
   fi
+}
+
+# For backups from the same PostgreSQL instance, pg_dump textual headers and
+# database-wide comments may differ even though the template-cloned objects
+# are identical. Fail on missing/added/changed object SQL; no raw SQL logging.
+compare_schema_objects() {
+  python3 - "$1" "$2" <<'PYSCHEMA'
+import re, sys
+from pathlib import Path
+pattern = re.compile(r'^-- Name: (.*); Type: ([^;]+); Schema: ([^;]+); Owner: (.*)$')
+def objects(filename):
+    catalog = {}
+    current = None
+    for line in Path(filename).read_text(errors='replace').splitlines():
+        m = pattern.fullmatch(line)
+        if m:
+            current = (m.group(2), m.group(3), m.group(1))
+            if current in catalog:
+                raise ValueError('duplicate schema object')
+            catalog[current] = []
+            continue
+        if line.lstrip().startswith('--') or not line.strip():
+            continue
+        if line.startswith('\\restrict ') or line.startswith('\\unrestrict '):
+            continue
+        if current is not None:
+            catalog[current].append(line.rstrip())
+    return {key: '\n'.join(lines) for key, lines in catalog.items()}
+try:
+    a, b = objects(sys.argv[1]), objects(sys.argv[2])
+    missing, added = set(a)-set(b), set(b)-set(a)
+    changed = {k for k in set(a)&set(b) if a[k] != b[k]}
+    if not a or missing or added or changed:
+        print('Schema objects differ: missing=%d added=%d changed=%d' % (len(missing),len(added),len(changed)))
+        sys.exit(1)
+    print('Normalized schema verified: %d objects match.' % len(a))
+except (OSError, ValueError):
+    print('BLOCKED: schema comparison unavailable')
+    sys.exit(1)
+PYSCHEMA
 }
 
 # Compare source and cloned database object definitions and every public table count.
@@ -102,8 +163,11 @@ compare_databases() {
     'exec pg_dump -U "${POSTGRES_USER:-postgres}" --schema-only --no-owner --no-acl -d "$1"' sh "$source" > "$dir/source-schema.sql"
   docker exec "$dbcontainer" sh -c \
     'exec pg_dump -U "${POSTGRES_USER:-postgres}" --schema-only --no-owner --no-acl -d "$1"' sh "$destination" > "$dir/dest-schema.sql"
-  if ! cmp -s "$dir/source-schema.sql" "$dir/dest-schema.sql"; then
-    echo 'BLOCKED: schema comparison failed; original database remains unchanged.' >&2
+  # Raw pg_dump text is NOT byte-stable across different database names.
+  # Compare the substantive pg_dump object definitions, ignoring generated
+  # comments and \restrict markers. No SQL or secrets are printed.
+  if ! compare_schema_objects "$dir/source-schema.sql" "$dir/dest-schema.sql"; then
+    echo 'BLOCKED: schema object definitions differ; no DB switch.' >&2
     return 1
   fi
   for current in "$source" "$destination"; do
@@ -190,6 +254,31 @@ SQL
   if [[ "$active_connections" != 0 ]]; then
     echo "BLOCKED: $active_connections active connections remain on $source; source remains unchanged." >&2
     return 1
+  fi
+  # The failed initial attempt created cosmicforge_admin and stopped before
+  # switching the staging app. Preserve that old clone under an archive name,
+  # but ONLY if the owner explicitly used --recover-failed-staging-clone,
+  # no processes use it, and its schema still matches the CA source.
+  if [[ "$mode" == staging && "$recover_staging_clone" == true ]]; then
+    if docker exec "$db" sh -c 'exec psql -X -qAt -U "${POSTGRES_USER:-postgres}" -d postgres -c "SELECT datname FROM pg_database"' \
+       | grep -Fx cosmicforge_admin >/dev/null; then
+      local dest_sessions hold
+      dest_sessions="$(docker exec -i "$db" sh -c \
+        'exec psql -X -qAt -v ON_ERROR_STOP=1 -v "target_db=$1" -U "${POSTGRES_USER:-postgres}" -d postgres' sh cosmicforge_admin <<'SQL'
+SELECT count(*) FROM pg_stat_activity WHERE datname = :'target_db';
+SQL
+      )"
+      [[ "$dest_sessions" == 0 ]] || { echo 'BLOCKED: previous clone has active sessions.' >&2; return 1; }
+      # No schema or data is deleted; the old clone is retained separately.
+      docker exec "$db" sh -c 'exec pg_dump -U "${POSTGRES_USER:-postgres}" --schema-only --no-owner --no-acl -d rtc_db_staging' > "$dir/original-for-recovery.sql"
+      docker exec "$db" sh -c 'exec pg_dump -U "${POSTGRES_USER:-postgres}" --schema-only --no-owner --no-acl -d cosmicforge_admin' > "$dir/previous-copy-for-recovery.sql"
+      compare_schema_objects "$dir/original-for-recovery.sql" "$dir/previous-copy-for-recovery.sql" || { echo 'BLOCKED: prior clone is not schema-equivalent.' >&2; return 1; }
+      hold="cosmicforge_admin_previous_copy_$(date -u +%Y%m%d_%H%M%S)_$$"
+      [[ "$hold" =~ ^cosmicforge_admin_previous_copy_[0-9]{8}_[0-9]{6}_[0-9]+$ ]]
+      docker exec "$db" sh -c \
+        'exec psql -X -v ON_ERROR_STOP=1 -U "${POSTGRES_USER:-postgres}" -d postgres -c "ALTER DATABASE cosmicforge_admin RENAME TO \"$1\""' sh "$hold" >/dev/null
+      echo "Preserved earlier staging copy as $hold (no data deleted)."
+    fi
   fi
   # PostgreSQL's template-clone guard also prevents concurrent source reads.
 
