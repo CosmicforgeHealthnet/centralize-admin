@@ -1,0 +1,131 @@
+name: CA DB cutover preflight (staging, read-only)
+
+# READ-ONLY preflight for .github/scripts/ca-db-isolation-cutover.sh, using the
+# existing `staging` environment and restricted STAGING_SSH_KEY (deploy user
+# cf-staging-deploy). It changes nothing on the VPS: docker inspect, docker
+# compose config, catalog-only psql and a read-only Prisma/health check.
+# Output: states, counts, booleans and NAMES only (no secret, URL, hostname or
+# record). Production is NOT inspected with staging credentials.
+#
+# Runs once when this workflow, the preflight or the cutover script changes on
+# `staging`; can also be started manually.
+
+on:
+  push:
+    branches: [staging]
+    paths:
+      - .github/workflows/ca-db-cutover-preflight.yml
+      - .github/scripts/ca-db-cutover-preflight.py
+      - .github/scripts/ca-db-isolation-cutover.sh
+      - .github/scripts/ca-migration-state.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ca-db-cutover-preflight
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Read-only staging cutover preflight
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Record the cutover script checksum for this commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha="$(sha256sum .github/scripts/ca-db-isolation-cutover.sh | cut -d' ' -f1)"
+          echo "CUTOVER_SHA256=$sha" >> "$GITHUB_ENV"
+          echo "cutover script sha256: $sha (commit $GITHUB_SHA)"
+
+      - name: Run the read-only preflight on the staging VPS
+        shell: bash
+        env:
+          STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          key="$(mktemp)"; hosts="$(mktemp)"
+          trap 'rm -f "$key" "$hosts"' EXIT
+          printf '%s\n' "$STAGING_SSH_KEY" > "$key"
+          test -s "$key" || { echo "STAGING_SSH_KEY is not set in the staging environment."; exit 1; }
+          ssh-keyscan -T 10 -t ed25519 173.249.30.55 2>/dev/null > "$hosts"
+          test -s "$hosts"
+          [[ "$(ssh-keygen -l -E sha256 -f "$hosts" | awk '{print $2}')" == "SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ" ]]
+          ssh -T -i "$key" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            -o "UserKnownHostsFile=$hosts" -o ServerAliveInterval=15 \
+            cf-staging-deploy@173.249.30.55 'timeout 300 python3 -' \
+            < .github/scripts/ca-db-cutover-preflight.py > preflight.out
+          line="$(grep -m1 '^CA_DB_CUTOVER_PREFLIGHT ' preflight.out || true)"
+          [[ -n "$line" ]] || { echo "Preflight produced no report."; exit 1; }
+          printf '%s\n' "${line#CA_DB_CUTOVER_PREFLIGHT }" | jq --arg sha "$CUTOVER_SHA256" --arg commit "$GITHUB_SHA" \
+            '. + {cutoverScriptSha256: $sha, commit: $commit}' > preflight.json
+
+      - name: Classify manifest migrations against the live schema (names only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -I .github/scripts/ca-migration-state.py preflight.json \
+            services/central-admin-api/prisma/manual-migrations > migration-state.json
+
+      - name: Summarise
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s preflight.json || exit 0
+          {
+            echo "## Staging DB cutover preflight (read-only)"
+            echo
+            jq -r '
+              "| Check | Result |", "|---|---|",
+              "| State | \(.state) |",
+              "| App connected database | \(.appConnectedDatabase) |",
+              "| App Prisma + health OK | \(.appPrismaAndHealthOk) |",
+              "| Containers / volume / image identity | \([.identity[] | objects | (.exists and .running and .projectOk)] | all) / \(.identity.dbVolumeOk) / \(.identity.imageTagMatchesRunning) |",
+              "| Compose version | \(.composeVersion) |",
+              "| .env readable by deploy user | \(.envReadable) |",
+              "| Keys Compose interpolates ($) | \(.dollarKeys // [] | join(", ")) |",
+              "| Interpolation warnings | \(.interpolationWarnings) |",
+              "| App keys that would change on recreate | \(.appKeysThatWouldChangeOnRecreate // [] | join(", ")) |",
+              "| Databases | \(.databases // [] | join(", ")) |",
+              "| Existing cosmicforge_admin | \(.existingDestWillBe // "none") |",
+              "| Source tables public/admin/marketing | \(.sourceTables.public)/\(.sourceTables.admin)/\(.sourceTables.marketing) |",
+              "| Source admin users | \(.sourceAdminUsers) |",
+              "| Free MB root / backups / docker | \(.freeMB.root) / \(.freeMB.varBackups) / \(.freeMB.dockerRoot) |",
+              "| Ready for the root cutover | \(.readyForRootCutover) |",
+              "| Cutover script sha256 | `\(.cutoverScriptSha256)` |"' preflight.json
+            echo
+            echo "**Problems:**"
+            jq -r 'if (.problems | length) == 0 then "- none" else .problems[] | "- \(.)" end' preflight.json
+            if test -s migration-state.json; then
+              echo
+              echo "## Manual migrations vs live schema (object names only)"
+              echo
+              jq -r '
+                "Database `\(.database)`, ledger table present: \(.ledgerTablePresent), ledger rows: \(.ledgerRows)", "",
+                "| Objects | Manifest orders |", "|---|---|",
+                (.summary | to_entries[] | "| \(.key) | \(.value | map(tostring) | join(", ")) |")' migration-state.json
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ca-db-cutover-preflight
+          path: |
+            preflight.json
+            migration-state.json
+          if-no-files-found: ignore
+          retention-days: 30
