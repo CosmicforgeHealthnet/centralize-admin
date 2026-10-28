@@ -316,14 +316,14 @@ run_all() {
 run_production_guard() {
   mkdir -p "$work"
   setup
-  log 'T11 additional conflicting Google duplicate blocks before stopping any app'
-  local prod_started
-  prod_started="$(docker inspect -f '{{.State.StartedAt}}' admin-server-app-1)"
-  printf '%s\n' 'GOOGLE_CLIENT_SECRET=modified-after-deploy' >> /var/www/admin-server/.env
+  log 'T11 additional conflicting Google duplicate blocks before stopping staging'
+  local staging_started
+  staging_started="$(docker inspect -f '{{.State.StartedAt}}' admin-server-staging-app-1)"
+  printf '%s\n' 'GOOGLE_CLIENT_SECRET=modified-after-deploy' >> /var/www/admin-server-staging/.env
   ! run_cutover CUTOVER_STAGING -- --apply-both
-  check 'conflicting duplicate blocked before staging changes' grep -q 'production preview: identity OK, state unknown' "$work/last.log"
-  check 'conflicting duplicate did not stop production' test "$(docker inspect -f '{{.State.StartedAt}}' admin-server-app-1)" = "$prod_started"
-  sed -i '${/^GOOGLE_CLIENT_SECRET=modified-after-deploy$/d;}' /var/www/admin-server/.env
+  check 'conflicting duplicate blocked before staging changes' grep -q 'staging configuration check' "$work/last.log"
+  check 'conflicting duplicate did not stop staging' test "$(docker inspect -f '{{.State.StartedAt}}' admin-server-staging-app-1)" = "$staging_started"
+  sed -i '${/^GOOGLE_CLIENT_SECRET=modified-after-deploy$/d;}' /var/www/admin-server-staging/.env
   log 'T7 production refuses a cosmicforge_admin it did not create'
   docker exec admin-server-db-1 createdb -U caadmin cosmicforge_admin
   ! run_cutover CUTOVER_STAGING STAGING_LOGIN_OK CUTOVER_PRODUCTION -- --apply-both
