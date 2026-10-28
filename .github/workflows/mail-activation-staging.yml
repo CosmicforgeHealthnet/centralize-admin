@@ -108,6 +108,23 @@ jobs:
           jq --argjson total "$worker_total" --argjson running "$worker_running" \
             '. + {workers: {containers: $total, running: $running}}' inspection.json > report.json
 
+
+          # Compare CA staging's legacy-name DB to the already restored test copy.
+          # Schema SQL is transient on the Actions runner; only redacted object
+          # names/counts reach the report. No database writes or production reads.
+          schema_tmp="$(mktemp -d)"
+          trap 'rm -f "$key" "$hosts"; rm -rf "$schema_tmp"' EXIT
+          if remote 'docker exec admin-server-staging-db-1 sh -c '\''exec pg_dump -U "$POSTGRES_USER" --schema-only --no-owner --no-acl -d rtc_db_staging'\''' > "$schema_tmp/original.sql" &&
+             remote 'docker exec admin-server-staging-db-1 sh -c '\''exec pg_dump -U "$POSTGRES_USER" --schema-only --no-owner --no-acl -d cosmicforge_admin_restore_check'\''' > "$schema_tmp/restore.sql"; then
+            if ! python3 .github/scripts/staging-db-schema-diff-summary.py \
+              "$schema_tmp/original.sql" "$schema_tmp/restore.sql" > schema-diff.json; then
+              echo "Staging schema comparison failed closed; no database changes."
+            fi
+          else
+            printf '%s\n' '{"error":"SCHEMA_DUMP_FAILED","safe_to_cutover":false}' > schema-diff.json
+            echo "One of the staging schema sources could not be read; no database changes."
+          fi
+
       - name: Summarise
         if: always()
         shell: bash
@@ -139,6 +156,19 @@ jobs:
             echo
             echo "**Violations if activated:**"
             jq -r 'if (.activationViolations | length) == 0 then "- none" else .activationViolations[] | "- \(.)" end' report.json
+            echo
+            echo "## Staging CA schema restore diagnostic"
+            echo "Read-only comparison of the original staging database and the existing test restore."
+            if [[ -s schema-diff.json ]]; then
+              jq -r 'if .error then "- Comparison unavailable: \(.error) — cutover blocked" else
+                "- Schema object counts original/restored: \(.source_object_count)/\(.restored_object_count)",
+                "- Normalized schema equal: \(.schema_semantically_equal)",
+                "- Added/missing/changed: \(.diff_counts.added_in_restore)/\(.diff_counts.missing_from_restore)/\(.diff_counts.definition_differs)",
+                "- Cutover authorized: NO (diagnostic only)",
+                (.differing_objects[]? | "  - \(.kind): \(.object)") end' schema-diff.json
+            else
+              echo "- No comparison report; cutover blocked."
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Keep the report for review
@@ -148,6 +178,7 @@ jobs:
           name: staging-mail-inspection
           path: |
             report.json
+            schema-diff.json
             containers.tsv
           if-no-files-found: ignore
           retention-days: 14
