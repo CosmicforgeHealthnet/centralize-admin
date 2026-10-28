@@ -1206,7 +1206,10 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
 
       // Provider quota exhausted (429 daily_quota_exceeded): held until the
       // reset, not retried hourly or failed; recipients stay queued.
-      harness.adapter.failNext("sendMessage", "QUOTA_EXHAUSTED", "DAILY", { now: harness.clock() });
+      // The reset is computed when the worker sends (drain() first moves the
+      // clock 4h), not now: a fixed time would put the reset in the past
+      // whenever those 4h cross UTC midnight.
+      harness.adapter.failNext("sendMessage", "QUOTA_EXHAUSTED", "DAILY", { now: () => harness.clock() });
       const quotaSend = await send(["q8@partner.example"]);
       assert.equal(quotaSend.status, 202, quotaSend.text);
       await drain();
