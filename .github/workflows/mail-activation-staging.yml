@@ -109,20 +109,31 @@ jobs:
             '. + {workers: {containers: $total, running: $running}}' inspection.json > report.json
 
 
-          # Compare CA staging's legacy-name DB to the already restored test copy.
+          # Read-only audit after the guarded database cutover stopped at schema comparison.
+          # Compare original CA staging DB against its newly created fresh template clone.
           # Schema SQL is transient on the Actions runner; only redacted object
           # names/counts reach the report. No database writes or production reads.
           schema_tmp="$(mktemp -d)"
           trap 'rm -f "$key" "$hosts"; rm -rf "$schema_tmp"' EXIT
           if remote 'docker exec admin-server-staging-db-1 sh -c '\''exec pg_dump -U "$POSTGRES_USER" --schema-only --no-owner --no-acl -d rtc_db_staging'\''' > "$schema_tmp/original.sql" &&
-             remote 'docker exec admin-server-staging-db-1 sh -c '\''exec pg_dump -U "$POSTGRES_USER" --schema-only --no-owner --no-acl -d cosmicforge_admin_restore_check'\''' > "$schema_tmp/restore.sql"; then
+             remote 'docker exec admin-server-staging-db-1 sh -c '\''exec pg_dump -U "$POSTGRES_USER" --schema-only --no-owner --no-acl -d cosmicforge_admin'\''' > "$schema_tmp/restore.sql"; then
             if ! python3 .github/scripts/staging-db-schema-diff-summary.py \
               "$schema_tmp/original.sql" "$schema_tmp/restore.sql" > schema-diff.json; then
-              echo "Staging schema comparison failed closed; no database changes."
+              echo "Schema diagnostic failed closed; no database changes."
             fi
           else
             printf '%s\n' '{"error":"SCHEMA_DUMP_FAILED","safe_to_cutover":false}' > schema-diff.json
             echo "One of the staging schema sources could not be read; no database changes."
+          fi
+
+
+          # Verify the CA staging app remained connected and able to query its
+          # original database after the failed cutover rollback. Nothing writes.
+          if remote 'timeout 35 docker exec -w /app admin-server-staging-app-1 node -e '\''const {prisma}=require("./src/shared/config/database"); const u=new URL(process.env.DATABASE_URL); if(decodeURIComponent(u.pathname.slice(1))!=="rtc_db_staging")process.exit(2); prisma.adminUser.count().then(()=>console.log("STAGING_APP_ORIGINAL_DB_OK")).catch(()=>{console.log("STAGING_APP_ORIGINAL_DB_ERROR");process.exitCode=1}).finally(()=>prisma.$disconnect())'\''' > app-db-check.out; then
+            printf '%s\n' '{"onOriginalDatabase":true,"adminPrismaQueryOk":true}' > app-db-check.json
+          else
+            printf '%s\n' '{"onOriginalDatabase":false,"adminPrismaQueryOk":false}' > app-db-check.json
+            echo "WARNING: Staging Admin app failed original DB query; manual recovery inspection required."
           fi
 
       - name: Summarise
@@ -158,7 +169,10 @@ jobs:
             jq -r 'if (.activationViolations | length) == 0 then "- none" else .activationViolations[] | "- \(.)" end' report.json
             echo
             echo "## Staging CA schema restore diagnostic"
-            echo "Read-only comparison of the original staging database and the existing test restore."
+            echo "Read-only comparison of legacy CA staging database and the fresh template-clone database."
+            if [[ -s app-db-check.json ]]; then
+              jq -r '"- Application on original database: \(.onOriginalDatabase)", "- Admin Prisma query OK: \(.adminPrismaQueryOk)"' app-db-check.json
+            fi
             if [[ -s schema-diff.json ]]; then
               jq -r 'if .error then "- Comparison unavailable: \(.error) — cutover blocked" else
                 "- Schema object counts original/restored: \(.source_object_count)/\(.restored_object_count)",
@@ -179,6 +193,7 @@ jobs:
           path: |
             report.json
             schema-diff.json
+            app-db-check.json
             containers.tsv
           if-no-files-found: ignore
           retention-days: 14
