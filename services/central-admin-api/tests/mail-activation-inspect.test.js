@@ -72,3 +72,43 @@ test("inspection opens a read-only database session and changes nothing", { skip
   assert.equal(report.database.ledger.manifestMigrations, 37);
   assert.ok(report.database.mailSchema.core);
 });
+
+test("helpers: failures become fixed codes and violations are redacted", () => {
+  process.env.MAIL_INSPECT_LOAD_ONLY = "1";
+  const { errorCode, redactViolation } = require(SCRIPT);
+  delete process.env.MAIL_INSPECT_LOAD_ONLY;
+  const leaky = Object.assign(new Error("connect to db.internal.example:5432 as admin password=hunter2 failed"), { code: "ECONNREFUSED" });
+  assert.equal(errorCode(leaky), "ECONNREFUSED");
+  assert.equal(errorCode(new Error("password=hunter2")), "INSPECTION_ERROR", "message-only errors never surface");
+  assert.equal(errorCode({ code: "bad code with spaces password=hunter2" }), "INSPECTION_ERROR");
+  const redacted = redactViolation("MAIL_RESERVED_SENDER_ADDRESSES entry secret.sender@leak.example is not on a MAIL_DOMAIN_ALLOWLIST domain; endpoint https://kms.internal.example/x host db.internal.example");
+  assert.ok(!/secret\.sender|leak\.example|internal\.example/.test(redacted), redacted);
+  assert.match(redacted, /MAIL_RESERVED_SENDER_ADDRESSES entry \[address\] is not on a MAIL_DOMAIN_ALLOWLIST domain/);
+});
+
+test("inspection never prints an address from a policy violation", () => {
+  const { output, report } = run({ MAIL_DOMAIN_ALLOWLIST: "karryam.example", MAIL_RESERVED_SENDER_ADDRESSES: "secret.sender@leak-domain.example" });
+  assert.ok(report, output);
+  assert.ok(report.currentViolations.some((v) => v.includes("[address]")), JSON.stringify(report.currentViolations));
+  assert.equal(output.includes("secret.sender"), false, "address leaked");
+  assert.equal(output.includes("leak-domain.example"), false, "domain leaked");
+});
+
+test("a secret-bearing database failure is reported as a code only", { skip: !process.env.DATABASE_URL && "DATABASE_URL not set" }, () => {
+  const url = new URL(process.env.DATABASE_URL);
+  url.password = "LeakedPassw0rdValue";
+  url.pathname = "/leak_db_SECRETNAME_0001";
+  const { output, report } = run({ DATABASE_URL: url.toString() });
+  assert.ok(report, output);
+  assert.match(report.database.connect, /^FAILED_[A-Za-z0-9_]+$/);
+  for (const secret of ["LeakedPassw0rdValue", "SECRETNAME", "leak_db"]) assert.equal(output.includes(secret), false, `${secret} leaked`);
+});
+
+test("a top-level failure prints only a fixed code", () => {
+  const env = { PATH: process.env.PATH, INSPECT_APP_ROOT: "/nonexistent/SECRET_PATH_TOKEN_0001", DATABASE_URL: "postgresql://u:TopLevelSecret0001@db.internal.example/x" };
+  const result = spawnSync(process.execPath, [SCRIPT], { env, encoding: "utf8", timeout: 30000 });
+  const output = `${result.stdout}${result.stderr}`;
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /^MAIL_ACTIVATION_INSPECTION_FAILED \{"errorCode":"[A-Za-z0-9_]+"\}\n$/);
+  for (const secret of ["SECRET_PATH_TOKEN", "TopLevelSecret0001", "db.internal.example"]) assert.equal(output.includes(secret), false, `${secret} leaked`);
+});

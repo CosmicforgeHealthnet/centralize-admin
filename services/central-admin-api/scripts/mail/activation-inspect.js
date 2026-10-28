@@ -15,7 +15,8 @@
 //   - Resend is never contacted.
 //
 // Output is states, counts, booleans and setting NAMES only. No secret,
-// key, URL, hostname, bucket name or address is printed.
+// key, URL, hostname, bucket name or address is printed: failures become
+// fixed codes and config violations are redacted.
 //
 //   INSPECT_APP_ROOT=/app node - < scripts/mail/activation-inspect.js
 //   node scripts/mail/activation-inspect.js            (local, from the API dir)
@@ -45,6 +46,24 @@ const FLAG_NAMES = [
 ];
 // Row counts reported when the table exists (counts only, never contents).
 const COUNT_TABLES = ["mail_organizations", "mail_domains", "mail_mailboxes", "mail_addresses", "mail_memberships", "mail_messages", "mail_outbox_jobs", "mail_webhook_events"];
+
+// Failures are reported as fixed codes only. An exception message can carry a
+// host, a database name, a URL or a credential, so it is never printed.
+const SAFE_CODE = /^[A-Za-z0-9_]{1,40}$/;
+function errorCode(error, fallback = "INSPECTION_ERROR") {
+  const code = error && typeof error.code === "string" ? error.code : "";
+  return SAFE_CODE.test(code) ? code : fallback;
+}
+
+// Config violations are human-readable text that can name a sender address,
+// a domain or an endpoint. Those are replaced before anything is printed.
+function redactViolation(text) {
+  return String(text)
+    .replace(/[^\s()]+@[^\s()]+/g, "[address]")
+    .replace(/[a-z][a-z0-9+.-]*:\/\/[^\s()]+/gi, "[url]")
+    .replace(/\b[a-z0-9-]+(?:\.[a-z0-9-]+)+\b/gi, "[host]")
+    .slice(0, 200);
+}
 
 const present = (name) => Boolean(String(process.env[name] || "").trim());
 const isTrue = (name) => ["1", "true", "yes", "on"].includes(String(process.env[name] || "").trim().toLowerCase());
@@ -89,7 +108,7 @@ async function inspectDatabase(report, blockers) {
   try {
     await client.connect();
   } catch (error) {
-    database.connect = `FAILED_${String(error.code || error.name || "ERROR").replace(/[^A-Za-z0-9_]/g, "")}`;
+    database.connect = `FAILED_${errorCode(error, "CONNECT_ERROR")}`;
     blockers.push("database connection failed");
     return;
   }
@@ -102,7 +121,7 @@ async function inspectDatabase(report, blockers) {
     database.sessionReadOnly = row.ro === "on";
     database.serverVersionNum = Number(row.v);
     if (!database.isAdminDatabase) blockers.push("connected database is not cosmicforge_admin");
-    if (!database.sessionReadOnly) throw new Error("read-only session was not established; stopping");
+    if (!database.sessionReadOnly) throw Object.assign(new Error("read-only session not established"), { code: "READ_ONLY_SESSION_NOT_ESTABLISHED" });
 
     const tables = new Set((await client.query("SELECT table_name FROM information_schema.tables WHERE table_schema = current_schema()")).rows.map((r) => r.table_name));
     const columns = new Set((await client.query("SELECT table_name || '.' || column_name AS c FROM information_schema.columns WHERE table_schema = current_schema()")).rows.map((r) => r.c));
@@ -157,12 +176,12 @@ async function main() {
   report.secretsPresent = Object.fromEntries(SECRET_NAMES.map((name) => [name, present(name)]));
   report.variablesPresent = Object.fromEntries(VARIABLE_NAMES.map((name) => [name, present(name)]));
   report.status = publicStatus(config);
-  report.currentViolations = [...infrastructureViolations(config), ...addressPolicyViolations(config)];
+  report.currentViolations = [...infrastructureViolations(config), ...addressPolicyViolations(config)].map(redactViolation);
 
   // What would block activation: the same rules, evaluated as if every
   // activation flag were on. Nothing is switched on; this is a dry evaluation.
   const activated = loadMailConfig({ ...env, MAIL_ENABLED: "true", MAIL_SENDING_ENABLED: "true", MAIL_RECEIVING_ENABLED: "true", MAIL_WORKER_ENABLED: "true" });
-  report.activationViolations = [...infrastructureViolations(activated), ...addressPolicyViolations(activated)];
+  report.activationViolations = [...infrastructureViolations(activated), ...addressPolicyViolations(activated)].map(redactViolation);
   report.providerKeyPresent = providerConfigured(activated);
   if (!report.providerKeyPresent) blockers.push("Resend API key not present");
   if (!report.secretsPresent.RESEND_WEBHOOK_SECRET) blockers.push("webhook signing secret not present");
@@ -217,7 +236,7 @@ async function main() {
   try {
     await inspectDatabase(report, blockers);
   } catch (error) {
-    report.database = { ...(report.database || {}), error: String(error.message || error).slice(0, 200) };
+    report.database = { ...(report.database || {}), errorCode: errorCode(error, "DATABASE_INSPECTION_ERROR") };
     blockers.push("database inspection failed");
   }
 
@@ -227,7 +246,12 @@ async function main() {
   process.stdout.write(`MAIL_ACTIVATION_INSPECTION ${JSON.stringify(report)}\n`);
 }
 
-main().catch((error) => {
-  process.stdout.write(`MAIL_ACTIVATION_INSPECTION_FAILED ${JSON.stringify({ error: String(error.message || error).slice(0, 300) })}\n`);
-  process.exitCode = 1;
-});
+module.exports = { errorCode, redactViolation };
+
+// Tests load the helpers without running the inspection.
+if (process.env.MAIL_INSPECT_LOAD_ONLY !== "1") {
+  main().catch((error) => {
+    process.stdout.write(`MAIL_ACTIVATION_INSPECTION_FAILED ${JSON.stringify({ errorCode: errorCode(error) })}\n`);
+    process.exitCode = 1;
+  });
+}

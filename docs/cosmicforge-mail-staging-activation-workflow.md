@@ -20,8 +20,10 @@ It changes nothing: no migration, no flag, no restart, no Resend call, and no wr
 
 The report lists **blockers**. It goes to the job summary and is kept as the `staging-mail-inspection`
 artifact for 14 days. The script (`services/central-admin-api/scripts/mail/activation-inspect.js`)
-prints states, counts and setting names only. `tests/mail-activation-inspect.test.js` checks that no
-secret, key, bucket or host value appears in its output.
+prints states, counts and setting names only. Failures are reported as fixed error codes, never exception
+text, and config violations have addresses, URLs and host names redacted. `tests/mail-activation-inspect.test.js`
+checks that no secret, key, bucket, address or host value appears in its output, including when a database
+connection or the script itself fails.
 
 ### Before the first run (infrastructure owner)
 
