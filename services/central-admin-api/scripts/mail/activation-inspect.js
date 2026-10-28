@@ -49,10 +49,17 @@ const COUNT_TABLES = ["mail_organizations", "mail_domains", "mail_mailboxes", "m
 
 // Failures are reported as fixed codes only. An exception message can carry a
 // host, a database name, a URL or a credential, so it is never printed.
-const SAFE_CODE = /^[A-Za-z0-9_]{1,40}$/;
+// Only recognized transport and PostgreSQL status codes may be printed.
+// A regexp alone is unsafe: an exception may carry an arbitrary secret-looking
+// value in error.code that otherwise matches [A-Za-z0-9_].
+const SAFE_ERROR_CODES = new Set([
+  "ECONNREFUSED", "ECONNRESET", "ETIMEDOUT", "ENOTFOUND", "EAI_AGAIN",
+  "EHOSTUNREACH", "ENETUNREACH", "EPIPE",
+  "08001", "08006", "28P01", "3D000", "42501", "42P01", "57P03",
+]);
 function errorCode(error, fallback = "INSPECTION_ERROR") {
   const code = error && typeof error.code === "string" ? error.code : "";
-  return SAFE_CODE.test(code) ? code : fallback;
+  return SAFE_ERROR_CODES.has(code) ? code : fallback;
 }
 
 // Config violations are human-readable text that can name a sender address,
