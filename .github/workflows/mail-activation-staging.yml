@@ -1,21 +1,18 @@
-name: Staging Mail Activation (approval-gated)
+name: Staging Mail Inspection (existing staging environment)
 
-# Staged, approval-gated activation of CosmicForge Mail on staging.
-#
-# Phase 1 (this file): READ-ONLY inspection of the staging database, storage,
-# encryption, ClamAV, workers and Mail configuration. It changes nothing: no
-# migration, no flag, no provider (Resend) call, no storage write, no restart.
-# Later phases (migrations, provisioning, enabling flags) are added only after
-# the inspection results are reviewed and approved, each as its own reviewed
-# change to this workflow.
-#
-# Approval gate: the job runs in the `staging-mail-activation` environment.
-# That environment must be created in GitHub with required reviewers and its
-# own STAGING_SSH_KEY secret before the first run. If it does not exist, GitHub
-# creates it unprotected and without the secret, and the job stops at the key
-# check without connecting anywhere.
+# Phase 1: READ-ONLY Mail inspection on the existing staging VPS.
+# Uses the ALREADY CONFIGURED "staging" GitHub environment and restricted
+# STAGING_SSH_KEY used by the successful staging API deployment workflow.
+# No extra environment or required reviewer is created. Nothing is migrated,
+# enabled, restarted, sent to Resend or written into the staging database.
+# A push that changes this workflow triggers ONE inspection automatically.
+# Future state-changing activation phases are not implemented here.
 
 on:
+  push:
+    branches: [staging]
+    paths:
+      - .github/workflows/mail-activation-staging.yml
   workflow_dispatch:
     inputs:
       phase:
@@ -45,20 +42,25 @@ jobs:
         shell: bash
         env:
           REF: ${{ github.ref }}
+          EVENT: ${{ github.event_name }}
           PHASE: ${{ inputs.phase }}
           CONFIRM: ${{ inputs.confirm }}
         run: |
           set -euo pipefail
           [[ "$REF" == "refs/heads/staging" ]] || { echo "Run from the staging branch only."; exit 1; }
-          [[ "$PHASE" == "inspect" ]] || { echo "Only the read-only inspection phase exists."; exit 1; }
-          [[ "$CONFIRM" == "inspect staging read-only" ]] || { echo "Confirmation text does not match."; exit 1; }
+          if [[ "$EVENT" == "workflow_dispatch" ]]; then
+            [[ "$PHASE" == "inspect" ]] || { echo "Only the read-only inspection phase exists."; exit 1; }
+            [[ "$CONFIRM" == "inspect staging read-only" ]] || { echo "Confirmation text does not match."; exit 1; }
+          else
+            [[ "$EVENT" == "push" ]] || { echo "Unsupported workflow event."; exit 1; }
+          fi
 
   inspect:
     name: Read-only Mail inspection on staging
     needs: guard
     runs-on: ubuntu-latest
     timeout-minutes: 8
-    environment: staging-mail-activation
+    environment: staging
     steps:
       - uses: actions/checkout@v4
         with:
@@ -75,7 +77,7 @@ jobs:
           key="$(mktemp)"; hosts="$(mktemp)"
           trap 'rm -f "$key" "$hosts"' EXIT
           printf '%s\n' "$STAGING_SSH_KEY" > "$key"
-          test -s "$key" || { echo "STAGING_SSH_KEY is not set in the staging-mail-activation environment."; exit 1; }
+          test -s "$key" || { echo "STAGING_SSH_KEY is not set in the existing staging environment."; exit 1; }
           ssh-keyscan -T 10 -t ed25519 173.249.30.55 2>/dev/null > "$hosts"
           test -s "$hosts"
           [[ "$(ssh-keygen -l -E sha256 -f "$hosts" | awk '{print $2}')" == "SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ" ]]
