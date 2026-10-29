@@ -82,6 +82,7 @@ function loadRoutes() {
     analyticsRouter: require("./modules/analytics").router,
     adminSettingsRoutes: require("./modules/admin-settings").router,
     healthnetRoutes: require("./modules/healthnet").router,
+    karryamAdminRoutes: require("./modules/karryam/karryam.routes"),
     marketingRoutes: require("./modules/marketing").router,
     socialOperationsRoutes: require("./modules/marketing/social-operations").router,
     marketingIntelligenceInternalRoutes: require("./modules/marketing/intelligence/internal.routes"),
@@ -244,6 +245,7 @@ app.use(
   app.use("/api/analytics", routes.analyticsRouter);
   app.use("/api/admin-settings", routes.adminSettingsRoutes);
   app.use("/api/healthnet", routes.healthnetRoutes);
+  app.use("/api/karryam", routes.karryamAdminRoutes);
   app.use("/api/marketing", routes.marketingRoutes);
   app.use("/api/v1/marketing/social", routes.socialOperationsRoutes);
   app.use(
