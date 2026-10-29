@@ -9,8 +9,13 @@
 #                            (root:root 0600, no ACL), so the staging deploy
 #                            account can no longer read production secrets.
 #                            Production Compose runs as root and is unaffected.
+#   --staging-env-access     The staging deploy (staging.yml) runs Compose as the
+#                            deploy account, which must read the STAGING .env:
+#                            /var/www/admin-server-staging/.env becomes
+#                            root:cf-staging-deploy 0640 (no ACL). Nothing else.
 #
-# Never prints a value from an env file. Touches only /var/www/admin-server/.env*.
+# Never prints a value from an env file. Touches only /var/www/admin-server/.env*
+# (secure-production-env) or /var/www/admin-server-staging/.env (staging-env-access).
 set -Eeuo pipefail
 umask 077
 export LC_ALL=C
@@ -20,7 +25,7 @@ readonly STAGING_DIR=/var/www/admin-server-staging
 readonly DEPLOY_USER=cf-staging-deploy
 
 mode="${1:-}"
-case "$mode" in --host-audit|--secure-production-env) ;; *) echo 'Usage: ca-host-ops.sh --host-audit|--secure-production-env' >&2; exit 2 ;; esac
+case "$mode" in --host-audit|--secure-production-env|--staging-env-access) ;; *) echo 'Usage: ca-host-ops.sh --host-audit|--secure-production-env|--staging-env-access' >&2; exit 2 ;; esac
 [[ "$(id -u)" -eq 0 ]] || { echo 'Run as root.' >&2; exit 2; }
 
 declare -a SUMMARY=()
@@ -83,6 +88,10 @@ host_audit() {
   else
     pass "no production env file is readable by the staging deploy account"
   fi
+  if [[ -f "$STAGING_DIR/.env" ]]; then
+    [[ "$(deploy_can_read "$STAGING_DIR/.env")" == yes ]] && pass 'the staging deploy account can read the staging .env (needed by staging deploys)' \
+      || fail 'the staging deploy account cannot read the staging .env: staging deploys fail (run staging-env-access)'
+  fi
   if id -nG "$DEPLOY_USER" 2>/dev/null | tr ' ' '\n' | grep -qx docker; then
     info "RESIDUAL: $DEPLOY_USER is in the docker group, which can inspect any container's environment (root-equivalent). Removing it requires replacing the staging deploy with a root-owned, command-restricted deploy entry point."
   fi
@@ -124,7 +133,26 @@ secure_production_env() {
     && pass 'production Compose still resolves its configuration as root' || { fail 'production Compose cannot read its configuration'; return 1; }
 }
 
+staging_env_access() {
+  local f="$STAGING_DIR/.env" backup
+  [[ -f "$f" && -f "$STAGING_DIR/docker-compose.yml" ]] || { fail "$STAGING_DIR is not the staging CA deployment"; return 1; }
+  id "$DEPLOY_USER" >/dev/null 2>&1 && getent group "$DEPLOY_USER" >/dev/null || { fail "$DEPLOY_USER account or group missing"; return 1; }
+  backup="/var/backups/centralize-admin/env-permissions-$(date -u +%Y%m%dT%H%M%SZ).txt"
+  mkdir -p /var/backups/centralize-admin; chmod 700 /var/backups/centralize-admin
+  describe "$f" >> "$backup"
+  command -v setfacl >/dev/null && setfacl -b "$f"
+  chown "root:$DEPLOY_USER" "$f"; chmod 640 "$f"
+  [[ "$(stat -c '%U:%G %a' "$f")" == "root:$DEPLOY_USER 640" && "$(deploy_can_read "$f")" == yes ]] \
+    && pass "$(describe "$f")" || { fail "could not set $f"; return 1; }
+  info "previous ownership/mode recorded in $backup (root-only); production env files not touched"
+  local p; for p in $(env_files "$PROD_DIR"); do
+    [[ "$(deploy_can_read "$p")" == no ]] || { fail "a production env file is readable by $DEPLOY_USER ($p)"; return 1; }
+  done
+  pass 'production env files still unreadable by the staging deploy account'
+}
+
 case "$mode" in
   --host-audit) host_audit ;;
   --secure-production-env) secure_production_env ;;
+  --staging-env-access) staging_env_access ;;
 esac
