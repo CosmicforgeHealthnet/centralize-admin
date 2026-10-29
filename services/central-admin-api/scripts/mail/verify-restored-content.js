@@ -11,7 +11,7 @@
 //   - checks the storage directory belongs to the expected environment.
 // It only reads. Output: counts per source (never content or key material).
 //
-//   DATABASE_URL=postgres://.../restore_copy \
+//   (DATABASE_URL in the environment points at the restored copy)
 //   node scripts/mail/verify-restored-content.js \
 //     --storage-dir=/restore/mail-store --keyring-file=/run/secrets/... \
 //     --environment=staging [--max-failures-listed=20]
