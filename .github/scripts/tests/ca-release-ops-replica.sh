@@ -438,6 +438,14 @@ run() {
   check 'audit passes afterwards' grep -q 'PASS: no production env file is readable by the staging deploy account' "$work/last.log"
   check 'staging env file not touched' test "$(stat -c %a /var/www/admin-server-staging/.env)" = 640
 
+  log 'H2 staging deploy account can read the staging .env (staging deploys)'
+  chown root:root /var/www/admin-server-staging/.env; chmod 600 /var/www/admin-server-staging/.env
+  bash "$scripts/ca-host-ops.sh" --host-audit > "$work/last.log" 2>&1 || true
+  check 'audit flags an unreadable staging .env (deploys would fail)' grep -q 'FAIL: the staging deploy account cannot read the staging .env' "$work/last.log"
+  bash "$scripts/ca-host-ops.sh" --staging-env-access > "$work/last.log" 2>&1 || true
+  check 'staging .env root:cf-staging-deploy 0640, readable by the deploy account' bash -c "[[ \$(stat -c '%U:%G %a' /var/www/admin-server-staging/.env) == 'root:cf-staging-deploy 640' ]] && runuser -u cf-staging-deploy -- test -r /var/www/admin-server-staging/.env"
+  check 'production env files still root-only' bash -c "[[ \$(stat -c '%U:%G %a' /var/www/admin-server/.env) == 'root:root 600' ]] && ! runuser -u cf-staging-deploy -- test -r /var/www/admin-server/.env"
+
   echo
   if (( failures )); then echo "RELEASE OPS REPLICA TESTS FAILED: $failures"; return 1; fi
   echo 'RELEASE OPS REPLICA TESTS PASSED'

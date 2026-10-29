@@ -33,7 +33,7 @@ on:
       operation:
         description: Operation
         type: choice
-        options: [migrate-preflight, migrate-apply, services-preflight, services-deploy, services-remove, storage-setup, storage-check, production-schema-names, containers, staging-checks, host-audit, secure-production-env, pilot-storage-setup]
+        options: [migrate-preflight, migrate-apply, services-preflight, services-deploy, services-remove, storage-setup, storage-check, production-schema-names, containers, staging-checks, host-audit, secure-production-env, staging-env-access, pilot-storage-setup]
         default: migrate-preflight
       target:
         description: "staging or production (migration, services, storage and check operations)"
@@ -155,7 +155,7 @@ jobs:
           d="\$HOME/.ca-mail-staging/$BUNDLE_SHA256"
           run="$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
           case "$OP" in
-            host-audit|secure-production-env) cmd="bash $d/ca-host-ops.sh --$OP" ;;
+            host-audit|secure-production-env|staging-env-access) cmd="bash $d/ca-host-ops.sh --$OP" ;;
             *) cmd="bash $d/ca-mail-staging-ops.sh --$OP"
                if [[ "$TARGET" == production ]]; then cmd="$cmd --target=production"; fi ;;
           esac
