@@ -61,6 +61,62 @@ jobs:
           [[ "$creds" == true ]] && ac=yes || ac=no
           echo "CORS: probe_exit=$rc allowed_origin_matches=$ao credentials_allowed=$ac" | tee -a "$GITHUB_STEP_SUMMARY"
           probe 'Staging frontend' "$origin/"
+          # Browser preflight may include CSRF and bearer headers from session state.
+          auth_headers="$(mktemp)"
+          curl --silent --show-error --connect-timeout 6 --max-time 14 \
+            -X OPTIONS -H "Origin: $origin" \
+            -H 'Access-Control-Request-Method: POST' \
+            -H 'Access-Control-Request-Headers: content-type,authorization,x-csrf-token' \
+            -D "$auth_headers" -o /dev/null "$url/api/auth/login" 2>/dev/null
+          auth_rc=$?
+          auth_origin="$(grep -i '^access-control-allow-origin:' "$auth_headers" | tr -d '\r' | tail -1 | sed -E 's/^[^:]+: *//' || true)"
+          auth_allowed="$(grep -i '^access-control-allow-headers:' "$auth_headers" | tr -d '\r' | tail -1 | sed -E 's/^[^:]+: *//' | tr '[:upper:]' '[:lower:]' || true)"
+          auth_ok=yes
+          for h in content-type authorization x-csrf-token; do
+            [[ ",$auth_allowed," == *"$h"* ]] || auth_ok=no
+          done
+          [[ "$auth_origin" == "$origin" ]] && auth_origin_ok=yes || auth_origin_ok=no
+          echo "Browser auth-header preflight: exit=$auth_rc origin_allowed=$auth_origin_ok headers_allowed=$auth_ok" | tee -a "$GITHUB_STEP_SUMMARY"
+          rm -f "$auth_headers"
+
+          # No credentials: malformed login body must return an HTTP response.
+          probe 'Malformed POST /api/auth/login (no credentials)' \
+            -X POST -H "Origin: $origin" -H 'Content-Type: application/json' \
+            --data '{}' "$url/api/auth/login"
+
+          # Chrome may choose IPv6 even when an IPv4-only check passed.
+          aaaa="$(getent ahostsv6 "$host" 2>/dev/null | awk '{print $1}' | sort -u | paste -sd ',' -)"
+          [[ -n "$aaaa" ]] && echo 'DNS AAAA: PRESENT' | tee -a "$GITHUB_STEP_SUMMARY" ||
+            echo 'DNS AAAA: ABSENT' | tee -a "$GITHUB_STEP_SUMMARY"
+          if [[ -n "$aaaa" ]]; then
+            v6status="$(curl --silent --show-error --connect-timeout 6 --max-time 14 --ipv6 -o /dev/null -w '%{http_code}' "$url/health" 2>/dev/null)"
+            v6rc=$?
+            echo "Public API IPv6 /health: curl_exit=$v6rc http_status=${v6status:-000}" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+
+          # Compare the deployed login page's own loaded JS assets to the
+          # configured API origin. Only report known hostnames, never JS code.
+          html="$(mktemp)"; scripts="$(mktemp)"
+          trap 'rm -f "$headers" "$html" "$scripts"' EXIT
+          if curl -fsSL --connect-timeout 6 --max-time 15 -o "$html" "$origin/"; then
+            grep -oE 'src="/_next/static/[^"]+\.js[^"]*"' "$html" |
+              sed -E 's/^src="([^"]+)"$/\1/' | head -40 > "$scripts" || true
+            chunks=0; saw_staging=no; saw_localhost=no; saw_prod=no
+            while IFS= read -r asset; do
+              [[ "$asset" == /_next/static/* ]] || continue
+              js="$(mktemp)"
+              if curl -fsSL --connect-timeout 5 --max-time 12 -o "$js" "$origin$asset"; then
+                chunks=$((chunks + 1))
+                grep -Fq 'stagingca.cosmicforge-healthnet.com' "$js" && saw_staging=yes
+                grep -Fq 'localhost:4000' "$js" && saw_localhost=yes
+                grep -Fq 'https://api.cosmicforge-healthnet.com' "$js" && saw_prod=yes
+              fi
+              rm -f "$js"
+            done < "$scripts"
+            echo "Loaded Next.js chunks: $chunks; staging_host_seen=$saw_staging localhost_seen=$saw_localhost production_host_seen=$saw_prod" | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'Frontend HTML unavailable for bundle check' | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Check application origin internally through restricted staging SSH
         shell: bash
