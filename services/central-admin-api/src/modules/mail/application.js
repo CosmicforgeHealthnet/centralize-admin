@@ -71,7 +71,27 @@ const { createInboundReconciler } = require("./pipelines/inbound-reconciler");
 const { createSharedRateLimiter } = require("./ops/shared-rate-limit");
 const { createMailSchemaReadiness, MAIL_FEATURE_REQUIREMENTS, MAIL_PREFERENCES_REQUIREMENTS, MAIL_FINAL_GAP_REQUIREMENTS } = require("./schema-readiness");
 
+// MAIL_KMS_PROVIDER=file: the self-hosted keyring file is read once at
+// startup (read-only mount, root-only, bound to this environment).
+async function loadFileKeyring({ config, encryption, logger }) {
+  if (infrastructureViolations(config).some((problem) => /MAIL_KMS|MAIL_ENCRYPTION/.test(problem))) {
+    encryption.fail({ code: "MAIL_KMS_CONFIG" });
+    return;
+  }
+  try {
+    const { readKeyringFile } = require("./security/file-keyring");
+    const keyring = readKeyringFile(config.kms.keyringFile, { environment: config.deploymentEnvironment, strictPermissions: config.deploymentEnvironment === "staging" || config.deploymentEnvironment === "production" });
+    encryption.load(keyring);
+    logger.info?.(`[Mail] keyring loaded from file (${keyring.keys.size} key version(s), active ${keyring.active})`);
+  } catch (error) {
+    encryption.fail(error);
+    // Never log key material; the code and message are safe.
+    if (config.enabled) logger.error?.(`[Mail] keyring file unavailable (${error.code || "error"}): ${error.message}`);
+  }
+}
+
 async function unwrapKeyring({ config, encryption, logger, kmsClient }) {
+  if (config.kms.provider === "file") return loadFileKeyring({ config, encryption, logger });
   const { resolveMailKeyring, createAwsKmsClient } = require("./security/kms-keyring");
   if (infrastructureViolations(config).some((problem) => problem.startsWith("MAIL_KMS"))) {
     encryption.fail({ code: "MAIL_KMS_CONFIG" });
@@ -128,10 +148,12 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
     label: "Mail final gap-closure",
     missingMessage: "[Mail] Final gap-closure tables not present: template classification, re-subscription, pricing and quota reporting, automation replay, the durable deletion queue, quarantine decisions and provider Message-ID aliases stay off until migration 20261103_mail_final_gap_closure.sql is applied",
   });
-  const useKms = !encryption && config.kms?.provider === "aws-kms";
+  const keyProvider = encryption ? "injected" : config.kms?.provider === "aws-kms" || config.kms?.provider === "file" ? config.kms.provider : "env";
+  const useKms = keyProvider === "aws-kms" || keyProvider === "file";
   const resolvedEncryption = encryption || createMailEncryption(useKms ? { deferred: true } : config.encryption);
-  // KMS-wrapped data keys are unwrapped once, asynchronously. Until then (or if
-  // it fails) the keyring is unavailable and every content operation fails closed.
+  // KMS-wrapped data keys / the keyring file are loaded once, asynchronously.
+  // Until then (or if it fails) the keyring is unavailable and every content
+  // operation fails closed.
   const keyringReady = useKms ? unwrapKeyring({ config, encryption: resolvedEncryption, logger, kmsClient }) : Promise.resolve();
   const metrics = createRuntimeMetrics();
   const rateLimiter = createSharedRateLimiter({ client, features, metrics, logger, clock: () => clock().getTime() });
@@ -323,7 +345,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
       storage: { ...storageHealth, backend: storage.name },
       provider: { ok: provider.ok, detail: provider.detail },
       scanner: { name: resolvedScanner.name, available: resolvedScanner.available, ok: Boolean(scannerHealth.ok), detail: scannerHealth.detail, version: scannerHealth.version || null, metrics: resolvedScanner.metrics || null },
-      encryption: { available: resolvedEncryption.available, provider: useKms ? "aws-kms" : "env", keyVersions: resolvedEncryption.versions?.length ?? null, activeVersion: resolvedEncryption.activeVersion || null, error: resolvedEncryption.loadError || null },
+      encryption: { available: resolvedEncryption.available, provider: keyProvider === "injected" ? "env" : keyProvider, keyVersions: resolvedEncryption.versions?.length ?? null, activeVersion: resolvedEncryption.activeVersion || null, error: resolvedEncryption.loadError || null },
       infrastructure: { deploymentEnvironment: config.deploymentEnvironment, violations: infrastructureViolations(config) },
       queue,
     };

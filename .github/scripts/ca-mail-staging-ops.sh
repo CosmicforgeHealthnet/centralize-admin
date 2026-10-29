@@ -21,34 +21,62 @@
 #                         classify which manifest migrations production has.
 #                         No data, no change, nothing else in production read.
 #
-# Never: changes staging .env, recreates the staging app, enables any Mail
-# flag, touches production, RTC (cosmicforge-db), Karryam or any other project.
+#   --storage-setup       self-hosted Mail storage + keys (no AWS): dedicated
+#                         store volume, keyring file generated on the server (or
+#                         imported from the existing env keyring so stored data
+#                         stays readable), recovery escrow when a recovery public
+#                         key is bundled, one mounts file used by every deploy
+#                         path, settings installed by ca-mail-env-install.sh,
+#                         then --storage-check. (--pilot-storage-setup = alias.)
+#   --storage-check       READ-ONLY (one canary object written and removed):
+#                         keyring loaded from the file, store on its own volume
+#                         and bound to this environment, encrypt/write/fsync/
+#                         read/decrypt/delete round trip, worker mounts.
+#
+# --target=production (default staging) is accepted by the migration, services,
+# storage and check modes; the workflow requires a separate production
+# confirmation for every mutating one.
+#
+# Never: enables any Mail flag, touches RTC (cosmicforge-db), Karryam or any
+# other project. Only --storage-setup changes the app's .env (Mail storage/key
+# settings, through ca-mail-env-install.sh with its backup and rollback).
 # Files are read from the RUNNING staging app image and must match the pinned
 # checksums below. No secret, URL or record content is printed.
 set -Eeuo pipefail
 umask 077
 export LC_ALL=C
 
-# Target: staging (default). Only the two migration modes accept
-# --target=production; they read the migration files from the RUNNING
-# production image, so they refuse until production runs a release with them.
+# Target: staging (default) or production (--target=production). Production
+# modes read files from the RUNNING production image, so they refuse until
+# production runs a release that contains them.
 target=staging
 [[ "${2:-}" == --target=production ]] && target=production
 if [[ "$target" == production ]]; then
   APP=admin-server-app-1; DB=admin-server-db-1; PROJECT=admin-server
   VOLUME=admin-server_postgres_data; NETWORK=admin-server_default
+  APP_ROOT=/var/www/admin-server; MAIL_PROJECT=admin-server-mail; MAIL_DIR=/var/www/admin-server-mail
+  STORE_VOLUME=admin-server-mail-store
 else
   APP=admin-server-staging-app-1; DB=admin-server-staging-db-1; PROJECT=admin-server-staging
   VOLUME=admin-server-staging_postgres_data_staging; NETWORK=admin-server-staging_default
+  APP_ROOT=/var/www/admin-server-staging; MAIL_PROJECT=admin-server-staging-mail; MAIL_DIR=/var/www/admin-server-staging-mail
+  STORE_VOLUME=admin-server-staging-mail-store
 fi
-readonly APP DB PROJECT VOLUME NETWORK target
+readonly APP DB PROJECT VOLUME NETWORK target APP_ROOT MAIL_PROJECT MAIL_DIR STORE_VOLUME
 readonly DEST=cosmicforge_admin
-readonly ENV_FILE=/var/www/admin-server-staging/.env
-readonly MAIL_PROJECT=admin-server-staging-mail
-readonly MAIL_DIR=/var/www/admin-server-staging-mail
+readonly ENV_FILE="$APP_ROOT/.env"
 readonly CLAMAV_IMAGE=clamav/clamav:1.4
-readonly PILOT_VOLUME=admin-server-staging-mail-store
-readonly PILOT_DIR=/var/lib/cosmicforge-mail
+# Self-hosted Mail storage and keys (no cloud): store volume mounted at
+# STORE_DIR; keyring file in a root-only host directory mounted read-only.
+readonly STORE_DIR=/var/lib/cosmicforge-mail
+readonly KEY_BASE=/etc/cosmicforge-mail
+readonly KEY_DIR="$KEY_BASE/$target/keyring"
+readonly ESCROW_DIR="$KEY_BASE/$target/escrow"
+readonly KEY_MOUNT=/run/secrets/cosmicforge-mail
+readonly KEY_FILE_IN_APP="$KEY_MOUNT/keyring.json"
+# Every Compose call for the app (deploys, rollbacks, settings installs, the
+# cutover) adds this file when present, so the mounts survive every release.
+readonly MOUNTS_FILE="$APP_ROOT/docker-compose.mail-storage.yml"
 readonly STAGING_OVERRIDE=/home/cf-staging-deploy/docker-compose.github-staging.yml
 readonly BACKUP_BASE=/var/backups/centralize-admin
 readonly MIGRATION_DIR=/app/prisma/manual-migrations
@@ -74,12 +102,17 @@ readonly -a MIGRATIONS=(
 
 mode="${1:-}"
 case "$mode" in
-  --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers|--staging-checks|--pilot-storage-setup) ;;
-  *) echo 'Usage (root): ca-mail-staging-ops.sh --migrate-preflight|--migrate-apply [--target=production] | --services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers|--staging-checks|--pilot-storage-setup' >&2; exit 2 ;;
+  --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers|--staging-checks|--pilot-storage-setup|--storage-setup|--storage-check) ;;
+  *) echo 'Usage (root): ca-mail-staging-ops.sh --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--storage-setup|--storage-check|--staging-checks [--target=production] | --services-remove|--production-schema-names|--containers|--pilot-storage-setup' >&2; exit 2 ;;
 esac
+[[ "$mode" == --pilot-storage-setup ]] && mode=--storage-setup
 if [[ -n "${2:-}" ]]; then
-  [[ "${2:-}" == --target=production && ( "$mode" == --migrate-preflight || "$mode" == --migrate-apply ) && -z "${3:-}" ]] \
-    || { echo 'Unexpected arguments (only the migration modes accept --target=production).' >&2; exit 2; }
+  case "$mode" in
+    --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--storage-setup|--storage-check|--staging-checks) ok_target=yes ;;
+    *) ok_target=no ;;
+  esac
+  [[ "${2:-}" == --target=production && "$ok_target" == yes && -z "${3:-}" ]] \
+    || { echo 'Unexpected arguments (--target=production is accepted by the migration, services, storage and check modes only).' >&2; exit 2; }
 fi
 [[ "$(id -u)" -eq 0 ]] || { echo 'Run as root.' >&2; exit 2; }
 for tool in docker python3 flock sha256sum awk; do command -v "$tool" >/dev/null || { echo "Missing $tool" >&2; exit 2; }; done
@@ -106,7 +139,7 @@ info() { SUMMARY+=("INFO  $*"); echo "INFO: $*"; }
 snapshot_others() { # every container except the ones this mode may change on purpose
   local id skip="/${MAIL_PROJECT}-(clamav|mail-worker)"
   # --migrate-apply restarts the staging app (same container) on purpose.
-  [[ "$mode" == --migrate-apply || "$mode" == --pilot-storage-setup ]] && skip="$skip|/$APP"
+  [[ "$mode" == --migrate-apply || "$mode" == --storage-setup ]] && skip="$skip|/$APP"
   for id in $(docker ps -aq --no-trunc); do
     docker inspect -f '{{.Id}}|{{.Name}}|{{.State.Status}}|{{.State.StartedAt}}|{{.RestartCount}}' "$id"
   done | grep -vE "\|($skip)\|" | sort
@@ -294,7 +327,7 @@ SQL
 }
 
 migrate_preflight() {
-  identity || { fail 'staging identity'; return 1; }
+  identity || { fail "$target identity"; return 1; }
   pass "$target identity (containers, project, volume, network); app runs on $DEST"
   check_files || { fail 'migration files in the running staging image'; return 1; }
   pass 'all 11 migration files (27-37) present in the running staging image with the pinned checksums'
@@ -356,8 +389,8 @@ SQL
 mem_available_mb() { awk '/MemAvailable/ {print int($2 / 1024)}' /proc/meminfo; }
 
 services_preflight() {
-  identity || { fail 'staging identity'; return 1; }
-  pass "staging identity; network $NETWORK present"
+  identity || { fail "$target identity"; return 1; }
+  pass "$target identity; network $NETWORK present"
   local avail; avail="$(mem_available_mb)"
   info "host MemAvailable ${avail} MB"
   local have=false; docker inspect "${MAIL_PROJECT}-clamav" >/dev/null 2>&1 && have=true
@@ -366,7 +399,7 @@ services_preflight() {
   fi
   [[ -f "$BUNDLE_DIR/clamd.conf" && -f "$BUNDLE_DIR/freshclam.conf" ]] || { fail 'ClamAV config files missing from the uploaded bundle'; return 1; }
   pass 'memory and ClamAV configuration available'
-  info "staging app image: $(docker inspect -f '{{.Config.Image}}' "$APP"); Mail flags: $(mail_flags)"
+  info "$target app image: $(docker inspect -f '{{.Config.Image}}' "$APP"); Mail flags: $(mail_flags)"
   local c; for c in clamav mail-worker; do
     if docker inspect "${MAIL_PROJECT}-$c" >/dev/null 2>&1; then
       info "${MAIL_PROJECT}-$c exists: $(docker inspect -f '{{.State.Status}} restarts={{.RestartCount}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "${MAIL_PROJECT}-$c")"
@@ -376,8 +409,24 @@ services_preflight() {
   done
 }
 
-pilot_worker_volume() { docker volume inspect "$PILOT_VOLUME" >/dev/null 2>&1 && printf '    volumes: ["%s:%s"]\n' "$PILOT_VOLUME" "$PILOT_DIR"; return 0; }
-pilot_volume_decl() { docker volume inspect "$PILOT_VOLUME" >/dev/null 2>&1 && printf '  %s:\n    external: true\n' "$PILOT_VOLUME"; return 0; }
+# Mail storage mounts shared by the app and the worker (only what exists).
+mail_mount_items() {
+  local -a items=()
+  docker volume inspect "$STORE_VOLUME" >/dev/null 2>&1 && items+=("\"$STORE_VOLUME:$STORE_DIR\"")
+  [[ -f "$KEY_DIR/keyring.json" ]] && items+=("\"$KEY_DIR:$KEY_MOUNT:ro\"")
+  local IFS=,; echo "${items[*]}"
+}
+pilot_worker_volume() { local items; items="$(mail_mount_items)"; [[ -n "$items" ]] && printf '    volumes: [%s]\n' "$items"; return 0; }
+pilot_volume_decl() { docker volume inspect "$STORE_VOLUME" >/dev/null 2>&1 && printf '  %s:\n    external: true\n' "$STORE_VOLUME"; return 0; }
+
+write_mounts_file() { # the app's Compose mounts file (no secrets: paths only)
+  local items; items="$(mail_mount_items)"
+  [[ -n "$items" ]] || { rm -f "$MOUNTS_FILE"; return 0; }
+  { printf '# Managed by .github/scripts/ca-mail-staging-ops.sh --storage-setup (paths only, no secrets).\nservices:\n  app:\n    volumes: [%s]\n' "$items"
+    docker volume inspect "$STORE_VOLUME" >/dev/null 2>&1 && printf 'volumes:\n  %s:\n    external: true\n' "$STORE_VOLUME"
+  } > "$MOUNTS_FILE.new"
+  chmod 644 "$MOUNTS_FILE.new"; mv -f "$MOUNTS_FILE.new" "$MOUNTS_FILE"
+}
 
 write_mail_compose() {
   local image="$1" worker_restart="$2"
@@ -385,9 +434,9 @@ write_mail_compose() {
   install -m 0644 "$BUNDLE_DIR/clamd.conf" "$MAIL_DIR/clamd.conf"
   install -m 0644 "$BUNDLE_DIR/freshclam.conf" "$MAIL_DIR/freshclam.conf"
   cat > "$MAIL_DIR/docker-compose.yml.new" <<EOF
-# Managed by .github/scripts/ca-mail-staging-ops.sh (CA STAGING only).
+# Managed by .github/scripts/ca-mail-staging-ops.sh (CA ${target^^} only).
 # ClamAV: private, no published ports; reachable as clamav:3310 on $NETWORK.
-# Mail worker: same image and env file as admin-server-staging-app-1.
+# Mail worker: same image, env file and Mail storage mounts as $APP.
 name: $MAIL_PROJECT
 services:
   clamav:
@@ -417,9 +466,9 @@ services:
     cap_drop: [ALL]
     cap_add: [CHOWN, SETUID, SETGID, DAC_OVERRIDE]
     networks:
-      staging:
+      appnet:
         aliases: [clamav]
-    labels: { ca.environment: staging, ca.component: mail-scanner }
+    labels: { ca.environment: $target, ca.component: mail-scanner }
     logging: { driver: json-file, options: { max-size: "10m", max-file: "5" } }
   mail-worker:
     image: $image
@@ -429,15 +478,15 @@ services:
     restart: "$worker_restart"
     env_file: [$ENV_FILE]
     security_opt: ["no-new-privileges:true"]
-    networks: [staging]
+    networks: [appnet]
 $(pilot_worker_volume)
-    labels: { ca.environment: staging, ca.component: mail-worker }
+    labels: { ca.environment: $target, ca.component: mail-worker }
     logging: { driver: json-file, options: { max-size: "10m", max-file: "5" } }
 volumes:
   clamav-signatures:
 $(pilot_volume_decl)
 networks:
-  staging:
+  appnet:
     name: $NETWORK
     external: true
 EOF
@@ -445,7 +494,8 @@ EOF
   # The staging deploy account (docker group, no root) recreates the worker on
   # each app release, so it may read these files. They hold no secret: the
   # worker's settings come from the staging .env the app already uses.
-  if getent group cf-staging-deploy >/dev/null; then
+  # Production files stay root-only.
+  if [[ "$target" == staging ]] && getent group cf-staging-deploy >/dev/null; then
     chgrp cf-staging-deploy "$MAIL_DIR" "$MAIL_DIR/docker-compose.yml" "$MAIL_DIR/clamd.conf" "$MAIL_DIR/freshclam.conf"
     chmod 750 "$MAIL_DIR"; chmod 640 "$MAIL_DIR/docker-compose.yml"
   fi
@@ -485,7 +535,7 @@ services_deploy() {
   local image worker_enabled restart
   image="$(docker inspect -f '{{.Config.Image}}' "$APP")"
   [[ "$(docker image inspect -f '{{.Id}}' "$image" 2>/dev/null)" == "$(docker inspect -f '{{.Image}}' "$APP")" ]] \
-    || { fail 'the staging app image tag no longer points at the running image'; return 1; }
+    || { fail 'the $target app image tag no longer points at the running image'; return 1; }
   # A disabled worker exits 0 by design; only keep it always-on once Mail and
   # the worker are enabled (redeploy then), so it never restart-loops.
   worker_enabled="$(mail_flags)"
@@ -510,7 +560,7 @@ services_deploy() {
   code="$(docker inspect -f '{{.State.ExitCode}}' "${MAIL_PROJECT}-mail-worker")"
   if [[ "$restart" == on-failure:5 ]]; then
     if [[ "$status" == exited && "$code" == 0 ]] && docker logs "${MAIL_PROJECT}-mail-worker" 2>&1 | grep -q 'exiting without processing'; then
-      pass "Mail worker deployed (image = staging app image); Mail is OFF so it exits 0 by design (restart: on-failure, no loop)"
+      pass "Mail worker deployed (image = $target app image); Mail is OFF so it exits 0 by design (restart: on-failure, no loop)"
     else
       fail "Mail worker: status $status exit $code (expected a clean disabled exit)"; return 1
     fi
@@ -522,14 +572,14 @@ services_deploy() {
   for ((i = 0; i < 60; i++)); do
     ping="$(clamd_ping_from_app)"; [[ "$ping" == PONG ]] && break; sleep 10
   done
-  [[ "$ping" == PONG ]] || { fail "clamd not answering from the staging app network (last: ${ping:-none})"; return 1; }
-  pass 'ClamAV answers PING from the staging app network at clamav:3310 (no published ports)'
+  [[ "$ping" == PONG ]] || { fail "clamd not answering from the $target app network (last: ${ping:-none})"; return 1; }
+  pass 'ClamAV answers PING from the $target app network at clamav:3310 (no published ports)'
   local eicar; eicar="$(clamd_eicar_from_app)"
   [[ "$eicar" == FOUND ]] || { fail "clamd did not detect the EICAR test string (got: $eicar)"; return 1; }
   pass 'ClamAV detected the EICAR test string over INSTREAM (signatures loaded)'
   [[ -z "$(docker port "${MAIL_PROJECT}-clamav")" ]] && pass 'ClamAV publishes no host ports' || { fail 'ClamAV publishes ports'; return 1; }
-  verify_app 5 && pass 'staging app unchanged and verified (Prisma, health, synthetic login 401)' || { fail 'staging app does not verify'; return 1; }
-  info "Not changed: staging .env (scanner settings MAIL_SCANNER_PROVIDER=clamd, MAIL_CLAMD_HOST=clamav, MAIL_CLAMD_PORT=3310 are set during Mail activation)."
+  verify_app 5 && pass "$target app unchanged and verified (Prisma, health, synthetic login 401)" || { fail "$target app does not verify"; return 1; }
+  info "Not changed: $target .env (scanner settings MAIL_SCANNER_PROVIDER=clamd, MAIL_CLAMD_HOST=clamav, MAIL_CLAMD_PORT=3310 are set during Mail activation)."
 }
 
 services_remove() {
@@ -573,9 +623,8 @@ PY
 # Staging checks that need no external credentials (all read-only; run inside
 # the staging app with the code it actually runs).
 # --------------------------------------------------------------------------
-staging_checks() {
-  [[ "$target" == staging ]] || { fail 'staging checks run on staging only'; return 1; }
-  identity || { fail 'staging identity'; return 1; }
+staging_checks() { # read-only Mail readiness checks (staging or production)
+  identity || { fail "$target identity"; return 1; }
   local bad=0 out
   # 1. Schema readiness of every Mail feature set, via the app's own module.
   # dotenv prints a banner on stdout; keep only the JSON result line.
@@ -591,19 +640,20 @@ const r = require('./src/modules/mail/schema-readiness');
 NODE
 )"
   if python3 -c 'import json,sys; d=json.loads(sys.argv[1]); sys.exit(0 if d and all(v.get("ready") for v in d.values()) else 1)' "$out" 2>/dev/null; then
-    pass "Mail schema readiness (app code, real staging DB): core, features, preferences, final gap all ready"
+    pass "Mail schema readiness (app code, real $target DB): core, features, preferences, final gap all ready"
   else
     fail "Mail schema readiness: $out"; bad=1
   fi
-  # 2. The app's Mail config validator for a staging ENABLED preview (process
+  # 2. The app's Mail config validator for an ENABLED preview (process
   #    environment only; .env untouched). Lists exactly what is still missing.
-  out="$(docker exec -w /app -e MAIL_DEPLOYMENT_ENV=staging -e MAIL_PROVIDER=resend -e MAIL_PROVIDER_ENVIRONMENT_TAG=staging \
+  #    Inbound belongs to production (the one shared Resend webhook).
+  out="$(docker exec -w /app -e MAIL_DEPLOYMENT_ENV="$target" -e MAIL_PROVIDER=resend -e MAIL_PROVIDER_ENVIRONMENT_TAG="$target" \
       -e MAIL_ENABLED=true -e MAIL_SENDING_ENABLED=true -e MAIL_RECEIVING_ENABLED=true -e MAIL_WORKER_ENABLED=true \
       -e MAIL_SCANNER_PROVIDER=clamd -e MAIL_CLAMD_HOST=clamav -e MAIL_CLAMD_PORT=3310 \
       -e MAIL_DOMAIN_ALLOWLIST=karryam.com -e MAIL_RESERVED_SENDER_ADDRESSES=no-reply@karryam.com \
-      -e MAIL_INBOUND_ACTIVE_ENVIRONMENT=staging -e MAIL_MIXED_RECIPIENT_MODE=external-only -e MAIL_UNKNOWN_RECIPIENT_POLICY=reject \
+      -e MAIL_INBOUND_ACTIVE_ENVIRONMENT=production -e MAIL_MIXED_RECIPIENT_MODE=external-only -e MAIL_UNKNOWN_RECIPIENT_POLICY=reject \
       "$APP" node scripts/mail/validate-infrastructure.js 2>/dev/null | tail -1 || true)"
-  info "Mail config validator, staging ENABLED preview (what is still missing): $(python3 -c 'import json,sys; d=json.loads(sys.argv[1]); print(json.dumps({k: d.get(k) for k in ("providerKeyPresent","webhookSecretPresent","storage","kms","scanner","violations")}))' "$out" 2>/dev/null || echo "$out")"
+  info "Mail config validator, $target ENABLED preview (what is still missing): $(python3 -c 'import json,sys; d=json.loads(sys.argv[1]); print(json.dumps({k: d.get(k) for k in ("providerKeyPresent","webhookSecretPresent","storage","kms","scanner","violations")}))' "$out" 2>/dev/null || echo "$out")"
   # 3. ClamAV through the app's own scanner adapter (repo live test).
   if docker exec -w /app -e MAIL_CLAMD_LIVE_HOST=clamav -e MAIL_CLAMD_LIVE_PORT=3310 -e TEST_NETWORK_GUARD_ENABLED=false "$APP" node --test tests/mail-clamd-live.test.js > "$run_dir/clamd-live.txt" 2>&1 \
      && grep -qE '^# pass [1-9]' "$run_dir/clamd-live.txt" && grep -qE '^# skipped 0' "$run_dir/clamd-live.txt"; then
@@ -620,72 +670,183 @@ NODE
   else
     fail "Karryam provisioning dry run failed (exit $rc): $(tail -2 "$run_dir/provision-dry-run.err" | tr '\n' ' ')"; bad=1
   fi
-  # 5. Live readiness endpoint as served.
+  # 5. Self-hosted storage and keys (canary object written and removed).
+  if docker inspect -f '{{range .Mounts}}{{.Destination}} {{end}}' "$APP" | grep -q "$STORE_DIR"; then
+    storage_check || bad=1
+  else
+    info "self-hosted storage not set up on $target yet (run storage-setup)"
+  fi
+  # 6. Live readiness endpoint as served.
   info "readiness endpoint: $(docker exec "$APP" node -e "fetch('http://127.0.0.1:'+(process.env.PORT||4000)+'/api/mail/v1/health/ready').then(r=>r.text()).then(t=>process.stdout.write(t.slice(0,600)))" 2>/dev/null || echo unavailable)"
   return "$bad"
 }
 
 # --------------------------------------------------------------------------
-# Staging pilot storage (allowed on staging only by the Mail config rules):
-# encrypted filesystem store on a dedicated volume + an environment keyring
-# generated HERE (never passes through GitHub). Never replaces an existing
-# keyring (that would make stored mail unreadable).
+# Self-hosted Mail storage and keys (staging and production, no cloud):
+#   store   dedicated Docker volume $STORE_VOLUME at $STORE_DIR (encrypted
+#           filesystem backend: bound to this environment, own volume, fsync)
+#   keys    $KEY_DIR/keyring.json (root:root 0400, dir 0700), mounted
+#           read-only at $KEY_MOUNT. Generated HERE inside the app image, or
+#           imported from the existing env keyring so stored data stays
+#           readable. Never printed, never in GitHub, never in the .env.
+#   escrow  sealed to the offline recovery public key when one is bundled
+#           (infrastructure/mail/recovery/<target>.pub), for host recovery.
+# Mail flags are never changed.
 # --------------------------------------------------------------------------
-pilot_storage_setup() {
-  [[ "$target" == staging ]] || { fail 'pilot storage is staging-only'; return 1; }
-  identity || { fail 'staging identity'; return 1; }
-  [[ -f "$BUNDLE_DIR/ca-mail-env-install.sh" ]] || { fail 'ca-mail-env-install.sh missing from the bundle'; return 1; }
-  [[ -f "$STAGING_OVERRIDE" ]] || { fail "staging deploy override $STAGING_OVERRIDE missing"; return 1; }
-  if ! docker volume inspect "$PILOT_VOLUME" >/dev/null 2>&1; then
-    docker volume create --label ca.environment=staging --label ca.component=mail-store "$PILOT_VOLUME" >/dev/null
-    pass "created volume $PILOT_VOLUME"
+app_image() { docker inspect -f '{{.Config.Image}}' "$APP"; }
+
+keyring_cli() { # runs scripts/mail/keyring.js in the app image, no network
+  docker run --rm --network none --entrypoint node -w /app \
+    -v "$KEY_DIR:/keys" -v "$ESCROW_DIR:/escrow" -v "$KEY_BASE/$target/recovery:/recovery:ro" \
+    "$(app_image)" scripts/mail/keyring.js "$@"
+}
+
+keyring_setup() {
+  install -d -m 0711 "$KEY_BASE" "$KEY_BASE/$target"
+  install -d -m 0700 "$KEY_DIR" "$ESCROW_DIR"
+  install -d -m 0755 "$KEY_BASE/$target/recovery"
+  local out
+  if [[ -f "$KEY_DIR/keyring.json" ]]; then
+    out="$(keyring_cli inspect --file=/keys/keyring.json)" || { fail "existing keyring file is invalid; it was NOT replaced"; return 1; }
+    python3 -c 'import json,sys; d=json.loads(sys.argv[1]); sys.exit(0 if d.get("environment")==sys.argv[2] else 1)' "$out" "$target" \
+      || { fail "existing keyring belongs to another environment; refusing"; return 1; }
+    info "keyring file exists and is kept: $out"
+  elif [[ -n "$(docker inspect -f '{{json .Config.Env}}' "$APP" | python3 -c 'import json,sys; e=dict(x.split("=",1) for x in json.load(sys.stdin) if "=" in x); print(e.get("MAIL_ENCRYPTION_KEYS","").strip())')" ]]; then
+    # Keep the keys already used for this environment's ciphertext. Values go
+    # from docker inspect to the container environment, never to argv or logs.
+    out="$(python3 - "$APP" "$(app_image)" "$KEY_DIR" "$target" <<'PY'
+import json, os, subprocess, sys
+app, image, keydir, target = sys.argv[1:]
+env = dict(x.split('=', 1) for x in json.loads(subprocess.check_output(['docker', 'inspect', '-f', '{{json .Config.Env}}', app])) if '=' in x)
+penv = {'PATH': os.environ['PATH'], 'HOME': '/root', 'MAIL_ENCRYPTION_KEYS': env.get('MAIL_ENCRYPTION_KEYS', ''), 'MAIL_ENCRYPTION_ACTIVE_KEY': env.get('MAIL_ENCRYPTION_ACTIVE_KEY', '')}
+r = subprocess.run(['docker', 'run', '--rm', '--network', 'none', '-e', 'MAIL_ENCRYPTION_KEYS', '-e', 'MAIL_ENCRYPTION_ACTIVE_KEY', '-v', f'{keydir}:/keys',
+                    '-w', '/app', '--entrypoint', 'node', image, 'scripts/mail/keyring.js', 'import-env', f'--environment={target}', '--out=/keys/keyring.json'],
+                   env=penv, capture_output=True, text=True)
+print(r.stdout.strip()); sys.stderr.write(r.stderr[-300:]); sys.exit(r.returncode)
+PY
+)" || { fail 'importing the existing env keyring failed'; return 1; }
+    pass "existing env keyring imported into $KEY_DIR/keyring.json (same keys; stored data stays readable): $out"
   else
-    info "volume $PILOT_VOLUME exists (kept)"
+    out="$(keyring_cli generate --environment="$target" --out=/keys/keyring.json)" || { fail 'keyring generation failed'; return 1; }
+    pass "new keyring generated on the server: $out"
   fi
-  # The staging deploy override keeps the app image and gains the mount; the
-  # staging deploy (staging.yml) re-adds the mount on every release.
-  local image owner; image="$(docker inspect -f '{{.Config.Image}}' "$APP")"; owner="$(stat -c '%U:%G' "$STAGING_OVERRIDE")"
-  printf 'services:\n  app:\n    image: %s\n    pull_policy: never\n    volumes: ["%s:%s"]\nvolumes:\n  %s:\n    external: true\n' \
-    "$image" "$PILOT_VOLUME" "$PILOT_DIR" "$PILOT_VOLUME" > "$STAGING_OVERRIDE.new"
-  chown "$owner" "$STAGING_OVERRIDE.new"; chmod 644 "$STAGING_OVERRIDE.new"; mv "$STAGING_OVERRIDE.new" "$STAGING_OVERRIDE"
-  pass "staging deploy override mounts $PILOT_VOLUME at $PILOT_DIR (image unchanged)"
-  # Worker gets the same mount (Compose file rewritten with the current image).
+  chown root:root "$KEY_DIR/keyring.json"; chmod 0400 "$KEY_DIR/keyring.json"
+  [[ "$(stat -c '%U:%G %a' "$KEY_DIR/keyring.json")" == 'root:root 400' && "$(stat -c '%a' "$KEY_DIR")" == 700 ]] \
+    || { fail 'keyring file or directory permissions are not root-only'; return 1; }
+  pass "keyring file root:root 0400 in a 0700 directory; mounted read-only at $KEY_MOUNT"
+  # Recovery escrow (sealed to the owner's offline RSA key).
+  if [[ -f "$BUNDLE_DIR/recovery-$target.pub" ]]; then
+    install -m 0644 "$BUNDLE_DIR/recovery-$target.pub" "$KEY_BASE/$target/recovery/recovery.pub"
+    out="$(keyring_cli seal --file=/keys/keyring.json --recipient=/recovery/recovery.pub --out=/escrow/keyring-escrow.json)" || { fail 'sealing the recovery escrow failed'; return 1; }
+    chmod 0600 "$ESCROW_DIR/keyring-escrow.json"
+    keyring_cli verify-escrow --file=/keys/keyring.json --escrow=/escrow/keyring-escrow.json >/dev/null \
+      && pass "recovery escrow sealed and verified against the keyring: $out" || { fail 'escrow does not match the keyring'; return 1; }
+  else
+    info "no recovery public key bundled (infrastructure/mail/recovery/$target.pub): escrow PENDING. Keys cannot be recovered after host loss until it exists."
+  fi
+}
+
+storage_setup() {
+  identity || { fail "$target identity"; return 1; }
+  [[ -f "$BUNDLE_DIR/ca-mail-env-install.sh" ]] || { fail 'ca-mail-env-install.sh missing from the bundle'; return 1; }
+  docker run --rm --network none --entrypoint test "$(app_image)" -f /app/scripts/mail/keyring.js \
+    || { fail "the running $target image has no self-hosted keyring support; deploy a release with it first"; return 1; }
+  if ! docker volume inspect "$STORE_VOLUME" >/dev/null 2>&1; then
+    docker volume create --label "ca.environment=$target" --label ca.component=mail-store "$STORE_VOLUME" >/dev/null
+    pass "created store volume $STORE_VOLUME"
+  else
+    [[ "$(docker volume inspect -f '{{index .Labels "ca.environment"}}' "$STORE_VOLUME")" == "$target" ]] \
+      || { fail "volume $STORE_VOLUME is not labelled ca.environment=$target; refusing"; return 1; }
+    info "store volume $STORE_VOLUME exists (kept)"
+  fi
+  keyring_setup || return 1
+  write_mounts_file
+  pass "mounts file $MOUNTS_FILE: $STORE_VOLUME at $STORE_DIR, keyring directory read-only at $KEY_MOUNT"
+  if [[ "$target" == staging && -f "$STAGING_OVERRIDE" ]]; then
+    # The mounts now live in the mounts file; the deploy override pins the image only.
+    local image owner; image="$(app_image)"; owner="$(stat -c '%U:%G' "$STAGING_OVERRIDE")"
+    printf 'services:\n  app:\n    image: %s\n    pull_policy: never\n' "$image" > "$STAGING_OVERRIDE.new"
+    chown "$owner" "$STAGING_OVERRIDE.new"; chmod 644 "$STAGING_OVERRIDE.new"; mv "$STAGING_OVERRIDE.new" "$STAGING_OVERRIDE"
+    pass 'staging deploy override pins the image only (image unchanged)'
+  fi
   if [[ -f "$MAIL_DIR/docker-compose.yml" ]]; then
     local restart; restart="$(docker inspect -f '{{.HostConfig.RestartPolicy.Name}}{{if .HostConfig.RestartPolicy.MaximumRetryCount}}:{{.HostConfig.RestartPolicy.MaximumRetryCount}}{{end}}' "${MAIL_PROJECT}-mail-worker" 2>/dev/null || echo on-failure:5)"
-    write_mail_compose "$image" "$restart"
-    pass 'Mail worker Compose file mounts the same volume'
+    write_mail_compose "$(app_image)" "$restart"
+    pass 'Mail worker Compose file mounts the same store and keyring'
   fi
-  # Settings: storage + keyring. Keep any existing keyring.
-  local has_keys values
-  has_keys="$(docker inspect -f '{{json .Config.Env}}' "$APP" | python3 -c 'import json,sys; e=dict(x.split("=",1) for x in json.load(sys.stdin) if "=" in x); print("yes" if e.get("MAIL_ENCRYPTION_KEYS","").strip() else "no")')"
-  values="$(mktemp /run/ca-pilot-XXXXXX)"
-  {
-    echo 'MAIL_DEPLOYMENT_ENV=staging'
-    echo 'MAIL_STORAGE_PROVIDER=filesystem'
-    echo "MAIL_STORAGE_LOCAL_DIR=$PILOT_DIR"
-    if [[ "$has_keys" == no ]]; then
-      echo 'MAIL_KMS_PROVIDER=env'
-      echo "MAIL_ENCRYPTION_KEYS=v1:$(head -c 32 /dev/urandom | base64 -w0)"
-      echo 'MAIL_ENCRYPTION_ACTIVE_KEY=v1'
-    fi
-  } > "$values"
-  [[ "$has_keys" == yes ]] && info 'an encryption keyring already exists; it is kept unchanged'
+  local values; values="$(mktemp /run/ca-storage-XXXXXX)"
+  printf '%s\n' "MAIL_DEPLOYMENT_ENV=$target" 'MAIL_STORAGE_PROVIDER=filesystem' "MAIL_STORAGE_LOCAL_DIR=$STORE_DIR" \
+    'MAIL_KMS_PROVIDER=file' "MAIL_ENCRYPTION_KEYRING_FILE=$KEY_FILE_IN_APP" 'MAIL_ENCRYPTION_KEYS=' 'MAIL_ENCRYPTION_ACTIVE_KEY=' \
+    'MAIL_SCANNER_PROVIDER=clamd' 'MAIL_CLAMD_HOST=clamav' 'MAIL_CLAMD_PORT=3310' > "$values"
   # The installer takes the isolation lock itself; release ours first.
   exec 9>&-
-  if bash "$BUNDLE_DIR/ca-mail-env-install.sh" --apply staging "$values" > "$run_dir/pilot-install.log" 2>&1; then
-    pass 'pilot storage settings installed by ca-mail-env-install.sh (backup, same-image recreate, checks passed)'
+  if bash "$BUNDLE_DIR/ca-mail-env-install.sh" --apply "$target" "$values" > "$run_dir/storage-install.log" 2>&1; then
+    pass 'storage/key/scanner settings installed by ca-mail-env-install.sh (backup, same-image recreate, app verified); env keys cleared'
   else
-    if grep -q '==================== SUMMARY ====================' "$run_dir/pilot-install.log"; then
-      sed -n '/==================== SUMMARY ====================/,$p' "$run_dir/pilot-install.log"
+    if grep -q '==================== SUMMARY ====================' "$run_dir/storage-install.log"; then
+      sed -n '/==================== SUMMARY ====================/,$p' "$run_dir/storage-install.log"
     else
-      tail -n 30 "$run_dir/pilot-install.log"
+      tail -n 30 "$run_dir/storage-install.log"
     fi
-    fail 'pilot storage settings install failed (it rolled back; see above)'; rm -f "$values"; return 1
+    fail 'storage settings install failed (the installer rolled the .env back; see above)'; rm -f "$values"; return 1
   fi
   rm -f "$values"
-  [[ "$(docker inspect -f '{{range .Mounts}}{{if eq .Name "'"$PILOT_VOLUME"'"}}{{.Destination}}{{end}}{{end}}' "$APP")" == "$PILOT_DIR" ]] \
-    && pass "staging app mounts $PILOT_VOLUME at $PILOT_DIR" || { fail 'staging app does not mount the pilot volume'; return 1; }
-  info 'Mail stays OFF; storage is exercised once Mail is enabled (staging-checks then reports storage OK)'
+  storage_check
+}
+
+storage_check() {
+  identity || { fail "$target identity"; return 1; }
+  local mounts out bad=0
+  mounts="$(docker inspect -f '{{range .Mounts}}{{.Source}}|{{.Name}}|{{.Destination}}|{{.RW}};{{end}}' "$APP")"
+  [[ "$mounts" == *"|$STORE_VOLUME|$STORE_DIR|true;"* ]] && pass "app mounts $STORE_VOLUME at $STORE_DIR" || { fail "app does not mount $STORE_VOLUME at $STORE_DIR"; bad=1; }
+  [[ "$mounts" == *"$KEY_DIR||$KEY_MOUNT|false;"* ]] && pass "app mounts the keyring directory read-only at $KEY_MOUNT" || { fail 'app does not mount the keyring directory read-only'; bad=1; }
+  # In the app: config rules, keyring from the file, store health (own volume,
+  # environment marker, free space), and one encrypt/write/read/delete canary.
+  out="$(docker exec -i -w /app "$APP" node - 2>/dev/null <<'NODE' | grep -E '^\{' | tail -n 1 || true
+const { loadMailConfig, infrastructureViolations } = require('./src/modules/mail/mail.config');
+const { createMailApplication } = require('./src/modules/mail/application');
+(async () => {
+  const config = loadMailConfig(process.env);
+  const mail = createMailApplication({ client: {}, config, logger: { info() {}, warn() {}, error() {} } });
+  await mail.ready();
+  const result = { environment: config.deploymentEnvironment, storageProvider: config.storage.provider, kmsProvider: config.kms.provider,
+    keyringAvailable: mail.encryption.available, keyVersions: mail.encryption.versions.length, keyringError: mail.encryption.loadError,
+    violations: infrastructureViolations(config).filter((v) => /STORAGE|KMS|ENCRYPTION/.test(v)) };
+  result.storage = await mail.storage.health();
+  if (result.keyringAvailable && result.storage.ok) {
+    const payload = Buffer.from('cosmicforge-mail-storage-canary:' + Date.now());
+    const put = await mail.storage.put('health', payload, { purpose: 'mail-storage-canary' });
+    const back = await mail.storage.get(put.key, { purpose: 'mail-storage-canary', sha256: put.sha256 });
+    await mail.storage.remove(put.key);
+    result.canary = back.equals(payload) ? 'ok' : 'mismatch';
+  }
+  process.stdout.write(JSON.stringify(result));
+})().catch((e) => process.stdout.write(JSON.stringify({ error: e.code || e.name })));
+NODE
+)"
+  echo "$out" > "$run_dir/storage-check.json"
+  if python3 - "$out" "$target" <<'PY'
+import json, sys
+d = json.loads(sys.argv[1]); t = sys.argv[2]
+ok = (d.get('environment') == t and d.get('storageProvider') == 'filesystem' and d.get('kmsProvider') == 'file'
+      and d.get('keyringAvailable') is True and (d.get('storage') or {}).get('ok') is True and d.get('canary') == 'ok' and not d.get('violations'))
+sys.exit(0 if ok else 1)
+PY
+  then
+    pass "in the app: keyring loaded from the file ($(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["keyVersions"])' "$out") version(s)); store on its own volume, bound to $target ($(python3 -c 'import json,sys; s=json.loads(sys.argv[1])["storage"]; print(str(round(s.get("freeBytes",0)/2**30,1))+" GiB free")' "$out")); encrypt/write/fsync/read/decrypt/delete canary OK"
+  else
+    fail "storage check in the app: $out"; bad=1
+  fi
+  if docker inspect "${MAIL_PROJECT}-mail-worker" >/dev/null 2>&1; then
+    mounts="$(docker inspect -f '{{range .Mounts}}{{.Source}}|{{.Name}}|{{.Destination}}|{{.RW}};{{end}}' "${MAIL_PROJECT}-mail-worker")"
+    if [[ "$mounts" == *"|$STORE_VOLUME|$STORE_DIR|true;"* && "$mounts" == *"$KEY_DIR||$KEY_MOUNT|false;"* ]]; then
+      pass 'Mail worker mounts the same store and the keyring read-only'
+    else
+      fail 'Mail worker is missing the store or keyring mount (run services-deploy)'; bad=1
+    fi
+  fi
+  [[ -f "$ESCROW_DIR/keyring-escrow.json" ]] && pass 'recovery escrow present' || info 'recovery escrow PENDING (no recovery public key yet)'
+  return "$bad"
 }
 
 list_containers() {
@@ -699,7 +860,8 @@ list_containers() {
 case "$mode" in
   --containers) list_containers ;;
   --staging-checks) staging_checks ;;
-  --pilot-storage-setup) pilot_storage_setup ;;
+  --storage-setup) storage_setup ;;
+  --storage-check) storage_check ;;
   --production-schema-names) production_schema_names ;;
   --migrate-preflight) migrate_preflight ;;
   --migrate-apply) migrate_apply ;;

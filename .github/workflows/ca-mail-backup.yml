@@ -1,0 +1,168 @@
+name: CA Mail backups (manual)
+
+# Encrypted, off-host Mail backups with tested restores, run by
+# .github/scripts/ca-mail-backup.sh as root on the Contabo VPS.
+#   status         READ-ONLY: schedule, repository kind, latest snapshots,
+#                  last backup / last restore drill, keys recoverable or not
+#   install        off-host repository from the secret CA_STAGING_MAIL_BACKUP_ENV /
+#                  CA_PRODUCTION_MAIL_BACKUP_ENV (production environment):
+#                  RESTIC_REPOSITORY (s3:https://... or rest:https://...),
+#                  RESTIC_PASSWORD, and for S3-compatible storage
+#                  AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / AWS_DEFAULT_REGION
+#                  (restic's names for any S3-compatible service). Installs the
+#                  nightly backup + weekly restore drill timers, then runs both.
+#   install-local  repository on the VPS itself (tests/drills only; never
+#                  reported as off-host)
+#   run / drill    backup now / restore drill now (non-destructive)
+# Mutating operations need confirm=APPLY_MAIL_BACKUP (staging) or
+# APPLY_PRODUCTION_MAIL_BACKUP (production). No value is ever printed.
+# A push to this file only runs the no-secrets validate job (registration).
+
+on:
+  push:
+    branches: [staging]
+    paths:
+      - .github/workflows/ca-mail-backup.yml
+  workflow_dispatch:
+    inputs:
+      target:
+        type: choice
+        options: [staging, production]
+        default: staging
+      operation:
+        type: choice
+        options: [status, install, install-local, run, drill]
+        default: status
+      confirm:
+        description: "Mutating: APPLY_MAIL_BACKUP (staging) or APPLY_PRODUCTION_MAIL_BACKUP (production)"
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ca-mail-backup-${{ inputs.target || 'push' }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate (no secrets, no connection)
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: bash -n .github/scripts/ca-mail-backup.sh && sha256sum .github/scripts/ca-mail-backup.sh
+
+  backup:
+    name: Mail backup ${{ inputs.operation }} (${{ inputs.target }})
+    if: github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: production
+    steps:
+      - name: Check the typed confirmation
+        shell: bash
+        env:
+          TARGET: ${{ inputs.target }}
+          OP: ${{ inputs.operation }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+          if [[ "$OP" == status ]]; then
+            [[ -z "$CONFIRM" ]] || { echo 'status takes no confirmation.'; exit 1; }
+          else
+            want=APPLY_MAIL_BACKUP; [[ "$TARGET" == production ]] && want=APPLY_PRODUCTION_MAIL_BACKUP
+            [[ "$CONFIRM" == "$want" ]] || { echo "$OP on $TARGET needs confirm=$want. Nothing was started."; exit 1; }
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Connect to the Contabo VPS (pinned host key, root only)
+        shell: bash
+        env:
+          PROD_HOST: ${{ secrets.PROD_HOST }}
+          PROD_USER: ${{ secrets.PROD_USER }}
+          SSHPASS: ${{ secrets.PROD_PASSWORD }}
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ -n "$PROD_HOST" && -n "$PROD_USER" && -n "$SSHPASS" ]] || { echo 'VPS credentials are not set.'; exit 1; }
+          command -v sshpass >/dev/null || { sudo apt-get update -qq >/dev/null; sudo apt-get install -y -qq sshpass >/dev/null; }
+          hosts="$RUNNER_TEMP/known_hosts"
+          ssh-keyscan -T 10 -t ed25519 "$PROD_HOST" 2>/dev/null > "$hosts" || true
+          [[ "$(ssh-keygen -l -E sha256 -f "$hosts" | awk 'NR==1{print $2}')" == "SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ" ]] \
+            || { echo 'BLOCKED: host is not the Contabo VPS (SSH host key differs). Nothing changed.'; exit 1; }
+          cat > "$RUNNER_TEMP/ssh" <<EOF
+          #!/usr/bin/env bash
+          exec sshpass -e ssh -T -o BatchMode=no -o PubkeyAuthentication=no -o PreferredAuthentications=password,keyboard-interactive \
+            -o NumberOfPasswordPrompts=1 -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$hosts" \
+            -o ServerAliveInterval=15 -o ServerAliveCountMax=8 -o ConnectTimeout=15 "$PROD_USER@$PROD_HOST" "\$@"
+          EOF
+          chmod 700 "$RUNNER_TEMP/ssh"
+          [[ "$("$RUNNER_TEMP/ssh" 'id -u')" == 0 ]] || { echo 'BLOCKED: the VPS account is not root. Nothing changed.'; exit 1; }
+          script=.github/scripts/ca-mail-backup.sh
+          sha="$(sha256sum "$script" | cut -d' ' -f1)"
+          echo "SCRIPT_SHA256=$sha" >> "$GITHUB_ENV"
+          "$RUNNER_TEMP/ssh" "umask 077; mkdir -p \"\$HOME/.ca-mail-backup\" && cat > \"\$HOME/.ca-mail-backup/backup-$sha.sh\" && sha256sum \"\$HOME/.ca-mail-backup/backup-$sha.sh\"" < "$script" | grep -q "^$sha " \
+            || { echo 'Uploaded script checksum mismatch.'; exit 1; }
+
+      - name: Run on the VPS (detached; values only inside the encrypted SSH stdin)
+        shell: bash
+        env:
+          TARGET: ${{ inputs.target }}
+          OP: ${{ inputs.operation }}
+          SSHPASS: ${{ secrets.PROD_PASSWORD }}
+          STAGING_VALUES: ${{ secrets.CA_STAGING_MAIL_BACKUP_ENV }}
+          PRODUCTION_VALUES: ${{ secrets.CA_PRODUCTION_MAIL_BACKUP_ENV }}
+        run: |
+          set -euo pipefail
+          ssh="$RUNNER_TEMP/ssh"
+          d="\$HOME/.ca-mail-backup"
+          run="$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          args="--$OP $TARGET"
+          if [[ "$OP" == install ]]; then
+            values="$STAGING_VALUES"; [[ "$TARGET" == production ]] && values="$PRODUCTION_VALUES"
+            [[ -n "$values" ]] || { echo "Secret CA_${TARGET^^}_MAIL_BACKUP_ENV is empty. Add it to the production environment (or use install-local)."; exit 1; }
+            printf '%s\n' "$values" | "$ssh" "umask 077; cat > $d/values-$run"
+            args="--install $TARGET $d/values-$run"
+          fi
+          unset STAGING_VALUES PRODUCTION_VALUES values
+          "$ssh" "cd $d && setsid nohup bash -c 'bash $d/backup-$SCRIPT_SHA256.sh $args > $d/run-$run.out 2>&1; echo \$? > $d/run-$run.rc; rm -f $d/values-$run' < /dev/null > /dev/null 2>&1 & echo started"
+          shown=0; : > run.out
+          for _ in $(seq 1 500); do
+            sleep 10
+            "$ssh" "cat $d/run-$run.out 2>/dev/null" > run.new || continue
+            total="$(wc -l < run.new)"
+            if (( total > shown )); then tail -n +"$((shown + 1))" run.new; shown="$total"; fi
+            cp run.new run.out
+            rc="$("$ssh" "cat $d/run-$run.rc 2>/dev/null" || true)"
+            if [[ -n "$rc" ]]; then echo "Remote exit code: $rc"; echo "REMOTE_RC=$rc" >> "$GITHUB_ENV"; exit "$rc"; fi
+          done
+          echo 'Timed out waiting; the operation continues on the server. Run status to read the outcome.'
+          exit 1
+
+      - name: Summarise
+        if: always()
+        shell: bash
+        env:
+          TARGET: ${{ inputs.target }}
+          OP: ${{ inputs.operation }}
+        run: |
+          test -s run.out || exit 0
+          { echo "## Mail backup $OP ($TARGET)"; echo; echo "Commit \`$GITHUB_SHA\`, script \`${SCRIPT_SHA256:-}\`, exit \`${REMOTE_RC:-unknown}\`."; echo; echo '```'
+            sed -n '/==================== SUMMARY ====================/,$p' run.out; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ca-mail-backup-${{ inputs.target }}-${{ inputs.operation }}
+          path: run.out
+          if-no-files-found: ignore
+          retention-days: 90

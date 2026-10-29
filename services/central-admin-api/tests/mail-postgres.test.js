@@ -17,7 +17,10 @@ const { createMailApplication } = require("../src/modules/mail/application");
 const { createMailRouter } = require("../src/modules/mail/http/mail.routes");
 const { loadMailConfig } = require("../src/modules/mail/mail.config");
 const { createFakeAdapter } = require("../src/modules/mail/adapters/fake.adapter");
-const { memoryBackend } = require("../src/modules/mail/storage/mail-storage");
+const { memoryBackend, filesystemBackend } = require("../src/modules/mail/storage/mail-storage");
+const nodeFs = require("node:fs");
+const nodePath = require("node:path");
+const nodeOs = require("node:os");
 const { signatureScanner, EICAR } = require("../src/modules/mail/scanning/attachment-scanner");
 const { signResendWebhook } = require("../src/modules/mail/webhooks/resend-webhook.verifier");
 const { totpAt, decodeBase32, encryptSecret } = require("../src/shared/auth/mfa-core");
@@ -81,20 +84,48 @@ async function seedUsers(client) {
 let harnessKeys = "";
 const baseEnvKeys = () => harnessKeys;
 
+function fileKeyringEnv(rawKey) {
+  const directory = nodeFs.mkdtempSync(nodePath.join(nodeOs.tmpdir(), "cfmail-keyring-"));
+  const file = nodePath.join(directory, "keyring.json");
+  nodeFs.writeFileSync(file, JSON.stringify({ format: "cosmicforge-mail-keyring/1", environment: "development", active: "v1", keys: { v1: rawKey } }), { mode: 0o400 });
+  return { MAIL_KMS_PROVIDER: "file", MAIL_ENCRYPTION_KEYRING_FILE: file };
+}
+
+// MAIL_TEST_STORAGE=filesystem: the production self-hosted backend (encrypted
+// filesystem with an environment marker, free-space floor and fsync).
+// `objects` exposes every stored file's raw bytes for ciphertext-only checks.
+function testFilesystemBackend() {
+  const directory = nodeFs.mkdtempSync(nodePath.join(nodeOs.tmpdir(), "cfmail-store-"));
+  const backend = filesystemBackend(directory, { environment: "test", minFreeBytes: 1024 * 1024 });
+  const walk = (dir, out) => {
+    for (const entry of nodeFs.readdirSync(dir, { withFileTypes: true })) {
+      const full = nodePath.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full, out);
+      else if (!entry.name.startsWith(".")) out.set(nodePath.relative(directory, full), nodeFs.readFileSync(full));
+    }
+    return out;
+  };
+  return Object.assign(backend, { directory, get objects() { return walk(directory, new Map()); } });
+}
+
 function createHarness(client, { storageBackend } = {}) {
   let offsetMs = 0;
   const clock = () => new Date(Date.now() + offsetMs);
   const adapter = createFakeAdapter();
+  const rawKey = crypto.randomBytes(32).toString("base64");
+  // MAIL_TEST_KEYRING=file: the self-hosted keyring file (MAIL_KMS_PROVIDER=file)
+  // instead of environment keys; same key, so key-dependent checks still apply.
+  const keyEnv = process.env.MAIL_TEST_KEYRING === "file" ? fileKeyringEnv(rawKey) : { MAIL_ENCRYPTION_KEYS: `v1:${rawKey}` };
   const baseEnv = {
     MAIL_ENABLED: "true", MAIL_SENDING_ENABLED: "true", MAIL_RECEIVING_ENABLED: "true", MAIL_MARKETING_ENABLED: "true", MAIL_WORKER_ENABLED: "true",
-    MAIL_PROVIDER: "fake", RESEND_WEBHOOK_SECRET: WEBHOOK_SECRET, MAIL_ENCRYPTION_KEYS: `v1:${crypto.randomBytes(32).toString("base64")}`,
+    MAIL_PROVIDER: "fake", RESEND_WEBHOOK_SECRET: WEBHOOK_SECRET, ...keyEnv,
     MAIL_WORKER_MAX_ATTEMPTS: "4", MAIL_UNKNOWN_RECIPIENT_POLICY: "reject",
     MAIL_DOMAIN_ALLOWLIST: "cosmicforge.example,karryam.example",
     // Legacy flag: must be refused, never re-enabling plaintext body indexing.
     MAIL_SEARCH_INDEX_BODIES: "true",
   };
   const config = loadMailConfig(baseEnv);
-  harnessKeys = baseEnv.MAIL_ENCRYPTION_KEYS;
+  harnessKeys = `v1:${rawKey}`;
   // MAIL_TEST_STORAGE=s3 runs the whole suite against the S3 backend (fake S3
   // on 127.0.0.1) instead of memory; `backend.objects` exposes raw stored bytes.
   const backend = storageBackend || memoryBackend();
@@ -153,8 +184,15 @@ test("CosmicForge Mail M1-M6 on real PostgreSQL", { timeout: 300000 }, async (t)
     const { s3Backend } = require("../src/modules/mail/storage/s3-backend");
     fakeS3 = await startFakeS3();
     storageBackend = Object.assign(s3Backend(fakeS3.config()), { objects: fakeS3.objects });
+  } else if (process.env.MAIL_TEST_STORAGE === "filesystem") {
+    storageBackend = testFilesystemBackend();
   }
   const harness = createHarness(client, { storageBackend });
+  // Prove the selected mode is really in use (no silent fallback to memory/env keys).
+  const modeHealth = await harness.mail.health();
+  assert.equal(modeHealth.encryption.provider, process.env.MAIL_TEST_KEYRING === "file" ? "file" : "env");
+  assert.equal(modeHealth.encryption.available, true);
+  assert.equal(harness.mail.storage.name, { s3: "s3", filesystem: "encrypted-filesystem" }[process.env.MAIL_TEST_STORAGE] || "memory");
   const { server, base } = await listen(harness.app);
   const ids = await seedUsers(client);
 

@@ -146,10 +146,13 @@ compose_files() {
   local mode="$1"
   if [[ "$mode" == staging ]]; then
     printf '%s\n' -f docker-compose.yml -f "$STAGING_OVERRIDE"
+    # Mail storage mounts (ca-mail-staging-ops --storage-setup), if present.
+    [[ -f /var/www/admin-server-staging/docker-compose.mail-storage.yml ]] && printf '%s\n' -f /var/www/admin-server-staging/docker-compose.mail-storage.yml
   else
     printf '%s\n' -f docker-compose.yml
     # Image pinned by .github/scripts/ca-production-deploy.sh (if deployed).
     [[ -f /var/www/admin-server/docker-compose.release.yml ]] && printf '%s\n' -f /var/www/admin-server/docker-compose.release.yml
+    [[ -f /var/www/admin-server/docker-compose.mail-storage.yml ]] && printf '%s\n' -f /var/www/admin-server/docker-compose.mail-storage.yml
   fi
   return 0
 }

@@ -5,6 +5,7 @@
 // Covered:
 //   objects  - message bodies (mail_messages.content_object_key, mail-body) and
 //              attachments (mail_attachments.storage_key, mail-attachment),
+//              archived headers / raw MIME (mail_message_archives), all
 //              de-duplicated because mailbox copies share stored objects.
 //   columns  - mail_drafts.encrypted_body (mail-draft),
 //              mail_messages.encrypted_snippet / mail_threads.encrypted_snippet
@@ -32,6 +33,9 @@ const COLUMNS = Object.freeze([
 const OBJECT_SOURCES = Object.freeze([
   { table: "mail_messages", column: "content_object_key", purpose: "mail-body" },
   { table: "mail_attachments", column: "storage_key", purpose: "mail-attachment" },
+  // Archive objects (feature migration; skipped when the table is absent).
+  { table: "mail_message_archives", column: "headers_object_key", purpose: "mail-archive-headers", optional: true },
+  { table: "mail_message_archives", column: "raw_mime_object_key", purpose: "mail-raw-mime", optional: true },
 ]);
 
 function emptyCounts() {
@@ -92,6 +96,10 @@ async function rotateMailEncryption({ client, storage, encryption, audit, dryRun
 
   if (!skipObjects) {
     for (const source of OBJECT_SOURCES) {
+      if (source.optional) {
+        const [present] = await client.$queryRawUnsafe(`SELECT to_regclass($1)::text AS name`, `public.${source.table}`);
+        if (!present?.name) continue;
+      }
       const counts = emptyCounts();
       summary.objects[`${source.table}.${source.column}`] = counts;
       let cursor = "";

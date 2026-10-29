@@ -407,16 +407,23 @@ jobs:
           # Store override in the deploy user home; no write access to
           # the root-owned deployment directory is required.
           override="$HOME/docker-compose.github-staging.yml"
-          # Keep the Mail pilot storage mount (ca-mail-staging-ops pilot-storage-setup)
-          # on every release and rollback.
+          # Mail storage mounts (store volume + read-only keyring) live in
+          # docker-compose.mail-storage.yml (ca-mail-staging-ops storage-setup)
+          # and are kept on every release and rollback. Older hosts without
+          # that file keep the pilot volume in the override instead.
+          mounts="docker-compose.mail-storage.yml"
           write_override() {
             printf 'services:\n  app:\n    image: %s\n    pull_policy: never\n' "$1" > "$override"
-            if docker volume inspect admin-server-staging-mail-store >/dev/null 2>&1; then
+            if [ ! -f "$mounts" ] && docker volume inspect admin-server-staging-mail-store >/dev/null 2>&1; then
               printf '    volumes: ["admin-server-staging-mail-store:/var/lib/cosmicforge-mail"]\nvolumes:\n  admin-server-staging-mail-store:\n    external: true\n' >> "$override"
             fi
           }
           deploy_app() {
-            docker compose -f docker-compose.yml -f "$override" up -d --no-deps --no-build --pull never --force-recreate app
+            if [ -f "$mounts" ]; then
+              docker compose -f docker-compose.yml -f "$override" -f "$mounts" up -d --no-deps --no-build --pull never --force-recreate app
+            else
+              docker compose -f docker-compose.yml -f "$override" up -d --no-deps --no-build --pull never --force-recreate app
+            fi
           }
           rollback() {
             echo "Staging release failed verification: restoring previous image."
