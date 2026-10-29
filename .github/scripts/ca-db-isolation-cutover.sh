@@ -143,6 +143,9 @@ cmd, mode, root, app, *rest = sys.argv[1:]
 files = ['-f', 'docker-compose.yml'] + (['-f', os.environ['STAGING_OVERRIDE']] if mode == 'staging' else [])
 ENV = {'HOME': '/root', 'PATH': os.environ['PATH']}
 LINE = re.compile(r'^(\s*(?:export\s+)?)([A-Za-z_][A-Za-z0-9_]*)(\s*=\s*)(.*?)(\r?\n?)$', re.S)
+# Only the two observed OAuth key duplicates can be normalized, and only
+# when their Compose effective values equal the running app values.
+DUPLICATE_SAFELIST = {'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'}
 
 def out(obj, code=0):
     print(json.dumps(obj, sort_keys=True)); sys.exit(code)
@@ -257,7 +260,11 @@ def inspect(expected):
     if keys.get('DATABASE_URL', 0) != 1: problems.append('.env must define DATABASE_URL exactly once')
     if multiline: problems.append('.env has a multi-line value; refusing to edit')
     dup = sorted(k for k, n in keys.items() if n > 1)
-    if dup: problems.append('.env has duplicate keys: ' + ','.join(dup))
+    for k in dup:
+        if (k not in DUPLICATE_SAFELIST or k in dollar or k not in c_app
+                or k not in r_app or c_app[k] != r_app[k]):
+            problems.append('.env has unsafe duplicate key: ' + k)
+    # Safe duplicate lines are reconciled only during the backed-up rewrite.
     rh, rdb = db_target(r_app.get('DATABASE_URL'))
     ch, cdb = db_target(c_app.get('DATABASE_URL'))
     state = 'unknown'
@@ -306,6 +313,14 @@ def rewrite(source, dest):
     before = effective_values(list(keys))
     _, c_app_before, c_db_before, _, _ = compose_config()
     r_app, r_db = container_env(app), container_env(rest[0])
+    duplicates = {k: n for k, n in keys.items() if n > 1}
+    for k in duplicates:
+        if (k not in DUPLICATE_SAFELIST or k in dollar or k not in c_app_before
+                or k not in r_app or c_app_before[k] != r_app[k]
+                or before.get(k) != r_app[k]):
+            out({'ok': False, 'problems': ['unsafe duplicate key: ' + k]}, 1)
+    # Compose already resolved the final occurrence; remove shadowed entries.
+    earlier = {k: n - 1 for k, n in duplicates.items()}
     h, d = db_target(r_app.get('DATABASE_URL'))
     if h != 'db' or d != source:
         out({'ok': False, 'problems': ['running DATABASE_URL does not target the expected source']}, 1)
@@ -322,6 +337,9 @@ def rewrite(source, dest):
         if not m:
             newlines.append(line); continue
         k = m.group(2)
+        if earlier.get(k, 0):
+            earlier[k] -= 1
+            continue
         if k in dollar or k == 'DATABASE_URL':
             v = target.get(k)
             if v is None or "'" in v or '\n' in v or '\r' in v:
@@ -351,8 +369,10 @@ def rewrite(source, dest):
     for k in keys:
         if after.get(k) != target.get(k):
             problems.append('effective value would change: ' + k)
-    still = dotenv_scan(read_lines(path))[1]
+    after_keys, still, _ = dotenv_scan(read_lines(path))
     if still: problems.append('unquoted $ remains in: ' + ','.join(still))
+    if any(n > 1 for n in after_keys.values()):
+        problems.append('duplicate .env keys remained after normalization')
     _, c_app, c_db, _, warnings = compose_config()
     exp_app = {k: r_app.get(k) for k in c_app_before}
     exp_app['DATABASE_URL'] = repoint(r_app['DATABASE_URL'], dest)
@@ -364,7 +384,8 @@ def rewrite(source, dest):
         with open(path, 'wb') as f: f.write(original)
         os.chown(path, st.st_uid, st.st_gid); os.chmod(path, st.st_mode & 0o7777)
         out({'ok': False, 'problems': problems, 'restored': True}, 1)
-    out({'ok': True, 'frozenKeys': sorted(frozen), 'quotedKeys': sorted(quoted), 'interpolationWarningsAfter': warnings})
+    out({'ok': True, 'frozenKeys': sorted(frozen), 'quotedKeys': sorted(quoted),
+         'deduplicatedKeys': sorted(duplicates), 'interpolationWarningsAfter': warnings})
 
 if cmd == 'inspect': inspect(rest[1])
 elif cmd == 'snapshot': snapshot(rest[1])
@@ -787,7 +808,7 @@ SQL
   if ! rw="$(envtool rewrite "$mode" "$root" "$app" "$db" "$source" "$DEST")"; then
     fail "$mode .env rewrite refused (restored): $(json_field problems <<<"$rw")"; return 1
   fi
-  pass "$mode .env repointed to $DEST; frozen \$ keys: $(json_field frozenKeys <<<"$rw"); interpolation warnings now: $(json_field interpolationWarningsAfter <<<"$rw")"
+  pass "$mode .env repointed to $DEST; frozen \$ keys: $(json_field frozenKeys <<<"$rw"); deduplicated keys: $(json_field deduplicatedKeys <<<"$rw"); interpolation warnings now: $(json_field interpolationWarningsAfter <<<"$rw")"
 
   recreated=true
   recreate_app "$mode" "$root"
@@ -832,7 +853,11 @@ fi
 # Read-only production preview so a production blocker is known up front.
 mkdir -m 700 "$backup_dir/production-preview"
 if identity_ok production; then
-  info "production preview: identity OK, state $(env_state production "$backup_dir/production-preview/inspect.json") (read-only; production is changed only after STAGING_LOGIN_OK)"
+  prod_preview_state="$(env_state production "$backup_dir/production-preview/inspect.json")"
+  info "production preview: identity OK, state $prod_preview_state (read-only; production is changed only after STAGING_LOGIN_OK)"
+  if [[ "$prod_preview_state" == unknown ]]; then
+    info "production preview blockers (key names only): $(json_field problems < "$backup_dir/production-preview/inspect.json")"
+  fi
 else
   info 'production preview: identity checks currently fail; production will be refused until fixed (staging can still proceed)'
 fi

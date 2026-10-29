@@ -92,6 +92,11 @@ JWT_SECRET=Xy7$admN!q-signing
 SESSION_SECRET="p$K/9-session"
 ALREADY_QUOTED='lit$eral'
 ESCAPED=a$$b
+# Known duplicate Google OAuth keys: Compose uses the final definitions.
+GOOGLE_CLIENT_ID=obsolete-client
+GOOGLE_CLIENT_SECRET=obsolete-secret
+GOOGLE_CLIENT_ID=effective-client
+GOOGLE_CLIENT_SECRET=effective-secret
 PORT=@PORT@
 MAIL_ENABLED=false
 EOF
@@ -275,6 +280,10 @@ run_all() {
   check 'staging databases: new, legacy, preserved stale copy, failed attempt' \
     bash -c "[[ \"$(dbs admin-server-staging-db-1)\" =~ ^cosmicforge_admin,cosmicforge_admin_previous_copy_[0-9_]+,cosmicforge_admin_previous_copy_[0-9_]+,rtc_db_staging$ ]]"
   check 'production databases: new and legacy' test "$(dbs admin-server-db-1)" = cosmicforge_admin,rtc_db
+  check 'staging Google client id appears exactly once after cutover' bash -c "[[ \$(grep -c '^GOOGLE_CLIENT_ID=' /var/www/admin-server-staging/.env) == 1 ]]"
+  check 'staging Google client secret appears exactly once after cutover' bash -c "[[ \$(grep -c '^GOOGLE_CLIENT_SECRET=' /var/www/admin-server-staging/.env) == 1 ]]"
+  check 'production Google client id appears exactly once after cutover' bash -c "[[ \$(grep -c '^GOOGLE_CLIENT_ID=' /var/www/admin-server/.env) == 1 ]]"
+  check 'production Google client secret appears exactly once after cutover' bash -c "[[ \$(grep -c '^GOOGLE_CLIENT_SECRET=' /var/www/admin-server/.env) == 1 ]]"
   check 'no interpolation warnings left (staging)' no_warnings "${S[@]}"
   check 'no interpolation warnings left (production)' no_warnings /var/www/admin-server -f docker-compose.yml
   check 'staging secrets byte-identical to before' test "$(secret_hash admin-server-staging-app-1)" = "$sh0"
@@ -307,6 +316,14 @@ run_all() {
 run_production_guard() {
   mkdir -p "$work"
   setup
+  log 'T11 additional conflicting Google duplicate blocks before stopping staging'
+  local staging_started
+  staging_started="$(docker inspect -f '{{.State.StartedAt}}' admin-server-staging-app-1)"
+  printf '%s\n' 'GOOGLE_CLIENT_SECRET=modified-after-deploy' >> /var/www/admin-server-staging/.env
+  ! run_cutover CUTOVER_STAGING -- --apply-both
+  check 'conflicting duplicate blocked before staging changes' grep -q 'staging configuration check' "$work/last.log"
+  check 'conflicting duplicate did not stop staging' test "$(docker inspect -f '{{.State.StartedAt}}' admin-server-staging-app-1)" = "$staging_started"
+  sed -i '${/^GOOGLE_CLIENT_SECRET=modified-after-deploy$/d;}' /var/www/admin-server-staging/.env
   log 'T7 production refuses a cosmicforge_admin it did not create'
   docker exec admin-server-db-1 createdb -U caadmin cosmicforge_admin
   ! run_cutover CUTOVER_STAGING STAGING_LOGIN_OK CUTOVER_PRODUCTION -- --apply-both
