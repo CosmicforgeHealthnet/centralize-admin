@@ -13,6 +13,11 @@
 #   --services-deploy     ClamAV (private network alias `clamav`, no ports) and
 #                         one Mail worker (same image + env as the staging app)
 #   --services-remove     stop and remove those two containers (volume kept)
+#   --production-schema-names  READ-ONLY: catalog object NAMES (tables, types,
+#                         indexes, columns, ledger rows) of production
+#                         admin-server-db-1/cosmicforge_admin, so the runner can
+#                         classify which manifest migrations production has.
+#                         No data, no change, nothing else in production read.
 #
 # Never: changes staging .env, recreates the staging app, enables any Mail
 # flag, touches production, RTC (cosmicforge-db), Karryam or any other project.
@@ -56,8 +61,8 @@ readonly -a MIGRATIONS=(
 
 mode="${1:-}"
 case "$mode" in
-  --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove) ;;
-  *) echo 'Usage (root): ca-mail-staging-ops.sh --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove' >&2; exit 2 ;;
+  --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove|--production-schema-names) ;;
+  *) echo 'Usage (root): ca-mail-staging-ops.sh --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove|--production-schema-names' >&2; exit 2 ;;
 esac
 [[ -z "${2:-}" ]] || { echo 'Unexpected arguments.' >&2; exit 2; }
 [[ "$(id -u)" -eq 0 ]] || { echo 'Run as root.' >&2; exit 2; }
@@ -498,7 +503,39 @@ services_remove() {
   pass "${MAIL_PROJECT} containers removed (signature volume kept)"
 }
 
+production_schema_names() {
+  local pdb=admin-server-db-1
+  [[ "$(docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' "$pdb" 2>/dev/null)" == admin-server ]] \
+    || { fail 'production database container identity'; return 1; }
+  docker exec -i "$pdb" sh -c 'exec psql -X -qAt -v ON_ERROR_STOP=1 -U "${POSTGRES_USER:-postgres}" -d cosmicforge_admin' > "$run_dir/prod-names.txt" <<'SQL'
+SELECT 't:' || tablename FROM pg_tables WHERE schemaname = 'public'
+UNION ALL SELECT 'y:' || t.typname FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = 'public' AND t.typtype IN ('e', 'd')
+UNION ALL SELECT 'i:' || indexname FROM pg_indexes WHERE schemaname = 'public'
+UNION ALL SELECT 'c:' || table_name || '.' || column_name FROM information_schema.columns WHERE table_schema = 'public';
+SQL
+  if grep -qx 't:social_manual_migrations' "$run_dir/prod-names.txt"; then
+    docker exec -i "$pdb" sh -c 'exec psql -X -qAt -v ON_ERROR_STOP=1 -U "${POSTGRES_USER:-postgres}" -d cosmicforge_admin' >> "$run_dir/prod-names.txt" <<'SQL'
+SELECT 'l:' || file || ':' || sha256 FROM public.social_manual_migrations;
+SQL
+  fi
+  python3 - "$run_dir/prod-names.txt" <<'PY'
+import json, sys
+names = {'tables': [], 'types': [], 'indexes': [], 'columns': [], 'ledger': []}
+key = {'t': 'tables', 'y': 'types', 'i': 'indexes', 'c': 'columns', 'l': 'ledger'}
+for line in open(sys.argv[1]):
+    kind, _, value = line.strip().partition(':')
+    if kind in key and value:
+        names[key[kind]].append(value)
+for v in names.values():
+    v.sort()
+present = 'social_manual_migrations' in names['tables']
+print('CA_SCHEMA_NAMES ' + json.dumps({'schemaNames': {'database': 'cosmicforge_admin', 'ledgerTablePresent': present, **names}}, sort_keys=True))
+PY
+  pass "production cosmicforge_admin catalog names read ($(grep -c '^t:' "$run_dir/prod-names.txt") tables); nothing changed"
+}
+
 case "$mode" in
+  --production-schema-names) production_schema_names ;;
   --migrate-preflight) migrate_preflight ;;
   --migrate-apply) migrate_apply ;;
   --services-preflight) services_preflight ;;

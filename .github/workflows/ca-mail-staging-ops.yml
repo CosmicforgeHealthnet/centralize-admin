@@ -7,6 +7,8 @@ name: CA Mail staging operations (manual)
 #                      then Mail migrations 27-37 on staging cosmicforge_admin
 #   services-deploy    ClamAV (private, no ports) + one Mail worker
 #   services-remove    remove those two containers
+#   production-schema-names  READ-ONLY production catalog names, classified
+#                      on the runner per manifest migration (no data)
 # Mutating operations need confirm=APPLY_STAGING_MAIL_CHANGES.
 #
 # The VPS root login lives in the `production` environment (PROD_HOST /
@@ -26,7 +28,7 @@ on:
       operation:
         description: Operation
         type: choice
-        options: [migrate-preflight, migrate-apply, services-preflight, services-deploy, services-remove]
+        options: [migrate-preflight, migrate-apply, services-preflight, services-deploy, services-remove, production-schema-names]
         default: migrate-preflight
       confirm:
         description: "Mutating operations only: type APPLY_STAGING_MAIL_CHANGES"
@@ -67,7 +69,7 @@ jobs:
         run: |
           set -euo pipefail
           case "$OP" in
-            migrate-preflight|services-preflight) [[ -z "$CONFIRM" ]] || { echo 'Read-only operations take no confirmation.'; exit 1; } ;;
+            migrate-preflight|services-preflight|production-schema-names) [[ -z "$CONFIRM" ]] || { echo 'Read-only operations take no confirmation.'; exit 1; } ;;
             *) [[ "$CONFIRM" == APPLY_STAGING_MAIL_CHANGES ]] || { echo "$OP needs confirm=APPLY_STAGING_MAIL_CHANGES. Nothing was started."; exit 1; } ;;
           esac
 
@@ -133,6 +135,20 @@ jobs:
           echo 'Timed out waiting; the operation continues on the server. Run the matching preflight to read the outcome.'
           exit 1
 
+      - name: Classify production migrations (names only)
+        if: inputs.operation == 'production-schema-names'
+        shell: bash
+        run: |
+          set -euo pipefail
+          line="$(grep -m1 '^CA_SCHEMA_NAMES ' run.out)"
+          printf '%s\n' "${line#CA_SCHEMA_NAMES }" > names.json
+          python3 -I .github/scripts/ca-migration-state.py names.json services/central-admin-api/prisma/manual-migrations > migration-state.json
+          sed -i '/^CA_SCHEMA_NAMES /d' run.out
+          { echo '## Production manual migrations vs live schema (names only)'; echo
+            jq -r '"Ledger table present: \(.ledgerTablePresent), ledger rows: \(.ledgerRows)", "",
+                   "| Objects | Manifest orders |", "|---|---|",
+                   (.summary | to_entries[] | "| \(.key) | \(.value | map(tostring) | join(", ")) |")' migration-state.json; } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Summarise
         if: always()
         shell: bash
@@ -148,6 +164,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ca-mail-staging-${{ inputs.operation }}
-          path: run.out
+          path: |
+            run.out
+            migration-state.json
           if-no-files-found: ignore
           retention-days: 90
