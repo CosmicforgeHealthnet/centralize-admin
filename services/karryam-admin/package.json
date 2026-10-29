@@ -1,0 +1,11 @@
+{
+  "name": "@cosmicforge/karryam-admin",
+  "version": "0.1.0",
+  "private": true,
+  "engines": { "node": ">=22.0.0" },
+  "scripts": {
+    "start": "node src/server.js",
+    "check": "node --check src/server.js && node --check src/bridge-client.js && node --check src/protocol.js",
+    "test": "node --test tests/*.test.js"
+  }
+}

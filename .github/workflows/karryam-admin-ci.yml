@@ -1,0 +1,33 @@
+name: Karryam Admin private integration foundation
+on:
+  pull_request:
+    paths:
+      - "services/karryam-admin/**"
+      - "services/central-admin-api/src/modules/karryam/**"
+      - "services/central-admin-api/src/app.js"
+      - "apps/central-admin-web/src/app/dashboard/karryam/**"
+      - "apps/central-admin-web/src/components/dashboard/Sidebar.tsx"
+      - ".github/workflows/karryam-admin-ci.yml"
+  push:
+    branches: [staging, main]
+    paths:
+      - "services/karryam-admin/**"
+      - ".github/workflows/karryam-admin-ci.yml"
+permissions:
+  contents: read
+jobs:
+  integration-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check secure Karryam service source
+        run: npm --prefix services/karryam-admin run check
+      - name: Syntax-check authenticated HQ route
+        run: node --check services/central-admin-api/src/modules/karryam/karryam.routes.js
+      - name: Run zero-dependency protocol and negative tests
+        run: npm --prefix services/karryam-admin test
+      - name: Build non-root Karryam Admin container (no push/deploy)
+        run: docker build -f services/karryam-admin/Dockerfile -t cosmicforge-karryam-admin:ci services/karryam-admin

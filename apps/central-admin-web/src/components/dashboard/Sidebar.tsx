@@ -14,6 +14,7 @@ import {
   User,
   Settings,
   Cross,
+  Truck,
   Gift,
   TrendingUp,
   LogOut,
@@ -62,6 +63,7 @@ const navItems: NavItem[] = [
 
 const productSuites: NavItem[] = [
   { label: "Healthnet", icon: Cross, href: "/dashboard/healthnet", access: "privileged" },
+  { label: "Karryam", icon: Truck, href: "/dashboard/karryam", access: { module: "operations" } },
   { label: "Events Management", icon: Gift, href: "/dashboard/events", access: "privileged" },
   { label: "Trading Bot", icon: TrendingUp, href: "/dashboard/trading", access: "privileged" },
 ];
