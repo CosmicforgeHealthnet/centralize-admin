@@ -28,7 +28,7 @@ on:
       operation:
         description: Operation
         type: choice
-        options: [migrate-preflight, migrate-apply, services-preflight, services-deploy, services-remove, production-schema-names]
+        options: [migrate-preflight, migrate-apply, services-preflight, services-deploy, services-remove, production-schema-names, containers]
         default: migrate-preflight
       confirm:
         description: "Mutating operations only: type APPLY_STAGING_MAIL_CHANGES"
@@ -69,7 +69,7 @@ jobs:
         run: |
           set -euo pipefail
           case "$OP" in
-            migrate-preflight|services-preflight|production-schema-names) [[ -z "$CONFIRM" ]] || { echo 'Read-only operations take no confirmation.'; exit 1; } ;;
+            migrate-preflight|services-preflight|production-schema-names|containers) [[ -z "$CONFIRM" ]] || { echo 'Read-only operations take no confirmation.'; exit 1; } ;;
             *) [[ "$CONFIRM" == APPLY_STAGING_MAIL_CHANGES ]] || { echo "$OP needs confirm=APPLY_STAGING_MAIL_CHANGES. Nothing was started."; exit 1; } ;;
           esac
 

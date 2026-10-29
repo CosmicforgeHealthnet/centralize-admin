@@ -13,6 +13,8 @@
 #   --services-deploy     ClamAV (private network alias `clamav`, no ports) and
 #                         one Mail worker (same image + env as the staging app)
 #   --services-remove     stop and remove those two containers (volume kept)
+#   --containers          READ-ONLY: every container's name, status, start time
+#                         and restart count (no environment, no content)
 #   --production-schema-names  READ-ONLY: catalog object NAMES (tables, types,
 #                         indexes, columns, ledger rows) of production
 #                         admin-server-db-1/cosmicforge_admin, so the runner can
@@ -61,8 +63,8 @@ readonly -a MIGRATIONS=(
 
 mode="${1:-}"
 case "$mode" in
-  --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove|--production-schema-names) ;;
-  *) echo 'Usage (root): ca-mail-staging-ops.sh --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove|--production-schema-names' >&2; exit 2 ;;
+  --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers) ;;
+  *) echo 'Usage (root): ca-mail-staging-ops.sh --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers' >&2; exit 2 ;;
 esac
 [[ -z "${2:-}" ]] || { echo 'Unexpected arguments.' >&2; exit 2; }
 [[ "$(id -u)" -eq 0 ]] || { echo 'Run as root.' >&2; exit 2; }
@@ -86,11 +88,13 @@ pass() { SUMMARY+=("PASS  $*"); echo "PASS: $*"; }
 fail() { SUMMARY+=("FAIL  $*"); echo "FAIL: $*" >&2; }
 info() { SUMMARY+=("INFO  $*"); echo "INFO: $*"; }
 
-snapshot_others() { # every container except the two this script may create
-  local id
+snapshot_others() { # every container except the ones this mode may change on purpose
+  local id skip="/${MAIL_PROJECT}-(clamav|mail-worker)"
+  # --migrate-apply restarts the staging app (same container) on purpose.
+  [[ "$mode" == --migrate-apply ]] && skip="$skip|/$APP"
   for id in $(docker ps -aq --no-trunc); do
     docker inspect -f '{{.Id}}|{{.Name}}|{{.State.Status}}|{{.State.StartedAt}}|{{.RestartCount}}' "$id"
-  done | grep -vE "\|/${MAIL_PROJECT}-(clamav|mail-worker)\|" | sort
+  done | grep -vE "\|($skip)\|" | sort
 }
 others_before="$(snapshot_others)"
 scratch=''
@@ -98,10 +102,14 @@ on_exit() {
   local code=$?
   trap - EXIT
   if [[ -n "$scratch" ]]; then drop_scratch || fail "could not drop this run's scratch database $scratch (marked, safe to drop)"; fi
-  if [[ "$(snapshot_others)" == "$others_before" ]]; then
-    pass 'every other container (staging app/db, production, RTC, KarryGo, CFMeet, ...) unchanged'
+  local others_after changed
+  others_after="$(snapshot_others)"
+  if [[ "$others_after" == "$others_before" ]]; then
+    pass 'every other container (production, RTC, KarryGo, CFMeet, ...) unchanged'
   else
-    fail 'another container changed state during the run; inspect docker ps'
+    changed="$(comm -3 <(sort <<<"$others_before") <(sort <<<"$others_after") | tr -d '\t' | cut -d'|' -f2 | sort -u | tr '\n' ' ')"
+    fail "other containers changed state during the run (names): $changed"
+    [[ "$code" -ne 0 ]] || code=3
   fi
   [[ "$code" -eq 0 ]] || fail "stopped with exit code $code"
   echo; echo '==================== SUMMARY ===================='
@@ -534,7 +542,16 @@ PY
   pass "production cosmicforge_admin catalog names read ($(grep -c '^t:' "$run_dir/prod-names.txt") tables); nothing changed"
 }
 
+list_containers() {
+  local id
+  for id in $(docker ps -aq --no-trunc); do
+    docker inspect -f '{{.Name}} {{.State.Status}} started={{.State.StartedAt}} restarts={{.RestartCount}}' "$id"
+  done | sed 's|^/||' | sort
+  pass 'container list read; nothing changed'
+}
+
 case "$mode" in
+  --containers) list_containers ;;
   --production-schema-names) production_schema_names ;;
   --migrate-preflight) migrate_preflight ;;
   --migrate-apply) migrate_apply ;;

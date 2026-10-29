@@ -169,8 +169,13 @@ run() {
   check 'same app container (restarted, not recreated)' test "$(docker inspect -f '{{.Id}}' admin-server-staging-app-1)" = "$app0"
   check 'Mail flags unchanged' grep -q 'Mail flags unchanged: MAIL_ENABLED=false,MAIL_WORKER_ENABLED=false' "$work/last.log"
   check 'RTC decoy never restarted' test "$(started cosmicforge-db)" = "$rtc0"
+  check 'apply reports no unexpected container change (the app restart is intended)' grep -q 'PASS: every other container (production, RTC' "$work/last.log"
   check 'backup kept root-only' bash -c 'ls /var/backups/centralize-admin/mail-staging-*/cosmicforge_admin.dump.sha256 >/dev/null && [[ $(stat -c %a /var/backups/centralize-admin) == 700 ]]'
   check 'no secret in run logs' bash -c '! grep -rq "Sup3r" /var/backups/centralize-admin/*/run.log'
+
+  log 'M5a read-only container listing'
+  run_ops --containers
+  check 'container listing names the staging app' grep -q '^admin-server-staging-app-1 running started=' "$work/last.log"
 
   log 'M5 rerun: verified and skipped'
   run_ops --migrate-apply
