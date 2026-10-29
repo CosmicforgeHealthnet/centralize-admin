@@ -1,57 +1,185 @@
 name: Production - Build & Push & Deploy
 
+# Guarded production deploy of the Centralize Admin API (manual, from main).
+#   mode=preflight  read-only checks on the VPS (identity, DB, health, login, CORS)
+#   mode=deploy     build ONE immutable image ghcr.io/...:production-<sha>, then
+#                   .github/scripts/ca-production-deploy.sh recreates ONLY
+#                   admin-server-app-1 with it (and the production Mail worker
+#                   when deployed), verifies runtime DB, Prisma, /health, a
+#                   synthetic login (401), public HTTPS health and production
+#                   CORS, and rolls back automatically to the previous image if
+#                   any check fails. Needs confirm=DEPLOY_PRODUCTION.
+# Never runs migrations, never edits .env, never touches staging, RTC or other
+# projects. Uses the `production` environment (PROD_HOST/PROD_USER/PROD_PASSWORD).
+
 on:
   workflow_dispatch:
     inputs:
-      imageTag:
-        description: Production image tag suffix
+      mode:
+        description: preflight (read-only) or deploy
+        type: choice
+        options: [preflight, deploy]
+        default: preflight
+      confirm:
+        description: "deploy only: type DEPLOY_PRODUCTION"
         required: false
-        default: latest
+        default: ''
 
 env:
-  REGISTRY: ghcr.io
   IMAGE_NAME: ghcr.io/cosmicforgehealthnet/admin-backend
 
 concurrency:
   group: production-admin-backend
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
-  build-and-push:
-    name: Build & Push to GHCR (Production)
+  gate:
+    name: Check inputs
     runs-on: ubuntu-latest
-    environment: production
+    steps:
+      - name: Main only; typed confirmation for deploy
+        env:
+          MODE: ${{ inputs.mode }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF" == refs/heads/main ]] || { echo 'Production deploys run from main only.'; exit 1; }
+          if [[ "$MODE" == deploy ]]; then
+            [[ "$CONFIRM" == DEPLOY_PRODUCTION ]] || { echo 'mode=deploy needs confirm=DEPLOY_PRODUCTION. Nothing was started.'; exit 1; }
+          else
+            [[ -z "$CONFIRM" ]] || { echo 'preflight takes no confirmation.'; exit 1; }
+          fi
+
+  build:
+    name: Build & push immutable image
+    needs: gate
+    if: inputs.mode == 'deploy'
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+    outputs:
+      image: ${{ steps.tag.outputs.image }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - id: tag
+        run: echo "image=$IMAGE_NAME:production-$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      # Root Dockerfile builds the moved API from services/central-admin-api.
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+      # Root Dockerfile builds the API from services/central-admin-api.
+      - uses: docker/build-push-action@v6
         with:
           context: .
+          file: ./Dockerfile
           push: true
-          tags: |
-            ${{ env.IMAGE_NAME }}:${{ inputs.imageTag }}
-            ${{ env.IMAGE_NAME }}:production-${{ github.sha }}
+          tags: ${{ steps.tag.outputs.image }}
 
-      - name: Deploy to production server
-        uses: appleboy/ssh-action@v1.0.3
+  deploy:
+    name: Production ${{ inputs.mode }} on the VPS
+    needs: [gate, build]
+    if: always() && needs.gate.result == 'success' && (inputs.mode == 'preflight' || needs.build.result == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment: production
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
         with:
-          host: ${{ secrets.PROD_HOST }}
-          username: ${{ secrets.PROD_USER }}
-          password: ${{ secrets.PROD_PASSWORD }}
-          script: |
-            cd /var/www/admin-server
-            docker-compose pull
-            docker-compose up -d
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Connect to the Contabo VPS (pinned host key, root only)
+        shell: bash
+        env:
+          PROD_HOST: ${{ secrets.PROD_HOST }}
+          PROD_USER: ${{ secrets.PROD_USER }}
+          SSHPASS: ${{ secrets.PROD_PASSWORD }}
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ -n "$PROD_HOST" && -n "$PROD_USER" && -n "$SSHPASS" ]] || { echo 'Production VPS credentials are not set.'; exit 1; }
+          command -v sshpass >/dev/null || { sudo apt-get update -qq >/dev/null; sudo apt-get install -y -qq sshpass >/dev/null; }
+          hosts="$RUNNER_TEMP/known_hosts"
+          ssh-keyscan -T 10 -t ed25519 "$PROD_HOST" 2>/dev/null > "$hosts" || true
+          [[ "$(ssh-keygen -l -E sha256 -f "$hosts" | awk 'NR==1{print $2}')" == "SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ" ]] \
+            || { echo 'BLOCKED: host is not the Contabo VPS (SSH host key differs). Nothing changed.'; exit 1; }
+          cat > "$RUNNER_TEMP/ssh" <<EOF
+          #!/usr/bin/env bash
+          exec sshpass -e ssh -T -o BatchMode=no -o PubkeyAuthentication=no -o PreferredAuthentications=password,keyboard-interactive \
+            -o NumberOfPasswordPrompts=1 -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$hosts" \
+            -o ServerAliveInterval=15 -o ServerAliveCountMax=8 -o ConnectTimeout=15 "$PROD_USER@$PROD_HOST" "\$@"
+          EOF
+          chmod 700 "$RUNNER_TEMP/ssh"
+          [[ "$("$RUNNER_TEMP/ssh" 'id -u')" == 0 ]] || { echo 'BLOCKED: the VPS account is not root. Nothing changed.'; exit 1; }
+          script=.github/scripts/ca-production-deploy.sh
+          sha="$(sha256sum "$script" | cut -d' ' -f1)"
+          echo "SCRIPT_SHA256=$sha" >> "$GITHUB_ENV"
+          "$RUNNER_TEMP/ssh" "umask 077; mkdir -p \"\$HOME/.ca-production-deploy\" && cat > \"\$HOME/.ca-production-deploy/deploy-$sha.sh\" && sha256sum \"\$HOME/.ca-production-deploy/deploy-$sha.sh\"" < "$script" | grep -q "^$sha " \
+            || { echo 'Uploaded script checksum mismatch.'; exit 1; }
+          echo "Pinned deploy script $sha uploaded."
+
+      - name: Run on the VPS (detached; survives a dropped runner connection)
+        shell: bash
+        env:
+          MODE: ${{ inputs.mode }}
+          SSHPASS: ${{ secrets.PROD_PASSWORD }}
+          IMAGE_TAG: ${{ needs.build.outputs.image }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          ssh="$RUNNER_TEMP/ssh"
+          d="\$HOME/.ca-production-deploy"
+          run="$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          if [[ "$MODE" == deploy ]]; then
+            # The registry token travels only inside the encrypted SSH stdin into a
+            # 0600 file that the deploy script reads and deletes before pulling.
+            printf 'IMAGE_TAG=%s\nGHCR_USER=%s\nGHCR_TOKEN=%s\n' "$IMAGE_TAG" "$GHCR_USER" "$GHCR_TOKEN" \
+              | "$ssh" "umask 077; cat > $d/params-$run"
+            args="--deploy $d/params-$run"
+          else
+            args='--preflight'
+          fi
+          "$ssh" "cd $d && setsid nohup bash -c 'bash $d/deploy-$SCRIPT_SHA256.sh $args > $d/run-$run.out 2>&1; echo \$? > $d/run-$run.rc' < /dev/null > /dev/null 2>&1 & echo started"
+          shown=0; : > run.out
+          for _ in $(seq 1 200); do
+            sleep 10
+            "$ssh" "cat $d/run-$run.out 2>/dev/null" > run.new || continue
+            total="$(wc -l < run.new)"
+            if (( total > shown )); then tail -n +"$((shown + 1))" run.new; shown="$total"; fi
+            cp run.new run.out
+            rc="$("$ssh" "cat $d/run-$run.rc 2>/dev/null" || true)"
+            if [[ -n "$rc" ]]; then echo "Remote exit code: $rc"; echo "REMOTE_RC=$rc" >> "$GITHUB_ENV"; exit "$rc"; fi
+          done
+          echo 'Timed out waiting; the deploy continues on the server. Run mode=preflight to read the outcome.'
+          exit 1
+
+      - name: Summarise
+        if: always()
+        shell: bash
+        env:
+          MODE: ${{ inputs.mode }}
+          IMAGE_TAG: ${{ needs.build.outputs.image }}
+        run: |
+          test -s run.out || exit 0
+          { echo "## Production $MODE"; echo; echo "Commit \`$GITHUB_SHA\`, image \`${IMAGE_TAG:-n/a}\`, script \`${SCRIPT_SHA256:-}\`, exit \`${REMOTE_RC:-unknown}\`."; echo; echo '```'
+            sed -n '/==================== SUMMARY ====================/,$p' run.out; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: production-${{ inputs.mode }}
+          path: run.out
+          if-no-files-found: ignore
+          retention-days: 90

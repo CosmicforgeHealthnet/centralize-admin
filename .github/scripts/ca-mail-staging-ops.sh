@@ -29,11 +29,19 @@ set -Eeuo pipefail
 umask 077
 export LC_ALL=C
 
-readonly APP=admin-server-staging-app-1
-readonly DB=admin-server-staging-db-1
-readonly PROJECT=admin-server-staging
-readonly VOLUME=admin-server-staging_postgres_data_staging
-readonly NETWORK=admin-server-staging_default
+# Target: staging (default). Only the two migration modes accept
+# --target=production; they read the migration files from the RUNNING
+# production image, so they refuse until production runs a release with them.
+target=staging
+[[ "${2:-}" == --target=production ]] && target=production
+if [[ "$target" == production ]]; then
+  APP=admin-server-app-1; DB=admin-server-db-1; PROJECT=admin-server
+  VOLUME=admin-server_postgres_data; NETWORK=admin-server_default
+else
+  APP=admin-server-staging-app-1; DB=admin-server-staging-db-1; PROJECT=admin-server-staging
+  VOLUME=admin-server-staging_postgres_data_staging; NETWORK=admin-server-staging_default
+fi
+readonly APP DB PROJECT VOLUME NETWORK target
 readonly DEST=cosmicforge_admin
 readonly ENV_FILE=/var/www/admin-server-staging/.env
 readonly MAIL_PROJECT=admin-server-staging-mail
@@ -63,24 +71,27 @@ readonly -a MIGRATIONS=(
 
 mode="${1:-}"
 case "$mode" in
-  --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers) ;;
-  *) echo 'Usage (root): ca-mail-staging-ops.sh --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers' >&2; exit 2 ;;
+  --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers|--staging-checks) ;;
+  *) echo 'Usage (root): ca-mail-staging-ops.sh --migrate-preflight|--migrate-apply [--target=production] | --services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers|--staging-checks' >&2; exit 2 ;;
 esac
-[[ -z "${2:-}" ]] || { echo 'Unexpected arguments.' >&2; exit 2; }
+if [[ -n "${2:-}" ]]; then
+  [[ "${2:-}" == --target=production && ( "$mode" == --migrate-preflight || "$mode" == --migrate-apply ) && -z "${3:-}" ]] \
+    || { echo 'Unexpected arguments (only the migration modes accept --target=production).' >&2; exit 2; }
+fi
 [[ "$(id -u)" -eq 0 ]] || { echo 'Run as root.' >&2; exit 2; }
 for tool in docker python3 flock sha256sum awk; do command -v "$tool" >/dev/null || { echo "Missing $tool" >&2; exit 2; }; done
 
 mkdir -p /run/lock
-exec 8>/run/lock/centralize-admin-mail-staging.lock
+exec 8>"/run/lock/centralize-admin-mail-$target.lock"
 flock -n 8 || { echo 'Another CA staging Mail operation is running; refusing overlap. Nothing changed.' >&2; exit 1; }
 # Never overlap the database isolation cutover either.
 exec 9>/run/lock/centralize-admin-db-isolation.lock
 flock -n 9 || { echo 'The CA database isolation cutover is running; refusing overlap. Nothing changed.' >&2; exit 1; }
 
-run_dir="$BACKUP_BASE/mail-staging-$RUN_ID"
+run_dir="$BACKUP_BASE/mail-$target-$RUN_ID"
 mkdir -p "$BACKUP_BASE"; chmod 700 "$BACKUP_BASE"; mkdir -m 700 "$run_dir"
 exec > >(tee -a "$run_dir/run.log") 2>&1
-echo "CA staging Mail ops, run $RUN_ID, mode $mode"
+echo "CA Mail ops ($target), run $RUN_ID, mode $mode"
 echo "Root-only run directory: $run_dir"
 
 declare -a SUMMARY=()
@@ -138,7 +149,7 @@ identity() {
   done
   [[ "$(docker inspect -f '{{range .Mounts}}{{if eq .Type "volume"}}{{.Name}} {{end}}{{end}}' "$DB")" == "$VOLUME " ]] || { echo "  $DB volume is not exactly $VOLUME"; ok=1; }
   docker network inspect "$NETWORK" >/dev/null 2>&1 || { echo "  network $NETWORK missing"; ok=1; }
-  [[ "$(app_db)" == "$DEST" ]] || { echo "  staging app does not run on $DEST"; ok=1; }
+  [[ "$(app_db)" == "$DEST" ]] || { echo "  $target app does not run on $DEST"; ok=1; }
   return "$ok"
 }
 
@@ -280,7 +291,7 @@ SQL
 
 migrate_preflight() {
   identity || { fail 'staging identity'; return 1; }
-  pass "staging identity (containers, project, volume, network); app runs on $DEST"
+  pass "$target identity (containers, project, volume, network); app runs on $DEST"
   check_files || { fail 'migration files in the running staging image'; return 1; }
   pass 'all 11 migration files (27-37) present in the running staging image with the pinned checksums'
   local rows; rows="$(ledger_rows "$DEST")"
@@ -293,8 +304,8 @@ migrate_preflight() {
   if [[ "$rows" != 0 && "$rows" != no-ledger ]]; then fail "ledger records only $rows of 11; partial state needs manual review"; return 1; fi
   if [[ -n "$hits" ]]; then fail "objects created by 27-37 already exist in $DEST (partial state): $(tr '\n' ',' <<<"$hits")"; return 1; fi
   pass "none of the $(created_objects | wc -l) tables/types created by 27-37 exist yet in $DEST (no collision)"
-  info "Mail flags in the running staging app: $(mail_flags)"
-  verify_app 3 && pass 'staging app: Prisma on cosmicforge_admin, AdminUser, health, synthetic login 401' || { fail 'staging app does not verify'; return 1; }
+  info "Mail flags in the running $target app: $(mail_flags)"
+  verify_app 3 && pass "$target app: Prisma on cosmicforge_admin, AdminUser, health, synthetic login 401" || { fail "$target app does not verify"; return 1; }
 }
 
 migrate_apply() {
@@ -330,9 +341,9 @@ SQL
   pass "27-37 applied to $DEST: 11 ledger rows with manifest checksums, every created object present"
   # Restart (same container, same config) so the app re-reads schema readiness.
   docker restart -t 30 "$APP" >/dev/null
-  verify_app 45 || { fail 'staging app did not verify after restart (schema changes are additive; investigate)'; return 1; }
+  verify_app 45 || { fail "$target app did not verify after restart (schema changes are additive; investigate)"; return 1; }
   [[ "$(mail_flags)" == "$flags_before" ]] || { fail 'Mail flags changed'; return 1; }
-  pass "staging app restarted and verified (Prisma, AdminUser, health, synthetic login 401); Mail flags unchanged: $flags_before"
+  pass "$target app restarted and verified (Prisma, AdminUser, health, synthetic login 401); Mail flags unchanged: $flags_before"
 }
 
 # --------------------------------------------------------------------------
@@ -422,6 +433,13 @@ networks:
     external: true
 EOF
   mv "$MAIL_DIR/docker-compose.yml.new" "$MAIL_DIR/docker-compose.yml"
+  # The staging deploy account (docker group, no root) recreates the worker on
+  # each app release, so it may read these files. They hold no secret: the
+  # worker's settings come from the staging .env the app already uses.
+  if getent group cf-staging-deploy >/dev/null; then
+    chgrp cf-staging-deploy "$MAIL_DIR" "$MAIL_DIR/docker-compose.yml" "$MAIL_DIR/clamd.conf" "$MAIL_DIR/freshclam.conf"
+    chmod 750 "$MAIL_DIR"; chmod 640 "$MAIL_DIR/docker-compose.yml"
+  fi
 }
 
 mail_compose() { (cd "$MAIL_DIR" && env -i HOME=/root PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin docker compose "$@"); }
@@ -542,6 +560,61 @@ PY
   pass "production cosmicforge_admin catalog names read ($(grep -c '^t:' "$run_dir/prod-names.txt") tables); nothing changed"
 }
 
+# --------------------------------------------------------------------------
+# Staging checks that need no external credentials (all read-only; run inside
+# the staging app with the code it actually runs).
+# --------------------------------------------------------------------------
+staging_checks() {
+  [[ "$target" == staging ]] || { fail 'staging checks run on staging only'; return 1; }
+  identity || { fail 'staging identity'; return 1; }
+  local bad=0 out
+  # 1. Schema readiness of every Mail feature set, via the app's own module.
+  out="$(docker exec -i -w /app "$APP" node - 2>/dev/null <<'NODE' || true
+const { prisma } = require('./src/shared/config/database');
+const r = require('./src/modules/mail/schema-readiness');
+(async () => {
+  const sets = { core: r.MAIL_SCHEMA_REQUIREMENTS, features: r.MAIL_FEATURE_REQUIREMENTS, preferences: r.MAIL_PREFERENCES_REQUIREMENTS, finalGap: r.MAIL_FINAL_GAP_REQUIREMENTS };
+  const res = {};
+  for (const [name, requirements] of Object.entries(sets)) res[name] = await r.createMailSchemaReadiness({ client: prisma, requirements, label: name }).check();
+  process.stdout.write(JSON.stringify(res));
+})().catch(e => process.stdout.write(JSON.stringify({ error: e.code || e.name }))).finally(() => prisma.$disconnect());
+NODE
+)"
+  if python3 -c 'import json,sys; d=json.loads(sys.argv[1]); sys.exit(0 if d and all(v.get("ready") for v in d.values()) else 1)' "$out" 2>/dev/null; then
+    pass "Mail schema readiness (app code, real staging DB): core, features, preferences, final gap all ready"
+  else
+    fail "Mail schema readiness: $out"; bad=1
+  fi
+  # 2. The app's Mail config validator for a staging ENABLED preview (process
+  #    environment only; .env untouched). Lists exactly what is still missing.
+  out="$(docker exec -w /app -e MAIL_DEPLOYMENT_ENV=staging -e MAIL_PROVIDER=resend -e MAIL_PROVIDER_ENVIRONMENT_TAG=staging \
+      -e MAIL_ENABLED=true -e MAIL_SENDING_ENABLED=true -e MAIL_RECEIVING_ENABLED=true -e MAIL_WORKER_ENABLED=true \
+      -e MAIL_SCANNER_PROVIDER=clamd -e MAIL_CLAMD_HOST=clamav -e MAIL_CLAMD_PORT=3310 \
+      -e MAIL_DOMAIN_ALLOWLIST=karryam.com -e MAIL_RESERVED_SENDER_ADDRESSES=no-reply@karryam.com \
+      -e MAIL_INBOUND_ACTIVE_ENVIRONMENT=staging -e MAIL_MIXED_RECIPIENT_MODE=external-only -e MAIL_UNKNOWN_RECIPIENT_POLICY=reject \
+      "$APP" node scripts/mail/validate-infrastructure.js 2>/dev/null | tail -1 || true)"
+  info "Mail config validator, staging ENABLED preview (what is still missing): $(python3 -c 'import json,sys; d=json.loads(sys.argv[1]); print(json.dumps({k: d.get(k) for k in ("providerKeyPresent","webhookSecretPresent","storage","kms","scanner","violations")}))' "$out" 2>/dev/null || echo "$out")"
+  # 3. ClamAV through the app's own scanner adapter (repo live test).
+  if docker exec -w /app -e MAIL_CLAMD_LIVE_HOST=clamav -e MAIL_CLAMD_LIVE_PORT=3310 -e TEST_NETWORK_GUARD_ENABLED=false "$APP" node --test tests/mail-clamd-live.test.js > "$run_dir/clamd-live.txt" 2>&1 \
+     && grep -qE '^# pass [1-9]' "$run_dir/clamd-live.txt" && grep -qE '^# skipped 0' "$run_dir/clamd-live.txt"; then
+    pass 'ClamAV live test through the app scanner adapter: PING/VERSION, EICAR detected, clean accepted, oversize quarantined'
+  else
+    fail "ClamAV live test: $(grep -E '^# (pass|fail|skipped)' "$run_dir/clamd-live.txt" | tr '\n' ' ')"; bad=1
+  fi
+  # 4. Karryam mailbox provisioning, dry run (writes nothing).
+  local rc=0
+  docker exec -w /app -e MAIL_DOMAIN_ALLOWLIST=karryam.com -e MAIL_RESERVED_SENDER_ADDRESSES=no-reply@karryam.com \
+    "$APP" node scripts/mail/provision-karryam.js --allow-remote > "$run_dir/provision-dry-run.json" 2>"$run_dir/provision-dry-run.err" || rc=$?
+  if [[ "$rc" == 0 || "$rc" == 2 ]]; then
+    info "Karryam provisioning dry run (exit $rc; 2 = steps left to apply): $(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(json.dumps(d)[:1500])' "$run_dir/provision-dry-run.json" 2>/dev/null || head -c 600 "$run_dir/provision-dry-run.json")"
+  else
+    fail "Karryam provisioning dry run failed (exit $rc): $(tail -2 "$run_dir/provision-dry-run.err" | tr '\n' ' ')"; bad=1
+  fi
+  # 5. Live readiness endpoint as served.
+  info "readiness endpoint: $(docker exec "$APP" node -e "fetch('http://127.0.0.1:'+(process.env.PORT||4000)+'/api/mail/v1/health/ready').then(r=>r.text()).then(t=>process.stdout.write(t.slice(0,600)))" 2>/dev/null || echo unavailable)"
+  return "$bad"
+}
+
 list_containers() {
   local id
   for id in $(docker ps -aq --no-trunc); do
@@ -552,6 +625,7 @@ list_containers() {
 
 case "$mode" in
   --containers) list_containers ;;
+  --staging-checks) staging_checks ;;
   --production-schema-names) production_schema_names ;;
   --migrate-preflight) migrate_preflight ;;
   --migrate-apply) migrate_apply ;;

@@ -148,7 +148,10 @@ compose_files() {
     printf '%s\n' -f docker-compose.yml -f "$STAGING_OVERRIDE"
   else
     printf '%s\n' -f docker-compose.yml
+    # Image pinned by .github/scripts/ca-production-deploy.sh (if deployed).
+    [[ -f /var/www/admin-server/docker-compose.release.yml ]] && printf '%s\n' -f /var/www/admin-server/docker-compose.release.yml
   fi
+  return 0
 }
 
 # Compose runs with a minimal environment so the operator's shell variables
@@ -187,7 +190,8 @@ import hashlib, json, os, re, secrets, shutil, subprocess, sys, tempfile
 from urllib.parse import urlsplit, urlunsplit, unquote
 
 cmd, mode, root, app, *rest = sys.argv[1:]
-files = ['-f', 'docker-compose.yml'] + (['-f', os.environ['STAGING_OVERRIDE']] if mode == 'staging' else [])
+files = ['-f', 'docker-compose.yml'] + (['-f', os.environ['STAGING_OVERRIDE']] if mode == 'staging' else
+       (['-f', '/var/www/admin-server/docker-compose.release.yml'] if os.path.isfile('/var/www/admin-server/docker-compose.release.yml') else []))
 ENV = {'HOME': '/root', 'PATH': os.environ['PATH']}
 LINE = re.compile(r'^(\s*(?:export\s+)?)([A-Za-z_][A-Za-z0-9_]*)(\s*=\s*)(.*?)(\r?\n?)$', re.S)
 # Duplicate keys are consolidated ONLY for these explicitly reviewed keys.
