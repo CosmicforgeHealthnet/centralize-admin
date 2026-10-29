@@ -68,7 +68,9 @@ test("service exposes no admin routes without explicit enablement", async () => 
 });
 
 test("private endpoint accepts signed fixed read delegation and denies duplication", async () => {
-  const token = signDelegation(actor, secret);
+  const liveNow = Math.floor(Date.now() / 1000);
+  const freshActor = { ...actor, auth_time: liveNow - 2, iat: liveNow, exp: liveNow + 15 };
+  const token = signDelegation(freshActor, secret);
   const cfg = { enabled:true, delegationSecret:secret, market:scope.market, organization:scope.organization,
     acr:scope.acr, roles:{ SUPER:"approved-read-role" } };
   let calls = 0;
