@@ -89,7 +89,9 @@ jobs:
           [[ -n "$aaaa" ]] && echo 'DNS AAAA: PRESENT' | tee -a "$GITHUB_STEP_SUMMARY" ||
             echo 'DNS AAAA: ABSENT' | tee -a "$GITHUB_STEP_SUMMARY"
           if [[ -n "$aaaa" ]]; then
-            probe 'Public API IPv6 /health' --ipv6 "$url/health"
+            v6status="$(curl --silent --show-error --connect-timeout 6 --max-time 14 --ipv6 -o /dev/null -w '%{http_code}' "$url/health" 2>/dev/null)"
+            v6rc=$?
+            echo "Public API IPv6 /health: curl_exit=$v6rc http_status=${v6status:-000}" | tee -a "$GITHUB_STEP_SUMMARY"
           fi
 
           # Compare the deployed login page's own loaded JS assets to the
