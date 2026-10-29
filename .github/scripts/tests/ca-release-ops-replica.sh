@@ -36,7 +36,7 @@ sha() { sha256sum "$1" | cut -d' ' -f1; }
 
 teardown() {
   local c
-  for c in admin-server-app-1 admin-server-db-1 admin-server-staging-app-1 admin-server-staging-db-1 admin-server-mail-mail-worker; do docker rm -f "$c" >/dev/null 2>&1 || true; done
+  for c in admin-server-app-1 admin-server-db-1 admin-server-staging-app-1 admin-server-staging-db-1 admin-server-mail-mail-worker ca-replica-envmount; do docker rm -f "$c" >/dev/null 2>&1 || true; done
   docker network rm admin-server_default admin-server-staging_default >/dev/null 2>&1 || true
   docker volume rm -f admin-server_pg admin-server-staging_postgres_data_staging admin-server-staging-mail-store >/dev/null 2>&1 || true
   rm -rf /var/www/admin-server /var/www/admin-server-staging /var/www/admin-server-mail /home/cf-staging-deploy "$work" /var/backups/centralize-admin
@@ -283,6 +283,10 @@ run() {
   cp -p /var/www/admin-server/.env /var/www/admin-server/.env.save
   bash "$scripts/ca-host-ops.sh" --host-audit > "$work/last.log" 2>&1 || true
   check 'audit detects the readable production env file' grep -q 'FAIL: the staging deploy account can read a production env file' "$work/last.log"
+  docker run -d --name ca-replica-envmount --label ca.replica=1 -v /var/www/admin-server:/srv:ro ca-release-replica:base sleep 600 >/dev/null
+  bash "$scripts/ca-host-ops.sh" --secure-production-env > "$work/last.log" 2>&1 || true
+  check 'refuses while a container bind-mounts the env file' bash -c "grep -q 'bind-mounts /var/www/admin-server, which contains' '$work/last.log' && [[ \$(stat -c %a /var/www/admin-server/.env) == 640 ]]"
+  docker rm -f ca-replica-envmount >/dev/null
   bash "$scripts/ca-host-ops.sh" --secure-production-env > "$work/last.log" 2>&1
   check 'both production env files now root:root 600' bash -c '[[ $(stat -c "%U:%G %a" /var/www/admin-server/.env) == "root:root 600" && $(stat -c "%U:%G %a" /var/www/admin-server/.env.save) == "root:root 600" ]]'
   bash "$scripts/ca-host-ops.sh" --host-audit > "$work/last.log" 2>&1

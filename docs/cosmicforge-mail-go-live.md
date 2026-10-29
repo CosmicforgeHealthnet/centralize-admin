@@ -16,6 +16,7 @@ MAIL_DEPLOYMENT_ENV=staging
 MAIL_PROVIDER=resend
 MAIL_PROVIDER_ENVIRONMENT_TAG=staging
 RESEND_API_KEY=<CA Resend API key, full access>
+RESEND_WEBHOOK_SECRET=<the same whsec_... as production: the one shared webhook>
 MAIL_DOMAIN_ALLOWLIST=karryam.com
 MAIL_RESERVED_SENDER_ADDRESSES=no-reply@karryam.com
 MAIL_TEST_RECIPIENT_ALLOWLIST=<your Gmail address>,<your Outlook address>
@@ -36,7 +37,9 @@ and `confirm=APPLY_STAGING_MAIL_CHANGES` once: it creates the volume
 worker, and generates the keyring on the server, so it never passes through GitHub. A rerun
 keeps the existing keyring. Staging releases keep the mount.
 `MAIL_INBOUND_ACTIVE_ENVIRONMENT=production` because the one Resend webhook points at
-production: staging sends, production receives.
+production: staging sends, production receives. The app refuses to send without
+`RESEND_WEBHOOK_SECRET`, so staging gets the same secret as production. This does not
+create a second webhook. `MAIL_TEST_RECIPIENT_ALLOWLIST` is required for staging sending.
 
 ### `CA_PRODUCTION_MAIL_ENV`
 

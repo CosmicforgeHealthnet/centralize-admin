@@ -90,7 +90,21 @@ host_audit() {
 
 secure_production_env() {
   [[ -d "$PROD_DIR" && -f "$PROD_DIR/docker-compose.yml" ]] || { fail "$PROD_DIR is not the production CA deployment"; return 1; }
-  local f changed=0 backup
+  local f changed=0 backup id src
+  # Refuse if a container reads an env file through a bind mount: its process
+  # may not be root, and would lose access on its next restart.
+  for id in $(docker ps -q --no-trunc); do
+    while read -r src; do
+      [[ -n "$src" ]] || continue
+      for f in $(env_files "$PROD_DIR"); do
+        if [[ "$f" == "$src" || "$f" == "${src%/}/"* ]]; then
+          fail "container $(docker inspect -f '{{.Name}}' "$id" | sed 's|^/||') bind-mounts $src, which contains $f; nothing changed"
+          return 1
+        fi
+      done
+    done < <(docker inspect -f '{{range .Mounts}}{{if eq .Type "bind"}}{{.Source}}{{"\n"}}{{end}}{{end}}' "$id")
+  done
+  pass 'no running container bind-mounts a production env file'
   backup="/var/backups/centralize-admin/env-permissions-$(date -u +%Y%m%dT%H%M%SZ).txt"
   mkdir -p /var/backups/centralize-admin; chmod 700 /var/backups/centralize-admin
   for f in $(env_files "$PROD_DIR"); do
