@@ -11,12 +11,17 @@ on:
       - .github/scripts/tests/ca-db-cutover-replica.sh
       - .github/workflows/ca-db-cutover-test.yml
       - .github/workflows/ca-db-production-cutover.yml
+      - .github/scripts/ca-mail-staging-ops.sh
+      - .github/scripts/tests/ca-mail-staging-ops-replica.sh
+      - .github/workflows/ca-mail-staging-ops.yml
   push:
     branches: [staging]
     paths:
       - .github/scripts/ca-db-isolation-cutover.sh
       - .github/scripts/tests/ca-db-cutover-replica.sh
       - .github/workflows/ca-db-cutover-test.yml
+      - .github/scripts/ca-mail-staging-ops.sh
+      - .github/scripts/tests/ca-mail-staging-ops-replica.sh
 
 permissions:
   contents: read
@@ -31,10 +36,28 @@ jobs:
         with:
           persist-credentials: false
       - name: ShellCheck
-        run: docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:stable -S warning /mnt/.github/scripts/ca-db-isolation-cutover.sh /mnt/.github/scripts/tests/ca-db-cutover-replica.sh
+        run: docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:stable -S warning /mnt/.github/scripts/ca-db-isolation-cutover.sh /mnt/.github/scripts/tests/ca-db-cutover-replica.sh /mnt/.github/scripts/ca-mail-staging-ops.sh /mnt/.github/scripts/tests/ca-mail-staging-ops-replica.sh
       - name: Full run, failures, rollbacks and rerun
         run: sudo CA_REPLICA_TEST=1 bash .github/scripts/tests/ca-db-cutover-replica.sh run-all
       - name: Production guards
         run: sudo CA_REPLICA_TEST=1 bash .github/scripts/tests/ca-db-cutover-replica.sh run-guards
       - name: Resume after a completed staging switch (production-only, injected failures, lock, duplicates)
         run: sudo CA_REPLICA_TEST=1 bash .github/scripts/tests/ca-db-cutover-replica.sh run-resume
+
+  mail-ops-replica:
+    name: Staging Mail ops on a disposable replica (migrations 27-37, ClamAV, worker)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Prisma CLI (SQL rendering only)
+        working-directory: services/central-admin-api
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Migrations 27-37, tamper/lock refusals, rerun, ClamAV + worker
+        run: sudo --preserve-env=PATH CA_REPLICA_TEST=1 bash .github/scripts/tests/ca-mail-staging-ops-replica.sh run --with-clamav
