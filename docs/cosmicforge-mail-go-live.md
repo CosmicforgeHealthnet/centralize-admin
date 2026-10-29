@@ -29,9 +29,12 @@ MAIL_PUBLIC_API_URL=https://stagingca.cosmicforge-healthnet.com
 MAIL_PUBLIC_APP_URL=https://centralize-admin-staging.vercel.app
 ```
 
-Staging may use encrypted filesystem storage and an environment keyring (the code allows
-both on staging only). The storage volume and the keyring are generated on the server by
-the next release of the install workflow, so they never pass through GitHub.
+Staging uses encrypted filesystem storage and an environment keyring (the code allows
+both on staging only). Run `CA Mail staging operations` with `operation=pilot-storage-setup`
+and `confirm=APPLY_STAGING_MAIL_CHANGES` once: it creates the volume
+`admin-server-staging-mail-store`, mounts it at `/var/lib/cosmicforge-mail` in the app and the
+worker, and generates the keyring on the server, so it never passes through GitHub. A rerun
+keeps the existing keyring. Staging releases keep the mount.
 `MAIL_INBOUND_ACTIVE_ENVIRONMENT=production` because the one Resend webhook points at
 production: staging sends, production receives.
 
@@ -96,5 +99,5 @@ and the two keys, and one access key for it. Nothing else in AWS is needed.
 | Workflow | Use |
 |---|---|
 | `CA Mail settings install` | `target`, `mode=preview` then `mode=apply` with `confirm=APPLY_MAIL_SETTINGS` / `APPLY_PRODUCTION_MAIL_SETTINGS`; switches in `flags` |
-| `CA Mail staging operations` | `staging-checks`, `host-audit`, `services-*`, `migrate-*` (`target=production` needs `APPLY_PRODUCTION_MAIL_MIGRATIONS`) |
+| `CA Mail staging operations` | `staging-checks`, `host-audit`, `secure-production-env`, `pilot-storage-setup`, `services-*`, `migrate-*` (`target=production` needs `APPLY_PRODUCTION_MAIL_MIGRATIONS`) |
 | `Production - Build & Push & Deploy` | from `main`: `preflight`, then `deploy` with `confirm=DEPLOY_PRODUCTION` (immutable image, checks, automatic rollback) |
