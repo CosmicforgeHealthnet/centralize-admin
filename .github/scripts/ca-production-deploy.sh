@@ -56,7 +56,7 @@ flock -n 9 || { echo 'The CA database isolation cutover is running; refusing ove
 
 run_dir="/var/backups/centralize-admin/production-deploy-$RUN_ID"
 mkdir -p /var/backups/centralize-admin; chmod 700 /var/backups/centralize-admin; mkdir -m 700 "$run_dir"
-exec > >(tee -a "$run_dir/run.log") 2>&1
+exec > >(exec 7>&- 9>&-; tee -a "$run_dir/run.log") 2>&1
 echo "CA production deploy, run $RUN_ID, mode $mode"
 
 declare -a SUMMARY=()

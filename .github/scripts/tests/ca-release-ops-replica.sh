@@ -38,9 +38,9 @@ teardown() {
   local c
   for c in admin-server-app-1 admin-server-db-1 admin-server-staging-app-1 admin-server-staging-db-1 admin-server-mail-mail-worker; do docker rm -f "$c" >/dev/null 2>&1 || true; done
   docker network rm admin-server_default admin-server-staging_default >/dev/null 2>&1 || true
-  docker volume rm -f admin-server_pg admin-server-staging_pg >/dev/null 2>&1 || true
+  docker volume rm -f admin-server_pg admin-server-staging_postgres_data_staging admin-server-staging-mail-store >/dev/null 2>&1 || true
   rm -rf /var/www/admin-server /var/www/admin-server-staging /var/www/admin-server-mail /home/cf-staging-deploy "$work" /var/backups/centralize-admin
-  rm -f /run/lock/centralize-admin-production-deploy.lock /run/lock/centralize-admin-mail-env-*.lock
+  rm -f /run/lock/centralize-admin-production-deploy.lock /run/lock/centralize-admin-mail-env-*.lock /run/lock/centralize-admin-mail-staging.lock
   id cf-staging-deploy >/dev/null 2>&1 && userdel cf-staging-deploy >/dev/null 2>&1 || true
 }
 
@@ -100,7 +100,8 @@ EOF
   docker build -q -t ca-release-replica:base "$work/app" >/dev/null
 }
 
-write_stack() { # dir project port
+write_stack() { # dir project port volume
+  local vol="${4:-pg}"
   mkdir -p "$1"; touch "$1/.ca-replica"
   cat > "$1/docker-compose.yml" <<EOF
 services:
@@ -113,10 +114,10 @@ services:
   db:
     image: postgres:16-alpine
     environment: { POSTGRES_USER: caadmin, POSTGRES_PASSWORD: Sup3r, POSTGRES_DB: cosmicforge_admin }
-    volumes: [pg:/var/lib/postgresql/data]
+    volumes: [$vol:/var/lib/postgresql/data]
     labels: { ca.replica: "1" }
 volumes:
-  pg:
+  $vol:
 EOF
   cat > "$1/.env" <<'EOF'
 DATABASE_URL=postgresql://caadmin:Sup3r@db:5432/cosmicforge_admin
@@ -153,7 +154,7 @@ setup() {
   write_stack /var/www/admin-server admin-server 14000
   pcompose -p admin-server up -d >/dev/null 2>&1
   seed admin-server-db-1
-  write_stack /var/www/admin-server-staging admin-server-staging 14001
+  write_stack /var/www/admin-server-staging admin-server-staging 14001 postgres_data_staging
   mkdir -p /home/cf-staging-deploy
   printf 'services:\n  app:\n    image: ca-release-replica:base\n    pull_policy: never\n' > /home/cf-staging-deploy/docker-compose.github-staging.yml
   scompose -p admin-server-staging up -d >/dev/null 2>&1
@@ -261,6 +262,20 @@ run() {
   ! install --apply staging '' 'MAIL_ENABLED=true'
   check 'enable with violations refused' grep -q 'Mail would be enabled while the validator reports violations' "$work/last.log"
   check 'Mail stays off' test "$(envval admin-server-staging-app-1 MAIL_ENABLED)" = false
+
+  log 'S1 staging pilot storage: volume, mount, keyring generated on the server'
+  CA_MAIL_BUNDLE_DIR="$scripts" bash "$scripts/ca-mail-staging-ops.sh" --pilot-storage-setup < /dev/null > "$work/last.log" 2>&1 || true
+  sed 's/^/    | /' "$work/last.log" | tail -25
+  check 'pilot setup passed' grep -q 'PASS: pilot storage settings installed' "$work/last.log"
+  check 'app mounts the pilot volume' grep -q 'PASS: staging app mounts admin-server-staging-mail-store at /var/lib/cosmicforge-mail' "$work/last.log"
+  check 'filesystem storage configured' test "$(envval admin-server-staging-app-1 MAIL_STORAGE_PROVIDER)" = filesystem
+  check 'keyring is one 32-byte key, v1 active' bash -c "[[ \"\$(docker exec admin-server-staging-app-1 printenv MAIL_ENCRYPTION_KEYS)\" =~ ^v1:[A-Za-z0-9+/]{43}=\$ && \"\$(docker exec admin-server-staging-app-1 printenv MAIL_ENCRYPTION_ACTIVE_KEY)\" == v1 ]]"
+  local k1; k1="$(envval admin-server-staging-app-1 MAIL_ENCRYPTION_KEYS | sha256sum)"
+  check 'keyring never written to any log' bash -c "! grep -rqF \"\$(docker exec admin-server-staging-app-1 printenv MAIL_ENCRYPTION_KEYS | cut -d: -f2)\" /var/backups/centralize-admin '$work/last.log'"
+  check 'deploy override keeps the image and adds the mount' bash -c "grep -q 'image: ca-release-replica:base' /home/cf-staging-deploy/docker-compose.github-staging.yml && grep -q 'admin-server-staging-mail-store:/var/lib/cosmicforge-mail' /home/cf-staging-deploy/docker-compose.github-staging.yml"
+  CA_MAIL_BUNDLE_DIR="$scripts" bash "$scripts/ca-mail-staging-ops.sh" --pilot-storage-setup < /dev/null > "$work/last.log" 2>&1 || true
+  check 'rerun keeps the existing keyring' bash -c "grep -q 'keyring already exists; it is kept unchanged' '$work/last.log' && [[ \"\$(docker exec admin-server-staging-app-1 printenv MAIL_ENCRYPTION_KEYS | sha256sum)\" == '$k1' ]]"
+  check 'production untouched by staging pilot' bash -c "! docker inspect -f '{{range .Mounts}}{{.Name}} {{end}}' admin-server-app-1 | grep -q mail-store"
 
   log 'H1 production env permissions'
   id cf-staging-deploy >/dev/null 2>&1 || useradd -M -s /usr/sbin/nologin cf-staging-deploy

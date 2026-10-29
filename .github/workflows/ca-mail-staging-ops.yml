@@ -28,7 +28,7 @@ on:
       operation:
         description: Operation
         type: choice
-        options: [migrate-preflight, migrate-apply, services-preflight, services-deploy, services-remove, production-schema-names, containers, staging-checks, host-audit, secure-production-env]
+        options: [migrate-preflight, migrate-apply, services-preflight, services-deploy, services-remove, production-schema-names, containers, staging-checks, host-audit, secure-production-env, pilot-storage-setup]
         default: migrate-preflight
       target:
         description: "migrate-preflight / migrate-apply only: staging or production"
@@ -120,7 +120,7 @@ jobs:
           [[ "$("$RUNNER_TEMP/ssh" 'id -u')" == 0 ]] || { echo 'BLOCKED: the VPS account is not root. Nothing changed.'; exit 1; }
           # Pinned bundle: the script and the ClamAV configuration from this commit.
           bundle="$RUNNER_TEMP/bundle.tgz"
-          tar -czf "$bundle" -C .github/scripts ca-mail-staging-ops.sh ca-host-ops.sh -C "$GITHUB_WORKSPACE/infrastructure/mail/clamav" clamd.conf freshclam.conf
+          tar -czf "$bundle" -C .github/scripts ca-mail-staging-ops.sh ca-host-ops.sh ca-mail-env-install.sh -C "$GITHUB_WORKSPACE/infrastructure/mail/clamav" clamd.conf freshclam.conf
           sha="$(sha256sum "$bundle" | cut -d' ' -f1)"
           echo "BUNDLE_SHA256=$sha" >> "$GITHUB_ENV"
           d="\$HOME/.ca-mail-staging/$sha"

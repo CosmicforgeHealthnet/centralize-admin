@@ -47,6 +47,9 @@ readonly ENV_FILE=/var/www/admin-server-staging/.env
 readonly MAIL_PROJECT=admin-server-staging-mail
 readonly MAIL_DIR=/var/www/admin-server-staging-mail
 readonly CLAMAV_IMAGE=clamav/clamav:1.4
+readonly PILOT_VOLUME=admin-server-staging-mail-store
+readonly PILOT_DIR=/var/lib/cosmicforge-mail
+readonly STAGING_OVERRIDE=/home/cf-staging-deploy/docker-compose.github-staging.yml
 readonly BACKUP_BASE=/var/backups/centralize-admin
 readonly MIGRATION_DIR=/app/prisma/manual-migrations
 readonly LEDGER=social_manual_migrations
@@ -71,8 +74,8 @@ readonly -a MIGRATIONS=(
 
 mode="${1:-}"
 case "$mode" in
-  --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers|--staging-checks) ;;
-  *) echo 'Usage (root): ca-mail-staging-ops.sh --migrate-preflight|--migrate-apply [--target=production] | --services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers|--staging-checks' >&2; exit 2 ;;
+  --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers|--staging-checks|--pilot-storage-setup) ;;
+  *) echo 'Usage (root): ca-mail-staging-ops.sh --migrate-preflight|--migrate-apply [--target=production] | --services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers|--staging-checks|--pilot-storage-setup' >&2; exit 2 ;;
 esac
 if [[ -n "${2:-}" ]]; then
   [[ "${2:-}" == --target=production && ( "$mode" == --migrate-preflight || "$mode" == --migrate-apply ) && -z "${3:-}" ]] \
@@ -90,7 +93,8 @@ flock -n 9 || { echo 'The CA database isolation cutover is running; refusing ove
 
 run_dir="$BACKUP_BASE/mail-$target-$RUN_ID"
 mkdir -p "$BACKUP_BASE"; chmod 700 "$BACKUP_BASE"; mkdir -m 700 "$run_dir"
-exec > >(tee -a "$run_dir/run.log") 2>&1
+# tee must not inherit the lock descriptors, or a lock released later stays held.
+exec > >(exec 8>&- 9>&-; tee -a "$run_dir/run.log") 2>&1
 echo "CA Mail ops ($target), run $RUN_ID, mode $mode"
 echo "Root-only run directory: $run_dir"
 
@@ -102,7 +106,7 @@ info() { SUMMARY+=("INFO  $*"); echo "INFO: $*"; }
 snapshot_others() { # every container except the ones this mode may change on purpose
   local id skip="/${MAIL_PROJECT}-(clamav|mail-worker)"
   # --migrate-apply restarts the staging app (same container) on purpose.
-  [[ "$mode" == --migrate-apply ]] && skip="$skip|/$APP"
+  [[ "$mode" == --migrate-apply || "$mode" == --pilot-storage-setup ]] && skip="$skip|/$APP"
   for id in $(docker ps -aq --no-trunc); do
     docker inspect -f '{{.Id}}|{{.Name}}|{{.State.Status}}|{{.State.StartedAt}}|{{.RestartCount}}' "$id"
   done | grep -vE "\|($skip)\|" | sort
@@ -372,6 +376,9 @@ services_preflight() {
   done
 }
 
+pilot_worker_volume() { docker volume inspect "$PILOT_VOLUME" >/dev/null 2>&1 && printf '    volumes: ["%s:%s"]\n' "$PILOT_VOLUME" "$PILOT_DIR"; return 0; }
+pilot_volume_decl() { docker volume inspect "$PILOT_VOLUME" >/dev/null 2>&1 && printf '  %s:\n    external: true\n' "$PILOT_VOLUME"; return 0; }
+
 write_mail_compose() {
   local image="$1" worker_restart="$2"
   mkdir -p "$MAIL_DIR"; chmod 750 "$MAIL_DIR"
@@ -423,10 +430,12 @@ services:
     env_file: [$ENV_FILE]
     security_opt: ["no-new-privileges:true"]
     networks: [staging]
+$(pilot_worker_volume)
     labels: { ca.environment: staging, ca.component: mail-worker }
     logging: { driver: json-file, options: { max-size: "10m", max-file: "5" } }
 volumes:
   clamav-signatures:
+$(pilot_volume_decl)
 networks:
   staging:
     name: $NETWORK
@@ -615,6 +624,69 @@ NODE
   return "$bad"
 }
 
+# --------------------------------------------------------------------------
+# Staging pilot storage (allowed on staging only by the Mail config rules):
+# encrypted filesystem store on a dedicated volume + an environment keyring
+# generated HERE (never passes through GitHub). Never replaces an existing
+# keyring (that would make stored mail unreadable).
+# --------------------------------------------------------------------------
+pilot_storage_setup() {
+  [[ "$target" == staging ]] || { fail 'pilot storage is staging-only'; return 1; }
+  identity || { fail 'staging identity'; return 1; }
+  [[ -f "$BUNDLE_DIR/ca-mail-env-install.sh" ]] || { fail 'ca-mail-env-install.sh missing from the bundle'; return 1; }
+  [[ -f "$STAGING_OVERRIDE" ]] || { fail "staging deploy override $STAGING_OVERRIDE missing"; return 1; }
+  if ! docker volume inspect "$PILOT_VOLUME" >/dev/null 2>&1; then
+    docker volume create --label ca.environment=staging --label ca.component=mail-store "$PILOT_VOLUME" >/dev/null
+    pass "created volume $PILOT_VOLUME"
+  else
+    info "volume $PILOT_VOLUME exists (kept)"
+  fi
+  # The staging deploy override keeps the app image and gains the mount; the
+  # staging deploy (staging.yml) re-adds the mount on every release.
+  local image owner; image="$(docker inspect -f '{{.Config.Image}}' "$APP")"; owner="$(stat -c '%U:%G' "$STAGING_OVERRIDE")"
+  printf 'services:\n  app:\n    image: %s\n    pull_policy: never\n    volumes: ["%s:%s"]\nvolumes:\n  %s:\n    external: true\n' \
+    "$image" "$PILOT_VOLUME" "$PILOT_DIR" "$PILOT_VOLUME" > "$STAGING_OVERRIDE.new"
+  chown "$owner" "$STAGING_OVERRIDE.new"; chmod 644 "$STAGING_OVERRIDE.new"; mv "$STAGING_OVERRIDE.new" "$STAGING_OVERRIDE"
+  pass "staging deploy override mounts $PILOT_VOLUME at $PILOT_DIR (image unchanged)"
+  # Worker gets the same mount (Compose file rewritten with the current image).
+  if [[ -f "$MAIL_DIR/docker-compose.yml" ]]; then
+    local restart; restart="$(docker inspect -f '{{.HostConfig.RestartPolicy.Name}}{{if .HostConfig.RestartPolicy.MaximumRetryCount}}:{{.HostConfig.RestartPolicy.MaximumRetryCount}}{{end}}' "${MAIL_PROJECT}-mail-worker" 2>/dev/null || echo on-failure:5)"
+    write_mail_compose "$image" "$restart"
+    pass 'Mail worker Compose file mounts the same volume'
+  fi
+  # Settings: storage + keyring. Keep any existing keyring.
+  local has_keys values
+  has_keys="$(docker inspect -f '{{json .Config.Env}}' "$APP" | python3 -c 'import json,sys; e=dict(x.split("=",1) for x in json.load(sys.stdin) if "=" in x); print("yes" if e.get("MAIL_ENCRYPTION_KEYS","").strip() else "no")')"
+  values="$(mktemp /run/ca-pilot-XXXXXX)"
+  {
+    echo 'MAIL_DEPLOYMENT_ENV=staging'
+    echo 'MAIL_STORAGE_PROVIDER=filesystem'
+    echo "MAIL_STORAGE_LOCAL_DIR=$PILOT_DIR"
+    if [[ "$has_keys" == no ]]; then
+      echo 'MAIL_KMS_PROVIDER=env'
+      echo "MAIL_ENCRYPTION_KEYS=v1:$(head -c 32 /dev/urandom | base64 -w0)"
+      echo 'MAIL_ENCRYPTION_ACTIVE_KEY=v1'
+    fi
+  } > "$values"
+  [[ "$has_keys" == yes ]] && info 'an encryption keyring already exists; it is kept unchanged'
+  # The installer takes the isolation lock itself; release ours first.
+  exec 9>&-
+  if bash "$BUNDLE_DIR/ca-mail-env-install.sh" --apply staging "$values" > "$run_dir/pilot-install.log" 2>&1; then
+    pass 'pilot storage settings installed by ca-mail-env-install.sh (backup, same-image recreate, checks passed)'
+  else
+    if grep -q '==================== SUMMARY ====================' "$run_dir/pilot-install.log"; then
+      sed -n '/==================== SUMMARY ====================/,$p' "$run_dir/pilot-install.log"
+    else
+      tail -n 30 "$run_dir/pilot-install.log"
+    fi
+    fail 'pilot storage settings install failed (it rolled back; see above)'; rm -f "$values"; return 1
+  fi
+  rm -f "$values"
+  [[ "$(docker inspect -f '{{range .Mounts}}{{if eq .Name "'"$PILOT_VOLUME"'"}}{{.Destination}}{{end}}{{end}}' "$APP")" == "$PILOT_DIR" ]] \
+    && pass "staging app mounts $PILOT_VOLUME at $PILOT_DIR" || { fail 'staging app does not mount the pilot volume'; return 1; }
+  info 'Mail stays OFF; storage is exercised once Mail is enabled (staging-checks then reports storage OK)'
+}
+
 list_containers() {
   local id
   for id in $(docker ps -aq --no-trunc); do
@@ -626,6 +698,7 @@ list_containers() {
 case "$mode" in
   --containers) list_containers ;;
   --staging-checks) staging_checks ;;
+  --pilot-storage-setup) pilot_storage_setup ;;
   --production-schema-names) production_schema_names ;;
   --migrate-preflight) migrate_preflight ;;
   --migrate-apply) migrate_apply ;;
