@@ -5,7 +5,10 @@ name: CA DB production cutover (manual, production approval)
 # (admin-server-db-1), using .github/scripts/ca-db-isolation-cutover.sh from
 # this exact commit, run as root on the Contabo VPS.
 #
-# Never runs on push. Each run is started by hand (workflow_dispatch) from
+# The production job never runs on push. (A push to this file runs only the
+# `validate` job below: no environment, no secrets, no connection. GitHub
+# needs one such run to register a dispatch-only workflow that lives outside
+# the default branch.) Each production run is started by hand (workflow_dispatch) from
 # `staging`, uses the `production` environment (its protection rules and
 # required reviewers apply) and the existing production deploy credentials
 # (PROD_HOST / PROD_USER / PROD_PASSWORD).
@@ -23,6 +26,10 @@ name: CA DB production cutover (manual, production approval)
 # Staging is never changed by this workflow. Mail stays OFF.
 
 on:
+  push:
+    branches: [staging]
+    paths:
+      - .github/workflows/ca-db-production-cutover.yml
   workflow_dispatch:
     inputs:
       mode:
@@ -47,9 +54,23 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate:
+    name: Validate (no secrets, no connection)
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Script syntax and checksum
+        run: |
+          bash -n .github/scripts/ca-db-isolation-cutover.sh
+          sha256sum .github/scripts/ca-db-isolation-cutover.sh
+
   production:
     name: Production ${{ inputs.mode }} (root script, pinned commit)
-    if: github.ref == 'refs/heads/staging'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     environment: production
