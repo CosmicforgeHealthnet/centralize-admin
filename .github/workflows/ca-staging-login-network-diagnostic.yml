@@ -1,0 +1,95 @@
+name: CA staging login network diagnostic (read-only)
+
+# No user credentials sent. No database, DNS, container, or deployment changes.
+on:
+  push:
+    branches: [staging]
+    paths: [.github/workflows/ca-staging-login-network-diagnostic.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: Public API and origin transport checks
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: staging
+    steps:
+      - name: Public DNS TLS HTTP health and browser CORS
+        shell: bash
+        run: |
+          set -uo pipefail
+          host=stagingca.cosmicforge-healthnet.com
+          url="https://$host"
+          origin=https://centralize-admin-staging.vercel.app
+          ip=173.249.30.55
+          probe() {
+            local label="$1"; shift
+            local out rc
+            out="$(curl --silent --show-error --connect-timeout 6 --max-time 14 --ipv4 \
+              -o /dev/null -w '%{http_code}' "$@" 2>/dev/null)"
+            rc=$?
+            echo "$label: curl_exit=$rc http_status=${out:-000}" | tee -a "$GITHUB_STEP_SUMMARY"
+          }
+          echo '## Centralize Admin staging login transport check' >> "$GITHUB_STEP_SUMMARY"
+          if getent ahostsv4 "$host" >/dev/null 2>&1; then
+            echo 'DNS: RESOLVES' | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'DNS: FAILED' | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+          probe 'Public API /health (DNS+TLS+Nginx+HTTP)' "$url/health"
+          probe 'Direct VPS /health (bypass DNS, keep TLS/SNI)' --resolve "$host:443:$ip" "$url/health"
+          probe 'Public API CORS OPTIONS /api/auth/login' \
+            -X OPTIONS -H "Origin: $origin" \
+            -H 'Access-Control-Request-Method: POST' \
+            -H 'Access-Control-Request-Headers: content-type' \
+            "$url/api/auth/login"
+          headers="$(mktemp)"
+          trap 'rm -f "$headers"' EXIT
+          curl --silent --show-error --connect-timeout 6 --max-time 14 --ipv4 \
+            -X OPTIONS -H "Origin: $origin" \
+            -H 'Access-Control-Request-Method: POST' \
+            -H 'Access-Control-Request-Headers: content-type' \
+            -D "$headers" -o /dev/null "$url/api/auth/login" 2>/dev/null
+          rc=$?
+          allowed="$(grep -i '^access-control-allow-origin:' "$headers" | tr -d '\r' | tail -1 | sed -E 's/^[^:]+: *//' || true)"
+          creds="$(grep -i '^access-control-allow-credentials:' "$headers" | tr -d '\r' | tail -1 | sed -E 's/^[^:]+: *//' || true)"
+          [[ "$allowed" == "$origin" ]] && ao=yes || ao=no
+          [[ "$creds" == true ]] && ac=yes || ac=no
+          echo "CORS: probe_exit=$rc allowed_origin_matches=$ao credentials_allowed=$ac" | tee -a "$GITHUB_STEP_SUMMARY"
+          probe 'Staging frontend' "$origin/"
+
+      - name: Check application origin internally through restricted staging SSH
+        shell: bash
+        env:
+          STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+        run: |
+          set -uo pipefail
+          umask 077
+          key="$(mktemp)"; hosts="$(mktemp)"
+          trap 'rm -f "$key" "$hosts"' EXIT
+          printf '%s\n' "$STAGING_SSH_KEY" > "$key"
+          if [[ ! -s "$key" ]]; then
+            echo 'Origin app: SSH key missing' | tee -a "$GITHUB_STEP_SUMMARY"; exit 0
+          fi
+          ssh-keyscan -T 8 -t ed25519 173.249.30.55 2>/dev/null > "$hosts"
+          if [[ ! -s "$hosts" ]]; then
+            echo 'Origin app: SSH unreachable' | tee -a "$GITHUB_STEP_SUMMARY"; exit 0
+          fi
+          actual="$(ssh-keygen -l -E sha256 -f "$hosts" | awk '{print $2}')"
+          if [[ "$actual" != 'SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ' ]]; then
+            echo 'Origin app: SSH fingerprint mismatch; no connection attempted' | tee -a "$GITHUB_STEP_SUMMARY"; exit 0
+          fi
+          status="$(ssh -T -i "$key" -o IdentitiesOnly=yes -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$hosts" \
+            cf-staging-deploy@173.249.30.55 \
+            'docker exec admin-server-staging-app-1 node -e '"'"'fetch("http://127.0.0.1:" + (process.env.PORT || "4000") + "/health", {signal: AbortSignal.timeout(5000)}).then(r => {console.log("INTERNAL_HTTP_STATUS="+r.status)}).catch(() => { console.log("INTERNAL_HTTP_FAILED"); process.exitCode=1})'"'"'' 2>/dev/null)"
+          rc=$?
+          if [[ "$rc" == 0 && "$status" =~ ^INTERNAL_HTTP_STATUS=[0-9]{3}$ ]]; then
+            echo "Origin app: $status" | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Origin app: failed/unavailable (ssh_or_exec_exit=$rc)" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
