@@ -85,13 +85,22 @@ jobs:
             --data '{}' "$url/api/auth/login"
 
           # Chrome may choose IPv6 even when an IPv4-only check passed.
-          aaaa="$(getent ahostsv6 "$host" 2>/dev/null | awk '{print $1}' | sort -u | paste -sd ',' -)"
-          [[ -n "$aaaa" ]] && echo 'DNS AAAA: PRESENT' | tee -a "$GITHUB_STEP_SUMMARY" ||
-            echo 'DNS AAAA: ABSENT' | tee -a "$GITHUB_STEP_SUMMARY"
+          # DNS AAAA record, rather than assuming getent address family means DNS.
+          if command -v dig >/dev/null 2>&1; then
+            aaaa="$(dig +time=3 +tries=1 +short AAAA "$host" 2>/dev/null | grep -E '^[0-9A-Fa-f:]+$' | sort -u | paste -sd ',' - || true)"
+          else
+            aaaa="$(getent ahostsv6 "$host" 2>/dev/null | awk '{print $1}' | sort -u | paste -sd ',' - || true)"
+          fi
           if [[ -n "$aaaa" ]]; then
-            v6status="$(curl --silent --show-error --connect-timeout 6 --max-time 14 --ipv6 -o /dev/null -w '%{http_code}' "$url/health" 2>/dev/null)"
-            v6rc=$?
+            echo "DNS AAAA: PRESENT ($aaaa)" | tee -a "$GITHUB_STEP_SUMMARY"
+            if v6status="$(curl --silent --show-error --connect-timeout 6 --max-time 14 --ipv6 -o /dev/null -w '%{http_code}' "$url/health" 2>/dev/null)"; then
+              v6rc=0
+            else
+              v6rc=$?
+            fi
             echo "Public API IPv6 /health: curl_exit=$v6rc http_status=${v6status:-000}" | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'DNS AAAA: ABSENT' | tee -a "$GITHUB_STEP_SUMMARY"
           fi
 
           # Compare the deployed login page's own loaded JS assets to the
