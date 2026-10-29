@@ -578,7 +578,8 @@ staging_checks() {
   identity || { fail 'staging identity'; return 1; }
   local bad=0 out
   # 1. Schema readiness of every Mail feature set, via the app's own module.
-  out="$(docker exec -i -w /app "$APP" node - 2>/dev/null <<'NODE' || true
+  # dotenv prints a banner on stdout; keep only the JSON result line.
+  out="$(docker exec -i -w /app "$APP" node - 2>/dev/null <<'NODE' | grep -E '^\{' | tail -n 1 || true
 const { prisma } = require('./src/shared/config/database');
 const r = require('./src/modules/mail/schema-readiness');
 (async () => {
