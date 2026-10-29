@@ -11,7 +11,9 @@ Each application has its own `package.json`, lockfile and deployment lifecycle. 
 
 ## Reserved boundaries (not implemented services)
 
-- `services/healthnet-admin/`, `services/karryam-admin/`, `services/future-product-admins/` are architectural placeholders; their APIs, independent credentials, DBs and deployments are **not** implemented.
+- `services/healthnet-admin/` has a standalone read-only foundation (not yet HQ-integrated).
+- `services/karryam-admin/` has a standalone, disabled-by-default **read-only private KarryGo capability connector** (Unix socket, mTLS/HMAC v2/Ed25519; not live certified). It is not yet a full product admin.
+- `services/future-product-admins/` remains a placeholder.
 - `modules/` maps ownership of current functions, not new executable modules. Existing code still lives under `services/central-admin-api/src/modules/` and `apps/central-admin-web/src/`.
 - `packages/` reserves shared identity, UI, API-contract, client and event-contract packages. No live runtime dependencies on these packages are introduced.
 - `infrastructure/` holds layout verification and planned deployment conventions.
