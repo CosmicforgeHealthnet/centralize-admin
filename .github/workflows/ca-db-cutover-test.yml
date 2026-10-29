@@ -20,6 +20,15 @@ on:
       - .github/scripts/tests/ca-release-ops-replica.sh
       - .github/workflows/production.yml
       - .github/workflows/ca-mail-env-install.yml
+      - .github/scripts/ca-mail-backup.sh
+      - .github/workflows/ca-mail-backup.yml
+      - .github/workflows/staging.yml
+      - services/central-admin-api/scripts/mail/keyring.js
+      - services/central-admin-api/scripts/mail/verify-restored-content.js
+      - services/central-admin-api/src/modules/mail/security/**
+      - services/central-admin-api/src/modules/mail/storage/**
+      - services/central-admin-api/src/modules/mail/mail.config.js
+      - services/central-admin-api/src/modules/mail/application.js
   push:
     branches: [staging]
     paths:
@@ -32,6 +41,11 @@ on:
       - .github/scripts/ca-mail-env-install.sh
       - .github/scripts/ca-host-ops.sh
       - .github/scripts/tests/ca-release-ops-replica.sh
+      - .github/scripts/ca-mail-backup.sh
+      - services/central-admin-api/scripts/mail/keyring.js
+      - services/central-admin-api/scripts/mail/verify-restored-content.js
+      - services/central-admin-api/src/modules/mail/security/**
+      - services/central-admin-api/src/modules/mail/storage/**
 
 permissions:
   contents: read
@@ -46,7 +60,7 @@ jobs:
         with:
           persist-credentials: false
       - name: ShellCheck
-        run: docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:stable -S warning /mnt/.github/scripts/ca-db-isolation-cutover.sh /mnt/.github/scripts/tests/ca-db-cutover-replica.sh /mnt/.github/scripts/ca-mail-staging-ops.sh /mnt/.github/scripts/tests/ca-mail-staging-ops-replica.sh /mnt/.github/scripts/ca-production-deploy.sh /mnt/.github/scripts/ca-mail-env-install.sh /mnt/.github/scripts/ca-host-ops.sh /mnt/.github/scripts/tests/ca-release-ops-replica.sh
+        run: docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:stable -S warning /mnt/.github/scripts/ca-db-isolation-cutover.sh /mnt/.github/scripts/tests/ca-db-cutover-replica.sh /mnt/.github/scripts/ca-mail-staging-ops.sh /mnt/.github/scripts/tests/ca-mail-staging-ops-replica.sh /mnt/.github/scripts/ca-production-deploy.sh /mnt/.github/scripts/ca-mail-env-install.sh /mnt/.github/scripts/ca-host-ops.sh /mnt/.github/scripts/tests/ca-release-ops-replica.sh /mnt/.github/scripts/ca-mail-backup.sh
       - name: Full run, failures, rollbacks and rerun
         run: sudo CA_REPLICA_TEST=1 bash .github/scripts/tests/ca-db-cutover-replica.sh run-all
       - name: Production guards

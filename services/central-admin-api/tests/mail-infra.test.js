@@ -218,10 +218,24 @@ test("staging and production configuration is separated and fails closed", () =>
     MAIL_SCANNER_PROVIDER: "clamd",
   };
   assert.deepEqual(infrastructureViolations(loadMailConfig(productionOk)), []);
+  // Self-hosted production (Contabo): encrypted filesystem + keyring file, no AWS.
+  const selfHosted = { ...base, MAIL_DEPLOYMENT_ENV: "production", MAIL_STORAGE_PROVIDER: "filesystem", MAIL_STORAGE_LOCAL_DIR: "/var/lib/cosmicforge-mail", MAIL_KMS_PROVIDER: "file", MAIL_ENCRYPTION_KEYRING_FILE: "/run/secrets/cosmicforge-mail-keyring", MAIL_SCANNER_PROVIDER: "clamd" };
+  assert.deepEqual(infrastructureViolations(loadMailConfig(selfHosted)), []);
+  assert.equal(loadMailConfig(selfHosted).storage.requireMount, true, "production filesystem storage must be its own volume");
+  for (const [override, expected] of [
+    [{ MAIL_KMS_PROVIDER: "env", MAIL_ENCRYPTION_KEYS: `v1:${key32()}` }, /requires MAIL_KMS_PROVIDER=file or aws-kms/],
+    [{ MAIL_ENCRYPTION_KEYS: `v1:${key32()}` }, /MAIL_ENCRYPTION_KEYS must be empty with MAIL_KMS_PROVIDER=file/],
+    [{ MAIL_ENCRYPTION_KEYRING_FILE: "relative/keyring" }, /MAIL_ENCRYPTION_KEYRING_FILE must be an absolute path/],
+    [{ MAIL_STORAGE_LOCAL_DIR: "data" }, /MAIL_STORAGE_LOCAL_DIR must be an absolute path/],
+    [{ MAIL_STORAGE_PROVIDER: "unavailable" }, /requires MAIL_STORAGE_PROVIDER=filesystem or s3/],
+    [{ MAIL_KMS_PROVIDER: "vault" }, /MAIL_KMS_PROVIDER must be env, file or aws-kms/],
+  ]) {
+    const problems = infrastructureViolations(loadMailConfig({ ...selfHosted, ...override }));
+    assert.ok(problems.some((problem) => expected.test(problem)), `${JSON.stringify(override)} -> ${problems.join(" | ")}`);
+  }
   const cases = [
-    [{ MAIL_STORAGE_PROVIDER: "filesystem", MAIL_STORAGE_LOCAL_DIR: "/data" }, /requires MAIL_STORAGE_PROVIDER=s3/],
     [{ MAIL_STORAGE_PROVIDER: "memory" }, /refuses memory storage/],
-    [{ MAIL_KMS_PROVIDER: "env" }, /requires MAIL_KMS_PROVIDER=aws-kms/],
+    [{ MAIL_KMS_PROVIDER: "env" }, /requires MAIL_KMS_PROVIDER=file or aws-kms/],
     [{ MAIL_SCANNER_PROVIDER: "test-signature" }, /requires MAIL_SCANNER_PROVIDER=clamd/],
     [{ MAIL_S3_ENDPOINT: "http://minio.internal:9000" }, /must use https/],
     [{ MAIL_S3_BUCKET: "cosmicforge-mail" }, /must carry the production marker/],
@@ -245,7 +259,7 @@ test("staging and production configuration is separated and fails closed", () =>
   // Local development may use a local http MinIO.
   assert.deepEqual(infrastructureViolations(loadMailConfig({ ...base, MAIL_DEPLOYMENT_ENV: "development", MAIL_STORAGE_PROVIDER: "s3", MAIL_S3_ENDPOINT: "http://127.0.0.1:9000", MAIL_S3_BUCKET: "dev" })), []);
   // A refused configuration yields unavailable storage.
-  const refused = createMailApplication({ client: {}, config: loadMailConfig({ ...productionOk, MAIL_STORAGE_PROVIDER: "filesystem", MAIL_STORAGE_LOCAL_DIR: "/tmp/x" }), logger: silentLogger() });
+  const refused = createMailApplication({ client: {}, config: loadMailConfig({ ...productionOk, MAIL_STORAGE_PROVIDER: "memory" }), logger: silentLogger() });
   assert.equal(refused.storage.available, false);
 });
 

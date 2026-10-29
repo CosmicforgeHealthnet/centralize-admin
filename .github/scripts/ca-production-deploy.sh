@@ -93,7 +93,15 @@ on_exit() {
 trap on_exit EXIT
 trap 'exit 130' INT TERM HUP
 
-compose_files() { printf '%s\n' -f docker-compose.yml; [[ -f "$OVERRIDE" ]] && printf '%s\n' -f "$OVERRIDE"; return 0; }
+# The image override pins the release; the Mail storage mounts file (store
+# volume + read-only keyring, written by ca-mail-staging-ops --storage-setup)
+# is kept on every deploy and rollback.
+compose_files() {
+  printf '%s\n' -f docker-compose.yml
+  [[ -f "$OVERRIDE" ]] && printf '%s\n' -f "$OVERRIDE"
+  [[ -f "$ROOT/docker-compose.mail-storage.yml" ]] && printf '%s\n' -f "$ROOT/docker-compose.mail-storage.yml"
+  return 0
+}
 compose() {
   local -a files; mapfile -t files < <(compose_files)
   (cd "$ROOT" && env -i HOME=/root PATH="$SAFE_PATH" docker compose "${files[@]}" "$@")
@@ -126,7 +134,7 @@ env = dict(x.split("=", 1) for x in json.load(sys.stdin) if "=" in x)
 print(",".join(f"{k}={env[k].strip().lower()}" for k in sorted(env) if k.startswith("MAIL_") and k.endswith("_ENABLED")) or "none")'
 }
 
-verify_internal() { # [attempts] Prisma on cosmicforge_admin, AdminUser, /health, synthetic login 401
+verify_internal() { # [attempts] Prisma on cosmicforge_admin, AdminUser, /health, synthetic login 401, Mail mounts
   local i
   for ((i = 1; i <= ${1:-45}; i++)); do
     if docker exec -i -w /app "$APP" node - >/dev/null 2>&1 <<'NODE'
@@ -142,9 +150,20 @@ const { prisma } = require('./src/shared/config/database');
   if (l.status !== 401) throw new Error('login');
 })().catch(() => { process.exitCode = 1; }).finally(() => prisma.$disconnect());
 NODE
-    then return 0; fi
+    then mail_mounts_ok && return 0; fi
     sleep 2
   done
+  return 1
+}
+
+# When self-hosted Mail storage is set up, the app must come back with the
+# store volume and the read-only keyring mounted (a release that lost them
+# is rolled back like any other failed check).
+mail_mounts_ok() {
+  [[ -f "$ROOT/docker-compose.mail-storage.yml" ]] || return 0
+  local m; m="$(docker inspect -f '{{range .Mounts}}{{.Name}}|{{.Source}}|{{.Destination}}|{{.RW}};{{end}}' "$APP")"
+  [[ "$m" == *"|/var/lib/cosmicforge-mail|true;"* && "$m" == *"|/etc/cosmicforge-mail/production/keyring|/run/secrets/cosmicforge-mail|false;"* ]] && return 0
+  echo '  app is missing the Mail store or keyring mount' >&2
   return 1
 }
 

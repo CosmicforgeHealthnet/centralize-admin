@@ -1,20 +1,25 @@
 name: CA Mail staging operations (manual)
 
 # Runs .github/scripts/ca-mail-staging-ops.sh from this exact commit as root
-# on the Contabo VPS, for CA STAGING only:
-#   migrate-preflight / services-preflight   read-only
+# on the Contabo VPS, for CA staging (default) or production (target input):
+#   migrate-preflight / services-preflight / storage-check / staging-checks   read-only
 #   migrate-apply      backup + restore check, rehearsal on the restored copy,
-#                      then Mail migrations 27-37 on staging cosmicforge_admin
+#                      then Mail migrations 27-37 on cosmicforge_admin
 #   services-deploy    ClamAV (private, no ports) + one Mail worker
-#   services-remove    remove those two containers
+#   storage-setup      self-hosted Mail storage + keys (no AWS): store volume,
+#                      server-generated keyring file (read-only mount), recovery
+#                      escrow if infrastructure/mail/recovery/<target>.pub exists
+#   services-remove    remove the staging ClamAV + worker containers
 #   production-schema-names  READ-ONLY production catalog names, classified
 #                      on the runner per manifest migration (no data)
-# Mutating operations need confirm=APPLY_STAGING_MAIL_CHANGES.
+# Mutating operations need confirm=APPLY_STAGING_MAIL_CHANGES (staging),
+# APPLY_PRODUCTION_MAIL_CHANGES (production services/storage) or
+# APPLY_PRODUCTION_MAIL_MIGRATIONS (production migrations).
 #
 # The VPS root login lives in the `production` environment (PROD_HOST /
-# PROD_USER / PROD_PASSWORD); this workflow uses it only for the staging
-# objects named in the script. It never changes staging .env, recreates the
-# staging app, enables Mail, or touches production, RTC or other projects.
+# PROD_USER / PROD_PASSWORD); this workflow uses it only for the CA objects
+# named in the script. It never enables Mail and never touches RTC, Karryam or
+# other projects.
 # A push to this file runs only the no-secrets `validate` job (GitHub needs one
 # run to register a dispatch-only workflow outside the default branch).
 
@@ -28,15 +33,15 @@ on:
       operation:
         description: Operation
         type: choice
-        options: [migrate-preflight, migrate-apply, services-preflight, services-deploy, services-remove, production-schema-names, containers, staging-checks, host-audit, secure-production-env, pilot-storage-setup]
+        options: [migrate-preflight, migrate-apply, services-preflight, services-deploy, services-remove, storage-setup, storage-check, production-schema-names, containers, staging-checks, host-audit, secure-production-env, pilot-storage-setup]
         default: migrate-preflight
       target:
-        description: "migrate-preflight / migrate-apply only: staging or production"
+        description: "staging or production (migration, services, storage and check operations)"
         type: choice
         options: [staging, production]
         default: staging
       confirm:
-        description: "Mutating operations: APPLY_STAGING_MAIL_CHANGES; production migrate-apply: APPLY_PRODUCTION_MAIL_MIGRATIONS; secure-production-env: SECURE_PRODUCTION_ENV"
+        description: "Mutating: APPLY_STAGING_MAIL_CHANGES; production services/storage: APPLY_PRODUCTION_MAIL_CHANGES; production migrate-apply: APPLY_PRODUCTION_MAIL_MIGRATIONS; secure-production-env: SECURE_PRODUCTION_ENV"
         required: false
         default: ''
 
@@ -60,7 +65,7 @@ jobs:
       - run: bash -n .github/scripts/ca-mail-staging-ops.sh && sha256sum .github/scripts/ca-mail-staging-ops.sh
 
   run:
-    name: Staging Mail ${{ inputs.operation }}
+    name: Mail ${{ inputs.operation }} (${{ inputs.target }})
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -75,18 +80,22 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "$TARGET" == production ]]; then
-            case "$OP" in migrate-preflight|migrate-apply) ;; *) echo "target=production applies only to the migration operations."; exit 1 ;; esac
-          fi
-          if [[ "$OP" == migrate-apply && "$TARGET" == production ]]; then
-            [[ "$CONFIRM" == APPLY_PRODUCTION_MAIL_MIGRATIONS ]] || { echo 'Production migrations need confirm=APPLY_PRODUCTION_MAIL_MIGRATIONS. Nothing was started.'; exit 1; }
-            exit 0
+            case "$OP" in
+              migrate-preflight|services-preflight|storage-check|staging-checks)
+                [[ -z "$CONFIRM" ]] || { echo 'Read-only operations take no confirmation.'; exit 1; }; exit 0 ;;
+              migrate-apply)
+                [[ "$CONFIRM" == APPLY_PRODUCTION_MAIL_MIGRATIONS ]] || { echo 'Production migrations need confirm=APPLY_PRODUCTION_MAIL_MIGRATIONS. Nothing was started.'; exit 1; }; exit 0 ;;
+              services-deploy|storage-setup)
+                [[ "$CONFIRM" == APPLY_PRODUCTION_MAIL_CHANGES ]] || { echo "Production $OP needs confirm=APPLY_PRODUCTION_MAIL_CHANGES. Nothing was started."; exit 1; }; exit 0 ;;
+              *) echo "target=production does not apply to $OP."; exit 1 ;;
+            esac
           fi
           if [[ "$OP" == secure-production-env ]]; then
             [[ "$CONFIRM" == SECURE_PRODUCTION_ENV ]] || { echo 'secure-production-env needs confirm=SECURE_PRODUCTION_ENV. Nothing was started.'; exit 1; }
             exit 0
           fi
           case "$OP" in
-            migrate-preflight|services-preflight|production-schema-names|containers|staging-checks|host-audit) [[ -z "$CONFIRM" ]] || { echo 'Read-only operations take no confirmation.'; exit 1; } ;;
+            migrate-preflight|services-preflight|production-schema-names|containers|staging-checks|storage-check|host-audit) [[ -z "$CONFIRM" ]] || { echo 'Read-only operations take no confirmation.'; exit 1; } ;;
             *) [[ "$CONFIRM" == APPLY_STAGING_MAIL_CHANGES ]] || { echo "$OP needs confirm=APPLY_STAGING_MAIL_CHANGES. Nothing was started."; exit 1; } ;;
           esac
 
@@ -120,7 +129,13 @@ jobs:
           [[ "$("$RUNNER_TEMP/ssh" 'id -u')" == 0 ]] || { echo 'BLOCKED: the VPS account is not root. Nothing changed.'; exit 1; }
           # Pinned bundle: the script and the ClamAV configuration from this commit.
           bundle="$RUNNER_TEMP/bundle.tgz"
-          tar -czf "$bundle" -C .github/scripts ca-mail-staging-ops.sh ca-host-ops.sh ca-mail-env-install.sh -C "$GITHUB_WORKSPACE/infrastructure/mail/clamav" clamd.conf freshclam.conf
+          # Recovery PUBLIC keys (not secret) are bundled when committed.
+          staged="$RUNNER_TEMP/recovery"; mkdir -p "$staged"
+          for t in staging production; do
+            f="infrastructure/mail/recovery/$t.pub"
+            if [[ -f "$f" ]]; then cp "$f" "$staged/recovery-$t.pub"; fi
+          done
+          tar -czf "$bundle" -C .github/scripts ca-mail-staging-ops.sh ca-host-ops.sh ca-mail-env-install.sh -C "$GITHUB_WORKSPACE/infrastructure/mail/clamav" clamd.conf freshclam.conf -C "$staged" .
           sha="$(sha256sum "$bundle" | cut -d' ' -f1)"
           echo "BUNDLE_SHA256=$sha" >> "$GITHUB_ENV"
           d="\$HOME/.ca-mail-staging/$sha"

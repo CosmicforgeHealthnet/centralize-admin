@@ -1,5 +1,10 @@
 # CosmicForge Mail - Private Storage and KMS
 
+> **Self-hosted is the production default.** Production runs on the Contabo VPS with the
+> encrypted filesystem store and the keyring file (`MAIL_STORAGE_PROVIDER=filesystem`,
+> `MAIL_KMS_PROVIDER=file`): see `docs/cosmicforge-mail-self-hosted-storage.md`. The S3 and
+> AWS KMS path described below is an **optional** adapter and no longer required.
+
 Status: the code is implemented and tested against local fakes. **No bucket, KMS key, IAM
 role or credential has been provisioned.** Everything in `infrastructure/mail/storage/` is
 an example to review and apply through an approved pipeline. Nothing in CI or the
@@ -57,7 +62,7 @@ refused configuration or an integrity failure all lead to `MAIL_STORAGE_UNAVAILA
 | Variable | Purpose |
 | --- | --- |
 | `MAIL_DEPLOYMENT_ENV` | `development`, `test`, `staging` or `production`. If it is unset and `NODE_ENV=production`, the environment is treated as **production**. |
-| `MAIL_STORAGE_PROVIDER` | `s3` (required in production), `filesystem` (staging pilot only) or `unavailable` |
+| `MAIL_STORAGE_PROVIDER` | `filesystem` (self-hosted, staging and production), `s3` (optional, any S3-compatible service) or `unavailable` |
 | `MAIL_S3_ENDPOINT` / `MAIL_S3_REGION` / `MAIL_S3_BUCKET` / `MAIL_S3_PREFIX` | Bucket location. Must be https outside local development. |
 | `MAIL_S3_ACCESS_KEY_ID` / `MAIL_S3_SECRET_ACCESS_KEY` / `MAIL_S3_SESSION_TOKEN` | Bucket credentials, from the environment's own secret store |
 | `MAIL_S3_SSE` / `MAIL_S3_SSE_KMS_KEY_ID` | `AWS:KMS` plus the bucket key ARN (required in production), or `AES256` |

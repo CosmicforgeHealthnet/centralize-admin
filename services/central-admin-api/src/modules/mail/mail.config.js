@@ -105,6 +105,11 @@ function loadMailConfig(env = process.env) {
     storage: {
       provider: String(env.MAIL_STORAGE_PROVIDER || "unavailable").trim().toLowerCase(),
       localDirectory: String(env.MAIL_STORAGE_LOCAL_DIR || ""),
+      // Filesystem storage: refuse writes and report unhealthy below this much
+      // free space, and (staging/production) require the directory to be its
+      // own mounted volume so a container recreate can never lose mail.
+      minFreeBytes: intInRange(env.MAIL_STORAGE_MIN_FREE_MB, 1024, 0, 1024 * 1024) * 1024 * 1024,
+      requireMount: env.MAIL_STORAGE_REQUIRE_MOUNT === undefined || String(env.MAIL_STORAGE_REQUIRE_MOUNT).trim() === "" ? ["staging", "production"].includes(deploymentEnvironment(env)) : flag(env.MAIL_STORAGE_REQUIRE_MOUNT),
       s3: {
         endpoint: String(env.MAIL_S3_ENDPOINT || ""),
         region: String(env.MAIL_S3_REGION || "us-east-1"),
@@ -135,6 +140,8 @@ function loadMailConfig(env = process.env) {
       secretAccessKey: String(env.MAIL_KMS_SECRET_ACCESS_KEY || env.MAIL_S3_SECRET_ACCESS_KEY || ""),
       sessionToken: String(env.MAIL_KMS_SESSION_TOKEN || ""),
       timeoutMs: intInRange(env.MAIL_KMS_TIMEOUT_MS, 5000, 1000, 30000),
+      // MAIL_KMS_PROVIDER=file: self-hosted keyring file (security/file-keyring.js).
+      keyringFile: String(env.MAIL_ENCRYPTION_KEYRING_FILE || "/run/secrets/cosmicforge-mail-keyring"),
     },
     encryption: {
       // Format: "v1:<base64 32 bytes>,v2:<base64 32 bytes>"; active = MAIL_ENCRYPTION_ACTIVE_KEY
@@ -475,7 +482,8 @@ function markerCheck(value, environment, label) {
 /**
  * Deployment-safety rules for storage, keys and scanning. Any violation makes
  * private storage unavailable (fail closed). Staging and production must use
- * distinct, marked buckets and KMS keys.
+ * distinct, marked buckets and KMS keys; keyring files and filesystem stores
+ * are bound to their environment at runtime (file-keyring.js, mail-storage.js).
  */
 function infrastructureViolations(config) {
   const environment = config.deploymentEnvironment;
@@ -483,18 +491,26 @@ function infrastructureViolations(config) {
   const storage = config.storage;
   const strict = environment === "production" || environment === "staging";
   if (environment === "production") {
-    if (storage.provider !== "s3") problems.push("production requires MAIL_STORAGE_PROVIDER=s3");
-    if (config.kms.provider !== "aws-kms") problems.push("production requires MAIL_KMS_PROVIDER=aws-kms");
+    // Self-hosted (filesystem + file keyring) or object storage (s3 + a key
+    // service). Raw keys in the container environment are refused.
+    if (!["filesystem", "s3"].includes(storage.provider)) problems.push("production requires MAIL_STORAGE_PROVIDER=filesystem or s3");
+    if (!["file", "aws-kms"].includes(config.kms.provider)) problems.push("production requires MAIL_KMS_PROVIDER=file or aws-kms");
     if (config.scanning.provider !== "clamd") problems.push("production requires MAIL_SCANNER_PROVIDER=clamd");
   }
   if (strict && storage.provider === "memory") problems.push(`${environment} refuses memory storage`);
+  if (storage.provider === "filesystem" && !String(storage.localDirectory || "").startsWith("/")) problems.push("MAIL_STORAGE_LOCAL_DIR must be an absolute path with filesystem storage");
   if (storage.provider === "s3") {
     const endpoint = storage.s3.endpoint;
     if (endpoint && !/^https:\/\//i.test(endpoint) && !(hostIsLocal(endpoint) && !strict)) problems.push("MAIL_S3_ENDPOINT must use https");
     if (strict) problems.push(...markerCheck(storage.s3.bucket, environment, "MAIL_S3_BUCKET"));
     if (environment === "production" && !storage.s3.sse) problems.push("production requires MAIL_S3_SSE (AES256 or AWS:KMS)");
   }
-  if (!["env", "aws-kms"].includes(config.kms.provider)) problems.push("MAIL_KMS_PROVIDER must be env or aws-kms");
+  if (!["env", "file", "aws-kms"].includes(config.kms.provider)) problems.push("MAIL_KMS_PROVIDER must be env, file or aws-kms");
+  if (config.kms.provider === "file") {
+    if (!String(config.kms.keyringFile || "").startsWith("/")) problems.push("MAIL_ENCRYPTION_KEYRING_FILE must be an absolute path with MAIL_KMS_PROVIDER=file");
+    // One source of truth for keys: never both a file and environment keys.
+    if (config.encryption.keys) problems.push("MAIL_ENCRYPTION_KEYS must be empty with MAIL_KMS_PROVIDER=file (keys live in the keyring file)");
+  }
   if (config.kms.provider === "aws-kms") {
     if (!config.kms.keyId) problems.push("MAIL_KMS_KEY_ID is required with aws-kms");
     if (config.kms.endpoint && !/^https:\/\//i.test(config.kms.endpoint) && !(hostIsLocal(config.kms.endpoint) && !strict)) problems.push("MAIL_KMS_ENDPOINT must use https");

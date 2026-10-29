@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install Centralize Admin Mail settings (Resend, AWS S3/KMS, Mail policy) into
+# Install Centralize Admin Mail settings (Resend, storage/keys, Mail policy) into
 # the staging or production .env WITHOUT printing any value. Root, Contabo VPS,
 # via .github/workflows/ca-mail-env-install.yml.
 #
@@ -33,10 +33,12 @@ case "$target" in
   staging)
     ROOT=/var/www/admin-server-staging; APP=admin-server-staging-app-1; PROJECT=admin-server-staging
     COMPOSE_EXTRA=(-f /home/cf-staging-deploy/docker-compose.github-staging.yml)
+    [[ -f "$ROOT/docker-compose.mail-storage.yml" ]] && COMPOSE_EXTRA+=(-f "$ROOT/docker-compose.mail-storage.yml")
     WORKER_ROOT=/var/www/admin-server-staging-mail; WORKER=admin-server-staging-mail-mail-worker ;;
   production)
     ROOT=/var/www/admin-server; APP=admin-server-app-1; PROJECT=admin-server
     COMPOSE_EXTRA=(); [[ -f /var/www/admin-server/docker-compose.release.yml ]] && COMPOSE_EXTRA=(-f /var/www/admin-server/docker-compose.release.yml)
+    [[ -f "$ROOT/docker-compose.mail-storage.yml" ]] && COMPOSE_EXTRA+=(-f "$ROOT/docker-compose.mail-storage.yml")
     WORKER_ROOT=/var/www/admin-server-mail; WORKER=admin-server-mail-mail-worker ;;
   *) echo 'target must be staging or production' >&2; exit 2 ;;
 esac
