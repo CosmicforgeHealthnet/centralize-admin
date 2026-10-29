@@ -66,3 +66,33 @@ test("service exposes no admin routes without explicit enablement", async () => 
   await handler({method:"POST",url:"/v1/capabilities"}, fakeRes);
   assert.equal(response.status,404);
 });
+
+test("private endpoint accepts signed fixed read delegation and denies duplication", async () => {
+  const token = signDelegation(actor, secret);
+  const cfg = { enabled:true, delegationSecret:secret, market:scope.market, organization:scope.organization,
+    acr:scope.acr, roles:{ SUPER:"approved-read-role" } };
+  let calls = 0;
+  const handler = createHandler(cfg, async (_config, verified) => {
+    calls++;
+    assert.equal(verified.sub,actor.sub);
+    return { product:"karryam", result:{capabilities:[]} };
+  });
+  const res = () => {
+    const result = {};
+    return { result, reply: { writeHead(status){result.status=status;}, end(body){result.body=JSON.parse(body);} } };
+  };
+  const good = res();
+  await handler({method:"GET",url:"/v1/capabilities",headers:{"x-cf-hq-delegation":token},
+    rawHeaders:["X-CF-HQ-Delegation",token]},good.reply);
+  assert.equal(good.result.status,200);
+  assert.equal(calls,1);
+  const duplicate=res();
+  await handler({method:"GET",url:"/v1/capabilities",headers:{"x-cf-hq-delegation":token},
+    rawHeaders:["X-CF-HQ-Delegation",token,"x-cf-hq-delegation",token]},duplicate.reply);
+  assert.equal(duplicate.result.status,403);
+  const denied=res();
+  await handler({method:"GET",url:"/v1/capabilities",headers:{"x-cf-hq-delegation":token + "a"},
+    rawHeaders:["X-CF-HQ-Delegation",token+"a"]},denied.reply);
+  assert.equal(denied.result.status,403);
+  assert.equal(calls,1);
+});
