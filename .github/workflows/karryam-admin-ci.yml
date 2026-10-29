@@ -25,5 +25,9 @@ jobs:
           node-version: '22'
       - name: Check secure Karryam service source
         run: npm --prefix services/karryam-admin run check
+      - name: Syntax-check authenticated HQ route
+        run: node --check services/central-admin-api/src/modules/karryam/karryam.routes.js
       - name: Run zero-dependency protocol and negative tests
         run: npm --prefix services/karryam-admin test
+      - name: Build non-root Karryam Admin container (no push/deploy)
+        run: docker build -f services/karryam-admin/Dockerfile -t cosmicforge-karryam-admin:ci services/karryam-admin
