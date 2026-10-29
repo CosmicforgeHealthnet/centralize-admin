@@ -100,7 +100,12 @@ jobs:
               "| Production app running / runtime DB | \(.production.app.running) / \(.production.runtimeDatabase) |",
               "| Production databases | \(.production.databases // {} | keys | join(", ")) |",
               "| Production social flags (running) | \(.production.socialFlags | to_entries | map("\(.key)=\(.value)") | join(", ")) |",
-              "| Mail flags staging / production (running) | \(.staging.mailFlags | to_entries | map("\(.key)=\(.value)") | join(", ")) / \(.production.mailFlags | to_entries | map("\(.key)=\(.value)") | join(", ")) |"' state.json
+              "| Mail flags staging / production (running) | \(.staging.mailFlags | to_entries | map("\(.key)=\(.value)") | join(", ")) / \(.production.mailFlags | to_entries | map("\(.key)=\(.value)") | join(", ")) |",
+              "| Old process parent chain | \(.oldProcessAncestry // [] | map(.cmd) | join(" <- ")) |",
+              "| sshd keepalive settings | \(.sshdSessionKeepalive // {} | to_entries | map("\(.key)=\(.value)") | join(", ")) |",
+              "| Production duplicate .env keys (verdict) | \(.production.envDuplicates.duplicates // {} | to_entries | map("\(.key)×\(.value.definitions)=\(.value.cutoverScriptVerdict)") | join(", ")) |",
+              "| App host ports staging / production | \(.appHostPorts.staging // [] | join(",")) / \(.appHostPorts.production // [] | join(",")) |",
+              "| nginx sites (name -> local port) | \(.nginxSites // [] | map("\(.serverNames | join(" "))->\(.localPorts | join(","))") | join("; ")) |"' state.json
             if test -s public.json; then
               jq -r '"| Public staging health / frontend / synthetic login | \(.stagingApiHealth) / \(.stagingFrontend) / \(.stagingSyntheticLogin) |",
                      "| api.cosmicforge-healthnet.com resolves to Contabo | \(.productionApiHostnameIsContabo) |"' public.json

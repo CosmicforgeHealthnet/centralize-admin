@@ -80,6 +80,34 @@ def proc_info(pid):
 
 
 report['oldProcesses'] = {str(p): proc_info(p) for p in OLD_PIDS}
+
+
+def ancestry(pid, depth=6):
+    chain = []
+    while pid and pid > 1 and len(chain) < depth:
+        info = proc_info(pid)
+        if not info.get('alive'):
+            break
+        cmd = ' '.join(info.get('cmdline') or [])[:80]
+        chain.append({'pid': pid, 'cmd': cmd, 'elapsedSeconds': info.get('elapsedSeconds')})
+        pid = info.get('ppid')
+    return chain
+
+
+report['oldProcessAncestry'] = ancestry(OLD_PIDS[0])
+# Whether sshd ends a session whose client vanished (names/numbers only).
+sshd = {}
+for path in ['/etc/ssh/sshd_config'] + sorted(
+        os.path.join('/etc/ssh/sshd_config.d', f) for f in (os.listdir('/etc/ssh/sshd_config.d')
+                                                            if os.path.isdir('/etc/ssh/sshd_config.d') else [])):
+    try:
+        for line in open(path, errors='replace'):
+            m = re.match(r'^\s*(ClientAliveInterval|ClientAliveCountMax|TCPKeepAlive)\s+(\S+)', line, re.I)
+            if m and m.group(1).lower() not in {k.lower() for k in sshd}:
+                sshd[m.group(1)] = m.group(2)
+    except OSError:
+        sshd.setdefault('_unreadable', []).append(os.path.basename(path))
+report['sshdSessionKeepalive'] = sshd
 others = []
 for entry in os.listdir('/proc'):
     if not entry.isdigit():
@@ -193,5 +221,116 @@ try:
     report['stagingAppCheck'] = json.loads(out.strip().splitlines()[-1])
 except (ValueError, IndexError):
     report['stagingAppCheck'] = {'error': 'no output'}
+
+
+# Duplicate .env keys: the same verdict rules as the root cutover script, run
+# in memory. Only key NAMES, definition counts and booleans are reported; for
+# the social switches each definition is read by Compose on its own (they are
+# true/false flags, not secrets). Nothing is written outside a 0700 temp dir
+# that is removed immediately.
+GOOGLE = ('GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET')
+LINE = re.compile(r'^(\s*(?:export\s+)?)([A-Za-z_][A-Za-z0-9_]*)(\s*=\s*)(.*?)(\r?\n?)$', re.S)
+
+
+def app_bool(v):
+    if v is None or v == '':
+        return 'false'
+    n = v.strip().lower()
+    return n if n in ('true', 'false') else None
+
+
+def has_dollar(raw):
+    raw = raw.strip()
+    if len(raw) >= 2 and raw[0] == raw[-1] == "'":
+        return False
+    return bool(re.search(r'(?<!\$)\$(?!\$)', raw.replace('$$', '')))
+
+
+def compose_one(line, key):
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        env_file, probe = os.path.join(d, 'one.env'), os.path.join(d, 'probe.yml')
+        with open(env_file, 'w') as f:
+            f.write(line if line.endswith('\n') else line + '\n')
+        with open(probe, 'w') as f:
+            f.write('services:\n  probe:\n    image: busybox\n    environment:\n      %s: ${%s}\n' % (key, key))
+        code, out, _ = run(['docker', 'compose', '--env-file', env_file, '-p', 'caprobe', '-f', probe,
+                            'config', '--format', 'json'])
+        if code != 0:
+            return None
+        v = (json.loads(out)['services']['probe'].get('environment') or {}).get(key)
+        return None if v is None else str(v).replace('$$', '$')
+
+
+def duplicate_report(root, app, extra_files=()):
+    path = os.path.join(root, '.env')
+    if not os.access(path, os.R_OK):
+        return None
+    with open(path, encoding='utf-8') as f:
+        lines = f.read().splitlines(keepends=True)
+    by_key = {}
+    for line in lines:
+        m = LINE.match(line)
+        if m:
+            by_key.setdefault(m.group(2), []).append(line)
+    dups = {k: v for k, v in by_key.items() if len(v) > 1}
+    raw = inspect(app, '{{json .Config.Env}}') or '[]'
+    running = dict(x.split('=', 1) for x in json.loads(raw) if '=' in x)
+    files = ['-f', 'docker-compose.yml', *extra_files]
+    p = subprocess.run(['docker', 'compose', *files, 'config', '--format', 'json'], cwd=root, env=ENV,
+                       capture_output=True, text=True)
+    c_app = {}
+    if p.returncode == 0:
+        e = (json.loads(p.stdout)['services'].get('app') or {}).get('environment') or {}
+        c_app = {k: (None if v is None else str(v).replace('$$', '$')) for k, v in e.items()}
+    out = {'composeConfigOk': p.returncode == 0, 'duplicates': {}}
+    for k, defs in sorted(dups.items()):
+        entry = {'definitions': len(defs), 'reviewedList': k in GOOGLE or k in SOCIAL,
+                 'anyDefinitionHasDollar': any(has_dollar(LINE.match(d).group(4)) for d in defs),
+                 'inRunningApp': k in running, 'inComposeApp': k in c_app,
+                 'finalEqualsRunning': k in running and c_app.get(k) == running.get(k)}
+        if k in SOCIAL:
+            meanings = [app_bool(compose_one(d, k)) for d in defs]
+            entry['definitionMeanings'] = meanings
+            entry['runningMeaning'] = app_bool(running.get(k)) if k in running else None
+            entry['allDefinitionsMeanRunning'] = entry['runningMeaning'] is not None and all(
+                m == entry['runningMeaning'] for m in meanings)
+        safe = (entry['reviewedList'] and not entry['anyDefinitionHasDollar'] and entry['inRunningApp']
+                and entry['inComposeApp'] and entry['finalEqualsRunning']
+                and (k not in SOCIAL or entry['allDefinitionsMeanRunning']))
+        entry['cutoverScriptVerdict'] = 'consolidate' if safe else 'refuse'
+        out['duplicates'][k] = entry
+    return out
+
+
+report['production']['envDuplicates'] = duplicate_report('/var/www/admin-server', ENVS['production']['app'])
+
+# Which public hostname reaches each CA app (nginx server_name -> local port).
+ports = {}
+for name, e in ENVS.items():
+    raw = inspect(e['app'], '{{json .NetworkSettings.Ports}}') or '{}'
+    try:
+        bound = sorted({b.get('HostPort') for v in (json.loads(raw) or {}).values() if v for b in v if b.get('HostPort')})
+    except (ValueError, AttributeError):
+        bound = []
+    ports[name] = bound
+report['appHostPorts'] = ports
+sites = []
+for d in ('/etc/nginx/sites-enabled', '/etc/nginx/conf.d'):
+    if not os.path.isdir(d):
+        continue
+    for fn in sorted(os.listdir(d)):
+        path = os.path.join(d, fn)
+        try:
+            text = open(path, errors='replace').read()
+        except OSError:
+            continue
+        for block in re.split(r'\bserver\s*\{', text)[1:]:
+            names = re.findall(r'server_name\s+([^;]+);', block)
+            targets = re.findall(r'proxy_pass\s+https?://(?:127\.0\.0\.1|localhost|\[::1\]):(\d+)', block)
+            if names and targets:
+                sites.append({'serverNames': names[0].split(), 'localPorts': sorted(set(targets))})
+report['nginxSites'] = sites
+report['nginxReadable'] = bool(sites) or os.access('/etc/nginx/sites-enabled', os.R_OK)
 
 print('CA_DB_LIVE_STATE ' + json.dumps(report, sort_keys=True))

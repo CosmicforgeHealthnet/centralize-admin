@@ -10,6 +10,7 @@ on:
       - .github/scripts/ca-db-isolation-cutover.sh
       - .github/scripts/tests/ca-db-cutover-replica.sh
       - .github/workflows/ca-db-cutover-test.yml
+      - .github/workflows/ca-db-production-cutover.yml
   push:
     branches: [staging]
     paths:
@@ -24,7 +25,7 @@ jobs:
   replica:
     name: Cutover on a disposable replica
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,3 +36,5 @@ jobs:
         run: sudo CA_REPLICA_TEST=1 bash .github/scripts/tests/ca-db-cutover-replica.sh run-all
       - name: Production guards
         run: sudo CA_REPLICA_TEST=1 bash .github/scripts/tests/ca-db-cutover-replica.sh run-guards
+      - name: Resume after a completed staging switch (production-only, injected failures, lock, duplicates)
+        run: sudo CA_REPLICA_TEST=1 bash .github/scripts/tests/ca-db-cutover-replica.sh run-resume
