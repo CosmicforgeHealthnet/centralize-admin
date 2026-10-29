@@ -1,0 +1,171 @@
+name: CA Mail staging operations (manual)
+
+# Runs .github/scripts/ca-mail-staging-ops.sh from this exact commit as root
+# on the Contabo VPS, for CA STAGING only:
+#   migrate-preflight / services-preflight   read-only
+#   migrate-apply      backup + restore check, rehearsal on the restored copy,
+#                      then Mail migrations 27-37 on staging cosmicforge_admin
+#   services-deploy    ClamAV (private, no ports) + one Mail worker
+#   services-remove    remove those two containers
+#   production-schema-names  READ-ONLY production catalog names, classified
+#                      on the runner per manifest migration (no data)
+# Mutating operations need confirm=APPLY_STAGING_MAIL_CHANGES.
+#
+# The VPS root login lives in the `production` environment (PROD_HOST /
+# PROD_USER / PROD_PASSWORD); this workflow uses it only for the staging
+# objects named in the script. It never changes staging .env, recreates the
+# staging app, enables Mail, or touches production, RTC or other projects.
+# A push to this file runs only the no-secrets `validate` job (GitHub needs one
+# run to register a dispatch-only workflow outside the default branch).
+
+on:
+  push:
+    branches: [staging]
+    paths:
+      - .github/workflows/ca-mail-staging-ops.yml
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Operation
+        type: choice
+        options: [migrate-preflight, migrate-apply, services-preflight, services-deploy, services-remove, production-schema-names]
+        default: migrate-preflight
+      confirm:
+        description: "Mutating operations only: type APPLY_STAGING_MAIL_CHANGES"
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ca-mail-staging-ops
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate (no secrets, no connection)
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: bash -n .github/scripts/ca-mail-staging-ops.sh && sha256sum .github/scripts/ca-mail-staging-ops.sh
+
+  run:
+    name: Staging Mail ${{ inputs.operation }}
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: production
+    steps:
+      - name: Check the typed confirmation
+        shell: bash
+        env:
+          OP: ${{ inputs.operation }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+          case "$OP" in
+            migrate-preflight|services-preflight|production-schema-names) [[ -z "$CONFIRM" ]] || { echo 'Read-only operations take no confirmation.'; exit 1; } ;;
+            *) [[ "$CONFIRM" == APPLY_STAGING_MAIL_CHANGES ]] || { echo "$OP needs confirm=APPLY_STAGING_MAIL_CHANGES. Nothing was started."; exit 1; } ;;
+          esac
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Connect to the Contabo VPS (pinned host key, root only)
+        shell: bash
+        env:
+          PROD_HOST: ${{ secrets.PROD_HOST }}
+          PROD_USER: ${{ secrets.PROD_USER }}
+          SSHPASS: ${{ secrets.PROD_PASSWORD }}
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ -n "$PROD_HOST" && -n "$PROD_USER" && -n "$SSHPASS" ]] || { echo 'VPS credentials are not set.'; exit 1; }
+          command -v sshpass >/dev/null || { sudo apt-get update -qq >/dev/null; sudo apt-get install -y -qq sshpass >/dev/null; }
+          hosts="$RUNNER_TEMP/known_hosts"
+          ssh-keyscan -T 10 -t ed25519 "$PROD_HOST" 2>/dev/null > "$hosts" || true
+          [[ "$(ssh-keygen -l -E sha256 -f "$hosts" | awk 'NR==1{print $2}')" == "SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ" ]] \
+            || { echo 'BLOCKED: host is not the Contabo VPS (SSH host key differs). Nothing changed.'; exit 1; }
+          cat > "$RUNNER_TEMP/ssh" <<EOF
+          #!/usr/bin/env bash
+          exec sshpass -e ssh -T -o BatchMode=no -o PubkeyAuthentication=no -o PreferredAuthentications=password,keyboard-interactive \
+            -o NumberOfPasswordPrompts=1 -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$hosts" \
+            -o ServerAliveInterval=15 -o ServerAliveCountMax=8 -o ConnectTimeout=15 "$PROD_USER@$PROD_HOST" "\$@"
+          EOF
+          chmod 700 "$RUNNER_TEMP/ssh"
+          [[ "$("$RUNNER_TEMP/ssh" 'id -u')" == 0 ]] || { echo 'BLOCKED: the VPS account is not root. Nothing changed.'; exit 1; }
+          # Pinned bundle: the script and the ClamAV configuration from this commit.
+          bundle="$RUNNER_TEMP/bundle.tgz"
+          tar -czf "$bundle" -C .github/scripts ca-mail-staging-ops.sh -C "$GITHUB_WORKSPACE/infrastructure/mail/clamav" clamd.conf freshclam.conf
+          sha="$(sha256sum "$bundle" | cut -d' ' -f1)"
+          echo "BUNDLE_SHA256=$sha" >> "$GITHUB_ENV"
+          d="\$HOME/.ca-mail-staging/$sha"
+          "$RUNNER_TEMP/ssh" "umask 077; mkdir -p $d && cat > $d/bundle.tgz && tar -xzf $d/bundle.tgz -C $d && sha256sum $d/bundle.tgz" < "$bundle" | grep -q "^$sha " \
+            || { echo 'Bundle upload checksum mismatch.'; exit 1; }
+          echo "Bundle $sha uploaded and verified (script sha256 $(sha256sum .github/scripts/ca-mail-staging-ops.sh | cut -d' ' -f1))."
+
+      - name: Run on the VPS (detached; survives a dropped runner connection)
+        shell: bash
+        env:
+          OP: ${{ inputs.operation }}
+          SSHPASS: ${{ secrets.PROD_PASSWORD }}
+        run: |
+          set -euo pipefail
+          ssh="$RUNNER_TEMP/ssh"
+          d="\$HOME/.ca-mail-staging/$BUNDLE_SHA256"
+          run="$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          "$ssh" "cd $d && setsid nohup bash -c 'CA_MAIL_BUNDLE_DIR=$d bash $d/ca-mail-staging-ops.sh --$OP > $d/run-$run.out 2>&1; echo \$? > $d/run-$run.rc' < /dev/null > /dev/null 2>&1 & echo started"
+          shown=0; : > run.out
+          for _ in $(seq 1 250); do
+            sleep 10
+            "$ssh" "cat $d/run-$run.out 2>/dev/null" > run.new || continue
+            total="$(wc -l < run.new)"
+            if (( total > shown )); then tail -n +"$((shown + 1))" run.new; shown="$total"; fi
+            cp run.new run.out
+            rc="$("$ssh" "cat $d/run-$run.rc 2>/dev/null" || true)"
+            if [[ -n "$rc" ]]; then echo "Remote exit code: $rc"; echo "REMOTE_RC=$rc" >> "$GITHUB_ENV"; exit "$rc"; fi
+          done
+          echo 'Timed out waiting; the operation continues on the server. Run the matching preflight to read the outcome.'
+          exit 1
+
+      - name: Classify production migrations (names only)
+        if: inputs.operation == 'production-schema-names'
+        shell: bash
+        run: |
+          set -euo pipefail
+          line="$(grep -m1 '^CA_SCHEMA_NAMES ' run.out)"
+          printf '%s\n' "${line#CA_SCHEMA_NAMES }" > names.json
+          python3 -I .github/scripts/ca-migration-state.py names.json services/central-admin-api/prisma/manual-migrations > migration-state.json
+          sed -i '/^CA_SCHEMA_NAMES /d' run.out
+          { echo '## Production manual migrations vs live schema (names only)'; echo
+            jq -r '"Ledger table present: \(.ledgerTablePresent), ledger rows: \(.ledgerRows)", "",
+                   "| Objects | Manifest orders |", "|---|---|",
+                   (.summary | to_entries[] | "| \(.key) | \(.value | map(tostring) | join(", ")) |")' migration-state.json; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Summarise
+        if: always()
+        shell: bash
+        env:
+          OP: ${{ inputs.operation }}
+        run: |
+          test -s run.out || exit 0
+          { echo "## CA Mail staging $OP"; echo; echo "Commit \`$GITHUB_SHA\`, bundle \`${BUNDLE_SHA256:-}\`, exit \`${REMOTE_RC:-unknown}\`."; echo; echo '```'
+            sed -n '/==================== SUMMARY ====================/,$p' run.out; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the sanitized output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ca-mail-staging-${{ inputs.operation }}
+          path: |
+            run.out
+            migration-state.json
+          if-no-files-found: ignore
+          retention-days: 90
