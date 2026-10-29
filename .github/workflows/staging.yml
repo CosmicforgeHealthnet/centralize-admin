@@ -407,16 +407,24 @@ jobs:
           # Store override in the deploy user home; no write access to
           # the root-owned deployment directory is required.
           override="$HOME/docker-compose.github-staging.yml"
+          # Keep the Mail pilot storage mount (ca-mail-staging-ops pilot-storage-setup)
+          # on every release and rollback.
+          write_override() {
+            printf 'services:\n  app:\n    image: %s\n    pull_policy: never\n' "$1" > "$override"
+            if docker volume inspect admin-server-staging-mail-store >/dev/null 2>&1; then
+              printf '    volumes: ["admin-server-staging-mail-store:/var/lib/cosmicforge-mail"]\nvolumes:\n  admin-server-staging-mail-store:\n    external: true\n' >> "$override"
+            fi
+          }
           deploy_app() {
             docker compose -f docker-compose.yml -f "$override" up -d --no-deps --no-build --pull never --force-recreate app
           }
           rollback() {
             echo "Staging release failed verification: restoring previous image."
-            printf 'services:\n  app:\n    image: %s\n    pull_policy: never\n' "$rollback_image" > "$override"
+            write_override "$rollback_image"
             deploy_app || true
             echo "Rollback initiated. Production and staging database untouched."
           }
-          printf 'services:\n  app:\n    image: %s\n    pull_policy: never\n' "$IMAGE_TAG" > "$override"
+          write_override "$IMAGE_TAG"
           
           if ! deploy_app; then
             rollback
@@ -467,6 +475,29 @@ jobs:
               .finally(() => mainPrisma.$disconnect());
           '; then
             echo "WARNING: Main DEV DB query failed; dashboard/Main DB functions remain degraded."
+          fi
+          # Keep the Mail worker on exactly the app's image (when deployed by
+          # .github/workflows/ca-mail-staging-ops.yml). Same env file as the app.
+          worker="admin-server-staging-mail-mail-worker"
+          mail_dir="/var/www/admin-server-staging-mail"
+          if docker inspect "$worker" >/dev/null 2>&1; then
+            if [ ! -r "$mail_dir/docker-compose.yml" ]; then
+              echo "Mail worker exists but $mail_dir/docker-compose.yml is not readable by this account; re-run ca-mail-staging-ops services-deploy."
+              exit 1
+            fi
+            worker_override="$HOME/docker-compose.github-staging-mail.yml"
+            printf 'services:\n  mail-worker:\n    image: %s\n    pull_policy: never\n' "$IMAGE_TAG" > "$worker_override"
+            (cd "$mail_dir" && docker compose -f docker-compose.yml -f "$worker_override" up -d --no-deps --no-build --pull never --force-recreate mail-worker)
+            sleep 8
+            w_status="$(docker inspect -f '{{.State.Status}}' "$worker")"
+            w_code="$(docker inspect -f '{{.State.ExitCode}}' "$worker")"
+            w_image="$(docker inspect -f '{{.Config.Image}}' "$worker")"
+            if [ "$w_image" = "$IMAGE_TAG" ] && { [ "$w_status" = running ] || { [ "$w_status" = exited ] && [ "$w_code" = 0 ]; }; }; then
+              echo "Mail worker now runs $IMAGE_TAG ($w_status)."
+            else
+              echo "Mail worker did not come up on the new image (status $w_status, exit $w_code). The app release stands; fix the worker."
+              exit 1
+            fi
           fi
           echo "SUCCESS: staging API, admin_users query and HTTPS login CORS verified."
           STAGING_REMOTE_SCRIPT

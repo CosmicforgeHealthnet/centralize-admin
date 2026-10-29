@@ -29,16 +29,27 @@ set -Eeuo pipefail
 umask 077
 export LC_ALL=C
 
-readonly APP=admin-server-staging-app-1
-readonly DB=admin-server-staging-db-1
-readonly PROJECT=admin-server-staging
-readonly VOLUME=admin-server-staging_postgres_data_staging
-readonly NETWORK=admin-server-staging_default
+# Target: staging (default). Only the two migration modes accept
+# --target=production; they read the migration files from the RUNNING
+# production image, so they refuse until production runs a release with them.
+target=staging
+[[ "${2:-}" == --target=production ]] && target=production
+if [[ "$target" == production ]]; then
+  APP=admin-server-app-1; DB=admin-server-db-1; PROJECT=admin-server
+  VOLUME=admin-server_postgres_data; NETWORK=admin-server_default
+else
+  APP=admin-server-staging-app-1; DB=admin-server-staging-db-1; PROJECT=admin-server-staging
+  VOLUME=admin-server-staging_postgres_data_staging; NETWORK=admin-server-staging_default
+fi
+readonly APP DB PROJECT VOLUME NETWORK target
 readonly DEST=cosmicforge_admin
 readonly ENV_FILE=/var/www/admin-server-staging/.env
 readonly MAIL_PROJECT=admin-server-staging-mail
 readonly MAIL_DIR=/var/www/admin-server-staging-mail
 readonly CLAMAV_IMAGE=clamav/clamav:1.4
+readonly PILOT_VOLUME=admin-server-staging-mail-store
+readonly PILOT_DIR=/var/lib/cosmicforge-mail
+readonly STAGING_OVERRIDE=/home/cf-staging-deploy/docker-compose.github-staging.yml
 readonly BACKUP_BASE=/var/backups/centralize-admin
 readonly MIGRATION_DIR=/app/prisma/manual-migrations
 readonly LEDGER=social_manual_migrations
@@ -63,24 +74,28 @@ readonly -a MIGRATIONS=(
 
 mode="${1:-}"
 case "$mode" in
-  --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers) ;;
-  *) echo 'Usage (root): ca-mail-staging-ops.sh --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers' >&2; exit 2 ;;
+  --migrate-preflight|--migrate-apply|--services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers|--staging-checks|--pilot-storage-setup) ;;
+  *) echo 'Usage (root): ca-mail-staging-ops.sh --migrate-preflight|--migrate-apply [--target=production] | --services-preflight|--services-deploy|--services-remove|--production-schema-names|--containers|--staging-checks|--pilot-storage-setup' >&2; exit 2 ;;
 esac
-[[ -z "${2:-}" ]] || { echo 'Unexpected arguments.' >&2; exit 2; }
+if [[ -n "${2:-}" ]]; then
+  [[ "${2:-}" == --target=production && ( "$mode" == --migrate-preflight || "$mode" == --migrate-apply ) && -z "${3:-}" ]] \
+    || { echo 'Unexpected arguments (only the migration modes accept --target=production).' >&2; exit 2; }
+fi
 [[ "$(id -u)" -eq 0 ]] || { echo 'Run as root.' >&2; exit 2; }
 for tool in docker python3 flock sha256sum awk; do command -v "$tool" >/dev/null || { echo "Missing $tool" >&2; exit 2; }; done
 
 mkdir -p /run/lock
-exec 8>/run/lock/centralize-admin-mail-staging.lock
+exec 8>"/run/lock/centralize-admin-mail-$target.lock"
 flock -n 8 || { echo 'Another CA staging Mail operation is running; refusing overlap. Nothing changed.' >&2; exit 1; }
 # Never overlap the database isolation cutover either.
 exec 9>/run/lock/centralize-admin-db-isolation.lock
 flock -n 9 || { echo 'The CA database isolation cutover is running; refusing overlap. Nothing changed.' >&2; exit 1; }
 
-run_dir="$BACKUP_BASE/mail-staging-$RUN_ID"
+run_dir="$BACKUP_BASE/mail-$target-$RUN_ID"
 mkdir -p "$BACKUP_BASE"; chmod 700 "$BACKUP_BASE"; mkdir -m 700 "$run_dir"
-exec > >(tee -a "$run_dir/run.log") 2>&1
-echo "CA staging Mail ops, run $RUN_ID, mode $mode"
+# tee must not inherit the lock descriptors, or a lock released later stays held.
+exec > >(exec 8>&- 9>&-; tee -a "$run_dir/run.log") 2>&1
+echo "CA Mail ops ($target), run $RUN_ID, mode $mode"
 echo "Root-only run directory: $run_dir"
 
 declare -a SUMMARY=()
@@ -91,7 +106,7 @@ info() { SUMMARY+=("INFO  $*"); echo "INFO: $*"; }
 snapshot_others() { # every container except the ones this mode may change on purpose
   local id skip="/${MAIL_PROJECT}-(clamav|mail-worker)"
   # --migrate-apply restarts the staging app (same container) on purpose.
-  [[ "$mode" == --migrate-apply ]] && skip="$skip|/$APP"
+  [[ "$mode" == --migrate-apply || "$mode" == --pilot-storage-setup ]] && skip="$skip|/$APP"
   for id in $(docker ps -aq --no-trunc); do
     docker inspect -f '{{.Id}}|{{.Name}}|{{.State.Status}}|{{.State.StartedAt}}|{{.RestartCount}}' "$id"
   done | grep -vE "\|($skip)\|" | sort
@@ -138,7 +153,7 @@ identity() {
   done
   [[ "$(docker inspect -f '{{range .Mounts}}{{if eq .Type "volume"}}{{.Name}} {{end}}{{end}}' "$DB")" == "$VOLUME " ]] || { echo "  $DB volume is not exactly $VOLUME"; ok=1; }
   docker network inspect "$NETWORK" >/dev/null 2>&1 || { echo "  network $NETWORK missing"; ok=1; }
-  [[ "$(app_db)" == "$DEST" ]] || { echo "  staging app does not run on $DEST"; ok=1; }
+  [[ "$(app_db)" == "$DEST" ]] || { echo "  $target app does not run on $DEST"; ok=1; }
   return "$ok"
 }
 
@@ -280,7 +295,7 @@ SQL
 
 migrate_preflight() {
   identity || { fail 'staging identity'; return 1; }
-  pass "staging identity (containers, project, volume, network); app runs on $DEST"
+  pass "$target identity (containers, project, volume, network); app runs on $DEST"
   check_files || { fail 'migration files in the running staging image'; return 1; }
   pass 'all 11 migration files (27-37) present in the running staging image with the pinned checksums'
   local rows; rows="$(ledger_rows "$DEST")"
@@ -293,8 +308,8 @@ migrate_preflight() {
   if [[ "$rows" != 0 && "$rows" != no-ledger ]]; then fail "ledger records only $rows of 11; partial state needs manual review"; return 1; fi
   if [[ -n "$hits" ]]; then fail "objects created by 27-37 already exist in $DEST (partial state): $(tr '\n' ',' <<<"$hits")"; return 1; fi
   pass "none of the $(created_objects | wc -l) tables/types created by 27-37 exist yet in $DEST (no collision)"
-  info "Mail flags in the running staging app: $(mail_flags)"
-  verify_app 3 && pass 'staging app: Prisma on cosmicforge_admin, AdminUser, health, synthetic login 401' || { fail 'staging app does not verify'; return 1; }
+  info "Mail flags in the running $target app: $(mail_flags)"
+  verify_app 3 && pass "$target app: Prisma on cosmicforge_admin, AdminUser, health, synthetic login 401" || { fail "$target app does not verify"; return 1; }
 }
 
 migrate_apply() {
@@ -330,9 +345,9 @@ SQL
   pass "27-37 applied to $DEST: 11 ledger rows with manifest checksums, every created object present"
   # Restart (same container, same config) so the app re-reads schema readiness.
   docker restart -t 30 "$APP" >/dev/null
-  verify_app 45 || { fail 'staging app did not verify after restart (schema changes are additive; investigate)'; return 1; }
+  verify_app 45 || { fail "$target app did not verify after restart (schema changes are additive; investigate)"; return 1; }
   [[ "$(mail_flags)" == "$flags_before" ]] || { fail 'Mail flags changed'; return 1; }
-  pass "staging app restarted and verified (Prisma, AdminUser, health, synthetic login 401); Mail flags unchanged: $flags_before"
+  pass "$target app restarted and verified (Prisma, AdminUser, health, synthetic login 401); Mail flags unchanged: $flags_before"
 }
 
 # --------------------------------------------------------------------------
@@ -360,6 +375,9 @@ services_preflight() {
     fi
   done
 }
+
+pilot_worker_volume() { docker volume inspect "$PILOT_VOLUME" >/dev/null 2>&1 && printf '    volumes: ["%s:%s"]\n' "$PILOT_VOLUME" "$PILOT_DIR"; return 0; }
+pilot_volume_decl() { docker volume inspect "$PILOT_VOLUME" >/dev/null 2>&1 && printf '  %s:\n    external: true\n' "$PILOT_VOLUME"; return 0; }
 
 write_mail_compose() {
   local image="$1" worker_restart="$2"
@@ -412,16 +430,25 @@ services:
     env_file: [$ENV_FILE]
     security_opt: ["no-new-privileges:true"]
     networks: [staging]
+$(pilot_worker_volume)
     labels: { ca.environment: staging, ca.component: mail-worker }
     logging: { driver: json-file, options: { max-size: "10m", max-file: "5" } }
 volumes:
   clamav-signatures:
+$(pilot_volume_decl)
 networks:
   staging:
     name: $NETWORK
     external: true
 EOF
   mv "$MAIL_DIR/docker-compose.yml.new" "$MAIL_DIR/docker-compose.yml"
+  # The staging deploy account (docker group, no root) recreates the worker on
+  # each app release, so it may read these files. They hold no secret: the
+  # worker's settings come from the staging .env the app already uses.
+  if getent group cf-staging-deploy >/dev/null; then
+    chgrp cf-staging-deploy "$MAIL_DIR" "$MAIL_DIR/docker-compose.yml" "$MAIL_DIR/clamd.conf" "$MAIL_DIR/freshclam.conf"
+    chmod 750 "$MAIL_DIR"; chmod 640 "$MAIL_DIR/docker-compose.yml"
+  fi
 }
 
 mail_compose() { (cd "$MAIL_DIR" && env -i HOME=/root PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin docker compose "$@"); }
@@ -542,6 +569,124 @@ PY
   pass "production cosmicforge_admin catalog names read ($(grep -c '^t:' "$run_dir/prod-names.txt") tables); nothing changed"
 }
 
+# --------------------------------------------------------------------------
+# Staging checks that need no external credentials (all read-only; run inside
+# the staging app with the code it actually runs).
+# --------------------------------------------------------------------------
+staging_checks() {
+  [[ "$target" == staging ]] || { fail 'staging checks run on staging only'; return 1; }
+  identity || { fail 'staging identity'; return 1; }
+  local bad=0 out
+  # 1. Schema readiness of every Mail feature set, via the app's own module.
+  out="$(docker exec -i -w /app "$APP" node - 2>/dev/null <<'NODE' || true
+const { prisma } = require('./src/shared/config/database');
+const r = require('./src/modules/mail/schema-readiness');
+(async () => {
+  const sets = { core: r.MAIL_SCHEMA_REQUIREMENTS, features: r.MAIL_FEATURE_REQUIREMENTS, preferences: r.MAIL_PREFERENCES_REQUIREMENTS, finalGap: r.MAIL_FINAL_GAP_REQUIREMENTS };
+  const res = {};
+  for (const [name, requirements] of Object.entries(sets)) res[name] = await r.createMailSchemaReadiness({ client: prisma, requirements, label: name }).check();
+  process.stdout.write(JSON.stringify(res));
+})().catch(e => process.stdout.write(JSON.stringify({ error: e.code || e.name }))).finally(() => prisma.$disconnect());
+NODE
+)"
+  if python3 -c 'import json,sys; d=json.loads(sys.argv[1]); sys.exit(0 if d and all(v.get("ready") for v in d.values()) else 1)' "$out" 2>/dev/null; then
+    pass "Mail schema readiness (app code, real staging DB): core, features, preferences, final gap all ready"
+  else
+    fail "Mail schema readiness: $out"; bad=1
+  fi
+  # 2. The app's Mail config validator for a staging ENABLED preview (process
+  #    environment only; .env untouched). Lists exactly what is still missing.
+  out="$(docker exec -w /app -e MAIL_DEPLOYMENT_ENV=staging -e MAIL_PROVIDER=resend -e MAIL_PROVIDER_ENVIRONMENT_TAG=staging \
+      -e MAIL_ENABLED=true -e MAIL_SENDING_ENABLED=true -e MAIL_RECEIVING_ENABLED=true -e MAIL_WORKER_ENABLED=true \
+      -e MAIL_SCANNER_PROVIDER=clamd -e MAIL_CLAMD_HOST=clamav -e MAIL_CLAMD_PORT=3310 \
+      -e MAIL_DOMAIN_ALLOWLIST=karryam.com -e MAIL_RESERVED_SENDER_ADDRESSES=no-reply@karryam.com \
+      -e MAIL_INBOUND_ACTIVE_ENVIRONMENT=staging -e MAIL_MIXED_RECIPIENT_MODE=external-only -e MAIL_UNKNOWN_RECIPIENT_POLICY=reject \
+      "$APP" node scripts/mail/validate-infrastructure.js 2>/dev/null | tail -1 || true)"
+  info "Mail config validator, staging ENABLED preview (what is still missing): $(python3 -c 'import json,sys; d=json.loads(sys.argv[1]); print(json.dumps({k: d.get(k) for k in ("providerKeyPresent","webhookSecretPresent","storage","kms","scanner","violations")}))' "$out" 2>/dev/null || echo "$out")"
+  # 3. ClamAV through the app's own scanner adapter (repo live test).
+  if docker exec -w /app -e MAIL_CLAMD_LIVE_HOST=clamav -e MAIL_CLAMD_LIVE_PORT=3310 -e TEST_NETWORK_GUARD_ENABLED=false "$APP" node --test tests/mail-clamd-live.test.js > "$run_dir/clamd-live.txt" 2>&1 \
+     && grep -qE '^# pass [1-9]' "$run_dir/clamd-live.txt" && grep -qE '^# skipped 0' "$run_dir/clamd-live.txt"; then
+    pass 'ClamAV live test through the app scanner adapter: PING/VERSION, EICAR detected, clean accepted, oversize quarantined'
+  else
+    fail "ClamAV live test: $(grep -E '^# (pass|fail|skipped)' "$run_dir/clamd-live.txt" | tr '\n' ' ')"; bad=1
+  fi
+  # 4. Karryam mailbox provisioning, dry run (writes nothing).
+  local rc=0
+  docker exec -w /app -e MAIL_DOMAIN_ALLOWLIST=karryam.com -e MAIL_RESERVED_SENDER_ADDRESSES=no-reply@karryam.com \
+    "$APP" node scripts/mail/provision-karryam.js --allow-remote > "$run_dir/provision-dry-run.json" 2>"$run_dir/provision-dry-run.err" || rc=$?
+  if [[ "$rc" == 0 || "$rc" == 2 ]]; then
+    info "Karryam provisioning dry run (exit $rc; 2 = steps left to apply): $(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(json.dumps(d)[:1500])' "$run_dir/provision-dry-run.json" 2>/dev/null || head -c 600 "$run_dir/provision-dry-run.json")"
+  else
+    fail "Karryam provisioning dry run failed (exit $rc): $(tail -2 "$run_dir/provision-dry-run.err" | tr '\n' ' ')"; bad=1
+  fi
+  # 5. Live readiness endpoint as served.
+  info "readiness endpoint: $(docker exec "$APP" node -e "fetch('http://127.0.0.1:'+(process.env.PORT||4000)+'/api/mail/v1/health/ready').then(r=>r.text()).then(t=>process.stdout.write(t.slice(0,600)))" 2>/dev/null || echo unavailable)"
+  return "$bad"
+}
+
+# --------------------------------------------------------------------------
+# Staging pilot storage (allowed on staging only by the Mail config rules):
+# encrypted filesystem store on a dedicated volume + an environment keyring
+# generated HERE (never passes through GitHub). Never replaces an existing
+# keyring (that would make stored mail unreadable).
+# --------------------------------------------------------------------------
+pilot_storage_setup() {
+  [[ "$target" == staging ]] || { fail 'pilot storage is staging-only'; return 1; }
+  identity || { fail 'staging identity'; return 1; }
+  [[ -f "$BUNDLE_DIR/ca-mail-env-install.sh" ]] || { fail 'ca-mail-env-install.sh missing from the bundle'; return 1; }
+  [[ -f "$STAGING_OVERRIDE" ]] || { fail "staging deploy override $STAGING_OVERRIDE missing"; return 1; }
+  if ! docker volume inspect "$PILOT_VOLUME" >/dev/null 2>&1; then
+    docker volume create --label ca.environment=staging --label ca.component=mail-store "$PILOT_VOLUME" >/dev/null
+    pass "created volume $PILOT_VOLUME"
+  else
+    info "volume $PILOT_VOLUME exists (kept)"
+  fi
+  # The staging deploy override keeps the app image and gains the mount; the
+  # staging deploy (staging.yml) re-adds the mount on every release.
+  local image owner; image="$(docker inspect -f '{{.Config.Image}}' "$APP")"; owner="$(stat -c '%U:%G' "$STAGING_OVERRIDE")"
+  printf 'services:\n  app:\n    image: %s\n    pull_policy: never\n    volumes: ["%s:%s"]\nvolumes:\n  %s:\n    external: true\n' \
+    "$image" "$PILOT_VOLUME" "$PILOT_DIR" "$PILOT_VOLUME" > "$STAGING_OVERRIDE.new"
+  chown "$owner" "$STAGING_OVERRIDE.new"; chmod 644 "$STAGING_OVERRIDE.new"; mv "$STAGING_OVERRIDE.new" "$STAGING_OVERRIDE"
+  pass "staging deploy override mounts $PILOT_VOLUME at $PILOT_DIR (image unchanged)"
+  # Worker gets the same mount (Compose file rewritten with the current image).
+  if [[ -f "$MAIL_DIR/docker-compose.yml" ]]; then
+    local restart; restart="$(docker inspect -f '{{.HostConfig.RestartPolicy.Name}}{{if .HostConfig.RestartPolicy.MaximumRetryCount}}:{{.HostConfig.RestartPolicy.MaximumRetryCount}}{{end}}' "${MAIL_PROJECT}-mail-worker" 2>/dev/null || echo on-failure:5)"
+    write_mail_compose "$image" "$restart"
+    pass 'Mail worker Compose file mounts the same volume'
+  fi
+  # Settings: storage + keyring. Keep any existing keyring.
+  local has_keys values
+  has_keys="$(docker inspect -f '{{json .Config.Env}}' "$APP" | python3 -c 'import json,sys; e=dict(x.split("=",1) for x in json.load(sys.stdin) if "=" in x); print("yes" if e.get("MAIL_ENCRYPTION_KEYS","").strip() else "no")')"
+  values="$(mktemp /run/ca-pilot-XXXXXX)"
+  {
+    echo 'MAIL_DEPLOYMENT_ENV=staging'
+    echo 'MAIL_STORAGE_PROVIDER=filesystem'
+    echo "MAIL_STORAGE_LOCAL_DIR=$PILOT_DIR"
+    if [[ "$has_keys" == no ]]; then
+      echo 'MAIL_KMS_PROVIDER=env'
+      echo "MAIL_ENCRYPTION_KEYS=v1:$(head -c 32 /dev/urandom | base64 -w0)"
+      echo 'MAIL_ENCRYPTION_ACTIVE_KEY=v1'
+    fi
+  } > "$values"
+  [[ "$has_keys" == yes ]] && info 'an encryption keyring already exists; it is kept unchanged'
+  # The installer takes the isolation lock itself; release ours first.
+  exec 9>&-
+  if bash "$BUNDLE_DIR/ca-mail-env-install.sh" --apply staging "$values" > "$run_dir/pilot-install.log" 2>&1; then
+    pass 'pilot storage settings installed by ca-mail-env-install.sh (backup, same-image recreate, checks passed)'
+  else
+    if grep -q '==================== SUMMARY ====================' "$run_dir/pilot-install.log"; then
+      sed -n '/==================== SUMMARY ====================/,$p' "$run_dir/pilot-install.log"
+    else
+      tail -n 30 "$run_dir/pilot-install.log"
+    fi
+    fail 'pilot storage settings install failed (it rolled back; see above)'; rm -f "$values"; return 1
+  fi
+  rm -f "$values"
+  [[ "$(docker inspect -f '{{range .Mounts}}{{if eq .Name "'"$PILOT_VOLUME"'"}}{{.Destination}}{{end}}{{end}}' "$APP")" == "$PILOT_DIR" ]] \
+    && pass "staging app mounts $PILOT_VOLUME at $PILOT_DIR" || { fail 'staging app does not mount the pilot volume'; return 1; }
+  info 'Mail stays OFF; storage is exercised once Mail is enabled (staging-checks then reports storage OK)'
+}
+
 list_containers() {
   local id
   for id in $(docker ps -aq --no-trunc); do
@@ -552,6 +697,8 @@ list_containers() {
 
 case "$mode" in
   --containers) list_containers ;;
+  --staging-checks) staging_checks ;;
+  --pilot-storage-setup) pilot_storage_setup ;;
   --production-schema-names) production_schema_names ;;
   --migrate-preflight) migrate_preflight ;;
   --migrate-apply) migrate_apply ;;

@@ -28,10 +28,15 @@ on:
       operation:
         description: Operation
         type: choice
-        options: [migrate-preflight, migrate-apply, services-preflight, services-deploy, services-remove, production-schema-names, containers]
+        options: [migrate-preflight, migrate-apply, services-preflight, services-deploy, services-remove, production-schema-names, containers, staging-checks, host-audit, secure-production-env, pilot-storage-setup]
         default: migrate-preflight
+      target:
+        description: "migrate-preflight / migrate-apply only: staging or production"
+        type: choice
+        options: [staging, production]
+        default: staging
       confirm:
-        description: "Mutating operations only: type APPLY_STAGING_MAIL_CHANGES"
+        description: "Mutating operations: APPLY_STAGING_MAIL_CHANGES; production migrate-apply: APPLY_PRODUCTION_MAIL_MIGRATIONS; secure-production-env: SECURE_PRODUCTION_ENV"
         required: false
         default: ''
 
@@ -65,11 +70,23 @@ jobs:
         shell: bash
         env:
           OP: ${{ inputs.operation }}
+          TARGET: ${{ inputs.target }}
           CONFIRM: ${{ inputs.confirm }}
         run: |
           set -euo pipefail
+          if [[ "$TARGET" == production ]]; then
+            case "$OP" in migrate-preflight|migrate-apply) ;; *) echo "target=production applies only to the migration operations."; exit 1 ;; esac
+          fi
+          if [[ "$OP" == migrate-apply && "$TARGET" == production ]]; then
+            [[ "$CONFIRM" == APPLY_PRODUCTION_MAIL_MIGRATIONS ]] || { echo 'Production migrations need confirm=APPLY_PRODUCTION_MAIL_MIGRATIONS. Nothing was started.'; exit 1; }
+            exit 0
+          fi
+          if [[ "$OP" == secure-production-env ]]; then
+            [[ "$CONFIRM" == SECURE_PRODUCTION_ENV ]] || { echo 'secure-production-env needs confirm=SECURE_PRODUCTION_ENV. Nothing was started.'; exit 1; }
+            exit 0
+          fi
           case "$OP" in
-            migrate-preflight|services-preflight|production-schema-names|containers) [[ -z "$CONFIRM" ]] || { echo 'Read-only operations take no confirmation.'; exit 1; } ;;
+            migrate-preflight|services-preflight|production-schema-names|containers|staging-checks|host-audit) [[ -z "$CONFIRM" ]] || { echo 'Read-only operations take no confirmation.'; exit 1; } ;;
             *) [[ "$CONFIRM" == APPLY_STAGING_MAIL_CHANGES ]] || { echo "$OP needs confirm=APPLY_STAGING_MAIL_CHANGES. Nothing was started."; exit 1; } ;;
           esac
 
@@ -103,7 +120,7 @@ jobs:
           [[ "$("$RUNNER_TEMP/ssh" 'id -u')" == 0 ]] || { echo 'BLOCKED: the VPS account is not root. Nothing changed.'; exit 1; }
           # Pinned bundle: the script and the ClamAV configuration from this commit.
           bundle="$RUNNER_TEMP/bundle.tgz"
-          tar -czf "$bundle" -C .github/scripts ca-mail-staging-ops.sh -C "$GITHUB_WORKSPACE/infrastructure/mail/clamav" clamd.conf freshclam.conf
+          tar -czf "$bundle" -C .github/scripts ca-mail-staging-ops.sh ca-host-ops.sh ca-mail-env-install.sh -C "$GITHUB_WORKSPACE/infrastructure/mail/clamav" clamd.conf freshclam.conf
           sha="$(sha256sum "$bundle" | cut -d' ' -f1)"
           echo "BUNDLE_SHA256=$sha" >> "$GITHUB_ENV"
           d="\$HOME/.ca-mail-staging/$sha"
@@ -115,13 +132,19 @@ jobs:
         shell: bash
         env:
           OP: ${{ inputs.operation }}
+          TARGET: ${{ inputs.target }}
           SSHPASS: ${{ secrets.PROD_PASSWORD }}
         run: |
           set -euo pipefail
           ssh="$RUNNER_TEMP/ssh"
           d="\$HOME/.ca-mail-staging/$BUNDLE_SHA256"
           run="$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          "$ssh" "cd $d && setsid nohup bash -c 'CA_MAIL_BUNDLE_DIR=$d bash $d/ca-mail-staging-ops.sh --$OP > $d/run-$run.out 2>&1; echo \$? > $d/run-$run.rc' < /dev/null > /dev/null 2>&1 & echo started"
+          case "$OP" in
+            host-audit|secure-production-env) cmd="bash $d/ca-host-ops.sh --$OP" ;;
+            *) cmd="bash $d/ca-mail-staging-ops.sh --$OP"
+               if [[ "$TARGET" == production ]]; then cmd="$cmd --target=production"; fi ;;
+          esac
+          "$ssh" "cd $d && setsid nohup bash -c 'CA_MAIL_BUNDLE_DIR=$d $cmd > $d/run-$run.out 2>&1; echo \$? > $d/run-$run.rc' < /dev/null > /dev/null 2>&1 & echo started"
           shown=0; : > run.out
           for _ in $(seq 1 250); do
             sleep 10
