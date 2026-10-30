@@ -141,7 +141,7 @@ test.describe("IT > Mail Administration", () => {
     await form.getByLabel("Personal email domain").selectOption(DOMAIN.id);
     await form.getByRole("button", { name: "Create personal mailbox" }).click();
     await expect.poll(() => api.callsTo("POST", `${M}/admin/mailboxes`).length).toBe(1);
-    expect(api.callsTo("POST", `${M}/admin/mailboxes`)[0].body.ownerAdminUserId).toBe(STAFF.id);
+    expect((api.callsTo("POST", `${M}/admin/mailboxes`)[0].body as Record<string, unknown>).ownerAdminUserId).toBe(STAFF.id);
     await expect(form.getByText("The employee can now sign in and open Mail.")).toBeVisible();
     expect(api.callsTo("GET", /\/api\/mail\/v1\/(threads|messages)\//)).toHaveLength(0);
   });
