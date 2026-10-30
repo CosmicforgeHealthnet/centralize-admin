@@ -437,9 +437,25 @@ function Provisioning({ canEdit }: { canEdit: boolean }) {
 function Grants({ canEdit }: { canEdit: boolean }) {
   const qc = useQueryClient();
   const grants = useQuery({ queryKey: qk("grants"), queryFn: () => adminApi.listSenderGrants(), retry: false });
+  const mailboxes = useQuery({ queryKey: qk("mailboxes"), queryFn: adminApi.listMailboxes, retry: false, enabled: canEdit });
+  const [mailboxId, setMailboxId] = useState("");
+  const [addressId, setAddressId] = useState("");
+  const [staff, setStaff] = useState<StaffDirectoryEntry | null>(null);
+  const [directoryForbidden, setDirectoryForbidden] = useState(false);
+  const [success, setSuccess] = useState("");
+  const selected = (mailboxes.data ?? []).find((box) => box.id === mailboxId);
+  const addresses = (selected?.addresses ?? []).filter((address) => address.status === "ACTIVE" && address.kind !== "SYSTEM");
+  const create = useMutation({
+    mutationFn: () => adminApi.createSenderGrant({ mailboxId, addressId, adminUserId: (staff as StaffDirectoryEntry).id }),
+    onSuccess: () => {
+      setStaff(null);
+      setSuccess("Send-as permission granted.");
+      qc.invalidateQueries({ queryKey: qk("grants") });
+    },
+  });
   const revoke = useMutation({ mutationFn: adminApi.revokeSenderGrant, onSuccess: () => qc.invalidateQueries({ queryKey: qk("grants") }) });
   return (
-    <Section id="mail-admin-grants" title="Send-as grants" description="Who may send as a shared identity. Members are added from the mailbox settings page; a grant needs an existing membership.">
+    <Section id="mail-admin-grants" title="Send-as grants" description="Who may send as a shared identity. First grant mailbox membership under Mailbox access; then assign the sender address here.">
       <PermissionBoundary isLoading={grants.isLoading} error={grants.error} compact forbiddenMessage={FORBIDDEN}>
         <Table caption="Active send-as grants" head={["Identity", "Mailbox", "Member", "Expires", ""]} empty={!grants.data?.length}>
           {(grants.data ?? []).map((g) => (
@@ -454,6 +470,43 @@ function Grants({ canEdit }: { canEdit: boolean }) {
         </Table>
         <ErrorLine error={revoke.error} />
       </PermissionBoundary>
+      {canEdit && (
+        <form className="grid gap-2 border-t border-border pt-3 md:grid-cols-2" onSubmit={(event) => {
+          event.preventDefault();
+          if (staff && mailboxId && addressId) { setSuccess(""); create.mutate(); }
+        }}>
+          <label className="flex flex-col gap-1 text-[11px] font-semibold">
+            Shared mailbox
+            <select className={input} value={mailboxId} onChange={(event) => {
+              setMailboxId(event.target.value);
+              setAddressId("");
+            }}>
+              <option value="">Select a mailbox…</option>
+              {(mailboxes.data ?? []).filter((box) => box.type === "SHARED").map((box) =>
+                <option key={box.id} value={box.id}>{box.name}</option>)}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1 text-[11px] font-semibold">
+            Sender address
+            <select className={input} value={addressId} onChange={(event) => setAddressId(event.target.value)} disabled={!mailboxId}>
+              <option value="">Select an address…</option>
+              {addresses.map((address) => <option key={address.id} value={address.id}>{address.address}</option>)}
+            </select>
+          </label>
+          <div className="flex flex-col gap-1 text-[11px] font-semibold">
+            Employee (must already be a mailbox member)
+            {!directoryForbidden && <StaffPicker value={staff} onChange={setStaff} onForbidden={() => setDirectoryForbidden(true)} />}
+            {directoryForbidden && <p role="alert" className="text-[11px]">Staff directory permission is required.</p>}
+          </div>
+          <div className="flex items-end">
+            <button className={btn} type="submit" disabled={!staff || !addressId || create.isPending}>Grant send-as permission</button>
+          </div>
+          <div className="md:col-span-2">
+            {success && <p role="status" className="text-[11px] text-green-700">{success}</p>}
+            <ErrorLine error={create.error} />
+          </div>
+        </form>
+      )}
     </Section>
   );
 }
