@@ -12,16 +12,20 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PermissionBoundary from "@/components/mail/PermissionBoundary";
 import { useEntitlements } from "@/components/mail/hooks";
 import { formatFullDate } from "@/components/mail/mail-utils";
-import { classifyMailError } from "@/lib/mail.service";
+import { addMember, classifyMailError, fetchMembers } from "@/lib/mail.service";
+import StaffPicker from "@/components/mail/StaffPicker";
+import StepUpDialog from "@/components/marketing/email-marketing/StepUpDialog";
 import * as adminApi from "@/lib/mail-admin.service";
 import MailForwardingAdmin from "@/components/it/MailForwardingAdmin";
 import MailQuarantine from "@/components/it/MailQuarantine";
 import type { AdminDomain, ProvisionRequest } from "@/types/mail-admin.types";
+import type { MembershipRole, StaffDirectoryEntry } from "@/types/mail.types";
 
-type Tab = "domains" | "mailboxes" | "provisioning" | "grants" | "forwarding" | "quarantine" | "holds" | "audit";
+type Tab = "domains" | "mailboxes" | "memberships" | "provisioning" | "grants" | "forwarding" | "quarantine" | "holds" | "audit";
 const TABS: { id: Tab; label: string }[] = [
   { id: "domains", label: "Domains" },
   { id: "mailboxes", label: "Shared mailboxes" },
+  { id: "memberships", label: "Mailbox access" },
   { id: "provisioning", label: "Provisioning" },
   { id: "grants", label: "Send-as grants" },
   { id: "forwarding", label: "Forwarding & recovery" },
@@ -198,6 +202,110 @@ function Domains({ canEdit }: { canEdit: boolean }) {
         </div>
       )}
     </>
+  );
+}
+
+// Mail administrators can grant access to shared mailboxes without already
+// belonging to them. The API enforces a fresh MFA step-up and refuses
+// self-grants; no personal mailbox access is exposed through this screen.
+function SharedMembershipAdministration({ canEdit }: { canEdit: boolean }) {
+  const qc = useQueryClient();
+  const mailboxes = useQuery({ queryKey: qk("mailboxes"), queryFn: adminApi.listMailboxes, retry: false });
+  const [mailboxId, setMailboxId] = useState("");
+  const [staff, setStaff] = useState<StaffDirectoryEntry | null>(null);
+  const [role, setRole] = useState<MembershipRole>("MEMBER");
+  const [canSend, setCanSend] = useState(true);
+  const [stepUpOpen, setStepUpOpen] = useState(false);
+  const [directoryForbidden, setDirectoryForbidden] = useState(false);
+  const [success, setSuccess] = useState("");
+  const shared = (mailboxes.data ?? []).filter((box) => box.type === "SHARED");
+  const members = useQuery({
+    queryKey: qk("shared-members", mailboxId),
+    queryFn: () => fetchMembers(mailboxId),
+    enabled: Boolean(mailboxId),
+    retry: false,
+  });
+  const add = useMutation({
+    mutationFn: (stepUpId: string) => addMember(mailboxId, {
+      adminUserId: (staff as StaffDirectoryEntry).id, role, canSend, stepUpId,
+    }),
+    onSuccess: () => {
+      setStaff(null);
+      setSuccess("Mailbox access granted. The employee can now open their assigned mailbox.");
+      qc.invalidateQueries({ queryKey: qk("shared-members", mailboxId) });
+      qc.invalidateQueries({ queryKey: qk("mailboxes") });
+    },
+  });
+  return (
+    <Section id="mail-admin-members" title="Shared mailbox access" description="A different authorized Mail administrator must grant your access. Self-grants are forbidden, even for super administrators.">
+      <PermissionBoundary isLoading={mailboxes.isLoading} error={mailboxes.error} compact forbiddenMessage={FORBIDDEN}>
+        <label className="flex flex-col gap-1 text-[11px] font-semibold">
+          Shared mailbox
+          <select className={input} value={mailboxId} onChange={(event) => {
+            setMailboxId(event.target.value);
+            setStaff(null);
+            setSuccess("");
+          }}>
+            <option value="">Select a shared mailbox…</option>
+            {shared.map((box) => <option key={box.id} value={box.id}>{box.name}</option>)}
+          </select>
+        </label>
+        {shared.length === 0 && <p className="text-[12px] text-muted-foreground">Create the brand, domain and shared mailbox under the Domains and Shared mailboxes tabs first.</p>}
+        {mailboxId && (
+          <PermissionBoundary isLoading={members.isLoading} error={members.error} compact>
+            <Table caption="Shared mailbox membership" head={["Employee", "Role", "Can send"]} empty={!members.data?.length}>
+              {(members.data ?? []).map((member) => (
+                <tr key={member.id} className="border-b border-border/60">
+                  <td className={td}>{member.name || member.email || member.adminUserId}</td>
+                  <td className={td}>{member.role}</td>
+                  <td className={td}>{member.canSend ? "Yes" : "No"}</td>
+                </tr>
+              ))}
+            </Table>
+            {canEdit && !directoryForbidden && (
+              <form className="grid gap-2 md:grid-cols-2" onSubmit={(event) => {
+                event.preventDefault();
+                if (staff && !add.isPending) { setSuccess(""); setStepUpOpen(true); }
+              }}>
+                <div className="flex flex-col gap-1 text-[11px] font-semibold">
+                  Employee (not yourself)
+                  <StaffPicker value={staff} onChange={setStaff} onForbidden={() => setDirectoryForbidden(true)} />
+                </div>
+                <label className="flex flex-col gap-1 text-[11px] font-semibold">
+                  Role
+                  <select className={input} value={role} onChange={(event) => setRole(event.target.value as MembershipRole)}>
+                    <option value="MEMBER">Member</option>
+                    <option value="MANAGER">Manager</option>
+                    <option value="READER">Reader</option>
+                  </select>
+                </label>
+                <label className="flex items-center gap-2 text-[11px]">
+                  <input type="checkbox" checked={canSend && role !== "READER"} onChange={(event) => setCanSend(event.target.checked)} disabled={role === "READER"} />
+                  Allow sending
+                </label>
+                <div className="flex items-end">
+                  <button className={btn} type="submit" disabled={!staff || add.isPending}>Grant access (requires MFA)</button>
+                </div>
+              </form>
+            )}
+            {directoryForbidden && <p role="alert" className="text-[11px] text-muted-foreground">Your account cannot search the staff directory. Ask an authorized administrator.</p>}
+            {success && <p role="status" className="text-[11px] text-green-700">{success}</p>}
+            <ErrorLine error={add.error} />
+          </PermissionBoundary>
+        )}
+      </PermissionBoundary>
+      {stepUpOpen && staff && (
+        <StepUpDialog
+          title="Approve shared mailbox access"
+          purpose="MAIL_MEMBERSHIP_GRANT"
+          onCancel={() => setStepUpOpen(false)}
+          onVerified={async (stepUpId) => {
+            await add.mutateAsync(stepUpId);
+            setStepUpOpen(false);
+          }}
+        />
+      )}
+    </Section>
   );
 }
 
@@ -561,6 +669,7 @@ export default function MailAdministration() {
             <div id="mail-admin-panel" role="tabpanel" aria-labelledby={`mail-admin-tab-${tab}`} className="flex flex-col gap-3">
               {tab === "domains" && <Domains canEdit={canEdit} />}
               {tab === "mailboxes" && <Mailboxes canEdit={canEdit} />}
+              {tab === "memberships" && <SharedMembershipAdministration canEdit={canEdit} />}
               {tab === "provisioning" && <Provisioning canEdit={canEdit} />}
               {tab === "grants" && <Grants canEdit={canEdit} />}
               {tab === "forwarding" && <MailForwardingAdmin canEdit={canEdit} />}
