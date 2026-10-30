@@ -191,3 +191,41 @@ test("published JSON schemas are in sync with the source definitions", () => {
   const fixed = Object.values(C.ENDPOINTS).map((e) => C.BASE_PATH + e.path).sort();
   assert.deepEqual(documented, [...new Set(fixed)].sort());
 });
+
+test("compatibility: authorization requirement changes are breaking; unclassified differences never pass as identical", () => {
+  const base = T.sampleManifest();
+  assert.ok(base.capabilities.length > 0);
+  for (const flag of ["requires_recent_mfa", "requires_independent_approval"]) {
+    const next = T.sampleManifest();
+    next.capabilities = next.capabilities.map((c, i) => (i === 0 ? { ...c, [flag]: !c[flag] } : c));
+    const result = C.compareCatalogs(base, next);
+    assert.equal(result.decision, "BREAKING", flag);
+    assert.ok(result.changes.some((c) => c.kind === "CAPABILITY_AUTHORIZATION_CHANGED"));
+    assert.equal(C.activationDecision(result, { reviewed: true }).allowed, false);
+  }
+  // Lineage-only change is reported for review instead of looking identical.
+  const lineage = T.sampleManifest({ datasets: [T.sampleDataset({ lineage: { ...T.sampleDataset().lineage, derivation: "Rebuilt from the approved source export" } })] });
+  const lin = C.compareCatalogs(base, lineage);
+  assert.equal(lin.decision, "COMPATIBLE_ADDITIVE");
+  assert.ok(lin.changes.some((c) => c.kind === "DATASET_LINEAGE_CHANGED"));
+  // A difference in a field the comparator does not know is breaking.
+  const unknown = T.sampleManifest();
+  unknown.capabilities = unknown.capabilities.map((c, i) => (i === 0 ? { ...c, unreviewed_extension: true } : c));
+  const unk = C.compareCatalogs(base, unknown);
+  assert.equal(unk.decision, "BREAKING");
+  assert.ok(unk.changes.some((c) => c.kind === "UNCLASSIFIED_CHANGE"));
+});
+
+test("protocol minors newer than this HQ supports are unknown contracts", () => {
+  assert.equal(C.isSupportedProtocol({ major: 1, minor: 0 }), true);
+  assert.equal(C.isSupportedProtocol({ major: 1, minor: 1 }), false);
+  assert.equal(C.isSupportedProtocol({ major: 1, minor: 999 }), false);
+  assert.equal(C.isSupportedProtocol({ major: 2, minor: 0 }), false);
+  assert.equal(C.isSupportedProtocol({ major: 1, minor: 1 }, { major: 1, minor: 1 }), true);
+});
+
+test("operation and audit reads require a staff delegation", () => {
+  assert.equal(C.ENDPOINTS.operationGet.auth, "service+delegation");
+  assert.equal(C.ENDPOINTS.auditGet.auth, "service+delegation");
+  assert.equal(C.ENDPOINTS.operationSubmit.auth, "service+delegation");
+});

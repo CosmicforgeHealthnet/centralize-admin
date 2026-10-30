@@ -78,9 +78,9 @@ const ENDPOINTS = Object.freeze({
   events: Object.freeze({ method: "GET", path: "/events", auth: "service" }),
   eventsAck: Object.freeze({ method: "POST", path: "/events/ack", auth: "service" }),
   syncStatus: Object.freeze({ method: "GET", path: "/sync/status", auth: "service" }),
-  operationGet: Object.freeze({ method: "GET", path: "/operations/{operationId}", auth: "service" }),
+  operationGet: Object.freeze({ method: "GET", path: "/operations/{operationId}", auth: "service+delegation" }),
   operationSubmit: Object.freeze({ method: "POST", path: "/operations", auth: "service+delegation" }),
-  auditGet: Object.freeze({ method: "GET", path: "/audit/{operationId}", auth: "service" }),
+  auditGet: Object.freeze({ method: "GET", path: "/audit/{operationId}", auth: "service+delegation" }),
 });
 
 const PATH_PARAM = new RegExp(PATTERNS.pathParam);
@@ -117,7 +117,8 @@ function matchEndpoint(method, pathname) {
 
 function isSupportedProtocol(protocol, supported = PROTOCOL_VERSION) {
   return Boolean(protocol) && Number.isInteger(protocol.major) && Number.isInteger(protocol.minor) &&
-    protocol.major === supported.major && protocol.minor >= 0;
+    // A minor newer than this HQ understands is an unknown contract: rejected.
+    protocol.major === supported.major && protocol.minor >= 0 && protocol.minor <= supported.minor;
 }
 
 module.exports = {

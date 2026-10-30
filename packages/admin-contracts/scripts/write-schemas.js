@@ -30,9 +30,9 @@ const operations = {
   events: { summary: "Bounded page of standard events for one partition", security, parameters: [query("dataset_id", { type: "string", pattern: C.PATTERNS.catalogId }, true), query("partition_key", { type: "string", pattern: C.PATTERNS.partitionKey }, true), query("after_sequence", { type: "integer", minimum: 0 }, true), query("limit", { type: "integer", minimum: 1, maximum: 100 })] },
   eventsAck: { summary: "Acknowledge events committed by HQ (sent only after commit)", security, requestBody: { required: true, content: { "application/json": { schema: ref("events-ack.v1") } } } },
   syncStatus: { summary: "Event source and partition head positions", security },
-  operationGet: { summary: "Operation status", security, parameters: [pathParam("operationId")] },
+  operationGet: { summary: "Operation status (requesting staff only)", security: [{ ServiceHmac: [], StaffDelegation: [] }], parameters: [pathParam("operationId")] },
   operationSubmit: { summary: "Typed command submission; disabled unless certified", security: [{ ServiceHmac: [], StaffDelegation: [] }], requestBody: { required: true, content: { "application/json": { schema: ref("operation-command.v1") } } } },
-  auditGet: { summary: "Sanitized audit trail for an operation", security, parameters: [pathParam("operationId")] },
+  auditGet: { summary: "Sanitized audit trail for an operation (requesting staff only)", security: [{ ServiceHmac: [], StaffDelegation: [] }], parameters: [pathParam("operationId")] },
 };
 
 const paths = {};

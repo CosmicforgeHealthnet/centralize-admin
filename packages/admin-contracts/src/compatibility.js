@@ -9,6 +9,9 @@
 //                        scope, authorization or removes something
 
 const P = require("./protocol");
+const { digestOf } = require("./canonical");
+
+const catalogPart = (c) => ({ product_id: c.product_id, protocol: c.protocol, capabilities: c.capabilities, datasets: c.datasets, event_families: c.event_families });
 
 function parseSemver(value) {
   const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(String(value));
@@ -54,6 +57,9 @@ function compareMetrics(before, after, path, add) {
     if (metric.version !== other.version && parseSemver(metric.version).major === parseSemver(other.version).major &&
         ["definition", "aggregation", "grain", "unit", "currency"].some((key) => metric[key] !== other[key])) {
       add("BREAKING", "METRIC_MEANING_CHANGED_WITHOUT_MAJOR", path + "." + metricId);
+    }
+    if (metric.version !== other.version) {
+      add(cmpSemver(other.version, metric.version) < 0 ? "BREAKING" : "ADDITIVE", cmpSemver(other.version, metric.version) < 0 ? "METRIC_VERSION_DOWNGRADE" : "METRIC_VERSION_CHANGED", path + "." + metricId);
     }
   }
   for (const metricId of next.keys()) if (!prev.has(metricId)) { added += 1; add("ADDITIVE", "METRIC_ADDED", path + "." + metricId); }
@@ -111,7 +117,10 @@ function compareCatalogs(pinned, proposed) {
     if (!breakingHere && !addedFields && !addedMetrics && ds.schema_digest !== other.schema_digest && versionCmp === 0) {
       add("BREAKING", "SILENT_SCHEMA_CHANGE", path);
     }
+    if (versionCmp > 0 && !breakingHere) add("ADDITIVE", "DATASET_VERSION_BUMPED", path);
     if (ds.readiness !== other.readiness) add("ADDITIVE", "DATASET_READINESS_CHANGED", path);
+    if (json(ds.lineage) !== json(other.lineage)) add("ADDITIVE", "DATASET_LINEAGE_CHANGED", path);
+    if (ds.title !== other.title || json(ds.blockers || []) !== json(other.blockers || [])) add("ADDITIVE", "DATASET_METADATA_CHANGED", path);
     if (ds.freshness_target_seconds !== other.freshness_target_seconds || ds.retention_days !== other.retention_days) {
       add("ADDITIVE", "DATASET_POLICY_METADATA_CHANGED", path);
     }
@@ -134,6 +143,8 @@ function compareCatalogs(pinned, proposed) {
     if (payload === "ADDITIVE") add(cmpSemver(other.schema_version, fam.schema_version) > 0 ? "ADDITIVE" : "BREAKING", "EVENT_SCHEMA_EXTENDED", path);
     if (cmpSemver(other.schema_version, fam.schema_version) < 0) add("BREAKING", "EVENT_SCHEMA_VERSION_DOWNGRADE", path);
     if (fam.status !== other.status) add("ADDITIVE", "EVENT_FAMILY_STATUS_CHANGED", path);
+    if ((fam.sunset_at || null) !== (other.sunset_at || null)) add("ADDITIVE", "EVENT_FAMILY_SUNSET_CHANGED", path);
+    if (payload === "SAME" && cmpSemver(other.schema_version, fam.schema_version) > 0) add("ADDITIVE", "EVENT_SCHEMA_VERSION_BUMPED", path);
   }
   for (const family of nextFam.keys()) if (!prevFam.has(family)) add("ADDITIVE", "EVENT_FAMILY_ADDED", "event_families." + family);
 
@@ -149,8 +160,23 @@ function compareCatalogs(pinned, proposed) {
     if (json(cap.request_schema) !== json(other.request_schema)) add("BREAKING", "CAPABILITY_REQUEST_SCHEMA_CHANGED", path);
     if (cap.state !== other.state) add("ADDITIVE", "CAPABILITY_STATE_CHANGED", path);
     if (!sameSet(cap.datasets, other.datasets)) add("BREAKING", "CAPABILITY_DATASETS_CHANGED", path);
+    // MFA and independent-approval requirements are authorization rules:
+    // any change, tightening or loosening, is breaking.
+    if (Boolean(cap.requires_recent_mfa) !== Boolean(other.requires_recent_mfa) ||
+        Boolean(cap.requires_independent_approval) !== Boolean(other.requires_independent_approval)) {
+      add("BREAKING", "CAPABILITY_AUTHORIZATION_CHANGED", path);
+    }
+    if (cap.version !== other.version || cap.description !== other.description || json(cap.blockers || []) !== json(other.blockers || [])) {
+      add("ADDITIVE", "CAPABILITY_METADATA_CHANGED", path);
+    }
   }
   for (const capId of nextCap.keys()) if (!prevCap.has(capId)) add("ADDITIVE", "CAPABILITY_ADDED", "capabilities." + capId);
+
+  // Anything not classified above but still different must never pass as
+  // IDENTICAL: an unrecognised difference is treated as breaking.
+  if (changes.length === 0 && digestOf(catalogPart(pinned)) !== digestOf(catalogPart(proposed))) {
+    add("BREAKING", "UNCLASSIFIED_CHANGE", "catalog");
+  }
 
   const breaking = changes.some((c) => c.severity === "BREAKING");
   const decision = breaking ? "BREAKING" : changes.length ? "COMPATIBLE_ADDITIVE" : "IDENTICAL";

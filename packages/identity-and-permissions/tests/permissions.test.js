@@ -89,3 +89,14 @@ test("delegation tokens are signed, bound, short-lived and strict", () => {
   assert.throws(() => I.signDelegation({}, { key, kid: "k1", typ: I.TYPES.HQ, ttlSeconds: 3600 }), /TTL_INVALID/);
   assert.throws(() => I.signDelegation({}, { key: Buffer.alloc(8), kid: "k1", typ: I.TYPES.HQ }), /KEY_INVALID/);
 });
+
+test("a malformed explicit deny still denies instead of being ignored", () => {
+  const allow = productGrant();
+  const brokenDeny = productGrant({ id: "g-deny", effect: "DENY", actions: ["metric.read", "not.a.real.action"] });
+  const r = I.authorize({ subject, productId: "synthetic-third", action: "metric.read", datasetId: "synthetic.daily_activity", grants: [allow, brokenDeny], now });
+  assert.equal(r.allowed, false);
+  assert.equal(r.reason, "POLICY_INVALID");
+  // An expired malformed deny no longer applies.
+  const expired = productGrant({ id: "g-deny", effect: "DENY", actions: ["metric.read", "not.a.real.action"], expires_at: new Date(now - 1000).toISOString() });
+  assert.equal(I.authorize({ subject, productId: "synthetic-third", action: "metric.read", datasetId: "synthetic.daily_activity", grants: [allow, expired], now }).allowed, true);
+});
