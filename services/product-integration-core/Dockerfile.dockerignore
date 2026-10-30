@@ -1,0 +1,22 @@
+# Per-Dockerfile ignore list (BuildKit) for services/product-integration-core/Dockerfile.
+# Context is the repository root; only the shared protocol packages and this
+# service's runtime files are sent.
+*
+!packages/admin-contracts/package.json
+!packages/admin-contracts/src/**
+!packages/service-clients/package.json
+!packages/service-clients/src/**
+!packages/identity-and-permissions/package.json
+!packages/identity-and-permissions/src/**
+!packages/event-contracts/package.json
+!packages/event-contracts/src/**
+!services/product-integration-core/package.json
+!services/product-integration-core/package-lock.json
+!services/product-integration-core/src/**
+!services/product-integration-core/scripts/**
+!services/product-integration-core/migrations/**
+**/node_modules
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
