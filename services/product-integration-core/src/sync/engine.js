@@ -32,7 +32,30 @@ function safeCode(value, fallback) {
   return typeof value === "string" && CODE.test(value) ? value : fallback;
 }
 
-function createSyncEngine({ pool, endpoints, environment, workerId = "pic-worker-" + randomUUID().slice(0, 8), leaseSeconds = 30, now = Date.now, logger = () => {}, clientOptions = {}, hooks = {} }) {
+// Drift states that mean the product's identity or signed manifest can no
+// longer be verified. Synchronization stops until a health check verifies a
+// valid manifest from the approved signer again.
+const IDENTITY_BLOCKING_DRIFT = Object.freeze(["IDENTITY_MISMATCH", "MANIFEST_EXPIRED", "MANIFEST_INVALID"]);
+
+// Re-checks the registry-approved signer against the configured trust store
+// on every run, so a signer revoked or expired in configuration stops
+// consumption even before the next health check records it.
+function identityBlock(sub, trustStore, nowMs) {
+  if (!trustStore || typeof trustStore !== "object") return "TRUST_STORE_UNAVAILABLE";
+  if (IDENTITY_BLOCKING_DRIFT.includes(sub.drift_status)) return sub.drift_status;
+  const expires = sub.manifest_expires_at ? new Date(sub.manifest_expires_at).getTime() : NaN;
+  if (!Number.isFinite(expires) || expires <= nowMs) return "MANIFEST_EXPIRED";
+  const kid = sub.approved_signer_kid;
+  const entry = kid && Object.prototype.hasOwnProperty.call(trustStore, kid) ? trustStore[kid] : null;
+  if (!entry) return "SIGNER_UNKNOWN";
+  if (entry.revoked) return "SIGNER_REVOKED";
+  const notAfter = typeof entry.notAfter === "number" ? entry.notAfter : Date.parse(entry.notAfter);
+  if (!Number.isFinite(notAfter) || notAfter <= nowMs) return "SIGNER_EXPIRED";
+  if (entry.productId !== sub.product_id || entry.environment !== sub.environment) return "SIGNER_SCOPE_MISMATCH";
+  return null;
+}
+
+function createSyncEngine({ pool, endpoints, environment, trustStore, workerId = "pic-worker-" + randomUUID().slice(0, 8), leaseSeconds = 30, now = Date.now, logger = () => {}, clientOptions = {}, hooks = {} }) {
   async function alert(code, context) {
     logger({ service: "product-integration-core", event: "integration_alert", code, ...context });
     await recordAudit(pool, { correlationId: context.correlation_id || null, actorType: "SYSTEM", actorId: workerId, productId: context.product_id || null, productAdminId: context.product_admin_id || null, action: "integration.alert", outcome: "ERROR", reasonCode: code, metadata: { subscription_ref: context.subscription_id || null, partition_key: context.partition_key || null } }).catch(() => {});
@@ -41,6 +64,7 @@ function createSyncEngine({ pool, endpoints, environment, workerId = "pic-worker
   async function loadSubscriptions(productAdminId, { scheduled = false } = {}) {
     const { rows } = await pool.query(
       `SELECT s.*, p.product_id, p.service_instance_id, p.environment, p.endpoint_ref, p.lifecycle_status, p.allowed_scope AS product_scope,
+              p.drift_status, p.manifest_expires_at, p.approved_signer_kid,
               d.dataset_id, d.version AS dataset_version, d.schema_digest AS dataset_schema_digest, d.scope_dimensions, d.metrics,
               c.id AS contract_id, c.catalog
        FROM ${T}hq_product_admin_subscriptions s
@@ -385,6 +409,13 @@ function createSyncEngine({ pool, endpoints, environment, workerId = "pic-worker
 
   async function syncSubscription(sub) {
     const ctx = { product_id: sub.product_id, product_admin_id: sub.product_admin_id, subscription_id: sub.id };
+    const blocked = identityBlock(sub, trustStore, now());
+    if (blocked) {
+      // Nothing is requested from the Product Admin; the run is recorded as an alert.
+      await alert(blocked, ctx);
+      await pool.query(`UPDATE ${T}hq_product_admins SET sync_status = 'FAILING' WHERE id = $1 AND lifecycle_status = 'ENABLED'`, [sub.product_admin_id]);
+      return { subscriptionId: sub.id, status: "BLOCKED_IDENTITY", reason: blocked };
+    }
     const datasetDef = (sub.catalog.datasets || []).find((d) => d.dataset_id === sub.dataset_id && d.version === sub.schema_revision);
     if (!datasetDef || datasetDef.schema_digest !== sub.schema_digest) {
       await pool.query(`UPDATE ${T}hq_product_admin_subscriptions SET status = 'POLICY_BLOCKED', policy_block_reason = 'SCHEMA_REVISION_NOT_IN_ACTIVE_CONTRACT', updated_at = now() WHERE id = $1`, [sub.id]);
@@ -436,4 +467,4 @@ function createSyncEngine({ pool, endpoints, environment, workerId = "pic-worker
   return { tick, workerId, reconcilePartition, syncSubscription, loadSubscriptions };
 }
 
-module.exports = { createSyncEngine };
+module.exports = { createSyncEngine, identityBlock, IDENTITY_BLOCKING_DRIFT };

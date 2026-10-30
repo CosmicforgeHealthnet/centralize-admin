@@ -14,6 +14,7 @@ const { integrationStatus } = require("../monitoring");
 const { scopeKey, freshnessOf } = require("../projections/metrics");
 
 const DIMS = ["market", "organization", "zone", "tenant"];
+const IDENTITY_DRIFT = ["IDENTITY_MISMATCH", "MANIFEST_EXPIRED", "MANIFEST_INVALID"];
 
 class ProductError extends Error {
   constructor(code, reason, status) {
@@ -46,6 +47,17 @@ function createProducts({ pool, endpoints, environment, now = Date.now, clientOp
 
   const envelope = (productId, ctx, fields) => C.okEnvelope({ productId, correlationId: ctx.correlationId, ...fields });
 
+  // Short-lived (30 s) product delegation bound to one GET request, so the
+  // Product Admin can check the staff member, action and scope itself.
+  function productDelegation(subject, row, decision, action, uri) {
+    const endpoint = resolveEndpoint(endpoints, row);
+    return I.signDelegation({
+      iss: "product-integration-core", aud: row.product_id + ":" + row.service_instance_id, sub: subject.staffId, sid: subject.sessionId,
+      auth_time: subject.authTime, mfa_at: subject.mfaAt ?? null, product_id: row.product_id, action,
+      scope: decision.effectiveScope, role: decision.role, grant_id: decision.grantId, bnd: I.requestBinding("GET", uri, Buffer.alloc(0)),
+    }, { key: endpoint.delegation.key, kid: endpoint.delegation.kid, typ: I.TYPES.PRODUCT, now: now(), ttlSeconds: 30 });
+  }
+
   return {
     // Navigation contract: which products this staff member can see and why.
     async list(subject, ctx) {
@@ -63,8 +75,12 @@ function createProducts({ pool, endpoints, environment, now = Date.now, clientOp
           : { rows: [] };
         const enabled = row.lifecycle_status === "ENABLED" && contract && contract.status === "ACTIVE";
         const compatible = enabled && C.isSupportedProtocol({ major: contract.protocol_major, minor: contract.protocol_minor });
-        const reason = !enabled ? "NOT_ENABLED" : !compatible ? "PROTOCOL_INCOMPATIBLE" : row.drift_status === "BREAKING_DETECTED" ? "CONTRACT_DRIFT" : null;
-        const datasets = enabled ? contract.catalog.datasets.map((d) => ({ dataset_id: d.dataset_id, title: d.title, granted: grants.some((g) => g.product_id === productId && g.effect === "ALLOW" && !g.revoked_at && (g.datasets || []).includes(d.dataset_id)) })) : [];
+        const manifestExpired = !row.manifest_expires_at || new Date(row.manifest_expires_at).getTime() <= now();
+        const reason = !enabled ? "NOT_ENABLED" : !compatible ? "PROTOCOL_INCOMPATIBLE"
+          : IDENTITY_DRIFT.includes(row.drift_status) || manifestExpired ? "IDENTITY_NOT_VERIFIED"
+          : row.drift_status === "BREAKING_DETECTED" ? "CONTRACT_DRIFT" : null;
+        // Same decision as the read path: expiry, explicit deny, dataset and scope all apply.
+        const datasets = enabled ? contract.catalog.datasets.map((d) => ({ dataset_id: d.dataset_id, title: d.title, granted: I.authorize({ subject, productId, action: "metric.read", datasetId: d.dataset_id, grants, productScope: row.allowed_scope, now: now() }).allowed })) : [];
         const states = {};
         if (enabled) for (const cap of contract.catalog.capabilities) states[cap.state] = (states[cap.state] || 0) + 1;
         items.push({
@@ -101,13 +117,7 @@ function createProducts({ pool, endpoints, environment, now = Date.now, clientOp
     async capabilities(subject, productId, ctx) {
       const { row } = await enabledRegistration(productId);
       const decision = await authorize(subject, "product.capabilities.read", ctx, { productId, productAdminId: row.id, productScope: row.allowed_scope });
-      const endpoint = resolveEndpoint(endpoints, row);
-      const uri = C.endpointPath("capabilities");
-      const token = I.signDelegation({
-        iss: "product-integration-core", aud: productId + ":" + row.service_instance_id, sub: subject.staffId, sid: subject.sessionId,
-        auth_time: subject.authTime, mfa_at: subject.mfaAt ?? null, product_id: productId, action: "product.capabilities.read",
-        scope: decision.effectiveScope, role: decision.role, grant_id: decision.grantId, bnd: I.requestBinding("GET", uri, Buffer.alloc(0)),
-      }, { key: endpoint.delegation.key, kid: endpoint.delegation.kid, typ: I.TYPES.PRODUCT, now: now(), ttlSeconds: 30 });
+      const token = productDelegation(subject, row, decision, "product.capabilities.read", C.endpointPath("capabilities"));
       let res;
       try { res = await clientFor(endpoints, row, clientOptions).getCapabilities({ delegation: token, correlationId: ctx.correlationId }); }
       catch { throw new ProductError("UNAVAILABLE", "PRODUCT_ADMIN_UNREACHABLE"); }
@@ -198,10 +208,11 @@ function createProducts({ pool, endpoints, environment, now = Date.now, clientOp
 
     async operation(subject, productId, operationId, ctx) {
       const { row } = await enabledRegistration(productId);
-      await authorize(subject, "operation.read", ctx, { productId, productAdminId: row.id, productScope: row.allowed_scope });
+      const decision = await authorize(subject, "operation.read", ctx, { productId, productAdminId: row.id, productScope: row.allowed_scope });
       if (!new RegExp(C.PATTERNS.pathParam).test(String(operationId))) throw new ProductError("INVALID_REQUEST", "OPERATION_ID_INVALID");
       try {
-        const res = await clientFor(endpoints, row, clientOptions).getOperation(operationId, { correlationId: ctx.correlationId });
+        const delegation = productDelegation(subject, row, decision, "operation.read", C.endpointPath("operationGet", { operationId }));
+        const res = await clientFor(endpoints, row, clientOptions).getOperation(operationId, { correlationId: ctx.correlationId, delegation });
         return { status: res.status, body: res.json };
       } catch {
         throw new ProductError("UNAVAILABLE", "PRODUCT_ADMIN_UNREACHABLE");

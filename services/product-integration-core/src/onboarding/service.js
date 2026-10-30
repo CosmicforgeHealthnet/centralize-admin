@@ -473,6 +473,8 @@ function createOnboarding({ pool, endpoints, trustStore, environment, now = Date
       await authz(subject, "integration.subscriptions.manage", ctx);
       return withTx(pool, async (client) => {
         const row = await lockRow(client, id);
+        // A terminal registration keeps its history; its subscriptions cannot change.
+        if (["REVOKED", "REJECTED"].includes(row.lifecycle_status)) throw new OnboardingError("REGISTRATION_TERMINAL", 409);
         const { rows } = await client.query(`UPDATE ${T}hq_product_admin_subscriptions SET enabled = $3, status = CASE WHEN $3 THEN 'ACTIVE' ELSE status END, updated_at = now() WHERE id = $1 AND product_admin_id = $2 AND (NOT $3 OR status <> 'POLICY_BLOCKED') RETURNING id, enabled, status`, [subscriptionId, id, Boolean(enabled)]);
         if (!rows[0]) throw new OnboardingError("UNKNOWN_SUBSCRIPTION", 404);
         await approval(client, row, { decision: "SUBSCRIPTION_CHANGED", actorId: subject.staffId, subscriptionId, reasonCode: enabled ? "ENABLED" : "DISABLED" }, ctx);

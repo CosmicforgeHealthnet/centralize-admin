@@ -32,7 +32,7 @@ async function startHarness({ extraEndpoints = {}, extraSigners = {} } = {}) {
   const now = () => Date.now() + clock.offsetMs;
   const engines = [];
   const makeEngine = (options = {}) => {
-    const engine = createSyncEngine({ pool: database.pool, endpoints, environment: "test", now, leaseSeconds: 30, ...options });
+    const engine = createSyncEngine({ pool: database.pool, endpoints, environment: "test", trustStore, now, leaseSeconds: 30, ...options });
     engines.push(engine);
     return engine;
   };

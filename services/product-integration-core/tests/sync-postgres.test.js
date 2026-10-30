@@ -176,3 +176,31 @@ test("scheduled runs honour the subscription poll interval; operator runs do not
     assert.equal((await h.engine.tick()).length, 1); // operator-triggered: always runs
   } finally { await h.close(); }
 });
+
+test("a standard non-metric event is validated, persisted without projection, sequenced and ACKed after commit", { skip }, async () => {
+  const h = await startHarness();
+  try {
+    await h.registerAndEnable();
+    const committedAtAck = [];
+    h.product.state.onAck = async (body) => {
+      const r = await rows(h, "SELECT count(*) AS n FROM hq_integration.hq_product_admin_event_inbox WHERE sequence <= $1", [body.sequence]);
+      committedAtAck.push(Number(r[0].n));
+    };
+    const status = h.product.emitStatus({ status: "COMPLETED" });
+    const offSchema = h.product.emitStatus({ payload: { status: "COMPLETED", customer_phone: "+2340000000" } });
+    const [run] = await h.engine.tick();
+    assert.equal(run.status, "DONE");
+    const inbox = await rows(h, "SELECT event_id, family, application FROM hq_integration.hq_product_admin_event_inbox ORDER BY sequence");
+    assert.deepEqual(inbox.map((e) => [e.event_id, e.family, e.application]), [[status.event_id, h.product.STATUS_FAMILY || "synthetic.order_status_changed", "NO_PROJECTION"]]);
+    assert.equal((await rows(h, "SELECT count(*) AS n FROM hq_integration.hq_product_admin_metrics"))[0].n, "0", "no metric is fabricated from a status event");
+    const quarantined = await rows(h, "SELECT reason_code, detail FROM hq_integration.hq_product_admin_quarantine");
+    assert.equal(quarantined.length, 1, "payload outside the approved schema is quarantined");
+    assert.match(quarantined[0].reason_code, /SCHEMA|PAYLOAD/, quarantined[0].reason_code);
+    assert.ok(!JSON.stringify(quarantined).includes("+2340000000"), "quarantine does not retain the rejected payload");
+    const [cursor] = await rows(h, "SELECT last_sequence, acked_sequence FROM hq_integration.hq_product_admin_sync_cursors");
+    assert.equal(Number(cursor.last_sequence), 2);
+    assert.equal(Number(cursor.acked_sequence), 2);
+    assert.ok(committedAtAck.length > 0 && committedAtAck.every((n) => n >= 1), "ACK observed committed rows");
+    assert.equal(offSchema.sequence, 2);
+  } finally { await h.close(); }
+});
