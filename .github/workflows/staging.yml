@@ -6,11 +6,60 @@ on:
     branches:
       - fix/marketing-admin-db-target
       - staging
+  workflow_dispatch:
+    inputs:
+      api_release_base_sha:
+        description: Full base commit SHA for the separately initiated staging API release
+        required: true
+        type: string
 
 jobs:
+  detect-api-deployment-scope:
+    name: Classify staging API changes
+    if: github.ref == 'refs/heads/staging' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      api_changed: ${{ steps.scope.outputs.api_changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Test deployment scope classifier
+        run: bash infrastructure/scripts/test-staging-api-change-scope.sh
+
+      - name: Classify exact push or manually selected release range
+        id: scope
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+          DISPATCH_BASE_SHA: ${{ inputs.api_release_base_sha }}
+        run: |
+          set -euo pipefail
+          case "$EVENT_NAME" in
+            push) base_sha="$BEFORE_SHA" ;;
+            workflow_dispatch) base_sha="$DISPATCH_BASE_SHA" ;;
+            *) echo "::error::Unsupported event for API deployment classification."; exit 1 ;;
+          esac
+          if [[ -z "$base_sha" || -z "$HEAD_SHA" ]]; then
+            echo "::error::A full base and head commit SHA are required; refusing deployment classification."
+            exit 1
+          fi
+          api_changed="$(bash infrastructure/scripts/staging-api-change-scope.sh "$base_sha" "$HEAD_SHA" "$GITHUB_WORKSPACE")"
+          echo "API deployment source changes detected: $api_changed"
+          printf 'api_changed=%s\n' "$api_changed" >> "$GITHUB_OUTPUT"
+
   verify:
     name: Verify Social Operations backend
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/central-admin-api
     services:
       postgres:
         image: postgres:16
@@ -52,9 +101,18 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: services/central-admin-api/package-lock.json
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Resolve available production dependency advisories without breaking semver
+        run: |
+          # Keep the audit strict; npm may update only within accepted version ranges.
+          # Reinstall from the resulting lockfile so subsequent tests run against
+          # exactly the dependency graph later used to build the staging image.
+          npm audit fix --omit=dev --package-lock-only
+          npm ci
 
       - name: Prisma format check
         run: |
@@ -118,11 +176,338 @@ jobs:
         with:
           name: social-operations-focused-tests
           path: |
-            artifacts/social-operations-focused-tests.tap
-            artifacts/social-operations-focused-summary.json
-            artifacts/social-operations-focused-files.txt
+            services/central-admin-api/artifacts/social-operations-focused-tests.tap
+            services/central-admin-api/artifacts/social-operations-focused-summary.json
+            services/central-admin-api/artifacts/social-operations-focused-files.txt
           if-no-files-found: ignore
           retention-days: 7
 
+      - name: Mail API contract (generated web client is current)
+        run: npm run mail:client:check
+
+      - name: Focused CosmicForge Mail tests (offline provider, disposable PostgreSQL replay)
+        env:
+          MAIL_ENABLED: "false"
+          MAIL_SENDING_ENABLED: "false"
+          MAIL_RECEIVING_ENABLED: "false"
+          MAIL_MARKETING_ENABLED: "false"
+          MAIL_WORKER_ENABLED: "false"
+        run: npm run test:mail
+
       - name: Full test suite
         run: npm test
+
+      - name: Preserve the security-audited dependency manifest for image build
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-audited-dependencies
+          path: |
+            services/central-admin-api/package.json
+            services/central-admin-api/package-lock.json
+          if-no-files-found: error
+          retention-days: 7
+
+  # Backend deployment is intentionally attached to the existing CI job.
+  # On staging pushes, a failed test/security check cannot publish or deploy.
+  verify-staging-ssh:
+    name: Verify Contabo SSH key and staging account
+    if: >-
+      needs.verify.result == 'success' &&
+      needs.detect-api-deployment-scope.result == 'success' &&
+      needs.detect-api-deployment-scope.outputs.api_changed == 'true' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/staging'
+    needs: [verify, detect-api-deployment-scope]
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Verify deployment key identity and reachable staging SSH account
+        shell: bash
+        env:
+          STAGING_HOST: 173.249.30.55
+          STAGING_USER: cf-staging-deploy
+          STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$STAGING_HOST" || -z "$STAGING_USER" || -z "$STAGING_SSH_KEY" ]]; then
+            echo "::error::Missing staging deploy SSH private key in the staging environment."
+            exit 1
+          fi
+          umask 077
+          private_key="$(mktemp)"
+          public_key="$(mktemp)"
+          host_keys="$(mktemp)"
+          trap 'rm -f "$private_key" "$public_key" "$host_keys"' EXIT
+          printf '%s\n' "$STAGING_SSH_KEY" > "$private_key"
+          if ! ssh-keygen -y -P '' -f "$private_key" > "$public_key" 2>/dev/null; then
+            echo "::error::STAGING_SSH_KEY is not a valid unencrypted private key. Re-copy the entire private key (including BEGIN/END lines) into the staging environment secret."
+            exit 1
+          fi
+          fingerprint="$(ssh-keygen -l -E sha256 -f "$public_key" | awk '{print $2}')"
+          if [[ "$fingerprint" != "SHA256:LSVBOgX3GxSbGvrqRUwA/BYxw2zVxdvQUQLnV6ALW+4" ]]; then
+            echo "::error::The private key in GitHub does not match the working Windows cf-staging-deploy key fingerprint."
+            exit 1
+          fi
+          echo "GitHub staging deployment key matches expected public fingerprint."
+          ssh-keyscan -T 10 -t ed25519 "$STAGING_HOST" 2>/dev/null > "$host_keys"
+          if [[ ! -s "$host_keys" ]]; then
+            echo "::error::Contabo staging SSH service is unreachable."
+            exit 1
+          fi
+          server_fingerprint="$(ssh-keygen -l -E sha256 -f "$host_keys" | awk '{print $2}')"
+          if [[ "$server_fingerprint" != "SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ" ]]; then
+            echo "::error::Contabo SSH host key does not match the previously observed host fingerprint; deployment stopped."
+            exit 1
+          fi
+          ssh -i "$private_key" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=15 \
+            -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$host_keys" \
+            "$STAGING_USER@$STAGING_HOST" \
+            "docker ps --filter name=admin-server-staging-app-1 >/dev/null"
+          echo "GitHub Actions authenticated to the staging Contabo Docker account."
+
+  build-staging-image:
+    name: Publish immutable staging API image
+    if: >-
+      needs.verify.result == 'success' &&
+      needs.detect-api-deployment-scope.result == 'success' &&
+      needs.detect-api-deployment-scope.outputs.api_changed == 'true' &&
+      needs.verify-staging-ssh.result == 'success' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/staging'
+    needs: [verify, detect-api-deployment-scope, verify-staging-ssh]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.image.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use the exact dependency manifest verified by staging CI
+        uses: actions/download-artifact@v4
+        with:
+          name: staging-audited-dependencies
+          path: services/central-admin-api
+      - uses: docker/setup-buildx-action@v3
+      - name: Authenticate to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Define immutable image tag
+        id: image
+        run: echo "tag=ghcr.io/cosmicforgehealthnet/admin-backend:staging-$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+      - name: Build and publish backend (monorepo Dockerfile)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.image.outputs.tag }}
+
+  deploy-staging-api:
+    name: Deploy staging API to Contabo and verify login
+    if: >-
+      needs.verify.result == 'success' &&
+      needs.detect-api-deployment-scope.result == 'success' &&
+      needs.detect-api-deployment-scope.outputs.api_changed == 'true' &&
+      needs.verify-staging-ssh.result == 'success' &&
+      needs.build-staging-image.result == 'success' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/staging'
+    needs: [verify, detect-api-deployment-scope, verify-staging-ssh, build-staging-image]
+    runs-on: ubuntu-latest
+    environment: staging
+    concurrency:
+      group: central-admin-api-staging-vps
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Require staging-only deployment credentials
+        shell: bash
+        env:
+          STAGING_HOST: 173.249.30.55
+          STAGING_USER: cf-staging-deploy
+          STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$STAGING_HOST" || -z "$STAGING_USER" || -z "$STAGING_SSH_KEY" ]]; then
+            echo "::error::Set STAGING_SSH_KEY in the staging GitHub environment. Production secrets are intentionally not used."
+            exit 1
+          fi
+      - name: Deploy staging with verified OpenSSH host identity
+        shell: bash
+        env:
+          STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          IMAGE_TAG: ${{ needs.build-staging-image.outputs.image }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEPLOY_RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          umask 077
+          private_key="$(mktemp)"
+          host_keys="$(mktemp)"
+          trap 'rm -f "$private_key" "$host_keys"' EXIT
+          printf '%s\n' "$STAGING_SSH_KEY" > "$private_key"
+          ssh-keygen -y -P '' -f "$private_key" >/dev/null
+          ssh-keyscan -T 10 -t ed25519 173.249.30.55 2>/dev/null > "$host_keys"
+          test -s "$host_keys"
+          fingerprint="$(ssh-keygen -l -E sha256 -f "$host_keys" | awk '{print $2}')"
+          if [[ "$fingerprint" != "SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ" ]]; then
+            echo "::error::Staging VPS SSH host identity changed. Refusing deployment."
+            exit 1
+          fi
+          # Send the short-lived registry token exclusively inside the
+          # encrypted SSH stdin stream, never on a remote command line.
+          {
+            printf 'IMAGE_TAG=%q\n' "$IMAGE_TAG"
+            printf 'GHCR_USER=%q\n' "$GHCR_USER"
+            printf 'GHCR_TOKEN=%q\n' "$GHCR_TOKEN"
+            printf 'DEPLOY_RUN_ID=%q\n' "$DEPLOY_RUN_ID"
+            cat <<'STAGING_REMOTE_SCRIPT'
+          set -eu
+          cd /var/www/admin-server-staging
+          test -f docker-compose.yml
+          test -n "$IMAGE_TAG"
+          case "$IMAGE_TAG" in
+            ghcr.io/cosmicforgehealthnet/admin-backend:staging-*) ;;
+            *) echo "Unexpected image repository/tag"; exit 1 ;;
+          esac
+          
+          # Never operate on /var/www/admin-server or production Compose.
+          container="admin-server-staging-app-1"
+          test "$(docker inspect -f '{{index .Config.Labels "com.docker.compose.service"}}' "$container")" = "app"
+          test "$(docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' "$container")" = "admin-server-staging"
+          # Production main database access is forbidden for this staging rollout.
+          db_env="$(docker exec "$container" node -p 'process.env.MAIN_DB_ENV || "dev"')"
+          if [ "$db_env" != "dev" ]; then
+            echo "Refusing deployment: staging MAIN_DB_ENV is not dev."
+            exit 1
+          fi
+          old_id="$(docker inspect -f '{{.Image}}' "$container")"
+          rollback_image="cf-admin-api:staging-rollback-$DEPLOY_RUN_ID"
+          docker image tag "$old_id" "$rollback_image"
+          
+          # Use a disposable Docker auth configuration. Never persist the
+          # GitHub Actions token or Docker registry credentials on the VPS.
+          auth_dir="$(mktemp -d)"
+          export DOCKER_CONFIG="$auth_dir"
+          trap 'rm -rf "$auth_dir"' EXIT
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$GHCR_USER" --password-stdin >/dev/null
+          docker pull "$IMAGE_TAG"
+          docker logout ghcr.io >/dev/null 2>&1 || true
+          rm -rf "$auth_dir"
+          unset DOCKER_CONFIG GHCR_TOKEN
+          
+          # Store override in the deploy user home; no write access to
+          # the root-owned deployment directory is required.
+          override="$HOME/docker-compose.github-staging.yml"
+          # Mail storage mounts (store volume + read-only keyring) live in
+          # docker-compose.mail-storage.yml (ca-mail-staging-ops storage-setup)
+          # and are kept on every release and rollback. Older hosts without
+          # that file keep the pilot volume in the override instead.
+          mounts="docker-compose.mail-storage.yml"
+          write_override() {
+            printf 'services:\n  app:\n    image: %s\n    pull_policy: never\n' "$1" > "$override"
+            if [ ! -f "$mounts" ] && docker volume inspect admin-server-staging-mail-store >/dev/null 2>&1; then
+              printf '    volumes: ["admin-server-staging-mail-store:/var/lib/cosmicforge-mail"]\nvolumes:\n  admin-server-staging-mail-store:\n    external: true\n' >> "$override"
+            fi
+          }
+          deploy_app() {
+            if [ -f "$mounts" ]; then
+              docker compose -f docker-compose.yml -f "$override" -f "$mounts" up -d --no-deps --no-build --pull never --force-recreate app
+            else
+              docker compose -f docker-compose.yml -f "$override" up -d --no-deps --no-build --pull never --force-recreate app
+            fi
+          }
+          rollback() {
+            echo "Staging release failed verification: restoring previous image."
+            write_override "$rollback_image"
+            deploy_app || true
+            echo "Rollback initiated. Production and staging database untouched."
+          }
+          write_override "$IMAGE_TAG"
+          
+          if ! deploy_app; then
+            rollback
+            exit 1
+          fi
+          
+          ok=0
+          for i in $(seq 1 30); do
+            if curl -fsS --max-time 4 http://127.0.0.1:4001/health >/dev/null 2>&1; then
+              ok=1
+              break
+            fi
+            sleep 3
+          done
+          if [ "$ok" -ne 1 ]; then
+            echo "Staging HTTP health failed."
+            rollback
+            exit 1
+          fi
+          
+          # Verify login's database, not merely the /health liveness route.
+          if ! docker exec "$container" node -e '
+            const { prisma } = require("./src/shared/config/database");
+            prisma.adminUser.count().then(() => console.log("Admin DB login query OK"))
+              .catch(e => { console.error("Admin DB query failed:", e.code || e.name); process.exitCode=1; })
+              .finally(() => prisma.$disconnect());
+          '; then
+            rollback
+            exit 1
+          fi
+          
+          headers="$(mktemp)"
+          status="$(curl -sS --max-time 15 -D "$headers" -o /dev/null -w '%{http_code}' -X OPTIONS               -H 'Origin: https://centralize-admin-staging.vercel.app'               -H 'Access-Control-Request-Method: POST'               -H 'Access-Control-Request-Headers: Content-Type'               https://stagingca.cosmicforge-healthnet.com/api/auth/login)" || status="000"
+          if [ "$status" != "200" ] ||                ! grep -qi '^access-control-allow-origin: https://centralize-admin-staging\.vercel\.app' "$headers" ||                ! grep -qi '^access-control-allow-credentials: true' "$headers"; then
+            echo "Staging HTTPS login CORS verification failed (HTTP $status)."
+            rm -f "$headers"
+            rollback
+            exit 1
+          fi
+          rm -f "$headers"
+          
+          # Main DB has shown timeouts on this VPS. Report degraded status
+          # without confusing it with the admin_users login database.
+          if ! timeout 45 docker exec "$container" node -e '
+            const { mainPrisma } = require("./src/shared/config/mainDatabase");
+            mainPrisma.users.count().then(() => console.log("Main DEV DB query OK"))
+              .catch(e => { console.error("Main DEV DB query failed:", e.code || e.name); process.exitCode=1; })
+              .finally(() => mainPrisma.$disconnect());
+          '; then
+            echo "WARNING: Main DEV DB query failed; dashboard/Main DB functions remain degraded."
+          fi
+          # Keep the Mail worker on exactly the app's image (when deployed by
+          # .github/workflows/ca-mail-staging-ops.yml). Same env file as the app.
+          worker="admin-server-staging-mail-mail-worker"
+          mail_dir="/var/www/admin-server-staging-mail"
+          if docker inspect "$worker" >/dev/null 2>&1; then
+            if [ ! -r "$mail_dir/docker-compose.yml" ]; then
+              echo "Mail worker exists but $mail_dir/docker-compose.yml is not readable by this account; re-run ca-mail-staging-ops services-deploy."
+              exit 1
+            fi
+            worker_override="$HOME/docker-compose.github-staging-mail.yml"
+            printf 'services:\n  mail-worker:\n    image: %s\n    pull_policy: never\n' "$IMAGE_TAG" > "$worker_override"
+            (cd "$mail_dir" && docker compose -f docker-compose.yml -f "$worker_override" up -d --no-deps --no-build --pull never --force-recreate mail-worker)
+            sleep 8
+            w_status="$(docker inspect -f '{{.State.Status}}' "$worker")"
+            w_code="$(docker inspect -f '{{.State.ExitCode}}' "$worker")"
+            w_image="$(docker inspect -f '{{.Config.Image}}' "$worker")"
+            if [ "$w_image" = "$IMAGE_TAG" ] && { [ "$w_status" = running ] || { [ "$w_status" = exited ] && [ "$w_code" = 0 ]; }; }; then
+              echo "Mail worker now runs $IMAGE_TAG ($w_status)."
+            else
+              echo "Mail worker did not come up on the new image (status $w_status, exit $w_code). The app release stands; fix the worker."
+              exit 1
+            fi
+          fi
+          echo "SUCCESS: staging API, admin_users query and HTTPS login CORS verified."
+          STAGING_REMOTE_SCRIPT
+          } | ssh -T -i "$private_key" -o IdentitiesOnly=yes -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$host_keys" \
+            -o ConnectTimeout=20 cf-staging-deploy@173.249.30.55 bash -se

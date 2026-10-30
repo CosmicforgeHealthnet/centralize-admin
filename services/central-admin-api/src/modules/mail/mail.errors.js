@@ -1,0 +1,125 @@
+"use strict";
+
+const ApiError = require("../../shared/utils/ApiError");
+
+const DEFAULT_MESSAGES = {
+  MAIL_DISABLED: "CosmicForge Mail is not enabled.",
+  MAIL_SENDING_DISABLED: "Sending is not enabled.",
+  MAIL_RECEIVING_DISABLED: "Receiving is not enabled.",
+  MAIL_MARKETING_DISABLED: "Email Marketing is not enabled.",
+  MAIL_FORBIDDEN: "You do not have access to this resource.",
+  MAIL_NOT_FOUND: "Not found.",
+  MAIL_IDENTITY_INACTIVE: "Your account is not active for Mail.",
+  MAIL_VALIDATION_FAILED: "Check the request and try again.",
+  MAIL_SENDER_NOT_AUTHORIZED: "You are not approved to send as this address.",
+  MAIL_STEP_UP_REQUIRED: "Fresh multi-factor verification is required.",
+  MAIL_MFA_NOT_ENROLLED: "Two-factor authentication is not enrolled for this account.",
+  MAIL_MFA_INVALID: "The verification code is not valid.",
+  MAIL_MFA_SESSION_REQUIRED: "Sign in again to confirm with two-factor authentication.",
+  MAIL_MFA_LOCKED: "Too many failed codes. Try again later.",
+  MAIL_MFA_UNAVAILABLE: "Two-factor verification is not available yet.",
+  MAIL_DRAFT_REVISION_CONFLICT: "This draft was changed elsewhere. Reload to continue.",
+  MAIL_INVALID_TRANSITION: "This action is not allowed in the current state.",
+  MAIL_CONVERSATION_LOCKED: "Another teammate is replying to this conversation.",
+  MAIL_ADDRESS_TAKEN: "This address is already assigned.",
+  MAIL_ALIAS_LOOP: "Alias configuration would create a loop.",
+  MAIL_ATTACHMENT_TOO_LARGE: "Attachment exceeds the allowed size.",
+  MAIL_ATTACHMENT_QUARANTINED: "This attachment is quarantined.",
+  MAIL_ATTACHMENT_NOT_CLEAN: "Attachments must pass malware scanning before sending.",
+  MAIL_QUOTA_EXCEEDED: "Sending quota exceeded.",
+  MAIL_RATE_LIMITED: "Too many requests.",
+  MAIL_STORAGE_UNAVAILABLE: "Private mail storage is unavailable.",
+  MAIL_SCHEMA_NOT_READY: "CosmicForge Mail is not ready: its database migrations have not been applied.",
+  MAIL_FEATURE_NOT_READY: "This Mail feature is not available yet: its database migration has not been applied.",
+  MAIL_FEATURE_DISABLED: "This Mail feature is turned off in this environment.",
+  MAIL_FORWARDING_NOT_ALLOWED: "Forwarding to this address is not allowed by policy.",
+  MAIL_PROVIDER_UNAVAILABLE: "The mail provider is unavailable.",
+  MAIL_WEBHOOK_SIGNATURE_INVALID: "Webhook signature verification failed.",
+  MAIL_PREFLIGHT_FAILED: "Campaign preflight checks failed.",
+  MAIL_TEMPLATE_INVALID_VARIABLE: "Template uses an unsupported variable.",
+  MAIL_CONSENT_REQUIRED: "Consent evidence is required.",
+  MAIL_LEGAL_HOLD: "Content is under legal hold.",
+  MAIL_BROADCAST_DISABLED: "Broadcast dispatch is not enabled.",
+  MAIL_AUTOMATION_DISABLED: "Marketing automation is not enabled.",
+  MAIL_TEST_SEND_DISABLED: "Campaign test sends are not enabled.",
+  MAIL_EMERGENCY_STOP: "Sending is stopped by an emergency stop.",
+  MAIL_APPROVAL_EXPIRED: "The approval has expired. Submit the campaign for review again.",
+  MAIL_UNSUBSCRIBE_NOT_CONFIGURED: "Unsubscribe links are not configured.",
+  MAIL_INTEGRATION_UNAUTHORIZED: "Integration request is not authorized.",
+  MAIL_INTEGRATION_FORBIDDEN_CONTENT: "The payload contains content this integration may not send.",
+  MAIL_QUOTA_HARD_LIMIT: "The configured hard limit would be exceeded.",
+  MAIL_RETENTION_EXECUTION_DISABLED: "Retention execution is not enabled in this environment.",
+  MAIL_RETENTION_DRY_RUN_REQUIRED: "Run and review a current dry run before executing retention.",
+  MAIL_RETENTION_PERIOD_NOT_CONFIGURED: "No retention period is configured for this category.",
+  MAIL_METRICS_UNAUTHORIZED: "Metrics token required.",
+  MAIL_ROLLOUT_NOT_ENABLED: "This capability is not rolled out to you yet.",
+  MAIL_ROLLOUT_DENIED: "This capability is disabled for this scope.",
+};
+
+const DEFAULT_STATUS = {
+  MAIL_DISABLED: 503,
+  MAIL_SENDING_DISABLED: 503,
+  MAIL_RECEIVING_DISABLED: 503,
+  MAIL_MARKETING_DISABLED: 503,
+  MAIL_STORAGE_UNAVAILABLE: 503,
+  MAIL_SCHEMA_NOT_READY: 503,
+  MAIL_FEATURE_NOT_READY: 503,
+  MAIL_FEATURE_DISABLED: 503,
+  MAIL_FORWARDING_NOT_ALLOWED: 422,
+  MAIL_PROVIDER_UNAVAILABLE: 503,
+  MAIL_FORBIDDEN: 403,
+  MAIL_IDENTITY_INACTIVE: 403,
+  MAIL_SENDER_NOT_AUTHORIZED: 403,
+  MAIL_STEP_UP_REQUIRED: 403,
+  MAIL_MFA_NOT_ENROLLED: 403,
+  MAIL_MFA_INVALID: 403,
+  MAIL_MFA_SESSION_REQUIRED: 403,
+  MAIL_MFA_LOCKED: 429,
+  MAIL_MFA_UNAVAILABLE: 503,
+  MAIL_ATTACHMENT_QUARANTINED: 403,
+  MAIL_WEBHOOK_SIGNATURE_INVALID: 401,
+  MAIL_NOT_FOUND: 404,
+  MAIL_DRAFT_REVISION_CONFLICT: 409,
+  MAIL_INVALID_TRANSITION: 409,
+  MAIL_CONVERSATION_LOCKED: 409,
+  MAIL_ADDRESS_TAKEN: 409,
+  MAIL_ALIAS_LOOP: 409,
+  MAIL_LEGAL_HOLD: 409,
+  MAIL_ATTACHMENT_TOO_LARGE: 413,
+  MAIL_PREFLIGHT_FAILED: 422,
+  MAIL_ATTACHMENT_NOT_CLEAN: 422,
+  MAIL_QUOTA_EXCEEDED: 429,
+  MAIL_QUOTA_HARD_LIMIT: 429,
+  MAIL_RETENTION_EXECUTION_DISABLED: 409,
+  MAIL_RETENTION_DRY_RUN_REQUIRED: 409,
+  MAIL_RETENTION_PERIOD_NOT_CONFIGURED: 409,
+  MAIL_METRICS_UNAUTHORIZED: 401,
+  MAIL_ROLLOUT_NOT_ENABLED: 403,
+  MAIL_ROLLOUT_DENIED: 403,
+  MAIL_BROADCAST_DISABLED: 503,
+  MAIL_AUTOMATION_DISABLED: 503,
+  MAIL_TEST_SEND_DISABLED: 503,
+  MAIL_EMERGENCY_STOP: 503,
+  MAIL_UNSUBSCRIBE_NOT_CONFIGURED: 503,
+  MAIL_APPROVAL_EXPIRED: 409,
+  MAIL_INTEGRATION_UNAUTHORIZED: 401,
+  MAIL_INTEGRATION_FORBIDDEN_CONTENT: 422,
+  MAIL_RATE_LIMITED: 429,
+};
+
+const RETRYABLE = new Set(["MAIL_SCHEMA_NOT_READY", "MAIL_FEATURE_NOT_READY", "MAIL_STORAGE_UNAVAILABLE", "MAIL_PROVIDER_UNAVAILABLE", "MAIL_RATE_LIMITED"]);
+
+function mailError(code, details = {}, message) {
+  const status = details.status || DEFAULT_STATUS[code] || 400;
+  const { status: _ignored, ...rest } = details;
+  const error = new ApiError(status, message || DEFAULT_MESSAGES[code] || "Mail request failed", [
+    { code, retryable: RETRYABLE.has(code), ...rest },
+  ]);
+  return error;
+}
+
+function isMailError(error, code) {
+  return error instanceof ApiError && (!code || error.code === code);
+}
+
+module.exports = { mailError, isMailError, DEFAULT_MESSAGES };

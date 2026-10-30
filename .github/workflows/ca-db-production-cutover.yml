@@ -1,0 +1,208 @@
+name: CA DB production cutover (manual, production approval)
+
+# Moves ONLY the Centralize Admin production app (admin-server-app-1) from
+# `rtc_db` to `cosmicforge_admin` inside its own PostgreSQL container
+# (admin-server-db-1), using .github/scripts/ca-db-isolation-cutover.sh from
+# this exact commit, run as root on the Contabo VPS.
+#
+# The production job never runs on push. (A push to this file runs only the
+# `validate` job below: no environment, no secrets, no connection. GitHub
+# needs one such run to register a dispatch-only workflow that lives outside
+# the default branch.) Each production run is started by hand (workflow_dispatch) from
+# `staging`, uses the `production` environment (its protection rules and
+# required reviewers apply) and the existing production deploy credentials
+# (PROD_HOST / PROD_USER / PROD_PASSWORD).
+#
+#   mode=preflight  read-only: identities, effective settings, duplicate .env
+#                   keys (names + verdict), which database each app runs on.
+#   mode=cutover    --production-only: requires staging already verified on
+#                   cosmicforge_admin, and BOTH typed confirmations below.
+#                   Fresh verified backup, clone, verification, switch, auth
+#                   gate; automatic verified rollback on any failure.
+#
+# Refuses (changing nothing) when: PROD_HOST is not the Contabo VPS (pinned
+# SSH host key), the account is neither root nor allowed passwordless sudo,
+# another cutover holds the lock, or any gate in the script fails.
+# Staging is never changed by this workflow. Mail stays OFF.
+
+on:
+  push:
+    branches: [staging]
+    paths:
+      - .github/workflows/ca-db-production-cutover.yml
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: preflight (read-only) or cutover
+        type: choice
+        options: [preflight, cutover]
+        default: preflight
+      staging_login_ok:
+        description: "cutover only: type STAGING_LOGIN_OK after a REAL staging Admin login and dashboard check succeeded"
+        required: false
+        default: ''
+      cutover_production:
+        description: "cutover only: type CUTOVER_PRODUCTION to authorize the brief production app stop and switch"
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ca-db-production-cutover
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate (no secrets, no connection)
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Script syntax and checksum
+        run: |
+          bash -n .github/scripts/ca-db-isolation-cutover.sh
+          sha256sum .github/scripts/ca-db-isolation-cutover.sh
+
+  production:
+    name: Production ${{ inputs.mode }} (root script, pinned commit)
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: production
+    steps:
+      - name: Check the operator's typed confirmations
+        shell: bash
+        env:
+          MODE: ${{ inputs.mode }}
+          LOGIN_OK: ${{ inputs.staging_login_ok }}
+          CUTOVER: ${{ inputs.cutover_production }}
+        run: |
+          set -euo pipefail
+          if [[ "$MODE" == cutover ]]; then
+            [[ "$LOGIN_OK" == STAGING_LOGIN_OK && "$CUTOVER" == CUTOVER_PRODUCTION ]] || {
+              echo 'mode=cutover needs staging_login_ok=STAGING_LOGIN_OK and cutover_production=CUTOVER_PRODUCTION exactly. Nothing was started.'
+              exit 1; }
+          elif [[ -n "$LOGIN_OK$CUTOVER" ]]; then
+            echo 'Confirmations are only accepted with mode=cutover. Nothing was started.'; exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Pin the script and connect to the Contabo VPS
+        shell: bash
+        env:
+          PROD_HOST: ${{ secrets.PROD_HOST }}
+          PROD_USER: ${{ secrets.PROD_USER }}
+          SSHPASS: ${{ secrets.PROD_PASSWORD }}
+        run: |
+          set -euo pipefail
+          umask 077
+          script=.github/scripts/ca-db-isolation-cutover.sh
+          sha="$(sha256sum "$script" | cut -d' ' -f1)"
+          echo "SCRIPT_SHA256=$sha" >> "$GITHUB_ENV"
+          echo "cutover script sha256: $sha (commit $GITHUB_SHA)"
+          [[ -n "$PROD_HOST" && -n "$PROD_USER" && -n "$SSHPASS" ]] || { echo 'PROD_HOST, PROD_USER or PROD_PASSWORD is not set in the production environment.'; exit 1; }
+          command -v sshpass >/dev/null || { sudo apt-get update -qq >/dev/null; sudo apt-get install -y -qq sshpass >/dev/null; }
+          hosts="$RUNNER_TEMP/known_hosts"
+          ssh-keyscan -T 10 -t ed25519 "$PROD_HOST" 2>/dev/null > "$hosts" || true
+          test -s "$hosts" || { echo 'PROD_HOST did not answer an SSH host key scan.'; exit 1; }
+          fp="$(ssh-keygen -l -E sha256 -f "$hosts" | awk 'NR==1{print $2}')"
+          if [[ "$fp" != "SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ" ]]; then
+            echo 'BLOCKED: PROD_HOST is not the Contabo VPS that runs admin-server-app-1 (SSH host key differs). Nothing was changed.'
+            exit 1
+          fi
+          echo 'PROD_HOST is the Contabo VPS (pinned ed25519 host key matches).'
+          cat > "$RUNNER_TEMP/ssh" <<EOF
+          #!/usr/bin/env bash
+          exec sshpass -e ssh -T -o BatchMode=no -o PubkeyAuthentication=no -o PreferredAuthentications=password,keyboard-interactive \
+            -o NumberOfPasswordPrompts=1 -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$hosts" \
+            -o ServerAliveInterval=15 -o ServerAliveCountMax=8 -o ConnectTimeout=15 "$PROD_USER@$PROD_HOST" "\$@"
+          EOF
+          chmod 700 "$RUNNER_TEMP/ssh"
+          # Privilege: root, or passwordless sudo permitted by the server's own
+          # sudo policy. Nothing is installed or changed to obtain more.
+          priv="$("$RUNNER_TEMP/ssh" 'if [ "$(id -u)" -eq 0 ]; then echo root; elif sudo -n true 2>/dev/null; then echo sudo; else echo none; fi')"
+          echo "Remote privilege: $priv"
+          if [[ "$priv" == none ]]; then
+            echo 'BLOCKED: the production deploy account is neither root nor allowed passwordless sudo. The root script cannot run through GitHub with these credentials. Nothing was changed.'
+            exit 1
+          fi
+          echo "REMOTE_PRIV=$priv" >> "$GITHUB_ENV"
+          # Upload the pinned script into an owner-only directory and verify it.
+          "$RUNNER_TEMP/ssh" "umask 077; mkdir -p \"\$HOME/.ca-db-cutover\" && cat > \"\$HOME/.ca-db-cutover/cutover-$sha.sh\"" < "$script"
+          remote_sha="$("$RUNNER_TEMP/ssh" "sha256sum \"\$HOME/.ca-db-cutover/cutover-$sha.sh\"" | cut -d' ' -f1)"
+          [[ "$remote_sha" == "$sha" ]] || { echo 'Uploaded script checksum mismatch.'; exit 1; }
+          echo 'Pinned script uploaded and verified on the VPS.'
+
+      - name: Run on the VPS (detached; survives a dropped runner connection)
+        shell: bash
+        env:
+          MODE: ${{ inputs.mode }}
+          SSHPASS: ${{ secrets.PROD_PASSWORD }}
+        run: |
+          set -euo pipefail
+          ssh="$RUNNER_TEMP/ssh"
+          if [[ "$MODE" == cutover ]]; then
+            args='--production-only --confirm STAGING_LOGIN_OK --confirm CUTOVER_PRODUCTION'
+          else
+            args='--preflight'
+          fi
+          [[ "$REMOTE_PRIV" == root ]] && runner='bash' || runner='sudo -n bash'
+          run="$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          d="\$HOME/.ca-db-cutover"
+          # setsid + nohup: the cutover completes (or rolls back) on the server
+          # even if this runner's SSH session drops. Its own run.log stays in
+          # the root-only /var/backups/centralize-admin/cutover-*/ directory.
+          "$ssh" "cd $d && rm -f run-$run.rc && setsid nohup bash -c '$runner $d/cutover-$SCRIPT_SHA256.sh $args > $d/run-$run.out 2>&1; echo \$? > $d/run-$run.rc' < /dev/null > /dev/null 2>&1 & echo started"
+          shown=0
+          : > run.out
+          for _ in $(seq 1 330); do
+            sleep 10
+            "$ssh" "cat $d/run-$run.out 2>/dev/null" > run.new || continue
+            total="$(wc -l < run.new)"
+            if (( total > shown )); then tail -n +"$((shown + 1))" run.new; shown="$total"; fi
+            cp run.new run.out
+            rc="$("$ssh" "cat $d/run-$run.rc 2>/dev/null" || true)"
+            if [[ -n "$rc" ]]; then
+              echo "Remote script exit code: $rc"
+              echo "REMOTE_RC=$rc" >> "$GITHUB_ENV"
+              exit "$rc"
+            fi
+          done
+          echo 'Timed out waiting for the remote run; it continues on the server. Re-run mode=preflight to read the outcome.'
+          exit 1
+
+      - name: Summarise
+        if: always()
+        shell: bash
+        env:
+          MODE: ${{ inputs.mode }}
+        run: |
+          set -euo pipefail
+          test -s run.out || exit 0
+          {
+            echo "## CA DB production $MODE"
+            echo
+            echo "Commit \`$GITHUB_SHA\`, script sha256 \`${SCRIPT_SHA256:-}\`, remote exit code \`${REMOTE_RC:-unknown}\`."
+            echo
+            echo '```'
+            sed -n '/==================== SUMMARY ====================/,$p' run.out
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the sanitized output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ca-db-production-${{ inputs.mode }}
+          path: run.out
+          if-no-files-found: ignore
+          retention-days: 90

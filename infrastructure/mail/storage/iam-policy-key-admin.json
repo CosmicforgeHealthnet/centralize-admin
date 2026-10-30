@@ -1,0 +1,17 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "GenerateWrappedMailDataKeys",
+      "Effect": "Allow",
+      "Action": ["kms:GenerateDataKey"],
+      "Resource": "${MAIL_KMS_KEY_ARN}",
+      "Condition": {
+        "StringEquals": {
+          "kms:EncryptionContext:purpose": "cosmicforge-mail-keyring",
+          "kms:EncryptionContext:environment": "${ENVIRONMENT}"
+        }
+      }
+    }
+  ]
+}

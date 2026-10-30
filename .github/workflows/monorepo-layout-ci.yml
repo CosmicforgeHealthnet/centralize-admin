@@ -1,0 +1,29 @@
+name: Monorepo Layout and Container CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, staging]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  layout:
+    name: Verify active apps, services and package boundaries
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate canonical monorepo paths
+        run: node infrastructure/scripts/check-layout.mjs
+  backend-container:
+    name: Build backend compatibility image (no push/deploy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate root Docker build after service move
+        run: docker build --tag central-admin-api:monorepo-ci .

@@ -1,0 +1,231 @@
+{
+  "generatedBy": "throwaway Go program using cosmicforge/logistics/shared/go/serviceauth.SignRequest and shared/go/notifications.Request (KarryGo working tree, unmodified)",
+  "goVersion": "go1.26.3",
+  "path": "/api/mail/v1/integrations/v1/events",
+  "vectors": [
+    {
+      "name": "cross_language_vector",
+      "description": "Shared vector also asserted in hqmail_test.go and mail-m8-unit.test.js",
+      "method": "POST",
+      "requestUri": "/api/mail/v1/integrations/v1/events",
+      "serviceName": "karryam-notification-service",
+      "secret": "vector-secret-0123456789",
+      "timestamp": "1761350400",
+      "bodyBase64": "eyJjb250cmFjdFZlcnNpb24iOjF9",
+      "body": "{\"contractVersion\":1}",
+      "headers": {
+        "X-Service-Name": "karryam-notification-service",
+        "X-Service-Signature": "f2d6ea185346e6460abaf673214319f2b29e6a00f0c1e4593aaa3168c68e7f27",
+        "X-Service-Timestamp": "1761350400"
+      }
+    },
+    {
+      "name": "compat_booking_completed",
+      "description": "notifications.Request as BookingNotifier builds booking.completed, plus Recipient.Email",
+      "method": "POST",
+      "requestUri": "/api/mail/v1/integrations/v1/events",
+      "serviceName": "karryam-notification-service",
+      "secret": "karryam-contract-fixture-secret-0123456789",
+      "timestamp": "1761350400",
+      "bodyBase64": "eyJpZGVtcG90ZW5jeV9rZXkiOiJkcml2ZXItaGF1bGluZy1zZXJ2aWNlOmJvb2tpbmcuY29tcGxldGVkOjZmMWMyZDNlLTRiNWEtNGM2ZC04ZTdmLTkwMTIzNDU2Nzg5MCIsInNvdXJjZV9zZXJ2aWNlIjoiZHJpdmVyLWhhdWxpbmctc2VydmljZSIsImV2ZW50X3R5cGUiOiJib29raW5nLmNvbXBsZXRlZCIsInJlY2lwaWVudCI6eyJ0eXBlIjoiY3VzdG9tZXIiLCJpZCI6ImMwZmZlZTAwLTExMTEtNDIyMi04MzMzLTQ0NDQ1NTU1NjY2NiIsImVtYWlsIjoicmlkZXJAZXhhbXBsZS5jb20ifSwidGVtcGxhdGVfa2V5IjoiYm9va2luZy5jb21wbGV0ZWQiLCJkYXRhIjp7ImJvb2tpbmdfaWQiOiI2ZjFjMmQzZS00YjVhLTRjNmQtOGU3Zi05MDEyMzQ1Njc4OTAifSwidGVtcGxhdGVfZGF0YSI6eyJib29raW5nX2lkIjoiNmYxYzJkM2UtNGI1YS00YzZkLThlN2YtOTAxMjM0NTY3ODkwIn19",
+      "body": "{\"idempotency_key\":\"driver-hauling-service:booking.completed:6f1c2d3e-4b5a-4c6d-8e7f-901234567890\",\"source_service\":\"driver-hauling-service\",\"event_type\":\"booking.completed\",\"recipient\":{\"type\":\"customer\",\"id\":\"c0ffee00-1111-4222-8333-444455556666\",\"email\":\"rider@example.com\"},\"template_key\":\"booking.completed\",\"data\":{\"booking_id\":\"6f1c2d3e-4b5a-4c6d-8e7f-901234567890\"},\"template_data\":{\"booking_id\":\"6f1c2d3e-4b5a-4c6d-8e7f-901234567890\"}}",
+      "headers": {
+        "X-Service-Name": "karryam-notification-service",
+        "X-Service-Signature": "a505953d769e01d32b610093e9e2f4e3b6fc9cd9b58b9baf1b7d75905646e2a1",
+        "X-Service-Timestamp": "1761350400"
+      }
+    },
+    {
+      "name": "compat_booking_completed_retry",
+      "description": "Byte-identical retry of compat_booking_completed signed 5s later",
+      "method": "POST",
+      "requestUri": "/api/mail/v1/integrations/v1/events",
+      "serviceName": "karryam-notification-service",
+      "secret": "karryam-contract-fixture-secret-0123456789",
+      "timestamp": "1761350405",
+      "bodyBase64": "eyJpZGVtcG90ZW5jeV9rZXkiOiJkcml2ZXItaGF1bGluZy1zZXJ2aWNlOmJvb2tpbmcuY29tcGxldGVkOjZmMWMyZDNlLTRiNWEtNGM2ZC04ZTdmLTkwMTIzNDU2Nzg5MCIsInNvdXJjZV9zZXJ2aWNlIjoiZHJpdmVyLWhhdWxpbmctc2VydmljZSIsImV2ZW50X3R5cGUiOiJib29raW5nLmNvbXBsZXRlZCIsInJlY2lwaWVudCI6eyJ0eXBlIjoiY3VzdG9tZXIiLCJpZCI6ImMwZmZlZTAwLTExMTEtNDIyMi04MzMzLTQ0NDQ1NTU1NjY2NiIsImVtYWlsIjoicmlkZXJAZXhhbXBsZS5jb20ifSwidGVtcGxhdGVfa2V5IjoiYm9va2luZy5jb21wbGV0ZWQiLCJkYXRhIjp7ImJvb2tpbmdfaWQiOiI2ZjFjMmQzZS00YjVhLTRjNmQtOGU3Zi05MDEyMzQ1Njc4OTAifSwidGVtcGxhdGVfZGF0YSI6eyJib29raW5nX2lkIjoiNmYxYzJkM2UtNGI1YS00YzZkLThlN2YtOTAxMjM0NTY3ODkwIn19",
+      "body": "{\"idempotency_key\":\"driver-hauling-service:booking.completed:6f1c2d3e-4b5a-4c6d-8e7f-901234567890\",\"source_service\":\"driver-hauling-service\",\"event_type\":\"booking.completed\",\"recipient\":{\"type\":\"customer\",\"id\":\"c0ffee00-1111-4222-8333-444455556666\",\"email\":\"rider@example.com\"},\"template_key\":\"booking.completed\",\"data\":{\"booking_id\":\"6f1c2d3e-4b5a-4c6d-8e7f-901234567890\"},\"template_data\":{\"booking_id\":\"6f1c2d3e-4b5a-4c6d-8e7f-901234567890\"}}",
+      "headers": {
+        "X-Service-Name": "karryam-notification-service",
+        "X-Service-Signature": "fb10a904c1423270725b6c90db21ac6753a595559df8db9e01f3f6ee702bfd00",
+        "X-Service-Timestamp": "1761350405"
+      }
+    },
+    {
+      "name": "compat_booking_completed_current_producer",
+      "description": "Exactly what driver-hauling-service sends today (no Recipient.Email)",
+      "method": "POST",
+      "requestUri": "/api/mail/v1/integrations/v1/events",
+      "serviceName": "karryam-notification-service",
+      "secret": "karryam-contract-fixture-secret-0123456789",
+      "timestamp": "1761350400",
+      "bodyBase64": "eyJpZGVtcG90ZW5jeV9rZXkiOiJkcml2ZXItaGF1bGluZy1zZXJ2aWNlOmJvb2tpbmcuY29tcGxldGVkOjZmMWMyZDNlLTRiNWEtNGM2ZC04ZTdmLTkwMTIzNDU2Nzg5MCIsInNvdXJjZV9zZXJ2aWNlIjoiZHJpdmVyLWhhdWxpbmctc2VydmljZSIsImV2ZW50X3R5cGUiOiJib29raW5nLmNvbXBsZXRlZCIsInJlY2lwaWVudCI6eyJ0eXBlIjoiY3VzdG9tZXIiLCJpZCI6ImMwZmZlZTAwLTExMTEtNDIyMi04MzMzLTQ0NDQ1NTU1NjY2NiJ9LCJ0ZW1wbGF0ZV9rZXkiOiJib29raW5nLmNvbXBsZXRlZCIsImRhdGEiOnsiYm9va2luZ19pZCI6IjZmMWMyZDNlLTRiNWEtNGM2ZC04ZTdmLTkwMTIzNDU2Nzg5MCJ9LCJ0ZW1wbGF0ZV9kYXRhIjp7ImJvb2tpbmdfaWQiOiI2ZjFjMmQzZS00YjVhLTRjNmQtOGU3Zi05MDEyMzQ1Njc4OTAifX0=",
+      "body": "{\"idempotency_key\":\"driver-hauling-service:booking.completed:6f1c2d3e-4b5a-4c6d-8e7f-901234567890\",\"source_service\":\"driver-hauling-service\",\"event_type\":\"booking.completed\",\"recipient\":{\"type\":\"customer\",\"id\":\"c0ffee00-1111-4222-8333-444455556666\"},\"template_key\":\"booking.completed\",\"data\":{\"booking_id\":\"6f1c2d3e-4b5a-4c6d-8e7f-901234567890\"},\"template_data\":{\"booking_id\":\"6f1c2d3e-4b5a-4c6d-8e7f-901234567890\"}}",
+      "headers": {
+        "X-Service-Name": "karryam-notification-service",
+        "X-Service-Signature": "47765bc8048841b59acf9015b691002183d86041aa655051821da14c4db85184",
+        "X-Service-Timestamp": "1761350400"
+      }
+    },
+    {
+      "name": "compat_customer_auth_otp",
+      "description": "customer-service NotificationEmailOTPSender request (title/body carry the OTP)",
+      "method": "POST",
+      "requestUri": "/api/mail/v1/integrations/v1/events",
+      "serviceName": "karryam-notification-service",
+      "secret": "karryam-contract-fixture-secret-0123456789",
+      "timestamp": "1761350400",
+      "bodyBase64": "eyJpZGVtcG90ZW5jeV9rZXkiOiJjdXN0b21lci1zZXJ2aWNlOmF1dGgtb3RwOnJpZGVyQGV4YW1wbGUuY29tOjE3NjEzNTA0MDAwMDAwMDAwMDAiLCJzb3VyY2Vfc2VydmljZSI6ImN1c3RvbWVyLXNlcnZpY2UiLCJldmVudF90eXBlIjoiY3VzdG9tZXIuYXV0aC5vdHAiLCJyZWNpcGllbnQiOnsidHlwZSI6ImN1c3RvbWVyIiwiaWQiOiJyaWRlckBleGFtcGxlLmNvbSIsImVtYWlsIjoicmlkZXJAZXhhbXBsZS5jb20ifSwiY2hhbm5lbHMiOlsiZW1haWwiXSwidGl0bGUiOiJZb3VyIENvc21pY2ZvcmdlIExvZ2lzdGljcyB2ZXJpZmljYXRpb24gY29kZSIsImJvZHkiOiJZb3VyIHZlcmlmaWNhdGlvbiBjb2RlIGlzIDEyMzQ1Ni4gSXQgZXhwaXJlcyBzaG9ydGx5LiIsInByaW9yaXR5IjoiaGlnaCJ9",
+      "body": "{\"idempotency_key\":\"customer-service:auth-otp:rider@example.com:1761350400000000000\",\"source_service\":\"customer-service\",\"event_type\":\"customer.auth.otp\",\"recipient\":{\"type\":\"customer\",\"id\":\"rider@example.com\",\"email\":\"rider@example.com\"},\"channels\":[\"email\"],\"title\":\"Your Cosmicforge Logistics verification code\",\"body\":\"Your verification code is 123456. It expires shortly.\",\"priority\":\"high\"}",
+      "headers": {
+        "X-Service-Name": "karryam-notification-service",
+        "X-Service-Signature": "32656b9aedf9a62721598d37910e0919909fd627f1b2a722883e5cd417936257",
+        "X-Service-Timestamp": "1761350400"
+      }
+    },
+    {
+      "name": "compat_booking_accepted",
+      "description": "Real Karryam event type with no HQ mapping",
+      "method": "POST",
+      "requestUri": "/api/mail/v1/integrations/v1/events",
+      "serviceName": "karryam-notification-service",
+      "secret": "karryam-contract-fixture-secret-0123456789",
+      "timestamp": "1761350400",
+      "bodyBase64": "eyJpZGVtcG90ZW5jeV9rZXkiOiJkcml2ZXItaGF1bGluZy1zZXJ2aWNlOmJvb2tpbmcuYWNjZXB0ZWQ6NmYxYzJkM2UtNGI1YS00YzZkLThlN2YtOTAxMjM0NTY3ODkwIiwic291cmNlX3NlcnZpY2UiOiJkcml2ZXItaGF1bGluZy1zZXJ2aWNlIiwiZXZlbnRfdHlwZSI6ImJvb2tpbmcuYWNjZXB0ZWQiLCJyZWNpcGllbnQiOnsidHlwZSI6ImN1c3RvbWVyIiwiaWQiOiJjMGZmZWUwMC0xMTExLTQyMjItODMzMy00NDQ0NTU1NTY2NjYiLCJlbWFpbCI6InJpZGVyQGV4YW1wbGUuY29tIn0sInRlbXBsYXRlX2tleSI6ImJvb2tpbmcuYWNjZXB0ZWQiLCJkYXRhIjp7ImJvb2tpbmdfaWQiOiI2ZjFjMmQzZS00YjVhLTRjNmQtOGU3Zi05MDEyMzQ1Njc4OTAifSwidGVtcGxhdGVfZGF0YSI6eyJib29raW5nX2lkIjoiNmYxYzJkM2UtNGI1YS00YzZkLThlN2YtOTAxMjM0NTY3ODkwIn19",
+      "body": "{\"idempotency_key\":\"driver-hauling-service:booking.accepted:6f1c2d3e-4b5a-4c6d-8e7f-901234567890\",\"source_service\":\"driver-hauling-service\",\"event_type\":\"booking.accepted\",\"recipient\":{\"type\":\"customer\",\"id\":\"c0ffee00-1111-4222-8333-444455556666\",\"email\":\"rider@example.com\"},\"template_key\":\"booking.accepted\",\"data\":{\"booking_id\":\"6f1c2d3e-4b5a-4c6d-8e7f-901234567890\"},\"template_data\":{\"booking_id\":\"6f1c2d3e-4b5a-4c6d-8e7f-901234567890\"}}",
+      "headers": {
+        "X-Service-Name": "karryam-notification-service",
+        "X-Service-Signature": "095730defe6606ab3a7482de3dc01719d8cec12c84c25bd73c4690607a5457ff",
+        "X-Service-Timestamp": "1761350400"
+      }
+    },
+    {
+      "name": "compat_staff_sender_spoof",
+      "description": "Request with an extra from field naming a staff address",
+      "method": "POST",
+      "requestUri": "/api/mail/v1/integrations/v1/events",
+      "serviceName": "karryam-notification-service",
+      "secret": "karryam-contract-fixture-secret-0123456789",
+      "timestamp": "1761350400",
+      "bodyBase64": "eyJpZGVtcG90ZW5jeV9rZXkiOiJkcml2ZXItaGF1bGluZy1zZXJ2aWNlOmJvb2tpbmcuY29tcGxldGVkOnNwb29mLTZmMWMyZDNlLTRiNWEtNGM2ZC04ZTdmLTkwMTIzNDU2Nzg5MCIsInNvdXJjZV9zZXJ2aWNlIjoiZHJpdmVyLWhhdWxpbmctc2VydmljZSIsImV2ZW50X3R5cGUiOiJib29raW5nLmNvbXBsZXRlZCIsInJlY2lwaWVudCI6eyJ0eXBlIjoiY3VzdG9tZXIiLCJpZCI6ImMwZmZlZTAwLTExMTEtNDIyMi04MzMzLTQ0NDQ1NTU1NjY2NiIsImVtYWlsIjoicmlkZXJAZXhhbXBsZS5jb20ifSwidGVtcGxhdGVfa2V5IjoiYm9va2luZy5jb21wbGV0ZWQiLCJkYXRhIjp7ImJvb2tpbmdfaWQiOiI2ZjFjMmQzZS00YjVhLTRjNmQtOGU3Zi05MDEyMzQ1Njc4OTAifSwidGVtcGxhdGVfZGF0YSI6eyJib29raW5nX2lkIjoiNmYxYzJkM2UtNGI1YS00YzZkLThlN2YtOTAxMjM0NTY3ODkwIn0sImZyb20iOiJrZy5vd25lckBrYXJyeWFtLmV4YW1wbGUifQ==",
+      "body": "{\"idempotency_key\":\"driver-hauling-service:booking.completed:spoof-6f1c2d3e-4b5a-4c6d-8e7f-901234567890\",\"source_service\":\"driver-hauling-service\",\"event_type\":\"booking.completed\",\"recipient\":{\"type\":\"customer\",\"id\":\"c0ffee00-1111-4222-8333-444455556666\",\"email\":\"rider@example.com\"},\"template_key\":\"booking.completed\",\"data\":{\"booking_id\":\"6f1c2d3e-4b5a-4c6d-8e7f-901234567890\"},\"template_data\":{\"booking_id\":\"6f1c2d3e-4b5a-4c6d-8e7f-901234567890\"},\"from\":\"kg.owner@karryam.example\"}",
+      "headers": {
+        "X-Service-Name": "karryam-notification-service",
+        "X-Service-Signature": "33214ed2d3530f577e56c9f6ee1f303206621bd43104dd90dd5dbbc40eff703b",
+        "X-Service-Timestamp": "1761350400"
+      }
+    },
+    {
+      "name": "compat_recipient_phone",
+      "description": "Request carrying Recipient.Phone",
+      "method": "POST",
+      "requestUri": "/api/mail/v1/integrations/v1/events",
+      "serviceName": "karryam-notification-service",
+      "secret": "karryam-contract-fixture-secret-0123456789",
+      "timestamp": "1761350400",
+      "bodyBase64": "eyJpZGVtcG90ZW5jeV9rZXkiOiJkcml2ZXItaGF1bGluZy1zZXJ2aWNlOmJvb2tpbmcuY29tcGxldGVkOnBob25lLTZmMWMyZDNlLTRiNWEtNGM2ZC04ZTdmLTkwMTIzNDU2Nzg5MCIsInNvdXJjZV9zZXJ2aWNlIjoiZHJpdmVyLWhhdWxpbmctc2VydmljZSIsImV2ZW50X3R5cGUiOiJib29raW5nLmNvbXBsZXRlZCIsInJlY2lwaWVudCI6eyJ0eXBlIjoiY3VzdG9tZXIiLCJpZCI6ImMwZmZlZTAwLTExMTEtNDIyMi04MzMzLTQ0NDQ1NTU1NjY2NiIsImVtYWlsIjoicmlkZXJAZXhhbXBsZS5jb20iLCJwaG9uZSI6IisyMzQ4MDExMTExMDAxIn0sInRlbXBsYXRlX2tleSI6ImJvb2tpbmcuY29tcGxldGVkIiwiZGF0YSI6eyJib29raW5nX2lkIjoiNmYxYzJkM2UtNGI1YS00YzZkLThlN2YtOTAxMjM0NTY3ODkwIn0sInRlbXBsYXRlX2RhdGEiOnsiYm9va2luZ19pZCI6IjZmMWMyZDNlLTRiNWEtNGM2ZC04ZTdmLTkwMTIzNDU2Nzg5MCJ9fQ==",
+      "body": "{\"idempotency_key\":\"driver-hauling-service:booking.completed:phone-6f1c2d3e-4b5a-4c6d-8e7f-901234567890\",\"source_service\":\"driver-hauling-service\",\"event_type\":\"booking.completed\",\"recipient\":{\"type\":\"customer\",\"id\":\"c0ffee00-1111-4222-8333-444455556666\",\"email\":\"rider@example.com\",\"phone\":\"+2348011111001\"},\"template_key\":\"booking.completed\",\"data\":{\"booking_id\":\"6f1c2d3e-4b5a-4c6d-8e7f-901234567890\"},\"template_data\":{\"booking_id\":\"6f1c2d3e-4b5a-4c6d-8e7f-901234567890\"}}",
+      "headers": {
+        "X-Service-Name": "karryam-notification-service",
+        "X-Service-Signature": "7ae91ed0377600ab72cd9cba8d66e77e853855af40b8791c5b3ce1c2c41803d1",
+        "X-Service-Timestamp": "1761350400"
+      }
+    },
+    {
+      "name": "compat_wrong_service",
+      "description": "compat_booking_completed signed as a Karryam service that is not registered in HQ",
+      "method": "POST",
+      "requestUri": "/api/mail/v1/integrations/v1/events",
+      "serviceName": "driver-hauling-service",
+      "secret": "karryam-contract-fixture-secret-0123456789",
+      "timestamp": "1761350400",
+      "bodyBase64": "eyJpZGVtcG90ZW5jeV9rZXkiOiJkcml2ZXItaGF1bGluZy1zZXJ2aWNlOmJvb2tpbmcuY29tcGxldGVkOjZmMWMyZDNlLTRiNWEtNGM2ZC04ZTdmLTkwMTIzNDU2Nzg5MCIsInNvdXJjZV9zZXJ2aWNlIjoiZHJpdmVyLWhhdWxpbmctc2VydmljZSIsImV2ZW50X3R5cGUiOiJib29raW5nLmNvbXBsZXRlZCIsInJlY2lwaWVudCI6eyJ0eXBlIjoiY3VzdG9tZXIiLCJpZCI6ImMwZmZlZTAwLTExMTEtNDIyMi04MzMzLTQ0NDQ1NTU1NjY2NiIsImVtYWlsIjoicmlkZXJAZXhhbXBsZS5jb20ifSwidGVtcGxhdGVfa2V5IjoiYm9va2luZy5jb21wbGV0ZWQiLCJkYXRhIjp7ImJvb2tpbmdfaWQiOiI2ZjFjMmQzZS00YjVhLTRjNmQtOGU3Zi05MDEyMzQ1Njc4OTAifSwidGVtcGxhdGVfZGF0YSI6eyJib29raW5nX2lkIjoiNmYxYzJkM2UtNGI1YS00YzZkLThlN2YtOTAxMjM0NTY3ODkwIn19",
+      "body": "{\"idempotency_key\":\"driver-hauling-service:booking.completed:6f1c2d3e-4b5a-4c6d-8e7f-901234567890\",\"source_service\":\"driver-hauling-service\",\"event_type\":\"booking.completed\",\"recipient\":{\"type\":\"customer\",\"id\":\"c0ffee00-1111-4222-8333-444455556666\",\"email\":\"rider@example.com\"},\"template_key\":\"booking.completed\",\"data\":{\"booking_id\":\"6f1c2d3e-4b5a-4c6d-8e7f-901234567890\"},\"template_data\":{\"booking_id\":\"6f1c2d3e-4b5a-4c6d-8e7f-901234567890\"}}",
+      "headers": {
+        "X-Service-Name": "driver-hauling-service",
+        "X-Service-Signature": "a505953d769e01d32b610093e9e2f4e3b6fc9cd9b58b9baf1b7d75905646e2a1",
+        "X-Service-Timestamp": "1761350400"
+      }
+    },
+    {
+      "name": "canonical_trigger",
+      "description": "Contract v1 marketing.trigger with idempotencyKey; occurredAt is time.Time (RFC3339Nano)",
+      "method": "POST",
+      "requestUri": "/api/mail/v1/integrations/v1/events",
+      "serviceName": "karryam-notification-service",
+      "secret": "karryam-contract-fixture-secret-0123456789",
+      "timestamp": "1761350400",
+      "bodyBase64": "eyJjb250cmFjdFZlcnNpb24iOjEsInByb2R1Y3QiOiJrYXJyeWFtIiwib3JnYW5pemF0aW9uIjoia2FycnlhbSIsImV2ZW50SWQiOiJrZy1ldnQtMDAwMSIsImV2ZW50VHlwZSI6Im1hcmtldGluZy50cmlnZ2VyIiwiZXZlbnRWZXJzaW9uIjoxLCJjb3JyZWxhdGlvbklkIjoiNmYxYzJkM2UtNGI1YS00YzZkLThlN2YtOTAxMjM0NTY3ODkwIiwiaWRlbXBvdGVuY3lLZXkiOiJkcml2ZXItaGF1bGluZy1zZXJ2aWNlOmJvb2tpbmcuY29tcGxldGVkOjZmMWMyZDNlLTRiNWEtNGM2ZC04ZTdmLTkwMTIzNDU2Nzg5MCIsIm9jY3VycmVkQXQiOiIyMDI1LTEwLTI0VDIzOjU5OjU4LjEyMzQ1Njc4OVoiLCJkYXRhIjp7InRyaWdnZXJUeXBlIjoia2FycnlhbS5ib29raW5nLmNvbXBsZXRlZCIsInRyaWdnZXJWZXJzaW9uIjoxLCJjb250YWN0RW1haWwiOiJyaWRlckBleGFtcGxlLmNvbSIsImF0dHJpYnV0ZXMiOnsiY2l0eSI6IkxhZ29zIiwic2VydmljZSI6ImhhdWxpbmcifX19",
+      "body": "{\"contractVersion\":1,\"product\":\"karryam\",\"organization\":\"karryam\",\"eventId\":\"kg-evt-0001\",\"eventType\":\"marketing.trigger\",\"eventVersion\":1,\"correlationId\":\"6f1c2d3e-4b5a-4c6d-8e7f-901234567890\",\"idempotencyKey\":\"driver-hauling-service:booking.completed:6f1c2d3e-4b5a-4c6d-8e7f-901234567890\",\"occurredAt\":\"2025-10-24T23:59:58.123456789Z\",\"data\":{\"triggerType\":\"karryam.booking.completed\",\"triggerVersion\":1,\"contactEmail\":\"rider@example.com\",\"attributes\":{\"city\":\"Lagos\",\"service\":\"hauling\"}}}",
+      "headers": {
+        "X-Service-Name": "karryam-notification-service",
+        "X-Service-Signature": "e2ea9d9c585a1a6a82109d102ddacc77aae250d0010634c42750a31137a299b3",
+        "X-Service-Timestamp": "1761350400"
+      }
+    },
+    {
+      "name": "canonical_trigger_retry_new_event_id",
+      "description": "Same idempotencyKey and data, fresh eventId",
+      "method": "POST",
+      "requestUri": "/api/mail/v1/integrations/v1/events",
+      "serviceName": "karryam-notification-service",
+      "secret": "karryam-contract-fixture-secret-0123456789",
+      "timestamp": "1761350400",
+      "bodyBase64": "eyJjb250cmFjdFZlcnNpb24iOjEsInByb2R1Y3QiOiJrYXJyeWFtIiwib3JnYW5pemF0aW9uIjoia2FycnlhbSIsImV2ZW50SWQiOiJrZy1ldnQtMDAwMiIsImV2ZW50VHlwZSI6Im1hcmtldGluZy50cmlnZ2VyIiwiZXZlbnRWZXJzaW9uIjoxLCJjb3JyZWxhdGlvbklkIjoiNmYxYzJkM2UtNGI1YS00YzZkLThlN2YtOTAxMjM0NTY3ODkwIiwiaWRlbXBvdGVuY3lLZXkiOiJkcml2ZXItaGF1bGluZy1zZXJ2aWNlOmJvb2tpbmcuY29tcGxldGVkOjZmMWMyZDNlLTRiNWEtNGM2ZC04ZTdmLTkwMTIzNDU2Nzg5MCIsIm9jY3VycmVkQXQiOiIyMDI1LTEwLTI0VDIzOjU5OjU4LjEyMzQ1Njc4OVoiLCJkYXRhIjp7InRyaWdnZXJUeXBlIjoia2FycnlhbS5ib29raW5nLmNvbXBsZXRlZCIsInRyaWdnZXJWZXJzaW9uIjoxLCJjb250YWN0RW1haWwiOiJyaWRlckBleGFtcGxlLmNvbSIsImF0dHJpYnV0ZXMiOnsiY2l0eSI6IkxhZ29zIiwic2VydmljZSI6ImhhdWxpbmcifX19",
+      "body": "{\"contractVersion\":1,\"product\":\"karryam\",\"organization\":\"karryam\",\"eventId\":\"kg-evt-0002\",\"eventType\":\"marketing.trigger\",\"eventVersion\":1,\"correlationId\":\"6f1c2d3e-4b5a-4c6d-8e7f-901234567890\",\"idempotencyKey\":\"driver-hauling-service:booking.completed:6f1c2d3e-4b5a-4c6d-8e7f-901234567890\",\"occurredAt\":\"2025-10-24T23:59:58.123456789Z\",\"data\":{\"triggerType\":\"karryam.booking.completed\",\"triggerVersion\":1,\"contactEmail\":\"rider@example.com\",\"attributes\":{\"city\":\"Lagos\",\"service\":\"hauling\"}}}",
+      "headers": {
+        "X-Service-Name": "karryam-notification-service",
+        "X-Service-Signature": "0502a09f13d8fad95b4f0fe850e06ef1378ddf7e6628ec8614f75385482e21c3",
+        "X-Service-Timestamp": "1761350400"
+      }
+    },
+    {
+      "name": "canonical_trigger_idempotency_conflict",
+      "description": "Same idempotencyKey, different data, fresh eventId",
+      "method": "POST",
+      "requestUri": "/api/mail/v1/integrations/v1/events",
+      "serviceName": "karryam-notification-service",
+      "secret": "karryam-contract-fixture-secret-0123456789",
+      "timestamp": "1761350400",
+      "bodyBase64": "eyJjb250cmFjdFZlcnNpb24iOjEsInByb2R1Y3QiOiJrYXJyeWFtIiwib3JnYW5pemF0aW9uIjoia2FycnlhbSIsImV2ZW50SWQiOiJrZy1ldnQtMDAwMyIsImV2ZW50VHlwZSI6Im1hcmtldGluZy50cmlnZ2VyIiwiZXZlbnRWZXJzaW9uIjoxLCJjb3JyZWxhdGlvbklkIjoiNmYxYzJkM2UtNGI1YS00YzZkLThlN2YtOTAxMjM0NTY3ODkwIiwiaWRlbXBvdGVuY3lLZXkiOiJkcml2ZXItaGF1bGluZy1zZXJ2aWNlOmJvb2tpbmcuY29tcGxldGVkOjZmMWMyZDNlLTRiNWEtNGM2ZC04ZTdmLTkwMTIzNDU2Nzg5MCIsIm9jY3VycmVkQXQiOiIyMDI1LTEwLTI0VDIzOjU5OjU4LjEyMzQ1Njc4OVoiLCJkYXRhIjp7InRyaWdnZXJUeXBlIjoia2FycnlhbS5ib29raW5nLmNvbXBsZXRlZCIsInRyaWdnZXJWZXJzaW9uIjoxLCJjb250YWN0RW1haWwiOiJyaWRlckBleGFtcGxlLmNvbSIsImF0dHJpYnV0ZXMiOnsic2VydmljZSI6InRheGkifX19",
+      "body": "{\"contractVersion\":1,\"product\":\"karryam\",\"organization\":\"karryam\",\"eventId\":\"kg-evt-0003\",\"eventType\":\"marketing.trigger\",\"eventVersion\":1,\"correlationId\":\"6f1c2d3e-4b5a-4c6d-8e7f-901234567890\",\"idempotencyKey\":\"driver-hauling-service:booking.completed:6f1c2d3e-4b5a-4c6d-8e7f-901234567890\",\"occurredAt\":\"2025-10-24T23:59:58.123456789Z\",\"data\":{\"triggerType\":\"karryam.booking.completed\",\"triggerVersion\":1,\"contactEmail\":\"rider@example.com\",\"attributes\":{\"service\":\"taxi\"}}}",
+      "headers": {
+        "X-Service-Name": "karryam-notification-service",
+        "X-Service-Signature": "3c62a8f782f0513ff85dcc5e2fc005ee8147d8f818fc463355f41fb6404324bf",
+        "X-Service-Timestamp": "1761350400"
+      }
+    },
+    {
+      "name": "canonical_delivery",
+      "description": "Contract v1 mail.delivery_status from an authorised brand system sender",
+      "method": "POST",
+      "requestUri": "/api/mail/v1/integrations/v1/events",
+      "serviceName": "karryam-notification-service",
+      "secret": "karryam-contract-fixture-secret-0123456789",
+      "timestamp": "1761350400",
+      "bodyBase64": "eyJjb250cmFjdFZlcnNpb24iOjEsInByb2R1Y3QiOiJrYXJyeWFtIiwib3JnYW5pemF0aW9uIjoia2FycnlhbSIsImV2ZW50SWQiOiJrZy1kbHYtMDAwMSIsImV2ZW50VHlwZSI6Im1haWwuZGVsaXZlcnlfc3RhdHVzIiwiZXZlbnRWZXJzaW9uIjoxLCJvY2N1cnJlZEF0IjoiMjAyNS0xMC0yNFQyMzo1OTo1OC4xMjM0NTY3ODlaIiwiZGF0YSI6eyJwcm9kdWN0TWVzc2FnZUlkIjoiOGE2YjBjMWQtMmUzZi00YTViLTljNmQtN2U4ZjkwYTFiMmMzIiwicHJvdmlkZXIiOiJzbXRwIiwicHJvdmlkZXJNZXNzYWdlSWQiOiJzbXRwIiwic2VuZGVyIjoibm9yZXBseUBrYXJyeWFtLmV4YW1wbGUiLCJyZWNpcGllbnQiOiJyaWRlckBleGFtcGxlLmNvbSIsInN0YXR1cyI6IkRFTElWRVJFRCIsImNhdGVnb3J5IjoiYm9va2luZy5jb21wbGV0ZWQifX0=",
+      "body": "{\"contractVersion\":1,\"product\":\"karryam\",\"organization\":\"karryam\",\"eventId\":\"kg-dlv-0001\",\"eventType\":\"mail.delivery_status\",\"eventVersion\":1,\"occurredAt\":\"2025-10-24T23:59:58.123456789Z\",\"data\":{\"productMessageId\":\"8a6b0c1d-2e3f-4a5b-9c6d-7e8f90a1b2c3\",\"provider\":\"smtp\",\"providerMessageId\":\"smtp\",\"sender\":\"noreply@karryam.example\",\"recipient\":\"rider@example.com\",\"status\":\"DELIVERED\",\"category\":\"booking.completed\"}}",
+      "headers": {
+        "X-Service-Name": "karryam-notification-service",
+        "X-Service-Signature": "36a46352f13f700c4bc27ef58fbaf6f6c7d6f6023675f30f4d6029431d0be995",
+        "X-Service-Timestamp": "1761350400"
+      }
+    },
+    {
+      "name": "canonical_delivery_staff_sender",
+      "description": "Contract v1 mail.delivery_status naming a staff (personal) address as sender",
+      "method": "POST",
+      "requestUri": "/api/mail/v1/integrations/v1/events",
+      "serviceName": "karryam-notification-service",
+      "secret": "karryam-contract-fixture-secret-0123456789",
+      "timestamp": "1761350400",
+      "bodyBase64": "eyJjb250cmFjdFZlcnNpb24iOjEsInByb2R1Y3QiOiJrYXJyeWFtIiwib3JnYW5pemF0aW9uIjoia2FycnlhbSIsImV2ZW50SWQiOiJrZy1kbHYtMDAwMiIsImV2ZW50VHlwZSI6Im1haWwuZGVsaXZlcnlfc3RhdHVzIiwiZXZlbnRWZXJzaW9uIjoxLCJvY2N1cnJlZEF0IjoiMjAyNS0xMC0yNFQyMzo1OTo1OC4xMjM0NTY3ODlaIiwiZGF0YSI6eyJwcm9kdWN0TWVzc2FnZUlkIjoiOGE2YjBjMWQtMmUzZi00YTViLTljNmQtN2U4ZjkwYTFiMmM0IiwicHJvdmlkZXIiOiJzbXRwIiwic2VuZGVyIjoia2cub3duZXJAa2FycnlhbS5leGFtcGxlIiwicmVjaXBpZW50IjoicmlkZXJAZXhhbXBsZS5jb20iLCJzdGF0dXMiOiJERUxJVkVSRUQiLCJjYXRlZ29yeSI6ImJvb2tpbmcuY29tcGxldGVkIn19",
+      "body": "{\"contractVersion\":1,\"product\":\"karryam\",\"organization\":\"karryam\",\"eventId\":\"kg-dlv-0002\",\"eventType\":\"mail.delivery_status\",\"eventVersion\":1,\"occurredAt\":\"2025-10-24T23:59:58.123456789Z\",\"data\":{\"productMessageId\":\"8a6b0c1d-2e3f-4a5b-9c6d-7e8f90a1b2c4\",\"provider\":\"smtp\",\"sender\":\"kg.owner@karryam.example\",\"recipient\":\"rider@example.com\",\"status\":\"DELIVERED\",\"category\":\"booking.completed\"}}",
+      "headers": {
+        "X-Service-Name": "karryam-notification-service",
+        "X-Service-Signature": "6729e37f2fc3ad5747efe0bfa4fb574a8221d9a3cd2dc1c1359661c394560899",
+        "X-Service-Timestamp": "1761350400"
+      }
+    }
+  ]
+}

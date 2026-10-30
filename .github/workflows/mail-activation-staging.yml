@@ -1,0 +1,199 @@
+name: Staging Mail Inspection (existing staging environment)
+
+# Phase 1: READ-ONLY Mail inspection on the existing staging VPS.
+# Uses the ALREADY CONFIGURED "staging" GitHub environment and restricted
+# STAGING_SSH_KEY used by the successful staging API deployment workflow.
+# No extra environment or required reviewer is created. Nothing is migrated,
+# enabled, restarted, sent to Resend or written into the staging database.
+# A push that changes this workflow triggers ONE inspection automatically.
+# Future state-changing activation phases are not implemented here.
+
+on:
+  push:
+    branches: [staging]
+    paths:
+      - .github/workflows/mail-activation-staging.yml
+  workflow_dispatch:
+    inputs:
+      phase:
+        description: Activation phase (only the read-only inspection exists)
+        type: choice
+        options: [inspect]
+        default: inspect
+      confirm:
+        description: 'Type exactly: inspect staging read-only'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging-mail-activation
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    name: Check request (branch, phase, confirmation)
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Refuse anything but a confirmed inspection from staging
+        shell: bash
+        env:
+          REF: ${{ github.ref }}
+          EVENT: ${{ github.event_name }}
+          PHASE: ${{ inputs.phase }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+          [[ "$REF" == "refs/heads/staging" ]] || { echo "Run from the staging branch only."; exit 1; }
+          if [[ "$EVENT" == "workflow_dispatch" ]]; then
+            [[ "$PHASE" == "inspect" ]] || { echo "Only the read-only inspection phase exists."; exit 1; }
+            [[ "$CONFIRM" == "inspect staging read-only" ]] || { echo "Confirmation text does not match."; exit 1; }
+          else
+            [[ "$EVENT" == "push" ]] || { echo "Unsupported workflow event."; exit 1; }
+          fi
+
+  inspect:
+    name: Read-only Mail inspection on staging
+    needs: guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: staging
+          persist-credentials: false
+
+      - name: Inspect containers and Mail dependencies (no changes)
+        shell: bash
+        env:
+          STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          key="$(mktemp)"; hosts="$(mktemp)"
+          trap 'rm -f "$key" "$hosts"' EXIT
+          printf '%s\n' "$STAGING_SSH_KEY" > "$key"
+          test -s "$key" || { echo "STAGING_SSH_KEY is not set in the existing staging environment."; exit 1; }
+          ssh-keyscan -T 10 -t ed25519 173.249.30.55 2>/dev/null > "$hosts"
+          test -s "$hosts"
+          [[ "$(ssh-keygen -l -E sha256 -f "$hosts" | awk '{print $2}')" == "SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ" ]]
+          remote() {
+            ssh -T -i "$key" -o IdentitiesOnly=yes -o BatchMode=yes \
+              -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$hosts" \
+              cf-staging-deploy@173.249.30.55 "$@"
+          }
+
+          # Containers: names, state and image tag only. A Mail worker is a
+          # separate container running src/mail-worker.js; none is expected yet.
+          remote 'docker ps -a --filter name=admin-server-staging --format "{{.Names}}\t{{.State}}\t{{.Status}}\t{{.Image}}"' > containers.tsv
+          app_running="$(awk -F'\t' '$1=="admin-server-staging-app-1" && $2=="running"' containers.tsv | wc -l)"
+          worker_total="$(awk -F'\t' 'tolower($1) ~ /worker/' containers.tsv | wc -l)"
+          worker_running="$(awk -F'\t' 'tolower($1) ~ /worker/ && $2=="running"' containers.tsv | wc -l)"
+          [[ "$app_running" == "1" ]] || { echo "Staging app container is not running; stopping."; cat containers.tsv; exit 1; }
+
+          # Mail inspection inside the running app container, using the
+          # deployed code and environment. The script prints states, counts and
+          # setting names only (scripts/mail/activation-inspect.js).
+          remote 'timeout 120 docker exec -i -e INSPECT_APP_ROOT=/app -w /app admin-server-staging-app-1 node -' \
+            < services/central-admin-api/scripts/mail/activation-inspect.js > inspection.out
+          line="$(grep -m1 '^MAIL_ACTIVATION_INSPECTION ' inspection.out || true)"
+          if [[ -z "$line" ]]; then
+            echo "Inspection did not produce a report:"; grep -m1 '^MAIL_ACTIVATION_INSPECTION_FAILED ' inspection.out || true; exit 1
+          fi
+          printf '%s\n' "${line#MAIL_ACTIVATION_INSPECTION }" > inspection.json
+          jq --argjson total "$worker_total" --argjson running "$worker_running" \
+            '. + {workers: {containers: $total, running: $running}}' inspection.json > report.json
+
+
+          # Read-only audit after the guarded database cutover stopped at schema comparison.
+          # Compare original CA staging DB against its newly created fresh template clone.
+          # Schema SQL is transient on the Actions runner; only redacted object
+          # names/counts reach the report. No database writes or production reads.
+          schema_tmp="$(mktemp -d)"
+          trap 'rm -f "$key" "$hosts"; rm -rf "$schema_tmp"' EXIT
+          if remote 'docker exec admin-server-staging-db-1 sh -c '\''exec pg_dump -U "$POSTGRES_USER" --schema-only --no-owner --no-acl -d rtc_db_staging'\''' > "$schema_tmp/original.sql" &&
+             remote 'docker exec admin-server-staging-db-1 sh -c '\''exec pg_dump -U "$POSTGRES_USER" --schema-only --no-owner --no-acl -d cosmicforge_admin'\''' > "$schema_tmp/restore.sql"; then
+            if ! python3 .github/scripts/staging-db-schema-diff-summary.py \
+              "$schema_tmp/original.sql" "$schema_tmp/restore.sql" > schema-diff.json; then
+              echo "Schema diagnostic failed closed; no database changes."
+            fi
+          else
+            printf '%s\n' '{"error":"SCHEMA_DUMP_FAILED","safe_to_cutover":false}' > schema-diff.json
+            echo "One of the staging schema sources could not be read; no database changes."
+          fi
+
+
+          # Verify the CA staging app remained connected and able to query its
+          # original database after the failed cutover rollback. Nothing writes.
+          if remote 'timeout 35 docker exec -w /app admin-server-staging-app-1 node -e '\''const {prisma}=require("./src/shared/config/database"); const u=new URL(process.env.DATABASE_URL); if(decodeURIComponent(u.pathname.slice(1))!=="rtc_db_staging")process.exit(2); prisma.adminUser.count().then(()=>console.log("STAGING_APP_ORIGINAL_DB_OK")).catch(()=>{console.log("STAGING_APP_ORIGINAL_DB_ERROR");process.exitCode=1}).finally(()=>prisma.$disconnect())'\''' > app-db-check.out; then
+            printf '%s\n' '{"onOriginalDatabase":true,"adminPrismaQueryOk":true}' > app-db-check.json
+          else
+            printf '%s\n' '{"onOriginalDatabase":false,"adminPrismaQueryOk":false}' > app-db-check.json
+            echo "WARNING: Staging Admin app failed original DB query; manual recovery inspection required."
+          fi
+
+      - name: Summarise
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s report.json || exit 0
+          {
+            echo "## Staging Mail inspection (read-only)"
+            echo
+            echo "| Check | Result |"
+            echo "|---|---|"
+            jq -r '
+              "| All Mail flags off | \(.allMailFlagsOff) |",
+              "| Effective (enabled/sending/receiving/worker) | \(.effective.enabled)/\(.effective.sending)/\(.effective.receiving)/\(.effective.worker) |",
+              "| Mail worker containers (running/total) | \(.workers.running)/\(.workers.containers) |",
+              "| Database is cosmicforge_admin / session read-only | \(.database.isAdminDatabase)/\(.database.sessionReadOnly) |",
+              "| Mail schema core / 35 / 36 / 37 complete | \(.database.mailSchema.core.complete)/\(.database.mailSchema.gapClosure35.complete)/\(.database.mailSchema.preferences36.complete)/\(.database.mailSchema.finalGap37.complete) |",
+              "| Ledger applied / manifest; checksum mismatches | \(.database.ledger.appliedCount)/\(.database.ledger.manifestMigrations); \(.database.ledger.checksumMismatches | length) |",
+              "| Ledger has Mail orders 27-37 | \(.database.ledger.mailOrders27to37Applied) |",
+              "| Encryption keyring entries (wrapped) / active key in keyring | \(.encryption.keyringEntries) (\(.encryption.wrappedEntries)) / \(.encryption.activeKeyInKeyring) |",
+              "| Storage provider / bucket set / endpoint TCP | \(.storage.provider) / \(.storage.bucketSet) / \(.storage.endpointTcp) |",
+              "| KMS provider / key set / endpoint TCP | \(.kms.provider) / \(.kms.keyIdSet) / \(.kms.endpointTcp) |",
+              "| Scanner provider / clamd PING | \(.scanner.provider) / \(.scanner.health) |",
+              "| Resend key / webhook secret present | \(.providerKeyPresent) / \(.secretsPresent.RESEND_WEBHOOK_SECRET) |",
+              "| Config violations now / if activated | \(.currentViolations | length) / \(.activationViolations | length) |"' report.json
+            echo
+            echo "**Blockers before activation:**"
+            jq -r 'if (.blockers | length) == 0 then "- none" else .blockers[] | "- \(.)" end' report.json
+            echo
+            echo "**Violations if activated:**"
+            jq -r 'if (.activationViolations | length) == 0 then "- none" else .activationViolations[] | "- \(.)" end' report.json
+            echo
+            echo "## Staging CA schema restore diagnostic"
+            echo "Read-only comparison of legacy CA staging database and the fresh template-clone database."
+            if [[ -s app-db-check.json ]]; then
+              jq -r '"- Application on original database: \(.onOriginalDatabase)", "- Admin Prisma query OK: \(.adminPrismaQueryOk)"' app-db-check.json
+            fi
+            if [[ -s schema-diff.json ]]; then
+              jq -r 'if .error then "- Comparison unavailable: \(.error) — cutover blocked" else
+                "- Schema object counts original/restored: \(.source_object_count)/\(.restored_object_count)",
+                "- Normalized schema equal: \(.schema_semantically_equal)",
+                "- Added/missing/changed: \(.diff_counts.added_in_restore)/\(.diff_counts.missing_from_restore)/\(.diff_counts.definition_differs)",
+                "- Cutover authorized: NO (diagnostic only)",
+                (.differing_objects[]? | "  - \(.kind): \(.object)") end' schema-diff.json
+            else
+              echo "- No comparison report; cutover blocked."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the report for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-mail-inspection
+          path: |
+            report.json
+            schema-diff.json
+            app-db-check.json
+            containers.tsv
+          if-no-files-found: ignore
+          retention-days: 14

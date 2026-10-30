@@ -1,0 +1,14 @@
+.git
+.github
+docs
+apps
+modules
+packages
+infrastructure
+**/node_modules
+**/.next
+**/coverage
+**/artifacts
+**/.env
+**/.env.*
+!**/.env.example

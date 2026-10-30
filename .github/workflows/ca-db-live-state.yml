@@ -1,0 +1,124 @@
+name: CA DB isolation live state (read-only)
+
+# READ-ONLY. Establishes the current state of the CA database isolation for
+# issue #28 through the existing restricted staging SSH identity
+# (cf-staging-deploy): whether the interrupted root migration process still
+# exists or holds its lock, which database each CA app runs on, staging health
+# and a synthetic (non-existent account) login. It changes nothing: no restart,
+# no write, no `docker exec` into production. Output is names, counts,
+# booleans and HTTP status codes only.
+
+on:
+  push:
+    branches: [staging]
+    paths:
+      - .github/workflows/ca-db-live-state.yml
+      - .github/scripts/ca-db-live-state.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ca-db-live-state
+  cancel-in-progress: false
+
+jobs:
+  state:
+    name: Live state (read-only)
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Read the live state on the VPS (restricted staging account)
+        shell: bash
+        env:
+          STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          key="$(mktemp)"; hosts="$(mktemp)"
+          trap 'rm -f "$key" "$hosts"' EXIT
+          printf '%s\n' "$STAGING_SSH_KEY" > "$key"
+          test -s "$key" || { echo "STAGING_SSH_KEY is not set in the staging environment."; exit 1; }
+          ssh-keyscan -T 10 -t ed25519 173.249.30.55 2>/dev/null > "$hosts"
+          test -s "$hosts"
+          [[ "$(ssh-keygen -l -E sha256 -f "$hosts" | awk '{print $2}')" == "SHA256:sHGYhFq6RrV3KXESJX+/+89tEWQaGiSVsdkIXiFR9JQ" ]]
+          ssh -T -i "$key" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            -o "UserKnownHostsFile=$hosts" -o ServerAliveInterval=15 \
+            cf-staging-deploy@173.249.30.55 'timeout 240 python3 -' \
+            < .github/scripts/ca-db-live-state.py > state.out
+          line="$(grep -m1 '^CA_DB_LIVE_STATE ' state.out || true)"
+          [[ -n "$line" ]] || { echo "State check produced no report."; exit 1; }
+          printf '%s\n' "${line#CA_DB_LIVE_STATE }" | jq . > state.json
+
+      - name: Public staging checks (no credentials)
+        shell: bash
+        run: |
+          set -uo pipefail
+          api=https://stagingca.cosmicforge-healthnet.com
+          origin=https://centralize-admin-staging.vercel.app
+          code() { curl -sS --connect-timeout 6 --max-time 15 -o /dev/null -w '%{http_code}' "$@" 2>/dev/null || true; }
+          health="$(code "$api/health")"
+          front="$(code "$origin/")"
+          # Synthetic account under the reserved .invalid TLD: 401 proves the
+          # public login path reaches the app and its database and rejects.
+          login="$(code -X POST -H "Origin: $origin" -H 'Content-Type: application/json' \
+            --data '{"email":"ca-db-synthetic-probe@example.invalid","password":"not-a-real-password"}' \
+            "$api/api/auth/login")"
+          prod_ip="$(getent ahostsv4 api.cosmicforge-healthnet.com | awk 'NR==1{print $1}')"
+          [[ "$prod_ip" == 173.249.30.55 ]] && prod_on_contabo=true || prod_on_contabo=false
+          jq -n --arg h "$health" --arg f "$front" --arg l "$login" --argjson p "$prod_on_contabo" \
+            '{stagingApiHealth:$h, stagingFrontend:$f, stagingSyntheticLogin:$l, productionApiHostnameIsContabo:$p}' > public.json
+          cat public.json
+
+      - name: Summarise
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s state.json || exit 0
+          {
+            echo "## CA DB isolation live state (read-only)"
+            echo
+            jq -r '
+              "| Check | Result |", "|---|---|",
+              "| SSH account / root / passwordless sudo | \(.account) / \(.uidIsRoot) / \(.passwordlessSudo) |",
+              "| Old PID 2330363 alive | \(.oldProcesses["2330363"].alive) |",
+              "| Old PID 2330398 (tee) alive | \(.oldProcesses["2330398"].alive) |",
+              "| Other ca-db-isolation processes | \(.isolationProcesses | length) |",
+              "| Lock file exists / held / by | \(.lock.exists) / \(.lock.held // false) / \(.lock.heldByPids // [] | map(tostring) | join(",")) |",
+              "| Staging app running / runtime DB | \(.staging.app.running) / \(.staging.runtimeDatabase) |",
+              "| Staging app Prisma DB / admin users / health / synthetic login | \(.stagingAppCheck.connected) / \(.stagingAppCheck.adminUsers) / \(.stagingAppCheck.health) / \(.stagingAppCheck.syntheticLoginStatus) |",
+              "| Staging databases | \(.staging.databases // {} | keys | join(", ")) |",
+              "| Production app running / runtime DB | \(.production.app.running) / \(.production.runtimeDatabase) |",
+              "| Production databases | \(.production.databases // {} | keys | join(", ")) |",
+              "| Production social flags (running) | \(.production.socialFlags | to_entries | map("\(.key)=\(.value)") | join(", ")) |",
+              "| Mail flags staging / production (running) | \(.staging.mailFlags | to_entries | map("\(.key)=\(.value)") | join(", ")) / \(.production.mailFlags | to_entries | map("\(.key)=\(.value)") | join(", ")) |",
+              "| Old process parent chain | \(.oldProcessAncestry // [] | map(.cmd) | join(" <- ")) |",
+              "| sshd keepalive settings | \(.sshdSessionKeepalive // {} | to_entries | map("\(.key)=\(.value)") | join(", ")) |",
+              "| Production duplicate .env keys (verdict) | \(.production.envDuplicates.duplicates // {} | to_entries | map("\(.key)×\(.value.definitions)=\(.value.cutoverScriptVerdict)") | join(", ")) |",
+              "| App host ports staging / production | \(.appHostPorts.staging // [] | join(",")) / \(.appHostPorts.production // [] | join(",")) |",
+              "| nginx sites (name -> local port) | \(.nginxSites // [] | map("\(.serverNames | join(" "))->\(.localPorts | join(","))") | join("; ")) |"' state.json
+            if test -s public.json; then
+              jq -r '"| Public staging health / frontend / synthetic login | \(.stagingApiHealth) / \(.stagingFrontend) / \(.stagingSyntheticLogin) |",
+                     "| api.cosmicforge-healthnet.com resolves to Contabo | \(.productionApiHostnameIsContabo) |"' public.json
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ca-db-live-state
+          path: |
+            state.json
+            public.json
+          if-no-files-found: ignore
+          retention-days: 30

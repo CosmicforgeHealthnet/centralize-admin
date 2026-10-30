@@ -1,0 +1,87 @@
+"use strict";
+
+// One implementation of "this person no longer wants marketing from this
+// brand", used by the unsubscribe link, the preference page, provider
+// unsubscribe events and complaints. Always brand-scoped. Effects (in one
+// transaction):
+// - consent(s) for the brand -> WITHDRAWN (one topic, or all topics);
+// - all-topic withdrawals add an active brand suppression (UNSUBSCRIBED or
+//   COMPLAINED) and set the contact status;
+// - active automation enrollments for the contact exit (UNSUBSCRIBED);
+// - broadcast recipients not yet handed to the provider become UNSUBSCRIBED.
+// Mail already accepted by the provider cannot be recalled.
+
+const NOT_YET_SENT = ["PENDING", "SYNCED"];
+
+async function enforceWithdrawal(tx, { organizationId, contactId = null, email = null, topic = null, reason = "UNSUBSCRIBED", source, now = new Date() }) {
+  const contact = contactId
+    ? await tx.marketingContact.findUnique({ where: { id: contactId } })
+    : email
+      ? await tx.marketingContact.findUnique({ where: { organizationId_email: { organizationId, email: String(email).toLowerCase() } } })
+      : null;
+  if (contact && contact.organizationId !== organizationId) return { applied: false, reason: "CROSS_BRAND" };
+  const address = contact?.email || (email ? String(email).toLowerCase() : null);
+  if (!address) return { applied: false, reason: "UNKNOWN_CONTACT" };
+  const allTopics = !topic || topic === "*";
+  let withdrawn = 0;
+  if (contact) {
+    const result = await tx.marketingConsent.updateMany({
+      where: { contactId: contact.id, organizationId, status: { not: "WITHDRAWN" }, ...(allTopics ? {} : { topic }) },
+      data: { status: "WITHDRAWN", withdrawnAt: now, withdrawalSource: String(source).slice(0, 64), confirmationTokenHash: null },
+    });
+    withdrawn = result.count;
+  }
+  let suppressionCreated = false;
+  if (allTopics || reason === "COMPLAINED") {
+    const suppressionReason = reason === "COMPLAINED" ? "COMPLAINED" : reason === "BOUNCED" ? "BOUNCED" : "UNSUBSCRIBED";
+    // One active suppression per brand and address (UQ_marketing_email_suppressions_active):
+    // an existing one is kept, except that a complaint replaces a weaker
+    // reason (a complaint must never become liftable).
+    const active = await tx.marketingSuppression.findFirst({ where: { organizationId, email: address, liftedAt: null } });
+    if (!active) {
+      await tx.marketingSuppression.create({ data: { organizationId, email: address, reason: suppressionReason, source: String(source).slice(0, 64) } });
+      suppressionCreated = true;
+    } else if (suppressionReason === "COMPLAINED" && !["COMPLAINED", "LEGAL"].includes(active.reason)) {
+      await tx.marketingSuppression.update({ where: { id: active.id }, data: { reason: "COMPLAINED", source: String(source).slice(0, 64) } });
+    }
+    if (contact) {
+      const status = suppressionReason === "COMPLAINED" ? "COMPLAINED" : suppressionReason === "BOUNCED" ? "BOUNCED" : "UNSUBSCRIBED";
+      await tx.marketingContact.update({ where: { id: contact.id }, data: { status } });
+    }
+  }
+  let enrollmentsExited = 0;
+  let recipientsStopped = 0;
+  // A single-topic withdrawal is enforced at each automation send step (topic
+  // consent is re-checked there); all-topic withdrawals stop everything now.
+  if (contact && (allTopics || reason === "COMPLAINED")) {
+    const exited = await tx.marketingAutomationEnrollment.updateMany({
+      where: { contactId: contact.id, organizationId, status: { in: ["ACTIVE", "WAITING"] } },
+      data: { status: "EXITED", exitReason: reason === "COMPLAINED" ? "COMPLAINED" : "UNSUBSCRIBED", nextRunAt: null, completedAt: now },
+    });
+    enrollmentsExited = exited.count;
+    {
+      const stopped = await tx.marketingBroadcastRecipient.updateMany({
+        where: { contactId: contact.id, organizationId, status: { in: NOT_YET_SENT }, dispatch: { is: { providerSendAttemptAt: null } } },
+        data: { status: "UNSUBSCRIBED", exclusionReason: reason === "COMPLAINED" ? "COMPLAINED" : "UNSUBSCRIBED" },
+      });
+      recipientsStopped = stopped.count;
+    }
+  }
+  return { applied: true, contactId: contact?.id || null, email: address, withdrawn, suppressionCreated, enrollmentsExited, recipientsStopped };
+}
+
+// Deliverability suppression (hard bounce, provider-side suppression): the
+// address stops receiving this brand's marketing, but consent rows are left
+// untouched - a bounce is not a withdrawal of consent. Lifting the
+// suppression (BOUNCED is liftable) restores eligibility.
+async function suppressAddress(tx, { organizationId, email, reason = "BOUNCED", source, contactStatus = "BOUNCED" }) {
+  const address = email ? String(email).toLowerCase() : null;
+  if (!organizationId || !address) return { applied: false, reason: "UNKNOWN_CONTACT" };
+  // Any active brand suppression already stops mail (one per brand+address).
+  const active = await tx.marketingSuppression.findFirst({ where: { organizationId, email: address, liftedAt: null } });
+  if (!active) await tx.marketingSuppression.create({ data: { organizationId, email: address, reason, source: String(source).slice(0, 64) } });
+  await tx.marketingContact.updateMany({ where: { organizationId, email: address, status: "ACTIVE" }, data: { status: contactStatus } });
+  return { applied: true, suppressionCreated: !active };
+}
+
+module.exports = { enforceWithdrawal, suppressAddress };

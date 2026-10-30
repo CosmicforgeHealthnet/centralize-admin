@@ -1,0 +1,101 @@
+name: CA DB cutover script tests (disposable replica)
+
+# Runs .github/scripts/ca-db-isolation-cutover.sh UNMODIFIED against a
+# disposable replica of the VPS layout on the GitHub runner (real Docker,
+# Compose and PostgreSQL 16). No secrets, no SSH, nothing outside the runner.
+
+on:
+  pull_request:
+    paths:
+      - .github/scripts/ca-db-isolation-cutover.sh
+      - .github/scripts/tests/ca-db-cutover-replica.sh
+      - .github/workflows/ca-db-cutover-test.yml
+      - .github/workflows/ca-db-production-cutover.yml
+      - .github/scripts/ca-mail-staging-ops.sh
+      - .github/scripts/tests/ca-mail-staging-ops-replica.sh
+      - .github/workflows/ca-mail-staging-ops.yml
+      - .github/scripts/ca-production-deploy.sh
+      - .github/scripts/ca-mail-env-install.sh
+      - .github/scripts/ca-host-ops.sh
+      - .github/scripts/tests/ca-release-ops-replica.sh
+      - .github/workflows/production.yml
+      - .github/workflows/ca-mail-env-install.yml
+      - .github/scripts/ca-mail-backup.sh
+      - .github/workflows/ca-mail-backup.yml
+      - .github/workflows/staging.yml
+      - services/central-admin-api/scripts/mail/keyring.js
+      - services/central-admin-api/scripts/mail/verify-restored-content.js
+      - services/central-admin-api/src/modules/mail/security/**
+      - services/central-admin-api/src/modules/mail/storage/**
+      - services/central-admin-api/src/modules/mail/mail.config.js
+      - services/central-admin-api/src/modules/mail/application.js
+  push:
+    branches: [staging]
+    paths:
+      - .github/scripts/ca-db-isolation-cutover.sh
+      - .github/scripts/tests/ca-db-cutover-replica.sh
+      - .github/workflows/ca-db-cutover-test.yml
+      - .github/scripts/ca-mail-staging-ops.sh
+      - .github/scripts/tests/ca-mail-staging-ops-replica.sh
+      - .github/scripts/ca-production-deploy.sh
+      - .github/scripts/ca-mail-env-install.sh
+      - .github/scripts/ca-host-ops.sh
+      - .github/scripts/tests/ca-release-ops-replica.sh
+      - .github/scripts/ca-mail-backup.sh
+      - services/central-admin-api/scripts/mail/keyring.js
+      - services/central-admin-api/scripts/mail/verify-restored-content.js
+      - services/central-admin-api/src/modules/mail/security/**
+      - services/central-admin-api/src/modules/mail/storage/**
+
+permissions:
+  contents: read
+
+jobs:
+  replica:
+    name: Cutover on a disposable replica
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: ShellCheck
+        run: docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:stable -S warning /mnt/.github/scripts/ca-db-isolation-cutover.sh /mnt/.github/scripts/tests/ca-db-cutover-replica.sh /mnt/.github/scripts/ca-mail-staging-ops.sh /mnt/.github/scripts/tests/ca-mail-staging-ops-replica.sh /mnt/.github/scripts/ca-production-deploy.sh /mnt/.github/scripts/ca-mail-env-install.sh /mnt/.github/scripts/ca-host-ops.sh /mnt/.github/scripts/tests/ca-release-ops-replica.sh /mnt/.github/scripts/ca-mail-backup.sh
+      - name: Full run, failures, rollbacks and rerun
+        run: sudo CA_REPLICA_TEST=1 bash .github/scripts/tests/ca-db-cutover-replica.sh run-all
+      - name: Production guards
+        run: sudo CA_REPLICA_TEST=1 bash .github/scripts/tests/ca-db-cutover-replica.sh run-guards
+      - name: Resume after a completed staging switch (production-only, injected failures, lock, duplicates)
+        run: sudo CA_REPLICA_TEST=1 bash .github/scripts/tests/ca-db-cutover-replica.sh run-resume
+
+  mail-ops-replica:
+    name: Staging Mail ops on a disposable replica (migrations 27-37, ClamAV, worker)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Prisma CLI (SQL rendering only)
+        working-directory: services/central-admin-api
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Migrations 27-37, tamper/lock refusals, rerun, ClamAV + worker
+        run: sudo --preserve-env=PATH CA_REPLICA_TEST=1 bash .github/scripts/tests/ca-mail-staging-ops-replica.sh run --with-clamav
+
+  release-ops-replica:
+    name: Production deploy, Mail settings install and env permissions on a disposable replica
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Deploy + rollback + worker sync, settings install + rollback, permissions
+        run: sudo --preserve-env=PATH CA_REPLICA_TEST=1 bash .github/scripts/tests/ca-release-ops-replica.sh run

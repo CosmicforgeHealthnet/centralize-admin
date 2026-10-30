@@ -1,0 +1,36 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "MailObjectsReadWrite",
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
+      "Resource": ["arn:aws:s3:::${MAIL_BUCKET}/mail/*"]
+    },
+    {
+      "Sid": "HealthCheckHeadBucket",
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": "arn:aws:s3:::${MAIL_BUCKET}"
+    },
+    {
+      "Sid": "UnwrapMailDataKeysOnly",
+      "Effect": "Allow",
+      "Action": ["kms:Decrypt"],
+      "Resource": "${MAIL_KMS_KEY_ARN}",
+      "Condition": {
+        "StringEquals": {
+          "kms:EncryptionContext:purpose": "cosmicforge-mail-keyring",
+          "kms:EncryptionContext:environment": "${ENVIRONMENT}"
+        }
+      }
+    },
+    {
+      "Sid": "SseKmsForBucketObjects",
+      "Effect": "Allow",
+      "Action": ["kms:GenerateDataKey", "kms:Decrypt"],
+      "Resource": "${SSE_KMS_KEY_ARN}",
+      "Condition": { "StringEquals": { "kms:ViaService": "s3.${REGION}.amazonaws.com" } }
+    }
+  ]
+}
