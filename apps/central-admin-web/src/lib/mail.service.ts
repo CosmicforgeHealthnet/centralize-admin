@@ -200,7 +200,7 @@ export const setTicketLink = (threadId: string, ticketRef: string | null) =>
   op("putThreadsTicketLink", { threadId }).send<ThreadSummary>({ ticketRef });
 export const fetchActivity = (threadId: string) => op("getThreadsActivity", { threadId }).get<ActivityEvent[]>();
 export const fetchMembers = (mailboxId: string) => op("getMailboxesMembers", { mailboxId }).get<MailboxMember[]>();
-export const addMember = (mailboxId: string, body: { adminUserId: string; role: MembershipRole; canSend: boolean }) =>
+export const addMember = (mailboxId: string, body: { adminUserId: string; role: MembershipRole; canSend: boolean; stepUpId?: string }) =>
   op("postMailboxesMembers", { mailboxId }).send<MailboxMember>(body);
 export const revokeMember = (mailboxId: string, membershipId: string) =>
   op("deleteMailboxesMembersByMembershipId", { mailboxId, membershipId }).send<unknown>();
