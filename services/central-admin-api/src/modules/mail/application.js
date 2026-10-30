@@ -68,6 +68,7 @@ const { createDependencyReadiness } = require("./ops/dependency-readiness");
 const { assessMailSession } = require("./security/session-assessment");
 const { createRuntimeMetrics } = require("./ops/runtime-metrics");
 const { createInboundReconciler } = require("./pipelines/inbound-reconciler");
+const { createDeliveryStatusPoller } = require("./pipelines/delivery-status-poller");
 const { createSharedRateLimiter } = require("./ops/shared-rate-limit");
 const { createMailSchemaReadiness, MAIL_FEATURE_REQUIREMENTS, MAIL_PREFERENCES_REQUIREMENTS, MAIL_FINAL_GAP_REQUIREMENTS } = require("./schema-readiness");
 
@@ -265,6 +266,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
   const readiness = createReadiness({ client, config, ops, health: () => health() });
   const dependencyReadiness = createDependencyReadiness({ config, schema, encryption: resolvedEncryption, storage, scanner: resolvedScanner, provider: resolvedAdapter, jobs, infrastructureViolations, sessionAssessment: () => assessMailSession({ env, config }), clock: () => clock().getTime() });
   const inboundReconciler = createInboundReconciler({ client, config, adapter: resolvedAdapter, jobs, audit, clock });
+  const deliveryStatusPoller = createDeliveryStatusPoller({ client, config, adapter: resolvedAdapter, audit, notifications, features: { finalGap: finalGapFeature }, clock, logger });
 
   function createWorker(options = {}) {
     return createMailWorker({
@@ -289,6 +291,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
         },
         OPS_EVALUATE: ops.processEvaluate,
         RECONCILE_INBOUND: inboundReconciler.process,
+        POLL_DELIVERY_STATUS: deliveryStatusPoller.process,
         MARKETING_TEST_SEND: testSends.process,
         // Gap 2: provider re-subscription retries.
         MARKETING_RESUBSCRIBE: resubscriptions.process,
@@ -317,6 +320,12 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
         if (queues.includes("INBOUND") && config.receivingEnabled && config.reconciliation.enabled && config.inbound?.ownedHere !== false) {
           const bucket = Math.floor(clock().getTime() / (config.reconciliation.inboundIntervalSeconds * 1000));
           await once({ queue: "INBOUND", kind: "RECONCILE_INBOUND", idempotencyKey: `inbound-reconcile:${bucket}`, maxAttempts: 3 });
+        }
+        // Delivery status for a deployment that does not own the webhook: one
+        // provider status poll per interval bucket.
+        if (queues.includes("EVENTS") && config.deliveryPolling?.enabled) {
+          const bucket = Math.floor(clock().getTime() / (config.deliveryPolling.intervalSeconds * 1000));
+          await once({ queue: "EVENTS", kind: "POLL_DELIVERY_STATUS", idempotencyKey: `delivery-poll:${bucket}`, maxAttempts: 3 });
         }
         // M9: one ops evaluation per interval bucket across all EVENTS workers.
         // Gap 5: one storage deletion run per interval bucket, only when work is due.
@@ -367,7 +376,7 @@ function createMailApplication({ client, env = process.env, config = loadMailCon
     finalGapFeature,
     runtime,
     metrics,
-    processors: { inbound, outbound, deliveryEvents, marketingEvents, broadcasts: broadcastProcessor, automations: automationProcessor, retention: retentionProcessor, inboundReconciler },
+    processors: { inbound, outbound, deliveryEvents, marketingEvents, broadcasts: broadcastProcessor, automations: automationProcessor, retention: retentionProcessor, inboundReconciler, deliveryStatusPoller },
     marketingProviders,
     webhookHandler: createResendWebhookHandler({ client, config, jobs, audit, logger, clock: () => clock().getTime(), env, schemaReady: schema.isReady }),
     brandWebhookHandler: createResendWebhookHandler({ client, config, jobs, audit, logger, clock: () => clock().getTime(), env, brandMode: true, schemaReady: schema.isReady }),

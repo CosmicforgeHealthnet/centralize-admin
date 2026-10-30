@@ -68,6 +68,14 @@ function loadMailConfig(env = process.env) {
     testRecipients: testRecipientConfig(env),
     inbound: inboundOwnershipConfig(env),
     providerTags: Object.freeze({ app: "cosmicforge-mail", environment: deploymentEnvironment(env) }),
+    // The single provider webhook points at the inbound owner; the other
+    // deployment's delivery events are acknowledged there and dropped
+    // (cf_env tag). A deployment that sends but does not own the webhook
+    // therefore never hears about delivery. It instead asks the provider for
+    // the status of its own recent sends (GET /emails/{id}) and records it
+    // through the normal delivery-event pipeline. On by default only there;
+    // MAIL_DELIVERY_STATUS_POLLING_ENABLED=true|false overrides.
+    deliveryPolling: deliveryPollingConfig(env, enabled),
     // §18/§19.8: provider-side domain registration (POST /domains) and
     // verification triggers (POST /domains/{id}/verify) from the admin API.
     // Reading verification status never needs it. Never changes DNS.
@@ -421,6 +429,19 @@ function inboundOwnershipConfig(env) {
   return Object.freeze({ activeEnvironment, declared: Boolean(raw), invalid: Boolean(raw) && !activeEnvironment, ownedHere: !raw || activeEnvironment === here });
 }
 
+function deliveryPollingConfig(env, enabled) {
+  const sending = enabled && flag(env.MAIL_SENDING_ENABLED);
+  const inbound = inboundOwnershipConfig(env);
+  const raw = String(env.MAIL_DELIVERY_STATUS_POLLING_ENABLED ?? "").trim();
+  const byDefault = inbound.declared && !inbound.ownedHere;
+  return Object.freeze({
+    enabled: sending && (raw === "" ? byDefault : flag(raw)),
+    intervalSeconds: intInRange(env.MAIL_DELIVERY_STATUS_POLL_INTERVAL_SECONDS, 120, 30, 3600),
+    lookbackHours: intInRange(env.MAIL_DELIVERY_STATUS_POLL_LOOKBACK_HOURS, 72, 1, 168),
+    maxPerRun: intInRange(env.MAIL_DELIVERY_STATUS_POLL_MAX_PER_RUN, 25, 1, 200),
+  });
+}
+
 const WORKER_LEASE_MARGIN_SECONDS = 30;
 
 function workerLease(env) {
@@ -572,6 +593,7 @@ function publicStatus(config) {
     unknownRecipientPolicy: config.unknownRecipientPolicy,
     reservedSenders: config.reservedSenders.length,
     testRecipientAllowlist: config.testRecipients.active ? config.testRecipients.addresses.length + config.testRecipients.domains.length : 0,
+    deliveryStatusPolling: config.deliveryPolling.enabled,
     inbound: { activeEnvironment: config.inbound.activeEnvironment, ownedHere: config.inbound.ownedHere },
     // GAP 8: mixed-recipient header mode (never the secret).
     mixedRecipients: { mode: config.mixedRecipients.mode, requestedMode: config.mixedRecipients.requestedMode, refusedReason: config.mixedRecipients.refusedReason },

@@ -15,22 +15,21 @@ and `RESEND_*` keys are accepted, and `*_ENABLED` switches go in the visible `fl
 of the install workflow. Storage, key and scanner settings are **not** in these secrets:
 `storage-setup` installs them.
 
+Staging needs only one value of its own, because its other settings are not
+secret and live in the committed profile `infrastructure/mail/env/staging.env`
+(deployment `staging`, Resend, `karryam.com`, inbound owned by production,
+public URLs). With `provider_credentials=shared-from-production` the install
+workflow also takes `RESEND_API_KEY` and `RESEND_WEBHOOK_SECRET`, and only those
+two, from `CA_PRODUCTION_MAIL_ENV`: one Resend account and one webhook serve both
+deployments. So the staging secret is just:
+
 ```dotenv
 # CA_STAGING_MAIL_ENV
-MAIL_DEPLOYMENT_ENV=staging
-MAIL_PROVIDER=resend
-MAIL_PROVIDER_ENVIRONMENT_TAG=staging
-RESEND_API_KEY=<CA Resend API key, full access>
-RESEND_WEBHOOK_SECRET=<the same whsec_... as production: the one shared webhook>
-MAIL_DOMAIN_ALLOWLIST=karryam.com
-MAIL_RESERVED_SENDER_ADDRESSES=no-reply@karryam.com
 MAIL_TEST_RECIPIENT_ALLOWLIST=<your Gmail address>,<your Outlook address>
-MAIL_INBOUND_ACTIVE_ENVIRONMENT=production
-MAIL_MIXED_RECIPIENT_MODE=external-only
-MAIL_UNKNOWN_RECIPIENT_POLICY=reject
-MAIL_PUBLIC_API_URL=https://stagingca.cosmicforge-healthnet.com
-MAIL_PUBLIC_APP_URL=https://centralize-admin-staging.vercel.app
 ```
+
+Staging refuses to send without it: every external recipient must be on this
+list. Any line here overrides the profile.
 
 ```dotenv
 # CA_PRODUCTION_MAIL_ENV
@@ -54,6 +53,12 @@ MAIL_PUBLIC_APP_URL=https://centralize-admin.vercel.app
 at production: staging sends, production receives. The app refuses to send without
 `RESEND_WEBHOOK_SECRET`, so staging carries the same secret as production. That is still
 one webhook.
+
+Production acknowledges and drops delivery events for staging's mail (they carry
+`cf_env=staging`). Staging therefore asks Resend for the status of its own recent sends
+(`GET /emails/{id}`) every two minutes and records it like a webhook event, so Sent shows
+Delivered / Bounced / Failed. This polling is on only where the deployment does not own
+the webhook (`MAIL_DELIVERY_STATUS_POLLING_ENABLED` overrides).
 
 ### `CA_STAGING_MAIL_BACKUP_ENV` and `CA_PRODUCTION_MAIL_BACKUP_ENV` (off-host backups)
 
@@ -105,7 +110,7 @@ openssl pkey -in cosmicforge-mail-recovery-production.key -pubout -out productio
 |---|---|
 | `CA Mail staging operations` | `storage-setup` / `storage-check` (self-hosted storage and keys), `services-*` (ClamAV + worker), `migrate-*`, `staging-checks`, `host-audit`. Set `target=production` for production; mutating operations need `APPLY_PRODUCTION_MAIL_CHANGES` (migrations: `APPLY_PRODUCTION_MAIL_MIGRATIONS`) |
 | `CA Mail backups` | `install` (off-host secret) or `install-local`, then nightly backup + weekly restore drill; `run`, `drill`, `status` |
-| `CA Mail settings install` | `target`; `mode=preview`, then `mode=apply` with `confirm=APPLY_MAIL_SETTINGS` / `APPLY_PRODUCTION_MAIL_SETTINGS`; switches in `flags` |
+| `CA Mail settings install` | `target`; `mode=preview`, then `mode=apply` with `confirm=APPLY_MAIL_SETTINGS` / `APPLY_PRODUCTION_MAIL_SETTINGS`; switches in `flags`; staging: `provider_credentials=shared-from-production` |
 | `Production - Build & Push & Deploy` | from `main`: `preflight`, then `deploy` with `confirm=DEPLOY_PRODUCTION` (immutable image, checks, automatic rollback, keeps the Mail storage mounts) |
 
 ## 5. Production order
