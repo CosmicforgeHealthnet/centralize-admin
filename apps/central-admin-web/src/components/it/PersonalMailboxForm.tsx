@@ -60,8 +60,8 @@ export default function PersonalMailboxForm() {
     <section className="rounded-xl border border-border bg-card p-4" aria-labelledby="mail-personal-new-heading">
       <h3 id="mail-personal-new-heading" className="text-[13px] font-semibold">Create personal mailbox</h3>
       <p className="mt-1 text-[11px] text-muted-foreground">
-        Authorized Mail administrators can provision their own or an employee's personal mailbox here.
-        The owner receives exclusive personal-mailbox access; creating one never lets you read an employee's private messages.
+        Authorized Mail administrators can provision their own or an employee&apos;s personal mailbox here.
+        The owner receives exclusive personal-mailbox access; creating one never lets you read an employee&apos;s private messages.
         The action is audited and does not require a separate provisioning approval.
       </p>
 
