@@ -88,6 +88,64 @@ test.describe("IT > Mail Administration", () => {
     expect(api.unmatched.filter((call) => call.includes("/api/mail/"))).toEqual([]);
   });
 
+  test("sole Super Admin directly provisions their personal mailbox without self-approval", async ({ page, api }) => {
+    const SUPER: E2EUser = { ...MAIL_ADMIN, id: "u-super", name: "Super Owner", tier: "SUPER" };
+    const VERIFIED = { ...DOMAIN, status: "VERIFIED", sendingStatus: "VERIFIED" };
+    await signIn(page, SUPER);
+    defaultMocks(api, SUPER, entitlements({ mailboxes: [], canManageDomains: true, canViewAdministration: true }));
+    api
+      .on("GET", `${M}/admin/organizations`, ok([ORG]))
+      .on("GET", `${M}/admin/domains`, ok([VERIFIED]))
+      .on("GET", `${M}/admin/mailboxes`, ok([]))
+      .on("POST", `${M}/admin/mailboxes`, ok({ id: "mb-personal", organizationId: ORG.id, type: "PERSONAL", name: "Super Owner", status: "ACTIVE" }));
+
+    await openMailAdministration(page, api);
+    await page.getByRole("tab", { name: "Shared mailboxes" }).click();
+    const form = page.locator("section[aria-labelledby=mail-personal-new-heading]");
+    await expect(form.getByText("My account", { exact: true })).toBeVisible();
+    await form.getByLabel("Brand").selectOption(ORG.id);
+    await form.getByLabel("Personal email local part").fill("admin");
+    await form.getByLabel("Personal email domain").selectOption(DOMAIN.id);
+    await form.getByRole("button", { name: "Create personal mailbox" }).click();
+
+    await expect.poll(() => api.callsTo("POST", `${M}/admin/mailboxes`).length).toBe(1);
+    expect(api.callsTo("POST", `${M}/admin/mailboxes`)[0].body).toEqual({
+      type: "PERSONAL", ownerAdminUserId: SUPER.id, organizationId: ORG.id,
+      name: SUPER.name, purpose: "GENERAL",
+      address: { domainId: DOMAIN.id, localPart: "admin", displayName: SUPER.name },
+    });
+    await expect(form.getByRole("link", { name: "Open your Mail inbox" })).toBeVisible();
+    expect(api.callsTo("POST", `${M}/provisioning/requests`)).toHaveLength(0);
+    expect(api.callsTo("GET", /\/api\/mail\/v1\/(threads|messages)\//)).toHaveLength(0);
+  });
+
+  test("Mail administrator directly assigns an employee personal mailbox without gaining its contents", async ({ page, api }) => {
+    const STAFF = { id: "u-staff", name: "New Employee", email: "employee@cosmicforge.example", department: "Operations" };
+    await signIn(page, MAIL_ADMIN);
+    defaultMocks(api, MAIL_ADMIN, entitlements({ mailboxes: [], canManageDomains: true, canViewAdministration: true }));
+    api
+      .on("GET", `${M}/admin/organizations`, ok([ORG]))
+      .on("GET", `${M}/admin/domains`, ok([{ ...DOMAIN, status: "VERIFIED" }]))
+      .on("GET", `${M}/admin/mailboxes`, ok([]))
+      .on("GET", `${M}/directory/staff`, ok([STAFF]))
+      .on("POST", `${M}/admin/mailboxes`, ok({ id: "mb-staff", type: "PERSONAL" }));
+
+    await openMailAdministration(page, api);
+    await page.getByRole("tab", { name: "Shared mailboxes" }).click();
+    const form = page.locator("section[aria-labelledby=mail-personal-new-heading]");
+    await form.getByRole("radio", { name: "An employee" }).check();
+    await form.getByRole("combobox", { name: "Search staff by name or email" }).fill("New Employee");
+    await page.getByRole("option", { name: /New Employee/ }).click();
+    await form.getByLabel("Brand").selectOption(ORG.id);
+    await form.getByLabel("Personal email local part").fill("employee");
+    await form.getByLabel("Personal email domain").selectOption(DOMAIN.id);
+    await form.getByRole("button", { name: "Create personal mailbox" }).click();
+    await expect.poll(() => api.callsTo("POST", `${M}/admin/mailboxes`).length).toBe(1);
+    expect(api.callsTo("POST", `${M}/admin/mailboxes`)[0].body.ownerAdminUserId).toBe(STAFF.id);
+    await expect(form.getByText("The employee can now sign in and open Mail.")).toBeVisible();
+    expect(api.callsTo("GET", /\/api\/mail\/v1\/(threads|messages)\//)).toHaveLength(0);
+  });
+
   test("Karryam onboarding: shared mailbox access with MFA approval, then send-as", async ({ page, api }) => {
     await signIn(page, MAIL_ADMIN);
     defaultMocks(api, MAIL_ADMIN, entitlements({ mailboxes: [], canManageDomains: true, canViewAdministration: true }));
