@@ -1,0 +1,9 @@
+{
+  "_comment": "Two separate files for Karryam Admin. KARRYAM_ADMIN_HQ_SERVICE_KEYS_FILE holds the PIC service key(s) (same bytes as the PIC endpoint service_auth key); KARRYAM_ADMIN_DELEGATION_KEYS_FILE holds the PIC product delegation key(s) (same bytes as the PIC endpoint delegation key). Shown together here for reference only.",
+  "hq_service_keys_file": {
+    "pic-karryam-staging-k1": { "service_id": "hq-product-integration-core", "key_b64url": "<same bytes as /run/secrets/pic-karryam-staging-service-key>", "not_after": "<ISO-8601 expiry>" }
+  },
+  "delegation_keys_file": {
+    "pic-karryam-staging-d1": { "key_b64url": "<same bytes as /run/secrets/pic-karryam-staging-delegation-key>", "not_after": "<ISO-8601 expiry>" }
+  }
+}

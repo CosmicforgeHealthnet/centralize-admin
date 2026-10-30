@@ -1,0 +1,49 @@
+# Example only — NOT referenced by any deployment workflow. Shows how the two
+# new services run privately next to the existing Central Admin API on one
+# host. No ports are published: services talk over Unix sockets in a shared
+# directory that only these containers mount.
+services:
+  product-integration-core:
+    image: ghcr.io/cosmicforgehealthnet/product-integration-core:<reviewed-tag>
+    user: "10002:10002"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    environment:
+      PIC_ENABLED: "false"               # enable only after certification
+      PIC_ENVIRONMENT: staging
+      PIC_LISTEN: unix:/run/cosmicforge/pic/product-integration-core.sock
+      PIC_ENDPOINTS_FILE: /run/secrets/pic-endpoints.json
+      PIC_TRUSTED_SIGNERS_FILE: /run/secrets/pic-trusted-signers.json
+      PIC_HQ_DELEGATION_KEYS_FILE: /run/secrets/pic-hq-delegation-keys.json
+      PIC_SYNC_ENABLED: "false"
+    env_file: [/etc/cosmicforge/product-integration-core.env]   # PIC_DATABASE_URL (runtime role)
+    volumes:
+      - pic-socket:/run/cosmicforge/pic
+      - karryam-admin-socket:/run/cosmicforge/karryam:ro
+      - /etc/cosmicforge/secrets/pic:/run/secrets:ro
+    networks: [admin-private]
+
+  karryam-admin:
+    image: ghcr.io/cosmicforgehealthnet/karryam-admin:<reviewed-tag>
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    environment:
+      KARRYAM_ADMIN_ENABLED: "false"     # enable only after certification
+      KARRYAM_ADMIN_LISTEN: unix:/run/cosmicforge/karryam/karryam-admin.sock
+      KARRYAM_BRIDGE_ENABLED: "false"    # requires approved bridge trust enrollment
+    env_file: [/etc/cosmicforge/karryam-admin.env]
+    volumes:
+      - karryam-admin-socket:/run/cosmicforge/karryam
+      - /etc/cosmicforge/secrets/karryam-admin:/run/secrets:ro
+    networks: [admin-private]
+
+volumes:
+  pic-socket: {}
+  karryam-admin-socket: {}
+
+networks:
+  admin-private:
+    internal: true
