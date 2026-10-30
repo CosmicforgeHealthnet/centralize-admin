@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.cosmicforge.internal/product-admin/event-family.v1.json",
+  "title": "CosmicForge Product Admin Protocol event-family.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "family": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+    },
+    "schema_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})$"
+    },
+    "dataset_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+    },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "PUBLIC",
+        "INTERNAL",
+        "CONFIDENTIAL",
+        "RESTRICTED_PII"
+      ]
+    },
+    "projection": {
+      "type": "string",
+      "enum": [
+        "METRIC_OBSERVATION",
+        "NONE"
+      ]
+    },
+    "payload_schema": {
+      "type": "object"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "DEPRECATED",
+        "NOT_CERTIFIED"
+      ]
+    },
+    "sunset_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "version_policy": {
+      "type": "string",
+      "const": "MAJOR_FOR_BREAKING"
+    }
+  },
+  "required": [
+    "family",
+    "schema_id",
+    "schema_version",
+    "dataset_id",
+    "classification",
+    "projection",
+    "payload_schema",
+    "status",
+    "sunset_at",
+    "version_policy"
+  ]
+}

@@ -1,0 +1,3158 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "CosmicForge Universal Product Admin Protocol",
+    "version": "1.0.0",
+    "description": "Product Admin to Headquarters private protocol. Not an alias for any product bridge. Private transport only; never exposed through public ingress."
+  },
+  "paths": {
+    "/internal/product-admin/v1/manifest": {
+      "get": {
+        "operationId": "manifest",
+        "summary": "Signed product manifest",
+        "security": [
+          {
+            "ServiceHmac": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/product-admin/v1/health/live": {
+      "get": {
+        "operationId": "healthLive",
+        "summary": "Process liveness only; never implies upstream readiness",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/product-admin/v1/health/ready": {
+      "get": {
+        "operationId": "healthReady",
+        "summary": "Configuration readiness; upstream certification reported separately",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/product-admin/v1/capabilities": {
+      "get": {
+        "operationId": "capabilities",
+        "summary": "Capability catalog with readiness and blockers",
+        "security": [
+          {
+            "ServiceHmac": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/product-admin/v1/datasets": {
+      "get": {
+        "operationId": "datasets",
+        "summary": "Approved dataset catalog",
+        "security": [
+          {
+            "ServiceHmac": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/product-admin/v1/datasets/{datasetId}/snapshots": {
+      "get": {
+        "operationId": "datasetSnapshots",
+        "summary": "Authoritative bounded dataset snapshot",
+        "security": [
+          {
+            "ServiceHmac": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "datasetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+            }
+          },
+          {
+            "name": "partition_key",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 512
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/product-admin/v1/events": {
+      "get": {
+        "operationId": "events",
+        "summary": "Bounded page of standard events for one partition",
+        "security": [
+          {
+            "ServiceHmac": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "dataset_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+            }
+          },
+          {
+            "name": "partition_key",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+            }
+          },
+          {
+            "name": "after_sequence",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/product-admin/v1/events/ack": {
+      "post": {
+        "operationId": "eventsAck",
+        "summary": "Acknowledge events committed by HQ (sent only after commit)",
+        "security": [
+          {
+            "ServiceHmac": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/events_ack_v1"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/product-admin/v1/sync/status": {
+      "get": {
+        "operationId": "syncStatus",
+        "summary": "Event source and partition head positions",
+        "security": [
+          {
+            "ServiceHmac": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/product-admin/v1/operations/{operationId}": {
+      "get": {
+        "operationId": "operationGet",
+        "summary": "Operation status",
+        "security": [
+          {
+            "ServiceHmac": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "operationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/product-admin/v1/operations": {
+      "post": {
+        "operationId": "operationSubmit",
+        "summary": "Typed command submission; disabled unless certified",
+        "security": [
+          {
+            "ServiceHmac": [],
+            "StaffDelegation": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/operation_command_v1"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/product-admin/v1/audit/{operationId}": {
+      "get": {
+        "operationId": "auditGet",
+        "summary": "Sanitized audit trail for an operation",
+        "security": [
+          {
+            "ServiceHmac": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "operationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Standard response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_envelope_v1"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "scope_v1": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "market": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            },
+            "maxItems": 64,
+            "uniqueItems": true
+          },
+          "organization": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            },
+            "maxItems": 64,
+            "uniqueItems": true
+          },
+          "zone": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            },
+            "maxItems": 64,
+            "uniqueItems": true
+          },
+          "tenant": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            },
+            "maxItems": 64,
+            "uniqueItems": true
+          }
+        },
+        "required": []
+      },
+      "capability_v1": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})$"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "METADATA",
+              "READ",
+              "COMMAND"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "AVAILABLE",
+              "READ_ONLY",
+              "DISABLED",
+              "BLOCKED_POLICY",
+              "BLOCKED_DEPENDENCY",
+              "UNAVAILABLE"
+            ]
+          },
+          "risk": {
+            "type": "string",
+            "enum": [
+              "R0",
+              "R1",
+              "R2",
+              "R3",
+              "R4"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "datasets": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+            },
+            "maxItems": 32,
+            "uniqueItems": true
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+                },
+                "detail": {
+                  "type": "string",
+                  "maxLength": 240
+                }
+              },
+              "required": [
+                "code",
+                "detail"
+              ]
+            },
+            "maxItems": 16,
+            "uniqueItems": true
+          },
+          "requires_recent_mfa": {
+            "type": "boolean"
+          },
+          "requires_independent_approval": {
+            "type": "boolean"
+          },
+          "request_schema": {
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "kind",
+          "state",
+          "risk",
+          "description",
+          "datasets",
+          "blockers",
+          "requires_recent_mfa",
+          "requires_independent_approval",
+          "request_schema"
+        ]
+      },
+      "dataset_v1": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "dataset_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})$"
+          },
+          "schema_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+          },
+          "schema_digest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "privacy_class": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "INTERNAL",
+              "CONFIDENTIAL",
+              "RESTRICTED_PII"
+            ]
+          },
+          "scope_dimensions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "market",
+                "organization",
+                "zone",
+                "tenant"
+              ]
+            },
+            "maxItems": 4,
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "authorized_departments": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,47}$"
+            },
+            "maxItems": 32,
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "semantic_grain": {
+            "type": "string",
+            "enum": [
+              "EVENT",
+              "HOUR",
+              "DAY",
+              "WEEK",
+              "MONTH",
+              "SNAPSHOT"
+            ]
+          },
+          "units": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,31}$"
+            },
+            "maxItems": 16,
+            "uniqueItems": true
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Z]{3}$"
+          },
+          "freshness_target_seconds": {
+            "type": "integer",
+            "minimum": 60,
+            "maximum": 2678400
+          },
+          "lineage": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "source_system": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "source_owner": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "derivation": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              }
+            },
+            "required": [
+              "source_system",
+              "source_owner",
+              "derivation"
+            ]
+          },
+          "allowed_fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]{0,63}$"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "string",
+                    "integer",
+                    "number",
+                    "boolean",
+                    "date-time"
+                  ]
+                },
+                "classification": {
+                  "type": "string",
+                  "enum": [
+                    "PUBLIC",
+                    "INTERNAL",
+                    "CONFIDENTIAL",
+                    "RESTRICTED_PII"
+                  ]
+                },
+                "meaning": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 240
+                },
+                "unit": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                }
+              },
+              "required": [
+                "name",
+                "type",
+                "classification",
+                "meaning",
+                "unit"
+              ]
+            },
+            "maxItems": 64,
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "metric_id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+                },
+                "version": {
+                  "type": "string",
+                  "pattern": "^(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})$"
+                },
+                "definition": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "aggregation": {
+                  "type": "string",
+                  "enum": [
+                    "SUM",
+                    "COUNT",
+                    "AVG",
+                    "RATIO",
+                    "MIN",
+                    "MAX",
+                    "GAUGE"
+                  ]
+                },
+                "grain": {
+                  "type": "string",
+                  "enum": [
+                    "EVENT",
+                    "HOUR",
+                    "DAY",
+                    "WEEK",
+                    "MONTH",
+                    "SNAPSHOT"
+                  ]
+                },
+                "unit": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                },
+                "currency": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^[A-Z]{3}$"
+                }
+              },
+              "required": [
+                "metric_id",
+                "version",
+                "definition",
+                "aggregation",
+                "grain",
+                "unit",
+                "currency"
+              ]
+            },
+            "maxItems": 64,
+            "uniqueItems": true
+          },
+          "retention_days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3650
+          },
+          "readiness": {
+            "type": "string",
+            "enum": [
+              "CERTIFIED_BY_PRODUCT",
+              "PROPOSED",
+              "NOT_CERTIFIED",
+              "BLOCKED"
+            ]
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+                },
+                "detail": {
+                  "type": "string",
+                  "maxLength": 240
+                }
+              },
+              "required": [
+                "code",
+                "detail"
+              ]
+            },
+            "maxItems": 16,
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "dataset_id",
+          "version",
+          "schema_id",
+          "schema_digest",
+          "title",
+          "privacy_class",
+          "scope_dimensions",
+          "authorized_departments",
+          "semantic_grain",
+          "units",
+          "currency",
+          "freshness_target_seconds",
+          "lineage",
+          "allowed_fields",
+          "metrics",
+          "retention_days",
+          "readiness",
+          "blockers"
+        ]
+      },
+      "event_family_v1": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "family": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+          },
+          "schema_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+          },
+          "schema_version": {
+            "type": "string",
+            "pattern": "^(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})$"
+          },
+          "dataset_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "INTERNAL",
+              "CONFIDENTIAL",
+              "RESTRICTED_PII"
+            ]
+          },
+          "projection": {
+            "type": "string",
+            "enum": [
+              "METRIC_OBSERVATION",
+              "NONE"
+            ]
+          },
+          "payload_schema": {
+            "type": "object"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "DEPRECATED",
+              "NOT_CERTIFIED"
+            ]
+          },
+          "sunset_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "version_policy": {
+            "type": "string",
+            "const": "MAJOR_FOR_BREAKING"
+          }
+        },
+        "required": [
+          "family",
+          "schema_id",
+          "schema_version",
+          "dataset_id",
+          "classification",
+          "projection",
+          "payload_schema",
+          "status",
+          "sunset_at",
+          "version_policy"
+        ]
+      },
+      "manifest_v1": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "type": "string",
+            "const": "cosmicforge.product-admin.manifest/v1"
+          },
+          "product_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{1,31}$"
+          },
+          "service_instance_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9.-]{2,63}$"
+          },
+          "environment": {
+            "type": "string",
+            "enum": [
+              "test",
+              "development",
+              "staging",
+              "production"
+            ]
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[\\p{L}\\p{N}][\\p{L}\\p{N} .&'-]*$"
+          },
+          "protocol": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "major": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 99
+              },
+              "minor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 999
+              }
+            },
+            "required": [
+              "major",
+              "minor"
+            ]
+          },
+          "build_sha": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{7,64}$"
+          },
+          "manifest_revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "workload_identity": {
+            "type": "string",
+            "pattern": "^(?:spiffe|cf)://[a-z0-9.-]{1,63}(?:/[A-Za-z0-9._-]{1,63}){1,6}$"
+          },
+          "signing_key_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+                },
+                "version": {
+                  "type": "string",
+                  "pattern": "^(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})$"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "METADATA",
+                    "READ",
+                    "COMMAND"
+                  ]
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "AVAILABLE",
+                    "READ_ONLY",
+                    "DISABLED",
+                    "BLOCKED_POLICY",
+                    "BLOCKED_DEPENDENCY",
+                    "UNAVAILABLE"
+                  ]
+                },
+                "risk": {
+                  "type": "string",
+                  "enum": [
+                    "R0",
+                    "R1",
+                    "R2",
+                    "R3",
+                    "R4"
+                  ]
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 240
+                },
+                "datasets": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+                  },
+                  "maxItems": 32,
+                  "uniqueItems": true
+                },
+                "blockers": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "code": {
+                        "type": "string",
+                        "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+                      },
+                      "detail": {
+                        "type": "string",
+                        "maxLength": 240
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "detail"
+                    ]
+                  },
+                  "maxItems": 16,
+                  "uniqueItems": true
+                },
+                "requires_recent_mfa": {
+                  "type": "boolean"
+                },
+                "requires_independent_approval": {
+                  "type": "boolean"
+                },
+                "request_schema": {
+                  "type": [
+                    "object",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "version",
+                "kind",
+                "state",
+                "risk",
+                "description",
+                "datasets",
+                "blockers",
+                "requires_recent_mfa",
+                "requires_independent_approval",
+                "request_schema"
+              ]
+            },
+            "maxItems": 256
+          },
+          "datasets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "dataset_id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+                },
+                "version": {
+                  "type": "string",
+                  "pattern": "^(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})$"
+                },
+                "schema_id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+                },
+                "schema_digest": {
+                  "type": "string",
+                  "pattern": "^sha256:[0-9a-f]{64}$"
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "privacy_class": {
+                  "type": "string",
+                  "enum": [
+                    "PUBLIC",
+                    "INTERNAL",
+                    "CONFIDENTIAL",
+                    "RESTRICTED_PII"
+                  ]
+                },
+                "scope_dimensions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "market",
+                      "organization",
+                      "zone",
+                      "tenant"
+                    ]
+                  },
+                  "maxItems": 4,
+                  "uniqueItems": true,
+                  "minItems": 1
+                },
+                "authorized_departments": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9-]{1,47}$"
+                  },
+                  "maxItems": 32,
+                  "uniqueItems": true,
+                  "minItems": 1
+                },
+                "semantic_grain": {
+                  "type": "string",
+                  "enum": [
+                    "EVENT",
+                    "HOUR",
+                    "DAY",
+                    "WEEK",
+                    "MONTH",
+                    "SNAPSHOT"
+                  ]
+                },
+                "units": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                  },
+                  "maxItems": 16,
+                  "uniqueItems": true
+                },
+                "currency": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^[A-Z]{3}$"
+                },
+                "freshness_target_seconds": {
+                  "type": "integer",
+                  "minimum": 60,
+                  "maximum": 2678400
+                },
+                "lineage": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "source_system": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 120
+                    },
+                    "source_owner": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 120
+                    },
+                    "derivation": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    }
+                  },
+                  "required": [
+                    "source_system",
+                    "source_owner",
+                    "derivation"
+                  ]
+                },
+                "allowed_fields": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_]{0,63}$"
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "string",
+                          "integer",
+                          "number",
+                          "boolean",
+                          "date-time"
+                        ]
+                      },
+                      "classification": {
+                        "type": "string",
+                        "enum": [
+                          "PUBLIC",
+                          "INTERNAL",
+                          "CONFIDENTIAL",
+                          "RESTRICTED_PII"
+                        ]
+                      },
+                      "meaning": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 240
+                      },
+                      "unit": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "type",
+                      "classification",
+                      "meaning",
+                      "unit"
+                    ]
+                  },
+                  "maxItems": 64,
+                  "uniqueItems": true,
+                  "minItems": 1
+                },
+                "metrics": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "metric_id": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+                      },
+                      "version": {
+                        "type": "string",
+                        "pattern": "^(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})$"
+                      },
+                      "definition": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500
+                      },
+                      "aggregation": {
+                        "type": "string",
+                        "enum": [
+                          "SUM",
+                          "COUNT",
+                          "AVG",
+                          "RATIO",
+                          "MIN",
+                          "MAX",
+                          "GAUGE"
+                        ]
+                      },
+                      "grain": {
+                        "type": "string",
+                        "enum": [
+                          "EVENT",
+                          "HOUR",
+                          "DAY",
+                          "WEEK",
+                          "MONTH",
+                          "SNAPSHOT"
+                        ]
+                      },
+                      "unit": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                      },
+                      "currency": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "pattern": "^[A-Z]{3}$"
+                      }
+                    },
+                    "required": [
+                      "metric_id",
+                      "version",
+                      "definition",
+                      "aggregation",
+                      "grain",
+                      "unit",
+                      "currency"
+                    ]
+                  },
+                  "maxItems": 64,
+                  "uniqueItems": true
+                },
+                "retention_days": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 3650
+                },
+                "readiness": {
+                  "type": "string",
+                  "enum": [
+                    "CERTIFIED_BY_PRODUCT",
+                    "PROPOSED",
+                    "NOT_CERTIFIED",
+                    "BLOCKED"
+                  ]
+                },
+                "blockers": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "code": {
+                        "type": "string",
+                        "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+                      },
+                      "detail": {
+                        "type": "string",
+                        "maxLength": 240
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "detail"
+                    ]
+                  },
+                  "maxItems": 16,
+                  "uniqueItems": true
+                }
+              },
+              "required": [
+                "dataset_id",
+                "version",
+                "schema_id",
+                "schema_digest",
+                "title",
+                "privacy_class",
+                "scope_dimensions",
+                "authorized_departments",
+                "semantic_grain",
+                "units",
+                "currency",
+                "freshness_target_seconds",
+                "lineage",
+                "allowed_fields",
+                "metrics",
+                "retention_days",
+                "readiness",
+                "blockers"
+              ]
+            },
+            "maxItems": 128
+          },
+          "event_families": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "family": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+                },
+                "schema_id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+                },
+                "schema_version": {
+                  "type": "string",
+                  "pattern": "^(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})$"
+                },
+                "dataset_id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+                },
+                "classification": {
+                  "type": "string",
+                  "enum": [
+                    "PUBLIC",
+                    "INTERNAL",
+                    "CONFIDENTIAL",
+                    "RESTRICTED_PII"
+                  ]
+                },
+                "projection": {
+                  "type": "string",
+                  "enum": [
+                    "METRIC_OBSERVATION",
+                    "NONE"
+                  ]
+                },
+                "payload_schema": {
+                  "type": "object"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "ACTIVE",
+                    "DEPRECATED",
+                    "NOT_CERTIFIED"
+                  ]
+                },
+                "sunset_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time"
+                },
+                "version_policy": {
+                  "type": "string",
+                  "const": "MAJOR_FOR_BREAKING"
+                }
+              },
+              "required": [
+                "family",
+                "schema_id",
+                "schema_version",
+                "dataset_id",
+                "classification",
+                "projection",
+                "payload_schema",
+                "status",
+                "sunset_at",
+                "version_policy"
+              ]
+            },
+            "maxItems": 128
+          }
+        },
+        "required": [
+          "schema",
+          "product_id",
+          "service_instance_id",
+          "environment",
+          "display_name",
+          "protocol",
+          "build_sha",
+          "manifest_revision",
+          "issued_at",
+          "expires_at",
+          "workload_identity",
+          "signing_key_id",
+          "capabilities",
+          "datasets",
+          "event_families"
+        ]
+      },
+      "signed_manifest_v1": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "manifest": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "schema": {
+                "type": "string",
+                "const": "cosmicforge.product-admin.manifest/v1"
+              },
+              "product_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{1,31}$"
+              },
+              "service_instance_id": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9.-]{2,63}$"
+              },
+              "environment": {
+                "type": "string",
+                "enum": [
+                  "test",
+                  "development",
+                  "staging",
+                  "production"
+                ]
+              },
+              "display_name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[\\p{L}\\p{N}][\\p{L}\\p{N} .&'-]*$"
+              },
+              "protocol": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "major": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 99
+                  },
+                  "minor": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 999
+                  }
+                },
+                "required": [
+                  "major",
+                  "minor"
+                ]
+              },
+              "build_sha": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{7,64}$"
+              },
+              "manifest_revision": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 2147483647
+              },
+              "issued_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "expires_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "workload_identity": {
+                "type": "string",
+                "pattern": "^(?:spiffe|cf)://[a-z0-9.-]{1,63}(?:/[A-Za-z0-9._-]{1,63}){1,6}$"
+              },
+              "signing_key_id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+              },
+              "capabilities": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+                    },
+                    "version": {
+                      "type": "string",
+                      "pattern": "^(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})$"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "METADATA",
+                        "READ",
+                        "COMMAND"
+                      ]
+                    },
+                    "state": {
+                      "type": "string",
+                      "enum": [
+                        "AVAILABLE",
+                        "READ_ONLY",
+                        "DISABLED",
+                        "BLOCKED_POLICY",
+                        "BLOCKED_DEPENDENCY",
+                        "UNAVAILABLE"
+                      ]
+                    },
+                    "risk": {
+                      "type": "string",
+                      "enum": [
+                        "R0",
+                        "R1",
+                        "R2",
+                        "R3",
+                        "R4"
+                      ]
+                    },
+                    "description": {
+                      "type": "string",
+                      "maxLength": 240
+                    },
+                    "datasets": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+                      },
+                      "maxItems": 32,
+                      "uniqueItems": true
+                    },
+                    "blockers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+                          },
+                          "detail": {
+                            "type": "string",
+                            "maxLength": 240
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "detail"
+                        ]
+                      },
+                      "maxItems": 16,
+                      "uniqueItems": true
+                    },
+                    "requires_recent_mfa": {
+                      "type": "boolean"
+                    },
+                    "requires_independent_approval": {
+                      "type": "boolean"
+                    },
+                    "request_schema": {
+                      "type": [
+                        "object",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "version",
+                    "kind",
+                    "state",
+                    "risk",
+                    "description",
+                    "datasets",
+                    "blockers",
+                    "requires_recent_mfa",
+                    "requires_independent_approval",
+                    "request_schema"
+                  ]
+                },
+                "maxItems": 256
+              },
+              "datasets": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "dataset_id": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+                    },
+                    "version": {
+                      "type": "string",
+                      "pattern": "^(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})$"
+                    },
+                    "schema_id": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+                    },
+                    "schema_digest": {
+                      "type": "string",
+                      "pattern": "^sha256:[0-9a-f]{64}$"
+                    },
+                    "title": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 120
+                    },
+                    "privacy_class": {
+                      "type": "string",
+                      "enum": [
+                        "PUBLIC",
+                        "INTERNAL",
+                        "CONFIDENTIAL",
+                        "RESTRICTED_PII"
+                      ]
+                    },
+                    "scope_dimensions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "market",
+                          "organization",
+                          "zone",
+                          "tenant"
+                        ]
+                      },
+                      "maxItems": 4,
+                      "uniqueItems": true,
+                      "minItems": 1
+                    },
+                    "authorized_departments": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9-]{1,47}$"
+                      },
+                      "maxItems": 32,
+                      "uniqueItems": true,
+                      "minItems": 1
+                    },
+                    "semantic_grain": {
+                      "type": "string",
+                      "enum": [
+                        "EVENT",
+                        "HOUR",
+                        "DAY",
+                        "WEEK",
+                        "MONTH",
+                        "SNAPSHOT"
+                      ]
+                    },
+                    "units": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                      },
+                      "maxItems": 16,
+                      "uniqueItems": true
+                    },
+                    "currency": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "pattern": "^[A-Z]{3}$"
+                    },
+                    "freshness_target_seconds": {
+                      "type": "integer",
+                      "minimum": 60,
+                      "maximum": 2678400
+                    },
+                    "lineage": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "source_system": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
+                        },
+                        "source_owner": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
+                        },
+                        "derivation": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 500
+                        }
+                      },
+                      "required": [
+                        "source_system",
+                        "source_owner",
+                        "derivation"
+                      ]
+                    },
+                    "allowed_fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "pattern": "^[a-z][a-z0-9_]{0,63}$"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "string",
+                              "integer",
+                              "number",
+                              "boolean",
+                              "date-time"
+                            ]
+                          },
+                          "classification": {
+                            "type": "string",
+                            "enum": [
+                              "PUBLIC",
+                              "INTERNAL",
+                              "CONFIDENTIAL",
+                              "RESTRICTED_PII"
+                            ]
+                          },
+                          "meaning": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 240
+                          },
+                          "unit": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "type",
+                          "classification",
+                          "meaning",
+                          "unit"
+                        ]
+                      },
+                      "maxItems": 64,
+                      "uniqueItems": true,
+                      "minItems": 1
+                    },
+                    "metrics": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "metric_id": {
+                            "type": "string",
+                            "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+                          },
+                          "version": {
+                            "type": "string",
+                            "pattern": "^(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})$"
+                          },
+                          "definition": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 500
+                          },
+                          "aggregation": {
+                            "type": "string",
+                            "enum": [
+                              "SUM",
+                              "COUNT",
+                              "AVG",
+                              "RATIO",
+                              "MIN",
+                              "MAX",
+                              "GAUGE"
+                            ]
+                          },
+                          "grain": {
+                            "type": "string",
+                            "enum": [
+                              "EVENT",
+                              "HOUR",
+                              "DAY",
+                              "WEEK",
+                              "MONTH",
+                              "SNAPSHOT"
+                            ]
+                          },
+                          "unit": {
+                            "type": "string",
+                            "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                          },
+                          "currency": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "pattern": "^[A-Z]{3}$"
+                          }
+                        },
+                        "required": [
+                          "metric_id",
+                          "version",
+                          "definition",
+                          "aggregation",
+                          "grain",
+                          "unit",
+                          "currency"
+                        ]
+                      },
+                      "maxItems": 64,
+                      "uniqueItems": true
+                    },
+                    "retention_days": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 3650
+                    },
+                    "readiness": {
+                      "type": "string",
+                      "enum": [
+                        "CERTIFIED_BY_PRODUCT",
+                        "PROPOSED",
+                        "NOT_CERTIFIED",
+                        "BLOCKED"
+                      ]
+                    },
+                    "blockers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+                          },
+                          "detail": {
+                            "type": "string",
+                            "maxLength": 240
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "detail"
+                        ]
+                      },
+                      "maxItems": 16,
+                      "uniqueItems": true
+                    }
+                  },
+                  "required": [
+                    "dataset_id",
+                    "version",
+                    "schema_id",
+                    "schema_digest",
+                    "title",
+                    "privacy_class",
+                    "scope_dimensions",
+                    "authorized_departments",
+                    "semantic_grain",
+                    "units",
+                    "currency",
+                    "freshness_target_seconds",
+                    "lineage",
+                    "allowed_fields",
+                    "metrics",
+                    "retention_days",
+                    "readiness",
+                    "blockers"
+                  ]
+                },
+                "maxItems": 128
+              },
+              "event_families": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "family": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+                    },
+                    "schema_id": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+                    },
+                    "schema_version": {
+                      "type": "string",
+                      "pattern": "^(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})$"
+                    },
+                    "dataset_id": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+                    },
+                    "classification": {
+                      "type": "string",
+                      "enum": [
+                        "PUBLIC",
+                        "INTERNAL",
+                        "CONFIDENTIAL",
+                        "RESTRICTED_PII"
+                      ]
+                    },
+                    "projection": {
+                      "type": "string",
+                      "enum": [
+                        "METRIC_OBSERVATION",
+                        "NONE"
+                      ]
+                    },
+                    "payload_schema": {
+                      "type": "object"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ACTIVE",
+                        "DEPRECATED",
+                        "NOT_CERTIFIED"
+                      ]
+                    },
+                    "sunset_at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "version_policy": {
+                      "type": "string",
+                      "const": "MAJOR_FOR_BREAKING"
+                    }
+                  },
+                  "required": [
+                    "family",
+                    "schema_id",
+                    "schema_version",
+                    "dataset_id",
+                    "classification",
+                    "projection",
+                    "payload_schema",
+                    "status",
+                    "sunset_at",
+                    "version_policy"
+                  ]
+                },
+                "maxItems": 128
+              }
+            },
+            "required": [
+              "schema",
+              "product_id",
+              "service_instance_id",
+              "environment",
+              "display_name",
+              "protocol",
+              "build_sha",
+              "manifest_revision",
+              "issued_at",
+              "expires_at",
+              "workload_identity",
+              "signing_key_id",
+              "capabilities",
+              "datasets",
+              "event_families"
+            ]
+          },
+          "signature": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "alg": {
+                "type": "string",
+                "const": "EdDSA"
+              },
+              "kid": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+              },
+              "signed_revision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "signed_digest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]{86}$"
+              }
+            },
+            "required": [
+              "alg",
+              "kid",
+              "signed_revision",
+              "signed_digest",
+              "value"
+            ]
+          }
+        },
+        "required": [
+          "manifest",
+          "signature"
+        ]
+      },
+      "response_envelope_v1": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "contract_version": {
+            "type": "string",
+            "const": "1.0"
+          },
+          "product_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{1,31}$"
+          },
+          "correlation_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{7,127}$"
+          },
+          "as_of": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "freshness": {
+            "type": "string",
+            "enum": [
+              "FRESH",
+              "STALE",
+              "UNKNOWN"
+            ]
+          },
+          "coverage": {
+            "type": "string",
+            "enum": [
+              "COMPLETE",
+              "PARTIAL",
+              "NONE",
+              "UNKNOWN"
+            ]
+          },
+          "result": {},
+          "error": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "UNAUTHENTICATED",
+                  "FORBIDDEN",
+                  "NOT_FOUND",
+                  "METHOD_NOT_ALLOWED",
+                  "CONFLICT",
+                  "PAYLOAD_TOO_LARGE",
+                  "INVALID_REQUEST",
+                  "DISABLED",
+                  "BLOCKED_POLICY",
+                  "UNAVAILABLE",
+                  "CONTRACT_MISMATCH",
+                  "INTERNAL"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+              },
+              "retryable": {
+                "type": "boolean"
+              },
+              "operation_id": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "code",
+              "reason"
+            ]
+          }
+        },
+        "required": [
+          "contract_version",
+          "product_id",
+          "correlation_id",
+          "as_of",
+          "freshness",
+          "coverage",
+          "result",
+          "error"
+        ]
+      },
+      "metric_observation_v1": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "metric_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+          },
+          "definition_version": {
+            "type": "string",
+            "pattern": "^(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})\\.(?:0|[1-9][0-9]{0,3})$"
+          },
+          "window_start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "window_end": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "value": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "value_state": {
+            "type": "string",
+            "enum": [
+              "OBSERVED",
+              "UNAVAILABLE"
+            ]
+          },
+          "unit": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,31}$"
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Z]{3}$"
+          },
+          "coverage": {
+            "type": "string",
+            "enum": [
+              "COMPLETE",
+              "PARTIAL",
+              "NONE",
+              "UNKNOWN"
+            ]
+          },
+          "observed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "metric_id",
+          "definition_version",
+          "window_start",
+          "window_end",
+          "value",
+          "value_state",
+          "unit",
+          "currency",
+          "coverage",
+          "observed_at"
+        ]
+      },
+      "events_ack_v1": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "dataset_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+          },
+          "partition_key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+          },
+          "sequence": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "dataset_id",
+          "partition_key",
+          "sequence"
+        ]
+      },
+      "operation_command_v1": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{15,127}$"
+          },
+          "capability_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+          },
+          "target": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_.-]{1,95}$"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+              },
+              "expected_version": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              }
+            },
+            "required": [
+              "type",
+              "id",
+              "expected_version"
+            ]
+          },
+          "params": {
+            "type": "object"
+          },
+          "reason_code": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+          },
+          "case_reference": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+          },
+          "scope": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "market": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+                },
+                "maxItems": 64,
+                "uniqueItems": true
+              },
+              "organization": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+                },
+                "maxItems": 64,
+                "uniqueItems": true
+              },
+              "zone": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+                },
+                "maxItems": 64,
+                "uniqueItems": true
+              },
+              "tenant": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+                },
+                "maxItems": 64,
+                "uniqueItems": true
+              }
+            },
+            "required": []
+          }
+        },
+        "required": [
+          "command_id",
+          "idempotency_key",
+          "capability_id",
+          "target",
+          "params",
+          "reason_code",
+          "case_reference",
+          "scope"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "ServiceHmac": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-CF-Signature",
+        "description": "cf-svc-v1 HMAC-SHA256 over version, service id, key id, method, request URI, timestamp, nonce and body SHA-256 (see @cosmicforge/service-clients). Sent over private transport (Unix socket or TLS 1.3 mTLS)."
+      },
+      "StaffDelegation": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-CF-Delegation",
+        "description": "Short-lived HS256 delegated staff context bound to the exact request (see @cosmicforge/identity-and-permissions)."
+      }
+    }
+  }
+}

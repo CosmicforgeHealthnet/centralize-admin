@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.cosmicforge.internal/product-admin/response-envelope.v1.json",
+  "title": "CosmicForge Product Admin Protocol response-envelope.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "product_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,31}$"
+    },
+    "correlation_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{7,127}$"
+    },
+    "as_of": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "freshness": {
+      "type": "string",
+      "enum": [
+        "FRESH",
+        "STALE",
+        "UNKNOWN"
+      ]
+    },
+    "coverage": {
+      "type": "string",
+      "enum": [
+        "COMPLETE",
+        "PARTIAL",
+        "NONE",
+        "UNKNOWN"
+      ]
+    },
+    "result": {},
+    "error": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": [
+            "UNAUTHENTICATED",
+            "FORBIDDEN",
+            "NOT_FOUND",
+            "METHOD_NOT_ALLOWED",
+            "CONFLICT",
+            "PAYLOAD_TOO_LARGE",
+            "INVALID_REQUEST",
+            "DISABLED",
+            "BLOCKED_POLICY",
+            "UNAVAILABLE",
+            "CONTRACT_MISMATCH",
+            "INTERNAL"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "code",
+        "reason"
+      ]
+    }
+  },
+  "required": [
+    "contract_version",
+    "product_id",
+    "correlation_id",
+    "as_of",
+    "freshness",
+    "coverage",
+    "result",
+    "error"
+  ]
+}

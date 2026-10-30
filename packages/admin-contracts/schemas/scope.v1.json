@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.cosmicforge.internal/product-admin/scope.v1.json",
+  "title": "CosmicForge Product Admin Protocol scope.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "market": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+      },
+      "maxItems": 64,
+      "uniqueItems": true
+    },
+    "organization": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+      },
+      "maxItems": 64,
+      "uniqueItems": true
+    },
+    "zone": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+      },
+      "maxItems": 64,
+      "uniqueItems": true
+    },
+    "tenant": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+      },
+      "maxItems": 64,
+      "uniqueItems": true
+    }
+  },
+  "required": []
+}
